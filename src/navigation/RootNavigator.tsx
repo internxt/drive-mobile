@@ -24,6 +24,7 @@ import { PhotosContext } from 'src/contexts/Photos';
 import { PermissionStatus } from 'expo-media-library';
 import AuthService from '@internxt-mobile/services/AuthService';
 import { photosLogger } from '@internxt-mobile/services/photos/logger';
+import { TrashScreen } from 'src/screens/common/TrashScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -141,6 +142,7 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
+      <Stack.Screen name="Trash" component={TrashScreen} />
     </Stack.Navigator>
   );
 }

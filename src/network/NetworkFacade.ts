@@ -47,6 +47,8 @@ export function getNetwork(apiUrl: string, creds: NetworkCredentials): NetworkFa
   );
 }
 
+const MINIMUM_SIZE_FOR_ENCRYPTION_PROGRESS = 300 * 1024 * 1024;
+
 export class NetworkFacade {
   private cryptoLib: Crypto;
 
@@ -83,6 +85,7 @@ export class NetworkFacade {
     const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
 
     const fileSize = parseInt((await RNFS.stat(plainFilePath)).size);
+    const shouldEnableEncryptionProgress = fileSize >= MINIMUM_SIZE_FOR_ENCRYPTION_PROGRESS;
 
     const uploadFilePromise = uploadFile(
       this.network,
@@ -91,20 +94,25 @@ export class NetworkFacade {
       mnemonic,
       fileSize,
       async (algorithm, key, iv) => {
-        // TODO: Use real progress passing a callback to the native module
-        const interval = setInterval(() => {
-          currentProgress += 0.05;
-          if (currentProgress <= maxEncryptProgress) {
-            updateProgress(currentProgress);
-          } else {
-            clearInterval(interval);
-          }
-        }, 1000);
+        let interval: number | null = null;
+        if (shouldEnableEncryptionProgress)
+          // TODO: Use real progress passing a callback to the native module
+          interval = setInterval(() => {
+            currentProgress += 0.001;
+            if (currentProgress <= maxEncryptProgress) {
+              updateProgress(currentProgress);
+            } else if (interval !== null) {
+              clearInterval(interval);
+            }
+          }, 100);
 
         await encryptFileFunction(plainFilePath, encryptedFilePath, key as Buffer, iv as Buffer);
         // Clear the encrypt progress
-        clearInterval(interval);
-        updateProgress(maxEncryptProgress);
+        if (interval !== null) {
+          interval !== null && clearInterval(interval);
+          updateProgress(maxEncryptProgress);
+        }
+
         fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
       },
       async (url: string) => {
@@ -115,11 +123,15 @@ export class NetworkFacade {
             'Content-Type': 'application/octet-stream',
           },
           RNFetchBlob.wrap(encryptedFilePath),
-        ).uploadProgress({ interval: 500 }, (bytesSent, totalBytes) => {
+        ).uploadProgress({ interval: 150 }, (bytesSent, totalBytes) => {
           // From 0 to 1
           const uploadProgress = bytesSent / totalBytes;
 
-          updateProgress(maxEncryptProgress + uploadProgress * maxEncryptProgress);
+          if (shouldEnableEncryptionProgress) {
+            updateProgress(maxEncryptProgress + uploadProgress * maxEncryptProgress);
+          } else {
+            updateProgress(uploadProgress);
+          }
         });
 
         return fileHash;
@@ -182,7 +194,7 @@ export class NetworkFacade {
           discretionary: true,
           cacheable: false,
           progressDivider: 5,
-          progressInterval: 350,
+          progressInterval: 150,
           begin: () => {
             params.downloadProgressCallback(0);
           },

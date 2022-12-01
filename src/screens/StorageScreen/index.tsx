@@ -130,7 +130,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
                       </View>
 
                       <View style={tailwind('my-3')}>
-                        <AppProgressBar style={tailwind('h-3')} totalValue={limit} currentValue={usage} />
+                        <AppProgressBar height={12} totalValue={limit} currentValue={usage} />
                       </View>
                     </View>
 

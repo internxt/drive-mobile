@@ -28,11 +28,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
 import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
+import { DriveContextProvider } from './contexts/Drive/Drive.context';
 
 let listenerId: number | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
+  const { user } = useAppSelector((state) => state.auth);
   const { color: whiteColor } = tailwind('text-white');
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const {
@@ -153,9 +155,11 @@ export default function App(): JSX.Element {
           <Portal.Host>
             <View style={tailwind('flex-1')}>
               {isAppInitialized ? (
-                <PhotosContextProvider>
-                  <Navigation />
-                </PhotosContextProvider>
+                <DriveContextProvider rootFolderId={user?.root_folder_id}>
+                  <PhotosContextProvider>
+                    <Navigation />
+                  </PhotosContextProvider>
+                </DriveContextProvider>
               ) : (
                 <View style={tailwind('items-center flex-1 justify-center')}>
                   {loadError ? <Text>{loadError}</Text> : null}

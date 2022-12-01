@@ -11,6 +11,8 @@ import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
@@ -19,6 +21,7 @@ interface CreateFolderModalProps extends BaseModalProps {
 }
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const tailwind = useTailwind();
+  const driveCtx = useDrive();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,8 +37,12 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
 
     drive.folder
       .createFolder(props.currentFolderId, folderName)
-      .then(() => {
-        notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
+      .then((newFolder) => {
+        driveLocalDB.saveFolderContent(newFolder, []).then(() => {
+          driveCtx.loadFolderContent(props.currentFolderId);
+          notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
+        });
+
         props.onFolderCreated();
       })
       .catch((err) => {

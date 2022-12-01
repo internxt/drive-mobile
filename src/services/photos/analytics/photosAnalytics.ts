@@ -33,7 +33,7 @@ export class PhotosAnalytics {
   private analytics: typeof analytics;
 
   private logger = new BaseLogger({
-    enabled: __DEV__,
+    enabled: false,
     tag: 'PHOTOS_ANALYTICS',
   });
   constructor(analytics: AnalyticsService) {

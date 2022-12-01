@@ -33,6 +33,7 @@ import { useNavigation } from '@react-navigation/native';
 import { RootScreenNavigationProp } from '../../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { useDrive } from '@internxt-mobile/hooks/drive';
 
 const colors = {
   primary: '#0066FF',
@@ -46,6 +47,7 @@ const INITIAL_SORT_MODE: SortMode = {
 function MoveItemsModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const driveCtx = useDrive();
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const dispatch = useAppDispatch();
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
@@ -134,26 +136,6 @@ function MoveItemsModal(): JSX.Element {
         destination: destinationFolderContentResponse.id,
         itemMovedAction: () => {
           navigation.push('TabExplorer', { screen: 'Drive' });
-          dispatch(
-            driveThunks.navigateToFolderThunk({
-              parentId: destinationFolderContentResponse.parentId,
-              name: destinationFolderContentResponse.name,
-              id: destinationFolderContentResponse.id,
-              updatedAt: originFolderContentResponse.updatedAt,
-              item: {
-                // TODO organize the Drive item types, we can't extend
-                // from one single type always and expect them to match
-                // the received object
-                thumbnails: [],
-                currentThumbnail: null,
-                name: originFolderContentResponse.name,
-                id: destinationFolderContentResponse.id,
-                parentId: originFolderContentResponse.parentId,
-                updatedAt: originFolderContentResponse.updatedAt,
-                createdAt: originFolderContentResponse.createdAt,
-              },
-            }),
-          );
         },
       }),
     );
@@ -183,9 +165,7 @@ function MoveItemsModal(): JSX.Element {
       // definitions, this is getting confuse
       if (originFolderContentResponse?.id) {
         setTimeout(async () => {
-          await dispatch(
-            driveThunks.getFolderContentThunk({ folderId: originFolderContentResponse.id, ignoreCache: true }),
-          );
+          driveCtx.loadFolderContent(originFolderContentResponse.id);
         }, 500);
       }
     }
@@ -209,7 +189,7 @@ function MoveItemsModal(): JSX.Element {
   const loadDestinationFolderContent = async (folderId: number) => {
     try {
       setSortMode(INITIAL_SORT_MODE);
-      const response = await drive.file.getFolderContent(folderId);
+      const response = await drive.folder.getFolderContent(folderId);
 
       setDestinationFolderContentResponse(response);
     } catch (e) {
@@ -219,7 +199,7 @@ function MoveItemsModal(): JSX.Element {
   const loadOriginFolderContent = async () => {
     try {
       if (originFolderId) {
-        const response = await drive.file.getFolderContent(originFolderId);
+        const response = await drive.folder.getFolderContent(originFolderId);
         setOriginFolderContentResponse(response);
       }
     } catch (e) {

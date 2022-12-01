@@ -13,21 +13,42 @@ import { NotificationType } from '../../../types';
 import CenterModal from '../CenterModal';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import drive from '@internxt-mobile/services/drive';
+import uuid from 'react-native-uuid';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 function RenameModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const driveCtx = useDrive();
+  const { user } = useAppSelector((state) => state.auth);
+
   const { showRenameModal } = useAppSelector((state) => state.ui);
   const { focusedItem } = useAppSelector((state) => state.drive);
-  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const isFolder = !!focusedItem?.parentId;
+  const isFolder = focusedItem?.type ? false : true;
   const onItemRenameSuccess = () => {
-    if (currentFolderId) {
-      dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+    /**
+     * Weird stuff over here
+     *
+     * Looks like updateMetadata endpoint responds
+     * but the file is not renamed yet, so we will
+     * update the item in the DB and will update
+     * the DB with the next network request later
+     * hopefully the drive item will be renamed
+     * already
+     *
+     * NOTE: Drive server returns the updated
+     * item, however the SDK does not return it
+     * Should update the SDK to return it
+     */
+
+    if (driveCtx.currentFolder) {
+      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
     }
+
     notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
     setNewName('');
   };
@@ -45,19 +66,25 @@ function RenameModal(): JSX.Element {
       setIsLoading(true);
 
       if (focusedItem && isFolder) {
-        await dispatch(
-          driveThunks.updateFolderMetadataThunk({
-            folderId: focusedItem.id,
-            metadata: { itemName: newName },
-          }),
+        // TODO: Move to a useCase
+        await drive.folder.updateMetaData(focusedItem.id, {
+          itemName: newName,
+        });
+      } else if (focusedItem?.fileId && user) {
+        await drive.file.updateMetaData(
+          focusedItem.fileId,
+          {
+            itemName: newName,
+          },
+          user.bucket,
+          // Picked from drive-web
+          uuid.v4().toString(),
         );
-      } else {
-        await dispatch(
-          driveThunks.updateFileMetadataThunk({
-            fileId: focusedItem?.fileId as string,
-            metadata: { itemName: newName },
-          }),
-        );
+      }
+
+      // Update the item in the local DB
+      if (focusedItem) {
+        await drive.database.updateItemName(focusedItem?.id, newName);
       }
 
       onItemRenameSuccess();

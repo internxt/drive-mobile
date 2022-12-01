@@ -13,16 +13,19 @@ export interface BackButtonProps {
 export const BackButton: React.FC<BackButtonProps> = (props) => {
   const tailwind = useTailwind();
   const color = tailwind('text-primary').color as string;
+  const iconSize = 26;
   return (
-    <View>
+    <View style={tailwind('flex-1')}>
       <TouchableOpacity
         onPress={props.onPress}
         hitSlop={INCREASED_TOUCH_AREA}
         activeOpacity={0.7}
         style={tailwind('flex flex-row items-center')}
       >
-        <CaretLeft weight="bold" size={26} color={color} />
-        <AppText style={tailwind('text-primary')}>{props.label}</AppText>
+        <CaretLeft size={iconSize} color={color} />
+        <AppText style={tailwind('text-primary')} ellipsizeMode="tail" numberOfLines={1}>
+          {props.label}
+        </AppText>
       </TouchableOpacity>
     </View>
   );

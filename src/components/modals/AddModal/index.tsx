@@ -10,7 +10,6 @@ import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-pi
 import { launchImageLibrary } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
 
-import uploadService, { FileEntry } from '../../../services/UploadService';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import { encryptFilename, isValidFilename } from '../../../helpers';
 import fileSystemService from '../../../services/FileSystemService';
@@ -19,7 +18,7 @@ import { NotificationType, ProgressCallback } from '../../../types';
 import asyncStorage from '../../../services/AsyncStorageService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
-import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
+import { driveActions, driveThunks } from '../../../store/slices/drive';
 import network from '../../../network';
 import notificationsService from '../../../services/NotificationsService';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
@@ -32,14 +31,20 @@ import AppText from '../../AppText';
 import useGetColor from '../../../hooks/useColor';
 import { storageSelectors } from 'src/store/slices/storage';
 import drive from '@internxt-mobile/services/drive';
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { EncryptionVersion, FileEntry } from '@internxt/sdk/dist/drive/storage/types';
+import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const driveCtx = useDrive();
   const dispatch = useAppDispatch();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const { showUploadModal } = useAppSelector((state) => state.ui);
   const { folderContent } = useAppSelector((state) => state.drive);
-  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
+  const { currentFolder } = useDrive();
+
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
@@ -63,8 +68,11 @@ function AddModal(): JSX.Element {
   };
 
   const onFolderCreated = async () => {
+    if (!currentFolder) {
+      throw new Error('No current folder found');
+    }
     setShowCreateFolderModal(false);
-    await dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId, ignoreCache: true }));
+    driveCtx.loadFolderContent(currentFolder.id);
   };
   async function uploadAndroid(
     fileToUpload: UploadingFile,
@@ -129,16 +137,17 @@ function AddModal(): JSX.Element {
     );
 
     const folderId = currentFolderId;
-    const name = encryptFilename(drive.file.removeExtension(fileName), folderId.toString());
+    const plainName = drive.file.removeExtension(fileName);
+    const name = encryptFilename(plainName, folderId.toString());
     const fileEntry: FileEntry = {
-      fileId,
-      file_id: fileId,
       type: fileExtension,
       bucket,
-      size: fileSize as unknown as number,
-      folder_id: folderId.toString(),
+      size: parseInt(fileSize),
+      folder_id: folderId,
       name,
-      encrypt_version: '03-aes',
+      encrypt_version: EncryptionVersion.Aes03,
+      id: fileId,
+      plain_name: plainName,
     };
 
     drive.events.emit({ event: DriveEventKey.UploadCompleted });
@@ -207,6 +216,9 @@ function AddModal(): JSX.Element {
     filesAtSameLevel: { name: string; type: string }[],
     file: DocumentPickerResponse,
   ): UploadingFile {
+    if (!currentFolder) {
+      throw new Error('No current folder found');
+    }
     if (!isValidFilename(file.name)) {
       throw new Error('This file name is not valid');
     }
@@ -221,7 +233,7 @@ function AddModal(): JSX.Element {
         drive.file.getExtensionFromUri(file.name) || '',
       )[2],
       type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
-      parentId: currentFolderId,
+      parentId: currentFolder.id,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
       size: file.size,
@@ -234,6 +246,9 @@ function AddModal(): JSX.Element {
     const filesExcluded: DocumentPickerResponse[] = [];
     const formattedFiles: UploadingFile[] = [];
 
+    if (!currentFolder) {
+      throw new Error('No current folder found');
+    }
     if (!documents.every((file) => isValidFilename(file.name))) {
       throw new Error('Some file names are not valid');
     }
@@ -272,7 +287,7 @@ function AddModal(): JSX.Element {
             drive.file.getExtensionFromUri(fileToUpload.name) || '',
           )[2],
           type: drive.file.getExtensionFromUri(fileToUpload.uri) || '',
-          parentId: currentFolderId,
+          parentId: currentFolder.id,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
           size: fileToUpload.size,
@@ -309,65 +324,46 @@ function AddModal(): JSX.Element {
     }
   }
 
-  function handleUploadFiles() {
-    if (Platform.OS === 'ios') {
-      DocumentPicker.pickMultiple({
+  /**
+   * Upload multiple files
+   */
+  const handleUploadFiles = async () => {
+    try {
+      // 1. Get the files from the picker
+      const pickedFiles = await DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.allFiles],
         copyTo: 'cachesDirectory',
-      })
-        .then((documents) => {
-          documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
-          dispatch(uiActions.setShowUploadFileModal(false));
-          return uploadDocuments(documents);
-        })
-        .then(() => {
-          dispatch(driveThunks.loadUsageThunk());
+      });
 
-          if (currentFolderId) {
-            dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
-          }
-        })
-        .catch((err) => {
-          if (err.message === 'User canceled document picker') {
-            return;
-          }
+      // 2. Add them to the uploader
+      await processFilesFromPicker(pickedFiles);
+      dispatch(driveThunks.loadUsageThunk());
 
-          notificationsService.show({
-            type: NotificationType.Error,
-            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
-          });
-        })
-        .finally(() => {
-          dispatch(uiActions.setShowUploadFileModal(false));
-        });
-    } else {
-      DocumentPicker.pickMultiple({
-        type: [DocumentPicker.types.allFiles],
-        copyTo: 'cachesDirectory',
-      })
-        .then(processFilesFromPicker)
-        .then(() => {
-          dispatch(driveThunks.loadUsageThunk());
+      // 3. Refresh the current folder
+      if (currentFolder) {
+        driveCtx.loadFolderContent(currentFolder.id);
+      }
+    } catch (err) {
+      const error = err as Error;
+      if (error.message === 'User canceled document picker') {
+        return;
+      }
 
-          if (currentFolderId) {
-            dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
-          }
-        })
-        .catch((err) => {
-          if (err.message === 'User canceled document picker') {
-            return;
-          }
-          notificationsService.show({
-            type: NotificationType.Error,
-            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
-          });
-        })
-        .finally(() => {
-          dispatch(uiActions.setShowUploadFileModal(false));
-        });
+      errorService.reportError(error);
+
+      notificationsService.show({
+        type: NotificationType.Error,
+        text1: strings.formatString(strings.errors.uploadFile, error.message) as string,
+      });
+    } finally {
+      // 4. Hide the upload modal
+      dispatch(uiActions.setShowUploadFileModal(false));
     }
-  }
+  };
 
+  /**
+   * Upload a photo/video from device gallery
+   */
   async function handleUploadFromCameraRoll() {
     if (Platform.OS === 'ios') {
       const { status } = await requestMediaLibraryPermissionsAsync(false);
@@ -377,7 +373,6 @@ function AddModal(): JSX.Element {
           if (response.errorMessage) {
             return Alert.alert(response.errorMessage);
           }
-
           if (response.assets) {
             const documents: DocumentPickerResponse[] = [];
 
@@ -401,8 +396,8 @@ function AddModal(): JSX.Element {
               .then(() => {
                 dispatch(driveThunks.loadUsageThunk());
 
-                if (currentFolderId) {
-                  dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+                if (currentFolder) {
+                  driveCtx.loadFolderContent(currentFolder.id);
                 }
               })
               .catch((err) => {
@@ -429,8 +424,8 @@ function AddModal(): JSX.Element {
         .then(() => {
           dispatch(driveThunks.loadUsageThunk());
 
-          if (currentFolderId) {
-            dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+          if (currentFolder) {
+            driveCtx.loadFolderContent(currentFolder.id);
           }
         })
         .catch((err) => {
@@ -448,10 +443,16 @@ function AddModal(): JSX.Element {
     }
   }
 
+  /**
+   * Take a Photo and upload it
+   */
   async function handleTakePhotoAndUpload() {
     const { status } = await requestCameraPermissionsAsync();
 
     if (status === 'granted') {
+      if (!currentFolder) {
+        throw new Error('No current folder found');
+      }
       try {
         const result = await launchCameraAsync();
 
@@ -466,7 +467,7 @@ function AddModal(): JSX.Element {
           const file: UploadingFile = {
             id: new Date().getTime(),
             name,
-            parentId: currentFolderId,
+            parentId: currentFolder.id,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
             type: drive.file.getExtensionFromUri(result.uri) as string,
@@ -479,6 +480,7 @@ function AddModal(): JSX.Element {
           dispatch(driveActions.uploadFileStart(file.name));
           dispatch(driveActions.addUploadingFile(file));
           dispatch(uiActions.setShowUploadFileModal(false));
+
           try {
             await uploadFile(file, 'image');
             await uploadSuccess(file);
@@ -490,8 +492,8 @@ function AddModal(): JSX.Element {
             dispatch(driveActions.uploadFileFinished());
             dispatch(driveThunks.loadUsageThunk());
 
-            if (currentFolderId) {
-              dispatch(driveThunks.getFolderContentThunk({ folderId: currentFolderId }));
+            if (currentFolder) {
+              driveCtx.loadFolderContent(currentFolder.id);
             }
           }
         }
@@ -601,13 +603,15 @@ function AddModal(): JSX.Element {
           </View>
         </View>
       </BottomModal>
-      <CreateFolderModal
-        isOpen={showCreateFolderModal}
-        currentFolderId={currentFolderId}
-        onClose={onCloseCreateFolderModal}
-        onCancel={onCancelCreateFolderModal}
-        onFolderCreated={onFolderCreated}
-      />
+      {currentFolder ? (
+        <CreateFolderModal
+          isOpen={showCreateFolderModal}
+          currentFolderId={currentFolder.id}
+          onClose={onCloseCreateFolderModal}
+          onCancel={onCancelCreateFolderModal}
+          onFolderCreated={onFolderCreated}
+        />
+      ) : null}
     </>
   );
 }

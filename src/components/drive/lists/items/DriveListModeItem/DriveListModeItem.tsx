@@ -1,53 +1,41 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
+import { View, Text, TouchableOpacity, TouchableHighlight } from 'react-native';
 
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import prettysize from 'prettysize';
-import { useAppSelector } from '../../../../../store/hooks';
 import { ArrowCircleUp, DotsThree, Link } from 'phosphor-react-native';
 import strings from '../../../../../../assets/lang/strings';
 import ProgressBar from '../../../../AppProgressBar';
 import { items } from '@internxt/lib';
 import AppText from '../../../../AppText';
 
-import { DriveItemProps, DriveListType } from '../../../../../types/drive';
-import useDriveItem from '../../../../../hooks/useDriveItem';
+import { DriveItemProps, DriveItemStatus, DriveListType } from '../../../../../types/drive';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../../hooks/useColor';
 import { time } from '@internxt-mobile/services/common/time';
-import { driveActions, driveSelectors } from 'src/store/slices/drive';
 
 export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { selectedItems } = useAppSelector((state) => state.drive);
-  const isSelectionMode = selectedItems.length > 0;
-  const spinValue = new Animated.Value(1);
+
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
-  const { isFolder, isIdle, isUploading, isDownloading, onItemPressed, onItemLongPressed, onActionsButtonPressed } =
-    useDriveItem({ ...props, isSharedLinkItem: props.type === DriveListType.Shared });
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(spinValue, {
-        toValue: 0,
-        duration: 800,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, []);
+  const isFolder = !props.data.type || props.data.type === 'folder';
+  const isIdle = props.status === DriveItemStatus.Idle;
+  const isUploading = props.status === DriveItemStatus.Uploading;
+  const isDownloading = props.status === DriveItemStatus.Downloading;
 
   const getUpdatedAt = () => {
     return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime);
   };
+
+  const progress = props.progress;
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
       underlayColor={getColor('text-neutral-20')}
-      onLongPress={props.onActionsPress || onItemLongPressed}
-      onPress={props.onPress || onItemPressed}
+      onLongPress={props.onActionsPress}
+      onPress={props.onPress}
     >
       <View style={[tailwind('flex-row pl-5')]}>
         <View style={[tailwind('flex-row flex-1 py-3')]}>
@@ -78,28 +66,27 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
 
           <View style={[tailwind('flex-1 flex items-start justify-center')]}>
             <AppText
-              style={[tailwind('text-left text-base text-neutral-500'), isUploading && tailwind('opacity-40')]}
+              style={[tailwind('text-left text-base text-gray-100'), isUploading && tailwind('opacity-40')]}
               numberOfLines={1}
               ellipsizeMode={'middle'}
-              medium
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
 
             {isUploading &&
-              (props.progress === 0 ? (
-                <Text style={tailwind('text-xs text-blue-60')}>{strings.screens.drive.encrypting}</Text>
+              (progress === 0 ? (
+                <AppText style={tailwind('text-xs text-primary')}>{strings.screens.drive.encrypting}</AppText>
               ) : (
                 <View style={tailwind('flex-row items-center')}>
                   <ArrowCircleUp weight="fill" color={getColor('text-blue-60')} size={16} />
                   <AppText style={tailwind('ml-1.5 text-xs text-blue-60')}>
-                    {((props.progress || 0) * 100).toFixed(0) + '%'}
+                    {((progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
                   <ProgressBar
                     style={tailwind('flex-grow h-1 ml-1.5')}
                     progressStyle={tailwind('h-1')}
                     totalValue={1}
-                    currentValue={props.progress || 0}
+                    currentValue={progress || 0}
                   />
                 </View>
               ))}
@@ -122,9 +109,9 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
 
         <TouchableOpacity
           disabled={isUploading || isDownloading}
-          style={isSelectionMode && tailwind('hidden')}
-          onPress={props.onActionsPress || onActionsButtonPressed}
-          onLongPress={props.onActionsPress || onActionsButtonPressed}
+          style={props.isSelected && tailwind('hidden')}
+          onPress={props.onActionsPress}
+          onLongPress={props.onActionsPress}
         >
           <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
             <DotsThree weight="bold" size={22} color={getColor('text-neutral-60')} />

@@ -1,5 +1,10 @@
 import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
-import { DriveFileData, DriveFolderData, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  DriveFileData,
+  DriveFolderData,
+  FetchFolderContentResponse,
+  Thumbnail,
+} from '@internxt/sdk/dist/drive/storage/types';
 
 const GB = 1024 * 1024 * 1024;
 export const UPLOAD_FILE_SIZE_LIMIT = 5 * GB;
@@ -27,6 +32,7 @@ export type DriveItemFocused = {
   code?: string;
   token?: string;
   shareId?: string;
+  isFromFolderActions?: boolean;
 } | null;
 
 export interface DriveFolderMetadataPayload {
@@ -94,6 +100,7 @@ export type DriveItemDataProps = Pick<
   size?: string | number;
   type?: string;
   shareId?: string;
+  thumbnail?: DownloadedThumbnail;
 };
 
 export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps; id: string };
@@ -108,6 +115,7 @@ export interface DriveItemProps {
   selectable?: boolean;
   subtitle?: JSX.Element;
   progress?: number;
+  isSelected?: boolean;
   shareLink?: ShareLink;
   onActionsPress?: () => void;
   onPress?: () => void;
@@ -188,4 +196,14 @@ export interface DriveCurrentFolderContent {
   scope: string;
   focusedItem: DriveItemFocused;
   folderContent: DriveItemData[];
+}
+
+export interface FetchFolderContentResponseWithThumbnails extends FetchFolderContentResponse {
+  files: (DriveFileData & { thumbnail?: DownloadedThumbnail })[];
+}
+
+export interface DownloadedThumbnail {
+  width: number;
+  height: number;
+  uri: string;
 }

@@ -3,7 +3,6 @@ import { AppState, AppStateStatus, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 
-import DriveScreen from '../screens/DriveScreen';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import EmptyScreen from '../screens/EmptyScreen';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
@@ -31,6 +30,7 @@ import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '../types';
 import { authThunks } from 'src/store/slices/auth';
 import appService from '@internxt-mobile/services/AppService';
+import { DriveNavigator } from './DriveNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -81,7 +81,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         }}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Drive" component={DriveScreen} />
+        <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Photos" component={PhotosNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Settings" component={SettingsNavigator} />

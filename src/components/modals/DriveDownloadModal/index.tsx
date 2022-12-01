@@ -26,38 +26,29 @@ function DriveDownloadModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const iconSize = 80;
   const { isInitialized, downloadingFile } = useAppSelector((state) => state.drive);
-  const { id: currentFolderId } = useAppSelector(driveSelectors.navigationStackPeek);
   const FileIcon = getFileTypeIcon(downloadingFile?.data.type || '');
   const { isDriveDownloadModalOpen } = useAppSelector((state) => state.ui);
   const onClosed = () => {
     dispatch(uiActions.setIsDriveDownloadModalOpen(false));
   };
+
+  const { downloadProgress, decryptProgress } = downloadingFile || { downloadProgress: 0, decryptProgress: 0 };
+  const currentProgress = downloadProgress * 0.5 + decryptProgress * 0.5;
+  const updatedAtText = (downloadingFile && moment(downloadingFile?.data.updatedAt).format('MMMM DD YYYY')) || '';
+  const isCancelling = downloadingFile?.status === 'cancelling';
+
   const getProgressMessage = () => {
     if (!downloadingFile) {
       return;
     }
 
-    const { downloadProgress, decryptProgress } = downloadingFile;
-    let progressMessage;
-
-    if (downloadProgress < 1) {
-      progressMessage = strings.formatString(
-        strings.screens.drive.downloadingPercent,
-        (downloadProgress * 100).toFixed(0),
-      );
-    } else {
-      progressMessage = strings.formatString(
-        strings.screens.drive.decryptingPercent,
-        (decryptProgress * 100).toFixed(0),
-      );
-    }
+    const progressMessage = strings.formatString(
+      currentProgress < 0.5 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
+      (currentProgress * 100).toFixed(0),
+    );
 
     return progressMessage;
   };
-  const { downloadProgress, decryptProgress } = downloadingFile || { downloadProgress: 0, decryptProgress: 0 };
-  const currentProgress = downloadProgress < 1 ? downloadProgress : decryptProgress;
-  const updatedAtText = (downloadingFile && moment(downloadingFile?.data.updatedAt).format('MMMM DD YYYY')) || '';
-  const isCancelling = downloadingFile?.status === 'cancelling';
   const onCancelButtonPressed = () => {
     dispatch(driveThunks.cancelDownloadThunk());
   };
@@ -132,7 +123,12 @@ function DriveDownloadModal(): JSX.Element {
               {`${prettysize(downloadingFile.data.size, true)} · ${strings.generic.updated} ${updatedAtText}`}
             </AppText>
 
-            <ProgressBar currentValue={currentProgress} totalValue={1} style={tailwind('mt-4 mb-1.5 mx-4')} />
+            <ProgressBar
+              currentValue={currentProgress}
+              totalValue={1}
+              height={6}
+              style={tailwind('mt-4 mb-1.5 mx-4')}
+            />
 
             <AppText style={tailwind('mb-7 text-center text-sm text-blue-60')}>{getProgressMessage()}</AppText>
 

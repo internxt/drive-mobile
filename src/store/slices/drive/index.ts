@@ -8,11 +8,8 @@ import { RootState } from '../..';
 import { uiActions } from '../ui';
 import asyncStorage from '../../../services/AsyncStorageService';
 import strings from '../../../../assets/lang/strings';
-import { getEnvironmentConfig } from '../../../lib/network';
 import notificationsService from '../../../services/NotificationsService';
 import {
-  DriveFileMetadataPayload,
-  DriveFolderMetadataPayload,
   DriveItemData,
   DriveItemStatus,
   DriveListItem,
@@ -112,116 +109,12 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   },
 );
 
-const navigateToFolderThunk = createAsyncThunk<void, DriveNavigationStackItem, { state: RootState }>(
-  'drive/navigateToFolder',
-  async (stackItem, { dispatch }) => {
-    dispatch(driveActions.setFolderContent([]));
-    dispatch(driveActions.pushToNavigationStack(stackItem));
-    dispatch(driveThunks.getFolderContentThunk({ folderId: stackItem.id }));
-  },
-);
-
 const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
   dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
   const recents = await drive.recents.getRecents();
 
   dispatch(driveActions.setRecents(recents));
 });
-
-const getFolderContentThunk = createAsyncThunk<
-  {
-    focusedItem: DriveItemFocused;
-    folderContent: DriveItemData[];
-    ignoreCache?: boolean;
-  },
-  { folderId: number; ignoreCache?: boolean },
-  { state: RootState }
->('drive/getFolderContent', async ({ folderId, ignoreCache }, { dispatch, getState }) => {
-  const { auth, ...state } = getState();
-  if (state.drive.currentFolderId === -1 && auth.user?.root_folder_id) {
-    dispatch(driveActions.setCurrentFolderId(auth.user.root_folder_id));
-  }
-  const folderRecord = await drive.database.getFolderRecord(folderId);
-  const folderContentPromise = drive.file.getFolderContent(folderId);
-  const getFolderContent = async () => {
-    const response = await folderContentPromise;
-    const folders = response.children.map((folder) => ({ ...folder }));
-    const folderContent = _.concat(folders as unknown as DriveItemData[], response.files as DriveItemData[]);
-
-    return { response, folderContent };
-  };
-
-  if (!ignoreCache && folderRecord) {
-    getFolderContent().then(({ response, folderContent }) => {
-      drive.database.saveFolderContent(response, folderContent);
-
-      dispatch(
-        driveActions.setFocusedItem({
-          id: response.id,
-          name: response.name,
-          parentId: response.parentId,
-          updatedAt: response.updatedAt,
-        }),
-      );
-
-      // TODO: Improve Drive navigation, we always assume that
-      // there's only one list of items, which is not true
-      // here we prevent updating the folder content with
-      // a different folder content
-      if (response.id === state.drive.focusedItem?.id) {
-        dispatch(driveActions.setCurrentFolderId(response.id));
-        dispatch(driveActions.setFolderContent(folderContent));
-      }
-    });
-
-    const folderContent = await drive.database.getDriveItems(folderId);
-
-    return {
-      focusedItem: {
-        id: folderRecord.id,
-        name: folderRecord.name,
-        parentId: folderRecord.parent_id,
-        updatedAt: folderRecord.updated_at,
-      },
-      folderContent,
-    };
-  } else {
-    const { response, folderContent } = await getFolderContent();
-
-    await drive.database.saveFolderContent(response, folderContent);
-
-    // TODO: Improve Drive navigation, we always assume that
-    // there's only one list of items, which is not true
-    // here we prevent updating the folder content with
-    // a different folder content
-    if (response.id === state.drive.focusedItem?.id) {
-      dispatch(driveActions.setCurrentFolderId(response.id));
-      dispatch(driveActions.setFolderContent(folderContent));
-    }
-
-    return {
-      focusedItem: {
-        id: response.id,
-        name: response.name,
-        parentId: response.parentId,
-        updatedAt: response.updatedAt,
-      },
-      folderContent,
-    };
-  }
-});
-
-const goBackThunk = createAsyncThunk<void, { folderId: number }, { state: RootState }>(
-  'drive/goBack',
-  async ({ folderId }, { dispatch }) => {
-    dispatch(uiActions.setBackButtonEnabled(false));
-
-    dispatch(getFolderContentThunk({ folderId })).finally(() => {
-      dispatch(driveActions.popFromNavigationStack());
-      dispatch(uiActions.setBackButtonEnabled(true));
-    });
-  },
-);
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
   drive.events.emit({ event: DriveEventKey.CancelDownload });
@@ -359,41 +252,12 @@ const downloadFileThunk = createAsyncThunk<
   },
 );
 
-const updateFileMetadataThunk = createAsyncThunk<
-  void,
-  { fileId: string; metadata: DriveFileMetadataPayload },
-  { state: RootState }
->('drive/updateFileMetadata', async ({ fileId, metadata }, { getState }) => {
-  const { bucketId } = await getEnvironmentConfig();
-  const { focusedItem } = getState().drive;
-  const absolutePath = driveSelectors.absolutePath(getState());
-  const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
-  const itemPath = `${absolutePath}${itemFullName}`;
-
-  return drive.file.updateMetaData(fileId, metadata, bucketId, itemPath);
-});
-
-const updateFolderMetadataThunk = createAsyncThunk<
-  void,
-  { folderId: number; metadata: DriveFolderMetadataPayload },
-  { state: RootState }
->('drive/updateFolderMetadata', async ({ folderId, metadata }, { getState }) => {
-  const { bucketId } = await getEnvironmentConfig();
-  const { focusedItem } = getState().drive;
-  const absolutePath = driveSelectors.absolutePath(getState());
-  const itemFullName = `${metadata.itemName}${focusedItem?.type ? '.' + focusedItem.type : ''}`;
-  const itemPath = `${absolutePath}${itemFullName}`;
-
-  drive.folder.updateMetaData(folderId, metadata, bucketId, itemPath);
-});
-
 const createFolderThunk = createAsyncThunk<
   void,
   { parentFolderId: number; newFolderName: string },
   { state: RootState }
 >('drive/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
   await drive.folder.createFolder(parentFolderId, newFolderName);
-  await dispatch(getFolderContentThunk({ folderId: parentFolderId }));
 });
 
 export interface MoveItemThunkPayload {
@@ -574,29 +438,6 @@ export const driveSlice = createSlice({
       .addCase(initializeThunk.rejected, () => undefined);
 
     builder
-      .addCase(navigateToFolderThunk.pending, () => undefined)
-      .addCase(navigateToFolderThunk.fulfilled, () => undefined)
-      .addCase(navigateToFolderThunk.rejected, () => undefined);
-
-    builder
-      .addCase(getFolderContentThunk.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(getFolderContentThunk.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.folderContent = action.payload.folderContent;
-      })
-      .addCase(getFolderContentThunk.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message;
-      });
-
-    builder
-      .addCase(goBackThunk.pending, () => undefined)
-      .addCase(goBackThunk.fulfilled, () => undefined)
-      .addCase(goBackThunk.rejected, () => undefined);
-
-    builder
       .addCase(downloadFileThunk.pending, (state, action) => {
         state.downloadingFile = {
           data: action.meta.arg,
@@ -607,23 +448,6 @@ export const driveSlice = createSlice({
       })
       .addCase(downloadFileThunk.fulfilled, () => undefined)
       .addCase(downloadFileThunk.rejected, () => undefined);
-
-    builder
-      .addCase(updateFileMetadataThunk.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(updateFileMetadataThunk.fulfilled, () => undefined)
-      .addCase(updateFileMetadataThunk.rejected, () => undefined);
-
-    builder
-      .addCase(updateFolderMetadataThunk.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(updateFolderMetadataThunk.fulfilled, () => undefined)
-      .addCase(updateFolderMetadataThunk.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message;
-      });
 
     builder
       .addCase(createFolderThunk.pending, (state) => {
@@ -718,13 +542,8 @@ export const driveActions = driveSlice.actions;
 
 export const driveThunks = {
   initializeThunk,
-  navigateToFolderThunk,
-  getFolderContentThunk,
-  goBackThunk,
   cancelDownloadThunk,
   downloadFileThunk,
-  updateFileMetadataThunk,
-  updateFolderMetadataThunk,
   createFolderThunk,
   moveItemThunk,
   loadUsageThunk,

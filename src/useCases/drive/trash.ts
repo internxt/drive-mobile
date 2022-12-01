@@ -141,27 +141,33 @@ export const clearTrash = async (): Promise<UseCaseResult<null>> => {
  * Moves items to trash
  */
 export const moveItemsToTrash = async (
-  items: { id: string; type: 'file' | 'folder' }[],
+  items: { id: string; type: 'file' | 'folder'; dbItemId: number }[],
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {
-    await drive.trash.moveToTrash(items);
+    drive.trash
+      .moveToTrash(items)
+      .then(() => {
+        notifications.show({
+          text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
+          type: NotificationType.Success,
+          action: {
+            text: strings.buttons.undo,
+            onActionPress: onUndo,
+          },
+        });
+      })
+      .catch((error) => errorService.reportError(error));
 
     const isPlural = items.length > 1;
-    notifications.show({
-      text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
-      type: NotificationType.Success,
-      action: {
-        text: strings.buttons.undo,
-        onActionPress: onUndo,
-      },
-    });
 
     // Remove the items from the db
     await Promise.all(
       items.map((item) => {
+        // Not sure why to delete the trash item we don't use the id, we use the fileId,
+        // that doesn't match the database ID
         drive.database
-          .deleteItem({ id: parseInt(item.id), isFolder: item.type === 'folder' })
+          .deleteItem({ id: item.dbItemId, isFolder: item.type === 'folder' })
           .catch((error) => errorService.reportError(error));
       }),
     );

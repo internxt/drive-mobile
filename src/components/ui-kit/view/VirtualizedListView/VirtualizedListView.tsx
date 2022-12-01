@@ -12,6 +12,7 @@ export interface VirtualizedListViewProps<T extends ItemWithId> {
   renderRow: (data: T, index: number) => JSX.Element | JSX.Element[] | null;
   renderEmpty?: () => React.ReactNode;
   onRefresh?: () => Promise<unknown>;
+  renderAhead?: number;
 }
 
 export function VirtualizedListView<T extends ItemWithId>(props: VirtualizedListViewProps<T>) {
@@ -68,6 +69,7 @@ export function VirtualizedListView<T extends ItemWithId>(props: VirtualizedList
         renderEmptyView()
       ) : (
         <RecyclerListView
+          renderAheadOffset={props.renderAhead}
           scrollViewProps={{
             contentContainerStyle: props.contentContainerStyle,
           }}
@@ -77,6 +79,7 @@ export function VirtualizedListView<T extends ItemWithId>(props: VirtualizedList
           rowRenderer={renderRow}
           dataProvider={dataProvider}
           onEndReached={handleScrollEnd}
+          onEndReachedThreshold={500}
           layoutProvider={layoutProvider}
         />
       )}

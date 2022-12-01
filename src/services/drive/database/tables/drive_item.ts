@@ -4,7 +4,7 @@ const TABLE_NAME = 'drive_item';
 
 const statements = {
   createTable: `CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (\
-      id INTEGER PRIMARY KEY, \
+      id INTEGER NOT NULL, \
       bucket TEXT, \
       color TEXT, \
       encrypt_version TEXT, \
@@ -53,7 +53,9 @@ const statements = {
     return query;
   },
   deleteFolderContent: `DELETE FROM ${TABLE_NAME} WHERE parent_id = ?;`,
-  deleteItem: `DELETE FROM ${TABLE_NAME} WHERE id = ? AND is_folder = ?;`,
+  deleteItem: `DELETE FROM ${TABLE_NAME} WHERE id = ?;`,
+  updateItem: `UPDATE ${TABLE_NAME} SET name = ? WHERE id = ?;`,
+  getOne: `SELECT * FROM ${TABLE_NAME} WHERE id = ?`,
   get: (options: { parentId: number }): string => {
     const query = `SELECT * FROM ${TABLE_NAME} WHERE parent_id=${options.parentId} ORDER BY is_folder ASC;`;
 

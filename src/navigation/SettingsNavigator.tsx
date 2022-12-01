@@ -1,7 +1,6 @@
 import appService from '@internxt-mobile/services/AppService';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AccountScreen from 'src/screens/AccountScreen';
-import { TrashScreen } from 'src/screens/common/TrashScreen';
 import PlanScreen from 'src/screens/PlanScreen';
 import SecurityScreen from 'src/screens/SecurityScreen';
 import SettingsScreen from 'src/screens/SettingsScreen';
@@ -21,7 +20,6 @@ export const SettingsNavigator = () => {
       <SettingsStack.Screen name="Security" component={SecurityScreen} />
       <SettingsStack.Screen name="Storage" component={StorageScreen} />
       <SettingsStack.Screen name="Plan" component={PlanScreen} />
-      <SettingsStack.Screen name="Trash" component={TrashScreen} />
     </SettingsStack.Navigator>
   );
 };
