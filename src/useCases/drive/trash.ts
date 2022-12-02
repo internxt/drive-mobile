@@ -166,9 +166,7 @@ export const moveItemsToTrash = async (
       items.map((item) => {
         // Not sure why to delete the trash item we don't use the id, we use the fileId,
         // that doesn't match the database ID
-        drive.database
-          .deleteItem({ id: item.dbItemId, isFolder: item.type === 'folder' })
-          .catch((error) => errorService.reportError(error));
+        drive.database.deleteItem({ id: item.dbItemId }).catch((error) => errorService.reportError(error));
       }),
     );
 

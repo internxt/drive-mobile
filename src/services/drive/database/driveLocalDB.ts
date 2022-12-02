@@ -133,7 +133,7 @@ class DriveLocalDB {
     return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [folderId]);
   }
 
-  public async deleteItem({ id }: { id: number; isFolder: boolean }) {
+  public async deleteItem({ id }: { id: number }) {
     const remove = await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [id]);
 
     return remove;
