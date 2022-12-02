@@ -19,6 +19,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - run: echo "registry=https://registry.yarnpkg.com/" > .npmrc
+      - run: echo "@internxt:registry=https://npm.pkg.github.com" >> .npmrc
+      - run: echo //npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
+      - run: echo "always-auth=true" >> .npmrc
+
       - name: Install
         run: yarn
 

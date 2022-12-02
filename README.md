@@ -24,8 +24,8 @@ Follow these steps before running the project.
 
 ### 1. Installation
 
-- Set your npm token as system env variable like export NPM_TOKEN=xxxx
-- Replace `xxxx` with your own [Github Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `read:packages` permission **ONLY**
+- Create a `.npmrc` file from the `.npmrc.template` example provided in the repo.
+- Replace `TOKEN` with your own [Github Personal Access Token](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token) with `read:packages` permission **ONLY**
 - Use `yarn` to install project dependencies.
 
 ### 2. Environment

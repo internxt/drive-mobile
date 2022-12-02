@@ -18,6 +18,7 @@ styles/tailwind.json
 .env.test.json
 .env.production.json
 .env.staging.json
+.npmrc
 google-services.json
 GoogleService-Info.plist
 
