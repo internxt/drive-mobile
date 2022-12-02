@@ -291,7 +291,6 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
 
     await drive.database.deleteItem({
       id: origin.itemId as number,
-      isFolder: isFolder,
     });
 
     const totalMovedItems = 1;

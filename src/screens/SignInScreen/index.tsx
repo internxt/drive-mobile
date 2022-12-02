@@ -90,7 +90,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         return;
       }
       setIsLoading(true);
-      const result = await authService.doLogin(email, password, twoFactorCode);
+      const result = await authService.doLogin(email.toLowerCase(), password, twoFactorCode);
       await dispatch(
         authThunks.signInThunk({ user: result.user, token: result.token, newToken: result.newToken }),
       ).unwrap();
@@ -144,7 +144,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={tailwind('h-full')}>
         <View style={tailwind('h-12')} />
 
-        <View style={[isLoading ? tailwind('opacity-50') : tailwind('opacity-100')]}>
+        <View>
           <View style={tailwind('mb-5')}>
             <AppText medium style={tailwind('text-2xl text-gray-100')}>
               {strings.screens.SignInScreen.title}
