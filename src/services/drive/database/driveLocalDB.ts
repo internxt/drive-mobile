@@ -15,7 +15,6 @@ import sqliteService from '../../SqliteService';
 import { driveLogger, DriveLogger } from '../logger';
 import driveItemTable from './tables/drive_item';
 import folderRecordTable from './tables/folder_record';
-import _ from 'lodash';
 
 export interface DriveRowItem {
   id: number;
@@ -134,7 +133,7 @@ class DriveLocalDB {
     return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [folderId]);
   }
 
-  public async deleteItem({ id, isFolder }: { id: number; isFolder: boolean }) {
+  public async deleteItem({ id }: { id: number; isFolder: boolean }) {
     const remove = await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [id]);
 
     return remove;
@@ -181,6 +180,7 @@ class DriveLocalDB {
         parent_id: row.parent_id,
         user_id: row.user_id,
         plain_name: row.name,
+        deleted: false,
       };
       result = folder;
     } else {

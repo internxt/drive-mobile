@@ -67,7 +67,7 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
     </View>
   );
   return (
-    <BottomModal ignoreSafeAreaBottom header={header} isOpen={props.isOpen} onClosed={props.onClose}>
+    <BottomModal header={header} isOpen={props.isOpen} onClosed={props.onClose}>
       <View>
         {options.map((opt, index) => {
           return (
