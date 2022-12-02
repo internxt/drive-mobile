@@ -90,7 +90,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         return;
       }
       setIsLoading(true);
-      const result = await authService.doLogin(email, password, twoFactorCode);
+      const result = await authService.doLogin(email.toLowerCase(), password, twoFactorCode);
       await dispatch(
         authThunks.signInThunk({ user: result.user, token: result.token, newToken: result.newToken }),
       ).unwrap();
