@@ -53,7 +53,7 @@ class ImageService {
   }: {
     uri: string;
     width: number;
-    height: number;
+    height?: number;
     format: string;
     quality: number;
     rotation?: number;

@@ -18,20 +18,17 @@ export type GeneratedPreview = {
 
 export class PhotosPreviewService {
   private static readonly PREVIEW_WIDTH = 512;
-  private static readonly PREVIEW_HEIGHT = 512;
 
   public async generate(photosItem: PhotosItem): Promise<GeneratedPreview> {
     if (photosItem.type === PhotosItemType.VIDEO) {
       return this.generateVideoThumbnail(photosItem);
     }
     const width = PhotosPreviewService.PREVIEW_WIDTH;
-    const height = PhotosPreviewService.PREVIEW_HEIGHT;
     const resizerFormat = this.getResizerFormat(photosItem.format);
     if (!photosItem.localUri) throw new Error('Unable to find local uri for photo');
     const result = await imageService.resize({
       uri: photosItem.localUri,
       width,
-      height,
       format: resizerFormat,
       quality: 70,
     });
