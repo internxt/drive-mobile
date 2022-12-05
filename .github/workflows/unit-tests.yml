@@ -1,4 +1,4 @@
-name: Mobile - Lint and Unit Tests
+name: Mobile - Unit Tests
 on:
   push:
     branches: ['**']
@@ -29,9 +29,6 @@ jobs:
 
       - name: Prepare env files
         run: yarn run prepare-env
-
-      - name: Lint
-        run: yarn run lint
 
       - name: Test
         run: yarn run test:unit
