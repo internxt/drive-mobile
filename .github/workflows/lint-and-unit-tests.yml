@@ -15,17 +15,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-
+          cache: 'yarn'
       - run: echo "registry=https://registry.yarnpkg.com/" > .npmrc
       - run: echo "@internxt:registry=https://npm.pkg.github.com" >> .npmrc
       - run: echo //npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }} >> .npmrc
       - run: echo "always-auth=true" >> .npmrc
 
       - name: Install
-        run: yarn
+        run: yarn --prefer-offline
 
       - name: Prepare env files
         run: yarn run prepare-env

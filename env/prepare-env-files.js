@@ -18,7 +18,7 @@ const ENVS = {
 const prepareEnvFiles = async () => {
   await Promise.all(
     Object.keys(ENVS).map(async (envKey) => {
-      const filePath = path.join(process.cwd(), 'env_test', `.env.${envKey}.json`);
+      const filePath = path.join(process.cwd(), 'env', `.env.${envKey}.json`);
       await fs.writeFile(filePath, JSON.stringify(ENVS[envKey], null, 2), 'utf-8');
       console.log(`✅ Generated ${filePath} correctly`);
     }),
