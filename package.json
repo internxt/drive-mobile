@@ -13,6 +13,7 @@
     "eject": "expo eject",
     "check-ts": "tsc --noEmit",
     "lint": "yarn run check-ts && eslint src --ext .tsx,.ts",
+    "prepare-env": "node ./env/prepare-env-files.js",
     "lint:fix": "yarn lint --fix",
     "test:unit": "jest",
     "test:unit:watch": "jest --watch",
