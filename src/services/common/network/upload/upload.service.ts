@@ -2,7 +2,7 @@ import network from '../../../../network';
 import { getEnvironmentConfig } from '../../../../lib/network';
 
 import { SdkManager } from '../../sdk';
-import { DriveFileData, FileEntry } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, FileEntry, Thumbnail, ThumbnailEntry } from '@internxt/sdk/dist/drive/storage/types';
 
 export interface FileMeta {
   progress: number;
@@ -46,13 +46,12 @@ class UploadService {
     );
   }
 
-  /**
-   *
-   * @param entry The file data to upload
-   * @returns The created file
-   */
   public async createFileEntry(entry: FileEntry): Promise<DriveFileData> {
     return this.sdk.storage.createFileEntry(entry);
+  }
+
+  public async createThumbnailEntry(entry: ThumbnailEntry): Promise<Thumbnail> {
+    return this.sdk.storage.createThumbnailEntry(entry);
   }
 
   public getFinalUri(fileUri: string, fileType: FileType): string {

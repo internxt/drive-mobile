@@ -194,7 +194,10 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
     this.log(`--- UPLOADING ${name} ---`);
     // 3. Upload the preview
-    const preview = await photosPreview.generate(photoData);
+    const preview = await photosPreview.generate({
+      ...photoData,
+      localUri: localUriToPath,
+    });
     const previewGeneratedElapsed = Date.now() - startAt;
     this.log(`Preview generated in ${previewGeneratedElapsed / 1000}s`);
 

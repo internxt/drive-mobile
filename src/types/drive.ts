@@ -156,7 +156,7 @@ export interface SqliteDriveItemRow {
   created_at: string;
   updated_at: string;
   thumbnails: Array<Thumbnail>;
-  currentThumbnail: Thumbnail | null;
+  plain_name: string;
 }
 
 export interface SqliteDriveFolderRecord {
@@ -184,7 +184,7 @@ export type InsertSqliteDriveItemRowData = Pick<
   | 'type'
   | 'created_at'
   | 'updated_at'
->;
+> & { plain_name: string | null };
 
 export interface DriveNavigableItemProps extends DriveItemProps {
   isLoading?: boolean;
@@ -206,4 +206,14 @@ export interface DownloadedThumbnail {
   width: number;
   height: number;
   uri: string;
+}
+export enum FileExtension {
+  MOV = 'mov',
+  MP4 = 'mp4',
+  AVI = 'avi',
+  JPG = 'jpg',
+  JPEG = 'jpeg',
+  PNG = 'png',
+  HEIC = 'heic',
+  PDF = 'pdf',
 }

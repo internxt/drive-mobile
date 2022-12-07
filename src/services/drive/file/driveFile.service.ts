@@ -241,7 +241,7 @@ class DriveFileService {
       });
     };
     if (await fileSystemService.exists(destination)) {
-      return measureThumbnail(destination);
+      return measureThumbnail(fileSystemService.pathToUri(destination));
     }
     await network.downloadFile(
       thumbnail.bucket_file.toString(),
@@ -265,7 +265,7 @@ class DriveFileService {
       },
     );
 
-    return measureThumbnail(destination);
+    return measureThumbnail(fileSystemService.pathToUri(destination));
   }
 }
 

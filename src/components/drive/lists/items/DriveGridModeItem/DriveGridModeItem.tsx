@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, TouchableHighlight, Animated, Easing, Image, InteractionManager } from 'react-native';
+import { View, TouchableHighlight, Animated, Easing, InteractionManager } from 'react-native';
 
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import { ArrowCircleUp } from 'phosphor-react-native';

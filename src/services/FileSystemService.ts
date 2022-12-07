@@ -6,6 +6,7 @@ import * as FileSystem from 'expo-file-system';
 import prettysize from 'prettysize';
 import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
 import Share from 'react-native-share';
+import uuid from 'react-native-uuid';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -69,8 +70,8 @@ class FileSystemService {
     return RNFS.TemporaryDirectoryPath;
   }
 
-  public tmpFilePath(filename: string) {
-    return this.getTemporaryDir() + filename;
+  public tmpFilePath(filename?: string) {
+    return this.getTemporaryDir() + (filename || uuid.v4());
   }
   public async clearTempDir(): Promise<void> {
     const items = await RNFS.readDir(this.getTemporaryDir());

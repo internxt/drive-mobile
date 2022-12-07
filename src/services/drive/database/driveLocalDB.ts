@@ -200,8 +200,8 @@ class DriveLocalDB {
         type: row.type || '',
         updatedAt: row.updated_at,
         thumbnails: row.thumbnails,
-        currentThumbnail: row.currentThumbnail,
-        plain_name: row.name,
+        plain_name: row.plain_name,
+        currentThumbnail: null,
       };
       result = file;
     }
