@@ -1,6 +1,6 @@
 {
   "name": "drive-mobile",
-  "version": "1.5.22",
+  "version": "1.5.23",
   "private": true,
   "license": "GNU",
   "scripts": {
@@ -133,7 +133,7 @@
     "react-native-swipe-gestures": "^1.0.5",
     "react-native-tcp": "^3.2.1",
     "react-native-toast-message": "^2.1.1",
-    "react-native-udp": "2.1.0",
+    "react-native-udp": "^2.1.0",
     "react-native-uuid": "^2.0.1",
     "react-native-video": "^5.2.1",
     "react-native-web": "0.17.1",

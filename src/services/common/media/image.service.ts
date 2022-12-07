@@ -7,9 +7,9 @@ import notificationsService from '../../NotificationsService';
 import { NotificationType } from '../../../types';
 import { createThumbnail } from 'react-native-create-thumbnail';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
-import { FileExtension } from '@internxt-mobile/types/drive';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
+import { FileExtension } from '@internxt-mobile/types/drive';
 export type GeneratedThumbnail = {
   size: number;
   type: string;
@@ -18,7 +18,6 @@ export type GeneratedThumbnail = {
   path: string;
 };
 
-const MAX_THUMBNAIL_HEIGHT = 512;
 const MAX_THUMBNAIL_WIDTH = 512;
 export type ThumbnailGenerateConfig = {
   outputPath: string;
@@ -165,7 +164,7 @@ class ImageService {
       uri: filePath,
       outputPath: config.outputPath,
       width: config.width || MAX_THUMBNAIL_WIDTH,
-      height: config.height || MAX_THUMBNAIL_HEIGHT,
+      height: config.height,
       format: 'JPEG',
       quality: 80,
     });
@@ -204,38 +203,22 @@ class ImageService {
 
   private async resizeThumbnail(originThumbnail: GeneratedThumbnail): Promise<GeneratedThumbnail> {
     const destination = fileSystemService.tmpFilePath(uuid.v4().toString());
-    const isVertical = originThumbnail.height > originThumbnail.width;
 
-    const shouldResize = originThumbnail.height > MAX_THUMBNAIL_HEIGHT || originThumbnail.width > MAX_THUMBNAIL_WIDTH;
+    const result = await this.resize({
+      uri: originThumbnail.path,
+      width: MAX_THUMBNAIL_WIDTH,
+      quality: 80,
+      format: 'JPEG',
+      outputPath: destination,
+    });
 
-    if (shouldResize) {
-      // Width is MAX_THUMBNAIL_WIDTH if the image is horizontal
-      const newWidth = isVertical
-        ? MAX_THUMBNAIL_HEIGHT * (originThumbnail.width / originThumbnail.height)
-        : MAX_THUMBNAIL_WIDTH;
-      const newHeight = isVertical
-        ? MAX_THUMBNAIL_HEIGHT
-        : MAX_THUMBNAIL_WIDTH * (originThumbnail.height / originThumbnail.width);
-
-      const result = await this.resize({
-        uri: originThumbnail.path,
-        width: newWidth,
-        height: newHeight,
-        quality: 80,
-        format: 'JPEG',
-        outputPath: destination,
-      });
-
-      return {
-        width: result.width,
-        height: result.height,
-        path: result.path,
-        size: result.size,
-        type: 'JPEG',
-      };
-    }
-
-    return originThumbnail;
+    return {
+      width: result.width,
+      height: result.height,
+      path: result.path,
+      size: result.size,
+      type: 'JPEG',
+    };
   }
 }
 
