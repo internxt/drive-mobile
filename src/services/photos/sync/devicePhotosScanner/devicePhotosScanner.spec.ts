@@ -7,7 +7,7 @@ import { PhotosItem } from '@internxt-mobile/types/photos';
 
 jest.mock('expo-media-library');
 
-const mockedGetAssetsAsync = jest.mocked(getAssetsAsync, true);
+const mockedGetAssetsAsync = jest.mocked(getAssetsAsync);
 
 describe('DevicePhotosScanner', () => {
   let subject = new DevicePhotosScannerService();

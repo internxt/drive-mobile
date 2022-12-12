@@ -2,13 +2,12 @@ import { PhotosSyncManager } from '../../../../../src/services/photos/sync/photo
 import { PhotosSyncManagerStatus } from '../../../../../src/types/photos';
 import { getAssetsAsync } from 'expo-media-library';
 import { PhotosNetworkManager } from '../../../../../src/services/photos/network/PhotosNetworkManager';
-import { SdkManagerMock } from '__tests__/unit/mocks/sdkManager';
 import { createDevicePhotoFixture, createPhotoFixture } from '__tests__/unit/fixtures/photos.fixture';
 import { PhotosLocalDB } from '../../database';
 import { DevicePhotosSyncCheckerService } from '../devicePhotosSyncChecker';
 
 jest.mock('expo-media-library');
-const mockedGetAssetsAsync = jest.mocked(getAssetsAsync, true);
+const mockedGetAssetsAsync = jest.mocked(getAssetsAsync);
 
 describe('PhotosSyncManager', () => {
   const initialDbMock = {

@@ -83,8 +83,8 @@ export class NetworkFacade {
     const encryptedFilePath = fileSystemService.tmpFilePath(`${uuid.v4()}.enc`);
 
     const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
-
-    const fileSize = parseInt((await RNFS.stat(plainFilePath)).size);
+    const stat = await RNFS.stat(plainFilePath);
+    const fileSize = stat.size;
     const shouldEnableEncryptionProgress = fileSize >= MINIMUM_SIZE_FOR_ENCRYPTION_PROGRESS;
 
     const uploadFilePromise = uploadFile(
@@ -94,7 +94,7 @@ export class NetworkFacade {
       mnemonic,
       fileSize,
       async (algorithm, key, iv) => {
-        let interval: number | null = null;
+        let interval: NodeJS.Timeout | null = null;
         if (shouldEnableEncryptionProgress)
           // TODO: Use real progress passing a callback to the native module
           interval = setInterval(() => {

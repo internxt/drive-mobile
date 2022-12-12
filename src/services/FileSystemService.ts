@@ -189,22 +189,22 @@ class FileSystemService {
     const photosPreviewsDir = await readDirOrNot(PHOTOS_PREVIEWS_DIRECTORY);
     const photosFullSizeDir = await readDirOrNot(PHOTOS_FULL_SIZE_DIRECTORY);
     const cacheSize = cacheDir.reduce<number>((prev, current) => {
-      return parseInt(current.size + prev);
+      return current.size + prev;
     }, 0);
     const tmpSize = tmpDir.reduce<number>((prev, current) => {
-      return parseInt(current.size + prev);
+      return current.size + prev;
     }, 0);
 
     const documentsSize = documentsDir.reduce<number>((prev, current) => {
-      return parseInt(current.size + prev);
+      return current.size + prev;
     }, 0);
 
     const photosPreviewsSize = photosPreviewsDir.reduce<number>((prev, current) => {
-      return parseInt(current.size + prev);
+      return current.size + prev;
     }, 0);
 
     const photosFullSizeSize = photosFullSizeDir.reduce<number>((prev, current) => {
-      return parseInt(current.size + prev);
+      return current.size + prev;
     }, 0);
     const dirs: UsageStatsResult = {
       cache: {

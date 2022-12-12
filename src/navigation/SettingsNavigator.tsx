@@ -1,4 +1,5 @@
 import appService from '@internxt-mobile/services/AppService';
+import { SettingsStackParamList } from '@internxt-mobile/types/navigation';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AccountScreen from 'src/screens/AccountScreen';
 import PlanScreen from 'src/screens/PlanScreen';
@@ -8,7 +9,7 @@ import StorageScreen from 'src/screens/StorageScreen';
 
 // On dev mode, sets the initial route for this navigator so you don't need to navigate on every reload
 const LAUNCH_ON_ROUTE_ON_DEV_MODE: string | undefined = appService.isDevMode ? undefined : undefined;
-const SettingsStack = createNativeStackNavigator();
+const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
 export const SettingsNavigator = () => {
   return (
     <SettingsStack.Navigator

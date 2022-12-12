@@ -26,7 +26,7 @@ export const startSync = async (handlers: SyncHandlers) => {
   }
 
   const syncManager = photos.sync;
-  let pendingPhotosInterval: number | null = null;
+  let pendingPhotosInterval: NodeJS.Timeout | null = null;
   syncManager.onPhotosItemUploadStart(handlers.onPhotosItemUploadStart);
   syncManager.onPhotosItemUploadProgress(handlers.onPhotosItemUploadProgress);
 

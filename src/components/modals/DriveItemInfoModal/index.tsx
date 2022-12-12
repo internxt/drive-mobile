@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import React, { useState } from 'react';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
@@ -160,14 +160,14 @@ function DriveItemInfoModal(): JSX.Element {
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
-        <Text
+        <AppText
           numberOfLines={1}
           ellipsizeMode="middle"
           style={[tailwind('text-base text-gray-100'), globalStyle.fontWeight.medium]}
         >
           {item?.name}
           {item?.type ? '.' + item.type : ''}
-        </Text>
+        </AppText>
         <View style={tailwind('flex flex-row items-center')}>
           <AppText style={tailwind('text-xs text-gray-60')}>{!isFolder && <>{prettysize(item?.size || 0)}</>}</AppText>
           {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
@@ -191,7 +191,7 @@ function DriveItemInfoModal(): JSX.Element {
                     leftSlot={opt.icon}
                     rightSlot={
                       <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                        <Text style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</Text>
+                        <AppText style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</AppText>
                       </View>
                     }
                     hideBorderBottom={index === options.length - 1}

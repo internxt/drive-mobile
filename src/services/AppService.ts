@@ -1,7 +1,7 @@
 import Constants from 'expo-constants';
 import { AppState, AppStateStatus } from 'react-native';
 import { AppEnv } from '../../app.config';
-
+import EnvTest from '../../env/.env.test.json';
 import packageJson from '../../package.json';
 
 export type AppStatus = AppStateStatus;
@@ -17,7 +17,12 @@ class AppService {
   }
 
   public get constants() {
-    return Constants.manifest?.extra as AppEnv;
+    if (process.env.NODE_ENV === 'test') {
+      return EnvTest as AppEnv;
+    }
+    if (Constants.manifest?.extra) return Constants.manifest.extra as AppEnv;
+
+    return Constants.manifest2?.extra as AppEnv;
   }
 
   public get urls() {
@@ -28,13 +33,13 @@ class AppService {
 
   public onAppStateChange(listener: AppStateListener) {
     const id = this.listeners.push(listener) - 1;
-    AppState.addEventListener('change', this.listeners[id]);
 
-    return id;
+    return AppState.addEventListener('change', this.listeners[id]);
   }
 
-  public removeListener(id: number) {
-    AppState.removeEventListener('change', this.listeners[id]);
+  public removeListener() {
+    // eslint-disable-next-line no-console
+    console.error('Deprecated use .remove instead');
   }
 
   public get isDevMode() {

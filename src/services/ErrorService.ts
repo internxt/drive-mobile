@@ -1,14 +1,13 @@
 import AppError from '../types';
 import sentryService from './SentryService';
-import { Severity } from '@sentry/react-native';
 
 export interface GlobalErrorContext {
   email: string;
   userId: string;
 }
-
+export type SeverityLevel = 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
 export interface ErrorContext extends GlobalErrorContext {
-  level: Severity;
+  level: SeverityLevel;
   // Tagname and value of the tag such environment: dev or things like that
   tags: { [tagName: string]: string };
   extra?: Record<string, unknown>;
@@ -38,7 +37,7 @@ class ErrorService {
   public reportError(error: Error | unknown, context: Partial<ErrorContext> = {}) {
     if (!__DEV__) {
       sentryService.native.captureException(error, {
-        level: context.level || Severity.Error,
+        level: context.level || 'error',
         tags: context.tags,
         extra: context.extra,
       });
@@ -47,17 +46,17 @@ class ErrorService {
        * On dev mode we log the error, and display it with [TRACKED] flag
        * so we know that error will be reported on production
        */
-      this.log(context.level || Severity.Error, error, context.extra || '');
+      this.log(context.level || 'error', error, context.extra || '');
     }
   }
 
-  private log(level: Severity, ...messages: unknown[]) {
-    if (level === Severity.Info) {
+  private log(level: SeverityLevel, ...messages: unknown[]) {
+    if (level === 'info') {
       // eslint-disable-next-line no-console
       return console.info('[TRACKED]', ...messages);
     }
 
-    if (level === Severity.Warning) {
+    if (level === 'warning') {
       // eslint-disable-next-line no-console
       return console.warn('[TRACKED]', ...messages);
     }

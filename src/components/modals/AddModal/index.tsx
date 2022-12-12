@@ -362,6 +362,11 @@ function AddModal(): JSX.Element {
         uploadSuccess(file);
       } catch (e) {
         const err = e as Error;
+        errorService.reportError(err as Error, {
+          extra: {
+            fileId: file.id,
+          },
+        });
         trackUploadError(file, err);
         dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
         notificationsService.show({
@@ -435,7 +440,7 @@ function AddModal(): JSX.Element {
                 name: decodeURIComponent(
                   asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
                 ),
-                size: asset.fileSize || typeof stat.size === 'string' ? parseInt(stat.size) : stat.size,
+                size: asset.fileSize || stat.size,
                 type: asset.type || '',
                 uri: asset.uri || '',
               });
@@ -505,14 +510,14 @@ function AddModal(): JSX.Element {
       }
       try {
         const result = await launchCameraAsync();
-
-        if (!result) {
+        const assetToUpload = result.assets?.pop();
+        if (!assetToUpload) {
           return;
         }
 
-        if (!result.cancelled) {
-          const name = drive.file.removeExtension(result.uri.split('/').pop() as string);
-          const fileInfo = await FileSystem.getInfoAsync(result.uri);
+        if (!result.canceled) {
+          const name = drive.file.removeExtension(assetToUpload.uri.split('/').pop() as string);
+          const fileInfo = await FileSystem.getInfoAsync(assetToUpload.uri);
           const size = fileInfo.size;
           const file: UploadingFile = {
             id: new Date().getTime(),
@@ -520,9 +525,9 @@ function AddModal(): JSX.Element {
             parentId: currentFolder.id,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
-            type: drive.file.getExtensionFromUri(result.uri) as string,
+            type: drive.file.getExtensionFromUri(assetToUpload.uri) as string,
             size: size || 0,
-            uri: result.uri,
+            uri: assetToUpload.uri,
             progress: 0,
           };
 
