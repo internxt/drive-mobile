@@ -188,9 +188,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                             return (
                               <View key={invoice.id} style={tailwind('px-4')}>
                                 <View style={tailwind('flex-row items-center')}>
-                                  <AppText style={{ ...tailwind('border'), flex: 2 }}>
-                                    {titlerize(time.format('dddd DD, MMM yyyy'))}
-                                  </AppText>
+                                  <AppText style={{ flex: 2 }}>{titlerize(time.format('dddd DD, MMM yyyy'))}</AppText>
                                   <View style={{ flex: 1, ...tailwind('flex-row items-center') }}>
                                     <AppText style={tailwind('text-gray-40 flex-grow')}>
                                       {storageService.toString(invoice.bytesInPlan)}

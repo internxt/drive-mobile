@@ -38,9 +38,15 @@
         <data android:scheme="inxt"/>
         <data android:scheme="com.internxt.cloud"/>
       </intent-filter>
-      <intent-filter data-generated="true">
-        <action android:name="android.intent.action.VIEW"/>
-        <data android:mimeType="*/*"/>
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="*/*" />
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.SEND_MULTIPLE" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="*/*" />
       </intent-filter>
       <intent-filter data-generated="true">
         <action android:name="android.intent.action.VIEW"/>

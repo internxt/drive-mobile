@@ -8,6 +8,8 @@ import com.facebook.react.ReactActivityDelegate;
 import com.facebook.react.ReactRootView;
 
 import expo.modules.ReactActivityDelegateWrapper;
+import android.content.Intent;
+
 
 public class MainActivity extends ReactActivity {
   @Override
@@ -53,5 +55,11 @@ public class MainActivity extends ReactActivity {
     // Use the default back button implementation on Android S
     // because it's doing more than {@link Activity#moveTaskToBack} in fact.
     super.invokeDefaultOnBackPressed();
+  }
+
+  @Override
+  public void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    setIntent(intent);
   }
 }

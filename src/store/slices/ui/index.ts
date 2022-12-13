@@ -10,7 +10,6 @@ export interface UIState {
   showMoveModal: boolean;
   showDeleteModal: boolean;
   showShareModal: boolean;
-  showComingSoonModal: boolean;
   showUploadModal: boolean;
   backButtonEnabled: boolean;
   showRenameModal: boolean;
@@ -41,7 +40,6 @@ const initialState: UIState = {
   showMoveModal: false,
   showDeleteModal: false,
   showShareModal: false,
-  showComingSoonModal: false,
   showUploadModal: false,
   backButtonEnabled: true,
   showRenameModal: false,
@@ -81,10 +79,6 @@ export const uiSlice = createSlice({
     },
     setShowRunOutSpaceModal: (state, action: PayloadAction<boolean>) => {
       state.showRunOutOfSpaceModal = action.payload;
-    },
-
-    setShowComingSoonModal: (state, action: PayloadAction<boolean>) => {
-      state.showComingSoonModal = action.payload;
     },
     setShowUploadFileModal: (state, action: PayloadAction<boolean>) => {
       state.showUploadModal = action.payload;
