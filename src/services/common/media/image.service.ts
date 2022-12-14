@@ -87,7 +87,7 @@ class ImageService {
       await fileSystemService.copyFile(result.uri, outputPath);
     }
     return {
-      size: parseInt(stat.size),
+      size: stat.size,
       width: result.width,
       height: result.height,
       path: outputPath || result.uri,
@@ -196,7 +196,7 @@ class ImageService {
       path: config.outputPath,
       width: result.width,
       height: result.height,
-      size: parseInt(stat.size),
+      size: stat.size,
       type: 'JPEG',
     };
   };

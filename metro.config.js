@@ -11,6 +11,7 @@ module.exports = (async () => {
       assetPlugins: ['expo-asset/tools/hashAssetFiles'],
     },
     resolver: {
+      extraNodeModules: require('node-libs-react-native'),
       assetExts: assetExts.filter((ext) => ext !== 'svg'),
       sourceExts: [...sourceExts, 'svg'],
     },

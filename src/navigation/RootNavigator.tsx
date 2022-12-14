@@ -1,7 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
-import ReceiveSharingIntent from 'react-native-receive-sharing-intent';
 
 import { RootStackParamList } from '../types/navigation';
 import SignInScreen from '../screens/SignInScreen';
@@ -11,7 +10,7 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
 import { driveActions } from '../store/slices/drive';
-import { Alert, Platform, View } from 'react-native';
+import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import analyticsService from '../services/AnalyticsService';
 import DebugScreen from '../screens/DebugScreen';
@@ -71,40 +70,11 @@ function AppNavigator(): JSX.Element {
 
     AuthService.addLogoutListener(onLogout);
 
-    Linking.addEventListener('url', onAppLinkOpened);
-
-    Linking.getInitialURL().then((uri) => {
-      if (uri) {
-        if (uri.match(/inxt:\/\/.*:\/*/g)) {
-          const regex = /inxt:\/\//g;
-          const finalUri = uri.replace(regex, '');
-
-          dispatch(driveActions.setUri(finalUri));
-        }
-      }
-    });
-
-    if (Platform.OS === 'android') {
-      ReceiveSharingIntent.getReceivedFiles(
-        (files) => {
-          const fileInfo = {
-            fileUri: files[0].contentUri,
-            fileName: files[0].fileName,
-          };
-
-          dispatch(driveActions.setUri(fileInfo.fileUri));
-          ReceiveSharingIntent.clearReceivedFiles();
-        },
-        (error) => {
-          Alert.alert('There was an error', error.message);
-        },
-        'inxt',
-      );
-    }
+    const subscription = Linking.addEventListener('url', onAppLinkOpened);
 
     return () => {
       AuthService.removeLogoutListener(onLogout);
-      Linking.removeEventListener('url', onAppLinkOpened);
+      subscription.remove();
     };
   }, []);
 

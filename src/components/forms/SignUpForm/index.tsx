@@ -244,7 +244,7 @@ const SignUpForm = (props: BaseFormProps) => {
             returnKeyType="next"
             keyboardType="email-address"
             autoCapitalize="none"
-            autoCompleteType="off"
+            autoComplete="off"
             autoCorrect={false}
             textContentType={'username'}
           />
@@ -267,7 +267,7 @@ const SignUpForm = (props: BaseFormProps) => {
             status={[getPasswordStatus(), renderPasswordStrengthMeter()]}
             textContentType="password"
             autoCapitalize="none"
-            autoCompleteType="password"
+            autoComplete="password"
             autoCorrect={false}
             onSubmitEditing={onSubmitButtonPressed}
             secureTextEntry={!showPassword}

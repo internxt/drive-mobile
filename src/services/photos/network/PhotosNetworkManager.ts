@@ -230,7 +230,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
         userId: user.id,
         duration: photoData.duration,
         itemType: photoData.type,
-        size: parseInt((await fileSystemService.statRNFS(localUriToPath)).size),
+        size: (await fileSystemService.statRNFS(localUriToPath)).size,
       },
       (progress) => this.onUploadProgressCallback(photoData, progress),
     );

@@ -66,7 +66,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
           value={folderName}
           onChangeText={(value) => setFolderName(value)}
           placeholder={strings.placeholders.folderName}
-          autoCompleteType="off"
+          autoComplete="off"
           selectTextOnFocus={true}
           editable={!isLoading}
           key="name"

@@ -239,6 +239,12 @@ const downloadFileThunk = createAsyncThunk<
             },
           });
         } else {
+          errorService.reportError(err as Error, {
+            extra: {
+              fileId,
+              bucketId: user?.bucket,
+            },
+          });
           // Re throw the error so Sentry middleware catchs it
           throw err;
         }

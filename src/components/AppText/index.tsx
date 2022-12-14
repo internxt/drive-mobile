@@ -16,10 +16,11 @@ const AppText = (props: AppTextProps): JSX.Element => {
       {...props}
       style={[
         tailwind('text-gray-80 text-base'),
+        styles.fontWeight.regular,
+        props.style,
         props.medium && styles.fontWeight.medium,
         props.semibold && styles.fontWeight.semibold,
         props.bold && styles.fontWeight.bold,
-        props.style,
       ]}
     >
       {props.children}

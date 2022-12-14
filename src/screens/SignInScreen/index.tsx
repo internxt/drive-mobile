@@ -165,7 +165,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               autoCapitalize={'none'}
               returnKeyType="next"
               autoCorrect={false}
-              autoCompleteType="username"
+              autoComplete="username"
               textContentType="emailAddress"
               editable={!isLoading}
               onSubmitEditing={focusPassword}
@@ -182,7 +182,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               onChangeText={setPassword}
               placeholder={strings.inputs.password}
               secureTextEntry={!showPasswordText}
-              autoCompleteType="password"
+              autoComplete="password"
               autoCapitalize="none"
               textContentType="password"
               editable={!isLoading}

@@ -209,7 +209,7 @@ export class PhotosUtils {
           const stat = await fileSystemService.statRNFS(path);
 
           await fileSystemService.unlinkIfExists(path);
-          return parseInt(stat.size);
+          return stat.size;
         },
         duration: photo.duration,
         getDisplayName() {

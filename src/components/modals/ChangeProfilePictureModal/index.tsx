@@ -57,8 +57,9 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
       const options: ImagePickerOptions = { allowsMultipleSelection: false, mediaTypes: MediaTypeOptions.Images };
       const result: ImagePickerResult = await launchImageLibraryAsync(options);
 
-      if (!result.cancelled) {
-        resizeAndSetUri(result.uri);
+      const asset = result.assets?.pop();
+      if (!result.canceled && asset) {
+        resizeAndSetUri(asset.uri);
       }
     }
   };
@@ -68,9 +69,9 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
     if (response.granted) {
       const options: ImagePickerOptions = { allowsMultipleSelection: false, mediaTypes: MediaTypeOptions.Images };
       const result = await launchCameraAsync(options);
-
-      if (!result.cancelled) {
-        resizeAndSetUri(result.uri);
+      const asset = result.assets?.pop();
+      if (!result.canceled && asset) {
+        resizeAndSetUri(asset.uri);
       }
     }
   };

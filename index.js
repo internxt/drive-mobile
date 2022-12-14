@@ -1,7 +1,8 @@
+// Better and recommended replacement as rn-nodeify
+import 'node-libs-react-native/globals';
 import 'expo-asset';
 import 'intl';
 import 'intl/locale-data/jsonp/en';
-import './shim';
 import { registerRootComponent } from 'expo';
 import { createElement } from 'react';
 import { Provider } from 'react-redux';

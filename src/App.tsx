@@ -1,11 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, KeyboardAvoidingView, Platform, ColorValue, AppStateStatus } from 'react-native';
+import {
+  View,
+  Text,
+  KeyboardAvoidingView,
+  Platform,
+  ColorValue,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 
 import analyticsService from './services/AnalyticsService';
-import { forceCheckUpdates, loadFonts, shouldForceUpdate } from './helpers';
+import { forceCheckUpdates, shouldForceUpdate, useLoadFonts } from './helpers';
 import { authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import appService from './services/AppService';
@@ -30,10 +38,11 @@ import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
 import { DriveContextProvider } from './contexts/Drive/Drive.context';
 
-let listenerId: number | null = null;
+let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
+  const { isReady: fontsAreReady, error } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
   const { color: whiteColor } = tailwind('text-white');
   const [isAppInitialized, setIsAppInitialized] = useState(false);
@@ -69,10 +78,10 @@ export default function App(): JSX.Element {
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
     // Refresh the auth tokens if the app comes to the foreground
-    listenerId = appService.onAppStateChange(handleAppStateChange);
+    listener = appService.onAppStateChange(handleAppStateChange);
   };
   const onUserLoggedOut = () => {
-    listenerId !== null && appService.removeListener(listenerId);
+    listener !== null && listener.remove();
     /**
      *
      * Commented on 1.5.20 Release - 6/10/2022
@@ -87,10 +96,10 @@ export default function App(): JSX.Element {
   };
 
   useEffect(() => {
-    Linking.addEventListener('url', onDeeplinkChange);
+    const subscription = Linking.addEventListener('url', onDeeplinkChange);
 
     return () => {
-      Linking.removeEventListener('url', onDeeplinkChange);
+      subscription.remove();
     };
   }, []);
 
@@ -106,7 +115,7 @@ export default function App(): JSX.Element {
       await fileSystemService.prepareTmpDir();
 
       // 2. Initialize all the services we need at start time
-      const initializeOperations = [authService.init(), loadFonts(), analyticsService.setup()];
+      const initializeOperations = [authService.init(), analyticsService.setup()];
 
       await Promise.all(initializeOperations);
 
@@ -154,7 +163,7 @@ export default function App(): JSX.Element {
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
           <Portal.Host>
             <View style={tailwind('flex-1')}>
-              {isAppInitialized ? (
+              {isAppInitialized && fontsAreReady ? (
                 <DriveContextProvider rootFolderId={user?.root_folder_id}>
                   <PhotosContextProvider>
                     <Navigation />

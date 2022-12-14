@@ -4,7 +4,7 @@ import { View, TextInput, Platform } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
+import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import errorService from '../../../services/ErrorService';
 import AppButton from '../../AppButton';
@@ -16,7 +16,6 @@ import useGetColor from '../../../hooks/useColor';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import uuid from 'react-native-uuid';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 function RenameModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -126,7 +125,7 @@ function RenameModal(): JSX.Element {
                 value={newName}
                 onChangeText={setNewName}
                 placeholderTextColor={getColor('text-neutral-500')}
-                autoCompleteType="off"
+                autoComplete="off"
                 key="name"
                 autoCorrect={false}
               />

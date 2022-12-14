@@ -25,7 +25,7 @@ export async function decryptFileFromFs(
   },
 ): Promise<void> {
   const decipher = getAes256CtrDecipher(fileDecryptionKey.slice(0, 32), iv);
-  const fileSize = parseInt((await stat(fromPath)).size);
+  const fileSize = (await stat(fromPath)).size;
 
   const twoMb = 2 * 1024 * 1024;
   const chunksOf = twoMb;

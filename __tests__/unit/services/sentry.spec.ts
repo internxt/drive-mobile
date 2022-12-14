@@ -1,11 +1,10 @@
 import * as Sentry from 'sentry-expo';
 import sentryTestkit from 'sentry-testkit';
-const { testkit, sentryTransport } = sentryTestkit();
+const { testkit } = sentryTestkit();
 
 beforeAll(() => {
   Sentry.init({
     enableInExpoDevelopment: true,
-    transport: sentryTransport,
   });
 });
 

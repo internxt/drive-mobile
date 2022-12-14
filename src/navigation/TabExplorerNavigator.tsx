@@ -48,11 +48,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   useEffect(() => {
     props.route.params?.showReferralsBanner && dispatch(uiActions.setIsReferralsBannerOpen(true));
 
-    AppState.addEventListener('change', handleOnAppStateChange);
-
-    return () => {
-      AppState.removeEventListener('change', handleOnAppStateChange);
-    };
+    const subscription = AppState.addEventListener('change', handleOnAppStateChange);
+    return () => subscription.remove();
   }, []);
 
   async function handleOnAppStateChange(state: AppStateStatus) {
