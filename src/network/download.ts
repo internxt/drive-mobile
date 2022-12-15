@@ -9,10 +9,15 @@ import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
 import { Abortable } from '../types';
 import FileManager from '../@inxt-js/api/FileManager';
 
+export type EncryptedFileDownloadedParams = {
+  path: string;
+  name: string;
+};
 export interface DownloadFileParams {
   toPath: string;
   downloadProgressCallback: (progress: number) => void;
   decryptionProgressCallback: (progress: number) => void;
+  onEncryptedFileDownloaded?: ({ path, name }: EncryptedFileDownloadedParams) => Promise<void>;
   signal?: AbortSignal;
 }
 

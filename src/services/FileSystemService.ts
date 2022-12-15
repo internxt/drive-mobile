@@ -173,6 +173,22 @@ class FileSystemService {
     return Share.open({ title, url: fileUri, failOnCancel: false });
   }
 
+  public async readDir(directory: string) {
+    return RNFS.readDir(directory);
+  }
+
+  public async getDirSize(directory: string) {
+    const assets = await this.readDir(directory);
+
+    return assets.reduce<number>((prev, current) => {
+      return prev + current.size;
+    }, 0);
+  }
+
+  public async touch(path: string, time: Date) {
+    await RNFS.touch(path, time);
+  }
+
   public async getUsageStats(): Promise<UsageStatsResult> {
     const readDirOrNot = async (directory: string) => {
       try {
@@ -238,4 +254,5 @@ class FileSystemService {
 }
 
 const fileSystemService = new FileSystemService();
+export const fs = fileSystemService;
 export default fileSystemService;
