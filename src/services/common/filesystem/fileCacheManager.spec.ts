@@ -172,6 +172,7 @@ describe('File Cache Manager', () => {
       mockedFs.exists.mockImplementationOnce(async () => true);
       mockedFs.exists.mockImplementationOnce(async () => true);
       mockedFs.exists.mockImplementationOnce(async () => false);
+      mockedFs.exists.mockImplementationOnce(async () => true);
 
       // We will need to free 40MB at least to fit this file
       mockedFs.statRNFS.mockImplementationOnce(async () => ({
@@ -188,6 +189,7 @@ describe('File Cache Manager', () => {
       }));
 
       const { cached } = await sut.cacheFile('/non_cached', 'hi.png');
+      expect(mockedFs.unlinkIfExists).toBeCalledTimes(2);
 
       expect(cached).toBe(true);
     });
