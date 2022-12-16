@@ -30,18 +30,24 @@ describe('File Cache Manager', () => {
       sut = fileCacheManagerFactory();
       jest.restoreAllMocks();
     });
-    it('Should fail if the cache manager is not initialized', () => {
-      sut.cacheFile('/non_cached', 'hi.png').catch((err) => {
-        expect(err).toBeInstanceOf(FileCacheManagerConfigError);
-      });
+    it('Should fail if the cache manager is not initialized', async () => {
+      try {
+        await sut.cacheFile('/non_cached', 'hi.png');
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FileCacheManagerConfigError);
+      }
     });
 
     it('Should fail if the directory does not exists', async () => {
       mockedFs.exists.mockImplementationOnce(async () => false);
       mockedFs.getDirSize.mockImplementationOnce(async () => 1);
-      sut.init().catch((err) => {
-        expect(err).toBeInstanceOf(FileDoesntExistsError);
-      });
+      try {
+        await sut.init();
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(FileDoesntExistsError);
+      }
     });
   });
 
