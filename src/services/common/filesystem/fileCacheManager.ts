@@ -1,6 +1,12 @@
 import fs from '@internxt-mobile/services/FileSystemService';
 import prettysize from 'prettysize';
 import { BaseLogger } from '../logger';
+import {
+  ExceedMaxDirSizeError,
+  FileCacheManagerConfigError,
+  FileDoesntExistsError,
+  UnlinkOperationError,
+} from './errors';
 
 export type FileCacheManagerConfig = {
   directory: string;
@@ -41,7 +47,7 @@ export class FileCacheManager {
     // 1. Ensure the file exists
     const exists = await fs.exists(filePath);
 
-    if (!exists) throw new Error(`${filePath} does not exists`);
+    if (!exists) throw new FileDoesntExistsError(`${filePath} does not exists`);
 
     // 2. Get the file stats
     const fileStat = await fs.statRNFS(filePath);
@@ -111,7 +117,7 @@ export class FileCacheManager {
       await fs.unlinkIfExists(asset.path);
     }
 
-    fs.unlinkIfExists(this.config.directory);
+    await fs.unlinkIfExists(this.config.directory);
   }
 
   async getCachedFilePath(cachedFileName: string) {
@@ -144,15 +150,17 @@ export class FileCacheManager {
    */
   private async smokeTestDirectory() {
     // 1. Ensure file cache manager is initialized
-    if (!this.initialized) throw new Error('FileCacheManager not initialized, call init() method to start it');
+    if (!this.initialized)
+      throw new FileCacheManagerConfigError('FileCacheManager not initialized, call init() method to start it');
 
     // 2. Ensure we have a directory in the config
-    if (!this.config.directory) throw new Error('Directory not provided, can not start file cache manager');
+    if (!this.config.directory)
+      throw new FileCacheManagerConfigError('Directory not provided, can not start file cache manager');
 
     // 3. Ensure the directory exists
     const exists = await fs.exists(this.config.directory);
 
-    if (!exists) throw new Error('Provided directory does not exists');
+    if (!exists) throw new FileDoesntExistsError('Provided directory does not exists');
 
     // All good, continue
   }
@@ -173,7 +181,7 @@ export class FileCacheManager {
 
         const removed = fs.unlinkIfExists(fileByOldest.path);
 
-        if (!removed) throw new Error('Cannot remove file');
+        if (!removed) throw new UnlinkOperationError('Cannot remove file');
 
         freedSpace += size;
 
@@ -187,7 +195,7 @@ export class FileCacheManager {
 
     // Ensure file can fit, or throw an error
     if (this.directorySize + neededSpaceInBytes > this.config.maxSpaceInBytes)
-      throw new Error('Not enough space freed, the file cannot be cached');
+      throw new ExceedMaxDirSizeError('Not enough space freed, the file cannot be cached');
 
     this.logger.info(`Freed ${prettysize(freedSpace)} from the cache directory`);
   }

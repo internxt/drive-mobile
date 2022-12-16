@@ -1,5 +1,6 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { ReadDirItem } from 'react-native-fs';
+import { FileCacheManagerConfigError, FileDoesntExistsError } from './errors';
 import { FileCacheManager, FileCacheManagerConfig } from './fileCacheManager';
 
 jest.mock('@internxt-mobile/services/FileSystemService', () => {
@@ -31,14 +32,16 @@ describe('File Cache Manager', () => {
     });
     it('Should fail if the cache manager is not initialized', () => {
       sut.cacheFile('/non_cached', 'hi.png').catch((err) => {
-        expect(err).toBeTruthy();
+        expect(err).toBeInstanceOf(FileCacheManagerConfigError);
       });
     });
 
     it('Should fail if the directory does not exists', async () => {
       mockedFs.exists.mockImplementationOnce(async () => false);
       mockedFs.getDirSize.mockImplementationOnce(async () => 1);
-      sut.init().catch((err) => expect(err).toBeTruthy());
+      sut.init().catch((err) => {
+        expect(err).toBeInstanceOf(FileDoesntExistsError);
+      });
     });
   });
 
@@ -128,7 +131,7 @@ describe('File Cache Manager', () => {
           name: 'file_1.png',
           ctime: new Date('2022/12/01'),
           mtime: new Date('2022/12/01'),
-          path: '/non_cached/file_1.png',
+          path: '/cached/file_1.png',
           size: 1024 * 1024 * 30,
           isFile: () => true,
           isDirectory: () => false,
@@ -137,7 +140,7 @@ describe('File Cache Manager', () => {
           name: 'file_2.png',
           ctime: new Date('2022/11/10'),
           mtime: new Date('2022/11/10'),
-          path: '/non_cached/file_2.png',
+          path: '/cached/file_2.png',
           size: 1024 * 1024 * 20,
           isFile: () => true,
           isDirectory: () => false,
@@ -146,7 +149,7 @@ describe('File Cache Manager', () => {
           name: 'file_3.png',
           ctime: new Date('2022/11/25'),
           mtime: new Date('2022/11/25'),
-          path: '/non_cached/file_3.png',
+          path: '/cached/file_3.png',
           size: 1024 * 1024 * 40,
           isFile: () => true,
           isDirectory: () => false,
@@ -189,7 +192,8 @@ describe('File Cache Manager', () => {
       }));
 
       const { cached } = await sut.cacheFile('/non_cached', 'hi.png');
-      expect(mockedFs.unlinkIfExists).toBeCalledTimes(2);
+      expect(mockedFs.unlinkIfExists).toBeCalledWith('/cached/file_2.png');
+      expect(mockedFs.unlinkIfExists).toBeCalledWith('/cached/file_3.png');
 
       expect(cached).toBe(true);
     });
