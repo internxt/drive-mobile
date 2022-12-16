@@ -37,15 +37,17 @@ describe('Photos utils test', () => {
       expect(merged[0].status).toBe(PhotoSyncStatus.IN_DEVICE_ONLY);
     });
 
-    it('Should exclude DELETED photos even if they exists locally and remotely', () => {
+    it('Should exclude DELETED photos even if they exists locally and remotely and they match by name and takenAt', () => {
       const deviceOnlyPhotosItem: PhotosItem = createPhotosItemFixture({
         status: PhotoSyncStatus.IN_DEVICE_ONLY,
         name: 'photo_device_1',
+        takenAt: 999,
       });
 
       const syncOnlyPhotosItem: PhotosItem = createPhotosItemFixture({
         status: PhotoSyncStatus.DELETED,
         name: 'photo_device_1',
+        takenAt: 999,
       });
       const merged = sut.mergePhotosItems([deviceOnlyPhotosItem, syncOnlyPhotosItem]);
       expect(merged.length).toBe(0);

@@ -17,11 +17,14 @@ import appService from '../services/AppService';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 import fileSystemService from '../services/FileSystemService';
 import { driveEvents } from '@internxt-mobile/services/drive/events';
+import { EncryptedFileDownloadedParams } from './download';
+import drive from '@internxt-mobile/services/drive';
 
 export interface DownloadFileParams {
   toPath: string;
   downloadProgressCallback: (progress: number) => void;
   decryptionProgressCallback: (progress: number) => void;
+  onEncryptedFileDownloaded?: ({ path, name }: EncryptedFileDownloadedParams) => Promise<void>;
   signal?: AbortSignal;
 }
 
@@ -178,6 +181,9 @@ export class NetworkFacade {
 
     let encryptedFileURI: string | undefined;
 
+    const encryptedFileName = `${fileId}.enc`;
+    let encryptedFileIsCached = false;
+
     const downloadPromise = downloadFile(
       fileId,
       bucketId,
@@ -186,35 +192,52 @@ export class NetworkFacade {
       this.cryptoLib,
       Buffer.from,
       async (downloadables) => {
-        encryptedFileURI = fileSystemService.tmpFilePath(`${fileId}.enc`);
+        /**
+         * TODO make this product agnostic, right now we
+         * use the Drive FileCacheManager, but Photos
+         * uses this download function too, is not a problem
+         * since the fileID is an unique key, but we should
+         * improve this
+         */
+        const { isCached, path } = await drive.cache.isCached(encryptedFileName);
 
-        downloadJob = RNFS.downloadFile({
-          fromUrl: downloadables[0].url,
-          toFile: encryptedFileURI,
-          discretionary: true,
-          cacheable: false,
-          progressDivider: 5,
-          progressInterval: 150,
-          begin: () => {
-            params.downloadProgressCallback(0);
-          },
-          progress: (res) => {
-            params.downloadProgressCallback(res.bytesWritten / res.contentLength);
-          },
-        });
+        if (isCached) {
+          encryptedFileIsCached = true;
+          encryptedFileURI = path;
+        } else {
+          encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
 
-        driveEvents.setJobId(downloadJob.jobId);
-        expectedFileHash = downloadables[0].hash;
+          downloadJob = RNFS.downloadFile({
+            fromUrl: downloadables[0].url,
+            toFile: encryptedFileURI,
+            discretionary: true,
+            cacheable: false,
+            progressDivider: 5,
+            progressInterval: 150,
+            begin: () => {
+              params.downloadProgressCallback(0);
+            },
+            progress: (res) => {
+              params.downloadProgressCallback(res.bytesWritten / res.contentLength);
+            },
+          });
+
+          driveEvents.setJobId(downloadJob.jobId);
+          expectedFileHash = downloadables[0].hash;
+        }
       },
       async (_, key, iv) => {
         if (!encryptedFileURI) throw new Error('No encrypted file URI found');
-        await downloadJob.promise;
 
-        const sha256Hash = await RNFS.hash(encryptedFileURI, 'sha256');
-        const receivedFileHash = ripemd160(Buffer.from(sha256Hash, 'hex')).toString('hex');
+        // Maybe we should save the expected hash and compare even if the file is cached
+        if (!encryptedFileIsCached) {
+          await downloadJob.promise;
+          const sha256Hash = await RNFS.hash(encryptedFileURI, 'sha256');
+          const receivedFileHash = ripemd160(Buffer.from(sha256Hash, 'hex')).toString('hex');
 
-        if (receivedFileHash !== expectedFileHash) {
-          throw new Error('Hash mismatch');
+          if (receivedFileHash !== expectedFileHash) {
+            throw new Error('Hash mismatch');
+          }
         }
 
         params.downloadProgressCallback(1);
@@ -226,6 +249,13 @@ export class NetworkFacade {
           iv as Buffer,
           params.decryptionProgressCallback,
         );
+
+        if (params.onEncryptedFileDownloaded) {
+          await params.onEncryptedFileDownloaded({
+            path: encryptedFileURI,
+            name: encryptedFileName,
+          });
+        }
 
         params.decryptionProgressCallback(1);
       },
@@ -242,6 +272,12 @@ export class NetworkFacade {
       try {
         const fileId = await downloadPromise;
         return fileId;
+      } catch (err) {
+        // If the "download" failed and the file is cached, remove the cached file
+        if (encryptedFileIsCached) {
+          await drive.cache.removeCachedFile(encryptedFileName);
+        }
+        throw err;
       } finally {
         // Cleanup always even if the download fails
         await cleanup();

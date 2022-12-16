@@ -164,6 +164,9 @@ const downloadFileThunk = createAsyncThunk<
           toPath: params.to,
           downloadProgressCallback,
           decryptionProgressCallback,
+          onEncryptedFileDownloaded: async ({ path, name }) => {
+            await drive.cache.cacheFile(path, name);
+          },
           signal,
         },
         (abortable) => {
