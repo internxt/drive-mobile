@@ -145,7 +145,7 @@ export class PhotosUtils {
       return {
         photoId: from.id,
         photoFileId: from.fileId,
-        previewFileId: from.previewId,
+        previewFileId: from.previews && from.previews[0].fileId ? from.previews[0].fileId : from.previewId,
         updatedAt: new Date(from.updatedAt).getTime(),
         name: from.name,
         takenAt: new Date(from.takenAt).getTime(),
