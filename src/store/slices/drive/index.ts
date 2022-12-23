@@ -533,13 +533,18 @@ export const driveSelectors = {
           // TODO: Organize Drive item types
           thumbnails: [],
           currentThumbnail: null,
+
+          isFolder: false,
           ...f,
         },
         id: f.id.toString(),
       })),
       items: items.map<DriveListItem>((f) => ({
         status: DriveItemStatus.Idle,
-        data: f,
+        data: {
+          ...f,
+          isFolder: f.fileId ? false : true,
+        },
         id: f.id.toString(),
       })),
     };

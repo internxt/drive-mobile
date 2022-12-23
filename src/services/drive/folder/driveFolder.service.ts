@@ -62,6 +62,7 @@ class DriveFolderService {
         id: child.id.toString(),
         status: DriveItemStatus.Idle,
         data: {
+          isFolder: false,
           folderId: folderContent.parentId,
           thumbnails: (child as DriveFileData).thumbnails || [],
           currentThumbnail: null,
@@ -89,6 +90,7 @@ class DriveFolderService {
           updatedAt: child.updatedAt,
           name: child.name,
           id: child.id,
+          isFolder: true,
           parentId: child.parentId,
           folderId: child.id,
           size: undefined,

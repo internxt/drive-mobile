@@ -138,12 +138,12 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
 
     // If we already have a generated share link, copy it
     if (generatedShareLink) {
-      Clipboard.setString(generatedShareLink);
+      await Clipboard.setStringAsync(generatedShareLink);
 
       return;
     }
 
-    const isFolder = item?.type ? false : true;
+    const isFolder = item?.fileId ? false : true;
 
     // A share link already exists, obtain it
     if (item?.token && item?.code) {

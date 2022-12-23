@@ -114,6 +114,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         parentId: driveItem.data.parentId as number,
         size: driveItem.data.size,
         updatedAt: driveItem.data.updatedAt,
+        isFolder: driveItem.data.isFolder,
       }),
     );
 
@@ -146,6 +147,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         parentId: folder.content.parentId,
         updatedAt: folder.content.updatedAt,
         isFromFolderActions: true,
+        isFolder: true,
       }),
     );
     dispatch(uiActions.setShowItemModal(true));

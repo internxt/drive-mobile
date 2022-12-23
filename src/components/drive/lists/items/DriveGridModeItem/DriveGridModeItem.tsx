@@ -23,7 +23,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const thumbnailSize = downloadedThumbnail || null;
   const IconFile = getFileTypeIcon(props.data.type || '');
   const iconSize = 80;
-  const isFolder = !props.data.type || props.data.type === 'folder';
+  const isFolder = props.data.isFolder;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
   const maxThumbnailHeight = 96;

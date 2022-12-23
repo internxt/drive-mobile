@@ -226,9 +226,9 @@ class DriveLocalDB {
       updatedAt: folderContent.updated_at,
       user_id: -1,
       userId: -1,
-      files: items.filter((item) => item.type),
+      files: items.filter((item) => item.fileId),
       children: items
-        .filter((item) => !item.type)
+        .filter((item) => !item.fileId)
         .map<FolderChild>((item) => {
           return {
             ...item,

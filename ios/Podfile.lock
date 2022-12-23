@@ -313,8 +313,6 @@ PODS:
     - React-Core
   - react-native-randombytes (3.6.1):
     - React-Core
-  - react-native-receive-sharing-intent (1.1.0):
-    - React
   - react-native-restart (0.0.24):
     - React-Core
   - react-native-safe-area-context (4.4.1):
@@ -325,8 +323,6 @@ PODS:
     - ReactCommon/turbomodule/core
   - react-native-sqlite-storage (6.0.1):
     - React-Core
-  - react-native-udp (2.7.0):
-    - React
   - react-native-video (5.2.1):
     - React-Core
     - react-native-video/Video (= 5.2.1)
@@ -421,8 +417,6 @@ PODS:
     - React-Core
   - RNGestureHandler (2.8.0):
     - React-Core
-  - RNOS (1.2.6):
-    - React
   - RNPermissions (3.6.1):
     - React-Core
   - RNReanimated (2.12.0):
@@ -458,9 +452,9 @@ PODS:
   - RNScreens (3.18.2):
     - React-Core
     - React-RCTImage
-  - RNSentry (4.2.2):
+  - RNSentry (4.9.0):
     - React-Core
-    - Sentry (= 7.22.0)
+    - Sentry/HybridSDK (= 7.31.2)
   - RNShare (7.9.1):
     - React-Core
   - RNSVG (13.4.0):
@@ -472,11 +466,7 @@ PODS:
   - SDWebImageWebPCoder (0.8.5):
     - libwebp (~> 1.0)
     - SDWebImage/Core (~> 5.10)
-  - Sentry (7.22.0):
-    - Sentry/Core (= 7.22.0)
-  - Sentry/Core (7.22.0)
-  - TcpSockets (3.3.2):
-    - React
+  - Sentry/HybridSDK (7.31.2)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -537,11 +527,9 @@ DEPENDENCIES:
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
-  - react-native-receive-sharing-intent (from `../node_modules/react-native-receive-sharing-intent`)
   - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-sqlite-storage (from `../node_modules/react-native-sqlite-storage`)
-  - react-native-udp (from `../node_modules/react-native-udp`)
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -565,7 +553,6 @@ DEPENDENCIES:
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
-  - RNOS (from `../node_modules/react-native-os`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - "RNRudderSdk (from `../node_modules/@rudderstack/rudder-sdk-react-native`)"
@@ -573,7 +560,6 @@ DEPENDENCIES:
   - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
-  - TcpSockets (from `../node_modules/react-native-tcp`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
@@ -700,16 +686,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-pdf-thumbnail"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
-  react-native-receive-sharing-intent:
-    :path: "../node_modules/react-native-receive-sharing-intent"
   react-native-restart:
     :path: "../node_modules/react-native-restart"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-sqlite-storage:
     :path: "../node_modules/react-native-sqlite-storage"
-  react-native-udp:
-    :path: "../node_modules/react-native-udp"
   react-native-video:
     :path: "../node_modules/react-native-video"
   react-native-webview:
@@ -756,8 +738,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
-  RNOS:
-    :path: "../node_modules/react-native-os"
   RNPermissions:
     :path: "../node_modules/react-native-permissions"
   RNReanimated:
@@ -772,8 +752,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-share"
   RNSVG:
     :path: "../node_modules/react-native-svg"
-  TcpSockets:
-    :path: "../node_modules/react-native-tcp"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -838,11 +816,9 @@ SPEC CHECKSUMS:
   react-native-image-picker: f2ab1215d17bcfe27b0eb6417cc236fd1f4775e7
   react-native-pdf-thumbnail: 047cbe5ef02eb0fef97bfc9a0e8c6b01927da0c1
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
-  react-native-receive-sharing-intent: 648f1eb35ae70886a8733d6be949042aa5111ffb
   react-native-restart: 45c8dca02491980f2958595333cbccd6877cb57e
   react-native-safe-area-context: 99b24a0c5acd0d5dcac2b1a7f18c49ea317be99a
   react-native-sqlite-storage: f6d515e1c446d1e6d026aa5352908a25d4de3261
-  react-native-udp: ff9d13e523f2b58e6bc5d4d32321ac60671b5dc9
   react-native-video: c26780b224543c62d5e1b2a7244a5cd1b50e8253
   react-native-webview: d33e2db8925d090871ffeb232dfa50cb3a727581
   React-perflogger: e68d3795cf5d247a0379735cbac7309adf2fb931
@@ -866,19 +842,17 @@ SPEC CHECKSUMS:
   RNFileViewer: ce7ca3ac370e18554d35d6355cffd7c30437c592
   RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 62232ba8f562f7dea5ba1b3383494eb5bf97a4d3
-  RNOS: 6f2f9a70895bbbfbdad7196abd952e7b01d45027
   RNPermissions: dcdb7b99796bbeda6975a6e79ad519c41b251b1c
   RNReanimated: 2a91e85fcd343f8af3c58d3425b99fdd285590a5
   RNRudderSdk: 14c176adb1557f3832cb385fcd14250f76a7e268
   RNScreens: 34cc502acf1b916c582c60003dc3089fa01dc66d
-  RNSentry: f03937a2cf86c7029ba31fbbf5618c55d223cd62
+  RNSentry: 6503a8ec616947dbe98be828307c8f49e7686674
   RNShare: a5dc3b9c53ddc73e155b8cd9a94c70c91913c43c
   RNSVG: 07dbd870b0dcdecc99b3a202fa37c8ca163caec2
   Rudder: 7c080303528ea612f58c9f9e8fcfab92b5dbcca8
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
-  Sentry: 30b51086ca9aac23337880152e95538f7e177f7f
-  TcpSockets: 14306fb79f9750ea7d2ddd02d8bed182abb01797
+  Sentry: b15765d11769852fe78c9add942f7df60ed5dbf5
   Yoga: eca980a5771bf114c41a754098cd85e6e0d90ed7
 
 PODFILE CHECKSUM: cf3ab46990587d277241c44705f83f79875b3faa
