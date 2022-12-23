@@ -84,6 +84,7 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
               code: (sharedLink as unknown as { code: string }).code,
               updatedAt: sharedLink.item.updatedAt,
               createdAt: sharedLink.item.createdAt,
+              isFolder: sharedLink.isFolder,
             }}
             progress={-1}
             shareLink={sharedLink as ShareLink}

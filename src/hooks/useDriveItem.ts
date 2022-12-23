@@ -29,7 +29,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
   const route = useRoute();
   const navigation = useNavigation();
   const [isDisabled, setIsDisabled] = useState(false);
-  const isFolder = !props.data.type || props.data.type === 'folder';
+  const isFolder = props.data.isFolder;
   const isIdle = props.status === DriveItemStatus.Idle;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
@@ -81,6 +81,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
         parentId: props.data.parentId as number,
         size: props.data.size,
         updatedAt: props.data.updatedAt,
+        isFolder: props.data.isFolder,
       }),
     );
 

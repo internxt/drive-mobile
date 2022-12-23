@@ -33,6 +33,7 @@ export type DriveItemFocused = {
   token?: string;
   shareId?: string;
   isFromFolderActions?: boolean;
+  isFolder: boolean;
 } | null;
 
 export interface DriveFolderMetadataPayload {
@@ -92,6 +93,7 @@ export type DriveItemDataProps = Pick<
   DriveItemData,
   'id' | 'name' | 'updatedAt' | 'createdAt' | 'currentThumbnail' | 'thumbnails'
 > & {
+  isFolder: boolean;
   folderId?: number;
   fileId?: string;
   parentId?: number | null;

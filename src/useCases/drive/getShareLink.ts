@@ -1,4 +1,4 @@
-import analytics, { AnalyticsEventKey, DriveAnalyticsEvent } from '@internxt-mobile/services/AnalyticsService';
+import analytics, { DriveAnalyticsEvent } from '@internxt-mobile/services/AnalyticsService';
 import AuthService from '@internxt-mobile/services/AuthService';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
@@ -7,7 +7,7 @@ import { DriveEventKey } from '@internxt-mobile/types/drive';
 import { NotificationType } from '@internxt-mobile/types/index';
 import { aes } from '@internxt/lib';
 import strings from 'assets/lang/strings';
-import { setString } from 'expo-clipboard';
+import { setStringAsync } from 'expo-clipboard';
 import { randomBytes } from 'react-native-crypto';
 import { Network } from 'src/lib/network';
 
@@ -36,7 +36,7 @@ export const getExistingShareLink = async ({
     });
 
     if (copyLinkToClipboard) {
-      setString(link);
+      await setStringAsync(link);
       notificationsService.show({
         text1: strings.modals.LinkCopied.message,
         type: NotificationType.Success,
@@ -61,8 +61,8 @@ export const copyShareLink = ({ link, type }: { link: string; type: 'file' | 'fo
     type: NotificationType.Success,
     action: {
       text: strings.buttons.copyLink,
-      onActionPress: () => {
-        setString(link);
+      onActionPress: async () => {
+        await setStringAsync(link);
         analytics.track(DriveAnalyticsEvent.SharedLinkCopied, {
           type,
         });

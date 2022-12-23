@@ -20,7 +20,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
 
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
-  const isFolder = !props.data.type || props.data.type === 'folder';
+  const isFolder = props.data.isFolder;
   const isIdle = props.status === DriveItemStatus.Idle;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;

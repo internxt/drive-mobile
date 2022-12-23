@@ -72,7 +72,10 @@ export function RecentsScreen({
             status={DriveItemStatus.Idle}
             type={DriveListType.Drive}
             viewMode={DriveListViewMode.List}
-            data={item}
+            data={{
+              ...item,
+              isFolder: item.fileId ? false : true,
+            }}
             progress={-1}
           />
         );
