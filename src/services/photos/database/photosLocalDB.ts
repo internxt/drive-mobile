@@ -119,26 +119,14 @@ export class PhotosLocalDB {
 
   public async savePhotosItem(photo: Photo) {
     this.log('Saving photos item');
-    const photoExists = await this.getSyncedPhotoByPhotoId(photo.id);
-    if (photoExists) {
-      this.log('Photos item already exists, skipping insert');
-      await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.updatePhotoById, [
-        photo.name,
-        photo.hash,
-        new Date(photo.takenAt).getTime(),
-        JSON.stringify(photo),
-        photo.id,
-      ]);
-    } else {
-      this.log('Photos item saved into DB');
-      await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.insert, [
-        photo.id,
-        photo.name,
-        photo.hash,
-        new Date(photo.takenAt).getTime(),
-        JSON.stringify(photo),
-      ]);
-    }
+    await sqliteService.executeSql(PHOTOS_DB_NAME, deviceSyncTable.statements.insert, [
+      photo.id,
+      photo.name,
+      photo.hash,
+      new Date(photo.takenAt).getTime(),
+      JSON.stringify(photo),
+    ]);
+    this.log('Photos item saved into DB');
   }
 
   private parseRow(row: Record<string, string>) {
