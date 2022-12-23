@@ -20,7 +20,7 @@ const statements = {
 
   dropTable: `DROP TABLE ${TABLE_NAME}`,
   cleanTable: `DELETE FROM ${TABLE_NAME};`,
-  insert: `INSERT INTO ${TABLE_NAME} (photo_id, photo_name, photo_hash, photo_taken_at, photo) VALUES (?,?,?,?,?);`,
+  insert: `REPLACE INTO ${TABLE_NAME} (photo_id, photo_name, photo_hash, photo_taken_at, photo) VALUES(?,?,?,?,?);`,
   deleteSyncedPhotoByPhotoId: `DELETE FROM ${TABLE_NAME} WHERE photo_id = ? `,
   getSyncedPhotos: `SELECT * FROM ${TABLE_NAME}`,
   getSyncedPhotoByName: `SELECT * FROM ${TABLE_NAME} WHERE photo_name = ?`,
