@@ -253,11 +253,11 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     }
 
     if (enable && syncStatus === PhotosSyncStatus.Paused) {
-      await photos.sync.resume();
+      photos.sync.resume();
     }
 
     if (!enable && syncStatus === PhotosSyncStatus.InProgress) {
-      await photos.sync.pause();
+      photos.sync.pause();
     }
 
     return {
