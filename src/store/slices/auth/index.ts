@@ -168,11 +168,19 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
     try {
       const currentAuthToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
       if (!currentAuthToken) throw new Error('Auth token not found');
-      const { newToken, token } = await authService.refreshAuthToken(currentAuthToken);
+      const refreshed = await authService.refreshAuthToken(currentAuthToken);
 
+      if (!refreshed) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          'Unable to refresh the tokens, but the server did not return an Unauthorized message, tokens are not refreshed but old tokens could be still valid',
+        );
+
+        return;
+      }
       logger.info('Auth tokens refreshed');
-      await asyncStorageService.saveItem(AsyncStorageKey.Token, token);
-      await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, newToken);
+      await asyncStorageService.saveItem(AsyncStorageKey.Token, refreshed.token);
+      await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, refreshed.newToken);
 
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();

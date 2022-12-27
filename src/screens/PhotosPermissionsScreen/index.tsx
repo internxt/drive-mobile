@@ -8,10 +8,31 @@ import SyncIcon from '../../../assets/images/modals/sync.svg';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 import * as MediaLibrary from 'expo-media-library';
-import globalStyle from '../../styles/global';
 import { PhotosScreenProps } from '../../types/navigation';
+import AppText from 'src/components/AppText';
+import errorService from '@internxt-mobile/services/ErrorService';
+import AppScreen from 'src/components/AppScreen';
 
 function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermissions'>): JSX.Element {
+  const tailwind = useTailwind();
+
+  const photosCtx = useContext(PhotosContext);
+
+  const handlePermissionsGranted = async () => {
+    navigation.replace('PhotosGallery');
+    await photosCtx.enableSync(true);
+  };
+  return (
+    <AppScreen safeAreaBottom safeAreaTop style={tailwind('justify-center flex-1 pt-20')}>
+      <PhotosPermissions onPermissionsGranted={handlePermissionsGranted} />
+    </AppScreen>
+  );
+}
+
+export interface PhotosPermissionsProps {
+  onPermissionsGranted: () => void;
+}
+export const PhotosPermissions: React.FC<PhotosPermissionsProps> = (props) => {
   const tailwind = useTailwind();
   const photosCtx = useContext(PhotosContext);
   const [permissions, setPermissions] = useState<MediaLibrary.PermissionStatus>(
@@ -24,9 +45,14 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
   ];
 
   useEffect(() => {
-    photosCtx.permissions.getPermissionsStatus().then((permissions) => {
-      setPermissions(permissions);
-    });
+    photosCtx.permissions
+      .getPermissionsStatus()
+      .then((permissions) => {
+        setPermissions(permissions);
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+      });
   }, []);
 
   useEffect(() => {
@@ -42,8 +68,7 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
     );
   });
   const onPermissionsGranted = async () => {
-    navigation.replace('PhotosGallery');
-    photosCtx.start();
+    props.onPermissionsGranted();
   };
   const onButtonPressed = async () => {
     if (permissions === MediaLibrary.PermissionStatus.DENIED) {
@@ -61,12 +86,12 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
   };
 
   return (
-    <View style={tailwind('flex justify-center items-center bg-white px-6 flex-1')}>
-      <SyncIcon style={tailwind('mt-14 mb-6')} width={100} height={100} />
+    <View style={tailwind('justify-center items-center px-6 pb-14')}>
+      <SyncIcon style={tailwind('mb-6')} width={100} height={100} />
 
-      <Text style={[tailwind('mb-5 text-center text-3xl text-neutral-900'), globalStyle.fontWeight.semibold]}>
+      <AppText semibold style={[tailwind('mb-5 text-center text-3xl text-neutral-900')]}>
         {strings.screens.photosPermissions.title}
-      </Text>
+      </AppText>
 
       <View style={tailwind('mb-5')}>{featuresList}</View>
 
@@ -86,9 +111,10 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
         onPress={onButtonPressed}
         style={tailwind('mb-2 w-full')}
       />
-      <Text style={tailwind('text-center text-xs text-neutral-100')}>{strings.screens.photosPermissions.access}</Text>
+      <AppText style={tailwind('text-center text-xs text-neutral-100')}>
+        {strings.screens.photosPermissions.access}
+      </AppText>
     </View>
   );
-}
-
+};
 export default PhotosPermissionsScreen;

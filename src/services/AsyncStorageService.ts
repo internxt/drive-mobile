@@ -31,6 +31,7 @@ class AsyncStorageService {
       AsyncStorageKey.Token,
       AsyncStorageKey.PhotosToken,
       AsyncStorageKey.LastPhotosPagePulled,
+      AsyncStorageKey.PhotosSyncEnabled,
     ]);
 
     // eslint-disable-next-line no-console

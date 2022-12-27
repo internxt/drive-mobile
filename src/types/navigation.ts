@@ -74,7 +74,7 @@ export type PhotosScreenNavigationProp<Screen extends keyof PhotosStackParamList
 >;
 
 export type SettingsStackParamList = {
-  SettingsHome: undefined;
+  SettingsHome: { focusEnablePhotosSync?: number };
   Account: undefined;
   Storage: undefined;
   Plan: undefined;

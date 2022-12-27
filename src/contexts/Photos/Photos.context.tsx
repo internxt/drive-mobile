@@ -1,11 +1,14 @@
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import errorService from '@internxt-mobile/services/ErrorService';
 import photos from '@internxt-mobile/services/photos';
 import { photosLogger } from '@internxt-mobile/services/photos/logger';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
+import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import { PhotosItem, PhotosSyncStatus } from '@internxt-mobile/types/photos';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
 import { DataProvider } from 'recyclerlistview';
+
 import { startSync } from './sync';
 
 export interface PhotosContextType {
@@ -13,6 +16,10 @@ export interface PhotosContextType {
   uploadedPhotosItems: PhotosItem[];
   syncedPhotosItems: PhotosItem[];
   ready: boolean;
+  syncEnabled: boolean;
+  enableSync: (
+    enable: boolean,
+  ) => Promise<{ canEnable: boolean; enabled: boolean; permissionsStatus: MediaLibrary.PermissionStatus }>;
   start: () => Promise<void>;
   getPhotosItem: (name: string) => PhotosItem | undefined;
   selection: {
@@ -48,6 +55,14 @@ export const PhotosContext = React.createContext<PhotosContextType>({
     const r2Key = `${r2.name}-${r2.takenAt}`;
     return r1Key !== r2Key;
   }),
+  enableSync: async () => {
+    return {
+      canEnable: false,
+      enabled: false,
+      permissionsStatus: MediaLibrary.PermissionStatus.UNDETERMINED,
+    };
+  },
+  syncEnabled: true,
   uploadProgress: 0,
   refresh: () => Promise.reject('Photos context not ready'),
   removePhotosItems() {
@@ -104,10 +119,9 @@ const getPhotos = async (cursor?: string) => {
 export const PhotosContextProvider: React.FC = ({ children }) => {
   const [uploadingPhotosItem, setUploadingPhotosItem] = useState<PhotosItem | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
-
+  const [syncEnabled, setSyncEnabled] = useState<boolean>(true);
   const [selectionModeActivated, setSelectionModeActivated] = useState(false);
   const [uploadedPhotosItems, setUploadedPhotosItems] = useState<PhotosItem[]>([]);
-
   const [syncStatus, setSyncStatus] = useState(PhotosSyncStatus.Unknown);
   const [totalTasks, setTotalTasks] = useState(0);
   const [pendingTasks, setPendingTasks] = useState(0);
@@ -132,11 +146,36 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   );
 
   useEffect(() => {
+    checkShouldEnableSync().catch((error) => {
+      reportError(error);
+    });
+  }, []);
+
+  useEffect(() => {
     if (syncStatus === PhotosSyncStatus.Completed) {
       setUploadingPhotosItem(null);
     }
   }, [syncStatus]);
 
+  async function checkShouldEnableSync() {
+    const permissionStatus = await permissions.getPermissionsStatus();
+
+    // No permissions, disable the sync
+    if (
+      permissionStatus === MediaLibrary.PermissionStatus.UNDETERMINED ||
+      permissionStatus === MediaLibrary.PermissionStatus.DENIED
+    ) {
+      setSyncEnabled(false);
+
+      return false;
+    }
+
+    const isEnabled = (await asyncStorageService.getItem(AsyncStorageKey.PhotosSyncEnabled)) === 'true';
+
+    setSyncEnabled(isEnabled);
+
+    return isEnabled;
+  }
   function resetContext(config = { resetLoadedImages: true }) {
     if (config.resetLoadedImages) {
       setDataSource(
@@ -188,11 +227,84 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     setUploadProgress(progress);
   }
 
+  async function enableSync(enable: boolean) {
+    const permissionsStatus = await permissions.getPermissionsStatus();
+
+    // No permissions, disable the switch
+    if (
+      permissionsStatus === MediaLibrary.PermissionStatus.UNDETERMINED ||
+      permissionsStatus === MediaLibrary.PermissionStatus.DENIED
+    ) {
+      setSyncEnabled(false);
+      // We only can save strings in the async storage
+      await asyncStorageService.saveItem(AsyncStorageKey.PhotosSyncEnabled, 'false');
+      return {
+        canEnable: false,
+        enabled: false,
+        permissionsStatus,
+      };
+    }
+    // We only can save strings in the async storage
+    await asyncStorageService.saveItem(AsyncStorageKey.PhotosSyncEnabled, enable ? 'true' : 'false');
+
+    setSyncEnabled(enable);
+    if (enable && syncStatus === PhotosSyncStatus.Unknown) {
+      await startPhotos();
+    }
+
+    if (enable && syncStatus === PhotosSyncStatus.Paused) {
+      await photos.sync.resume();
+    }
+
+    if (!enable && syncStatus === PhotosSyncStatus.InProgress) {
+      await photos.sync.pause();
+    }
+
+    return {
+      canEnable: true,
+      enabled: enable,
+      permissionsStatus,
+    };
+  }
+
+  /**
+   * Inits the sync process for Photos
+   */
+  async function initSync() {
+    // TODO: Allow the remote sync mechanism to pull the synced Photos
+    // even if the sync is disabled
+    const syncIsEnabled = await checkShouldEnableSync();
+    if (!syncIsEnabled) return;
+    await startSync({
+      updateStatus: setSyncStatus,
+      updateTotalTasks: setTotalTasks,
+      updatePendingTasks: setPendingTasks,
+      updateCompletedTasks: setCompletedTasks,
+      updateFailedTasks: setFailedTasks,
+      onRemotePhotosSynced,
+      onPhotosItemUploadProgress: handlePhotosItemUploadProgress,
+      onPhotosItemUploadStart: (photosItem) => {
+        // Timeout this since the upload item change will
+        // be triggered before we insert the item into the already
+        // uploaded items
+        setTimeout(() => {
+          setUploadProgress(0);
+          setUploadingPhotosItem(photosItem);
+        }, 250);
+      },
+      onPhotosItemSynced: (photosItem) => {
+        uploadedPhotosItemsRef.current = uploadedPhotosItemsRef.current.concat([photosItem]);
+        setUploadedPhotosItems(uploadedPhotosItemsRef.current);
+      },
+    });
+  }
+
   /**
    * Starts the photos systems
    * including the sync system
    */
   async function startPhotos() {
+    const syncIsEnabled = await checkShouldEnableSync();
     try {
       // 1. Initialize the photos services
       await photos.start();
@@ -225,29 +337,12 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         }).cloneWithRows(mergedPhotosItems),
       );
 
+      if (!syncIsEnabled) {
+        setReady(true);
+        return;
+      }
       if (syncStatus === PhotosSyncStatus.InProgress) return;
-      await startSync({
-        updateStatus: setSyncStatus,
-        updateTotalTasks: setTotalTasks,
-        updatePendingTasks: setPendingTasks,
-        updateCompletedTasks: setCompletedTasks,
-        updateFailedTasks: setFailedTasks,
-        onRemotePhotosSynced,
-        onPhotosItemUploadProgress: handlePhotosItemUploadProgress,
-        onPhotosItemUploadStart: (photosItem) => {
-          // Timeout this since the upload item change will
-          // be triggered before we insert the item into the already
-          // uploaded items
-          setTimeout(() => {
-            setUploadProgress(0);
-            setUploadingPhotosItem(photosItem);
-          }, 250);
-        },
-        onPhotosItemSynced: (photosItem) => {
-          uploadedPhotosItemsRef.current = uploadedPhotosItemsRef.current.concat([photosItem]);
-          setUploadedPhotosItems(uploadedPhotosItemsRef.current);
-        },
-      });
+      await initSync();
       setReady(true);
     } catch (error) {
       errorService.reportError(error);
@@ -393,6 +488,8 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
           photosInLocalDB,
         },
         resetContext,
+        syncEnabled,
+        enableSync,
       }}
     >
       {children}

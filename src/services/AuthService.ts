@@ -10,6 +10,7 @@ import EventEmitter from 'events';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SdkManager } from './common/sdk/SdkManager';
 import jwtDecode from 'jwt-decode';
+import errorService from './ErrorService';
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -90,7 +91,7 @@ class AuthService {
     // on the login doesn't have expiration
     const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
 
-    if (!refreshedTokens.token || !refreshedTokens.newToken) throw new Error('Unable to refresh auth tokens');
+    if (!refreshedTokens?.token || !refreshedTokens?.newToken) throw new Error('Unable to refresh auth tokens');
     return {
       ...loginResult,
       token: refreshedTokens.token,
@@ -314,19 +315,28 @@ class AuthService {
    * @param currentAuthToken The current auth token, needs to be still valid
    * @returns A valid set of token and newToken
    */
-  public async refreshAuthToken(currentAuthToken: string): Promise<{ newToken: string; token: string }> {
+  public async refreshAuthToken(currentAuthToken: string): Promise<{ newToken: string; token: string } | undefined> {
     try {
       const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
         method: 'GET',
         headers: await getHeaders(currentAuthToken),
       });
-      const { newToken, token } = await result.json();
+
+      const body = await result.json();
+      const { newToken, token, statusCode } = body;
+
+      if (statusCode === 401) {
+        throw new Error('Tokens no longer valid, should sign out');
+      }
+
       return {
         newToken,
         token,
       };
     } catch (e) {
-      throw new Error(`Cannot refresh auth token: ${(e as Error).message}`);
+      errorService.reportError(e);
+
+      return undefined;
     }
   }
 

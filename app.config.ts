@@ -40,7 +40,7 @@ export interface AppEnv {
 
 const stage = AppStage.Production; // <- CHANGE STAGE
 
-const RELEASE_ID = `${packageJson.version} (${env[stage].APP_BUILD_NUMBER})`;
+const RELEASE_ID = `${packageJson.version} (${env[stage].APP_BUILD_NUMBER}) - ${stage}`;
 
 const appConfig: ExpoConfig & { extra: AppEnv } = {
   name: 'Internxt',
