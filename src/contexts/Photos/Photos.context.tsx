@@ -145,18 +145,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   );
 
   useEffect(() => {
-    checkShouldEnableSync()
-      .then((enabled) => {
-        asyncStorageService
-          .savePhotosSyncIsEnabled(enabled)
-          .then(() => setSyncEnabled(enabled))
-          .catch((err) => {
-            reportError(err);
-          });
-      })
-      .catch((error) => {
-        reportError(error);
-      });
+    initializeSyncIsEnabled();
   }, []);
 
   useEffect(() => {
@@ -165,6 +154,20 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     }
   }, [syncStatus]);
 
+  const initializeSyncIsEnabled = async () => {
+    try {
+      // Check the initial status
+      const enabled = await checkShouldEnableSync();
+
+      // Ensure is saved into the async storage
+      await asyncStorageService.savePhotosSyncIsEnabled(enabled);
+
+      // Set the status in the context
+      setSyncEnabled(enabled);
+    } catch (error) {
+      reportError(error);
+    }
+  };
   async function checkShouldEnableSync() {
     const permissionStatus = await permissions.getPermissionsStatus();
 
@@ -279,7 +282,6 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     // TODO: Allow the remote sync mechanism to pull the synced Photos
     // even if the sync is disabled
     const syncIsEnabled = await checkShouldEnableSync();
-
     if (!syncIsEnabled) return;
     await startSync({
       updateStatus: setSyncStatus,

@@ -22,7 +22,7 @@ class AsyncStorageService {
   }
 
   async photosSyncIsEnabled() {
-    return (await this.getItem(AsyncStorageKey.PhotosSyncEnabled)) === 'true' ? true : false;
+    return (await this.getItem(AsyncStorageKey.PhotosSyncEnabled)) === 'true';
   }
 
   async savePhotosSyncIsEnabled(enabled: boolean) {
