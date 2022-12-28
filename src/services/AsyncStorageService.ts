@@ -21,6 +21,14 @@ class AsyncStorageService {
     });
   }
 
+  async photosSyncIsEnabled() {
+    return (await this.getItem(AsyncStorageKey.PhotosSyncEnabled)) === 'true' ? true : false;
+  }
+
+  async savePhotosSyncIsEnabled(enabled: boolean) {
+    await this.saveItem(AsyncStorageKey.PhotosSyncEnabled, enabled ? 'true' : 'false');
+  }
+
   listItems(): Promise<readonly string[]> {
     return AsyncStorage.getAllKeys();
   }

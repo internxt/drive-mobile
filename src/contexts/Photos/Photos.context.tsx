@@ -3,7 +3,6 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import photos from '@internxt-mobile/services/photos';
 import { photosLogger } from '@internxt-mobile/services/photos/logger';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
-import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import { PhotosItem, PhotosSyncStatus } from '@internxt-mobile/types/photos';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
@@ -146,9 +145,18 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   );
 
   useEffect(() => {
-    checkShouldEnableSync().catch((error) => {
-      reportError(error);
-    });
+    checkShouldEnableSync()
+      .then((enabled) => {
+        asyncStorageService
+          .savePhotosSyncIsEnabled(enabled)
+          .then(() => setSyncEnabled(enabled))
+          .catch((err) => {
+            reportError(err);
+          });
+      })
+      .catch((error) => {
+        reportError(error);
+      });
   }, []);
 
   useEffect(() => {
@@ -165,14 +173,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       permissionStatus === MediaLibrary.PermissionStatus.UNDETERMINED ||
       permissionStatus === MediaLibrary.PermissionStatus.DENIED
     ) {
-      setSyncEnabled(false);
-
       return false;
     }
 
-    const isEnabled = (await asyncStorageService.getItem(AsyncStorageKey.PhotosSyncEnabled)) === 'true';
-
-    setSyncEnabled(isEnabled);
+    const isEnabled = await asyncStorageService.photosSyncIsEnabled();
 
     return isEnabled;
   }
@@ -237,7 +241,8 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     ) {
       setSyncEnabled(false);
       // We only can save strings in the async storage
-      await asyncStorageService.saveItem(AsyncStorageKey.PhotosSyncEnabled, 'false');
+      await asyncStorageService.savePhotosSyncIsEnabled(false);
+
       return {
         canEnable: false,
         enabled: false,
@@ -245,7 +250,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       };
     }
     // We only can save strings in the async storage
-    await asyncStorageService.saveItem(AsyncStorageKey.PhotosSyncEnabled, enable ? 'true' : 'false');
+    await asyncStorageService.savePhotosSyncIsEnabled(enable);
 
     setSyncEnabled(enable);
     if (enable && syncStatus === PhotosSyncStatus.Unknown) {
@@ -274,6 +279,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     // TODO: Allow the remote sync mechanism to pull the synced Photos
     // even if the sync is disabled
     const syncIsEnabled = await checkShouldEnableSync();
+
     if (!syncIsEnabled) return;
     await startSync({
       updateStatus: setSyncStatus,
