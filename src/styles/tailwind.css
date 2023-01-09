@@ -70,10 +70,6 @@
   margin: 1.25rem
 }
 
-.m-2 {
-  margin: 0.5rem
-}
-
 .-m-2 {
   margin: -0.5rem
 }
@@ -327,6 +323,14 @@
   margin-left: 0.375rem
 }
 
+.-mt-8 {
+  margin-top: -2rem
+}
+
+.mt-10 {
+  margin-top: 2.5rem
+}
+
 .flex {
   display: flex
 }
@@ -487,10 +491,6 @@
   width: 2rem
 }
 
-.w-16 {
-  width: 4rem
-}
-
 .w-3 {
   width: 0.75rem
 }
@@ -501,6 +501,10 @@
 
 .w-32 {
   width: 8rem
+}
+
+.w-16 {
+  width: 4rem
 }
 
 .w-auto {
@@ -565,10 +569,6 @@
 
 .justify-evenly {
   justify-content: space-evenly
-}
-
-.self-center {
-  align-self: center
 }
 
 .overflow-hidden {
@@ -698,6 +698,10 @@
   border-color: rgb(0 0 0 / 0.05)
 }
 
+.border-transparent {
+  border-color: rgb(0,0,0,0)
+}
+
 .bg-primary-dark {
   --tw-bg-opacity: 1;
   background-color: rgb(0 88 219 / var(--tw-bg-opacity))
@@ -783,16 +787,6 @@
   background-color: rgb(243 243 248 / 0.5)
 }
 
-.bg-neutral-30 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(235 236 240 / var(--tw-bg-opacity))
-}
-
-.bg-debug {
-  --tw-bg-opacity: 1;
-  background-color: rgb(0 128 0 / var(--tw-bg-opacity))
-}
-
 .bg-gray-60 {
   --tw-bg-opacity: 1;
   background-color: rgb(99 99 103 / var(--tw-bg-opacity))
@@ -803,21 +797,31 @@
   background-color: rgb(250 251 252 / var(--tw-bg-opacity))
 }
 
+.bg-neutral-30 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(235 236 240 / var(--tw-bg-opacity))
+}
+
 .bg-black {
   --tw-bg-opacity: 1;
   background-color: rgb(0 0 0 / var(--tw-bg-opacity))
+}
+
+.bg-debug {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 128 0 / var(--tw-bg-opacity))
 }
 
 .p-0 {
   padding: 0px
 }
 
-.p-2 {
-  padding: 0.5rem
-}
-
 .p-4 {
   padding: 1rem
+}
+
+.p-2 {
+  padding: 0.5rem
 }
 
 .p-3 {
@@ -998,6 +1002,10 @@
   padding-right: 1.25rem
 }
 
+.pb-14 {
+  padding-bottom: 3.5rem
+}
+
 .pb-5 {
   padding-bottom: 1.25rem
 }
@@ -1048,6 +1056,22 @@
 
 .pt-2 {
   padding-top: 0.5rem
+}
+
+.pt-14 {
+  padding-top: 3.5rem
+}
+
+.pt-10 {
+  padding-top: 2.5rem
+}
+
+.pr-2 {
+  padding-right: 0.5rem
+}
+
+.pr-4 {
+  padding-right: 1rem
 }
 
 .text-left {
@@ -1266,6 +1290,11 @@
 .text-neutral-60 {
   --tw-text-opacity: 1;
   color: rgb(179 186 197 / var(--tw-text-opacity))
+}
+
+.text-\[\#997A00\] {
+  --tw-text-opacity: 1;
+  color: rgb(153 122 0 / var(--tw-text-opacity))
 }
 
 .text-blue-40 {

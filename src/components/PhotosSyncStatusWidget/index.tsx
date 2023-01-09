@@ -1,4 +1,4 @@
-import { CheckCircle, Pause, Play } from 'phosphor-react-native';
+import { CheckCircle, Pause, Play, Warning } from 'phosphor-react-native';
 import React, { useContext } from 'react';
 import { Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
@@ -11,8 +11,11 @@ import useGetColor from '../../hooks/useColor';
 import { PhotosContext } from 'src/contexts/Photos';
 import photos from '@internxt-mobile/services/photos';
 import appService from '@internxt-mobile/services/AppService';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { SettingsStackParamList } from '@internxt-mobile/types/navigation';
 
 const PhotosSyncStatusWidget = () => {
+  const navigation = useNavigation<NavigationProp<SettingsStackParamList, 'SettingsHome'>>();
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const photosCtx = useContext(PhotosContext);
@@ -90,6 +93,37 @@ const PhotosSyncStatusWidget = () => {
   const isPausing = photosCtx.sync.status === PhotosSyncStatus.Pausing;
   const isPending = photosCtx.sync.status === PhotosSyncStatus.Pending;
   const showPauseResumeButton = !isCompleted && !isPending && photosCtx.sync.status !== PhotosSyncStatus.Unknown;
+
+  const renderDisabledMessage = () => {
+    return (
+      <TouchableOpacity
+        activeOpacity={0.95}
+        style={[tailwind('p-4'), { backgroundColor: 'rgba(255, 204, 0, 0.15)' }]}
+        onPress={() => {
+          // Date.now will trigger route.params updates, if we set a boolean
+          // it will trigger only once
+          navigation.navigate('SettingsHome', { focusEnablePhotosSync: Date.now() });
+        }}
+      >
+        <View style={tailwind('flex flex-row w-full')}>
+          <View style={tailwind('mr-2')}>
+            <Warning color="#FFCC00" weight="fill" size={18} />
+          </View>
+          <View style={tailwind('flex-1')}>
+            <AppText style={[tailwind('text-xs text-[#997A00]'), { lineHeight: 14.4 }]}>
+              {strings.screens.gallery.photosDisabled}
+              <AppText style={[tailwind('text-xs text-[#997A00]'), { lineHeight: 14.4 }]} semibold>
+                {' '}
+                {strings.screens.gallery.photosDisabledBold}
+              </AppText>
+            </AppText>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
+  if (!photosCtx.syncEnabled) return renderDisabledMessage();
 
   return (
     <View>

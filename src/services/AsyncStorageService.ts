@@ -21,6 +21,14 @@ class AsyncStorageService {
     });
   }
 
+  async photosSyncIsEnabled() {
+    return (await this.getItem(AsyncStorageKey.PhotosSyncEnabled)) === 'true';
+  }
+
+  async savePhotosSyncIsEnabled(enabled: boolean) {
+    await this.saveItem(AsyncStorageKey.PhotosSyncEnabled, enabled ? 'true' : 'false');
+  }
+
   listItems(): Promise<readonly string[]> {
     return AsyncStorage.getAllKeys();
   }
@@ -31,6 +39,7 @@ class AsyncStorageService {
       AsyncStorageKey.Token,
       AsyncStorageKey.PhotosToken,
       AsyncStorageKey.LastPhotosPagePulled,
+      AsyncStorageKey.PhotosSyncEnabled,
     ]);
 
     // eslint-disable-next-line no-console

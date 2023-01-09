@@ -1,4 +1,4 @@
-import { GestureResponderEvent, StyleProp, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { GestureResponderEvent, StyleProp, TouchableHighlight, View, ViewProps, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
@@ -10,14 +10,14 @@ interface SettingsGroupItemProps {
   onPress?: (event: GestureResponderEvent) => void;
 }
 
-interface SettingsGroupProps {
+interface SettingsGroupProps extends ViewProps {
   style?: StyleProp<ViewStyle>;
   title?: string;
   advice?: string;
   items: SettingsGroupItemProps[];
 }
 
-function SettingsGroup({ style, title, items, advice }: SettingsGroupProps) {
+function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupProps) {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const SettingsGroupItem = (props: SettingsGroupItemProps) => {
@@ -49,7 +49,7 @@ function SettingsGroup({ style, title, items, advice }: SettingsGroupProps) {
     });
 
   return (
-    <View style={[tailwind('mb-8'), style]}>
+    <View style={[tailwind('mb-8'), style]} {...rest}>
       {title !== undefined && (
         <AppText style={tailwind('text-xs ml-4 mb-2')} semibold>
           {title.toUpperCase()}

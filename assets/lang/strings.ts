@@ -254,6 +254,8 @@ const strings = new LocalizedStrings({
         syncingTasks: 'Syncing {0} of {1}',
         pausing: 'Pausing sync...',
         paused: 'Sync paused',
+        photosDisabled: 'Internxt Photos is disabled. Your photos and videos are not beign backed up.',
+        photosDisabledBold: 'Tap to enable gallery backup.',
         groupBy: {
           years: 'Years',
           months: 'Months',
@@ -274,11 +276,10 @@ const strings = new LocalizedStrings({
         },
         general: 'General',
         photos: {
-          title: 'Photos gallery',
-          mobileData: {
-            title: 'Use mobile data to upload',
-            onlyWifi: 'Use only WiFi to upload photos',
-            wifiAndMobileData: 'Use WiFi and mobile data to upload photos',
+          title: 'Internxt Photos',
+          enablePhotosBackup: {
+            title: 'Backup your gallery',
+            message: 'All your gallery photos and videos will be backed up on Internxt Photos',
           },
         },
         information: 'Information',
@@ -964,6 +965,8 @@ const strings = new LocalizedStrings({
         syncingTasks: 'Sincronizando {0} de {1}',
         pausing: 'Pausando sincronización...',
         paused: 'Sincronización pausada',
+        photosDisabled: 'Internxt Photos esta deshabilitado. Tus fotos y vídeos no se están respaldando.',
+        photosDisabledBold: 'Pulsa aquí para activarlo.',
         groupBy: {
           years: 'Años',
           months: 'Meses',
@@ -984,11 +987,10 @@ const strings = new LocalizedStrings({
         },
         general: 'General',
         photos: {
-          title: 'Galería de fotos',
-          mobileData: {
-            title: 'Usar datos móviles para subir',
-            onlyWifi: 'Usar solo WiFi para subir fotos',
-            wifiAndMobileData: 'Usar WiFi y datos móviles para subir fotos',
+          title: 'Internxt Photos',
+          enablePhotosBackup: {
+            title: 'Copia de seguridad',
+            message: 'Haz una copia de seguridad de tu galería en Internxt Photos',
           },
         },
         support: 'Soporte',

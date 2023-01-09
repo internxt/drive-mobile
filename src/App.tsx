@@ -161,35 +161,34 @@ export default function App(): JSX.Element {
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
-          <Portal.Host>
-            <View style={tailwind('flex-1')}>
-              {isAppInitialized && fontsAreReady ? (
-                <DriveContextProvider rootFolderId={user?.root_folder_id}>
-                  <PhotosContextProvider>
+          <View style={tailwind('flex-1')}>
+            {isAppInitialized && fontsAreReady ? (
+              <DriveContextProvider rootFolderId={user?.root_folder_id}>
+                <PhotosContextProvider>
+                  <Portal.Host>
                     <Navigation />
-                  </PhotosContextProvider>
-                </DriveContextProvider>
-              ) : (
-                <View style={tailwind('items-center flex-1 justify-center')}>
-                  {loadError ? <Text>{loadError}</Text> : null}
-                </View>
-              )}
+                    <AppToast />
 
-              <AppToast />
-
-              <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-              <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
-              <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
-              <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
-              <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
-              <ChangeProfilePictureModal
-                isOpen={isChangeProfilePictureModalOpen}
-                onClose={onChangeProfilePictureModalClosed}
-              />
-              <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-              <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-            </View>
-          </Portal.Host>
+                    <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+                    <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
+                    <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
+                    <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+                    <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+                    <ChangeProfilePictureModal
+                      isOpen={isChangeProfilePictureModalOpen}
+                      onClose={onChangeProfilePictureModalClosed}
+                    />
+                    <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+                    <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+                  </Portal.Host>
+                </PhotosContextProvider>
+              </DriveContextProvider>
+            ) : (
+              <View style={tailwind('items-center flex-1 justify-center')}>
+                {loadError ? <Text>{loadError}</Text> : null}
+              </View>
+            )}
+          </View>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
