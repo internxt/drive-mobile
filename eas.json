@@ -3,31 +3,16 @@
     "version": ">= 0.59.0"
   },
   "build": {
-    "staging": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
       "distribution": "internal",
-      "releaseChannel": "staging",
-      "env": {
-        "REACT_NATIVE_APP_BUILD_NUMBER": "0",
-        "REACT_NATIVE_DEBUG": "true",
-        "REACT_NATIVE_SHOW_BILLING": "true",
-        "REACT_NATIVE_WEB_CLIENT_URL": "http://141.95.110.196:3005",
-        "REACT_NATIVE_DRIVE_API_URL": "http://141.95.110.196:3000",
-        "REACT_NATIVE_BRIDGE_URL": "http://141.95.110.196:6382",
-        "REACT_NATIVE_PHOTOS_API_URL": "http://141.95.110.196:3001/api",
-        "REACT_NATIVE_PAYMENTS_API_URL": "http://141.95.110.196:3002",
-        "REACT_NATIVE_PHOTOS_NETWORK_API_URL": "http://141.95.110.196:3001/api",
-        "REACT_NATIVE_CRYPTO_SECRET": "6KYQBP847D4ATSFA",
-        "REACT_NATIVE_CRYPTO_SECRET2": "8Q8VMUE3BJZV87GT",
-        "REACT_NATIVE_MAGIC_IV": "d139cb9a2cd17092e79e1861cf9d7023",
-        "REACT_NATIVE_MAGIC_SALT": "38dce0391b49efba88dbc8c39ebf868f0267eb110bb0012ab27dc52a528d61b1d1ed9d76f400ff58e3240028442b1eab9bb84e111d9dadd997982dbde9dbd25e",
-        "REACT_NATIVE_RECAPTCHA_V3": "6LccEEEaAAAAAGNs_483X4wg3tFQxiRqb4OpS-fv",
-        "REACT_NATIVE_SEGMENT_API": "5BcI8fvBuyO08eZ2Ry2VvFBnRxxiMKQP",
-        "SENTRY_DSN": "https=//51dff7318c3e4c378df2345b696fc30a@sentry.internxt.com/2",
-        "SENTRY_ORGANIZATION": "internxt",
-        "SENTRY_PROJECT": "internxt-mobile",
-        "SENTRY_URL": "sentry.internxt.com",
-        "SENTRY_AUTH_TOKEN": "604a69819acc43e4baa48c7103a4bc7d6b43b2d92f7e447c943241f704c2a76a"
-      }
+      "channel": "preview"
+    },
+    "production": {
+      "channel": "production"
     }
   },
   "submit": {
