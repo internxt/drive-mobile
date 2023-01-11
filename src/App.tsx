@@ -13,7 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 
 import analyticsService from './services/AnalyticsService';
-import { forceCheckUpdates, shouldForceUpdate, useLoadFonts } from './helpers';
+import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import { authThunks } from './store/slices/auth';
 import { appThunks } from './store/slices/app';
 import appService from './services/AppService';
@@ -37,7 +37,6 @@ import fileSystemService from './services/FileSystemService';
 import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
 import { DriveContextProvider } from './contexts/Drive/Drive.context';
-
 let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -111,15 +110,25 @@ export default function App(): JSX.Element {
 
   const initializeApp = async () => {
     try {
-      // 1. Prepare the TMP dir
+      // 1. Get remote updates
+      await getRemoteUpdateIfAvailable();
+
+      // 2. Check for updates every time the app becomes active, doesn't trigger when setted
+      appService.onAppStateChange(async (state) => {
+        if (state === 'active') {
+          await getRemoteUpdateIfAvailable();
+        }
+      });
+
+      // 3. Prepare the TMP dir
       await fileSystemService.prepareTmpDir();
 
-      // 2. Initialize all the services we need at start time
+      // 4. Initialize all the services we need at start time
       const initializeOperations = [authService.init(), analyticsService.setup()];
 
       await Promise.all(initializeOperations);
 
-      // 3. Silent SignIn only if token is still valid
+      // 5. Silent SignIn only if token is still valid
       await silentSignIn();
     } catch (err) {
       setLoadError((err as Error).message);
@@ -142,14 +151,6 @@ export default function App(): JSX.Element {
     if (!isAppInitialized) {
       initializeApp();
     }
-
-    shouldForceUpdate()
-      .then((shouldForce) => {
-        if (shouldForce && appService.constants.NODE_ENV === 'production') {
-          forceCheckUpdates();
-        }
-      })
-      .catch(() => undefined);
 
     return () => {
       authService.removeLoginListener(onUserLoggedIn);
