@@ -1,6 +1,6 @@
+import { AppEnv } from '@internxt-mobile/types/app';
 import Constants from 'expo-constants';
 import { AppState, AppStateStatus } from 'react-native';
-import { AppEnv } from '../../app.config';
 import EnvTest from '../../env/.env.test.json';
 import packageJson from '../../package.json';
 
@@ -20,6 +20,7 @@ class AppService {
     if (process.env.NODE_ENV === 'test') {
       return EnvTest as AppEnv;
     }
+    if (Constants.expoConfig?.extra) return Constants.expoConfig.extra;
     if (Constants.manifest?.extra) return Constants.manifest.extra as AppEnv;
 
     return Constants.manifest2?.extra as AppEnv;
