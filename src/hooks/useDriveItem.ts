@@ -45,7 +45,16 @@ const useDriveItem = (props: UseDriveItemProps) => {
     }
 
     setIsDisabled(true);
-
+    dispatch(
+      driveActions.setFocusedItem({
+        ...props.data,
+        shareId: props.data.shareId,
+        parentId: props.data.parentId as number,
+        size: props.data.size,
+        updatedAt: props.data.updatedAt,
+        isFolder: props.data.isFolder,
+      }),
+    );
     const thunk = dispatch(
       driveThunks.downloadFileThunk({
         ...props.data,
@@ -54,8 +63,10 @@ const useDriveItem = (props: UseDriveItemProps) => {
         name: props.data.name,
         type: props.data.type as string,
         fileId: props.data.fileId as string,
+        openFileViewer: false,
       }),
     );
+
     const downloadAbort = () => {
       thunk.abort();
     };
@@ -65,6 +76,8 @@ const useDriveItem = (props: UseDriveItemProps) => {
     thunk.then(() => {
       setIsDisabled(false);
     });
+
+    navigation.navigate('DrivePreview');
   };
   const onItemPressed = () => {
     if (isDisabled) {

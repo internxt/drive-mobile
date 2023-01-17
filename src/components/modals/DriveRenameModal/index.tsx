@@ -16,6 +16,7 @@ import useGetColor from '../../../hooks/useColor';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import uuid from 'react-native-uuid';
+import Portal from '@burstware/react-native-portal';
 function RenameModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -84,6 +85,12 @@ function RenameModal(): JSX.Element {
       // Update the item in the local DB
       if (focusedItem) {
         await drive.database.updateItemName(focusedItem?.id, newName);
+        dispatch(
+          driveActions.setFocusedItem({
+            ...focusedItem,
+            name: newName,
+          }),
+        );
       }
 
       onItemRenameSuccess();
@@ -105,55 +112,57 @@ function RenameModal(): JSX.Element {
   };
 
   return (
-    <CenterModal isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
-      <View style={tailwind('mx-8 flex-grow p-4')}>
-        <View style={tailwind('flex-grow justify-center px-8')}>
-          <View style={tailwind('pt-4 pb-8')}>
-            <View style={tailwind('items-center pb-3')}>
-              {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}
-            </View>
+    <Portal>
+      <CenterModal isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
+        <View style={tailwind('mx-8 flex-grow p-4')}>
+          <View style={tailwind('flex-grow justify-center px-8')}>
+            <View style={tailwind('pt-4 pb-8')}>
+              <View style={tailwind('items-center pb-3')}>
+                {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}
+              </View>
 
-            <View
-              style={[
-                tailwind('px-4 items-center justify-center flex-shrink flex-grow bg-neutral-10'),
-                tailwind('border border-neutral-30 rounded-lg'),
-                Platform.OS !== 'android' ? tailwind('pb-3') : tailwind(''),
-              ]}
-            >
-              <TextInput
-                style={tailwind('text-lg text-center text-neutral-600')}
-                value={newName}
-                onChangeText={setNewName}
-                placeholderTextColor={getColor('text-neutral-500')}
-                autoComplete="off"
-                key="name"
-                autoCorrect={false}
-              />
+              <View
+                style={[
+                  tailwind('px-4 items-center justify-center flex-shrink flex-grow bg-neutral-10'),
+                  tailwind('border border-neutral-30 rounded-lg'),
+                  Platform.OS !== 'android' ? tailwind('pb-3') : tailwind(''),
+                ]}
+              >
+                <TextInput
+                  style={tailwind('text-lg text-center text-neutral-600')}
+                  value={newName}
+                  onChangeText={setNewName}
+                  placeholderTextColor={getColor('text-neutral-500')}
+                  autoComplete="off"
+                  key="name"
+                  autoCorrect={false}
+                />
+              </View>
             </View>
           </View>
+
+          <View style={tailwind('flex-row justify-between')}>
+            <AppButton
+              title={strings.buttons.cancel}
+              type={'cancel'}
+              onPress={onCancelButtonPressed}
+              disabled={isLoading}
+              style={tailwind('flex-1')}
+            />
+
+            <View style={tailwind('px-1')}></View>
+
+            <AppButton
+              title={strings.buttons.rename}
+              type={'accept'}
+              onPress={onRenameButtonPressed}
+              disabled={isLoading}
+              style={tailwind('flex-1')}
+            />
+          </View>
         </View>
-
-        <View style={tailwind('flex-row justify-between')}>
-          <AppButton
-            title={strings.buttons.cancel}
-            type={'cancel'}
-            onPress={onCancelButtonPressed}
-            disabled={isLoading}
-            style={tailwind('flex-1')}
-          />
-
-          <View style={tailwind('px-1')}></View>
-
-          <AppButton
-            title={strings.buttons.rename}
-            type={'accept'}
-            onPress={onRenameButtonPressed}
-            disabled={isLoading}
-            style={tailwind('flex-1')}
-          />
-        </View>
-      </View>
-    </CenterModal>
+      </CenterModal>
+    </Portal>
   );
 }
 

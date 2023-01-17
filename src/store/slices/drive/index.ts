@@ -1,12 +1,10 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 
-import analytics, { AnalyticsEventKey, DriveAnalyticsEvent } from '../../../services/AnalyticsService';
+import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 
-import { DevicePlatform, NotificationType } from '../../../types';
+import { NotificationType } from '../../../types';
 import { RootState } from '../..';
-import { uiActions } from '../ui';
-import asyncStorage from '../../../services/AsyncStorageService';
 import strings from '../../../../assets/lang/strings';
 import notificationsService from '../../../services/NotificationsService';
 import {
@@ -122,12 +120,42 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
 
 const downloadFileThunk = createAsyncThunk<
   void,
-  { id: number; size: number; parentId: number; name: string; type: string; fileId: string; updatedAt: string },
+  {
+    id: number;
+    size: number;
+    parentId: number;
+    name: string;
+    type: string;
+    fileId: string;
+    updatedAt: string;
+    openFileViewer: boolean;
+  },
   { state: RootState }
 >(
   'drive/downloadFile',
-  async ({ id, size, parentId, name, type, fileId }, { signal, getState, dispatch, rejectWithValue }) => {
+  async (
+    { id, size, parentId, name, type, fileId, openFileViewer, updatedAt },
+    { signal, getState, dispatch, rejectWithValue },
+  ) => {
     const { user } = getState().auth;
+    dispatch(
+      driveActions.updateDownloadingFile({
+        retry: async () => {
+          dispatch(
+            driveThunks.downloadFileThunk({
+              id,
+              size,
+              parentId,
+              name,
+              type,
+              fileId,
+              openFileViewer,
+              updatedAt,
+            }),
+          );
+        },
+      }),
+    );
     const downloadProgressCallback = (progress: number) => {
       dispatch(
         driveActions.updateDownloadingFile({
@@ -211,17 +239,20 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       if (!fileAlreadyExists) {
-        dispatch(uiActions.setIsDriveDownloadModalOpen(true));
         trackDownloadStart();
         downloadProgressCallback(0);
         await download({ fileId, to: destinationPath });
       }
 
       const uri = fileSystemService.pathToUri(destinationPath);
+      dispatch(driveActions.updateDownloadingFile({ downloadedFilePath: uri }));
+      if (openFileViewer) {
+        await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
+      }
 
-      await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
       trackDownloadSuccess();
     } catch (err) {
+      dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
       /**
        * In case something fails, we remove the file in case it exists, that way
        * we don't use wrong encrypted cached files
@@ -265,7 +296,7 @@ const createFolderThunk = createAsyncThunk<
   void,
   { parentFolderId: number; newFolderName: string },
   { state: RootState }
->('drive/createFolder', async ({ parentFolderId, newFolderName }, { dispatch }) => {
+>('drive/createFolder', async ({ parentFolderId, newFolderName }) => {
   await drive.folder.createFolder(parentFolderId, newFolderName);
 });
 

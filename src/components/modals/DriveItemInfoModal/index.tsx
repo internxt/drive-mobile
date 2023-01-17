@@ -28,6 +28,7 @@ import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { DriveItemData } from '@internxt-mobile/types/drive';
+import Portal from '@burstware/react-native-portal';
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -178,7 +179,7 @@ function DriveItemInfoModal(): JSX.Element {
   );
 
   return (
-    <>
+    <Portal>
       <BottomModal isOpen={showItemModal} onClosed={() => dispatch(uiActions.setShowItemModal(false))} header={header}>
         <View style={tailwind('flex-grow')}>
           <View style={tailwind('border-t border-gray-5 overflow-hidden')}>
@@ -208,7 +209,7 @@ function DriveItemInfoModal(): JSX.Element {
         isOpen={sharedLinkSettingsModalOpen}
         onClose={() => setSharedLinkSettingsModalOpen(false)}
       />
-    </>
+    </Portal>
   );
 }
 

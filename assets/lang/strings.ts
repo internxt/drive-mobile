@@ -66,6 +66,10 @@ const strings = new LocalizedStrings({
           hint: 'Deleted files and folders will appear here',
         },
       },
+      PreviewScreen: {
+        noPreviewAvailable: 'No preview available for this file',
+        openWith: 'Open with...',
+      },
       DebugScreen: {
         title: 'Debug',
         internet: {
@@ -173,8 +177,8 @@ const strings = new LocalizedStrings({
           message: 'Try uploading a file or creating a folder',
         },
         emptyFolder: {
-          title: 'This folder is empty',
-          message: 'Try uploading a file or creating a folder',
+          title: 'Folder is empty',
+          message: 'Tap the + button to upload a file or create something new',
         },
         searchInThisFolder: 'Search in this folder',
         encrypting: 'Encrypting',
@@ -668,6 +672,10 @@ const strings = new LocalizedStrings({
         title: 'There has been an error',
         message: '{0}. Please contact us.',
       },
+      driveFolderContent: {
+        title: "Can't load content",
+        message: 'There are internet connection problems, check your network connection',
+      },
       deactivationAccount: 'Error deactivating account. Please contact us.',
       emailAlreadyInUse: 'Email already in use',
       failed2FA: 'Wrong 2-factor auth code',
@@ -767,6 +775,10 @@ const strings = new LocalizedStrings({
           plan: 'Plan',
         },
         newChargeOn: 'Nuevo cargo el {0}',
+      },
+      PreviewScreen: {
+        noPreviewAvailable: 'Preview no disponible para este archivo',
+        openWith: 'Abrir con...',
       },
       TrashScreen: {
         title: 'Papelera',
@@ -1379,6 +1391,10 @@ const strings = new LocalizedStrings({
       generic: {
         title: 'Ha habido un error',
         message: '{0}. Por favor, contacta con nosotros.',
+      },
+      driveFolderContent: {
+        title: 'No se puede cargar el contenido',
+        message: 'Parece que hay problemas de conexión, revisa la conexión a internet',
       },
       deactivationAccount: 'Error desactivando la cuenta. Por favor contacta con nosotros.',
       emailAlreadyInUse: 'Ya existe una cuenta con este email',

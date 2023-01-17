@@ -8,6 +8,7 @@ import strings from '../../../assets/lang/strings';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import Portal from '@burstware/react-native-portal';
 
 const AppToast = (): JSX.Element => {
   const tailwind = useTailwind();
@@ -109,7 +110,11 @@ const AppToast = (): JSX.Element => {
     ),
   };
 
-  return <Toast config={config} />;
+  return (
+    <Portal>
+      <Toast config={config} />
+    </Portal>
+  );
 };
 
 export default AppToast;

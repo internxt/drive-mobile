@@ -34,6 +34,7 @@ import { RootScreenNavigationProp } from '../../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 import { useDrive } from '@internxt-mobile/hooks/drive';
+import Portal from '@burstware/react-native-portal';
 
 const colors = {
   primary: '#0066FF',
@@ -273,7 +274,7 @@ function MoveItemsModal(): JSX.Element {
   }, [folderContent, showMoveModal]);
 
   return (
-    <>
+    <Portal>
       <BottomModal
         isOpen={showMoveModal}
         onClosed={onCloseMoveModal}
@@ -378,7 +379,7 @@ function MoveItemsModal(): JSX.Element {
           onFolderCreated={onFolderCreated}
         />
       ) : null}
-    </>
+    </Portal>
   );
 }
 

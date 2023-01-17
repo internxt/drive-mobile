@@ -18,7 +18,6 @@ import ReferralsBanner from '../components/ReferralsBanner';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DriveDownloadModal from '../components/modals/DriveDownloadModal';
 import SignOutModal from '../components/modals/SignOutModal';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { useTailwind } from 'tailwind-rn';
@@ -89,7 +88,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <DriveItemInfoModal />
       <SharedLinkInfoModal />
       <MoveItemsModal />
-      <DriveDownloadModal />
       <DriveRenameModal />
       <RunOutOfStorageModal />
       <SignOutModal />

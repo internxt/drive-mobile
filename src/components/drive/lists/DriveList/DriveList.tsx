@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, useWindowDimensions, ViewStyle, FlatList } from 'react-native';
 import _ from 'lodash';
 
@@ -12,7 +12,6 @@ import EmptyList from '../../../EmptyList';
 import strings from '../../../../../assets/lang/strings';
 import { DriveListType, DriveListViewMode, DriveListItem } from '../../../../types/drive';
 import { useTailwind } from 'tailwind-rn';
-import { VirtualizedListView } from '@internxt-mobile/ui-kit';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 interface DriveListProps {
   type?: DriveListType;
