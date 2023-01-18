@@ -7,7 +7,7 @@ import { useTailwind } from 'tailwind-rn';
 
 interface VideoViewerProps {
   source?: string;
-  thumbnail: string;
+  thumbnail?: string;
   onPlay?: () => void;
   onPause?: () => void;
 }
@@ -54,7 +54,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
             </TouchableOpacity>
           </View>
         ) : null}
-        {displayThumbnailOnPlay ? (
+        {displayThumbnailOnPlay && thumbnail ? (
           <Image
             source={{
               uri: fileSystemService.pathToUri(thumbnail),

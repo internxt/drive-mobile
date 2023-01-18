@@ -2,6 +2,7 @@ import { GeneratedThumbnail, imageService } from '@internxt-mobile/services/comm
 import { time } from '@internxt-mobile/services/common/time';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { FileExtension } from '@internxt-mobile/types/drive';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
 import strings from 'assets/lang/strings';
@@ -112,6 +113,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         fileUri: downloadedFilePath,
       });
     } catch (error) {
+      notifications.error(strings.errors.openWithFailed);
       errorService.reportError(error);
     }
   };
@@ -175,10 +177,13 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     );
   };
   const renderByStatus = () => {
+    const renderImagePreview = downloadingFile.downloadedFilePath && hasImagePreview;
+    const renderVideoPreview = downloadingFile.downloadedFilePath && hasVideoPreview;
+    const renderPdfPreview = downloadingFile.downloadedFilePath && hasPdfPreview;
     // Render no preview
     if (
       (currentProgress < 1 && !downloadingFile.downloadedFilePath) ||
-      (downloadingFile.downloadedFilePath && !hasImagePreview && !hasVideoPreview && !hasPdfPreview) ||
+      (!renderImagePreview && !renderVideoPreview && !renderPdfPreview) ||
       downloadingFile.error
     ) {
       return renderNoPreview({
@@ -188,8 +193,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       });
     }
 
-    // Render an image preview
-    if (downloadingFile.downloadedFilePath && hasImagePreview) {
+    if (renderImagePreview) {
       return (
         <DriveImagePreview
           onTapImage={() => {
@@ -198,20 +202,20 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
           onZoomImage={() => {
             setTopbarVisible(false);
           }}
-          imagePath={downloadingFile.downloadedFilePath}
+          imagePath={downloadingFile.downloadedFilePath as string}
           height={dimensions.height}
         />
       );
     }
 
-    // Render a video preview
-    if (downloadingFile.downloadedFilePath && hasVideoPreview && generatedThumbnail) {
-      return <DriveVideoPreview thumbnail={generatedThumbnail?.path} source={downloadingFile.downloadedFilePath} />;
+    if (renderVideoPreview) {
+      return (
+        <DriveVideoPreview thumbnail={generatedThumbnail?.path} source={downloadingFile.downloadedFilePath as string} />
+      );
     }
 
-    // Render a PDF preview
-    if (downloadingFile.downloadedFilePath && hasPdfPreview) {
-      const availableHeight = dimensions.height - (!topbarVisible ? DRIVE_PREVIEW_HEADER_HEIGHT + insets.top : 0);
+    if (renderPdfPreview) {
+      const availableHeight = dimensions.height - (topbarVisible ? DRIVE_PREVIEW_HEADER_HEIGHT + insets.top : 0);
       return (
         <View>
           <Animated.View style={{ height: pdfViewerSpacerHeight }} />
@@ -221,7 +225,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
             onTap={() => setTopbarVisible(!topbarVisible)}
             width={dimensions.width}
             height={availableHeight}
-            source={downloadingFile.downloadedFilePath}
+            source={downloadingFile.downloadedFilePath as string}
           />
         </View>
       );

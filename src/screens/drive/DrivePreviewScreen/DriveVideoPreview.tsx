@@ -7,7 +7,7 @@ import { useTailwind } from 'tailwind-rn';
 
 export interface DriveVideoPreviewProps {
   source: string;
-  thumbnail: string;
+  thumbnail?: string;
 }
 
 export const DriveVideoPreview: React.FC<DriveVideoPreviewProps> = (props) => {
