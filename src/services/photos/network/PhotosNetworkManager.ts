@@ -149,7 +149,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     this.onUploadStartCallback(operation.photosItem);
     const stopIfAborted = () => {
       if (this.isAborted) {
-        new AbortedOperationError();
+        throw new AbortedOperationError();
       }
     };
     const { credentials } = await AuthService.getAuthCredentials();

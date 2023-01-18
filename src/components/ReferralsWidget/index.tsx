@@ -4,7 +4,7 @@ import { Linking, TouchableHighlight, View } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { referralsThunks } from '../../store/slices/referrals';
+import { referralsActions, referralsThunks } from '../../store/slices/referrals';
 import { ReferralTypes } from '@internxt/sdk/dist/drive';
 import { uiActions } from '../../store/slices/ui';
 import { CaretRight, CheckCircle } from 'phosphor-react-native';
@@ -16,6 +16,7 @@ import storageService from 'src/services/StorageService';
 import UsersReferralsService from '@internxt-mobile/services/UsersReferralsService';
 import { realtime } from '@internxt-mobile/services/NetworkService/realtimeUpdates';
 import AuthService from '@internxt-mobile/services/AuthService';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 const ReferralsWidget = (): JSX.Element => {
   const tailwind = useTailwind();
