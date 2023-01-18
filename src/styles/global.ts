@@ -20,3 +20,5 @@ export default {
     },
   }),
 };
+
+export const getLineHeight = (fontSize: number, lineHeightPercentage: number) => fontSize * lineHeightPercentage;

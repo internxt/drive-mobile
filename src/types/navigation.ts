@@ -19,6 +19,7 @@ export type RootStackParamList = {
   ForgotPassword: undefined;
   PhotosPreview: { photoName: string };
   Trash: undefined;
+  DrivePreview: undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<

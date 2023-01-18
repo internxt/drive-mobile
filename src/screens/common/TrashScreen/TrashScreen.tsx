@@ -1,6 +1,6 @@
 import { useUseCase } from '@internxt-mobile/hooks/common';
 import { DriveListItem, DriveListViewMode } from '@internxt-mobile/types/drive';
-import { RootStackScreenProps, SettingsScreenProps } from '@internxt-mobile/types/navigation';
+import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
 import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
