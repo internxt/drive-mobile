@@ -2,6 +2,7 @@ import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import errorService from '@internxt-mobile/services/ErrorService';
 import photos from '@internxt-mobile/services/photos';
 import { photosLogger } from '@internxt-mobile/services/photos/logger';
+import { devicePhotosScanner } from '@internxt-mobile/services/photos/sync';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
 import { PhotosItem, PhotosSyncStatus } from '@internxt-mobile/types/photos';
 import * as MediaLibrary from 'expo-media-library';
@@ -20,7 +21,7 @@ export interface PhotosContextType {
     enable: boolean,
   ) => Promise<{ canEnable: boolean; enabled: boolean; permissionsStatus: MediaLibrary.PermissionStatus }>;
   start: () => Promise<void>;
-  getPhotosItem: (name: string) => PhotosItem | undefined;
+  getPhotosItem: (name: string, takenAt: number) => PhotosItem | undefined;
   selection: {
     selectionModeActivated: boolean;
     setSelectionModeActivated: (activated: boolean) => void;
@@ -45,6 +46,8 @@ export interface PhotosContextType {
     completedTasks: number;
     failedTasks: number;
     photosInLocalDB: number;
+    photosInDevice: number;
+    photosInRemote: number;
     pendingTasks: number;
   };
 }
@@ -107,17 +110,21 @@ export const PhotosContext = React.createContext<PhotosContextType>({
     photosInLocalDB: 0,
     completedTasks: 0,
     pendingTasks: 0,
+    photosInDevice: 0,
+    photosInRemote: 0,
     status: PhotosSyncStatus.Unknown,
   },
 });
-
 const getPhotos = async (cursor?: string) => {
-  return photos.sync.getDevicePhotos(cursor, 10000);
+  return devicePhotosScanner.getDevicePhotosItems(cursor, 10000);
 };
+
+let accumulatedDevicePhotosItems: PhotosItem[] = [];
 
 export const PhotosContextProvider: React.FC = ({ children }) => {
   const [uploadingPhotosItem, setUploadingPhotosItem] = useState<PhotosItem | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [syncEnabled, setSyncEnabled] = useState<boolean>(true);
   const [selectionModeActivated, setSelectionModeActivated] = useState(false);
   const [uploadedPhotosItems, setUploadedPhotosItems] = useState<PhotosItem[]>([]);
@@ -127,6 +134,8 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   const [failedTasks, setFailedTasks] = useState(0);
 
   const [photosInLocalDB, setPhotosInLocalDB] = useState(0);
+  const [photosInDevice, setPhotosInDevice] = useState(0);
+  const [photosInRemote, setPhotosInRemote] = useState(0);
 
   const [completedTasks, setCompletedTasks] = useState(0);
 
@@ -165,7 +174,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       // Set the status in the context
       setSyncEnabled(enabled);
     } catch (error) {
-      reportError(error);
+      errorService.reportError(error);
     }
   };
   async function checkShouldEnableSync() {
@@ -198,33 +207,26 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     }
 
     selection.resetSelectionMode();
-
-    if (syncStatus === PhotosSyncStatus.Completed) {
-      setSyncStatus(PhotosSyncStatus.Unknown);
-      setTotalTasks(0);
-      setPendingTasks(0);
-      setFailedTasks(0);
-      setCompletedTasks(0);
-    }
-
-    setUploadedPhotosItems([]);
+    accumulatedDevicePhotosItems = [];
+    setSyncStatus(PhotosSyncStatus.Unknown);
+    setTotalTasks(0);
+    setPendingTasks(0);
+    setFailedTasks(0);
+    setCompletedTasks(0);
+    setPhotosInLocalDB(0);
+    setPhotosInRemote(0);
+    setPhotosInDevice(0);
   }
-  async function onRemotePhotosSynced(photosItem: PhotosItem) {
-    photosLogger.info('Checking db for new photos');
 
-    const existsSynced = syncedPhotosItems.current.find(
-      (syncedPhotosItem) =>
-        syncedPhotosItem.name === photosItem.name && syncedPhotosItem.takenAt === photosItem.takenAt,
-    );
-    if (existsSynced) return;
-    syncedPhotosItems.current.push(photosItem);
-
+  async function onRemotePhotosSynced() {
+    const syncedPhotos = await photos.realm.getSyncedPhotos();
+    syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photos.utils.getPhotosItem(syncedPhoto));
     setPhotosInLocalDB(syncedPhotosItems.current.length);
     const mergedPhotosItems = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
     setDataSource(
       new DataProvider(function (r1, r2) {
-        const r1Key = `${r1.name}-${r1.takenAt}`;
-        const r2Key = `${r2.name}-${r2.takenAt}`;
+        const r1Key = getListKey(r1);
+        const r2Key = getListKey(r2);
         return r1Key !== r2Key;
       }).cloneWithRows(mergedPhotosItems),
     );
@@ -261,11 +263,11 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     }
 
     if (enable && syncStatus === PhotosSyncStatus.Paused) {
-      photos.sync.resume();
+      photos.localSync.resume();
     }
 
     if (!enable && syncStatus === PhotosSyncStatus.InProgress) {
-      photos.sync.pause();
+      photos.localSync.pause();
     }
 
     return {
@@ -283,6 +285,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     // even if the sync is disabled
     const syncIsEnabled = await checkShouldEnableSync();
     if (!syncIsEnabled) return;
+
     await startSync({
       updateStatus: setSyncStatus,
       updateTotalTasks: setTotalTasks,
@@ -300,8 +303,13 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
           setUploadingPhotosItem(photosItem);
         }, 250);
       },
-      onPhotosItemSynced: (photosItem) => {
+      onPhotosItemSynced: async (photosItem) => {
+        if (photos.localSync.totalPhotosInDevice !== null && photosInDevice !== photos.localSync.totalPhotosInDevice) {
+          setPhotosInDevice(photos.localSync.totalPhotosInDevice);
+        }
+        setPhotosInLocalDB(await photos.realm.getSyncedPhotosCount());
         uploadedPhotosItemsRef.current = uploadedPhotosItemsRef.current.concat([photosItem]);
+
         setUploadedPhotosItems(uploadedPhotosItemsRef.current);
       },
     });
@@ -319,34 +327,44 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
 
       // 2. Initialize the Photos user, it creates a bucket for the photos
       await photos.user.init();
+      const { total: totalPhotosInRemote } = await photos.usage.getCount();
+      photosLogger.info(`${totalPhotosInRemote} photos already synced`);
+
       const start = Date.now();
-
       // 3. Loads all the photos from the device, 10k photos are about 1.5s for reference
-      await loadDevicePhotos();
+      const devicePhotos = await loadDevicePhotos();
 
-      photosLogger.info(`Device photos loaded in ${Date.now() - start}ms`);
+      // Something changed in the library, but we are not checking each photo
+      if (devicePhotos.length !== devicePhotosItems.current.length) {
+        devicePhotosItems.current = devicePhotos;
+      }
+      photosLogger.info(`${devicePhotosItems.current.length} Device photos loaded in ${Date.now() - start}ms`);
       const startDb = Date.now();
-      const syncedPhotos = await photos.database.getSyncedPhotos();
+      const syncedPhotos = await photos.realm.getSyncedPhotos();
 
       photosLogger.info(`${syncedPhotos.length} photos loaded from DB in ${Date.now() - startDb}ms`);
 
-      syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photosUtils.getPhotosItem(syncedPhoto.photo));
+      const syncPercentage = (totalPhotosInRemote * 100) / devicePhotosItems.current.length;
+      photosLogger.info(`${syncPercentage.toFixed(2)}% of Photos synced aprox.`);
+      syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photosUtils.getPhotosItem(syncedPhoto));
 
       setPhotosInLocalDB(syncedPhotosItems.current.length);
+      setPhotosInRemote(totalPhotosInRemote);
       const mergedPhotosItems = photosUtils.mergePhotosItems(
         devicePhotosItems.current.concat(syncedPhotosItems.current),
       );
 
       setDataSource(
         new DataProvider(function (r1, r2) {
-          const r1Key = `${r1.name}-${r1.takenAt}`;
-          const r2Key = `${r2.name}-${r2.takenAt}`;
+          const r1Key = getListKey(r1);
+          const r2Key = getListKey(r2);
           return r1Key !== r2Key;
         }).cloneWithRows(mergedPhotosItems),
       );
 
       if (!syncIsEnabled) {
         setReady(true);
+        setIsRefreshing(false);
         return;
       }
       if (syncStatus === PhotosSyncStatus.InProgress) return;
@@ -367,21 +385,23 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
    *
    * @param cursor Cursor to get the photos from
    */
-  async function loadDevicePhotos(cursor?: string) {
+  async function loadDevicePhotos(cursor?: string): Promise<PhotosItem[]> {
     const { endCursor, assets, hasNextPage } = await getPhotos(cursor);
     if (assets.length) {
-      devicePhotosItems.current = devicePhotosItems.current.concat(assets);
+      accumulatedDevicePhotosItems = accumulatedDevicePhotosItems.concat(assets);
     }
 
     if (endCursor && hasNextPage) {
-      await loadDevicePhotos(endCursor);
+      return loadDevicePhotos(endCursor);
+    } else {
+      return accumulatedDevicePhotosItems;
     }
   }
 
-  function getPhotosItem(name: string) {
-    return photosUtils
-      .mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current).concat(uploadedPhotosItems))
-      .find((pi) => pi.name === name);
+  function getPhotosItem(name: string, takenAt: number) {
+    return (dataSource.getAllData() as PhotosItem[]).find(
+      (photosItem) => photosItem.name === name && photosItem.takenAt === takenAt,
+    );
   }
 
   /**
@@ -439,34 +459,41 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   };
 
   async function refreshPhotosContext() {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
     resetContext({ resetLoadedImages: false });
-    const syncedPhotos = await photos.database.getSyncedPhotos();
-    syncedPhotosItems.current = syncedPhotos.map(({ photo }) => photosUtils.getPhotosItem(photo));
+    photos.localSync.destroy();
+    const syncedPhotos = await photos.realm.getSyncedPhotos();
+    syncedPhotosItems.current = syncedPhotos.map((photo) => photosUtils.getPhotosItem(photo));
     const mergedPhotosItems = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
     setDataSource(
       new DataProvider(function (r1, r2) {
-        const r1Key = `${r1.name}-${r1.takenAt}`;
-        const r2Key = `${r2.name}-${r2.takenAt}`;
+        const r1Key = getListKey(r1);
+        const r2Key = getListKey(r2);
         return r1Key !== r2Key;
       }).cloneWithRows(mergedPhotosItems),
     );
-    await startPhotos();
+
+    setTimeout(async () => {
+      await startPhotos();
+    }, 500);
   }
 
+  const getListKey = (photosItem: PhotosItem) => `${photosItem.name}-${photosItem.takenAt}-${photosItem.status}`;
   async function handleRemovePhotosItems(photosItems: PhotosItem[]) {
     for (const photosItem of photosItems) {
       if (photosItem.photoId) {
-        await photos.database.deleteSyncedPhotosItem(photosItem.photoId);
+        await photos.realm.deleteSyncedPhotosItem(photosItem.photoId);
       }
     }
-    const syncedPhotos = await photos.database.getSyncedPhotos();
-    syncedPhotosItems.current = syncedPhotos.map(({ photo }) => photosUtils.getPhotosItem(photo));
+    const syncedPhotos = await photos.realm.getSyncedPhotos();
+    syncedPhotosItems.current = syncedPhotos.map((photo) => photosUtils.getPhotosItem(photo));
 
     const merged = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
     setDataSource(
       new DataProvider(function (r1, r2) {
-        const r1Key = `${r1.name}-${r1.takenAt}`;
-        const r2Key = `${r2.name}-${r2.takenAt}`;
+        const r1Key = getListKey(r1);
+        const r2Key = getListKey(r2);
         return r1Key !== r2Key;
       }).cloneWithRows(merged),
     );
@@ -494,6 +521,8 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
           pendingTasks,
           failedTasks,
           photosInLocalDB,
+          photosInDevice,
+          photosInRemote,
         },
         resetContext,
         syncEnabled,

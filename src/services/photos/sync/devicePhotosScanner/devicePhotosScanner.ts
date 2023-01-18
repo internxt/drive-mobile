@@ -26,7 +26,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
   private onGroupReadyCallback: OnGroupReadyCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
-  private cachedDevicePhotos: DevicePhoto[] = [];
+  private cachedDevicePhotos: { [assetKey: string]: DevicePhoto } = {};
   public static async getDevicePhotoData(photo: MediaLibrary.Asset) {
     return MediaLibrary.getAssetInfoAsync(photo);
   }
@@ -47,9 +47,9 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
   }
 
   public getPhotoInDevice(name: string, takenAt: number) {
-    return this.cachedDevicePhotos.find((devicePhoto) => {
-      return devicePhoto.filename.split('.')[0]?.includes(name) && takenAt === devicePhoto.creationTime;
-    });
+    const assetKey = `${name}-${takenAt.toString()}`;
+
+    return this.cachedDevicePhotos[assetKey];
   }
 
   /**
@@ -73,13 +73,17 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.updateStatus(DevicePhotosScannerStatus.PAUSED);
   }
 
-  public hasFinished() {
-    return this.status === DevicePhotosScannerStatus.COMPLETED;
+  public get hasFinished() {
+    return (
+      this.status === DevicePhotosScannerStatus.COMPLETED ||
+      this.status === DevicePhotosScannerStatus.NO_PHOTOS_IN_DEVICE
+    );
   }
 
   public destroy() {
     this.pause();
     this.updateStatus(DevicePhotosScannerStatus.IDLE);
+    this.cachedDevicePhotos = {};
   }
 
   /**
@@ -100,18 +104,26 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     const result = await MediaLibrary.getAssetsAsync({
       first: photosPerPage,
       after: nextCursor,
-      mediaType: [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video],
+      mediaType: [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video, MediaLibrary.MediaType.unknown],
       sortBy: MediaLibrary.SortBy.creationTime,
     });
 
-    if (this.cachedDevicePhotos.length !== result.totalCount) {
-      this.cachedDevicePhotos = this.cachedDevicePhotos.concat(result.assets);
-    }
+    this.saveCachedDevicePhotos(result.assets);
 
     return {
       ...result,
       assets: result.assets.map((item) => photosUtils.getPhotosItem(item)),
     };
+  }
+
+  private saveCachedDevicePhotos(assets: MediaLibrary.Asset[]) {
+    assets.forEach((asset) => {
+      const name = asset.filename.split('.')[0];
+
+      const assetKey = `${name}-${asset.creationTime.toString()}`;
+
+      this.cachedDevicePhotos[assetKey] = asset;
+    });
   }
 
   private async getGroup(cursor?: string) {
@@ -132,3 +144,5 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     this.onGroupReadyCallback && this.onGroupReadyCallback(items);
   };
 }
+
+export const devicePhotosScanner = new DevicePhotosScannerService();

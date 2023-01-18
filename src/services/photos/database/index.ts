@@ -1,1 +1,1 @@
-export * from './photosLocalDB';
+export * from './photosRealmDB';

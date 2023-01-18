@@ -21,6 +21,7 @@ export enum PhotosSyncStatus {
   Paused = 'paused',
   InProgress = 'in-progress',
   Completed = 'completed',
+  PullingRemotePhotos = 'pulling-remote-photos',
 }
 
 export const PHOTOS_DB_NAME = 'photos.db';
@@ -129,6 +130,15 @@ export enum PhotosSyncManagerStatus {
   PAUSED = 'PAUSED',
   IDLE = 'IDLE',
   COMPLETED = 'COMPLETED',
+  ABORTED = 'ABORTED',
+  PULLING_REMOTE_PHOTOS = 'PULLING_REMOTE_PHOTOS',
+}
+
+export enum PhotosRemoteSyncManagerStatus {
+  SYNCING = 'SYNCING',
+  PAUSED = 'PAUSED',
+  IDLE = 'IDLE',
+  SYNCED = 'SYNCED',
   ABORTED = 'ABORTED',
 }
 

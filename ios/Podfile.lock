@@ -400,6 +400,8 @@ PODS:
     - React-perflogger (= 0.70.5)
   - ReactNativeLocalization (2.3.1):
     - React-Core
+  - RealmJS (11.3.1):
+    - React
   - rn-crypto (0.1.11):
     - IDZSwiftCommonCrypto (~> 0.13)
     - React-Core
@@ -548,6 +550,7 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeLocalization (from `../node_modules/react-native-localization`)
+  - RealmJS (from `../node_modules/realm`)
   - "rn-crypto (from `../node_modules/@internxt/rn-crypto`)"
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
@@ -727,6 +730,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeLocalization:
     :path: "../node_modules/react-native-localization"
+  RealmJS:
+    :path: "../node_modules/realm"
   rn-crypto:
     :path: "../node_modules/@internxt/rn-crypto"
   rn-fetch-blob:
@@ -840,6 +845,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 7401c4a40f8728fd89df4a56104541b760876117
   ReactCommon: c9246996e73bf75a2c6c3ff15f1e16707cdc2da9
   ReactNativeLocalization: 076497d7ca70341c751cd3b3e7c86187332a182d
+  RealmJS: 43fc7bfb83229c8a2755cb34f71f769c97b7b581
   rn-crypto: e0218d27daee689e219eb3f513bc1fe00c1f2388
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60

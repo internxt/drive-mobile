@@ -1,7 +1,7 @@
 import React, { useContext, useMemo, useRef, useState } from 'react';
 import { View, Image } from 'react-native';
-import { GalleryItemType, PhotosItem, PhotoSyncStatus } from '../../types/photos';
-import { ArrowUp, CheckCircle, CloudSlash } from 'phosphor-react-native';
+import { GalleryItemType, PhotosItem, PhotosSyncStatus, PhotoSyncStatus } from '../../types/photos';
+import { ArrowUp, CheckCircle, CloudSlash, EyeClosed, EyeSlash } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
 import { PhotosContext } from 'src/contexts/Photos';
@@ -15,12 +15,14 @@ import photos from '@internxt-mobile/services/photos';
 import { LinearGradient } from 'expo-linear-gradient';
 import LoadingSpinner from '../LoadingSpinner';
 import errorService from '@internxt-mobile/services/ErrorService';
+import { PRIVATE_MODE_ENABLED } from '@internxt-mobile/services/photos/constants';
 interface GalleryItemProps {
   type?: GalleryItemType;
   data: PhotosItem;
   onPress: (photosItem: PhotosItem) => void;
 }
 
+const DISPLAY_LOCAL_PHOTOS = true;
 const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const photosCtx = useContext(PhotosContext);
   const getColor = useGetColor();
@@ -29,6 +31,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const { onPress, data } = props;
 
   const isUploading = photosCtx?.uploadingPhotosItem?.name === data.name;
+  const isPullingRemotePhotos = photosCtx?.sync.status === PhotosSyncStatus.PullingRemotePhotos;
 
   const uploadedItem = useMemo(
     () => photosCtx.uploadedPhotosItems.find((uploaded) => uploaded.name === data.name),
@@ -73,6 +76,15 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
 
   const useLocalUri = props.data.status !== PhotoSyncStatus.IN_SYNC_ONLY && data.localUri;
 
+  const canShowNotUploadedIcon = () => {
+    return (
+      props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem && !isUploading && !isPullingRemotePhotos
+    );
+  };
+
+  const isBeingUploaded = () => {
+    return isUploading && !uploadedItem;
+  };
   const renderGradient = () => {
     return (
       <LinearGradient
@@ -88,8 +100,9 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
     >
+      {/* Used to display the camera roll previews, mostly for iOS */}
       {/* Looks like FastImage doesn't support ph:// uris, RN Image does */}
-      {useLocalUri && (
+      {useLocalUri && !PRIVATE_MODE_ENABLED && DISPLAY_LOCAL_PHOTOS && (
         <Image
           onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
@@ -99,7 +112,8 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
         />
       )}
 
-      {uploadedItem && !data.localPreviewPath && (
+      {/* Used to display the previews that are just uploaded */}
+      {uploadedItem && !data.localPreviewPath && !PRIVATE_MODE_ENABLED && (
         <FastImage
           onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
@@ -108,7 +122,8 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
           }}
         />
       )}
-      {data.localPreviewPath && !useLocalUri && !retrievedPreviewUri && (
+      {/* Used to display the previews we have in the filesystem */}
+      {data.localPreviewPath && !useLocalUri && !retrievedPreviewUri && !PRIVATE_MODE_ENABLED && (
         <FastImage
           onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
@@ -118,7 +133,8 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
         />
       )}
 
-      {retrievedPreviewUri && !useLocalUri && (
+      {/* Used in case the preview is failing and it was retried */}
+      {retrievedPreviewUri && !useLocalUri && !PRIVATE_MODE_ENABLED && (
         <FastImage
           onError={handlePreviewLoadError}
           style={tailwind('w-full h-full')}
@@ -128,19 +144,25 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
         />
       )}
 
+      {PRIVATE_MODE_ENABLED && (
+        <View style={tailwind('w-full h-full flex items-center justify-center bg-gray-30')}>
+          <EyeSlash />
+        </View>
+      )}
+
       {photosItem.type === PhotosItemType.VIDEO && !isSelected && photosItem.duration ? (
-        <View style={[tailwind('absolute bottom-1.5 right-1.5 flex justify-center items-center rounded-xl z-10')]}>
+        <View style={[tailwind('absolute bottom-1 right-1.5 flex justify-center items-center rounded-xl z-10')]}>
           <AppText medium style={tailwind('text-white text-xs')}>
             {time.fromSeconds(photosItem.duration).toFormat(time.formats.duration)}
           </AppText>
         </View>
       ) : null}
-      {props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem && !isUploading && (
+      {canShowNotUploadedIcon() && (
         <View style={[tailwind('absolute w-5 h-5 bottom-1 left-1 flex justify-center items-center rounded-xl z-10')]}>
           <CloudSlash color={getColor('text-white')} size={16} />
         </View>
       )}
-      {isUploading && !uploadedItem && (
+      {isBeingUploaded() && (
         <View style={tailwind('absolute bottom-1 left-1 flex justify-center items-center rounded-xl z-10')}>
           <View style={tailwind('mb-0.5')}>
             <LoadingSpinner
@@ -165,15 +187,11 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
           <CheckCircle color={getColor('text-white')} size={24} />
         </View>
       )}
-      <View style={tailwind('absolute bottom-0 left-0 h-12 w-full')}>{renderGradient()}</View>
+      {!PRIVATE_MODE_ENABLED ? (
+        <View style={tailwind('absolute bottom-0 left-0 h-12 w-full')}>{renderGradient()}</View>
+      ) : null}
     </TouchableWithoutFeedback>
   );
 };
 
-export default React.memo(
-  GalleryItem,
-  (prev, next) =>
-    prev.data.localPreviewPath === next.data.localPreviewPath &&
-    prev.data.name === next.data.name &&
-    prev.data.photoId === next.data.photoId,
-);
+export default GalleryItem;

@@ -19,6 +19,7 @@ const untranspiledModulePatterns = [
   'rn-fetch-blob',
   '@internxt/rn-crypto',
   '@rudderstack',
+  'realm',
 ];
 
 const config: Config.InitialOptions = {

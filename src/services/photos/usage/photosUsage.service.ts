@@ -6,6 +6,11 @@ export class PhotosUsageService {
     const { usage } = await this.sdk.photos.photos.getUsage();
     return usage;
   }
+
+  // Get total count of photos
+  public async getCount() {
+    return this.sdk.photos.photos.getCount();
+  }
 }
 
 export const photosUsage = new PhotosUsageService(SdkManager.getInstance());

@@ -8,13 +8,15 @@ import {
 } from '../../../../types/photos';
 import async from 'async';
 import { PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY } from '../../constants';
-import { PhotosLocalDB } from '../../database';
+import { PhotosRealmDB } from '../../database';
 
 export class DevicePhotosSyncCheckerService {
   public status = DevicePhotosSyncCheckerStatus.IDLE;
   private queue = this.createQueue();
+  private started = false;
+  public totalPhotosChecked = 0;
   private onStatusChangeCallback: DevicePhotosSyncServiceHandlers['onSyncQueueStatusChange'] = () => undefined;
-  constructor(private database: PhotosLocalDB) {}
+  constructor(private database: PhotosRealmDB) {}
 
   public createQueue() {
     const queue = async.queue<DevicePhotoSyncCheckOperation, DevicePhotoSyncCheckOperation | null, Error>(
@@ -25,13 +27,20 @@ export class DevicePhotosSyncCheckerService {
       },
       PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY,
     );
-    queue.drain(() => {
-      this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
-    });
 
     return queue;
   }
 
+  public run() {
+    if (this.status === DevicePhotosSyncCheckerStatus.RUNNING) return;
+    this.started = true;
+    this.queue.drain(() => {
+      if (this.started) {
+        this.updateStatus(DevicePhotosSyncCheckerStatus.COMPLETED);
+      }
+    });
+    this.updateStatus(DevicePhotosSyncCheckerStatus.RUNNING);
+  }
   public pause() {
     this.queue.pause();
     this.updateStatus(DevicePhotosSyncCheckerStatus.PAUSED);
@@ -49,10 +58,20 @@ export class DevicePhotosSyncCheckerService {
   public destroy() {
     this.queue.kill();
     this.queue = this.createQueue();
+    this.totalPhotosChecked = 0;
+    this.started = false;
   }
 
+  public get hasStarted() {
+    return this.started;
+  }
   public get hasFinished() {
-    return this.status === DevicePhotosSyncCheckerStatus.COMPLETED;
+    return (
+      this.started &&
+      this.status === DevicePhotosSyncCheckerStatus.COMPLETED &&
+      this.queue.idle() &&
+      this.totalOperations === 0
+    );
   }
 
   public get totalOperations() {
@@ -69,11 +88,13 @@ export class DevicePhotosSyncCheckerService {
     onOperationCompleted,
   }: {
     photosItem: PhotosItem;
-
     priority?: DevicePhotosOperationPriority;
     onOperationCompleted: (err: Error | null, operation: DevicePhotoSyncCheckOperation | null) => void;
   }) {
-    this.updateStatus(DevicePhotosSyncCheckerStatus.RUNNING);
+    if (!this.started) {
+      this.started = true;
+    }
+
     const newOperation = {
       photosItem,
       createdAt: new Date(),
@@ -82,6 +103,9 @@ export class DevicePhotosSyncCheckerService {
     };
 
     this.queue.push<DevicePhotoSyncCheckOperation>(newOperation, (err, result) => {
+      if (!err) {
+        this.totalPhotosChecked = this.totalPhotosChecked + 1;
+      }
       onOperationCompleted(err || null, result || null);
     });
   }
@@ -95,12 +119,8 @@ export class DevicePhotosSyncCheckerService {
     this.onStatusChangeCallback = callback;
   }
 
-  public get pendingOperations() {
-    return this.queue.length();
-  }
-
   private async getSyncedPhoto(operation: DevicePhotoSyncCheckOperation) {
-    return this.database.getSyncedPhotoByName(operation.photosItem.name);
+    return this.database.getSyncedPhotoByNameAndDate(operation.photosItem.name, operation.photosItem.takenAt);
   }
 
   private async resolveSyncQueueOperation(operation: DevicePhotoSyncCheckOperation) {
@@ -108,7 +128,7 @@ export class DevicePhotosSyncCheckerService {
       operation.lastTry = new Date();
       const syncedPhoto = await this.getSyncedPhoto(operation);
       if (syncedPhoto) {
-        operation.syncedPhoto = syncedPhoto.photo;
+        operation.syncedPhoto = syncedPhoto;
         operation.syncStage = SyncStage.IN_SYNC;
       } else {
         operation.syncStage = SyncStage.NEEDS_REMOTE_CHECK;

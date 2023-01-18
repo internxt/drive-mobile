@@ -47,8 +47,11 @@ const GalleryAllView: React.FC<{
     if (photosCtx.selection.selectionModeActivated) {
       onItemLongPressed(photosItem);
     } else {
+      const previewPath = photosItem.localPreviewPath;
       navigation.navigate('PhotosPreview', {
         photoName: photosItem.name,
+        photoTakenAt: photosItem.takenAt,
+        previewPath,
       });
     }
   };
@@ -102,6 +105,7 @@ const GalleryAllView: React.FC<{
         dataProvider={photos}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         renderFooter={renderFooter}
+        scrollThrottle={16}
       />
     </View>
   );

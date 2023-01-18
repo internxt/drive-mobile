@@ -1,6 +1,6 @@
-import { CheckCircle, Pause, Play, Warning } from 'phosphor-react-native';
+import { CheckCircle, CloudArrowDown, Pause, Play, Warning } from 'phosphor-react-native';
 import React, { useContext } from 'react';
-import { Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Text, TouchableOpacity, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
 
 import strings from '../../../assets/lang/strings';
 import { PhotosEventKey, PhotosSyncStatus } from '../../types/photos';
@@ -19,6 +19,35 @@ const PhotosSyncStatusWidget = () => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const photosCtx = useContext(PhotosContext);
+  const { width: windowWidth } = useWindowDimensions();
+  const getProgressWidth = () => {
+    if (photosCtx.sync.status === PhotosSyncStatus.PullingRemotePhotos) {
+      const progress = (photosCtx.sync.photosInLocalDB * 100) / photosCtx.sync.photosInRemote;
+      return (progress * windowWidth) / 100;
+    }
+    const pendingPhotos = photosCtx.sync.pendingTasks;
+    const syncedPhotos = photosCtx.sync.completedTasks;
+    if (photosCtx.sync.status === PhotosSyncStatus.InProgress || photosCtx.sync.status === PhotosSyncStatus.Paused) {
+      if (!photosCtx.sync.photosInDevice) return 0;
+
+      const syncedPhotos = photosCtx.sync.photosInDevice - photosCtx.sync.pendingTasks;
+
+      const progress = (syncedPhotos * 100) / photosCtx.sync.photosInDevice;
+
+      return (progress * windowWidth) / 100;
+    }
+
+    if (!photosCtx.sync.photosInLocalDB) return 0;
+    if (!photosCtx.sync.photosInDevice) return 0;
+
+    const total = pendingPhotos + syncedPhotos;
+
+    if (total === 0) return total;
+
+    const progress = (syncedPhotos * 100) / total;
+
+    return (windowWidth * progress) / 100;
+  };
 
   const onResumeSyncPressed = () => {
     photos.events.emit({
@@ -27,12 +56,12 @@ const PhotosSyncStatusWidget = () => {
   };
 
   const renderPending = () => {
-    if (!photosCtx.sync.pendingTasks) return '';
+    if (!photosCtx.sync.pendingTasks || photosCtx.sync.pendingTasks < 0) return '';
     return `${photosCtx.sync.pendingTasks} ${strings.screens.gallery.items_left}`;
   };
   const contentByStatus = {
     [PhotosSyncStatus.Unknown]: (
-      <View style={tailwind('flex-row items-center justify-center')}>
+      <View style={tailwind('flex-row items-center')}>
         <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
           {strings.generic.preparing}
         </AppText>
@@ -66,7 +95,7 @@ const PhotosSyncStatusWidget = () => {
       </View>
     ),
     [PhotosSyncStatus.InProgress]: (
-      <View style={tailwind('flex-row items-center justify-center')}>
+      <View style={tailwind('flex-row items-center')}>
         <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
           {strings.screens.gallery.syncing}
         </AppText>
@@ -76,7 +105,15 @@ const PhotosSyncStatusWidget = () => {
     [PhotosSyncStatus.Completed]: (
       <View style={tailwind('flex-row items-center')}>
         <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('text-green-40')} size={14} />
-        <Text style={tailwind('text-neutral-100 text-sm')}>{strings.messages.photosSyncCompleted}</Text>
+        <AppText style={tailwind('text-gray-100 text-sm')}>{strings.messages.photosSyncCompleted}</AppText>
+      </View>
+    ),
+    [PhotosSyncStatus.PullingRemotePhotos]: (
+      <View style={tailwind('flex-row items-center')}>
+        <CloudArrowDown style={tailwind('mr-2')} color={getColor('text-gray-100')} size={18} />
+        <AppText medium style={tailwind('text-gray-100 text-sm')}>
+          {strings.messages.gettingCloudPhotos}
+        </AppText>
       </View>
     ),
   };
@@ -88,11 +125,31 @@ const PhotosSyncStatusWidget = () => {
   const onResumeButtonPressed = () => {
     onResumeSyncPressed();
   };
+
+  const shouldRenderProgress = () => {
+    if (photosCtx.sync.status === PhotosSyncStatus.InProgress) {
+      return true;
+    }
+
+    if (photosCtx.sync.status === PhotosSyncStatus.PullingRemotePhotos) {
+      return true;
+    }
+
+    if (photosCtx.sync.status === PhotosSyncStatus.Paused) {
+      return true;
+    }
+
+    return false;
+  };
   const isCompleted = photosCtx.sync.status === PhotosSyncStatus.Completed;
   const isPaused = photosCtx.sync.status === PhotosSyncStatus.Paused;
   const isPausing = photosCtx.sync.status === PhotosSyncStatus.Pausing;
   const isPending = photosCtx.sync.status === PhotosSyncStatus.Pending;
-  const showPauseResumeButton = !isCompleted && !isPending && photosCtx.sync.status !== PhotosSyncStatus.Unknown;
+  const showPauseResumeButton =
+    !isCompleted &&
+    !isPending &&
+    photosCtx.sync.status !== PhotosSyncStatus.Unknown &&
+    photosCtx.sync.status !== PhotosSyncStatus.PullingRemotePhotos;
 
   const renderDisabledMessage = () => {
     return (
@@ -128,7 +185,7 @@ const PhotosSyncStatusWidget = () => {
   return (
     <View>
       <View style={tailwind('h-10 flex-row items-center justify-between')}>
-        <View style={tailwind('pl-5')}>{contentByStatus[photosCtx.sync.status]}</View>
+        <View style={tailwind('pl-5 flex-1')}>{contentByStatus[photosCtx.sync.status]}</View>
         {appService.isDevMode ? (
           <AppText style={tailwind('text-red-50 text-xs ml-auto mr-2')}>{photosCtx.sync.failedTasks} Failed</AppText>
         ) : null}
@@ -162,6 +219,16 @@ const PhotosSyncStatusWidget = () => {
           )
         ) : null}
       </View>
+      {shouldRenderProgress() ? (
+        <View
+          style={[
+            tailwind(`w-full ${photosCtx.sync.status === PhotosSyncStatus.Paused ? 'bg-gray-50' : 'bg-primary'}`),
+            { width: getProgressWidth(), height: 3 },
+          ]}
+        />
+      ) : (
+        <View style={{ height: 3, width: '100%' }} />
+      )}
     </View>
   );
 };
