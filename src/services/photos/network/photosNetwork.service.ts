@@ -1,8 +1,8 @@
 import { constants } from '@internxt-mobile/services/AppService';
 import { SdkManager } from '@internxt-mobile/services/common';
-import { Abortable, FileSystemRef } from '@internxt-mobile/types/index';
+import { FileSystemRef } from '@internxt-mobile/types/index';
 import { PhotoFileSystemRef, PhotosItemBacked } from '@internxt-mobile/types/photos';
-import { CreatePhotoData, Photo } from '@internxt/sdk/dist/photos';
+import { CreatePhotoData, Photo, PhotosSortBy } from '@internxt/sdk/dist/photos';
 import { getEnvironmentConfig } from 'src/lib/network';
 import network from 'src/network';
 import { REMOTE_PHOTOS_PER_PAGE } from '../constants';
@@ -30,6 +30,7 @@ export class PhotosNetworkService {
       {
         updatedAt: fromDate,
       },
+      { sortBy: PhotosSortBy.UpdatedAt, sortType: 'ASC' },
       skip,
       limit,
     );
