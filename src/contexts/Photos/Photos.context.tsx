@@ -52,10 +52,10 @@ export interface PhotosContextType {
   };
 }
 export const PhotosContext = React.createContext<PhotosContextType>({
-  dataSource: new DataProvider(function (r1, r2) {
-    const r1Key = `${r1.name}-${r1.takenAt}`;
-    const r2Key = `${r2.name}-${r2.takenAt}`;
-    return r1Key !== r2Key;
+  dataSource: new DataProvider(function (row1, row2) {
+    const row1Key = `${row1.name}-${row1.takenAt}`;
+    const row2Key = `${row2.name}-${row2.takenAt}`;
+    return row1Key !== row2Key;
   }),
   enableSync: async () => {
     return {
@@ -146,10 +146,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   const devicePhotosItems = useRef<PhotosItem[]>([]);
   const [selectedPhotosItems, setSelectedPhotosItems] = useState<PhotosItem[]>([]);
   const [dataSource, setDataSource] = useState<DataProvider>(
-    new DataProvider(function (r1, r2) {
-      const r1Key = `${r1.name}-${r1.takenAt}`;
-      const r2Key = `${r2.name}-${r2.takenAt}`;
-      return r1Key !== r2Key;
+    new DataProvider(function (row1, row2) {
+      const row1Key = `${row1.name}-${row1.takenAt}`;
+      const row2Key = `${row2.name}-${row2.takenAt}`;
+      return row1Key !== row2Key;
     }),
   );
 
@@ -177,6 +177,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       errorService.reportError(error);
     }
   };
+
   async function checkShouldEnableSync() {
     const permissionStatus = await permissions.getPermissionsStatus();
 
@@ -195,10 +196,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   function resetContext(config = { resetLoadedImages: true }) {
     if (config.resetLoadedImages) {
       setDataSource(
-        new DataProvider(function (r1, r2) {
-          const r1Key = `${r1.name}-${r1.takenAt}`;
-          const r2Key = `${r2.name}-${r2.takenAt}`;
-          return r1Key !== r2Key;
+        new DataProvider(function (row1, row2) {
+          const row1Key = `${row1.name}-${row1.takenAt}`;
+          const row2Key = `${row2.name}-${row2.takenAt}`;
+          return row1Key !== row2Key;
         }),
       );
       syncedPhotosItems.current = [];
@@ -224,10 +225,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     setPhotosInLocalDB(syncedPhotosItems.current.length);
     const mergedPhotosItems = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
     setDataSource(
-      new DataProvider(function (r1, r2) {
-        const r1Key = getListKey(r1);
-        const r2Key = getListKey(r2);
-        return r1Key !== r2Key;
+      new DataProvider(function (row1, row2) {
+        const row1Key = getListKey(row1);
+        const row2Key = getListKey(row2);
+        return row1Key !== row2Key;
       }).cloneWithRows(mergedPhotosItems),
     );
   }
@@ -355,10 +356,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       );
 
       setDataSource(
-        new DataProvider(function (r1, r2) {
-          const r1Key = getListKey(r1);
-          const r2Key = getListKey(r2);
-          return r1Key !== r2Key;
+        new DataProvider(function (row1, row2) {
+          const row1Key = getListKey(row1);
+          const row2Key = getListKey(row2);
+          return row1Key !== row2Key;
         }).cloneWithRows(mergedPhotosItems),
       );
 
@@ -467,10 +468,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     syncedPhotosItems.current = syncedPhotos.map((photo) => photosUtils.getPhotosItem(photo));
     const mergedPhotosItems = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
     setDataSource(
-      new DataProvider(function (r1, r2) {
-        const r1Key = getListKey(r1);
-        const r2Key = getListKey(r2);
-        return r1Key !== r2Key;
+      new DataProvider(function (row1, row2) {
+        const row1Key = getListKey(row1);
+        const row2Key = getListKey(row2);
+        return row1Key !== row2Key;
       }).cloneWithRows(mergedPhotosItems),
     );
 
@@ -491,10 +492,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
 
     const merged = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
     setDataSource(
-      new DataProvider(function (r1, r2) {
-        const r1Key = getListKey(r1);
-        const r2Key = getListKey(r2);
-        return r1Key !== r2Key;
+      new DataProvider(function (row1, row2) {
+        const row1Key = getListKey(row1);
+        const row2Key = getListKey(row2);
+        return row1Key !== row2Key;
       }).cloneWithRows(merged),
     );
   }

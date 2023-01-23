@@ -19,4 +19,5 @@ export class NotInitializedServiceError extends Error {
 }
 
 // Waits x ms before resolving, useful to avoid RN bridge message collapse
-export const sleep = async (sleepTimeInMs: number) => new Promise((resolve) => setTimeout(resolve, sleepTimeInMs));
+export const sleep = (sleepTimeInMs: number) =>
+  new Promise<void>((resolve) => setTimeout(() => resolve(), sleepTimeInMs));

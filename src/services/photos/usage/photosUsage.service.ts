@@ -8,7 +8,7 @@ export class PhotosUsageService {
   }
 
   // Get total count of photos
-  public async getCount() {
+  public getCount() {
     return this.sdk.photos.photos.getCount();
   }
 }

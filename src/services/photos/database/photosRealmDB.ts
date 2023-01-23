@@ -44,14 +44,14 @@ type DevicePhotoDoc = {
   devicePhotoJSON: string;
 };
 export class PhotosRealmDB {
-  private _realm: Realm | null = null;
+  private realm: Realm | null = null;
   private logger: BaseLogger = new BaseLogger({
     tag: 'PHOTOS_REALM_DB',
     enabled: false,
   });
 
   async init() {
-    this._realm = await Realm.open({
+    this.realm = await Realm.open({
       schema: [PhotoSchema],
       deleteRealmIfMigrationNeeded: true,
     });
@@ -60,24 +60,25 @@ export class PhotosRealmDB {
   }
 
   clear() {
-    if (!this._realm) return;
-    this.realm.write(() => {
-      this.realm.deleteAll();
+    if (!this.realm) return;
+    this.getRealm().write(() => {
+      this.getRealm().deleteAll();
     });
 
-    fs.unlinkIfExists(this.realm.path);
+    fs.unlinkIfExists(this.getRealm().path);
   }
 
-  private get realm() {
-    if (!this._realm) throw new Error('No connection open, call init() first');
+  private getRealm() {
+    if (!this.realm) throw new Error('No connection open, call init() first');
 
-    return this._realm as Realm;
+    return this.realm as Realm;
   }
 
   public async saveDevicePhotos(devicePhotos: Asset[]) {
-    this.realm.write(() => {
+    const realm = this.getRealm();
+    realm.write(() => {
       devicePhotos.forEach((devicePhoto) => {
-        this.realm.create<DevicePhotoDoc>(
+        realm.create<DevicePhotoDoc>(
           DevicePhotoSchema.name,
           {
             name: devicePhoto.filename,
@@ -92,8 +93,9 @@ export class PhotosRealmDB {
 
   public async savePhotosItem(photo: Photo, getQueryTime = false) {
     const start = Date.now();
-    this.realm.write(() => {
-      this.realm.create<PhotoDoc>(
+    const realm = this.getRealm();
+    realm.write(() => {
+      realm.create<PhotoDoc>(
         PhotoSchema.name,
         {
           photoId: photo.id,
@@ -115,7 +117,7 @@ export class PhotosRealmDB {
   }
 
   public async getSyncedPhotoByNameAndDate(name: string, takenAt: number) {
-    const docs = this.realm
+    const docs = this.getRealm()
       .objects<PhotoDoc>(PhotoSchema.name)
       .filtered('name == $0 AND takenAt == $1', name, new Date(takenAt));
 
@@ -123,26 +125,26 @@ export class PhotosRealmDB {
   }
 
   public async getSyncedPhotosCount() {
-    return this.realm.objects<PhotoDoc>(PhotoSchema.name).length;
+    return this.getRealm().objects<PhotoDoc>(PhotoSchema.name).length;
   }
 
   public async getSyncedPhotoByName(name: string) {
-    const docs = this.realm.objects<PhotoDoc>(PhotoSchema.name).filtered('name == $0', name);
+    const docs = this.getRealm().objects<PhotoDoc>(PhotoSchema.name).filtered('name == $0', name);
 
     return this.parseFirst(docs);
   }
 
   public async getSyncedPhotoByHash(hash: string) {
-    const docs = this.realm.objects<PhotoDoc>(PhotoSchema.name).filtered('hash == $0', hash);
+    const docs = this.getRealm().objects<PhotoDoc>(PhotoSchema.name).filtered('hash == $0', hash);
 
     return this.parseFirst(docs);
   }
 
   public async deleteSyncedPhotosItem(photoId: string) {
-    const docs = this.realm.objects<PhotoDoc>(PhotoSchema.name).filtered('photoId == $0', photoId);
+    const docs = this.getRealm().objects<PhotoDoc>(PhotoSchema.name).filtered('photoId == $0', photoId);
     if (!docs[0]) return false;
 
-    this.realm.write(() => {
+    this.getRealm().write(() => {
       docs[0].status = PhotoStatus.Deleted;
     });
 
@@ -150,7 +152,7 @@ export class PhotosRealmDB {
   }
 
   public async getSyncedPhotos() {
-    const docs = this.realm.objects<PhotoDoc>(PhotoSchema.name);
+    const docs = this.getRealm().objects<PhotoDoc>(PhotoSchema.name);
 
     return docs.map(this.parseObject);
   }

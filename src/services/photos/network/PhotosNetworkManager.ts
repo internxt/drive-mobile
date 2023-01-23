@@ -1,5 +1,4 @@
 import { PhotosItem, PhotoSizeType, PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
-
 import async from 'async';
 import { Photo, PhotoPreviewType } from '@internxt/sdk/dist/photos';
 import { RunnableService, sleep } from '../../../helpers/services';
@@ -42,14 +41,15 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   private onUploadProgressCallback: OnUploadProgressCallback = () => {};
   private options: { enableLog: boolean };
   private queue = this.createQueue();
-
+  private abortController: AbortController;
   constructor(options = { enableLog: ENABLE_PHOTOS_NETWORK_MANAGER_LOGS }) {
     this.options = options;
+    this.abortController = new AbortController();
   }
 
   private createQueue() {
     const queue = async.queue<PhotosNetworkOperation, Photo | null, Error>(async (task, next) => {
-      if (this.isAborted) {
+      if (this.abortController.signal.aborted) {
         next(new AbortedOperationError(), null);
         return;
       }
@@ -111,6 +111,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
   public destroy() {
     this.queue.kill();
+    this.abortController.abort('User requested PhotosRemoteNetworkManager destroy');
     this.updateStatus(PhotosNetworkManagerStatus.ABORTED);
     this.queue = this.createQueue();
     this.updateStatus(PhotosNetworkManagerStatus.IDLE);
@@ -148,7 +149,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult | null> {
     this.onUploadStartCallback(operation.photosItem);
     const stopIfAborted = () => {
-      if (this.isAborted) {
+      if (this.abortController.signal.aborted) {
         throw new AbortedOperationError();
       }
     };
@@ -280,7 +281,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   }
 
   private get isAborted() {
-    return this.status === PhotosNetworkManagerStatus.ABORTED;
+    return this.abortController.signal.aborted;
   }
 
   private log(message: string) {

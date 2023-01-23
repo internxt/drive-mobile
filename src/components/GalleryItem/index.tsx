@@ -1,7 +1,7 @@
-import React, { useContext, useMemo, useRef, useState } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { View, Image } from 'react-native';
 import { GalleryItemType, PhotosItem, PhotosSyncStatus, PhotoSyncStatus } from '../../types/photos';
-import { ArrowUp, CheckCircle, CloudSlash, EyeClosed, EyeSlash } from 'phosphor-react-native';
+import { ArrowUp, CheckCircle, CloudSlash, EyeSlash } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
 import { PhotosContext } from 'src/contexts/Photos';
@@ -45,11 +45,16 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   );
 
   const handleOnPress = () => {
-    const item = uploadedItem || data;
+    // Mix the just uploaded item and the props item
+    // so we get an updated item with both items properties
+    const item = {
+      ...uploadedItem,
+      ...data,
+    };
     if (photosCtx.selection.selectionModeActivated) {
       isSelected ? photosCtx.selection.deselectPhotosItems([item]) : photosCtx.selection.selectPhotosItems([item]);
     } else {
-      onPress(item);
+      onPress(data);
     }
   };
 

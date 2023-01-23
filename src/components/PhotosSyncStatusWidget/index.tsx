@@ -223,7 +223,7 @@ const PhotosSyncStatusWidget = () => {
         <View
           style={[
             tailwind(`w-full ${photosCtx.sync.status === PhotosSyncStatus.Paused ? 'bg-gray-50' : 'bg-primary'}`),
-            { width: getProgressWidth(), height: 3 },
+            { width: isNaN(getProgressWidth()) ? 0 : getProgressWidth(), height: 3 },
           ]}
         />
       ) : (
