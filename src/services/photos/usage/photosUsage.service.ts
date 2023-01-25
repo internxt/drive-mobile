@@ -7,7 +7,11 @@ export class PhotosUsageService {
     return usage;
   }
 
-  // Get total count of photos
+  /**
+   * Gets the amount of photos in the cloud for the user
+   * and the different status
+   * @returns The total photos count, deleted, trashed and existent
+   */
   public getCount() {
     return this.sdk.photos.photos.getCount();
   }
