@@ -16,12 +16,22 @@ import { SdkManager } from '@internxt-mobile/services/common';
 import { MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { getEnvironmentConfig } from 'src/lib/network';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
-import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 import network from 'src/network';
 import { Image } from 'react-native';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import { driveFileCache } from './driveFileCache.service';
+import { Abortable } from '@internxt-mobile/types/index';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
-
+export type DriveFileDownloadOptions = {
+  downloadPath: string;
+  downloadProgressCallback?: (progress: number, bytesReceived: number, totalBytes: number) => void;
+  decryptionProgressCallback?: (progress: number) => void;
+  onAbortableReady?: (abortable: Abortable) => void;
+  disableCache?: boolean;
+  signal?: AbortSignal;
+};
 class DriveFileService {
   constructor(private sdk: SdkManager) {}
   public getNameFromUri(uri: string): string {
@@ -266,6 +276,81 @@ class DriveFileService {
     );
 
     return measureThumbnail(fileSystemService.pathToUri(destination));
+  }
+
+  async downloadFile(
+    user: UserSettings,
+    fileId: string,
+    {
+      downloadPath,
+      downloadProgressCallback,
+      onAbortableReady,
+      decryptionProgressCallback,
+      disableCache,
+      signal,
+    }: DriveFileDownloadOptions,
+  ) {
+    const noop = () => {
+      /** NOOP */
+    };
+
+    await network.downloadFile(
+      fileId,
+      user.bucket,
+      user.mnemonic,
+      {
+        pass: user.userId,
+        user: user.bridgeUser,
+      },
+      {
+        toPath: downloadPath,
+        downloadProgressCallback: downloadProgressCallback ? downloadProgressCallback : noop,
+        decryptionProgressCallback: decryptionProgressCallback ? decryptionProgressCallback : noop,
+        onEncryptedFileDownloaded: async ({ path, name }) => {
+          if (!disableCache) {
+            await driveFileCache.cacheFile(path, name);
+          }
+        },
+        signal,
+      },
+      (abortable) => {
+        if (onAbortableReady) {
+          onAbortableReady(abortable);
+        }
+      },
+    );
+
+    return {
+      downloadPath,
+    };
+  }
+
+  /**
+   * Obtain a path to store the decrypted file
+   *
+   * @param fileId FileId of the file to download
+   * @returns A path to store the decrypted file
+   */
+  getDecryptedFilePath(filename: string, type?: string) {
+    // Use a tmp file so the decrypted file is not persisted
+    return fs.tmpFilePath(filename + (type ? `.${type}` : ''));
+  }
+
+  /**
+   *
+   * @param fileId FileId of the file to check
+   * @returns If the file exists decrypted in the filesystem
+   */
+  async existsDecrypted(filename: string, type?: string) {
+    const path = this.getDecryptedFilePath(filename, type);
+    const exists = await fs.exists(path);
+    if (!exists) return false;
+    const stat = await fs.statRNFS(path);
+    return exists && stat.size !== 0;
+  }
+
+  getName(filename: string, type?: string) {
+    return filename + (type ? `.${type}` : '');
   }
 }
 

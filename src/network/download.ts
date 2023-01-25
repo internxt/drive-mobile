@@ -15,7 +15,7 @@ export type EncryptedFileDownloadedParams = {
 };
 export interface DownloadFileParams {
   toPath: string;
-  downloadProgressCallback: (progress: number) => void;
+  downloadProgressCallback: (progress: number, bytesReceived: number, totalBytes: number) => void;
   decryptionProgressCallback: (progress: number) => void;
   onEncryptedFileDownloaded?: ({ path, name }: EncryptedFileDownloadedParams) => Promise<void>;
   signal?: AbortSignal;

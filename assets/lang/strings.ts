@@ -504,6 +504,10 @@ const strings = new LocalizedStrings({
           },
         },
       },
+      downloadingFile: {
+        title: 'Downloading file...',
+        of: 'of',
+      },
       Plans: {
         title: 'Unlimited privacy',
         advice: 'Upgrade now to get more storage for all your memories and work documents',
@@ -1200,6 +1204,10 @@ const strings = new LocalizedStrings({
       deleteItemPermanently: {
         title: '¿Borrar permanentemente?',
         message: 'Esta acción no se puede deshacer.',
+      },
+      downloadingFile: {
+        title: 'Descargando archivo...',
+        of: 'de',
       },
       clearTrash: {
         title: '¿Vaciar papelera de Drive?',
