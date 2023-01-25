@@ -48,29 +48,27 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   }
 
   private createQueue() {
-    const queue = async.queue<PhotosNetworkOperation, Photo | null, Error>(async (task, next) => {
+    const queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
       if (this.abortController.signal.aborted) {
         next(new AbortedOperationError(), null);
         return;
       }
 
-      try {
-        const result = await this.processUploadOperation(task);
-        await sleep(100);
-        next(null, result);
-      } catch (err) {
-        if (task.retries === MAX_UPLOAD_RETRIES) {
-          await sleep(100);
-          next(err as Error, null);
-        } else {
-          this.addOperation({
-            ...task,
-            retries: task.retries + 1,
-          });
-          await sleep(100);
-          next(err as Error, null);
-        }
-      }
+      this.processUploadOperation(task)
+        .then((result) => {
+          return sleep(100).then(() => next(null, result));
+        })
+        .catch((err) => {
+          if (task.retries === MAX_UPLOAD_RETRIES) {
+            sleep(100).then(() => next(err as Error, null));
+          } else {
+            this.addOperation({
+              ...task,
+              retries: task.retries + 1,
+            });
+            sleep(100).then(() => next(err as Error, null));
+          }
+        });
     }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
 
     queue.drain(() => {
