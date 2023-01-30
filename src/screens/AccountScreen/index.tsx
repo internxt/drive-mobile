@@ -57,8 +57,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
         if (!user.avatar) return;
         if (cachedImage) {
           setProfileAvatar(fs.pathToUri(cachedImage));
-        }
-        if (user?.avatar) {
+        } else if (user?.avatar) {
           setProfileAvatar(user?.avatar);
         }
       })
