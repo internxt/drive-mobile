@@ -13,7 +13,7 @@ import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import errorService from 'src/services/ErrorService';
-import { logger, SdkManager } from '@internxt-mobile/services/common';
+import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
 import UserService from '../../../services/UserService';
 import photos from '@internxt-mobile/services/photos';
 import drive from '@internxt-mobile/services/drive';
@@ -227,6 +227,11 @@ export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState 
     const { user, token } = await userService.refreshUser();
     const { avatar, emailVerified, name, lastname } = user;
 
+    if (avatar) {
+      await imageService.deleteCachedImage(PROFILE_PICTURE_CACHE_KEY);
+      await imageService.cacheImage(avatar, PROFILE_PICTURE_CACHE_KEY);
+    }
+
     dispatch(authActions.updateUser({ avatar, emailVerified, name, lastname }));
     dispatch(authActions.setToken(token));
   },
@@ -271,7 +276,7 @@ export const updateProfileThunk = createAsyncThunk<UpdateProfilePayload, UpdateP
 
 export const changeProfilePictureThunk = createAsyncThunk<string, { name: string; uri: string }, { state: RootState }>(
   'auth/changeProfilePicture',
-  async ({ name, uri }, { getState }) => {
+  async ({ name, uri }, { getState, dispatch }) => {
     const { avatar } = (await userService.updateUserAvatar({ name, uri })) as { avatar: string };
 
     await asyncStorageService.saveItem(
@@ -279,19 +284,23 @@ export const changeProfilePictureThunk = createAsyncThunk<string, { name: string
       JSON.stringify(Object.assign({}, getState().auth.user as UserSettings, { avatar })),
     );
 
+    await dispatch(authThunks.refreshUserThunk()).unwrap();
+
     return avatar;
   },
 );
 
 export const deleteProfilePictureThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/deleteProfilePicture',
-  async (payload, { getState }) => {
+  async (payload, { getState, dispatch }) => {
     await userService.deleteUserAvatar();
-
+    await imageService.deleteCachedImage(PROFILE_PICTURE_CACHE_KEY);
     await asyncStorageService.saveItem(
       AsyncStorageKey.User,
       JSON.stringify(Object.assign({}, getState().auth.user as UserSettings, { avatar: null })),
     );
+
+    await dispatch(authThunks.refreshUserThunk()).unwrap();
   },
 );
 

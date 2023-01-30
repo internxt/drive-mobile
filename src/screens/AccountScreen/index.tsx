@@ -18,6 +18,9 @@ import { useEffect, useMemo, useState } from 'react';
 import storageService from 'src/services/StorageService';
 import { paymentsSelectors } from 'src/store/slices/payments';
 import { constants } from 'src/services/AppService';
+import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Element {
   const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({
@@ -36,11 +39,37 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const [profileAvatar, setProfileAvatar] = useState<string>();
   const { subscription } = useAppSelector((state) => state.payments);
   const { limit } = useAppSelector((state) => state.storage);
   const user = useAppSelector((state) => state.auth.user);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const hasPaidPlan = useAppSelector(paymentsSelectors.hasPaidPlan);
+
+  useEffect(() => {
+    if (!user?.avatar) {
+      return setProfileAvatar(undefined);
+    }
+
+    imageService
+      .getCachedImage(PROFILE_PICTURE_CACHE_KEY)
+      .then((cachedImage) => {
+        if (!user.avatar) return;
+        if (cachedImage) {
+          setProfileAvatar(fs.pathToUri(cachedImage));
+        }
+        if (user?.avatar) {
+          setProfileAvatar(user?.avatar);
+        }
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+        if (user?.avatar) {
+          setProfileAvatar(user.avatar);
+        }
+      });
+  }, [user?.avatar]);
+
   const onBackButtonPressed = () => {
     navigation.goBack();
   };
@@ -156,7 +185,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
           <View style={tailwind('items-center my-8 px-4')}>
             <TouchableWithoutFeedback onPress={onProfilePicturePressed}>
               <View>
-                <UserProfilePicture uri={user?.avatar} size={112} />
+                <UserProfilePicture uri={profileAvatar} size={112} />
                 <View
                   style={{
                     ...tailwind('rounded-b-full justify-end w-28 h-28 absolute'),
