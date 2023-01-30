@@ -1,5 +1,6 @@
 import React from 'react';
 import { StyleProp, View, ViewStyle, Image } from 'react-native';
+import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
@@ -25,8 +26,8 @@ const UserProfilePicture = (props: UserProfilePictureProps) => {
       ]}
     >
       {hasAvatar ? (
-        <Image
-          source={{ uri: props.uri as string, cache: 'reload' }}
+        <FastImage
+          source={{ uri: props.uri as string }}
           style={{ ...tailwind('rounded-full'), height: props.size, width: props.size }}
         />
       ) : (

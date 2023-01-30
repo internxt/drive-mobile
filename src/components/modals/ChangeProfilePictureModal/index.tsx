@@ -37,7 +37,6 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
     const response = await imageService.resize({
       uri: uri,
       width: size,
-      height: size,
       format: 'JPEG',
       quality: 100,
       rotation: 0,
