@@ -278,6 +278,14 @@ class DriveFileService {
     return measureThumbnail(fileSystemService.pathToUri(destination));
   }
 
+  /**
+   * Download and decrypt a file to a given filesystem path
+   *
+   * @param user The user details of the user who owns the file
+   * @param fileId FileID of the file to download
+   * @param options Options to configure the download
+   * @returns
+   */
   async downloadFile(
     user: UserSettings,
     fileId: string,
@@ -328,7 +336,7 @@ class DriveFileService {
   /**
    * Obtain a path to store the decrypted file
    *
-   * @param fileId FileId of the file to download
+   * @param filename Filename of the file to download
    * @returns A path to store the decrypted file
    */
   getDecryptedFilePath(filename: string, type?: string) {
@@ -338,7 +346,7 @@ class DriveFileService {
 
   /**
    *
-   * @param fileId FileId of the file to check
+   * @param filename Filename of the file to check
    * @returns If the file exists decrypted in the filesystem
    */
   async existsDecrypted(filename: string, type?: string) {
