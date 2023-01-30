@@ -1,8 +1,7 @@
 import { PhotosItem, PhotoSizeType, PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
-
 import async from 'async';
 import { Photo, PhotoPreviewType } from '@internxt/sdk/dist/photos';
-import { RunnableService } from '../../../helpers/services';
+import { RunnableService, sleep } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
 import {
   ENABLE_PHOTOS_NETWORK_MANAGER_LOGS,
@@ -17,7 +16,7 @@ import { photosUtils } from '../utils';
 import { photosLogger } from '../logger';
 import { photosPreview } from '../preview';
 import { photosUser } from '../user';
-import { photosLocalDB } from '../database/photosLocalDB';
+import { photosRealmDB } from '../database';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 export type OnUploadStartCallback = (photosItem: PhotosItem) => void;
@@ -42,32 +41,32 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   private onUploadProgressCallback: OnUploadProgressCallback = () => {};
   private options: { enableLog: boolean };
   private queue = this.createQueue();
-
+  private abortController: AbortController;
   constructor(options = { enableLog: ENABLE_PHOTOS_NETWORK_MANAGER_LOGS }) {
     this.options = options;
+    this.abortController = new AbortController();
   }
 
   private createQueue() {
     const queue = async.queue<PhotosNetworkOperation, Photo | null, Error>((task, next) => {
-      if (this.isAborted) {
+      if (this.abortController.signal.aborted) {
         next(new AbortedOperationError(), null);
         return;
       }
 
-      this.wrapWithDuration(task)
+      this.processUploadOperation(task)
         .then((result) => {
-          next(null, result);
+          return sleep(100).then(() => next(null, result));
         })
         .catch((err) => {
           if (task.retries === MAX_UPLOAD_RETRIES) {
-            this.log(`Error during photo upload ${err}`);
-            next(err, null);
+            sleep(100).then(() => next(err as Error, null));
           } else {
             this.addOperation({
               ...task,
               retries: task.retries + 1,
             });
-            next(err, null);
+            sleep(100).then(() => next(err as Error, null));
           }
         });
     }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
@@ -110,8 +109,10 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
   public destroy() {
     this.queue.kill();
+    this.abortController.abort('User requested PhotosRemoteNetworkManager destroy');
     this.updateStatus(PhotosNetworkManagerStatus.ABORTED);
     this.queue = this.createQueue();
+    this.updateStatus(PhotosNetworkManagerStatus.IDLE);
   }
 
   public resume() {
@@ -129,7 +130,8 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   }
 
   public get hasFinished() {
-    return this.status === PhotosNetworkManagerStatus.COMPLETED || this.getPendingTasks() === 0;
+    if (this.status === PhotosNetworkManagerStatus.IDLE && this.queue.idle()) return true;
+    return this.status === PhotosNetworkManagerStatus.COMPLETED && this.queue.idle() && this.totalOperations === 0;
   }
 
   public get totalOperations() {
@@ -144,6 +146,11 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    */
   public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult | null> {
     this.onUploadStartCallback(operation.photosItem);
+    const stopIfAborted = () => {
+      if (this.abortController.signal.aborted) {
+        throw new AbortedOperationError();
+      }
+    };
     const { credentials } = await AuthService.getAuthCredentials();
     const device = photosUser.getDevice();
     const user = photosUser.getUser();
@@ -153,13 +160,13 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
     // Make sure the photo is not in the DB by name and date, hash generation
     // is a bit intensive
-    const existsInDB = await photosLocalDB.getSyncedPhotoByNameAndDate(
+    const photoInDB = await photosRealmDB.getSyncedPhotoByNameAndDate(
       operation.photosItem.name,
       operation.photosItem.takenAt,
     );
 
-    if (existsInDB) {
-      return existsInDB.photo;
+    if (photoInDB) {
+      return photoInDB;
     }
     // 1. Get photo data and the hash
     const photoData = operation.photosItem;
@@ -185,14 +192,18 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     this.log(`Hash for photo generated in ${Date.now() - hashStart}ms`);
 
     // 2. Make sure in the meantime, the photo was not pulled from the server, avoid network hits
-    const syncedPhoto = await photosLocalDB.getSyncedPhotoByHash(hash);
-    if (syncedPhoto?.photo) {
+    const syncedPhoto = await photosRealmDB.getSyncedPhotoByHash(hash);
+    if (syncedPhoto) {
       this.log('Photo matched by hash, skipping upload');
-      return syncedPhoto.photo;
+      return syncedPhoto;
     }
     const startAt = Date.now();
 
     this.log(`--- UPLOADING ${name} ---`);
+
+    // Check for abort signal
+    stopIfAborted();
+
     // 3. Upload the preview
     const preview = await photosPreview.generate({
       ...photoData,
@@ -201,11 +212,15 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     const previewGeneratedElapsed = Date.now() - startAt;
     this.log(`Preview generated in ${previewGeneratedElapsed / 1000}s`);
 
+    // Check for abort signal
+    stopIfAborted();
     const previewId = await photosNetwork.uploadPreview(preview.path);
 
     const uploadGeneratedElapsed = Date.now() - (previewGeneratedElapsed + startAt);
     this.log(`Preview uploaded in ${uploadGeneratedElapsed / 1000}s`);
 
+    // Check for abort signal
+    stopIfAborted();
     // 4. Upload the photo
     const photo = await photosNetwork.upload(
       localUriToPath,
@@ -263,43 +278,8 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     return this.queue.length() + this.queue.running();
   }
 
-  private async wrapWithDuration(operation: PhotosNetworkOperation) {
-    return new Promise<Photo | null>((resolve, reject) => {
-      const start = Date.now();
-      const timeout = 1000;
-      let error: unknown | null = null;
-      let result: Photo | null = null;
-
-      this.processUploadOperation(operation)
-        .then((photo) => {
-          result = photo;
-        })
-        .catch((err) => {
-          error = err;
-        })
-        .finally(() => {
-          const duration = Date.now() - start;
-          if (duration < timeout) {
-            setTimeout(() => {
-              if (error) {
-                reject(error);
-              } else {
-                resolve(result);
-              }
-            }, timeout - duration);
-          } else {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(result);
-            }
-          }
-        });
-    });
-  }
-
   private get isAborted() {
-    return this.status === PhotosNetworkManagerStatus.ABORTED;
+    return this.abortController.signal.aborted;
   }
 
   private log(message: string) {

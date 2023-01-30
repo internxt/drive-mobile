@@ -68,9 +68,7 @@ export class PhotosUtils {
     let path = uri;
 
     if (Platform.OS === 'ios' && uri.startsWith('ph://')) {
-      const exists = await fileSystemService.exists(iosPath);
-
-      if (exists) return iosPath;
+      await fileSystemService.unlinkIfExists(iosPath);
 
       if (itemType === PhotosItemType.PHOTO) {
         await RNFS.copyAssetsFileIOS(uri, iosPath, 0, 0);
@@ -266,13 +264,13 @@ export class PhotosUtils {
 
     const asArray = Object.values(mapByName);
 
-    return asArray
-      .filter((del) => del.status !== PhotoSyncStatus.DELETED)
-      .sort((p1, p2) => {
-        if (p1.takenAt > p2.takenAt) return -1;
-        if (p1.takenAt < p2.takenAt) return 1;
-        return 0;
-      });
+    const noDeleted = asArray.filter((del) => del.status !== PhotoSyncStatus.DELETED);
+
+    return noDeleted.sort((p1, p2) => {
+      if (p1.takenAt > p2.takenAt) return -1;
+      if (p1.takenAt < p2.takenAt) return 1;
+      return 0;
+    });
   }
 }
 

@@ -21,7 +21,7 @@ import { GeneratingLinkModal } from 'src/components/modals/common/GeneratingLink
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey, PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
 import { PhotosContext } from 'src/contexts/Photos';
-import { INCREASED_TOUCH_AREA } from 'src/styles/global';
+import { INCREASED_TOUCH_AREA_X2 } from 'src/styles/global';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { VideoViewer } from 'src/components/photos/VideoViewer';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
@@ -67,8 +67,11 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
     }).start();
   }, [progressVisible]);
 
-  const { photoName } = route.params;
-  const photosItem: PhotosItem = useMemo(() => photosCtx.getPhotosItem(photoName) as PhotosItem, [photoName]);
+  const { photoName, photoTakenAt, previewPath } = route.params;
+  const photosItem: PhotosItem = useMemo(
+    () => photosCtx.getPhotosItem(photoName, photoTakenAt) as PhotosItem,
+    [photoName],
+  );
   const isVideo = photosItem.type === PhotosItemType.VIDEO;
   const isDownloading =
     (!downloadedFullSizeUri && photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) ||
@@ -240,7 +243,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
           }}
         >
           <View style={[tailwind('flex-row justify-between w-full'), { marginBottom: safeAreaInsets.top }]}>
-            <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} style={tailwind('z-20')} onPress={onBackButtonPressed}>
+            <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA_X2} style={tailwind('z-20')} onPress={onBackButtonPressed}>
               <View style={tailwind('p-5')}>
                 <CaretLeft color={getColor('text-white')} size={28} weight="bold" />
               </View>
@@ -257,7 +260,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
                 progressStyle={tailwind('bg-white')}
               />
             </Animated.View>
-            <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} style={tailwind('z-10')} onPress={handleThreeDotsPress}>
+            <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA_X2} style={tailwind('z-10')} onPress={handleThreeDotsPress}>
               <View style={tailwind('p-5')}>
                 <DotsThreeVertical weight="bold" color={getColor('text-white')} size={28} />
               </View>
@@ -286,28 +289,28 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
           }}
         >
           <TouchableOpacity
-            hitSlop={INCREASED_TOUCH_AREA}
+            hitSlop={INCREASED_TOUCH_AREA_X2}
             style={tailwind('items-center flex-1 pb-5')}
             onPress={actions.shareLink}
           >
             <Link color={getColor('text-white')} size={28} />
           </TouchableOpacity>
           <TouchableOpacity
-            hitSlop={INCREASED_TOUCH_AREA}
+            hitSlop={INCREASED_TOUCH_AREA_X2}
             style={tailwind('items-center flex-1 pb-5')}
             onPress={actions.exportPhoto}
           >
             <ArrowSquareOut color={getColor('text-white')} size={28} />
           </TouchableOpacity>
           <TouchableOpacity
-            hitSlop={INCREASED_TOUCH_AREA}
+            hitSlop={INCREASED_TOUCH_AREA_X2}
             style={tailwind('items-center flex-1 pb-5')}
             onPress={actions.saveToGallery}
           >
             <DownloadSimple color={getColor('text-white')} size={28} />
           </TouchableOpacity>
           <TouchableOpacity
-            hitSlop={INCREASED_TOUCH_AREA}
+            hitSlop={INCREASED_TOUCH_AREA_X2}
             style={tailwind('items-center flex-1 pb-5')}
             onPress={() => actions.openModal('trash')}
           >
@@ -353,9 +356,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   const renderImageViewer = () => {
     return (
       <ImageViewer
-        source={fileSystemService.pathToUri(
-          downloadedFullSizeUri ? downloadedFullSizeUri : photosItem.localPreviewPath,
-        )}
+        source={fileSystemService.pathToUri(downloadedFullSizeUri ? downloadedFullSizeUri : previewPath)}
         onTapImage={handleTapImage}
         onZoomImage={handleZoomImage}
         onImageViewReset={handleImageViewReset}

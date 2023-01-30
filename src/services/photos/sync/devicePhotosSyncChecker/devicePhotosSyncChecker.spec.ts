@@ -5,38 +5,44 @@ import {
   DevicePhotoSyncCheckOperation,
   SyncStage,
 } from '../../../../../src/types/photos';
+import { PhotosRealmDB } from '../../database';
 
+const mockedRealmDb = {
+  _realm: null,
+
+  init: jest.fn(),
+  clear: jest.fn(),
+  realm: {},
+  saveDevicePhotos: jest.fn(),
+  savePhotosItem: jest.fn(),
+  getSyncedPhotoByNameAndDate: jest.fn(),
+  getSyncedPhotosCount: jest.fn(),
+  getSyncedPhotoByName: jest.fn(),
+  getSyncedPhotoByHash: jest.fn(),
+  deleteSyncedPhotosItem: jest.fn(),
+  getSyncedPhotos: jest.fn(),
+  parseObject: jest.fn(),
+  parseFirst: jest.fn(),
+} as unknown as PhotosRealmDB;
 describe('DevicePhotosSyncChecker', () => {
   let subject: DevicePhotosSyncCheckerService;
-  const db = {
-    init: jest.fn(),
-    persistPhotoSync: jest.fn(),
-    getByPhotoRef: jest.fn(),
-    clear: jest.fn(),
-    getByPhotoId: jest.fn(),
-    getByDevicePhoto: jest.fn(),
-    getByPhoto: jest.fn(),
-    getByPreviewUri: jest.fn(),
-    getAll: jest.fn(),
-    isInitialized: true,
-  } as any;
 
   describe('Resolve an operation with a sync stage', () => {
-    beforeEach(() => (subject = new DevicePhotosSyncCheckerService(db)));
+    beforeEach(() => (subject = new DevicePhotosSyncCheckerService(mockedRealmDb)));
     it('Should remove the operation from the sync queue', (done) => {
       const operationCallback = jest.fn(() => {
-        expect(subject.pendingOperations).toBe(0);
+        expect(subject.totalOperations).toBe(0);
+        expect(subject.totalPhotosChecked).toBe(1);
         done();
       });
       subject.addOperation({
         photosItem: createPhotosItemFixture(),
         onOperationCompleted: operationCallback,
       });
-      expect(subject.pendingOperations).toBe(1);
     });
 
     it('Should mark the operation with NEEDS_REMOTE_CHECK SyncStage if not found locally', (done) => {
-      db.getSyncedPhotoByName = jest.fn(async () => null);
+      mockedRealmDb.getSyncedPhotoByNameAndDate = jest.fn(async () => null);
       const operation1Callback = jest.fn<void, [Error | null, DevicePhotoSyncCheckOperation | null]>(
         (err, resolvedOperation) => {
           expect(resolvedOperation).toMatchObject({ syncStage: SyncStage.NEEDS_REMOTE_CHECK });
@@ -50,8 +56,8 @@ describe('DevicePhotosSyncChecker', () => {
     });
 
     it('Should mark the operation with IN_SYNC stage if found locally', (done) => {
-      db.getSyncedPhotoByName = jest.fn(async () => ({ photo: createPhotoFixture() }));
-      subject = new DevicePhotosSyncCheckerService(db);
+      mockedRealmDb.getSyncedPhotoByNameAndDate = jest.fn(async () => createPhotoFixture());
+      subject = new DevicePhotosSyncCheckerService(mockedRealmDb);
 
       const operationCallback = jest.fn((err, resolvedOperation) => {
         expect(resolvedOperation).toMatchObject({ syncStage: SyncStage.IN_SYNC });
@@ -65,7 +71,7 @@ describe('DevicePhotosSyncChecker', () => {
   });
 
   describe('Notify the sync checker queue status correctly', () => {
-    beforeEach(() => (subject = new DevicePhotosSyncCheckerService(db)));
+    beforeEach(() => (subject = new DevicePhotosSyncCheckerService(mockedRealmDb)));
     it('Should end with status sequence RUNNING > EMPTY > COMPLETED', (done) => {
       const statusChangeMock = jest.fn<void, [DevicePhotosSyncCheckerStatus]>((status) => {
         if (status === DevicePhotosSyncCheckerStatus.COMPLETED) {
@@ -77,7 +83,7 @@ describe('DevicePhotosSyncChecker', () => {
       });
 
       subject.onStatusChange(statusChangeMock);
-
+      subject.run();
       subject.addOperation({
         photosItem: createPhotosItemFixture(),
         onOperationCompleted: jest.fn(),

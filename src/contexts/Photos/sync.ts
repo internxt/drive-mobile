@@ -1,4 +1,10 @@
-import { PhotosEventKey, PhotosItem, PhotosSyncManagerStatus, PhotosSyncStatus } from '@internxt-mobile/types/photos';
+import {
+  PhotosEventKey,
+  PhotosItem,
+  PhotosRemoteSyncManagerStatus,
+  PhotosSyncManagerStatus,
+  PhotosSyncStatus,
+} from '@internxt-mobile/types/photos';
 import { activateKeepAwake, deactivateKeepAwake } from 'expo-keep-awake';
 
 import errorService from 'src/services/ErrorService';
@@ -13,11 +19,12 @@ export interface SyncHandlers {
   updateFailedTasks: (failedTasks: number) => void;
   updatePendingTasks: (pendingTasks: number) => void;
   updateStatus: (newStatus: PhotosSyncStatus) => void;
-  onRemotePhotosSynced: (photosItemSynced: PhotosItem) => void;
+  onRemotePhotosSynced: (photosItemSynced: PhotosItem[]) => void;
   onPhotosItemSynced: (photosItem: PhotosItem) => void;
   onPhotosItemUploadStart: (photosItem: PhotosItem) => void;
   onPhotosItemUploadProgress: (photosItem: PhotosItem, progress: number) => void;
 }
+
 export const startSync = async (handlers: SyncHandlers) => {
   if (!ENABLE_PHOTOS_SYNC) {
     // eslint-disable-next-line no-console
@@ -25,14 +32,16 @@ export const startSync = async (handlers: SyncHandlers) => {
     return;
   }
 
-  const syncManager = photos.sync;
+  const localSyncManager = photos.localSync;
+  const remoteSyncManager = photos.remoteSync;
   let pendingPhotosInterval: NodeJS.Timeout | null = null;
-  syncManager.onPhotosItemUploadStart(handlers.onPhotosItemUploadStart);
-  syncManager.onPhotosItemUploadProgress(handlers.onPhotosItemUploadProgress);
+
+  localSyncManager.onPhotosItemUploadStart(handlers.onPhotosItemUploadStart);
+  localSyncManager.onPhotosItemUploadProgress(handlers.onPhotosItemUploadProgress);
 
   const startPendingPhotosUpdatePolling = () => {
     pendingPhotosInterval = setInterval(function () {
-      handlers.updatePendingTasks(syncManager.getPendingTasks());
+      handlers.updatePendingTasks(localSyncManager.getPhotosThatNeedsSyncCount());
     }, 500);
   };
 
@@ -42,12 +51,8 @@ export const startSync = async (handlers: SyncHandlers) => {
       pendingPhotosInterval = null;
     }
   };
-  syncManager.onRemotePhotosSynced((photosItem) => {
-    stopPendingPhotosUpdatePolling();
-    handlers.updatePendingTasks(syncManager.getPendingTasks());
-    handlers.onRemotePhotosSynced(photosItem);
-  });
-  syncManager.onTotalPhotosInDeviceCalculated((photosInDevice) => {
+
+  localSyncManager.onTotalPhotosInDeviceCalculated((photosInDevice) => {
     photos.analytics.track(PhotosAnalyticsEventKey.BackupStarted, {
       number_of_items: photosInDevice,
     });
@@ -55,20 +60,39 @@ export const startSync = async (handlers: SyncHandlers) => {
     handlers.updateTotalTasks(photosInDevice);
   });
 
-  syncManager.onStatusChange((status) => {
-    handlers.updatePendingTasks(syncManager.getPendingTasks());
+  remoteSyncManager.onStatusChange((status) => {
+    if (status === PhotosRemoteSyncManagerStatus.SYNCING) {
+      handlers.updateStatus(PhotosSyncStatus.PullingRemotePhotos);
+    }
+    if (status === PhotosRemoteSyncManagerStatus.SYNCED) {
+      // Start the local sync
+      localSyncManager.run();
+    }
+  });
+
+  remoteSyncManager.onRemotePhotosPageSynced((photos) => {
+    handlers.onRemotePhotosSynced(photos.map((photo) => photosUtils.getPhotosItem(photo)));
+  });
+
+  // Called once we have enough photos pulled to start the local sync
+  //remoteSyncManager.onRemotePhotosPulledTresholdReached(() => {});
+  localSyncManager.onStatusChange((status) => {
+    handlers.updatePendingTasks(localSyncManager.getPhotosThatNeedsSyncCount());
+    handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
+    if (status === PhotosSyncManagerStatus.PULLING_REMOTE_PHOTOS) {
+      handlers.updateStatus(PhotosSyncStatus.PullingRemotePhotos);
+    }
     if (status === PhotosSyncManagerStatus.RUNNING) {
       activateKeepAwake('PHOTOS_SYNC');
       handlers.updateStatus(PhotosSyncStatus.InProgress);
-      handlers.updateCompletedTasks(syncManager.totalPhotosSynced);
     }
     if (status === PhotosSyncManagerStatus.COMPLETED) {
       stopPendingPhotosUpdatePolling();
       deactivateKeepAwake('PHOTOS_SYNC');
       handlers.updateStatus(PhotosSyncStatus.Completed);
-      if (syncManager.totalPhotosSynced > 0) {
+      if (localSyncManager.totalPhotosSynced > 0) {
         photos.analytics.track(PhotosAnalyticsEventKey.BackupCompleted, {
-          number_of_items: syncManager.totalPhotosSynced,
+          number_of_items: localSyncManager.totalPhotosSynced,
         });
 
         photos.analytics.identify({
@@ -82,20 +106,20 @@ export const startSync = async (handlers: SyncHandlers) => {
       handlers.updateStatus(PhotosSyncStatus.Paused);
 
       photos.analytics.track(PhotosAnalyticsEventKey.BackupPaused, {
-        items_left_to_backup: syncManager.pendingItemsToSync,
+        items_left_to_backup: localSyncManager.getPhotosThatNeedsSyncCount(),
       });
 
       photos.analytics.track(PhotosAnalyticsEventKey.BackupStopped, {
-        number_of_items_uploaded: syncManager.totalPhotosSynced,
-        number_of_items: syncManager.totalPhotosInDevice,
+        number_of_items_uploaded: localSyncManager.totalPhotosSynced,
+        number_of_items: localSyncManager.totalPhotosInDevice,
       });
     }
   });
 
-  syncManager.onPhotoSyncCompleted(async (err, photo) => {
+  localSyncManager.onPhotoSyncCompleted(async (err, photo) => {
     if (err) {
-      handlers.updateCompletedTasks(syncManager.totalPhotosSynced);
-      handlers.updateFailedTasks(syncManager.totalPhotosFailed);
+      handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
+      handlers.updateFailedTasks(localSyncManager.totalPhotosFailed);
       // Something bad happened tos the photo, report it to the error tracker
       errorService.reportError(err, {
         tags: {
@@ -105,16 +129,16 @@ export const startSync = async (handlers: SyncHandlers) => {
     }
 
     if (!err && photo) {
-      handlers.updateCompletedTasks(syncManager.totalPhotosSynced);
+      handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
       handlers.onPhotosItemSynced(photosUtils.getPhotosItem(photo));
     }
-    handlers.updatePendingTasks(syncManager.getPendingTasks());
+    handlers.updatePendingTasks(localSyncManager.getPhotosThatNeedsSyncCount());
   });
 
   photos.events.addListener({
     event: PhotosEventKey.PauseSync,
     listener: () => {
-      syncManager.pause();
+      localSyncManager.pause();
       handlers.updateStatus(PhotosSyncStatus.Paused);
     },
   });
@@ -122,14 +146,13 @@ export const startSync = async (handlers: SyncHandlers) => {
   photos.events.addListener({
     event: PhotosEventKey.ResumeSync,
     listener: () => {
-      syncManager.resume();
+      localSyncManager.resume();
       handlers.updateStatus(PhotosSyncStatus.InProgress);
       photos.analytics.track(PhotosAnalyticsEventKey.BackupResumed, {
-        items_left_to_backup: syncManager.pendingItemsToSync,
+        items_left_to_backup: localSyncManager.getPhotosThatNeedsSyncCount(),
       });
     },
   });
-
-  syncManager.run();
+  remoteSyncManager.run();
   startPendingPhotosUpdatePolling();
 };

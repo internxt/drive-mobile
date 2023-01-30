@@ -1,3 +1,4 @@
 export * from './devicePhotosScanner';
 export * from './devicePhotosSyncChecker';
-export * from './photosSyncManager';
+export * from './photosLocalSyncManager';
+export * from './photosRemoteSyncManager';

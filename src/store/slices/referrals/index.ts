@@ -1,5 +1,6 @@
+import errorService from '@internxt-mobile/services/ErrorService';
 import { UserReferral } from '@internxt/sdk/dist/drive/referrals/types';
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../..';
 import usersReferralsService from '../../../services/UsersReferralsService';
 
@@ -13,15 +14,29 @@ const initialState: ReferralsState = {
 
 const fetchReferralsThunk = createAsyncThunk<UserReferral[], void, { state: RootState }>(
   'referrals/fetchReferrals',
-  async () => {
-    return usersReferralsService.fetch();
+  async (_, { dispatch }) => {
+    try {
+      const referrals = await usersReferralsService.fetch();
+
+      dispatch(referralsSlice.actions.setReferrals(referrals));
+
+      return referrals;
+    } catch (error) {
+      errorService.reportError(error);
+
+      return [];
+    }
   },
 );
 
 export const referralsSlice = createSlice({
   name: 'referrals',
   initialState,
-  reducers: {},
+  reducers: {
+    setReferrals: (state, action: PayloadAction<UserReferral[]>) => {
+      state.list = action.payload;
+    },
+  },
 });
 
 export const referralsActions = referralsSlice.actions;

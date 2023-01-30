@@ -167,9 +167,11 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                         </AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
-                        <AppText style={tailwind('text-gray-40 mr-2.5')}>
-                          {strings.formatString(strings.generic.usagePercent, usagePercent)}
-                        </AppText>
+                        {Number(usagePercent) ? (
+                          <AppText style={tailwind('text-gray-40 mr-2.5')}>
+                            {strings.formatString(strings.generic.usagePercent, usagePercent)}
+                          </AppText>
+                        ) : null}
                         <CaretRight color={getColor('text-neutral-60')} size={20} />
                       </View>
                     </View>

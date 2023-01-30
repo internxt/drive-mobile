@@ -15,6 +15,19 @@ class AsyncStorageService {
     return AsyncStorage.removeItem(key).catch(() => undefined);
   }
 
+  async getLastPhotoPulledDate() {
+    const lastPhotoPulledDateStr = await this.getItem(AsyncStorageKey.LastPhotoPulledDate);
+
+    if (!lastPhotoPulledDateStr) return null;
+
+    return new Date(lastPhotoPulledDateStr);
+  }
+
+  async saveLastPhotoPulledDate(date: Date) {
+    if (!(date instanceof Date)) throw new Error('Invalid date received');
+    await this.saveItem(AsyncStorageKey.LastPhotoPulledDate, date.toISOString());
+  }
+
   getUser(): Promise<UserSettings> {
     return AsyncStorage.getItem(AsyncStorageKey.User).then((value) => {
       return value ? JSON.parse(value) : null;
@@ -38,8 +51,7 @@ class AsyncStorageService {
       AsyncStorageKey.User,
       AsyncStorageKey.Token,
       AsyncStorageKey.PhotosToken,
-      AsyncStorageKey.LastPhotosPagePulled,
-      AsyncStorageKey.PhotosSyncEnabled,
+      AsyncStorageKey.LastPhotoPulledDate,
     ]);
 
     // eslint-disable-next-line no-console

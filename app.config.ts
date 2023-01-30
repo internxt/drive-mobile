@@ -19,7 +19,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   slug: 'drive-mobile',
   version: packageJson.version,
   orientation: 'portrait',
-  jsEngine: 'jsc',
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
@@ -34,14 +33,13 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   assetBundlePatterns: ['**/*'],
   runtimeVersion: packageJson.version,
   ios: {
+    jsEngine: 'jsc',
     icon: './assets/icon-ios.png',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
     usesIcloudStorage: true,
     backgroundColor: '#FFFFFF',
-    entitlements: {
-      associatedDomains: ['webcredentials:www.internxt.com'],
-    },
+    associatedDomains: ['webcredentials:www.internxt.com'],
     buildNumber: env[stage].IOS_BUILD_NUMBER.toString(),
     infoPlist: {
       NSCameraUsageDescription:
@@ -52,6 +50,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     },
   },
   android: {
+    jsEngine: 'hermes',
     versionCode: env[stage].ANDROID_VERSION_CODE,
     icon: './assets/icon-android.png',
     adaptiveIcon: {

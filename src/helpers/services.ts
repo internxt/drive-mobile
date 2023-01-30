@@ -17,3 +17,7 @@ export class NotInitializedServiceError extends Error {
     this.message = `${this.service} not initialized in ${where}, check the stacktrace for more info`;
   }
 }
+
+// Waits x ms before resolving, useful to avoid RN bridge message collapse
+export const sleep = (sleepTimeInMs: number) =>
+  new Promise<void>((resolve) => setTimeout(() => resolve(), sleepTimeInMs));

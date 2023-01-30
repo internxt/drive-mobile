@@ -637,6 +637,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      gettingCloudPhotos: 'Getting photos from the cloud',
       passwordMediumStrength: 'Password is weak',
       passwordHardStrength: 'Password is strong',
       image_not_uploaded_yet: 'This photo is not synced yet',
@@ -1358,6 +1359,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      gettingCloudPhotos: 'Obteniendo tus fotos de la nube',
       passwordMediumStrength: 'La contraseña es débil',
       passwordHardStrength: 'La contraseña es fuerte',
       image_not_uploaded_yet: 'Imagen no sincronizada aún',

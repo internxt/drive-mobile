@@ -1,45 +1,55 @@
-import { PhotosSyncManager } from '../../../../../src/services/photos/sync/photosSyncManager/photosSyncManager';
-import { PhotosSyncManagerStatus } from '../../../../../src/types/photos';
+import { PhotosLocalSyncManager } from './photosLocalSyncManager';
+import { PhotosSyncManagerStatus } from '../../../../types/photos';
 import { getAssetsAsync } from 'expo-media-library';
-import { PhotosNetworkManager } from '../../../../../src/services/photos/network/PhotosNetworkManager';
+import { PhotosNetworkManager } from '../../network/PhotosNetworkManager';
 import { createDevicePhotoFixture, createPhotoFixture } from '__tests__/unit/fixtures/photos.fixture';
-import { PhotosLocalDB } from '../../database';
 import { DevicePhotosSyncCheckerService } from '../devicePhotosSyncChecker';
+import { PhotosRealmDB } from '../../database/photosRealmDB';
+import { DevicePhotosScannerService } from '../devicePhotosScanner';
 
 jest.mock('expo-media-library');
+const mockedRealmDb = {
+  _realm: {},
+
+  init: jest.fn(),
+  clear: jest.fn(),
+  realm: {},
+  saveDevicePhotos: jest.fn(),
+  savePhotosItem: jest.fn(),
+  getSyncedPhotoByNameAndDate: jest.fn(),
+  getSyncedPhotosCount: jest.fn(),
+  getSyncedPhotoByName: jest.fn(),
+  getSyncedPhotoByHash: jest.fn(),
+  deleteSyncedPhotosItem: jest.fn(),
+  getSyncedPhotos: jest.fn(),
+  parseObject: jest.fn(),
+  parseFirst: jest.fn(),
+} as unknown as PhotosRealmDB;
+jest.mock('realm', () => mockedRealmDb);
 const mockedGetAssetsAsync = jest.mocked(getAssetsAsync);
 
 describe('PhotosSyncManager', () => {
-  const initialDbMock = {
-    init: jest.fn(),
-    persistPhotoSync: jest.fn(),
-    getByPhotoRef: jest.fn(),
-    clear: jest.fn(),
-    getByDevicePhoto: jest.fn(),
-    getByPhoto: jest.fn(),
-    getSyncedPhotoByName: jest.fn(),
-    getByPreviewUri: jest.fn(),
-    getAll: jest.fn(),
-    isInitialized: true,
-  } as any;
-  const db: PhotosLocalDB = initialDbMock;
-
   let photosNetworkManager: PhotosNetworkManager;
   let devicePhotosSyncChecker: DevicePhotosSyncCheckerService;
-  let subject: PhotosSyncManager;
+  let devicePhotosScanner: DevicePhotosScannerService;
+  let subject: PhotosLocalSyncManager;
   beforeEach(() => {
-    Object.keys(db).forEach((key) => {
-      (db as any)[key] = jest.fn();
-    });
-
     photosNetworkManager = new PhotosNetworkManager();
-    devicePhotosSyncChecker = new DevicePhotosSyncCheckerService(db);
-    subject = new PhotosSyncManager(photosNetworkManager, devicePhotosSyncChecker);
+    devicePhotosSyncChecker = new DevicePhotosSyncCheckerService(mockedRealmDb);
+    devicePhotosScanner = new DevicePhotosScannerService();
+    subject = new PhotosLocalSyncManager(
+      photosNetworkManager,
+      devicePhotosSyncChecker,
+      { enableLog: false },
+      devicePhotosScanner,
+      mockedRealmDb,
+    );
   });
   describe('Handle status changes', () => {
     it('Should on pause stop processing operations', (done) => {
       const onStatusChangeMock = jest.fn<void, [PhotosSyncManagerStatus]>((status) => {
-        expect(onStatusChangeMock).toHaveBeenNthCalledWith(1, PhotosSyncManagerStatus.PAUSED);
+        expect(onStatusChangeMock).toHaveBeenNthCalledWith(1, PhotosSyncManagerStatus.RUNNING);
+        expect(onStatusChangeMock).toHaveBeenNthCalledWith(2, PhotosSyncManagerStatus.PAUSED);
         done();
       });
       subject.onStatusChange(onStatusChangeMock);
@@ -53,8 +63,6 @@ describe('PhotosSyncManager', () => {
       const devicePhotoFixture = createDevicePhotoFixture({ filename: 'photo_2.png' });
       const photoFixture = createPhotoFixture({ name: 'photo_2', type: 'png' });
 
-      subject.getRemotePhotos = jest.fn();
-
       mockedGetAssetsAsync.mockImplementationOnce(async () => {
         return {
           assets: [devicePhotoFixture],
@@ -64,13 +72,8 @@ describe('PhotosSyncManager', () => {
         };
       });
 
-      db.getSyncedPhotoByName = jest.fn(async () => {
-        return {
-          photo: photoFixture,
-          photo_id: photoFixture.id,
-          photo_name: photoFixture.name,
-          photo_hash: photoFixture.hash,
-        };
+      mockedRealmDb.getSyncedPhotoByNameAndDate = jest.fn(async () => {
+        return photoFixture;
       });
 
       photosNetworkManager.processUploadOperation = jest.fn();
@@ -83,12 +86,24 @@ describe('PhotosSyncManager', () => {
     });
 
     it('Should resolve a photo found locally and check the others remotely', (done) => {
-      const devicePhoto1Fixture = createDevicePhotoFixture({ filename: 'fixture1.png' });
-      const photo1Fixture = createPhotoFixture({ name: 'fixture1' });
-      const devicePhoto2Fixture = createDevicePhotoFixture({ filename: 'fixture2.png' });
-      const photo2Fixture = createPhotoFixture({ name: 'fixture2' });
-      const devicePhoto3Fixture = createDevicePhotoFixture({ id: 'fixture3', filename: 'photo_not_synced.png' });
-      const photoNotSyncedFixture = createPhotoFixture({ name: 'photo_not_synced' });
+      const takenAt = new Date('01/01/2010');
+
+      const devicePhoto1Fixture = createDevicePhotoFixture({
+        filename: 'fixture1.png',
+        creationTime: takenAt.getTime(),
+      });
+      const photo1Fixture = createPhotoFixture({ name: 'fixture1', takenAt });
+      const devicePhoto2Fixture = createDevicePhotoFixture({
+        filename: 'fixture2.png',
+        creationTime: takenAt.getTime(),
+      });
+      const photo2Fixture = createPhotoFixture({ name: 'fixture2', takenAt });
+      const devicePhoto3Fixture = createDevicePhotoFixture({
+        id: 'fixture3',
+        filename: 'photo_not_synced.png',
+        creationTime: takenAt.getTime(),
+      });
+      const photoNotSyncedFixture = createPhotoFixture({ name: 'photo_not_synced', takenAt });
 
       mockedGetAssetsAsync.mockImplementationOnce(async () => {
         return {
@@ -103,21 +118,13 @@ describe('PhotosSyncManager', () => {
         return photoNotSyncedFixture;
       });
 
-      db.getSyncedPhotoByName = jest
+      mockedRealmDb.getSyncedPhotoByNameAndDate = jest
         .fn()
         .mockImplementationOnce(() => {
-          return {
-            photo: photo1Fixture,
-            photo_name: photo1Fixture.name,
-            photo_id: photo1Fixture.id,
-          };
+          return photo1Fixture;
         })
         .mockImplementationOnce(() => {
-          return {
-            photo: photo2Fixture,
-            photo_name: photo2Fixture.name,
-            photo_id: photo2Fixture.id,
-          };
+          return photo2Fixture;
         })
         .mockImplementationOnce(() => null);
       mockedGetAssetsAsync.mockImplementation(async () => {
@@ -134,7 +141,7 @@ describe('PhotosSyncManager', () => {
 
       subject.onStatusChange((status) => {
         if (status === PhotosSyncManagerStatus.COMPLETED) {
-          expect(photosNetworkManager.processUploadOperation).toBeCalledTimes(1);
+          expect(photosNetworkManager.processUploadOperation).toBeCalledTimes(2);
           done();
         }
       });
