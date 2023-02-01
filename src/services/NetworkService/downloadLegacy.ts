@@ -3,7 +3,7 @@ import { Network } from '../../lib/network';
 import { Abortable, NetworkCredentials } from '../../types';
 
 interface DownloadFileParams {
-  progressCallback: (progress: number) => void;
+  progressCallback: (progress: number, bytesReceived: number, totalBytes: number) => void;
   fileManager: FileManager;
 }
 

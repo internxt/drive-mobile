@@ -22,7 +22,7 @@ import drive from '@internxt-mobile/services/drive';
 
 export interface DownloadFileParams {
   toPath: string;
-  downloadProgressCallback: (progress: number) => void;
+  downloadProgressCallback: (progress: number, bytesReceived: number, totalBytes: number) => void;
   decryptionProgressCallback: (progress: number) => void;
   onEncryptedFileDownloaded?: ({ path, name }: EncryptedFileDownloadedParams) => Promise<void>;
   signal?: AbortSignal;
@@ -183,7 +183,7 @@ export class NetworkFacade {
 
     const encryptedFileName = `${fileId}.enc`;
     let encryptedFileIsCached = false;
-
+    let totalBytes = 0;
     const downloadPromise = downloadFile(
       fileId,
       bucketId,
@@ -215,10 +215,17 @@ export class NetworkFacade {
             progressDivider: 5,
             progressInterval: 150,
             begin: () => {
-              params.downloadProgressCallback(0);
+              params.downloadProgressCallback(0, 0, 0);
             },
             progress: (res) => {
-              params.downloadProgressCallback(res.bytesWritten / res.contentLength);
+              if (res.contentLength) {
+                totalBytes = res.contentLength;
+              }
+              params.downloadProgressCallback(
+                res.bytesWritten / res.contentLength,
+                res.bytesWritten,
+                res.contentLength,
+              );
             },
           });
 
@@ -240,7 +247,7 @@ export class NetworkFacade {
           }
         }
 
-        params.downloadProgressCallback(1);
+        params.downloadProgressCallback(1, totalBytes, totalBytes);
 
         await decryptFileFromFs(
           encryptedFileURI,

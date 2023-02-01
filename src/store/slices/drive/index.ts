@@ -180,27 +180,13 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return network.downloadFile(
-        params.fileId,
-        user?.bucket,
-        user.mnemonic,
-        {
-          pass: user.userId,
-          user: user.bridgeUser,
-        },
-        {
-          toPath: params.to,
-          downloadProgressCallback,
-          decryptionProgressCallback,
-          onEncryptedFileDownloaded: async ({ path, name }) => {
-            await drive.cache.cacheFile(path, name);
-          },
-          signal,
-        },
-        (abortable) => {
-          drive.events.setLegacyAbortable(abortable);
-        },
-      );
+      return drive.file.downloadFile(user, params.fileId, {
+        downloadPath: params.to,
+        decryptionProgressCallback,
+        downloadProgressCallback,
+        signal,
+        onAbortableReady: drive.events.setLegacyAbortable,
+      });
     };
 
     const trackDownloadStart = () => {
@@ -228,8 +214,9 @@ const downloadFileThunk = createAsyncThunk<
         parent_folder_id: parentId,
       });
     };
-    const destinationPath = fileSystemService.tmpFilePath(`${name}.${type}`);
-    const fileAlreadyExists = await fileSystemService.exists(destinationPath);
+
+    const destinationPath = drive.file.getDecryptedFilePath(name, type);
+    const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
     try {
       if (!isValidFilename(name)) {
         throw new Error('This file name is not valid');
