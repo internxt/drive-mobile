@@ -21,6 +21,7 @@ import UserProfilePicture from '../../UserProfilePicture';
 import BottomModal from '../BottomModal';
 import { imageService } from '../../../services/common/media/image.service';
 import { authThunks } from '../../../store/slices/auth';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 const ChangeProfilePictureModal = (props: BaseModalProps) => {
   const dispatch = useAppDispatch();
@@ -36,7 +37,6 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
     const response = await imageService.resize({
       uri: uri,
       width: size,
-      height: size,
       format: 'JPEG',
       quality: 100,
       rotation: 0,
@@ -86,7 +86,7 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
         await dispatch(authThunks.deleteProfilePictureThunk()).unwrap();
       }
     } catch (err) {
-      // ignore error
+      errorService.reportError(err);
     } finally {
       setIsLoading(false);
       props.onClose();

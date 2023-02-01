@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleProp, View, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle, Image } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { useAppSelector } from '../../store/hooks';

@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Linking, View, ScrollView, Animated } from 'react-native';
+import { Linking, View, ScrollView } from 'react-native';
 import { Bug, CaretRight, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
@@ -24,6 +24,9 @@ import BottomModal from 'src/components/modals/BottomModal';
 import { PhotosPermissions } from '../PhotosPermissionsScreen';
 import Portal from '@burstware/react-native-portal';
 import { PermissionStatus } from 'expo-media-library';
+import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
@@ -36,8 +39,31 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
   const photosCtx = useContext(PhotosContext);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
+  const [profileAvatar, setProfileAvatar] = useState<string>();
   const [enablePhotosSyncScrollPoint, setEnablePhotosSyncScrollPoint] = useState(0);
   const userFullName = useAppSelector(authSelectors.userFullName);
+  useEffect(() => {
+    if (!user?.avatar) {
+      return setProfileAvatar(undefined);
+    }
+
+    imageService
+      .getCachedImage(PROFILE_PICTURE_CACHE_KEY)
+      .then((cachedImage) => {
+        if (!user.avatar) return;
+        if (cachedImage) {
+          setProfileAvatar(fs.pathToUri(cachedImage));
+        } else if (user?.avatar) {
+          setProfileAvatar(user?.avatar);
+        }
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+        if (user?.avatar) {
+          setProfileAvatar(user.avatar);
+        }
+      });
+  }, [user?.avatar]);
 
   useEffect(() => {
     if (route?.params?.focusEnablePhotosSync && enablePhotosSyncScrollPoint) {
@@ -115,7 +141,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                   key: 'account',
                   template: (
                     <View style={tailwind('flex-row items-center p-4')}>
-                      <UserProfilePicture uri={user?.avatar} size={56} />
+                      <UserProfilePicture uri={profileAvatar} size={56} />
 
                       <View style={tailwind('flex-grow flex-1 ml-3')}>
                         <AppText numberOfLines={1} medium style={tailwind('text-xl text-gray-80')}>
