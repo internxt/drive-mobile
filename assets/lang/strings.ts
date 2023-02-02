@@ -3,6 +3,7 @@ import LocalizedStrings from 'react-native-localization';
 import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
 import { NotificationType } from '../../src/types';
 import { SortType } from '../../src/types/drive';
+import { BiometricAccessType } from '../../src/types/app';
 
 const strings = new LocalizedStrings({
   en: {
@@ -45,6 +46,21 @@ const strings = new LocalizedStrings({
       subscription: 'Subscription',
     },
     screens: {
+      LockScreen: {
+        title: 'Internxt Locked',
+        message: {
+          [BiometricAccessType.FaceId]: 'Unlock with Face ID to open Internxt',
+          [BiometricAccessType.TouchId]: 'Unlock with your Touch ID to open Internxt',
+          [BiometricAccessType.FingerPrint]: 'Unlock with your fingerprint to open Internxt',
+          [BiometricAccessType.Pin]: 'Unlock with your pin to open Internxt',
+        },
+        button: {
+          [BiometricAccessType.FaceId]: 'Use Face ID',
+          [BiometricAccessType.TouchId]: 'Use Touch ID',
+          [BiometricAccessType.FingerPrint]: 'Use FingerPrint',
+          [BiometricAccessType.Pin]: 'Use Pin',
+        },
+      },
       PlanScreen: {
         subscriptionTitle: 'Subscription',
         lifetimeTitle: 'Lifetime',
@@ -312,6 +328,22 @@ const strings = new LocalizedStrings({
       },
       SecurityScreen: {
         title: 'Security',
+        screenLock: {
+          title: 'Screen Lock',
+          subtitle: {
+            [BiometricAccessType.FaceId]: 'Require Face ID',
+            [BiometricAccessType.TouchId]: 'Require Touch ID',
+            [BiometricAccessType.FingerPrint]: 'Require Fingerprint',
+            [BiometricAccessType.Pin]: 'Require PIN',
+          },
+          message: {
+            [BiometricAccessType.FaceId]: 'When enabled, you will need to use Face ID to unlock Internxt.',
+            [BiometricAccessType.TouchId]: 'When enabled, you will need to use Touch ID to unlock Internxt.',
+            [BiometricAccessType.FingerPrint]:
+              'When enabled, you will need to use your fingerprint to unlock Internxt.',
+            [BiometricAccessType.Pin]: 'When enabled, you will need to use your pin to unlock Internxt.',
+          },
+        },
         changePassword: {
           title: 'Change password',
           text: 'Remember that if you forget the password, you will lose access to all your files. We recommend using a password manager.',
@@ -768,6 +800,21 @@ const strings = new LocalizedStrings({
       subscription: 'Subscripción',
     },
     screens: {
+      LockScreen: {
+        title: 'Internxt bloqueado',
+        message: {
+          [BiometricAccessType.FaceId]: 'Desbloquea con Face ID para abrir Internxt',
+          [BiometricAccessType.TouchId]: 'Desbloquea con Touch ID para abrir Internxt',
+          [BiometricAccessType.FingerPrint]: 'Desbloquea con tu huella para abrir Internxt',
+          [BiometricAccessType.Pin]: 'Desbloquea con tu pin para abrir Internxt',
+        },
+        button: {
+          [BiometricAccessType.FaceId]: 'Usar Face ID',
+          [BiometricAccessType.TouchId]: 'Usar Touch ID',
+          [BiometricAccessType.FingerPrint]: 'Usar tu huella',
+          [BiometricAccessType.Pin]: 'Usar tu pin',
+        },
+      },
       PlanScreen: {
         subscriptionTitle: 'Suscripción',
         lifetimeTitle: 'Lifetime',
@@ -1036,6 +1083,19 @@ const strings = new LocalizedStrings({
       },
       SecurityScreen: {
         title: 'Seguridad',
+        screenLock: {
+          title: 'Bloqueo de la app',
+          subtitle: {
+            [BiometricAccessType.FaceId]: 'Usar Face ID',
+            [BiometricAccessType.FingerPrint]: 'Usar huella',
+            [BiometricAccessType.Pin]: 'Usar pin',
+          },
+          message: {
+            [BiometricAccessType.FaceId]: 'Usa el Face ID para desbloquear la app de Internxt.',
+            [BiometricAccessType.FingerPrint]: 'Usa tu huella para desbloquear la app de Internxt.',
+            [BiometricAccessType.Pin]: 'Usa tu pin para desbloquear la app de Internxt.',
+          },
+        },
         changePassword: {
           title: 'Cambiar contraseña',
           text: 'Recuerda que si olvidas la contraseña, perderás el acceso a todos tus archivos. Te recomendamos que utilices un gestor de contraseñas',
