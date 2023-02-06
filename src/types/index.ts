@@ -93,6 +93,8 @@ export enum AsyncStorageKey {
   IsDeletingAccount = 'isDeletingAccount',
   PreferredDriveViewMode = 'preferredDriveViewMode',
   PhotosSyncEnabled = 'photosSyncEnabled',
+  ScreenLockIsEnabled = 'screenLockIsEnabled',
+  LastScreenLock = 'lastScreenLock',
 }
 
 export type ProgressCallback = (progress: number) => void;

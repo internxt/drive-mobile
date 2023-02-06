@@ -16,10 +16,18 @@ import { uiActions } from 'src/store/slices/ui';
 import EnableTwoFactorModal from 'src/components/modals/EnableTwoFactorModal';
 import DisableTwoFactorModal from 'src/components/modals/DisableTwoFactorModal';
 import { authSelectors } from 'src/store/slices/auth';
+import { getLineHeight } from 'src/styles/global';
+import AppSwitch from 'src/components/AppSwitch';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { appActions } from 'src/store/slices/app';
+import { biometrics } from '@internxt-mobile/services/common';
 
 const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const { isEnableTwoFactorModalOpen, isDisableTwoFactorModalOpen } = useAppSelector((state) => state.ui);
+
+  const { deviceHasBiometricAccess, biometricAccessType, screenLockEnabled } = useAppSelector((state) => state.app);
+
   const is2FAEnabled = useAppSelector(authSelectors.is2FAEnabled);
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
@@ -40,6 +48,20 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
   };
   const onDisableTwoFactorPressed = () => {
     dispatch(uiActions.setIsDisableTwoFactorModalOpen(true));
+  };
+
+  const handleToggleScreenLockEnabled = async (screenLockEnabled: boolean) => {
+    if (screenLockEnabled) {
+      const authenticated = await biometrics.authenticate();
+      if (authenticated) {
+        await asyncStorageService.saveScreenLockIsEnabled(screenLockEnabled);
+        await asyncStorageService.saveLastScreenUnlock(new Date());
+        dispatch(appActions.setScreenLockIsEnabled(screenLockEnabled));
+      }
+    } else {
+      await asyncStorageService.saveScreenLockIsEnabled(screenLockEnabled);
+      dispatch(appActions.setScreenLockIsEnabled(screenLockEnabled));
+    }
   };
 
   /*
@@ -69,6 +91,32 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
         />
         <ScrollView contentContainerStyle={tailwind('pb-10')}>
           <View style={tailwind('px-4 pt-8')}>
+            {/* SCREEN LOCK */}
+            {deviceHasBiometricAccess && biometricAccessType ? (
+              <SettingsGroup
+                title={strings.screens.SecurityScreen.screenLock.title}
+                items={[
+                  {
+                    key: 'screen-lock-text',
+                    template: (
+                      <View style={tailwind('p-4 flex flex-row')}>
+                        <View style={tailwind('flex-1')}>
+                          <AppText style={tailwind('text-gray-80 text-lg')}>
+                            {strings.screens.SecurityScreen.screenLock.subtitle[biometricAccessType]}
+                          </AppText>
+                          <AppText style={[tailwind('text-gray-40 text-xs'), { lineHeight: getLineHeight(12, 1.2) }]}>
+                            {strings.screens.SecurityScreen.screenLock.message[biometricAccessType]}
+                          </AppText>
+                        </View>
+                        <View style={tailwind('flex justify-center')}>
+                          <AppSwitch onValueChange={handleToggleScreenLockEnabled} value={screenLockEnabled} />
+                        </View>
+                      </View>
+                    ),
+                  },
+                ]}
+              />
+            ) : null}
             {/* CHANGE PASSWORD */}
             <SettingsGroup
               title={strings.screens.SecurityScreen.changePassword.title}

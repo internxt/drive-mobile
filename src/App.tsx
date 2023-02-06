@@ -15,7 +15,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import analyticsService from './services/AnalyticsService';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import { authThunks } from './store/slices/auth';
-import { appThunks } from './store/slices/app';
+import { appActions, appThunks } from './store/slices/app';
 import appService from './services/AppService';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
@@ -37,12 +37,15 @@ import fileSystemService from './services/FileSystemService';
 import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
 import { DriveContextProvider } from './contexts/Drive/Drive.context';
+import { LockScreen } from './screens/common/LockScreen';
 let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
-  const { isReady: fontsAreReady, error } = useLoadFonts();
+  const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
+  const { screenLocked, lastScreenLock, initialScreenLocked } = useAppSelector((state) => state.app);
+
   const { color: whiteColor } = tailwind('text-white');
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const {
@@ -55,10 +58,12 @@ export default function App(): JSX.Element {
     isLanguageModalOpen,
     isPlansModalOpen,
   } = useAppSelector((state) => state.ui);
+
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
-    dispatch(authThunks.silentSignInThunk());
-    dispatch(authThunks.refreshTokensThunk());
+    await dispatch(appThunks.initializeUserPreferencesThunk());
+    await dispatch(authThunks.silentSignInThunk());
+    await dispatch(authThunks.refreshTokensThunk());
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
@@ -69,11 +74,21 @@ export default function App(): JSX.Element {
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
-  function handleAppStateChange(state: AppStateStatus) {
+  const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
+      dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.refreshTokensThunk());
     }
-  }
+
+    if (state === 'inactive') {
+      dispatch(appThunks.lockScreenIfNeededThunk());
+    }
+
+    if (Platform.OS === 'android' && state === 'background') {
+      dispatch(appThunks.lockScreenIfNeededThunk());
+    }
+  };
+
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
     // Refresh the auth tokens if the app comes to the foreground
@@ -92,6 +107,11 @@ export default function App(): JSX.Element {
      * found since it was commented
      */
     //dispatch(appThunks.initializeThunk());
+  };
+
+  const handleUnlockScreen = () => {
+    dispatch(appActions.setInitialScreenLocked(false));
+    dispatch(appActions.setScreenLocked(false));
   };
 
   useEffect(() => {
@@ -167,7 +187,12 @@ export default function App(): JSX.Element {
               <DriveContextProvider rootFolderId={user?.root_folder_id}>
                 <PhotosContextProvider>
                   <Portal.Host>
-                    <Navigation />
+                    <LockScreen
+                      locked={screenLocked}
+                      lastScreenLock={lastScreenLock}
+                      onScreenUnlocked={handleUnlockScreen}
+                    />
+                    {initialScreenLocked ? null : <Navigation />}
                     <AppToast />
 
                     <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />

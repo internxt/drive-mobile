@@ -26,3 +26,10 @@ export interface AppEnv {
   ANALYTICS_WRITE_KEY: string;
   NOTIFICATIONS_URL: string;
 }
+
+export enum BiometricAccessType {
+  FaceId = 'FaceId',
+  FingerPrint = 'FingerPrint',
+  TouchId = 'TouchId',
+  Pin = 'Pin',
+}
