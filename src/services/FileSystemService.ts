@@ -158,6 +158,16 @@ class FileSystemService {
     return FileViewer.open(fileInfo.uri, options);
   }
 
+  public async fileExistsAndIsNotEmpty(uri: string): Promise<boolean> {
+    try {
+      const stat = await this.statRNFS(uri);
+
+      return stat.isFile() && stat.size !== 0;
+    } catch {
+      return false;
+    }
+  }
+
   public async mkdir(uri: string) {
     await RNFS.mkdir(uri);
   }

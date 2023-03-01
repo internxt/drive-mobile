@@ -84,10 +84,6 @@ export class NetworkFacade {
     const plainFilePath = filePath;
 
     const encryptedFilePath = fileSystemService.tmpFilePath(`${uuid.v4()}.enc`);
-    // Some Android devices doesn't create the file when encrypting, they wait for
-    // the file to exist, since we remove the file and the end anyways
-    // we create an empty one here
-    await fileSystemService.createEmptyFile(encryptedFilePath);
     const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
     const stat = await RNFS.stat(plainFilePath);
     const fileSize = stat.size;
@@ -209,6 +205,8 @@ export class NetworkFacade {
           encryptedFileURI = path;
         } else {
           encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
+          // Create an empty file so RNFS can write to it directly
+          await fileSystemService.createEmptyFile(encryptedFileURI);
 
           downloadJob = RNFS.downloadFile({
             fromUrl: downloadables[0].url,
@@ -251,6 +249,11 @@ export class NetworkFacade {
         }
 
         params.downloadProgressCallback(1, totalBytes, totalBytes);
+
+        // The encrypted file should exists at this path and has size, otherwise something went wrong
+        const encryptedFileExists = await fileSystemService.fileExistsAndIsNotEmpty(encryptedFileURI);
+
+        if (!encryptedFileExists) throw new Error('An error ocurred while downloading the file');
 
         await decryptFileFromFs(
           encryptedFileURI,
