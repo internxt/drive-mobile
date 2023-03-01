@@ -16,7 +16,7 @@ jobs:
       folder: drive-mobile
       product: "Drive"
       platform: "Mobile"
-      supported_platforms: "Chrome, Firefox, Safari and Brave"
+      supported_platforms: "iOS and Android"
       repository_name: ${{ github.event.repository.name }}
       request_body: ${{github.event.pull_request.body}}
       branch: master
