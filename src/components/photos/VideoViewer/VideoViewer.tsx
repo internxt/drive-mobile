@@ -2,7 +2,7 @@ import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { Play } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { TouchableOpacity, View, Image, Platform } from 'react-native';
-import Video from 'react-native-video';
+import Video, { LoadError } from 'react-native-video';
 import { useTailwind } from 'tailwind-rn';
 
 interface VideoViewerProps {
@@ -10,10 +10,12 @@ interface VideoViewerProps {
   thumbnail?: string;
   onPlay?: () => void;
   onPause?: () => void;
+  onVideoLoadError?: () => void;
 }
-export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPause, thumbnail }) => {
+export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPause, thumbnail, onVideoLoadError }) => {
   const tailwind = useTailwind();
   const [playing, setPlaying] = useState(false);
+  const [loadError, setLoadError] = useState<LoadError>({ error: { errorString: 'xx', '': '' } });
   const videoPlayer = useRef<Video>(null);
   useEffect(() => {
     if (playing) {
@@ -24,6 +26,11 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
   }, [playing]);
 
   const play = () => {
+    // Don't play the video if it has a loadError such incompatible codec or format
+    if (loadError) {
+      onPlay && onPlay();
+      return;
+    }
     if (Platform.OS === 'ios') {
       videoPlayer.current?.presentFullscreenPlayer();
     }
@@ -68,6 +75,10 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
             ref={videoPlayer}
             ignoreSilentSwitch="ignore"
             paused={!playing}
+            onError={(error) => {
+              setLoadError(error);
+              onVideoLoadError && onVideoLoadError();
+            }}
             onFullscreenPlayerWillDismiss={handleFullScreenModeDismiss}
             onSeek={() => {
               if (Platform.OS === 'ios') {

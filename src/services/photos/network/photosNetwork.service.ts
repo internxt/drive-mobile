@@ -33,6 +33,7 @@ export class PhotosNetworkService {
       { sortBy: PhotosSortBy.UpdatedAt, sortType: 'ASC' },
       skip,
       limit,
+      false,
     );
 
     return { results };

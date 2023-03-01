@@ -8,9 +8,11 @@ import { useTailwind } from 'tailwind-rn';
 import AppButton from '../../components/AppButton';
 import SignUpForm from '../../components/forms/SignUpForm';
 import AppVersionWidget from 'src/components/AppVersionWidget';
+import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
 
 function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
   const tailwind = useTailwind();
+  const { keyboardShown } = useKeyboard();
   const onGoToSignInButtonPressed = () => {
     navigation.canGoBack() ? navigation.goBack() : navigation.replace('SignIn');
   };
@@ -57,8 +59,8 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
           onPress={onGoToSignInButtonPressed}
           title={strings.buttons.sign_in}
         />
+        {keyboardShown ? null : <AppVersionWidget displayLogo style={tailwind('mb-5 mt-auto')} />}
       </ScrollView>
-      <AppVersionWidget displayLogo style={tailwind('mb-5 mt-auto')} />
     </AppScreen>
   );
 }

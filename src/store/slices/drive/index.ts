@@ -20,8 +20,6 @@ import {
 } from '../../../types/drive';
 import fileSystemService from '../../../services/FileSystemService';
 import { items } from '@internxt/lib';
-import network from '../../../network';
-import _ from 'lodash';
 import drive from '@internxt-mobile/services/drive';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
