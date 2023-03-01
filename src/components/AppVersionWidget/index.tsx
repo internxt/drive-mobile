@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import * as Updates from 'expo-updates';
 import InternxtLogo from '../../../assets/logo.svg';
-import packageJson from '../../../package.json';
 import appService from '../../services/AppService';
 import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';
@@ -35,7 +34,7 @@ function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
         </View>
       ) : null}
       <AppText style={[tailwind('text-center text-xs text-gray-50')]}>
-        v{packageJson.version} ({appService.constants.APP_BUILD_NUMBER})
+        v{appService.version} ({appService.constants.APP_BUILD_NUMBER})
       </AppText>
     </View>
   );
