@@ -84,7 +84,10 @@ export class NetworkFacade {
     const plainFilePath = filePath;
 
     const encryptedFilePath = fileSystemService.tmpFilePath(`${uuid.v4()}.enc`);
-
+    // Some Android devices doesn't create the file when encrypting, they wait for
+    // the file to exist, since we remove the file and the end anyways
+    // we create an empty one here
+    await fileSystemService.createEmptyFile(encryptedFilePath);
     const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
     const stat = await RNFS.stat(plainFilePath);
     const fileSize = stat.size;

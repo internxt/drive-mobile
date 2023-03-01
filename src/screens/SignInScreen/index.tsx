@@ -18,11 +18,13 @@ import AppTextInput from '../../components/AppTextInput';
 import useGetColor from '../../hooks/useColor';
 import AppText from 'src/components/AppText';
 import validationService from '@internxt-mobile/services/ValidationService';
+import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const { keyboardShown } = useKeyboard();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
@@ -241,8 +243,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
             />
           </View>
         </View>
-
-        <AppVersionWidget displayLogo style={tailwind('mb-5 mt-auto')} />
+        {keyboardShown ? null : <AppVersionWidget displayLogo style={tailwind('mb-5 mt-auto')} />}
       </ScrollView>
     </AppScreen>
   );

@@ -157,40 +157,46 @@ function AddModal(): JSX.Element {
       id: fileId,
       plain_name: plainName,
     };
-
-    const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
-      extension: fileExtension,
-      thumbnailFormat: SaveFormat.JPEG,
-      // Android needs an extension to generate the thumbnails, otherwise it crashes
-      // jpg is the one that we use for thumbanil generations
-      outputPath: fileSystemService.tmpFilePath(`${uuid.v4()}.${SaveFormat.JPEG}`),
-    });
-
-    const generatedDriveItem = await uploadService.createFileEntry(fileEntry);
     let uploadedThumbnail: Thumbnail | null = null;
-    if (generatedThumbnail) {
-      const thumbnailFileId = await network.uploadFile(
-        generatedThumbnail.path,
-        bucket,
-        mnemonic,
-        constants.BRIDGE_URL,
-        {
-          user: bridgeUser,
-          pass: userId,
-        },
-        {},
-      );
+    const generatedDriveItem = await uploadService.createFileEntry(fileEntry);
 
-      uploadedThumbnail = await uploadService.createThumbnailEntry({
-        file_id: generatedDriveItem.id,
-        max_width: generatedThumbnail.width,
-        max_height: generatedThumbnail.height,
-        type: generatedThumbnail.type,
-        size: generatedThumbnail.size,
-        bucket_id: bucket,
-        bucket_file: thumbnailFileId,
-        encrypt_version: EncryptionVersion.Aes03,
+    // If thumbnail generation fails, don't block the upload, we can
+    // try thumbnail generation later
+    try {
+      const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+        extension: fileExtension,
+        thumbnailFormat: SaveFormat.JPEG,
+        // Android needs an extension to generate the thumbnails, otherwise it crashes
+        // jpg is the one that we use for thumbanil generations
+        outputPath: fileSystemService.tmpFilePath(`${uuid.v4()}.${SaveFormat.JPEG}`),
       });
+
+      if (generatedThumbnail) {
+        const thumbnailFileId = await network.uploadFile(
+          generatedThumbnail.path,
+          bucket,
+          mnemonic,
+          constants.BRIDGE_URL,
+          {
+            user: bridgeUser,
+            pass: userId,
+          },
+          {},
+        );
+
+        uploadedThumbnail = await uploadService.createThumbnailEntry({
+          file_id: generatedDriveItem.id,
+          max_width: generatedThumbnail.width,
+          max_height: generatedThumbnail.height,
+          type: generatedThumbnail.type,
+          size: generatedThumbnail.size,
+          bucket_id: bucket,
+          bucket_file: thumbnailFileId,
+          encrypt_version: EncryptionVersion.Aes03,
+        });
+      }
+    } catch (error) {
+      errorService.reportError(error);
     }
 
     drive.events.emit({ event: DriveEventKey.UploadCompleted });

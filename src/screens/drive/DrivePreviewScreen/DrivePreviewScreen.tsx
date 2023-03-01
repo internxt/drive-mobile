@@ -208,10 +208,8 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       );
     }
 
-    if (renderVideoPreview) {
-      return (
-        <DriveVideoPreview thumbnail={generatedThumbnail?.path} source={downloadingFile.downloadedFilePath as string} />
-      );
+    if (renderVideoPreview && downloadingFile.downloadedFilePath) {
+      return <DriveVideoPreview thumbnail={generatedThumbnail?.path} source={downloadingFile.downloadedFilePath} />;
     }
 
     if (renderPdfPreview) {
