@@ -1,5 +1,5 @@
 import { Auth, Drive, photos } from '@internxt/sdk';
-import { constants } from '../../AppService';
+import appService, { constants } from '../../AppService';
 import packageJson from '../../../../package.json';
 import { ApiSecurity } from '@internxt/sdk/dist/shared';
 import { Trash } from '@internxt/sdk/dist/drive';
@@ -48,7 +48,7 @@ export class SdkManager {
       constants.DRIVE_NEW_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
     );
@@ -60,7 +60,7 @@ export class SdkManager {
       constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
     );
@@ -71,7 +71,7 @@ export class SdkManager {
       constants.PAYMENTS_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       {
         // Weird, normal accessToken doesn't work here
@@ -87,7 +87,7 @@ export class SdkManager {
       constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
     );
@@ -99,7 +99,7 @@ export class SdkManager {
       constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       this.getApiSecurity(),
     );
@@ -111,7 +111,7 @@ export class SdkManager {
       constants.DRIVE_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       this.getApiSecurity(),
     );
@@ -123,7 +123,7 @@ export class SdkManager {
       constants.DRIVE_NEW_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       {
         token: this.getApiSecurity().photosToken,
@@ -144,7 +144,7 @@ export class SdkManager {
       constants.DRIVE_NEW_API_URL,
       {
         clientName: packageJson.name,
-        clientVersion: packageJson.version,
+        clientVersion: appService.version,
       },
       {
         token: this.getApiSecurity().photosToken,

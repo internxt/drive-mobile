@@ -13,7 +13,7 @@ class AppService {
   }
 
   public get version(): string {
-    return packageJson.version;
+    return packageJson.version.replace('v', '');
   }
 
   public get constants() {

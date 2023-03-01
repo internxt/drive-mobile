@@ -11,13 +11,14 @@ export enum AppStage {
 
 const stage = AppStage.Production; // <- CHANGE STAGE
 
-const RELEASE_ID = `${packageJson.version} (${env[stage].APP_BUILD_NUMBER}) - ${stage}`;
+const packageVersion = packageJson.version.replace('v', '');
+const RELEASE_ID = `${packageVersion} (${env[stage].APP_BUILD_NUMBER}) - ${stage}`;
 
 const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID: string } } = {
   name: 'Internxt',
   scheme: 'inxt',
   slug: 'drive-mobile',
-  version: packageJson.version,
+  version: packageVersion,
   orientation: 'portrait',
   splash: {
     image: './assets/images/splash.png',
@@ -31,7 +32,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   },
 
   assetBundlePatterns: ['**/*'],
-  runtimeVersion: packageJson.version,
+  runtimeVersion: packageVersion,
   ios: {
     jsEngine: 'jsc',
     icon: './assets/icon-ios.png',
