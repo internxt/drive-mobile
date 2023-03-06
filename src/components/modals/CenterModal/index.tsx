@@ -63,7 +63,7 @@ const CenterModal = ({
       easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
-        <StatusBar hidden translucent />
+        <StatusBar translucent />
 
         <TouchableWithoutFeedback onPress={onBackdropPressed}>
           <View style={tailwind('px-8 flex-grow justify-center items-center')}>

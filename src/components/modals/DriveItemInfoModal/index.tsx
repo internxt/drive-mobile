@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import React, { useRef, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
@@ -37,6 +37,7 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { Abortable } from '@internxt-mobile/types/index';
 import CenterModal from '../CenterModal';
 import AppProgressBar from 'src/components/AppProgressBar';
+
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -110,15 +111,30 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
+  const downloadItem = async (fileId: string, decryptedFilePath: string) => {
+    const { credentials } = await AuthService.getAuthCredentials();
+
+    const { downloadPath } = await drive.file.downloadFile(credentials.user, fileId, {
+      downloadPath: decryptedFilePath,
+      downloadProgressCallback(progress, bytesReceived, totalBytes) {
+        setDownloadProgress({
+          progress,
+          bytesReceived,
+          totalBytes,
+        });
+      },
+      onAbortableReady(abortable) {
+        downloadAbortableRef.current = abortable;
+      },
+    });
+
+    return downloadPath;
+  };
   const handleExportFile = async () => {
     try {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
       }
-
-      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-
-      const { credentials } = await AuthService.getAuthCredentials();
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
       const exists = await drive.file.existsDecrypted(item.name, item.type);
@@ -128,22 +144,12 @@ function DriveItemInfoModal(): JSX.Element {
           fileUri: fs.pathToUri(decryptedFilePath),
         });
 
-        return;
+        return decryptedFilePath;
       }
+
+      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       setExporting(true);
-      const { downloadPath } = await drive.file.downloadFile(credentials.user, item.fileId, {
-        downloadPath: decryptedFilePath,
-        downloadProgressCallback(progress, bytesReceived, totalBytes) {
-          setDownloadProgress({
-            progress,
-            bytesReceived,
-            totalBytes,
-          });
-        },
-        onAbortableReady(abortable) {
-          downloadAbortableRef.current = abortable;
-        },
-      });
+      const downloadPath = await downloadItem(item.fileId, decryptedFilePath);
       setExporting(false);
       await fs.shareFile({
         title: item.name,
@@ -162,8 +168,39 @@ function DriveItemInfoModal(): JSX.Element {
 
     downloadAbortableRef.current('User requested abort');
   };
-  const handleDownloadFile = () => {
-    throw new Error('Should implement');
+  const handleAndroidDownloadFile = async () => {
+    try {
+      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
+      if (!item.fileId) {
+        throw new Error('Item fileID not found');
+      }
+
+      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
+
+      const downloadPath = fs.getPathForAndroidDownload(item.name + '.' + item.type);
+
+      // 1. Check if file exists already
+      const existsDecrypted = await drive.file.existsDecrypted(item.name, item.type);
+
+      dispatch(uiActions.setShowItemModal(false));
+
+      // 2. If the file doesn't exists, download it
+      if (!existsDecrypted) {
+        setExporting(true);
+        await downloadItem(item.fileId, decryptedFilePath);
+        setExporting(false);
+      }
+
+      // 3. Copy the decrypted file (is a tmp, so this will dissapear, that's why we copy it)
+      await fs.copyFile(decryptedFilePath, downloadPath);
+
+      notifications.success(strings.messages.driveDownloadSuccess);
+    } catch (error) {
+      notifications.error(strings.errors.generic.message);
+      errorService.reportError(error);
+    } finally {
+      setExporting(false);
+    }
   };
   const options = [
     {
@@ -190,10 +227,10 @@ function DriveItemInfoModal(): JSX.Element {
       disabled: exporting,
     },
     {
-      visible: false,
+      visible: Platform.OS === 'android',
       icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
       label: strings.components.file_and_folder_options.downloadFile,
-      onPress: handleDownloadFile,
+      onPress: handleAndroidDownloadFile,
     },
     {
       icon: <Link size={20} color={getColor('text-gray-100')} />,
@@ -213,6 +250,15 @@ function DriveItemInfoModal(): JSX.Element {
   const getUpdatedAt = () => {
     // eslint-disable-next-line quotes
     return time.getFormattedDate(item.updatedAt, "dd LLL yyyy 'at' HH:mm");
+  };
+
+  const getDownloadProgressMessage = () => {
+    if (!downloadProgress.totalBytes) {
+      return strings.generic.calculating + '...';
+    }
+    const bytesReceivedStr = prettysize(downloadProgress.bytesReceived);
+    const totalBytesStr = prettysize(downloadProgress.totalBytes);
+    return `${bytesReceivedStr} ${strings.modals.downloadingFile.of} ${totalBytesStr}`;
   };
   const header = (
     <View style={tailwind('flex-row')}>
@@ -281,10 +327,8 @@ function DriveItemInfoModal(): JSX.Element {
             <AppText medium style={tailwind('text-lg text-center text-gray-100')}>
               {strings.modals.downloadingFile.title}
             </AppText>
-            <AppText style={tailwind('text-center text-gray-50 mt-1')}>
-              {prettysize(downloadProgress.bytesReceived)} {strings.modals.downloadingFile.of}{' '}
-              {prettysize(downloadProgress.totalBytes)}
-            </AppText>
+
+            <AppText style={tailwind('text-center text-gray-50 mt-1')}>{getDownloadProgressMessage()}</AppText>
           </View>
           <View style={tailwind('mx-6 mb-6')}>
             <AppProgressBar totalValue={1} height={4} currentValue={downloadProgress.progress} />
