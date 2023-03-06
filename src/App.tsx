@@ -140,8 +140,8 @@ export default function App(): JSX.Element {
         }
       });
 
-      // 3. Prepare the TMP dir
-      await fileSystemService.prepareTmpDir();
+      // 3. Prepare the filesystem
+      await fileSystemService.prepareFileSystem();
 
       // 4. Initialize all the services we need at start time
       const initializeOperations = [authService.init(), analyticsService.setup()];
