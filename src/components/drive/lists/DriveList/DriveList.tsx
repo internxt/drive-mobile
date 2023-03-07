@@ -26,6 +26,7 @@ interface DriveListProps {
   renderEmpty?: () => React.ReactNode;
   contentContainerStyle?: ViewStyle;
   searchValue?: string;
+  onEndReached?: () => void;
   // Feels weird that this is here
   // but we need it to render the empty image
   isRootFolder?: boolean;
@@ -81,6 +82,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
 
   function handleOnScrollEnd() {
     setCurrentPage(currentPage + 1);
+    props.onEndReached && props.onEndReached();
   }
 
   function renderEmptyState() {

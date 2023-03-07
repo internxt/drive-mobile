@@ -102,7 +102,14 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
       },
     ],
   },
-  extra: { NODE_ENV: stage, RELEASE_ID, ...env[stage] },
+  extra: {
+    eas: {
+      projectId: '680f4feb-6315-4a50-93ec-36dcd0b831d2',
+    },
+    NODE_ENV: stage,
+    RELEASE_ID,
+    ...env[stage],
+  },
 };
 
 export default appConfig;

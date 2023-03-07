@@ -366,12 +366,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
 
   return (
     <>
-      <AppScreen
-        statusBarHidden
-        statusBarStyle="light"
-        backgroundColor={getColor('text-black')}
-        style={{ ...tailwind('h-full') }}
-      >
+      <AppScreen statusBarStyle="dark" backgroundColor={getColor('text-black')} style={{ ...tailwind('h-full') }}>
         <PhotoPreviewHeader />
         {isVideo ? renderVideoViewer() : renderImageViewer()}
 

@@ -1,24 +1,64 @@
 import analytics, { DriveAnalyticsEvent } from '@internxt-mobile/services/AnalyticsService';
 import drive from '@internxt-mobile/services/drive';
 import { driveEvents } from '@internxt-mobile/services/drive/events';
+import { FetchDriveTrashItemsResponse } from '@internxt-mobile/services/drive/trash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
-import { DriveEventKey, DriveListItem } from '@internxt-mobile/types/drive';
+import { DriveEventKey, DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive';
 import { NotificationType, UseCaseResult } from '@internxt-mobile/types/index';
 import strings from 'assets/lang/strings';
 
+type GetDriveTrashItemsOptions = {
+  page: number;
+  shouldGetFolders: boolean;
+  shouldGetFiles: boolean;
+};
 /**
  * Gets all the trash items available
  *
  * @returns A list of DriveItems
  */
-export const getTrashItems = async (): Promise<UseCaseResult<DriveListItem[]>> => {
+export const getDriveTrashItems = async ({
+  page,
+  shouldGetFolders,
+  shouldGetFiles,
+}: GetDriveTrashItemsOptions): Promise<
+  UseCaseResult<{ items: DriveListItem[]; hasMoreFiles: boolean; hasMoreFolders: boolean }>
+> => {
   try {
-    const folderContentResponse = await drive.trash.getTrashItems();
-    const trashItems = drive.folder.folderContentToDriveListItems(folderContentResponse);
+    const [trashFolders, trashFiles] = await Promise.all([
+      shouldGetFolders
+        ? drive.trash.getTrashFolders({ page })
+        : Promise.resolve<FetchDriveTrashItemsResponse>({ items: [], hasMore: false }),
+      shouldGetFiles
+        ? drive.trash.getTrashFiles({ page })
+        : Promise.resolve<FetchDriveTrashItemsResponse>({ items: [], hasMore: false }),
+    ]);
+
+    const trashItems = trashFolders.items.concat(trashFiles.items).map<DriveListItem>((trashItem) => {
+      return {
+        status: DriveItemStatus.Idle,
+        data: {
+          ...trashItem,
+          id: trashItem.id,
+          name: trashItem.name,
+          updatedAt: new Date(trashItem.updatedAt).toISOString(),
+          createdAt: new Date(trashItem.createdAt).toISOString(),
+          isFolder: !trashItem.fileId ? true : false,
+          currentThumbnail: null,
+          thumbnails: [],
+        },
+        id: trashItem.id.toString(),
+      };
+    });
+
     return {
       success: true,
-      data: trashItems,
+      data: {
+        items: trashItems,
+        hasMoreFolders: trashFolders.hasMore,
+        hasMoreFiles: trashFiles.hasMore,
+      },
     };
   } catch (error) {
     errorService.reportError(error);

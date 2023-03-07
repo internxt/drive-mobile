@@ -12,6 +12,7 @@ const strings = new LocalizedStrings({
       es: 'Spanish',
     },
     generic: {
+      calculating: 'Calculating',
       atTime: 'at',
       loading: 'Loading',
       downloading: 'Downloading...',
@@ -673,6 +674,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      driveDownloadSuccess: 'File downloaded correctly',
       gettingCloudPhotos: 'Getting photos from the cloud',
       passwordMediumStrength: 'Password is weak',
       passwordHardStrength: 'Password is strong',
@@ -766,6 +768,7 @@ const strings = new LocalizedStrings({
       es: 'Español',
     },
     generic: {
+      calculating: 'Calculando',
       atTime: 'a las',
       loading: 'Cargando',
       security: 'Seguridad',
@@ -1427,6 +1430,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      driveDownloadSuccess: 'Archivo descargado correctamente',
       gettingCloudPhotos: 'Obteniendo tus fotos de la nube',
       passwordMediumStrength: 'La contraseña es débil',
       passwordHardStrength: 'La contraseña es fuerte',

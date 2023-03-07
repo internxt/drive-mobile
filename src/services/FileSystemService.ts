@@ -7,6 +7,7 @@ import prettysize from 'prettysize';
 import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
+import { logger } from './common';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -22,13 +23,12 @@ const ANDROID_URI_PREFIX = 'file://';
 
 export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
 class FileSystemService {
-  public async prepareTmpDir() {
-    if (Platform.OS === 'android' && !(await this.exists(this.getTemporaryDir()))) {
-      await this.mkdir(this.getTemporaryDir());
-    }
-    await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
-    await this.clearTempDir();
+  public async prepareFileSystem() {
+    await this.prepareTmpDir();
+    await this.mkdir(this.getInternxtAndroidDownloadsDir());
+    logger.info('Filesystem ready');
   }
+
   public pathToUri(path: string): string {
     if (path.startsWith(ANDROID_URI_PREFIX)) return path;
     return Platform.OS === 'android' ? ANDROID_URI_PREFIX + path : path;
@@ -75,7 +75,7 @@ class FileSystemService {
   }
   public async clearTempDir(): Promise<void> {
     const items = await RNFS.readDir(this.getTemporaryDir());
-
+    let size = 0;
     items.forEach(async (item) => {
       // Some library is writing this file
       // in the tmp directory, on startup
@@ -86,7 +86,10 @@ class FileSystemService {
         return;
       }
       await this.unlink(item.path);
+      size += item.size;
     });
+
+    logger.info(`Cleaned ${prettysize(size)} from tmp files`);
   }
 
   public getCacheDir(): string {
@@ -158,6 +161,16 @@ class FileSystemService {
     return FileViewer.open(fileInfo.uri, options);
   }
 
+  public async fileExistsAndIsNotEmpty(uri: string): Promise<boolean> {
+    try {
+      const stat = await this.statRNFS(uri);
+
+      return stat.isFile() && stat.size !== 0;
+    } catch {
+      return false;
+    }
+  }
+
   public async mkdir(uri: string) {
     await RNFS.mkdir(uri);
   }
@@ -169,6 +182,13 @@ class FileSystemService {
     return blob;
   }
 
+  public getInternxtAndroidDownloadsDir() {
+    return this.getDownloadsDir() + '/Internxt Downloads/';
+  }
+
+  public getPathForAndroidDownload(filename: string) {
+    return this.getInternxtAndroidDownloadsDir() + filename;
+  }
   public async shareFile({ title, fileUri }: { title: string; fileUri: string }) {
     return Share.open({ title, url: fileUri, failOnCancel: false });
   }
@@ -250,6 +270,14 @@ class FileSystemService {
     };
 
     return dirs;
+  }
+
+  private async prepareTmpDir() {
+    if (Platform.OS === 'android' && !(await this.exists(this.getTemporaryDir()))) {
+      await this.mkdir(this.getTemporaryDir());
+    }
+    await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
+    await this.clearTempDir();
   }
 }
 
