@@ -707,6 +707,7 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Trash is empty',
     },
     errors: {
+      enableWriteExternalStoragePermissions: 'You need to grand external storage write permission',
       generic: {
         title: 'There has been an error',
         message: '{0}. Please contact us.',
@@ -1047,7 +1048,7 @@ const strings = new LocalizedStrings({
         storage: 'Almacenamiento',
         language: 'Idioma',
         drive: 'Drive',
-        trash: 'Trash',
+        trash: 'Papelera',
         account: {
           title: 'Cuenta',
           advice: 'Perfil, facturación y seguridad',
@@ -1463,6 +1464,7 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Papelera vaciada',
     },
     errors: {
+      enableWriteExternalStoragePermissions: 'Debes permitir el acceso al almacenamiento externo',
       generic: {
         title: 'Ha habido un error',
         message: '{0}. Por favor, contacta con nosotros.',

@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import React, { useRef, useState } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { PermissionsAndroid, Platform, TouchableOpacity, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
@@ -37,6 +37,7 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { Abortable } from '@internxt-mobile/types/index';
 import CenterModal from '../CenterModal';
 import AppProgressBar from 'src/components/AppProgressBar';
+import { getPermissionsAsync } from 'expo-media-library';
 
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -170,14 +171,20 @@ function DriveItemInfoModal(): JSX.Element {
   };
   const handleAndroidDownloadFile = async () => {
     try {
+      const externalStorageWritePerm = await PermissionsAndroid.check('android.permission.WRITE_EXTERNAL_STORAGE');
+
+      if (!externalStorageWritePerm) {
+        dispatch(uiActions.setShowItemModal(false));
+
+        notifications.error(strings.errors.enableWriteExternalStoragePermissions);
+        return;
+      }
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       if (!item.fileId) {
         throw new Error('Item fileID not found');
       }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
-
-      const downloadPath = fs.getPathForAndroidDownload(item.name + '.' + item.type);
 
       // 1. Check if file exists already
       const existsDecrypted = await drive.file.existsDecrypted(item.name, item.type);
@@ -192,7 +199,7 @@ function DriveItemInfoModal(): JSX.Element {
       }
 
       // 3. Copy the decrypted file (is a tmp, so this will dissapear, that's why we copy it)
-      await fs.copyFile(decryptedFilePath, downloadPath);
+      await fs.moveToAndroidDownloads(decryptedFilePath);
 
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {

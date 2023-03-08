@@ -25,7 +25,7 @@ export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prett
 class FileSystemService {
   public async prepareFileSystem() {
     await this.prepareTmpDir();
-    await this.mkdir(this.getInternxtAndroidDownloadsDir());
+
     logger.info('Filesystem ready');
   }
 
@@ -159,6 +159,21 @@ class FileSystemService {
     }
 
     return FileViewer.open(fileInfo.uri, options);
+  }
+
+  public async moveToAndroidDownloads(source: string) {
+    /** This is only for Android */
+    if (Platform.OS === 'ios') return;
+    // Only needed for Android, iOS doesn't have this directory
+    if (await this.exists(this.getInternxtAndroidDownloadsDir())) {
+      await this.mkdir(this.getInternxtAndroidDownloadsDir());
+    }
+
+    const filename = source.split('/').pop() as string;
+
+    await this.unlinkIfExists(this.getPathForAndroidDownload(filename));
+
+    this.moveFile(source, this.getPathForAndroidDownload(filename));
   }
 
   public async fileExistsAndIsNotEmpty(uri: string): Promise<boolean> {
