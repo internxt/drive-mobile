@@ -22,7 +22,7 @@ styles/tailwind.json
 google-services.json
 GoogleService-Info.plist
 .xcode.env.local
-
+.sentryclirc
 # Exclude the tailwind files, they are rebuilded every time, no need to maintain them
 src/styles/tailwind.css
 src/styles/tailwind.json
