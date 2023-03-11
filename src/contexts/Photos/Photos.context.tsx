@@ -460,24 +460,13 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   };
 
   async function refreshPhotosContext() {
-    if (isRefreshing) return;
+    // For now this is a NOOP basically, since
+    // restarting the whole sync process is not an option, is a very intense process
     setIsRefreshing(true);
-    resetContext({ resetLoadedImages: false });
-    photos.localSync.destroy();
-    const syncedPhotos = await photos.realm.getSyncedPhotos();
-    syncedPhotosItems.current = syncedPhotos.map((photo) => photosUtils.getPhotosItem(photo));
-    const mergedPhotosItems = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
-    setDataSource(
-      new DataProvider(function (row1, row2) {
-        const row1Key = getListKey(row1);
-        const row2Key = getListKey(row2);
-        return row1Key !== row2Key;
-      }).cloneWithRows(mergedPhotosItems),
-    );
 
-    setTimeout(async () => {
-      await startPhotos();
-    }, 500);
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 1000);
   }
 
   const getListKey = (photosItem: PhotosItem) => `${photosItem.name}-${photosItem.takenAt}-${photosItem.status}`;

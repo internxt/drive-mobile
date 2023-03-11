@@ -206,7 +206,7 @@ export type PhotosItem = {
   updatedAt: number;
   width: number;
   height: number;
-  format: string;
+  format: string | 'unknown';
   type: PhotosItemType;
   duration?: number;
   localPreviewPath: PhotoFileSystemRef;
