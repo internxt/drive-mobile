@@ -123,11 +123,11 @@ export class PhotosUtils {
 
   public getPhotoPath({ name, size, type }: { name: string; size: PhotoSizeType; type: string }) {
     if (size === PhotoSizeType.Full) {
-      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : `.${type}`}`;
+      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : '.' + type}`;
     }
 
     if (size === PhotoSizeType.Preview) {
-      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : `.${type}`}`;
+      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : '.' + type}`;
     }
 
     throw new Error('Photo size is not recognized');
