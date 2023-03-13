@@ -23,11 +23,15 @@ export class PhotosUtils {
    * @param filename Filename usually provided by expo-media-library
    * @returns The photo type, like jpg, png, heic
    */
-  public getPhotoType(filename: string) {
-    const parts = filename.split('.');
-    const extension = parts[parts.length - 1];
+  public getPhotoType(filename: string): string | 'unknown' {
+    if (filename.includes('.')) {
+      const parts = filename.split('.');
+      const extension = parts[parts.length - 1];
 
-    return extension.toLowerCase();
+      return extension.toLowerCase();
+    }
+
+    return 'unknown';
   }
 
   /**
@@ -119,11 +123,11 @@ export class PhotosUtils {
 
   public getPhotoPath({ name, size, type }: { name: string; size: PhotoSizeType; type: string }) {
     if (size === PhotoSizeType.Full) {
-      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}.${type}`;
+      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : '.' + type}`;
     }
 
     if (size === PhotoSizeType.Preview) {
-      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}.${type}`;
+      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : '.' + type}`;
     }
 
     throw new Error('Photo size is not recognized');
@@ -217,11 +221,15 @@ export class PhotosUtils {
     }
   }
 
-  public getPhotoFormat(filename: string) {
-    const parts = filename.split('.');
-    const extension = parts[parts.length - 1];
+  public getPhotoFormat(filename: string): string | 'unknown' {
+    if (filename.includes('.')) {
+      const parts = filename.split('.');
+      const extension = parts[parts.length - 1];
 
-    return extension.toLowerCase();
+      return extension.toLowerCase();
+    }
+
+    return 'unknown';
   }
 
   public mergePhotosItems(photosItems: PhotosItem[]) {
