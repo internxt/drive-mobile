@@ -40,7 +40,6 @@ import { DriveContextProvider } from './contexts/Drive/Drive.context';
 import { LockScreen } from './screens/common/LockScreen';
 import { logger } from './services/common';
 import { time } from './services/common/time';
-import { DateTime } from 'luxon';
 let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();

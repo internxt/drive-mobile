@@ -5,12 +5,12 @@ import { InteractionManager } from 'react-native';
 
 const defaultLogger = () => {
   return RNLogger.createLogger({
-    async: true,
+    async: !__DEV__,
     transport: __DEV__ ? consoleTransport : fileAsyncTransport,
     asyncFunc: InteractionManager.runAfterInteractions,
     transportOptions: {
-      FS: RNFS,
-      fileName: fs.getRuntimeLogsFileName(),
+      FS: __DEV__ ? undefined : RNFS,
+      fileName: __DEV__ ? undefined : fs.getRuntimeLogsFileName(),
     },
   });
 };
