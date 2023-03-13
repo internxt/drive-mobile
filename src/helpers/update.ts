@@ -3,7 +3,6 @@ import appService from '@internxt-mobile/services/AppService';
 import { logger } from '@internxt-mobile/services/common';
 import errorService from '@internxt-mobile/services/ErrorService';
 import * as Updates from 'expo-updates';
-import { Alert } from 'react-native';
 
 /**
  * Check and fetch a remote update if the

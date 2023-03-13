@@ -33,8 +33,8 @@ export class PhotosAnalytics {
   private analytics: typeof analytics;
 
   private logger = new BaseLogger({
-    enabled: false,
     tag: 'PHOTOS_ANALYTICS',
+    disabled: !__DEV__,
   });
   constructor(analytics: AnalyticsService) {
     /**

@@ -303,6 +303,7 @@ const strings = new LocalizedStrings({
             message: 'All your gallery photos and videos will be backed up on Internxt Photos',
           },
         },
+        shareLogs: 'Share logs',
         information: 'Information',
         termsAndConditions: 'Terms and conditions',
         support: 'Support',
@@ -707,6 +708,7 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Trash is empty',
     },
     errors: {
+      runtimeLogsMissing: 'The logs file is missing or empty',
       enableWriteExternalStoragePermissions: 'You need to grand external storage write permission',
       generic: {
         title: 'There has been an error',
@@ -1062,6 +1064,7 @@ const strings = new LocalizedStrings({
             message: 'Haz una copia de seguridad de tu galería en Internxt Photos',
           },
         },
+        shareLogs: 'Compartir logs',
         support: 'Soporte',
         information: 'Información',
         more: 'Más información',
@@ -1082,6 +1085,7 @@ const strings = new LocalizedStrings({
           title: 'Seguridad',
           advice: 'Cambia tu contraseña, configura la autenticación en dos pasos o guarda tu clave de recuperación.',
         },
+
         deleteAccount: 'Borrar cuenta',
         warningUnableToDeleteAccount: 'No puedes borrar tu cuenta con una suscripción activa, debes cancelarla antes.',
       },
@@ -1464,6 +1468,7 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Papelera vaciada',
     },
     errors: {
+      runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
       enableWriteExternalStoragePermissions: 'Debes permitir el acceso al almacenamiento externo',
       generic: {
         title: 'Ha habido un error',

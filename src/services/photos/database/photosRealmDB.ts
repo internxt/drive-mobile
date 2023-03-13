@@ -47,7 +47,6 @@ export class PhotosRealmDB {
   private realm: Realm | null = null;
   private logger: BaseLogger = new BaseLogger({
     tag: 'PHOTOS_REALM_DB',
-    enabled: false,
   });
 
   async init() {

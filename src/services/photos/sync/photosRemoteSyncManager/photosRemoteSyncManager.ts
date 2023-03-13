@@ -33,7 +33,6 @@ export class PhotosRemoteSyncManager implements RunnableService<PhotosRemoteSync
   public status: PhotosRemoteSyncManagerStatus = PhotosRemoteSyncManagerStatus.IDLE;
   constructor(private devicePhotosScanner: DevicePhotosScannerService) {
     this.logger = new BaseLogger({
-      enabled: ENABLE_PHOTOS_REMOTE_SYNC_MANAGER_LOGS,
       tag: 'PHOTOS_REMOTE_SYNC',
     });
   }

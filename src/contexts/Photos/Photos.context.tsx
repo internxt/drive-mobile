@@ -345,7 +345,10 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
 
       photosLogger.info(`${syncedPhotos.length} photos loaded from DB in ${Date.now() - startDb}ms`);
 
-      const syncPercentage = (totalPhotosInRemote * 100) / devicePhotosItems.current.length;
+      const syncPercentage =
+        totalPhotosInRemote >= devicePhotosItems.current.length
+          ? 100
+          : (totalPhotosInRemote * 100) / devicePhotosItems.current.length;
       photosLogger.info(`${syncPercentage.toFixed(2)}% of Photos synced aprox.`);
       syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photosUtils.getPhotosItem(syncedPhoto));
 

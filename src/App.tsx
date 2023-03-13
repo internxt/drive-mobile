@@ -38,6 +38,9 @@ import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
 import { DriveContextProvider } from './contexts/Drive/Drive.context';
 import { LockScreen } from './screens/common/LockScreen';
+import { logger } from './services/common';
+import { time } from './services/common/time';
+import { DateTime } from 'luxon';
 let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -130,6 +133,8 @@ export default function App(): JSX.Element {
 
   const initializeApp = async () => {
     try {
+      logger.info(`--- Starting new App session at ${time.getFormattedDate(new Date(), 'dd/LL/yyyy - HH:mm')} ---`);
+
       // 1. Get remote updates
       await getRemoteUpdateIfAvailable();
 
@@ -144,10 +149,9 @@ export default function App(): JSX.Element {
       await fileSystemService.prepareFileSystem();
 
       // 4. Initialize all the services we need at start time
-      const initializeOperations = [authService.init(), analyticsService.setup()];
+      const initializeOperations = [authService.init(), analyticsService.setup(), appService.logAppInfo()];
 
       await Promise.all(initializeOperations);
-
       // 5. Silent SignIn only if token is still valid
       await silentSignIn();
     } catch (err) {

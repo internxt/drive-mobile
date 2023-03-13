@@ -22,12 +22,6 @@ export const ENABLE_PHOTOS_ANALYTICS = true;
 // Saves the last photos page pulled remotely, helpful to pull all the previews from page 1
 export const SAVE_LAST_PHOTOS_PAGE_PULLED = true;
 
-// Logging, this logs will be turned off in production mode
-export const ENABLE_PHOTOS_LOCAL_SYNC_MANAGER_LOGS = true;
-export const ENABLE_PHOTOS_REMOTE_SYNC_MANAGER_LOGS = false;
-export const ENABLE_PHOTOS_ANALYTICS_LOGS = false;
-export const ENABLE_PHOTOS_NETWORK_MANAGER_LOGS = false;
-
 // How many times a photo can be retried if the upload fails
 export const MAX_UPLOAD_RETRIES = 2;
 
