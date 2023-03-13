@@ -28,7 +28,6 @@ export type CacheFileOperationResult = {
 export class FileCacheManager {
   private logger = new BaseLogger({
     tag: 'FILE_CACHE_MANAGER',
-    enabled: __DEV__,
   });
   private initialized = false;
   private directorySize: number;

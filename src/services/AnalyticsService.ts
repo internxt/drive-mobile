@@ -40,8 +40,8 @@ export class AnalyticsService {
   };
 
   private logger = new BaseLogger({
-    enabled: false,
     tag: 'DRIVE_ANALYTICS',
+    disabled: !__DEV__,
   });
 
   public getClient() {

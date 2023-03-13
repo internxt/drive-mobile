@@ -13,7 +13,6 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
-import appService from '@internxt-mobile/services/AppService';
 
 type DriveFoldersTree = {
   [folderId: number]:
@@ -44,7 +43,6 @@ interface DriveContextProviderProps {
 }
 
 const logger = new BaseLogger({
-  enabled: appService.isDevMode,
   tag: 'DRIVE_CONTEXT',
 });
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {

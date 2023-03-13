@@ -7,7 +7,6 @@ import prettysize from 'prettysize';
 import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
-import { logger } from './common';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -22,11 +21,10 @@ export interface FileWriter {
 const ANDROID_URI_PREFIX = 'file://';
 
 export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
+
 class FileSystemService {
   public async prepareFileSystem() {
     await this.prepareTmpDir();
-
-    logger.info('Filesystem ready');
   }
 
   public pathToUri(path: string): string {
@@ -40,6 +38,14 @@ class FileSystemService {
 
   public getDocumentsDir(): string {
     return RNFS.DocumentDirectoryPath;
+  }
+
+  public getRuntimeLogsPath(): string {
+    return RNFS.DocumentDirectoryPath + '/' + this.getRuntimeLogsFileName();
+  }
+
+  public getRuntimeLogsFileName(): string {
+    return 'internxt_mobile_runtime_logs.txt';
   }
 
   public getDownloadsDir(): string {
@@ -73,7 +79,7 @@ class FileSystemService {
   public tmpFilePath(filename?: string) {
     return this.getTemporaryDir() + (filename || uuid.v4());
   }
-  public async clearTempDir(): Promise<void> {
+  public async clearTempDir(): Promise<number> {
     const items = await RNFS.readDir(this.getTemporaryDir());
     let size = 0;
     items.forEach(async (item) => {
@@ -89,7 +95,7 @@ class FileSystemService {
       size += item.size;
     });
 
-    logger.info(`Cleaned ${prettysize(size)} from tmp files`);
+    return size;
   }
 
   public getCacheDir(): string {
