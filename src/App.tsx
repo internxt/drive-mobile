@@ -133,7 +133,7 @@ export default function App(): JSX.Element {
 
   const initializeApp = async () => {
     try {
-      logger.info(`--- Starting new App session at ${time.getFormattedDate(new Date(), 'dd/LL/yyyy - HH:mm')} ---`);
+      logger.info(`--- Starting new app session at ${time.getFormattedDate(new Date(), 'dd/LL/yyyy - HH:mm')} ---`);
 
       // 1. Get remote updates
       await getRemoteUpdateIfAvailable();

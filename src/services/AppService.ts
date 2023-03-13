@@ -46,9 +46,7 @@ class AppService {
   }
 
   public async logAppInfo() {
-    // Device model and name
     logger.info(`Running Internxt mobile v${this.version}`);
-
     logger.info(`Free device disk space: ${prettysize(await deviceInfo.getFreeDiskStorage())}`);
     logger.info(`Device is in airplane mode: ${await deviceInfo.isAirplaneMode()}`);
   }
