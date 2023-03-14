@@ -15,7 +15,7 @@ interface VideoViewerProps {
 export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPause, thumbnail, onVideoLoadError }) => {
   const tailwind = useTailwind();
   const [playing, setPlaying] = useState(false);
-  const [loadError, setLoadError] = useState<LoadError>({ error: { errorString: 'xx', '': '' } });
+  const [loadError, setLoadError] = useState<LoadError>();
   const videoPlayer = useRef<Video>(null);
   useEffect(() => {
     if (playing) {
