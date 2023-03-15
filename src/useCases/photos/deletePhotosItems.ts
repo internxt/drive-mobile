@@ -19,6 +19,5 @@ export const deletePhotosItems = async ({ photosToDelete }: { photosToDelete: Ph
     notificationsService.success(strings.messages.photo_deleted);
   } catch (error) {
     errorService.reportError(error);
-    notificationsService.error(strings.errors.generic.title);
   }
 };

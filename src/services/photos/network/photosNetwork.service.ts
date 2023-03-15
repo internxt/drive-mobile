@@ -43,7 +43,6 @@ export class PhotosNetworkService {
     await Promise.all(
       photos.map(async (photo) => {
         await this.sdk.photos.photos.deletePhotoById(photo.photoId);
-        await photosRealmDB.deleteSyncedPhotosItem(photo.photoId);
       }),
     );
   }

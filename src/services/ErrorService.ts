@@ -65,6 +65,7 @@ class ErrorService {
       this.logger.warn(message);
     }
 
+    console.error(message);
     this.logger.error(message);
   }
 }

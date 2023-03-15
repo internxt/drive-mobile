@@ -116,6 +116,14 @@ const PhotosSyncStatusWidget = () => {
         </AppText>
       </View>
     ),
+    [PhotosSyncStatus.NoPhotosToSync]: (
+      <View style={tailwind('flex-row items-center')}>
+        <CloudArrowDown style={tailwind('mr-2')} color={getColor('text-gray-100')} size={18} />
+        <AppText medium style={tailwind('text-gray-100 text-sm')}>
+          {strings.messages.gettingCloudPhotos}
+        </AppText>
+      </View>
+    ),
   };
   const onPauseButtonPressed = () => {
     photos.events.emit({

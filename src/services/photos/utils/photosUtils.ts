@@ -121,13 +121,23 @@ export class PhotosUtils {
     return hash.digest();
   }
 
-  public getPhotoPath({ name, size, type }: { name: string; size: PhotoSizeType; type: string }) {
+  public getPhotoPath({
+    name,
+    size,
+    takenAt,
+    type,
+  }: {
+    name: string;
+    takenAt: number;
+    size: PhotoSizeType;
+    type: string;
+  }) {
     if (size === PhotoSizeType.Full) {
-      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : '.' + type}`;
+      return `${PHOTOS_FULL_SIZE_DIRECTORY}/${name}_${takenAt}${type === 'unknown' || !type ? '' : '.' + type}`;
     }
 
     if (size === PhotoSizeType.Preview) {
-      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}${type === 'unknown' || !type ? '' : '.' + type}`;
+      return `${PHOTOS_PREVIEWS_DIRECTORY}/${name}_${takenAt}${type === 'unknown' || !type ? '' : '.' + type}`;
     }
 
     throw new Error('Photo size is not recognized');
@@ -139,6 +149,7 @@ export class PhotosUtils {
       const fullSizePath = this.getPhotoPath({
         name: from.name,
         type: from.type,
+        takenAt: new Date(from.takenAt).getTime(),
         size: PhotoSizeType.Full,
       });
 
@@ -154,6 +165,7 @@ export class PhotosUtils {
         localPreviewPath: this.getPhotoPath({
           name: from.name,
           type: previewType,
+          takenAt: new Date(from.takenAt).getTime(),
           size: PhotoSizeType.Preview,
         }),
         localFullSizePath: fullSizePath,
@@ -205,6 +217,7 @@ export class PhotosUtils {
             destination: this.getPhotoPath({
               name: name,
               type: format,
+              takenAt: photo.creationTime,
               size: PhotoSizeType.Full,
             }),
           });

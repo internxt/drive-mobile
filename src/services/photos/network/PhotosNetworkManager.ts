@@ -3,11 +3,7 @@ import async from 'async';
 import { Photo, PhotoPreviewType } from '@internxt/sdk/dist/photos';
 import { RunnableService, sleep } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
-import {
-  ENABLE_PHOTOS_NETWORK_MANAGER_LOGS,
-  MAX_UPLOAD_RETRIES,
-  PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY,
-} from '../constants';
+import { MAX_UPLOAD_RETRIES, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
 import { AbortedOperationError } from 'src/types';
 import { Platform } from 'react-native';
 import { photosNetwork } from './photosNetwork.service';
@@ -22,6 +18,7 @@ export type OperationResult = Photo;
 export type OnUploadStartCallback = (photosItem: PhotosItem) => void;
 export type OnUploadProgressCallback = (photosItem: PhotosItem, progress: number) => void;
 
+const WAIT_FOR_NEXT_PHOTO_PROCESSING = 150;
 /**
  * Manages the upload process for each photo using a queue
  *
@@ -42,7 +39,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   private options: { enableLog: boolean };
   private queue = this.createQueue();
   private abortController: AbortController;
-  constructor(options = { enableLog: ENABLE_PHOTOS_NETWORK_MANAGER_LOGS }) {
+  constructor(options = { enableLog: true }) {
     this.options = options;
     this.abortController = new AbortController();
   }
@@ -56,17 +53,17 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
       this.processUploadOperation(task)
         .then((result) => {
-          return sleep(100).then(() => next(null, result));
+          return sleep(WAIT_FOR_NEXT_PHOTO_PROCESSING).then(() => next(null, result));
         })
         .catch((err) => {
           if (task.retries === MAX_UPLOAD_RETRIES) {
-            sleep(100).then(() => next(err as Error, null));
+            sleep(WAIT_FOR_NEXT_PHOTO_PROCESSING).then(() => next(err as Error, null));
           } else {
             this.addOperation({
               ...task,
               retries: task.retries + 1,
             });
-            sleep(100).then(() => next(err as Error, null));
+            sleep(WAIT_FOR_NEXT_PHOTO_PROCESSING).then(() => next(err as Error, null));
           }
         });
     }, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY);
@@ -180,6 +177,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       destination: photosUtils.getPhotoPath({
         name: operation.photosItem.name,
         type: operation.photosItem.format,
+        takenAt: operation.photosItem.takenAt,
         size: PhotoSizeType.Full,
       }),
     });
