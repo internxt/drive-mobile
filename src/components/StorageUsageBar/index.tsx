@@ -24,9 +24,7 @@ const StorageUsageBar = (props: StorageUsageBarProps) => {
   };
 
   const getCurrentUsageWidth = () => {
-    const percentage = props.usageBytes / props.usageBytes;
-
-    return progressBarWidth * percentage - getSelectedStorageWidth();
+    return progressBarWidth - getSelectedStorageWidth();
   };
   return (
     <View
