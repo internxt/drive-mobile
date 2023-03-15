@@ -66,6 +66,10 @@
   top: 0.5rem
 }
 
+.top-4 {
+  top: 1rem
+}
+
 .z-10 {
   z-index: 10
 }
@@ -149,6 +153,16 @@
 .mx-8 {
   margin-left: 2rem;
   margin-right: 2rem
+}
+
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem
+}
+
+.my-5 {
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem
 }
 
 .mr-2 {
@@ -319,16 +333,24 @@
   margin-left: 3rem
 }
 
-.-mt-10 {
-  margin-top: -2.5rem
-}
-
 .ml-1\.5 {
   margin-left: 0.375rem
 }
 
 .mt-10 {
   margin-top: 2.5rem
+}
+
+.ml-0\.5 {
+  margin-left: 0.125rem
+}
+
+.ml-0 {
+  margin-left: 0px
+}
+
+.block {
+  display: block
 }
 
 .flex {
@@ -387,6 +409,10 @@
   height: 2.25rem
 }
 
+.h-4 {
+  height: 1rem
+}
+
 .h-1 {
   height: 0.25rem
 }
@@ -429,6 +455,10 @@
 
 .h-auto {
   height: auto
+}
+
+.h-6 {
+  height: 1.5rem
 }
 
 .min-h-full {
@@ -503,16 +533,24 @@
   width: 8rem
 }
 
-.w-16 {
-  width: 4rem
+.w-2 {
+  width: 0.5rem
 }
 
 .w-auto {
   width: auto
 }
 
+.w-16 {
+  width: 4rem
+}
+
 .w-24 {
   width: 6rem
+}
+
+.w-4 {
+  width: 1rem
 }
 
 .flex-1 {
@@ -595,12 +633,12 @@
   border-radius: 9999px
 }
 
-.rounded-2xl {
-  border-radius: 1rem
-}
-
 .rounded-3xl {
   border-radius: 1.5rem
+}
+
+.rounded-2xl {
+  border-radius: 1rem
 }
 
 .rounded-none {
@@ -704,6 +742,10 @@
 
 .border-transparent {
   border-color: rgb(0,0,0,0)
+}
+
+.border-red-light {
+  border-color: rgba(255, 0, 0, 0.15)
 }
 
 .bg-primary-dark {
@@ -814,6 +856,15 @@
 .bg-black {
   --tw-bg-opacity: 1;
   background-color: rgb(0 0 0 / var(--tw-bg-opacity))
+}
+
+.bg-red-light {
+  background-color: rgba(255, 0, 0, 0.15)
+}
+
+.bg-debug {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 128 0 / var(--tw-bg-opacity))
 }
 
 .p-0 {
@@ -949,6 +1000,11 @@
   padding-right: 0.625rem
 }
 
+.py-5 {
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem
+}
+
 .py-0\.5 {
   padding-top: 0.125rem;
   padding-bottom: 0.125rem
@@ -1064,6 +1120,10 @@
 
 .pb-2 {
   padding-bottom: 0.5rem
+}
+
+.pt-16 {
+  padding-top: 4rem
 }
 
 .text-left {
@@ -1362,4 +1422,8 @@
 
 .opacity-40 {
   opacity: 0.4
+}
+
+.opacity-75 {
+  opacity: 0.75
 }
