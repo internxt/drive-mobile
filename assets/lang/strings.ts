@@ -12,6 +12,8 @@ const strings = new LocalizedStrings({
       es: 'Spanish',
     },
     generic: {
+      current: 'Current',
+      new: 'New',
       calculating: 'Calculating',
       atTime: 'at',
       loading: 'Loading',
@@ -20,7 +22,7 @@ const strings = new LocalizedStrings({
       preparing: 'Preparing...',
       updated: 'Updated',
       year: 'Year',
-      month: 'Mes',
+      month: 'Month',
       monthly: 'Monthly',
       pricePerMonth: '{0} € per month',
       yearly: 'Yearly',
@@ -543,14 +545,23 @@ const strings = new LocalizedStrings({
         of: 'of',
       },
       Plans: {
-        title: 'Unlimited privacy',
-        advice: 'Upgrade now to get more storage for all your memories and work documents',
+        selectBillingPeriod: 'Select billing period',
+        yourCurrentPlan: 'Your current plan is',
+        changePlan: {
+          title: 'Change plan',
+          message: 'Please confirm changes',
+        },
+        title: 'Upgrade storage',
+        advice: 'Upgrade now to get more storage for all your memories, documents and backups',
         howMuchStorage: 'How much storage you want?',
         moneyBack: '30 Days money-back guarantee',
         cancelAtAnyMoment: 'Cancel at any moment',
         subscriptionRenew:
           'Subscriptions automatically renew unless you cancel your subscription at least 24 hours before the current period ends. To manage your subscription please go to “Account” > “Subscription”. Thank you for reading the fine print and considering subscribing to Internxt.',
-        freeUpSpace: 'You have {0} in use, free up space to be able to downgrade to the {1} plan.',
+        freeUpSpace: {
+          title: 'You are over {0}',
+          message: 'By downgrading you understand that sync will stop and you won’t be able to add more files',
+        },
       },
       EnableTwoFactor: {
         title: 'Enable 2FA',
@@ -675,6 +686,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      planPeriodDisclaimer: "You'll be charged now and for each payment period until further change.",
       driveDownloadSuccess: 'File downloaded correctly',
       gettingCloudPhotos: 'Getting photos from the cloud',
       passwordMediumStrength: 'Password is weak',
@@ -771,6 +783,8 @@ const strings = new LocalizedStrings({
       es: 'Español',
     },
     generic: {
+      current: 'Actual',
+      new: 'Nuevo',
       calculating: 'Calculando',
       atTime: 'a las',
       loading: 'Cargando',
@@ -778,7 +792,7 @@ const strings = new LocalizedStrings({
       preparing: 'Preparando...',
       downloading: 'Descargando...',
       updated: 'Actualizado',
-      year: 'Year',
+      year: 'Año',
       month: 'Mes',
       monthly: 'Mensual',
       pricePerMonth: '{0} € por mes',
@@ -1302,14 +1316,24 @@ const strings = new LocalizedStrings({
         },
       },
       Plans: {
-        title: 'Privacidad sin límites',
+        changePlan: {
+          title: 'Cambiar plan',
+          message: 'Por favor confirma tus cambios',
+        },
+        selectBillingPeriod: 'Elige tu período de facturación',
+        yourCurrentPlan: 'Tu plan actual es',
+        title: 'Comprar espacio',
         advice: 'Mejora tu plan ahora para obtener más almacenamiento para todos tus recuerdos y documentos de trabajo',
         howMuchStorage: '¿Cuánto almacenamiento quieres?',
         moneyBack: 'Garantía de devolución de dinero de 30 días',
         cancelAtAnyMoment: 'Cancela en cualquier momento',
         subscriptionRenew:
           'Las suscripciones se renuevan automáticamente a menos que cancele su suscripción al menos 24 horas antes de que finalice el período actual. Para administrar su suscripción, vaya a "Cuenta" > "Suscripción". Gracias por leer la letra pequeña y considerar suscribirte a Internxt.',
-        freeUpSpace: 'Estás usando {0}, libera espacio para bajar al plan de {1}.',
+
+        freeUpSpace: {
+          title: 'Tienes más de {0}',
+          message: 'Al reducir el espacio, entiendes que la sincronización se detendrá y no podrás subir más archivos.',
+        },
       },
       EnableTwoFactor: {
         title: 'Habilitar 2FA',
@@ -1435,6 +1459,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      planPeriodDisclaimer: 'Se te cobrará ahora y en cada periodo de facturación automáticamente.',
       driveDownloadSuccess: 'Archivo descargado correctamente',
       gettingCloudPhotos: 'Obteniendo tus fotos de la nube',
       passwordMediumStrength: 'La contraseña es débil',

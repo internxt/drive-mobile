@@ -140,11 +140,16 @@ export class PhotosRealmDB {
   }
 
   public async deleteSyncedPhotosItem(photoId: string) {
-    const docs = this.getRealm().objects<PhotoDoc>(PhotoSchema.name).filtered('photoId == $0', photoId);
-    if (!docs[0]) return false;
-
     this.getRealm().write(() => {
+      const docs = this.getRealm().objects<PhotoDoc>(PhotoSchema.name).filtered('photoId == $0', photoId);
+      if (!docs[0]) return;
+
+      const parsed = this.parseFirst(docs);
       docs[0].status = PhotoStatus.Deleted;
+      docs[0].photoJSON = JSON.stringify({
+        ...parsed,
+        status: PhotoStatus.Deleted,
+      });
     });
 
     return true;

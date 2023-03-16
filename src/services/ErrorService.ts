@@ -65,6 +65,16 @@ class ErrorService {
       this.logger.warn(message);
     }
 
+    /**
+     * RN has an utility called logbox that displays
+     * the error in the app UI, tapping on the error
+     * displays the stacktrace in the app and some other options
+     * unluckily the logger.error does not map to console.error
+     * so we display the error this way so we can view
+     * it in the dev UI
+     */
+    // eslint-disable-next-line no-console
+    console.error(message);
     this.logger.error(message);
   }
 }

@@ -17,8 +17,9 @@ import { PhotosItemBacked } from '@internxt-mobile/types/photos';
 import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey, PhotosAnalyticsScreenKey } from '@internxt-mobile/services/photos/analytics';
 import { PhotosContext } from 'src/contexts/Photos/Photos.context';
-import GalleryAllView from 'src/components/gallery-views/GalleryAllView';
+import GalleryAllView, { GalleryAllSkeleton } from 'src/components/gallery-views/GalleryAllView';
 import * as photosUseCases from '@internxt-mobile/useCases/photos';
+import AppText from 'src/components/AppText';
 function PhotosGalleryScreen(): JSX.Element {
   const photosCtx = useContext(PhotosContext);
   const tailwind = useTailwind();
@@ -48,7 +49,9 @@ function PhotosGalleryScreen(): JSX.Element {
       number_of_items: photosCtx.selection.selectedPhotosItems.length,
     });
 
-    photosUseCases.deletePhotosItems({ photosToDelete: photosCtx.selection.selectedPhotosItems as PhotosItemBacked[] });
+    photosUseCases.deletePhotosItems({
+      photosToDelete: photosCtx.selection.selectedPhotosItems as PhotosItemBacked[],
+    });
     setIsDeletePhotosModalOpen(false);
     await photosCtx.removePhotosItems(photosCtx.selection.selectedPhotosItems);
     photosCtx.selection.resetSelectionMode();
@@ -109,12 +112,12 @@ function PhotosGalleryScreen(): JSX.Element {
           {photosCtx.selection.selectionModeActivated ? (
             <View style={tailwind('h-10 flex-row justify-between items-center')}>
               <View style={tailwind('flex-row items-center justify-between')}>
-                <Text style={tailwind('pl-5')}>
+                <AppText style={tailwind('pl-5')}>
                   {strings.formatString(
                     strings.screens.gallery.nPhotosSelected,
                     photosCtx.selection.selectedPhotosItems.length,
                   )}
-                </Text>
+                </AppText>
               </View>
 
               <View style={tailwind('flex-row pr-5')}>
@@ -156,12 +159,10 @@ function PhotosGalleryScreen(): JSX.Element {
           <PhotosSyncStatusWidget />
         </View>
         <View style={{ flex: 1 }}>
-          {photosCtx.ready ? (
+          {photosCtx.dataSource.getSize() >= 1 ? (
             <GalleryAllView photos={photosCtx.dataSource} onLoadNextPage={loadNextPage} onRefresh={handleRefresh} />
           ) : (
-            <View style={tailwind('flex-1 items-center justify-center')}>
-              <Text style={tailwind('text-lg text-neutral-60')}>{strings.screens.gallery.loading}</Text>
-            </View>
+            <GalleryAllSkeleton />
           )}
         </View>
 
