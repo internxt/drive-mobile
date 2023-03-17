@@ -7,6 +7,7 @@ import prettysize from 'prettysize';
 import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
+import { shareAsync } from 'expo-sharing';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -210,8 +211,40 @@ class FileSystemService {
   public getPathForAndroidDownload(filename: string) {
     return this.getInternxtAndroidDownloadsDir() + filename;
   }
-  public async shareFile({ title, fileUri }: { title: string; fileUri: string }) {
-    return Share.open({ title, url: fileUri, failOnCancel: false });
+  public async shareFile({
+    title,
+    fileUri,
+    saveToiOSFiles,
+  }: {
+    title: string;
+    fileUri: string;
+
+    saveToiOSFiles?: boolean;
+  }): Promise<{ success: boolean; error?: unknown }> {
+    try {
+      if (saveToiOSFiles) {
+        await Share.open({
+          title,
+          url: fileUri,
+          failOnCancel: false,
+          showAppsToView: true,
+          saveToFiles: saveToiOSFiles,
+        });
+
+        return {
+          success: true,
+        };
+      } else {
+        await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
+          dialogTitle: title,
+        });
+        return {
+          success: true,
+        };
+      }
+    } catch (error) {
+      return { success: false, error };
+    }
   }
 
   public async readDir(directory: string) {

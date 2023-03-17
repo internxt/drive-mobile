@@ -32,6 +32,7 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+  const [gettingLogs, setGettingLogs] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -120,6 +121,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
 
   const onShareLogsPressed = async () => {
     try {
+      setGettingLogs(true);
       const exists = await fs.fileExistsAndIsNotEmpty(fs.getRuntimeLogsPath());
       if (!exists) {
         notifications.error(strings.errors.runtimeLogsMissing);
@@ -131,6 +133,8 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
       });
     } catch (error) {
       notifications.error(strings.errors.generic.title);
+    } finally {
+      setGettingLogs(false);
     }
   };
 
@@ -352,6 +356,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                 },
                 {
                   key: 'share-logs',
+                  loading: gettingLogs,
                   template: (
                     <View style={[tailwind('flex-row items-center px-4 py-3')]}>
                       <FileText size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />

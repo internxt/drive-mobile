@@ -72,6 +72,7 @@
     "expo-modules-autolinking": "~1.0.0",
     "expo-navigation-bar": "~2.0.1",
     "expo-permissions": "~14.0.0",
+    "expo-sharing": "^11.2.2",
     "expo-splash-screen": "~0.17.5",
     "expo-status-bar": "~1.4.2",
     "expo-structured-headers": "^2.1.1",
