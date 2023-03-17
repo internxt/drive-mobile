@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
+import { View, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
 import {
   launchCameraAsync,
   requestCameraPermissionsAsync,
@@ -587,7 +587,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFiles}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFiles}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <FileArrowUp color={getColor('text-neutral-500')} size={20} />
                 </View>
@@ -604,7 +604,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFromCameraRoll}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFromCameraRoll}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <ImageSquare color={getColor('text-neutral-500')} size={20} />
                 </View>
@@ -621,7 +621,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.takeAPhotoAnUpload}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.takeAPhotoAnUpload}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <Camera color={getColor('text-neutral-500')} size={20} />
                 </View>
@@ -639,7 +639,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.newFolder}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.newFolder}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <FolderSimplePlus color={getColor('text-neutral-500')} size={20} />
                 </View>
