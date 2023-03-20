@@ -1,31 +1,48 @@
-import appService from '@internxt-mobile/services/AppService';
+import { logger as RNLogger, consoleTransport, fileAsyncTransport } from 'react-native-logs';
+import RNFS from 'react-native-fs';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import { InteractionManager } from 'react-native';
+
+const defaultLogger = () => {
+  return RNLogger.createLogger({
+    async: !__DEV__,
+    transport: __DEV__ ? consoleTransport : fileAsyncTransport,
+    asyncFunc: InteractionManager.runAfterInteractions,
+    transportOptions: {
+      FS: __DEV__ ? undefined : RNFS,
+      fileName: __DEV__ ? undefined : fs.getRuntimeLogsFileName(),
+    },
+  });
+};
 
 export interface BaseLoggerOptions {
   tag: string;
-  enabled?: boolean;
+  disabled?: boolean;
 }
 export class BaseLogger {
   private options: BaseLoggerOptions;
+  private logger: {
+    [x: string]: (...args: unknown[]) => void;
+  };
   constructor(options: BaseLoggerOptions) {
-    this.options = {
-      ...options,
-      enabled: !appService.isDevMode ? false : options.enabled === undefined ? appService.isDevMode : options.enabled,
-    };
+    this.logger = defaultLogger().extend(options.tag);
+    this.options = options;
   }
 
-  public info(message: string): void {
-    // eslint-disable-next-line no-console
-    this.options.enabled && console.log(`[${this.options.tag}]: ` + message);
+  public info(arg: unknown): void {
+    if (this.options.disabled) return;
+    this.logger.info(arg instanceof Error ? arg.message : arg);
   }
 
-  public warn(message: string): void {
-    // eslint-disable-next-line no-console
-    this.options.enabled && console.warn(`[${this.options.tag}]: ` + message);
+  public warn(arg: unknown): void {
+    if (this.options.disabled) return;
+    this.logger.warn(arg instanceof Error ? arg.message : arg);
   }
 
-  public error(message: string): void {
-    // eslint-disable-next-line no-console
-    this.options.enabled && console.error(`[${this.options.tag}]: ` + message);
+  public error(arg: unknown): void {
+    if (this.options.disabled) return;
+
+    this.logger.error(arg instanceof Error ? arg.message : arg);
   }
 }
 

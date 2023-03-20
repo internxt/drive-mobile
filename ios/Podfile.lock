@@ -49,6 +49,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - ExpoSystemUI (2.0.1):
     - ExpoModulesCore
+  - EXSharing (11.2.2):
+    - ExpoModulesCore
   - EXSplashScreen (0.17.5):
     - ExpoModulesCore
     - React-Core
@@ -498,6 +500,7 @@ DEPENDENCIES:
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
+  - EXSharing (from `../node_modules/expo-sharing/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
@@ -628,6 +631,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSystemUI:
     :path: "../node_modules/expo-system-ui/ios"
+  EXSharing:
+    :path: "../node_modules/expo-sharing/ios"
   EXSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   EXStructuredHeaders:
@@ -791,6 +796,7 @@ SPEC CHECKSUMS:
   ExpoLinearGradient: b40c2133ad57ae105b1b12a319e314463c817f6b
   ExpoModulesCore: b5d21c8880afda6fb6ee95469f9ac2ec9b98e995
   ExpoSystemUI: c844dec5e49e677bcd6bfe15cc305b02127b1124
+  EXSharing: 09839ace249f61bfa13c50c6a28256c31d260355
   EXSplashScreen: 3e989924f61a8dd07ee4ea584c6ba14be9b51949
   EXStructuredHeaders: 5d86829469399370a9fc7cb1e4391b09de87681d
   EXUpdates: e687436502147e80ef13cf6eedd17e3039ef47d6

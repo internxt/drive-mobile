@@ -142,7 +142,7 @@ function DriveItemInfoModal(): JSX.Element {
       if (exists) {
         await fs.shareFile({
           title: item.name,
-          fileUri: fs.pathToUri(decryptedFilePath),
+          fileUri: decryptedFilePath,
         });
 
         return decryptedFilePath;
@@ -154,7 +154,7 @@ function DriveItemInfoModal(): JSX.Element {
       setExporting(false);
       await fs.shareFile({
         title: item.name,
-        fileUri: fs.pathToUri(downloadPath),
+        fileUri: downloadPath,
       });
     } catch (error) {
       notifications.error(strings.errors.generic.message);
@@ -209,6 +209,41 @@ function DriveItemInfoModal(): JSX.Element {
       setExporting(false);
     }
   };
+
+  const handleiOSSaveToFiles = async () => {
+    try {
+      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
+      if (!item.fileId) {
+        throw new Error('Item fileID not found');
+      }
+
+      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
+
+      // 1. Check if file exists already
+      const existsDecrypted = await drive.file.existsDecrypted(item.name, item.type);
+
+      dispatch(uiActions.setShowItemModal(false));
+
+      // 2. If the file doesn't exists, download it
+      if (!existsDecrypted) {
+        setExporting(true);
+        await downloadItem(item.fileId, decryptedFilePath);
+        setExporting(false);
+      }
+
+      // 3. Share to iOS files app
+      await fs.shareFile({
+        title: item.name,
+        fileUri: decryptedFilePath,
+        saveToiOSFiles: true,
+      });
+    } catch (error) {
+      notifications.error(strings.errors.generic.message);
+      errorService.reportError(error);
+    } finally {
+      setExporting(false);
+    }
+  };
   const options = [
     {
       visible: false,
@@ -232,6 +267,12 @@ function DriveItemInfoModal(): JSX.Element {
       label: strings.components.file_and_folder_options.exportFile,
       onPress: handleExportFile,
       disabled: exporting,
+    },
+    {
+      visible: Platform.OS === 'ios',
+      icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
+      label: strings.components.file_and_folder_options.saveToFiles,
+      onPress: handleiOSSaveToFiles,
     },
     {
       visible: Platform.OS === 'android',

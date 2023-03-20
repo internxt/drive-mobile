@@ -7,6 +7,7 @@ interface SettingsGroupItemProps {
   key: string;
   template: JSX.Element;
   style?: StyleProp<ViewStyle>;
+  loading?: boolean;
   onPress?: (event: GestureResponderEvent) => void;
 }
 
@@ -23,7 +24,7 @@ function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupPr
   const SettingsGroupItem = (props: SettingsGroupItemProps) => {
     return (
       <TouchableHighlight
-        disabled={!props.onPress}
+        disabled={!props.onPress || props.loading}
         underlayColor={getColor('text-gray-10')}
         onPress={(event) => {
           props.onPress && props.onPress(event);

@@ -1,5 +1,5 @@
-import React, { useContext, useMemo, useState } from 'react';
-import { View, Image } from 'react-native';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
+import { View, Image, Animated, Easing } from 'react-native';
 import { GalleryItemType, PhotosItem, PhotosSyncStatus, PhotoSyncStatus } from '../../types/photos';
 import { ArrowUp, CheckCircle, CloudSlash, EyeSlash } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -29,6 +29,32 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const tailwind = useTailwind();
   const [retrievedPreviewUri, setRetrievedPreviewUri] = useState<string | null>(null);
   const { onPress, data } = props;
+  const [fadeAnim] = useState(new Animated.Value(1));
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.6,
+          duration: 1500,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, []);
+
+  useEffect(() => {
+    if (data.localUri) {
+      fadeAnim.stopAnimation();
+    }
+  }, [data.localUri]);
 
   const isUploading = photosCtx?.uploadingPhotosItem?.name === data.name;
   const isPullingRemotePhotos = photosCtx?.sync.status === PhotosSyncStatus.PullingRemotePhotos;
@@ -51,6 +77,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
       ...uploadedItem,
       ...data,
     };
+
     if (photosCtx.selection.selectionModeActivated) {
       isSelected ? photosCtx.selection.deselectPhotosItems([item]) : photosCtx.selection.selectPhotosItems([item]);
     } else {
@@ -79,8 +106,6 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
     }
   };
 
-  const useLocalUri = props.data.status !== PhotoSyncStatus.IN_SYNC_ONLY && data.localUri;
-
   const canShowNotUploadedIcon = () => {
     return (
       props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem && !isUploading && !isPullingRemotePhotos
@@ -99,102 +124,84 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
       />
     );
   };
+
+  const shouldRenderGradient = !PRIVATE_MODE_ENABLED && data.localUri;
   return (
     <TouchableWithoutFeedback
       style={[{ width: '100%', height: '100%', overflow: 'hidden' }]}
       onPress={handleOnPress}
       onLongPress={handleOnLongPress}
     >
-      {/* Used to display the camera roll previews, mostly for iOS */}
-      {/* Looks like FastImage doesn't support ph:// uris, RN Image does */}
-      {useLocalUri && !PRIVATE_MODE_ENABLED && DISPLAY_LOCAL_PHOTOS && (
-        <Image
-          onError={handlePreviewLoadError}
-          style={tailwind('w-full h-full')}
-          source={{
-            uri: fileSystemService.pathToUri(data.localUri as string),
-          }}
-        />
-      )}
+      <Animated.View style={[tailwind('bg-gray-5 w-full h-full'), { opacity: data.localPreviewPath ? 1 : fadeAnim }]}>
+        {/* Used to display the camera roll previews, mostly for iOS */}
+        {/* Looks like FastImage doesn't support ph:// uris, RN Image does */}
+        {!retrievedPreviewUri && data.localPreviewPath && !PRIVATE_MODE_ENABLED && DISPLAY_LOCAL_PHOTOS && (
+          <Image
+            onError={handlePreviewLoadError}
+            style={tailwind('w-full h-full')}
+            source={{
+              uri: fileSystemService.pathToUri(data.localPreviewPath as string),
+            }}
+          />
+        )}
 
-      {/* Used to display the previews that are just uploaded */}
-      {uploadedItem && !data.localPreviewPath && !PRIVATE_MODE_ENABLED && (
-        <FastImage
-          onError={handlePreviewLoadError}
-          style={tailwind('w-full h-full')}
-          source={{
-            uri: fileSystemService.pathToUri(uploadedItem.localPreviewPath),
-          }}
-        />
-      )}
-      {/* Used to display the previews we have in the filesystem */}
-      {data.localPreviewPath && !useLocalUri && !retrievedPreviewUri && !PRIVATE_MODE_ENABLED && (
-        <FastImage
-          onError={handlePreviewLoadError}
-          style={tailwind('w-full h-full')}
-          source={{
-            uri: fileSystemService.pathToUri(data.localPreviewPath),
-          }}
-        />
-      )}
+        {/* Fallback when we regenerate the preview */}
+        {retrievedPreviewUri && !PRIVATE_MODE_ENABLED && DISPLAY_LOCAL_PHOTOS && (
+          <Image
+            style={tailwind('w-full h-full')}
+            source={{
+              uri: fileSystemService.pathToUri(retrievedPreviewUri as string),
+            }}
+          />
+        )}
 
-      {/* Used in case the preview is failing and it was retried */}
-      {retrievedPreviewUri && !useLocalUri && !PRIVATE_MODE_ENABLED && (
-        <FastImage
-          onError={handlePreviewLoadError}
-          style={tailwind('w-full h-full')}
-          source={{
-            uri: fileSystemService.pathToUri(retrievedPreviewUri),
-          }}
-        />
-      )}
-
-      {PRIVATE_MODE_ENABLED && (
-        <View style={tailwind('w-full h-full flex items-center justify-center bg-gray-30')}>
-          <EyeSlash />
-        </View>
-      )}
-
-      {photosItem.type === PhotosItemType.VIDEO && !isSelected && photosItem.duration ? (
-        <View style={[tailwind('absolute bottom-1 right-1.5 flex justify-center items-center rounded-xl z-10')]}>
-          <AppText medium style={tailwind('text-white text-xs')}>
-            {time.fromSeconds(photosItem.duration).toFormat(time.formats.duration)}
-          </AppText>
-        </View>
-      ) : null}
-      {canShowNotUploadedIcon() && (
-        <View style={[tailwind('absolute w-5 h-5 bottom-1 left-1 flex justify-center items-center rounded-xl z-10')]}>
-          <CloudSlash color={getColor('text-white')} size={16} />
-        </View>
-      )}
-      {isBeingUploaded() && (
-        <View style={tailwind('absolute bottom-1 left-1 flex justify-center items-center rounded-xl z-10')}>
-          <View style={tailwind('mb-0.5')}>
-            <LoadingSpinner
-              progress={photosCtx.uploadProgress}
-              size={18}
-              color={tailwind('text-white').color as string}
-              useDefaultSpinner
-              fill={'rgba(0,0,0,0.25)'}
-            >
-              <ArrowUp weight="bold" color={tailwind('text-white').color as string} size={12} />
-            </LoadingSpinner>
+        {PRIVATE_MODE_ENABLED && (
+          <View style={tailwind('w-full h-full flex items-center justify-center bg-gray-30')}>
+            <EyeSlash />
           </View>
-        </View>
-      )}
+        )}
 
-      {isSelected && (
-        <View
-          style={[
-            tailwind('absolute bg-blue-60 w-5 h-5 bottom-1 right-1 flex justify-center items-center rounded-xl z-10'),
-          ]}
-        >
-          <CheckCircle color={getColor('text-white')} size={24} />
-        </View>
-      )}
-      {!PRIVATE_MODE_ENABLED ? (
-        <View style={tailwind('absolute bottom-0 left-0 h-12 w-full')}>{renderGradient()}</View>
-      ) : null}
+        {photosItem.type === PhotosItemType.VIDEO && !isSelected && photosItem.duration ? (
+          <View style={[tailwind('absolute bottom-1 right-1.5 flex justify-center items-center rounded-xl z-10')]}>
+            <AppText medium style={tailwind('text-white text-xs')}>
+              {time.fromSeconds(photosItem.duration).toFormat(time.formats.duration)}
+            </AppText>
+          </View>
+        ) : null}
+        {canShowNotUploadedIcon() && (
+          <View style={[tailwind('absolute w-5 h-5 bottom-1 left-1 flex justify-center items-center rounded-xl z-10')]}>
+            <CloudSlash color={getColor('text-white')} size={16} />
+          </View>
+        )}
+        {isBeingUploaded() && (
+          <View style={tailwind('absolute bottom-1 left-1 flex justify-center items-center rounded-xl z-10')}>
+            <View style={tailwind('mb-0.5')}>
+              <LoadingSpinner
+                progress={photosCtx.uploadProgress}
+                size={18}
+                color={tailwind('text-white').color as string}
+                useDefaultSpinner
+                fill={'rgba(0,0,0,0.25)'}
+              >
+                <ArrowUp weight="bold" color={tailwind('text-white').color as string} size={12} />
+              </LoadingSpinner>
+            </View>
+          </View>
+        )}
+
+        {isSelected && (
+          <View
+            style={[
+              tailwind('absolute bg-blue-60 w-5 h-5 bottom-1 right-1 flex justify-center items-center rounded-xl z-10'),
+            ]}
+          >
+            <CheckCircle color={getColor('text-white')} size={24} />
+          </View>
+        )}
+        {shouldRenderGradient ? (
+          <View style={tailwind('absolute bottom-0 left-0 h-12 w-full')}>{renderGradient()}</View>
+        ) : null}
+      </Animated.View>
     </TouchableWithoutFeedback>
   );
 };

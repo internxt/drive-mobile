@@ -6,11 +6,7 @@ import { PhotosRemoteSyncManagerStatus } from '@internxt-mobile/types/photos';
 import { Photo } from '@internxt/sdk/dist/photos';
 import async from 'async';
 import { RunnableService } from 'src/helpers/services';
-import {
-  ENABLE_PHOTOS_REMOTE_SYNC_MANAGER_LOGS,
-  MAX_PREVIEW_DOWNLOAD_RETRIES,
-  REMOTE_PHOTOS_PER_PAGE,
-} from '../../constants';
+import { MAX_PREVIEW_DOWNLOAD_RETRIES, REMOTE_PHOTOS_PER_PAGE } from '../../constants';
 import { photosRealmDB } from '../../database';
 import { photosNetwork } from '../../network/photosNetwork.service';
 import { photosPreview } from '../../preview';
@@ -33,7 +29,6 @@ export class PhotosRemoteSyncManager implements RunnableService<PhotosRemoteSync
   public status: PhotosRemoteSyncManagerStatus = PhotosRemoteSyncManagerStatus.IDLE;
   constructor(private devicePhotosScanner: DevicePhotosScannerService) {
     this.logger = new BaseLogger({
-      enabled: ENABLE_PHOTOS_REMOTE_SYNC_MANAGER_LOGS,
       tag: 'PHOTOS_REMOTE_SYNC',
     });
   }

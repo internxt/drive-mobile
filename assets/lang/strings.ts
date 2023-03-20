@@ -12,6 +12,8 @@ const strings = new LocalizedStrings({
       es: 'Spanish',
     },
     generic: {
+      current: 'Current',
+      new: 'New',
       calculating: 'Calculating',
       atTime: 'at',
       loading: 'Loading',
@@ -20,7 +22,7 @@ const strings = new LocalizedStrings({
       preparing: 'Preparing...',
       updated: 'Updated',
       year: 'Year',
-      month: 'Mes',
+      month: 'Month',
       monthly: 'Monthly',
       pricePerMonth: '{0} € per month',
       yearly: 'Yearly',
@@ -303,6 +305,7 @@ const strings = new LocalizedStrings({
             message: 'All your gallery photos and videos will be backed up on Internxt Photos',
           },
         },
+        saveLogs: 'Save logs',
         information: 'Information',
         termsAndConditions: 'Terms and conditions',
         support: 'Support',
@@ -487,6 +490,7 @@ const strings = new LocalizedStrings({
         delete: 'Move to trash',
         linkReady: 'Link created',
         exportFile: 'Export file',
+        saveToFiles: 'Save to Files',
         shareLink: 'Share link',
         downloadFile: 'Download file',
         view: 'View',
@@ -542,14 +546,23 @@ const strings = new LocalizedStrings({
         of: 'of',
       },
       Plans: {
-        title: 'Unlimited privacy',
-        advice: 'Upgrade now to get more storage for all your memories and work documents',
+        selectBillingPeriod: 'Select billing period',
+        yourCurrentPlan: 'Your current plan is',
+        changePlan: {
+          title: 'Change plan',
+          message: 'Please confirm changes',
+        },
+        title: 'Upgrade storage',
+        advice: 'Upgrade now to get more storage for all your memories, documents and backups',
         howMuchStorage: 'How much storage you want?',
         moneyBack: '30 Days money-back guarantee',
         cancelAtAnyMoment: 'Cancel at any moment',
         subscriptionRenew:
           'Subscriptions automatically renew unless you cancel your subscription at least 24 hours before the current period ends. To manage your subscription please go to “Account” > “Subscription”. Thank you for reading the fine print and considering subscribing to Internxt.',
-        freeUpSpace: 'You have {0} in use, free up space to be able to downgrade to the {1} plan.',
+        freeUpSpace: {
+          title: 'You are over {0}',
+          message: 'By downgrading you understand that sync will stop and you won’t be able to add more files',
+        },
       },
       EnableTwoFactor: {
         title: 'Enable 2FA',
@@ -674,6 +687,8 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      logFileMovedToDownloads: 'Logs file saved',
+      planPeriodDisclaimer: "You'll be charged now and for each payment period until further change.",
       driveDownloadSuccess: 'File downloaded correctly',
       gettingCloudPhotos: 'Getting photos from the cloud',
       passwordMediumStrength: 'Password is weak',
@@ -707,6 +722,7 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Trash is empty',
     },
     errors: {
+      runtimeLogsMissing: 'The logs file is missing or empty',
       enableWriteExternalStoragePermissions: 'You need to grand external storage write permission',
       generic: {
         title: 'There has been an error',
@@ -769,6 +785,8 @@ const strings = new LocalizedStrings({
       es: 'Español',
     },
     generic: {
+      current: 'Actual',
+      new: 'Nuevo',
       calculating: 'Calculando',
       atTime: 'a las',
       loading: 'Cargando',
@@ -776,7 +794,7 @@ const strings = new LocalizedStrings({
       preparing: 'Preparando...',
       downloading: 'Descargando...',
       updated: 'Actualizado',
-      year: 'Year',
+      year: 'Año',
       month: 'Mes',
       monthly: 'Mensual',
       pricePerMonth: '{0} € por mes',
@@ -1062,6 +1080,7 @@ const strings = new LocalizedStrings({
             message: 'Haz una copia de seguridad de tu galería en Internxt Photos',
           },
         },
+        saveLogs: 'Guardar logs',
         support: 'Soporte',
         information: 'Información',
         more: 'Más información',
@@ -1082,6 +1101,7 @@ const strings = new LocalizedStrings({
           title: 'Seguridad',
           advice: 'Cambia tu contraseña, configura la autenticación en dos pasos o guarda tu clave de recuperación.',
         },
+
         deleteAccount: 'Borrar cuenta',
         warningUnableToDeleteAccount: 'No puedes borrar tu cuenta con una suscripción activa, debes cancelarla antes.',
       },
@@ -1239,6 +1259,7 @@ const strings = new LocalizedStrings({
         move: 'Mover',
         share: 'Compartir',
         delete: 'Mover a la papelera',
+        saveToFiles: 'Guardar en Archivos',
         getLink: 'Obtener link compartido',
         linkReady: 'Link creado',
         exportFile: 'Exportar archivo',
@@ -1298,14 +1319,24 @@ const strings = new LocalizedStrings({
         },
       },
       Plans: {
-        title: 'Privacidad sin límites',
+        changePlan: {
+          title: 'Cambiar plan',
+          message: 'Por favor confirma tus cambios',
+        },
+        selectBillingPeriod: 'Elige tu período de facturación',
+        yourCurrentPlan: 'Tu plan actual es',
+        title: 'Comprar espacio',
         advice: 'Mejora tu plan ahora para obtener más almacenamiento para todos tus recuerdos y documentos de trabajo',
         howMuchStorage: '¿Cuánto almacenamiento quieres?',
         moneyBack: 'Garantía de devolución de dinero de 30 días',
         cancelAtAnyMoment: 'Cancela en cualquier momento',
         subscriptionRenew:
           'Las suscripciones se renuevan automáticamente a menos que cancele su suscripción al menos 24 horas antes de que finalice el período actual. Para administrar su suscripción, vaya a "Cuenta" > "Suscripción". Gracias por leer la letra pequeña y considerar suscribirte a Internxt.',
-        freeUpSpace: 'Estás usando {0}, libera espacio para bajar al plan de {1}.',
+
+        freeUpSpace: {
+          title: 'Tienes más de {0}',
+          message: 'Al reducir el espacio, entiendes que la sincronización se detendrá y no podrás subir más archivos.',
+        },
       },
       EnableTwoFactor: {
         title: 'Habilitar 2FA',
@@ -1431,6 +1462,8 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      logFileMovedToDownloads: 'Archivo de logs guardado',
+      planPeriodDisclaimer: 'Se te cobrará ahora y en cada periodo de facturación automáticamente.',
       driveDownloadSuccess: 'Archivo descargado correctamente',
       gettingCloudPhotos: 'Obteniendo tus fotos de la nube',
       passwordMediumStrength: 'La contraseña es débil',
@@ -1464,6 +1497,7 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Papelera vaciada',
     },
     errors: {
+      runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
       enableWriteExternalStoragePermissions: 'Debes permitir el acceso al almacenamiento externo',
       generic: {
         title: 'Ha habido un error',

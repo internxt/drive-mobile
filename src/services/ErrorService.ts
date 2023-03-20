@@ -1,10 +1,20 @@
 import AppError from '../types';
+import { BaseLogger } from './common';
 import sentryService from './SentryService';
 
 export interface GlobalErrorContext {
   email: string;
   userId: string;
 }
+
+class SentryLogger extends BaseLogger {
+  constructor() {
+    super({
+      tag: 'TRACKED_ON_SENTRY',
+    });
+  }
+}
+
 export type SeverityLevel = 'fatal' | 'error' | 'warning' | 'log' | 'info' | 'debug';
 export interface ErrorContext extends GlobalErrorContext {
   level: SeverityLevel;
@@ -13,6 +23,7 @@ export interface ErrorContext extends GlobalErrorContext {
   extra?: Record<string, unknown>;
 }
 class ErrorService {
+  private logger = new SentryLogger();
   public setGlobalErrorContext(globalContext: Partial<GlobalErrorContext>) {
     sentryService.native.setUser({
       email: globalContext.email,
@@ -35,34 +46,36 @@ class ErrorService {
   }
 
   public reportError(error: Error | unknown, context: Partial<ErrorContext> = {}) {
+    this.log(context.level || 'error', error);
     if (!__DEV__) {
       sentryService.native.captureException(error, {
         level: context.level || 'error',
         tags: context.tags,
         extra: context.extra,
       });
-    } else {
-      /**
-       * On dev mode we log the error, and display it with [TRACKED] flag
-       * so we know that error will be reported on production
-       */
-      this.log(context.level || 'error', error, context.extra || '');
     }
   }
 
-  private log(level: SeverityLevel, ...messages: unknown[]) {
+  private log(level: SeverityLevel, message: unknown) {
     if (level === 'info') {
-      // eslint-disable-next-line no-console
-      return console.info('[TRACKED]', ...messages);
+      this.logger.info(message);
     }
 
     if (level === 'warning') {
-      // eslint-disable-next-line no-console
-      return console.warn('[TRACKED]', ...messages);
+      this.logger.warn(message);
     }
 
+    /**
+     * RN has an utility called logbox that displays
+     * the error in the app UI, tapping on the error
+     * displays the stacktrace in the app and some other options
+     * unluckily the logger.error does not map to console.error
+     * so we display the error this way so we can view
+     * it in the dev UI
+     */
     // eslint-disable-next-line no-console
-    return console.error('[TRACKED]', ...messages);
+    console.error(message);
+    this.logger.error(message);
   }
 }
 

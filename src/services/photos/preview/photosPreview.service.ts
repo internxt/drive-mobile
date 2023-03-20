@@ -36,6 +36,7 @@ export class PhotosPreviewService {
     const destination = await photosUtils.getPhotoPath({
       name: photosItem.name,
       size: PhotoSizeType.Preview,
+      takenAt: photosItem.takenAt,
       type: photosItem.format,
     });
 
@@ -79,6 +80,12 @@ export class PhotosPreviewService {
     }
   }
 
+  public regeneratePreview = async (photo: PhotosItem) => {
+    await fileSystemService.unlinkIfExists(photo.localPreviewPath);
+
+    await this.getPreview(photo);
+  };
+
   public async getPreview(photo: PhotosItem): Promise<PhotoFileSystemRef | null> {
     const localPreview = await this.getLocalPreview(photo);
 
@@ -121,6 +128,7 @@ export class PhotosPreviewService {
       destination: photosUtils.getPhotoPath({
         name: photosItem.name,
         type: photosItem.format,
+        takenAt: photosItem.takenAt,
         size: PhotoSizeType.Full,
       }),
     });
@@ -128,6 +136,7 @@ export class PhotosPreviewService {
     const previewPath = photosUtils.getPhotoPath({
       name: photosItem.name,
       type: photosItem.format,
+      takenAt: photosItem.takenAt,
       size: PhotoSizeType.Preview,
     });
     const result = await createThumbnail({

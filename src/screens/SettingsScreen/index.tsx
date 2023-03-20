@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Linking, View, ScrollView } from 'react-native';
-import { Bug, CaretRight, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
+import { Linking, View, ScrollView, Platform } from 'react-native';
+import { Bug, CaretRight, FileText, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
@@ -27,10 +27,12 @@ import { PermissionStatus } from 'expo-media-library';
 import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import errorService from '@internxt-mobile/services/ErrorService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
 
 function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+  const [gettingLogs, setGettingLogs] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -115,6 +117,34 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
   const handlePermissionsGranted = async () => {
     await photosCtx.enableSync(true);
     setPhotosPermissionsModalOpen(false);
+  };
+
+  const onShareLogsPressed = async () => {
+    try {
+      setGettingLogs(true);
+      const exists = await fs.fileExistsAndIsNotEmpty(fs.getRuntimeLogsPath());
+      if (!exists) {
+        notifications.error(strings.errors.runtimeLogsMissing);
+        return;
+      }
+      if (Platform.OS === 'ios') {
+        await fs.shareFile({
+          title: 'Internxt Runtime logs',
+          fileUri: fs.getRuntimeLogsPath(),
+          saveToiOSFiles: true,
+        });
+      }
+
+      if (Platform.OS === 'android') {
+        await fs.moveToAndroidDownloads(fs.getRuntimeLogsPath());
+      }
+
+      notifications.success(strings.messages.logFileMovedToDownloads);
+    } catch (error) {
+      notifications.error(strings.errors.generic.title);
+    } finally {
+      setGettingLogs(false);
+    }
   };
 
   return (
@@ -332,6 +362,24 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     </View>
                   ),
                   onPress: onMoreInfoPressed,
+                },
+                {
+                  key: 'share-logs',
+                  loading: gettingLogs,
+                  template: (
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <FileText size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
+                      <View style={tailwind('flex-grow justify-center')}>
+                        <AppText style={[tailwind('text-lg text-gray-80')]}>
+                          {strings.screens.SettingsScreen.saveLogs}
+                        </AppText>
+                      </View>
+                      <View style={tailwind('justify-center')}>
+                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                      </View>
+                    </View>
+                  ),
+                  onPress: onShareLogsPressed,
                 },
               ]}
             />

@@ -118,7 +118,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
 
   private saveCachedDevicePhotos(assets: MediaLibrary.Asset[]) {
     assets.forEach((asset) => {
-      const name = asset.filename.split('.')[0];
+      const name = asset.filename;
 
       const assetKey = `${name}-${asset.creationTime.toString()}`;
 

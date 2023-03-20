@@ -20,7 +20,6 @@ import { Photo } from '@internxt/sdk/dist/photos';
 import errorService from 'src/services/ErrorService';
 import { AbortedOperationError } from 'src/types';
 import { PhotosRealmDB, photosRealmDB } from '../../database';
-import { ENABLE_PHOTOS_LOCAL_SYNC_MANAGER_LOGS } from '../../constants';
 import { BaseLogger } from '@internxt-mobile/services/common';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
@@ -66,7 +65,7 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
   constructor(
     photosNetworkManager: PhotosNetworkManager,
     devicePhotosSyncChecker: DevicePhotosSyncCheckerService,
-    config = { enableLog: ENABLE_PHOTOS_LOCAL_SYNC_MANAGER_LOGS },
+    config = { enableLog: true },
     devicePhotosScanner: DevicePhotosScannerService,
     realmDB: PhotosRealmDB,
   ) {
@@ -76,7 +75,7 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
     this.realmDB = realmDB;
     this.config = config;
     this.logger = new BaseLogger({
-      enabled: this.config.enableLog,
+      disabled: !config.enableLog,
       tag: 'PHOTOS_LOCAL_SYNC',
     });
     this.setupCallbacks();
@@ -211,6 +210,7 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
 
     this.devicePhotosScanner.onStatusChange((status) => {
       if (status === DevicePhotosScannerStatus.NO_PHOTOS_IN_DEVICE) {
+        this.updateStatus(PhotosSyncManagerStatus.NO_PHOTOS_TO_SYNC);
         this.checkIfFinishSync();
       }
     });
@@ -385,7 +385,7 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
 export const photosLocalSync = new PhotosLocalSyncManager(
   new PhotosNetworkManager(),
   new DevicePhotosSyncCheckerService(photosRealmDB),
-  { enableLog: ENABLE_PHOTOS_LOCAL_SYNC_MANAGER_LOGS },
+  { enableLog: true },
   devicePhotosScanner,
   photosRealmDB,
 );

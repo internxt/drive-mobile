@@ -22,6 +22,7 @@ export enum PhotosSyncStatus {
   InProgress = 'in-progress',
   Completed = 'completed',
   PullingRemotePhotos = 'pulling-remote-photos',
+  NoPhotosToSync = 'no-photos-to-sync',
 }
 
 export const PHOTOS_DB_NAME = 'photos.db';
@@ -132,6 +133,7 @@ export enum PhotosSyncManagerStatus {
   COMPLETED = 'COMPLETED',
   ABORTED = 'ABORTED',
   PULLING_REMOTE_PHOTOS = 'PULLING_REMOTE_PHOTOS',
+  NO_PHOTOS_TO_SYNC = 'NO_PHOTOS_TO_SYNC',
 }
 
 export enum PhotosRemoteSyncManagerStatus {
@@ -206,7 +208,7 @@ export type PhotosItem = {
   updatedAt: number;
   width: number;
   height: number;
-  format: string;
+  format: string | 'unknown';
   type: PhotosItemType;
   duration?: number;
   localPreviewPath: PhotoFileSystemRef;
