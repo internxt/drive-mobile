@@ -6,7 +6,6 @@ import { CreatePhotoData, Photo, PhotosSortBy } from '@internxt/sdk/dist/photos'
 import { getEnvironmentConfig } from 'src/lib/network';
 import network from 'src/network';
 import { REMOTE_PHOTOS_PER_PAGE } from '../constants';
-import { photosRealmDB } from '../database';
 import { photosUser } from '../user';
 
 export class PhotosNetworkService {

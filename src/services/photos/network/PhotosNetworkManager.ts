@@ -197,7 +197,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     }
     const startAt = Date.now();
 
-    this.log(`--- UPLOADING ${name} ---`);
+    this.log(`--- UPLOADING ${name} with type ${photoData.format} ---`);
 
     // Check for abort signal
     stopIfAborted();

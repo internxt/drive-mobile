@@ -135,12 +135,22 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
       <Animated.View style={[tailwind('bg-gray-5 w-full h-full'), { opacity: data.localPreviewPath ? 1 : fadeAnim }]}>
         {/* Used to display the camera roll previews, mostly for iOS */}
         {/* Looks like FastImage doesn't support ph:// uris, RN Image does */}
-        {data.localPreviewPath && !PRIVATE_MODE_ENABLED && DISPLAY_LOCAL_PHOTOS && (
+        {!retrievedPreviewUri && data.localPreviewPath && !PRIVATE_MODE_ENABLED && DISPLAY_LOCAL_PHOTOS && (
           <Image
             onError={handlePreviewLoadError}
             style={tailwind('w-full h-full')}
             source={{
               uri: fileSystemService.pathToUri(data.localPreviewPath as string),
+            }}
+          />
+        )}
+
+        {/* Fallback when we regenerate the preview */}
+        {retrievedPreviewUri && !PRIVATE_MODE_ENABLED && DISPLAY_LOCAL_PHOTOS && (
+          <Image
+            style={tailwind('w-full h-full')}
+            source={{
+              uri: fileSystemService.pathToUri(retrievedPreviewUri as string),
             }}
           />
         )}

@@ -305,7 +305,7 @@ const strings = new LocalizedStrings({
             message: 'All your gallery photos and videos will be backed up on Internxt Photos',
           },
         },
-        shareLogs: 'Share logs',
+        saveLogs: 'Save logs',
         information: 'Information',
         termsAndConditions: 'Terms and conditions',
         support: 'Support',
@@ -687,6 +687,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      logFileMovedToDownloads: 'Logs file saved',
       planPeriodDisclaimer: "You'll be charged now and for each payment period until further change.",
       driveDownloadSuccess: 'File downloaded correctly',
       gettingCloudPhotos: 'Getting photos from the cloud',
@@ -1079,7 +1080,7 @@ const strings = new LocalizedStrings({
             message: 'Haz una copia de seguridad de tu galería en Internxt Photos',
           },
         },
-        shareLogs: 'Compartir logs',
+        saveLogs: 'Guardar logs',
         support: 'Soporte',
         information: 'Información',
         more: 'Más información',
@@ -1461,6 +1462,7 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      logFileMovedToDownloads: 'Archivo de logs guardado',
       planPeriodDisclaimer: 'Se te cobrará ahora y en cada periodo de facturación automáticamente.',
       driveDownloadSuccess: 'Archivo descargado correctamente',
       gettingCloudPhotos: 'Obteniendo tus fotos de la nube',
