@@ -37,7 +37,6 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { Abortable } from '@internxt-mobile/types/index';
 import CenterModal from '../CenterModal';
 import AppProgressBar from 'src/components/AppProgressBar';
-import { getPermissionsAsync } from 'expo-media-library';
 
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -262,20 +261,20 @@ function DriveItemInfoModal(): JSX.Element {
       onPress: handleMoveItem,
     },
     {
-      visible: item.fileId ? true : false,
+      visible: !isFolder,
       icon: <ArrowSquareOut size={20} color={getColor('text-gray-100')} />,
       label: strings.components.file_and_folder_options.exportFile,
       onPress: handleExportFile,
       disabled: exporting,
     },
     {
-      visible: Platform.OS === 'ios',
+      visible: Platform.OS === 'ios' && !isFolder,
       icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
       label: strings.components.file_and_folder_options.saveToFiles,
       onPress: handleiOSSaveToFiles,
     },
     {
-      visible: Platform.OS === 'android',
+      visible: Platform.OS === 'android' && !isFolder,
       icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
       label: strings.components.file_and_folder_options.downloadFile,
       onPress: handleAndroidDownloadFile,

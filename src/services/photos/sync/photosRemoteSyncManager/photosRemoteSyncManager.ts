@@ -64,6 +64,7 @@ export class PhotosRemoteSyncManager implements RunnableService<PhotosRemoteSync
       return;
     }
 
+    this.logger.info(`Checking if preview exists at ${photosItem.localPreviewPath}`);
     const existsPreviewFile = await fs.exists(photosItem.localPreviewPath);
 
     try {
@@ -74,7 +75,7 @@ export class PhotosRemoteSyncManager implements RunnableService<PhotosRemoteSync
       // Downloaded already, add photo
       this.totalPhotosSyncedFromRemote++;
 
-      this.logger.info(`Preview downloaded, task done in ${Date.now() - startTaskTime}ms`);
+      this.logger.info(`Preview ready, task done in ${Date.now() - startTaskTime}ms`);
       // We are done, save the date
       await asyncStorageService.saveLastPhotoPulledDate(task.photo.updatedAt);
       return next(null, task.photo);
