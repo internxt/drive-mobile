@@ -266,7 +266,16 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
   addOperation(operation: PhotosNetworkOperation) {
     this.queue.push<OperationResult>(operation, (err, photo) => {
-      operation.onOperationCompleted(err || null, photo || null);
+      if (photo) {
+        return operation.onOperationCompleted(err || null, {
+          photo,
+          photosItem: photosUtils.mergePhotosItems([operation.photosItem, photosUtils.getPhotosItem(photo)])[0],
+        });
+      }
+
+      if (err) {
+        return operation.onOperationCompleted(err, null);
+      }
     });
 
     this.updateStatus(PhotosNetworkManagerStatus.RUNNING);

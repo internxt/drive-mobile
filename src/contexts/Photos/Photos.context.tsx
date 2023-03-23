@@ -314,7 +314,9 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
           setPhotosInDevice(photos.localSync.totalPhotosInDevice);
         }
         setPhotosInLocalDB(await photos.realm.getSyncedPhotosCount());
-        uploadedPhotosItemsRef.current = uploadedPhotosItemsRef.current.concat([photosItem]);
+        uploadedPhotosItemsRef.current = photosUtils.mergePhotosItems(
+          uploadedPhotosItemsRef.current.concat([photosItem]),
+        );
 
         setUploadedPhotosItems(uploadedPhotosItemsRef.current);
       },

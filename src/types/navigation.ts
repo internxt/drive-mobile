@@ -1,6 +1,7 @@
 import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { PhotosItem } from './photos';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -17,7 +18,7 @@ export type RootStackParamList = {
   DeactivatedAccount: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
   ForgotPassword: undefined;
-  PhotosPreview: { photoName: string; photoTakenAt: number; previewPath: string };
+  PhotosPreview: { photosItem: PhotosItem };
   Trash: undefined;
   DrivePreview: undefined;
 };

@@ -159,7 +159,7 @@ export interface PhotosNetworkOperation {
   photosItem: PhotosItem;
   lastError?: Error;
   retries: number;
-  onOperationCompleted: (err: Error | null, photo: Photo | null) => void;
+  onOperationCompleted: (err: Error | null, result: { photo: Photo; photosItem: PhotosItem } | null) => void;
 }
 export type DevicePhoto = MediaLibrary.Asset;
 
@@ -219,6 +219,8 @@ export type PhotosItem = {
   getSize: () => Promise<number>;
   getDisplayName: () => string;
 };
+
+export type SerializedPhotosItem = Omit<PhotosItem, 'getSize' | 'getDisplayName'>;
 
 export type PhotosItemBacked = PhotosItem & {
   photoId: string;

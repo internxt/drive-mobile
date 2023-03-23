@@ -5,7 +5,6 @@ import { ArrowUp, CheckCircle, CloudSlash, EyeSlash } from 'phosphor-react-nativ
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
 import { PhotosContext } from 'src/contexts/Photos';
-import FastImage from 'react-native-fast-image';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import AppText from '../AppText';
 import { time } from '@internxt-mobile/services/common/time';
@@ -60,8 +59,11 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   const isPullingRemotePhotos = photosCtx?.sync.status === PhotosSyncStatus.PullingRemotePhotos;
 
   const uploadedItem = useMemo(
-    () => photosCtx.uploadedPhotosItems.find((uploaded) => uploaded.name === data.name),
-    [photosCtx.uploadedPhotosItems, data.name],
+    () =>
+      photosCtx.uploadedPhotosItems.find(
+        (uploaded) => uploaded.name === data.name && uploaded.takenAt === data.takenAt,
+      ),
+    [photosCtx.uploadedPhotosItems, data],
   );
 
   const photosItem = uploadedItem || props.data;
@@ -71,25 +73,19 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   );
 
   const handleOnPress = () => {
-    // Mix the just uploaded item and the props item
-    // so we get an updated item with both items properties
-    const item = {
-      ...uploadedItem,
-      ...data,
-    };
-
     if (photosCtx.selection.selectionModeActivated) {
-      isSelected ? photosCtx.selection.deselectPhotosItems([item]) : photosCtx.selection.selectPhotosItems([item]);
+      isSelected
+        ? photosCtx.selection.deselectPhotosItems([photosItem])
+        : photosCtx.selection.selectPhotosItems([photosItem]);
     } else {
-      onPress(data);
+      onPress(photosItem);
     }
   };
 
   const handleOnLongPress = () => {
     if (!photosCtx.selection.selectionModeActivated) {
-      const item = uploadedItem || data;
       photosCtx.selection.setSelectionModeActivated(true);
-      photosCtx.selection.selectPhotosItems([item]);
+      photosCtx.selection.selectPhotosItems([photosItem]);
     }
   };
 

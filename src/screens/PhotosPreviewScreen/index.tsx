@@ -67,11 +67,8 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
     }).start();
   }, [progressVisible]);
 
-  const { photoName, photoTakenAt, previewPath } = route.params;
-  const photosItem: PhotosItem = useMemo(
-    () => photosCtx.getPhotosItem(photoName, photoTakenAt) as PhotosItem,
-    [photoName],
-  );
+  const { photosItem } = route.params;
+
   const isVideo = photosItem.type === PhotosItemType.VIDEO;
   const isDownloading =
     (!downloadedFullSizeUri && photosItem.status === PhotoSyncStatus.IN_SYNC_ONLY) ||
@@ -249,17 +246,17 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
               </View>
             </TouchableOpacity>
 
-            <Animated.View
-              style={[tailwind('flex-1 px-10 justify-center items-center'), { opacity: fadeAnimProgress }]}
-            >
-              <AppText style={tailwind('text-white text-sm mb-1.5')}>{strings.generic.downloading}</AppText>
-              <AppProgressBar
-                currentValue={progress}
-                totalValue={1}
-                style={{ backgroundColor: 'rgba(255,255,255,0.2)', height: 3, width: '100%' }}
-                progressStyle={tailwind('bg-white')}
-              />
-            </Animated.View>
+            <View style={[tailwind('flex-1 px-10 justify-center items-center')]}>
+              <AppText style={tailwind('text-white text-sm mb-1.5')}>{}</AppText>
+              <Animated.View style={{ opacity: fadeAnimProgress }}>
+                <AppProgressBar
+                  currentValue={progress}
+                  totalValue={1}
+                  style={{ backgroundColor: 'rgba(255,255,255,0.2)', height: 3, width: '100%' }}
+                  progressStyle={tailwind('bg-white')}
+                />
+              </Animated.View>
+            </View>
             <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA_X2} style={tailwind('z-10')} onPress={handleThreeDotsPress}>
               <View style={tailwind('p-5')}>
                 <DotsThreeVertical weight="bold" color={getColor('text-white')} size={28} />
@@ -356,7 +353,9 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
   const renderImageViewer = () => {
     return (
       <ImageViewer
-        source={fileSystemService.pathToUri(downloadedFullSizeUri ? downloadedFullSizeUri : previewPath)}
+        source={fileSystemService.pathToUri(
+          downloadedFullSizeUri ? downloadedFullSizeUri : photosItem.localPreviewPath,
+        )}
         onTapImage={handleTapImage}
         onZoomImage={handleZoomImage}
         onImageViewReset={handleImageViewReset}

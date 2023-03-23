@@ -22,7 +22,7 @@ import { AbortedOperationError } from 'src/types';
 import { PhotosRealmDB, photosRealmDB } from '../../database';
 import { BaseLogger } from '@internxt-mobile/services/common';
 
-export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
+export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photosItem: PhotosItem | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
 export type OnTotalPhotosCalculatedCallback = (totalPhotos: number) => void;
 export type OnPhotosCheckedRemotelyCallback = (photos: DevicePhotoRemoteCheck[]) => void;
@@ -297,7 +297,7 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
       this.photosNetworkManager.addOperation({
         photosItem: operation.photosItem,
         retries: 0,
-        onOperationCompleted: async (err, photo) => {
+        onOperationCompleted: async (err, result) => {
           if (err) {
             if (err instanceof AbortedOperationError) {
               // This is used to stop the tasks, is not an error at all
@@ -308,23 +308,23 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
             this.totalPhotosFailed++;
             this.onDevicePhotoSyncCompletedCallback(err, null);
           }
-          if (photo) {
+          if (result) {
             this.totalPhotosSynced = this.totalPhotosSynced + 1;
-            this.savePhotoInSync(photo);
+            this.savePhotoInSync(result.photo, result.photosItem);
           }
         },
       });
     }
   };
 
-  private async savePhotoInSync(photo: Photo) {
+  private async savePhotoInSync(photo: Photo, photosItem: PhotosItem) {
     try {
       if (this.isAborted) {
         throw new AbortedOperationError();
       }
 
       await this.realmDB.savePhotosItem(photo);
-      this.devicePhotoSyncSuccess(photo);
+      this.devicePhotoSyncSuccess(photosItem);
     } catch (err) {
       this.devicePhotoSyncFailed(err as Error);
     }
@@ -369,8 +369,8 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
     this.devicePhotosSyncChecker.run();
   }
 
-  private devicePhotoSyncSuccess(photo?: Photo) {
-    this.onDevicePhotoSyncCompletedCallback(null, photo || null);
+  private devicePhotoSyncSuccess(photosItem?: PhotosItem) {
+    this.onDevicePhotoSyncCompletedCallback(null, photosItem || null);
   }
 
   private devicePhotoSyncFailed(error: Error) {

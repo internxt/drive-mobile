@@ -49,12 +49,7 @@ const GalleryAllView: React.FC<{
     if (photosCtx.selection.selectionModeActivated) {
       onItemLongPressed(photosItem);
     } else {
-      const previewPath = photosItem.localPreviewPath;
-      navigation.navigate('PhotosPreview', {
-        photoName: photosItem.name,
-        photoTakenAt: photosItem.takenAt,
-        previewPath,
-      });
+      navigation.navigate('PhotosPreview', { photosItem });
     }
   };
 
