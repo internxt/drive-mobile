@@ -17,6 +17,7 @@ export enum AnalyticsEventKey {
   UserLogout = 'User Logout',
   PaymentConversion = 'Payment Conversion',
   TrashEmptied = 'Trash Emptied',
+  Usage = 'Usage',
 }
 
 export enum DriveAnalyticsEvent {
