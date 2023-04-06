@@ -1,3 +1,4 @@
+import analyticsService, { AnalyticsEventKey } from '@internxt-mobile/services/AnalyticsService';
 import photos from '@internxt-mobile/services/photos';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import storageService from 'src/services/StorageService';
@@ -41,6 +42,23 @@ const loadStorageUsageThunk = createAsyncThunk<void, void, { state: RootState }>
     const photosUsage = await photos.usage.getUsage();
 
     const driveUsage = getState().drive.usage;
+    const limit = getState().storage.limit;
+    const totalUsage = photosUsage + driveUsage;
+
+    const usagePercent = (totalUsage / limit) * 100;
+    const eventPayload = {
+      limit: limit,
+      usage: totalUsage,
+      usage_percent: usagePercent,
+      drive_usage: driveUsage,
+      photos_usage: photosUsage,
+    };
+    const userUuid = getState().auth.user?.uuid;
+    if (userUuid) {
+      analyticsService.identify(userUuid, eventPayload);
+    }
+
+    analyticsService.track(AnalyticsEventKey.Usage, eventPayload);
     dispatch(storageSlice.actions.setTotalUsage(driveUsage + photosUsage));
     dispatch(storageSlice.actions.setPhotosUsage(photosUsage));
   },
