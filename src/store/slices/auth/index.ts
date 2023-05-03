@@ -296,7 +296,7 @@ export const deleteAccountThunk = createAsyncThunk<void, void, { state: RootStat
 
     user && (await authService.deleteAccount(user.email));
 
-    asyncStorageService.saveItem(AsyncStorageKey.IsDeletingAccount, 'DELETING');
+    await asyncStorageService.saveItem(AsyncStorageKey.IsDeletingAccount, 'DELETING');
   },
 );
 

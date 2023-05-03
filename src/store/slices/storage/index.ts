@@ -57,10 +57,10 @@ const loadStorageUsageThunk = createAsyncThunk<void, void, { state: RootState }>
       const userUuid = getState().auth.user?.uuid;
 
       if (userUuid) {
-        analyticsService.identify(userUuid, eventPayload);
+        await analyticsService.identify(userUuid, eventPayload);
       }
 
-      analyticsService.track(AnalyticsEventKey.Usage, eventPayload);
+      await analyticsService.track(AnalyticsEventKey.Usage, eventPayload);
     }
 
     dispatch(storageSlice.actions.setTotalUsage(driveUsage + photosUsage));
