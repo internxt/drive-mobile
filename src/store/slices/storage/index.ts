@@ -45,20 +45,24 @@ const loadStorageUsageThunk = createAsyncThunk<void, void, { state: RootState }>
     const limit = getState().storage.limit;
     const totalUsage = photosUsage + driveUsage;
 
-    const usagePercent = (totalUsage / limit) * 100;
-    const eventPayload = {
-      limit: limit,
-      usage: totalUsage,
-      usage_percent: usagePercent,
-      drive_usage: driveUsage,
-      photos_usage: photosUsage,
-    };
-    const userUuid = getState().auth.user?.uuid;
-    if (userUuid) {
-      analyticsService.identify(userUuid, eventPayload);
+    if (limit) {
+      const usagePercent = (totalUsage / limit) * 100;
+      const eventPayload = {
+        limit: limit,
+        usage: totalUsage,
+        usage_percent: usagePercent,
+        drive_usage: driveUsage,
+        photos_usage: photosUsage,
+      };
+      const userUuid = getState().auth.user?.uuid;
+
+      if (userUuid) {
+        analyticsService.identify(userUuid, eventPayload);
+      }
+
+      analyticsService.track(AnalyticsEventKey.Usage, eventPayload);
     }
 
-    analyticsService.track(AnalyticsEventKey.Usage, eventPayload);
     dispatch(storageSlice.actions.setTotalUsage(driveUsage + photosUsage));
     dispatch(storageSlice.actions.setPhotosUsage(photosUsage));
   },

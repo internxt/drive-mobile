@@ -15,6 +15,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import LoadingSpinner from '../LoadingSpinner';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { PRIVATE_MODE_ENABLED } from '@internxt-mobile/services/photos/constants';
+import appService from '@internxt-mobile/services/AppService';
 interface GalleryItemProps {
   type?: GalleryItemType;
   data: PhotosItem;
@@ -103,13 +104,21 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
   };
 
   const canShowNotUploadedIcon = () => {
+    // If is Android we are running
+    // native mobile sdk, we don't have progress report here
+    // so we just show the not synced icon until we receive an
+    // item synced event
+    if (appService.isAndroid) {
+      return props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem;
+    }
     return (
       props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem && !isUploading && !isPullingRemotePhotos
     );
   };
 
   const isBeingUploaded = () => {
-    return isUploading && !uploadedItem;
+    // On Android we don't have upload reporting
+    return isUploading && !uploadedItem && !appService.isAndroid;
   };
   const renderGradient = () => {
     return (

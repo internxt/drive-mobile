@@ -1,6 +1,6 @@
 import { AppEnv } from '@internxt-mobile/types/app';
 import Constants from 'expo-constants';
-import { AppState, AppStateStatus } from 'react-native';
+import { AppState, AppStateStatus, Platform } from 'react-native';
 import EnvTest from '../../env/.env.test.json';
 import packageJson from '../../package.json';
 import { logger } from './common';
@@ -53,6 +53,14 @@ class AppService {
 
   public get isDevMode() {
     return __DEV__;
+  }
+
+  public get isAndroid() {
+    return Platform.OS === 'android';
+  }
+
+  public get isIOS() {
+    return Platform.OS === 'ios';
   }
 }
 

@@ -11,5 +11,5 @@
       "@internxt-mobile/useCases/*": ["src/useCases/*"]
     }
   },
-  "include": ["app.config.ts", "src", "__tests__"]
+  "include": ["app.config.ts", "src", "__tests__", "../modile-sdk"]
 }

@@ -1633,6 +1633,11 @@
   resolved "https://npm.pkg.github.com/download/@internxt/lib/1.2.0/172d7929abb3dc34fda044ad9977875791f7a471#172d7929abb3dc34fda044ad9977875791f7a471"
   integrity sha512-14byNxSU0S0KSc3g+BWiJb7/fcHUfqxkHQRz9fwJhAHNmgOo+Bhx13xXk07KKUzeNX1JymSGEZkVCk0AOQiM+Q==
 
+"@internxt/mobile-sdk@^0.1.51":
+  version "0.1.51"
+  resolved "https://npm.pkg.github.com/download/@internxt/mobile-sdk/0.1.51/7a227439249060f520c695d5b940c33374d0459c#7a227439249060f520c695d5b940c33374d0459c"
+  integrity sha512-/oRLp3OSHxaHEyX4tzwALETQdnZe7vfWNW/XO8Wo/PGltNJy5lwi6g2M59G7HJ+7FdZ2dJEV15dR3ukJMwxAOQ==
+
 "@internxt/prettier-config@^1.0.2":
   version "1.0.2"
   resolved "https://npm.pkg.github.com/download/@internxt/prettier-config/1.0.2/5bd220b8de76734448db5475b3e0c01f9d22c19b#5bd220b8de76734448db5475b3e0c01f9d22c19b"

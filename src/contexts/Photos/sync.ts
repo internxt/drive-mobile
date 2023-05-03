@@ -129,9 +129,9 @@ export const startSync = async (handlers: SyncHandlers) => {
     }
 
     if (!err && photosItem) {
-      handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
       handlers.onPhotosItemSynced(photosItem);
     }
+    handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
     handlers.updatePendingTasks(localSyncManager.getPhotosThatNeedsSyncCount());
   });
 

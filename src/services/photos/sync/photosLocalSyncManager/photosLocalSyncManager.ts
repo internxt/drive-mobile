@@ -21,6 +21,8 @@ import errorService from 'src/services/ErrorService';
 import { AbortedOperationError } from 'src/types';
 import { PhotosRealmDB, photosRealmDB } from '../../database';
 import { BaseLogger } from '@internxt-mobile/services/common';
+import { Platform } from 'react-native';
+import appService from '@internxt-mobile/services/AppService';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photosItem: PhotosItem | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
@@ -297,7 +299,14 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
       this.photosNetworkManager.addOperation({
         photosItem: operation.photosItem,
         retries: 0,
+        useNativePhotos: appService.isAndroid,
         onOperationCompleted: async (err, result) => {
+          // If we are on Android, result will be null, so we update the item and we will
+          // wait for the event to mark the photo as backed up
+          if (appService.isAndroid) {
+            this.totalPhotosSynced = this.totalPhotosSynced + 1;
+            this.onDevicePhotoSyncCompletedCallback(null, null);
+          }
           if (err) {
             if (err instanceof AbortedOperationError) {
               // This is used to stop the tasks, is not an error at all

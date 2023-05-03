@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { RootState } from '../..';
-import authService from '../../../services/AuthService';
+import authService, { AuthCredentials } from '../../../services/AuthService';
 import userService from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
@@ -17,7 +17,9 @@ import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@in
 import UserService from '../../../services/UserService';
 import photos from '@internxt-mobile/services/photos';
 import drive from '@internxt-mobile/services/drive';
-
+import * as MobileSdk from '@internxt/mobile-sdk';
+import appService from '@internxt-mobile/services/AppService';
+import { getAuthFromCredentials, NetworkAuth } from 'src/network/requests';
 export interface AuthState {
   loggedIn: boolean | null;
   token: string;
@@ -26,6 +28,24 @@ export interface AuthState {
   securityDetails: SecurityDetails | undefined;
   sessionPassword: string | undefined;
 }
+
+const initMobileSdk = async (credentials: AuthCredentials, networkCredentials: NetworkAuth) => {
+  await MobileSdk.setAuthTokens({
+    accessToken: credentials.accessToken,
+    newToken: credentials.photosToken,
+  });
+  await MobileSdk.initSdk({
+    BRIDGE_URL: appService.constants.BRIDGE_URL,
+    DRIVE_API_URL: appService.constants.DRIVE_API_URL,
+    DRIVE_NEW_API_URL: appService.constants.DRIVE_NEW_API_URL,
+    BRIDGE_AUTH_BASE64: btoa(`${networkCredentials.username}:${networkCredentials.password}`),
+    PHOTOS_API_URL: appService.constants.PHOTOS_API_URL,
+    PHOTOS_NETWORK_API_URL: appService.constants.PHOTOS_NETWORK_API_URL,
+    CRIPTO_SECRET: appService.constants.DRIVE_API_URL,
+    MAGIC_IV: appService.constants.MAGIC_IV,
+    MAGIC_SALT: appService.constants.MAGIC_SALT,
+  });
+};
 
 const initialState: AuthState = {
   loggedIn: null,
@@ -51,7 +71,11 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
         email: credentials.user.email,
         userId: credentials.user.userId,
       });
-
+      const networkCredentials = getAuthFromCredentials({
+        user: credentials.user.bridgeUser,
+        pass: credentials.user.userId,
+      });
+      await initMobileSdk(credentials, networkCredentials);
       dispatch(refreshUserThunk());
       dispatch(loadSecurityDetailsThunk());
     } else {
@@ -83,6 +107,13 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         photosToken: credentials.photosToken,
         mnemonic: credentials.user.mnemonic,
       });
+
+      const networkCredentials = getAuthFromCredentials({
+        user: credentials.user.bridgeUser,
+        pass: credentials.user.userId,
+      });
+
+      await initMobileSdk(credentials, networkCredentials);
       dispatch(
         authActions.setSignInData({
           token: credentials.accessToken,
@@ -185,6 +216,10 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
 
+      MobileSdk.setAuthTokens({
+        accessToken: credentials.accessToken,
+        newToken: credentials.photosToken,
+      });
       // Pass the new tokens to the SdkManager
       SdkManager.init({
         token: credentials.accessToken,
