@@ -194,7 +194,9 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       }
     });
 
-    initializeSyncIsEnabled();
+    initializeSyncIsEnabled().catch((err) => {
+      errorService.reportError(err);
+    });
 
     return () => {
       return subscription();
@@ -263,18 +265,26 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     setPhotosInDevice(0);
   }
 
-  async function onRemotePhotosSynced() {
-    const syncedPhotos = await photos.realm.getSyncedPhotos();
-    syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photos.utils.getPhotosItem(syncedPhoto));
-    setPhotosInLocalDB(syncedPhotosItems.current.length);
-    const mergedPhotosItems = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
-    setDataSource(
-      new DataProvider(function (row1, row2) {
-        const row1Key = getListKey(row1);
-        const row2Key = getListKey(row2);
-        return row1Key !== row2Key;
-      }).cloneWithRows(mergedPhotosItems),
-    );
+  function onRemotePhotosSynced() {
+    photos.realm
+      .getSyncedPhotos()
+      .then((syncedPhotos) => {
+        syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photos.utils.getPhotosItem(syncedPhoto));
+        setPhotosInLocalDB(syncedPhotosItems.current.length);
+        const mergedPhotosItems = photosUtils.mergePhotosItems(
+          devicePhotosItems.current.concat(syncedPhotosItems.current),
+        );
+        setDataSource(
+          new DataProvider(function (row1, row2) {
+            const row1Key = getListKey(row1);
+            const row2Key = getListKey(row2);
+            return row1Key !== row2Key;
+          }).cloneWithRows(mergedPhotosItems),
+        );
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+      });
   }
 
   function handlePhotosItemUploadProgress(_: PhotosItem, progress: number) {
