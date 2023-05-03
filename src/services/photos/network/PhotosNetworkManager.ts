@@ -13,6 +13,8 @@ import { photosLogger } from '../logger';
 import { photosPreview } from '../preview';
 import { photosUser } from '../user';
 import { photosRealmDB } from '../database';
+import * as MobileSdk from '@internxt/mobile-sdk';
+import appService from '@internxt-mobile/services/AppService';
 export type OnStatusChangeCallback = (status: PhotosNetworkManagerStatus) => void;
 export type OperationResult = Photo;
 export type OnUploadStartCallback = (photosItem: PhotosItem) => void;
@@ -53,6 +55,12 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
       this.processUploadOperation(task)
         .then((result) => {
+          // Ignore the wait
+          // for next photo processing on Android
+          // we just need to enqueue the operation
+          if (appService.isAndroid) {
+            return next(null, result);
+          }
           return sleep(WAIT_FOR_NEXT_PHOTO_PROCESSING).then(() => next(null, result));
         })
         .catch((err) => {
@@ -127,8 +135,15 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
   }
 
   public get hasFinished() {
+    // If we are on android, return false since processing is handled via MobileSDK
+
     if (this.status === PhotosNetworkManagerStatus.IDLE && this.queue.idle()) return true;
-    return this.status === PhotosNetworkManagerStatus.COMPLETED && this.queue.idle() && this.totalOperations === 0;
+    if (this.status === PhotosNetworkManagerStatus.COMPLETED && this.queue.idle() && this.totalOperations === 0) {
+      if (Platform.OS === 'android') return false;
+      return true;
+    }
+
+    return false;
   }
 
   public get totalOperations() {
@@ -143,6 +158,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
    */
   public async processUploadOperation(operation: PhotosNetworkOperation): Promise<OperationResult | null> {
     this.onUploadStartCallback(operation.photosItem);
+
     const stopIfAborted = () => {
       if (this.abortController.signal.aborted) {
         throw new AbortedOperationError();
@@ -165,10 +181,29 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     if (photoInDB) {
       return photoInDB;
     }
+
     // 1. Get photo data and the hash
     const photoData = operation.photosItem;
     const name = photoData.name;
 
+    // If useNativePhotos is enabled, use it via mobile sdk
+    if (operation.useNativePhotos) {
+      this.log('Adding Photo to the native processing queue');
+      await MobileSdk.photos.processPhotosItem(
+        operation.photosItem.localUri,
+        credentials.user.mnemonic,
+        user.bucketId,
+        user.id,
+        device.id,
+        credentials.user.userId,
+        new Date(photoData.takenAt).toISOString(),
+      );
+
+      this.log(`Photo added to the native processing queue, ${this.queue.length()} photos pending to add`);
+      return null;
+    }
+
+    this.log('Using JS photos processing');
     const localUriToPath = await photosUtils.cameraRollUriToFileSystemUri({
       name: operation.photosItem.name,
       format: operation.photosItem.format,
@@ -266,16 +301,19 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
 
   addOperation(operation: PhotosNetworkOperation) {
     this.queue.push<OperationResult>(operation, (err, photo) => {
-      if (photo) {
-        return operation.onOperationCompleted(err || null, {
-          photo,
-          photosItem: photosUtils.mergePhotosItems([operation.photosItem, photosUtils.getPhotosItem(photo)])[0],
-        });
-      }
-
       if (err) {
         return operation.onOperationCompleted(err, null);
       }
+
+      return operation.onOperationCompleted(
+        err || null,
+        photo
+          ? {
+              photo,
+              photosItem: photosUtils.mergePhotosItems([operation.photosItem, photosUtils.getPhotosItem(photo)])[0],
+            }
+          : null,
+      );
     });
 
     this.updateStatus(PhotosNetworkManagerStatus.RUNNING);

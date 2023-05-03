@@ -4,14 +4,14 @@ import photos from '@internxt-mobile/services/photos';
 import { photosLogger } from '@internxt-mobile/services/photos/logger';
 import { devicePhotosScanner } from '@internxt-mobile/services/photos/sync';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
-import { PhotosItem, PhotosSyncStatus, PhotoSyncStatus } from '@internxt-mobile/types/photos';
-import { PhotoStatus } from '@internxt/sdk/dist/photos';
+import { PhotosItem, PhotosSyncStatus } from '@internxt-mobile/types/photos';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
 import { DataProvider } from 'recyclerlistview';
 
 import { startSync } from './sync';
-
+import * as MobileSdk from '@internxt/mobile-sdk';
+import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
 export interface PhotosContextType {
   dataSource: DataProvider;
   uploadedPhotosItems: PhotosItem[];
@@ -159,7 +159,47 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   );
 
   useEffect(() => {
-    initializeSyncIsEnabled();
+    /**
+     * We receive here events with the serialized photo
+     * that was processed using the MobileSDK, those photos
+     * are processed in the background son we will
+     * receive this events when the app comes back to the foreground
+     */
+    const subscription = MobileSdk.photos.onPhotoSynced((photo) => {
+      const result = photo.result;
+
+      // Parse it
+      const parsedResult = JSON.parse(result) as Photo;
+
+      if (parsedResult.id && parsedResult.status === PhotoStatus.Exists) {
+        const photosItem = photos.utils.getPhotosItem(parsedResult);
+        photos.realm
+          .savePhotosItem(parsedResult)
+          .then(() => {
+            handleOnPhotosItemSynced(photosItem);
+            const pendingTasks = photos.localSync.getPhotosThatNeedsSyncCount();
+            setPendingTasks(pendingTasks);
+            // Hack to mark the sync as completed when running native photos,
+            // the native Photos queue, doesn't "finish" at all right now,
+            // it just goes to an idle state where it wait for more operations
+            // to process
+            if (pendingTasks <= 0) {
+              setSyncStatus(PhotosSyncStatus.Completed);
+            }
+          })
+          .catch((err) => {
+            errorService.reportError(err);
+          });
+      }
+    });
+
+    initializeSyncIsEnabled().catch((err) => {
+      errorService.reportError(err);
+    });
+
+    return () => {
+      return subscription();
+    };
   }, []);
 
   useEffect(() => {
@@ -224,18 +264,26 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     setPhotosInDevice(0);
   }
 
-  async function onRemotePhotosSynced() {
-    const syncedPhotos = await photos.realm.getSyncedPhotos();
-    syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photos.utils.getPhotosItem(syncedPhoto));
-    setPhotosInLocalDB(syncedPhotosItems.current.length);
-    const mergedPhotosItems = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
-    setDataSource(
-      new DataProvider(function (row1, row2) {
-        const row1Key = getListKey(row1);
-        const row2Key = getListKey(row2);
-        return row1Key !== row2Key;
-      }).cloneWithRows(mergedPhotosItems),
-    );
+  function onRemotePhotosSynced() {
+    photos.realm
+      .getSyncedPhotos()
+      .then((syncedPhotos) => {
+        syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photos.utils.getPhotosItem(syncedPhoto));
+        setPhotosInLocalDB(syncedPhotosItems.current.length);
+        const mergedPhotosItems = photosUtils.mergePhotosItems(
+          devicePhotosItems.current.concat(syncedPhotosItems.current),
+        );
+        setDataSource(
+          new DataProvider(function (row1, row2) {
+            const row1Key = getListKey(row1);
+            const row2Key = getListKey(row2);
+            return row1Key !== row2Key;
+          }).cloneWithRows(mergedPhotosItems),
+        );
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+      });
   }
 
   function handlePhotosItemUploadProgress(_: PhotosItem, progress: number) {
@@ -309,20 +357,26 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
           setUploadingPhotosItem(photosItem);
         }, 250);
       },
-      onPhotosItemSynced: async (photosItem) => {
-        if (photos.localSync.totalPhotosInDevice !== null && photosInDevice !== photos.localSync.totalPhotosInDevice) {
-          setPhotosInDevice(photos.localSync.totalPhotosInDevice);
-        }
-        setPhotosInLocalDB(await photos.realm.getSyncedPhotosCount());
-        uploadedPhotosItemsRef.current = photosUtils.mergePhotosItems(
-          uploadedPhotosItemsRef.current.concat([photosItem]),
-        );
-
-        setUploadedPhotosItems(uploadedPhotosItemsRef.current);
-      },
+      onPhotosItemSynced: handleOnPhotosItemSynced,
     });
   }
 
+  const handleOnPhotosItemSynced = (photosItem: PhotosItem) => {
+    if (photos.localSync.totalPhotosInDevice !== null && photosInDevice !== photos.localSync.totalPhotosInDevice) {
+      setPhotosInDevice(photos.localSync.totalPhotosInDevice);
+    }
+    photos.realm
+      .getSyncedPhotosCount()
+      .then((count) => {
+        setPhotosInLocalDB(count);
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+      });
+    uploadedPhotosItemsRef.current = photosUtils.mergePhotosItems(uploadedPhotosItemsRef.current.concat([photosItem]));
+
+    setUploadedPhotosItems(uploadedPhotosItemsRef.current);
+  };
   const getSomeDevicePhotos = async (amount: number) => {
     const { assets } = await devicePhotosScanner.getDevicePhotosItems(undefined, amount);
 

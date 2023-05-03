@@ -116,7 +116,7 @@ export const startSync = async (handlers: SyncHandlers) => {
     }
   });
 
-  localSyncManager.onPhotoSyncCompleted(async (err, photosItem) => {
+  localSyncManager.onPhotoSyncCompleted((err, photosItem) => {
     if (err) {
       handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
       handlers.updateFailedTasks(localSyncManager.totalPhotosFailed);
@@ -129,9 +129,9 @@ export const startSync = async (handlers: SyncHandlers) => {
     }
 
     if (!err && photosItem) {
-      handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
       handlers.onPhotosItemSynced(photosItem);
     }
+    handlers.updateCompletedTasks(localSyncManager.totalPhotosSynced);
     handlers.updatePendingTasks(localSyncManager.getPhotosThatNeedsSyncCount());
   });
 
@@ -153,6 +153,10 @@ export const startSync = async (handlers: SyncHandlers) => {
       });
     },
   });
-  remoteSyncManager.run();
-  startPendingPhotosUpdatePolling();
+  try {
+    await remoteSyncManager.run();
+    startPendingPhotosUpdatePolling();
+  } catch (err) {
+    errorService.reportError(err);
+  }
 };
