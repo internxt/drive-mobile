@@ -104,7 +104,9 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
   public run(): void {
     this.initializeValues();
     this.log('Sync manager starting');
-    this.startSync();
+    this.startSync().catch((err) => {
+      errorService.reportError(err);
+    });
   }
 
   private async startSync() {
