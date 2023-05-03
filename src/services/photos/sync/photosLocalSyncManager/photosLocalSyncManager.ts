@@ -302,7 +302,7 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
         photosItem: operation.photosItem,
         retries: 0,
         useNativePhotos: appService.isAndroid,
-        onOperationCompleted: async (err, result) => {
+        onOperationCompleted: (err, result) => {
           // If we are on Android, result will be null, so we update the item and we will
           // wait for the event to mark the photo as backed up
           if (appService.isAndroid) {
@@ -321,7 +321,9 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
           }
           if (result) {
             this.totalPhotosSynced = this.totalPhotosSynced + 1;
-            this.savePhotoInSync(result.photo, result.photosItem);
+            this.savePhotoInSync(result.photo, result.photosItem).catch((err) => {
+              errorService.reportError(err);
+            });
           }
         },
       });
@@ -346,7 +348,7 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
       this.devicePhotosSyncChecker.addOperation({
         photosItem,
         priority: DevicePhotosOperationPriority.NORMAL,
-        onOperationCompleted: async (err, resolvedOperation) => {
+        onOperationCompleted: (err, resolvedOperation) => {
           if (err) {
             errorService.reportError(err as Error, {
               tags: {
@@ -371,7 +373,9 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
               this.totalPhotosThatNeedsSync = this.totalPhotosThatNeedsSync + 1;
             }
 
-            await this.onDevicePhotoSyncCheckResolved(resolvedOperation);
+            this.onDevicePhotoSyncCheckResolved(resolvedOperation).catch((err) => {
+              errorService.reportError(err);
+            });
           }
         },
       }),
