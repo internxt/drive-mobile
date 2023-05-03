@@ -53,6 +53,10 @@ class ErrorService {
         tags: context.tags,
         extra: context.extra,
       });
+
+      // We are going to add the error to the logger too
+      const loggerMessage = (error as Error).message ? (error as Error).message : JSON.stringify(error);
+      this.logger.error(loggerMessage);
     }
   }
 

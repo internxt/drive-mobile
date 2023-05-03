@@ -142,6 +142,8 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
       if (Platform.OS === 'android') return false;
       return true;
     }
+
+    return false;
   }
 
   public get totalOperations() {

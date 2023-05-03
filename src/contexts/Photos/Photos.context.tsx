@@ -176,17 +176,16 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         photos.realm
           .savePhotosItem(parsedResult)
           .then(() => {
-            return handleOnPhotosItemSynced(photosItem).then(() => {
-              const pendingTasks = photos.localSync.getPhotosThatNeedsSyncCount();
-              setPendingTasks(pendingTasks);
-              // Hack to mark the sync as completed when running native photos,
-              // the native Photos queue, doesn't "finish" at all right now,
-              // it just goes to an idle state where it wait for more operations
-              // to process
-              if (pendingTasks <= 0) {
-                setSyncStatus(PhotosSyncStatus.Completed);
-              }
-            });
+            handleOnPhotosItemSynced(photosItem);
+            const pendingTasks = photos.localSync.getPhotosThatNeedsSyncCount();
+            setPendingTasks(pendingTasks);
+            // Hack to mark the sync as completed when running native photos,
+            // the native Photos queue, doesn't "finish" at all right now,
+            // it just goes to an idle state where it wait for more operations
+            // to process
+            if (pendingTasks <= 0) {
+              setSyncStatus(PhotosSyncStatus.Completed);
+            }
           })
           .catch((err) => {
             errorService.reportError(err);
@@ -362,11 +361,18 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     });
   }
 
-  const handleOnPhotosItemSynced = async (photosItem: PhotosItem) => {
+  const handleOnPhotosItemSynced = (photosItem: PhotosItem) => {
     if (photos.localSync.totalPhotosInDevice !== null && photosInDevice !== photos.localSync.totalPhotosInDevice) {
       setPhotosInDevice(photos.localSync.totalPhotosInDevice);
     }
-    setPhotosInLocalDB(await photos.realm.getSyncedPhotosCount());
+    photos.realm
+      .getSyncedPhotosCount()
+      .then((count) => {
+        setPhotosInLocalDB(count);
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+      });
     uploadedPhotosItemsRef.current = photosUtils.mergePhotosItems(uploadedPhotosItemsRef.current.concat([photosItem]));
 
     setUploadedPhotosItems(uploadedPhotosItemsRef.current);
