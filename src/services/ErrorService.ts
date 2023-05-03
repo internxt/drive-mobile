@@ -54,9 +54,9 @@ class ErrorService {
         extra: context.extra,
       });
 
-      // We are going to add the error to the logger too
+      // We are going to add the error to the logger too, with the context
       const loggerMessage = (error as Error).message ? (error as Error).message : JSON.stringify(error);
-      this.logger.error(loggerMessage);
+      this.logger.error(`${loggerMessage} - Context: ${JSON.stringify(context, null, 2)}`);
     }
   }
 
