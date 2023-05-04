@@ -76,7 +76,6 @@ export class SdkManager {
       {
         // Weird, normal accessToken doesn't work here
         token: this.getApiSecurity().photosToken,
-        mnemonic: this.getApiSecurity().mnemonic,
       },
     );
   }
@@ -127,7 +126,6 @@ export class SdkManager {
       },
       {
         token: this.getApiSecurity().photosToken,
-        mnemonic: this.getApiSecurity().mnemonic,
       },
     );
   }
@@ -148,7 +146,6 @@ export class SdkManager {
       },
       {
         token: this.getApiSecurity().photosToken,
-        mnemonic: this.getApiSecurity().mnemonic,
       },
     );
   }

@@ -341,7 +341,7 @@ class DriveFileService {
    */
   getDecryptedFilePath(filename: string, type?: string) {
     // Use a tmp file so the decrypted file is not persisted
-    return fs.tmpFilePath(filename + (type ? `.${type}` : ''));
+    return fs.tmpFilePath(filename.replaceAll(' ', '_') + (type ? `.${type}` : ''));
   }
 
   /**

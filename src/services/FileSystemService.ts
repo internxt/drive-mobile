@@ -238,6 +238,7 @@ class FileSystemService {
         await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
           dialogTitle: title,
         });
+
         return {
           success: true,
         };

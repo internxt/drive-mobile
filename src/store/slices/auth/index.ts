@@ -30,6 +30,7 @@ export interface AuthState {
 }
 
 const initMobileSdk = async (credentials: AuthCredentials, networkCredentials: NetworkAuth) => {
+  if (!appService.isAndroid) return;
   await MobileSdk.setAuthTokens({
     accessToken: credentials.accessToken,
     newToken: credentials.photosToken,
@@ -65,7 +66,6 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
       SdkManager.init({
         token: credentials.accessToken,
         photosToken: credentials.photosToken,
-        mnemonic: credentials.user.mnemonic,
       });
       errorService.setGlobalErrorContext({
         email: credentials.user.email,
@@ -105,7 +105,6 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
       SdkManager.init({
         token: credentials.accessToken,
         photosToken: credentials.photosToken,
-        mnemonic: credentials.user.mnemonic,
       });
 
       const networkCredentials = getAuthFromCredentials({
@@ -146,7 +145,6 @@ export const signInThunk = createAsyncThunk<
   SdkManager.init({
     token: payload.token,
     photosToken: payload.newToken,
-    mnemonic: payload.user.mnemonic,
   });
   if (!payload.user.root_folder_id) {
     const initializedUser = await UserService.initializeUser(payload.user.email, payload.user.mnemonic);
@@ -161,7 +159,6 @@ export const signInThunk = createAsyncThunk<
   SdkManager.setApiSecurity({
     token: payload.token,
     photosToken: payload.newToken,
-    mnemonic: payload.user.mnemonic,
   });
 
   await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
@@ -216,15 +213,17 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
 
-      MobileSdk.setAuthTokens({
-        accessToken: credentials.accessToken,
-        newToken: credentials.photosToken,
-      });
+      if (appService.isAndroid) {
+        MobileSdk.setAuthTokens({
+          accessToken: credentials.accessToken,
+          newToken: credentials.photosToken,
+        });
+      }
+
       // Pass the new tokens to the SdkManager
       SdkManager.init({
         token: credentials.accessToken,
         photosToken: credentials.photosToken,
-        mnemonic: credentials.user.mnemonic,
       });
 
       // Set the new SignIn data
