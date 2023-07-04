@@ -170,14 +170,6 @@ function DriveItemInfoModal(): JSX.Element {
   };
   const handleAndroidDownloadFile = async () => {
     try {
-      const externalStorageWritePerm = await PermissionsAndroid.check('android.permission.WRITE_EXTERNAL_STORAGE');
-
-      if (!externalStorageWritePerm) {
-        dispatch(uiActions.setShowItemModal(false));
-
-        notifications.error(strings.errors.enableWriteExternalStoragePermissions);
-        return;
-      }
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       if (!item.fileId) {
         throw new Error('Item fileID not found');

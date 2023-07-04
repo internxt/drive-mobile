@@ -49,10 +49,10 @@ const loadStorageUsageThunk = createAsyncThunk<void, void, { state: RootState }>
       const usagePercent = (totalUsage / limit) * 100;
       const eventPayload = {
         limit: limit,
-        usage: totalUsage,
-        usage_percent: usagePercent,
-        drive_usage: driveUsage,
-        photos_usage: photosUsage,
+        usage: totalUsage && typeof totalUsage === 'number' ? totalUsage : 0,
+        usage_percent: usagePercent && typeof usagePercent === 'number' ? usagePercent : 0,
+        drive_usage: driveUsage && typeof driveUsage === 'number' ? driveUsage : 0,
+        photos_usage: photosUsage && typeof photosUsage === 'number' ? photosUsage : 0,
       };
       const userUuid = getState().auth.user?.uuid;
 

@@ -8,6 +8,7 @@ import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
 import { shareAsync } from 'expo-sharing';
+import { fs as MobileSdkFS } from '@internxt/mobile-sdk';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -171,16 +172,8 @@ class FileSystemService {
   public async moveToAndroidDownloads(source: string) {
     /** This is only for Android */
     if (Platform.OS === 'ios') return;
-    // Only needed for Android, iOS doesn't have this directory
-    if (await this.exists(this.getInternxtAndroidDownloadsDir())) {
-      await this.mkdir(this.getInternxtAndroidDownloadsDir());
-    }
 
-    const filename = source.split('/').pop() as string;
-
-    await this.unlinkIfExists(this.getPathForAndroidDownload(filename));
-
-    this.moveFile(source, this.getPathForAndroidDownload(filename));
+    await MobileSdkFS.saveFileToDownloads(source);
   }
 
   public async fileExistsAndIsNotEmpty(uri: string): Promise<boolean> {

@@ -10,7 +10,7 @@ export class RealtimeUpdates {
   init() {
     this.socket = io(constants.NOTIFICATIONS_URL, {
       auth: {
-        token: this.sdk.getApiSecurity().photosToken,
+        token: this.sdk.getApiSecurity().newToken,
       },
       transports: ['websocket'],
       withCredentials: true,

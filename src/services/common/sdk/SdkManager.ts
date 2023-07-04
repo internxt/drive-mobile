@@ -4,7 +4,7 @@ import packageJson from '../../../../package.json';
 import { ApiSecurity } from '@internxt/sdk/dist/shared';
 import { Trash } from '@internxt/sdk/dist/drive';
 
-export type SdkManagerApiSecurity = ApiSecurity & { photosToken: string };
+export type SdkManagerApiSecurity = ApiSecurity & { newToken: string };
 /**
  * Manages all the sdk submodules initialization
  * based on the current apiSecurity details
@@ -75,7 +75,7 @@ export class SdkManager {
       },
       {
         // Weird, normal accessToken doesn't work here
-        token: this.getApiSecurity().photosToken,
+        token: this.getApiSecurity().newToken,
       },
     );
   }
@@ -125,14 +125,14 @@ export class SdkManager {
         clientVersion: appService.version,
       },
       {
-        token: this.getApiSecurity().photosToken,
+        token: this.getApiSecurity().newToken,
       },
     );
   }
 
   /** Photos SDK */
   get photos() {
-    return new photos.Photos(constants.PHOTOS_API_URL, this.getApiSecurity().photosToken);
+    return new photos.Photos(constants.PHOTOS_API_URL, this.getApiSecurity().newToken);
   }
 
   /** Share SDK */
@@ -145,7 +145,7 @@ export class SdkManager {
         clientVersion: appService.version,
       },
       {
-        token: this.getApiSecurity().photosToken,
+        token: this.getApiSecurity().newToken,
       },
     );
   }

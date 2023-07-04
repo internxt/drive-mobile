@@ -53,8 +53,7 @@ class AuthService {
 
       SdkManager.init({
         token: credentials.accessToken,
-        photosToken: credentials.photosToken,
-        mnemonic: credentials.user.mnemonic,
+        newToken: credentials.photosToken,
       });
     } catch {
       // Pass
