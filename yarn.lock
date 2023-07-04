@@ -1633,10 +1633,10 @@
   resolved "https://npm.pkg.github.com/download/@internxt/lib/1.2.0/172d7929abb3dc34fda044ad9977875791f7a471#172d7929abb3dc34fda044ad9977875791f7a471"
   integrity sha512-14byNxSU0S0KSc3g+BWiJb7/fcHUfqxkHQRz9fwJhAHNmgOo+Bhx13xXk07KKUzeNX1JymSGEZkVCk0AOQiM+Q==
 
-"@internxt/mobile-sdk@^0.1.52":
-  version "0.1.52"
-  resolved "https://npm.pkg.github.com/download/@internxt/mobile-sdk/0.1.52/cf9fd66571e184ca28d9e6f5310654d99e5acca0#cf9fd66571e184ca28d9e6f5310654d99e5acca0"
-  integrity sha512-uCKs+vYGWNwz7Sv1H5LXmT0mKC5KPv8LROpXsyMQB8ZuxfI7S2et5fSQtH1wqbFkOFZCBGzj3c+OT7Vn5DWr9Q==
+"@internxt/mobile-sdk@^0.1.54":
+  version "0.1.54"
+  resolved "https://npm.pkg.github.com/download/@internxt/mobile-sdk/0.1.54/f065ff6aa7f4ef6f0b9ae475a606c6fd25395c56#f065ff6aa7f4ef6f0b9ae475a606c6fd25395c56"
+  integrity sha512-0SIIQwpNJN5Xntn/PIpfp7Mz4hhl2B/xbpWV1ayqqA7ydA4q7Gzpn6GNFxHAsvO7M/sxVl+I7tCXpFgdr3DLYA==
 
 "@internxt/prettier-config@^1.0.2":
   version "1.0.2"
@@ -1650,10 +1650,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@^1.4.31":
-  version "1.4.31"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.4.31/8eafe4b5a216dcefb2ded06ed12e9a8b7199901d#8eafe4b5a216dcefb2ded06ed12e9a8b7199901d"
-  integrity sha512-cscZ3ITKxKWVVvRCCZRxqiBeOE8L8IY/M3z2UhEHS7mLFZfY+lpQOw9Eneq5YhjjGelClPzW8igvMbZrU94Mrg==
+"@internxt/sdk@^1.4.35":
+  version "1.4.35"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.4.35/d947a5608ce9c16dbf22984f3b4ae3a0c4bd87cb#d947a5608ce9c16dbf22984f3b4ae3a0c4bd87cb"
+  integrity sha512-WX5cJiRoj8buRobAq+zRPKNavZ09vbCNdw9PVtEG6A5okK4wYIaGqbWBTldffgrO4JgtyNbMqxUCDD0i0UUSCQ==
   dependencies:
     axios "^0.24.0"
     query-string "^7.1.0"

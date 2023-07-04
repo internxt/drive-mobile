@@ -65,7 +65,7 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
     if (credentials) {
       SdkManager.init({
         token: credentials.accessToken,
-        photosToken: credentials.photosToken,
+        newToken: credentials.photosToken,
       });
       errorService.setGlobalErrorContext({
         email: credentials.user.email,
@@ -104,7 +104,7 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
 
       SdkManager.init({
         token: credentials.accessToken,
-        photosToken: credentials.photosToken,
+        newToken: credentials.photosToken,
       });
 
       const networkCredentials = getAuthFromCredentials({
@@ -144,7 +144,7 @@ export const signInThunk = createAsyncThunk<
   let userToSave = payload.user;
   SdkManager.init({
     token: payload.token,
-    photosToken: payload.newToken,
+    newToken: payload.newToken,
   });
   if (!payload.user.root_folder_id) {
     const initializedUser = await UserService.initializeUser(payload.user.email, payload.user.mnemonic);
@@ -158,7 +158,7 @@ export const signInThunk = createAsyncThunk<
   // Set the new SDK tokens
   SdkManager.setApiSecurity({
     token: payload.token,
-    photosToken: payload.newToken,
+    newToken: payload.newToken,
   });
 
   await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
@@ -223,7 +223,7 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       // Pass the new tokens to the SdkManager
       SdkManager.init({
         token: credentials.accessToken,
-        photosToken: credentials.photosToken,
+        newToken: credentials.photosToken,
       });
 
       // Set the new SignIn data

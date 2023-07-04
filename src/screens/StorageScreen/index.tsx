@@ -156,7 +156,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
             ]}
           />
 
-          <ReferralsWidget />
+          {!hasPaidPlan ? <ReferralsWidget /> : null}
         </View>
       </ScrollView>
     </AppScreen>

@@ -39,7 +39,7 @@ class PhotosUserService {
       { uniqueId, mac },
       {
         headers: {
-          Authorization: `Bearer ${this.sdk.getApiSecurity().photosToken}`,
+          Authorization: `Bearer ${this.sdk.getApiSecurity().newToken}`,
         },
       },
     );
