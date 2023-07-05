@@ -25,7 +25,8 @@
     "test:e2e:test:ios.debug": "detox test -c ios.debug",
     "test:e2e:test:ios.release": "detox test -c ios.release",
     "tailwind:dev": "concurrently \"tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer --watch\" \"tailwind-rn --watch  -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json\"",
-    "tailwind:build": "tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer && tailwind-rn -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json"
+    "tailwind:build": "tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer && tailwind-rn -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
@@ -33,7 +34,7 @@
     "@hookform/resolvers": "^2.9.1",
     "@internxt/lib": "^1.2.0",
     "@internxt/mobile-sdk": "^0.1.54",
-    "@internxt/rn-crypto": "^0.1.11",
+    "@internxt/rn-crypto": "^0.1.12",
     "@internxt/sdk": "^1.4.35",
     "@react-native-async-storage/async-storage": "~1.17.3",
     "@react-navigation/bottom-tabs": "^6.2.0",
@@ -94,7 +95,7 @@
     "react-native": "^0.70.8",
     "react-native-bip39": "^2.3.0",
     "react-native-collapsible": "^1.6.0",
-    "react-native-create-thumbnail": "^1.6.3",
+    "react-native-create-thumbnail": "^1.6.4",
     "react-native-crypto": "^2.2.0",
     "react-native-device-info": "^8.4.8",
     "react-native-document-picker": "^4.1.0",
@@ -168,6 +169,7 @@
     "husky": "^7.0.2",
     "jest": "^29.3.1",
     "jest-expo": "^47.0.0",
+    "patch-package": "^7.0.0",
     "postcss": "^8.2.15",
     "prettier": "^2.3.2",
     "react-native-svg-transformer": "^0.14.3",
