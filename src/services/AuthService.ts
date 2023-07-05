@@ -142,7 +142,7 @@ class AuthService {
     if (credentials.user.privateKey) {
       const privateKey = Buffer.from(credentials.user.privateKey, 'base64').toString();
       const privateKeyEncrypted = AesUtils.encrypt(privateKey, params.newPassword);
-      privateKeyFinalValue = Buffer.from(privateKeyEncrypted, 'base64').toString('hex');
+      privateKeyFinalValue = privateKeyEncrypted;
     } else {
       /**
        * We are not generating the public/private key in mobile
