@@ -1,6 +1,6 @@
 import { PhotosItem, PhotoSizeType, PhotosNetworkManagerStatus, PhotosNetworkOperation } from '../../../types/photos';
 import async from 'async';
-import { Photo, PhotoPreviewType } from '@internxt/sdk/dist/photos';
+import { Photo, PhotoPreviewType, PhotosItemType } from '@internxt/sdk/dist/photos';
 import { RunnableService, sleep } from '../../../helpers/services';
 import fileSystemService from '../../FileSystemService';
 import { MAX_UPLOAD_RETRIES, PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY } from '../constants';
@@ -190,6 +190,8 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     if (operation.useNativePhotos) {
       this.log('Adding Photo to the native processing queue');
       await MobileSdk.photos.processPhotosItem(
+        operation.photosItem.getDisplayName(),
+        operation.photosItem.type === PhotosItemType.PHOTO ? 'IMAGE' : 'VIDEO',
         operation.photosItem.localUri,
         credentials.user.mnemonic,
         user.bucketId,
