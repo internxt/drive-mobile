@@ -154,8 +154,8 @@ android {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 76
-        versionName "1.5.28"
+        versionCode 77
+        versionName "1.5.29"
         testBuildType System.getProperty('testBuildType', 'debug')  // This will later be used to control the test apk build type
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }

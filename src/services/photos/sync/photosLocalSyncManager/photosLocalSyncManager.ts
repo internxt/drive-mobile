@@ -21,7 +21,6 @@ import errorService from 'src/services/ErrorService';
 import { AbortedOperationError } from 'src/types';
 import { PhotosRealmDB, photosRealmDB } from '../../database';
 import { BaseLogger } from '@internxt-mobile/services/common';
-import { Platform } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photosItem: PhotosItem | null) => void;
