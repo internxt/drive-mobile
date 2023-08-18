@@ -1609,10 +1609,10 @@
 			"color": "rgb(255 0 0 / var(--tw-text-opacity))"
 		}
 	},
-	"text-yellow-30": {
+	"text-yellow": {
 		"style": {
 			"--tw-text-opacity": 1,
-			"color": "rgb(255 0 0 / var(--tw-text-opacity))"
+			"color": "rgb(255 204 0 / var(--tw-text-opacity))"
 		}
 	},
 	"text-gray-50": {
@@ -1645,10 +1645,10 @@
 			"color": "rgb(255 0 0 / var(--tw-text-opacity))"
 		}
 	},
-	"text-yellow-40": {
+	"text-yellow-dark": {
 		"style": {
 			"--tw-text-opacity": 1,
-			"color": "rgb(255 0 0 / var(--tw-text-opacity))"
+			"color": "rgb(230 184 0 / var(--tw-text-opacity))"
 		}
 	},
 	"text-neutral-300": {
@@ -1691,12 +1691,6 @@
 		"style": {
 			"--tw-text-opacity": 1,
 			"color": "rgb(255 149 0 / var(--tw-text-opacity))"
-		}
-	},
-	"text-yellow-": {
-		"style": {
-			"--tw-text-opacity": 1,
-			"color": "rgb(255 204 0 / var(--tw-text-opacity))"
 		}
 	},
 	"text-gray-20": {

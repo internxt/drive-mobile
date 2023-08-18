@@ -27,7 +27,7 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     },
     {
       type: NotificationType.Warning,
-      icon: <Warning weight="fill" color={getColor('text-yellow-30')} style={tailwind('mr-2')} />,
+      icon: <Warning weight="fill" color={getColor('text-yellow')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Error,

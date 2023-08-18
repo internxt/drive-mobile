@@ -76,7 +76,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(<Warning {...iconDefaultProps} weight="fill" color={getColor('text-yellow-30')} />)
+          renderIcon(<Warning {...iconDefaultProps} weight="fill" color={getColor('text-yellow')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />
