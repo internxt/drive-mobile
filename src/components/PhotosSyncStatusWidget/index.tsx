@@ -195,7 +195,7 @@ const PhotosSyncStatusWidget = () => {
       <View style={tailwind('h-10 flex-row items-center justify-between')}>
         <View style={tailwind('pl-5 flex-1')}>{contentByStatus[photosCtx.sync.status]}</View>
         {appService.isDevMode ? (
-          <AppText style={tailwind('text-red-50 text-xs ml-auto mr-2')}>{photosCtx.sync.failedTasks} Failed</AppText>
+          <AppText style={tailwind('text-red text-xs ml-auto mr-2')}>{photosCtx.sync.failedTasks} Failed</AppText>
         ) : null}
         {showPauseResumeButton ? (
           !isPaused && !isPausing ? (

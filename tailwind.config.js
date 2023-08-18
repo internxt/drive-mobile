@@ -10,8 +10,7 @@ module.exports = {
       // NEW DESIGN SYSTEM
       primary: 'rgba(0,102,255)',
       'primary-dark': 'rgba(0,88,219)',
-      'red-': 'rgba(255,13,0)',
-      'red-light': 'rgba(255,0,0,0.15)',
+      red: 'rgba(255,13,0)',
       'red-dark': 'rgba(230,11,0)',
       'orange-': 'rgba(255,149,0)',
       'orange-dark': 'rgba(230,134,0)',
@@ -35,10 +34,6 @@ module.exports = {
       },
 
       // OLD DESIGN SYSTEM
-      red: {
-        50: 'rgba(255,0,0)',
-        60: 'rgba(255,0,0)',
-      },
       green: {
         40: 'rgba(255,0,0)',
       },

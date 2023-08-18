@@ -200,7 +200,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                   key: 'sign-out',
                   template: (
                     <View style={tailwind('px-4 py-3')}>
-                      <AppText style={tailwind('text-center text-lg text-red-')}>{strings.buttons.signOut}</AppText>
+                      <AppText style={tailwind('text-center text-lg text-red')}>{strings.buttons.signOut}</AppText>
                     </View>
                   ),
                   onPress: onSignOutPressed,

@@ -277,8 +277,8 @@ function DriveItemInfoModal(): JSX.Element {
       onPress: handleGenerateShareLink,
     },
     {
-      icon: <Trash size={20} color={getColor('text-red-60')} />,
-      textStyle: tailwind('text-red-60'),
+      icon: <Trash size={20} color={getColor('text-red-dark')} />,
+      textStyle: tailwind('text-red-dark'),
       label: strings.components.file_and_folder_options.delete,
       onPress: handleTrashItem,
     },

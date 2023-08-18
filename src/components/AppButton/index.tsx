@@ -28,7 +28,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     'accept-2': props.disabled ? tailwind('bg-gray-40') : tailwind('bg-primary/10'),
     cancel: tailwind('bg-gray-5'),
     'cancel-2': tailwind('bg-primary/10'),
-    delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red-'),
+    delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red'),
     white: {
       ...tailwind('bg-white'),
       ...({

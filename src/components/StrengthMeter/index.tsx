@@ -16,7 +16,7 @@ const StrengthMeter = ({ style, value, maxValue, message }: StrengthMeterProps) 
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const color = useMemo(() => {
-    let color = getColor('text-red-');
+    let color = getColor('text-red');
 
     if (value === maxValue) {
       color = getColor('text-green-');

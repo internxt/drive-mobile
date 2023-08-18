@@ -33,7 +33,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
               tailwind('mt-1 text-sm'),
               status === 'success' && tailwind('text-green-'),
               status === 'warning' && tailwind('text-warning-'),
-              status === 'error' && tailwind('text-red-'),
+              status === 'error' && tailwind('text-red'),
             ]}
           >
             {statusMessage}
@@ -54,7 +54,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
         style={[
           tailwind('flex-row items-center rounded-lg border border-gray-20 py-1.5'),
           isFocused && tailwind('border-primary'),
-          status === 'error' && tailwind('border-red-'),
+          status === 'error' && tailwind('border-red'),
           status === 'warning' && tailwind('border-orange-'),
           status === 'success' && tailwind('border-green-'),
           !editable && tailwind('border-gray-10'),

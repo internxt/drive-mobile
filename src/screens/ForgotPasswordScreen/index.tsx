@@ -60,8 +60,8 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
   const getEmailError = () => {
     return (
       <View style={tailwind('flex flex-row items-center mt-1')}>
-        <WarningCircle weight="fill" color={tailwind('text-red-').color as string} size={13} />
-        <AppText style={tailwind('text-sm text-red- ml-1 leading-4')}>{emailError}</AppText>
+        <WarningCircle weight="fill" color={tailwind('text-red').color as string} size={13} />
+        <AppText style={tailwind('text-sm text-red ml-1 leading-4')}>{emailError}</AppText>
       </View>
     );
   };

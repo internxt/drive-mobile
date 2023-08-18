@@ -78,9 +78,9 @@ export function PhotosPreviewOptionsModal({
       onPress: actions.shareLink,
     },
     {
-      icon: <Trash size={22} color={getColor('text-red-')} />,
+      icon: <Trash size={22} color={getColor('text-red')} />,
       disabled: false,
-      label: <AppText style={tailwind('text-lg text-red-')}>{strings.buttons.moveToThrash}</AppText>,
+      label: <AppText style={tailwind('text-lg text-red')}>{strings.buttons.moveToThrash}</AppText>,
       onPress: () => {
         photos.analytics.track(PhotosAnalyticsEventKey.MoveToTrashSelected, {
           individual_action: true,

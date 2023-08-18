@@ -273,7 +273,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                 key: 'delete-account',
                 template: (
                   <View style={tailwind('px-4 py-3')}>
-                    <AppText style={tailwind('text-center text-lg text-red-')}>
+                    <AppText style={tailwind('text-center text-lg text-red')}>
                       {strings.screens.AccountScreen.deleteAccount}
                     </AppText>
                   </View>

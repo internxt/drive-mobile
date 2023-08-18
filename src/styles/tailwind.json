@@ -897,7 +897,7 @@
 			"borderLeftColor": "rgb(0 102 255 / var(--tw-border-opacity))"
 		}
 	},
-	"border-red-": {
+	"border-red": {
 		"style": {
 			"--tw-border-opacity": 1,
 			"borderTopColor": "rgb(255 13 0 / var(--tw-border-opacity))",
@@ -949,14 +949,6 @@
 			"borderRightColor": "rgb(243 243 248 / var(--tw-border-opacity))",
 			"borderBottomColor": "rgb(243 243 248 / var(--tw-border-opacity))",
 			"borderLeftColor": "rgb(243 243 248 / var(--tw-border-opacity))"
-		}
-	},
-	"border-red-light": {
-		"style": {
-			"borderTopColor": "rgba(255,0,0,0.15)",
-			"borderRightColor": "rgba(255,0,0,0.15)",
-			"borderBottomColor": "rgba(255,0,0,0.15)",
-			"borderLeftColor": "rgba(255,0,0,0.15)"
 		}
 	},
 	"border-neutral-500": {
@@ -1013,7 +1005,7 @@
 			"backgroundColor": "rgb(243 243 248 / var(--tw-bg-opacity))"
 		}
 	},
-	"bg-red-": {
+	"bg-red": {
 		"style": {
 			"--tw-bg-opacity": 1,
 			"backgroundColor": "rgb(255 13 0 / var(--tw-bg-opacity))"
@@ -1049,11 +1041,6 @@
 			"backgroundColor": "rgb(255 0 0 / var(--tw-bg-opacity))"
 		}
 	},
-	"bg-red-light": {
-		"style": {
-			"backgroundColor": "rgba(255,0,0,0.15)"
-		}
-	},
 	"bg-black/60": {
 		"style": {
 			"backgroundColor": "rgb(0 0 0 / 0.6)"
@@ -1076,7 +1063,7 @@
 			"backgroundColor": "rgb(58 58 59 / var(--tw-bg-opacity))"
 		}
 	},
-	"bg-red-/5": {
+	"bg-red/5": {
 		"style": {
 			"backgroundColor": "rgb(255 13 0 / 0.05)"
 		}
@@ -1604,7 +1591,7 @@
 			"color": "rgb(50 195 86 / var(--tw-text-opacity))"
 		}
 	},
-	"text-red-": {
+	"text-red": {
 		"style": {
 			"--tw-text-opacity": 1,
 			"color": "rgb(255 13 0 / var(--tw-text-opacity))"
@@ -1629,12 +1616,6 @@
 		}
 	},
 	"text-yellow-30": {
-		"style": {
-			"--tw-text-opacity": 1,
-			"color": "rgb(255 0 0 / var(--tw-text-opacity))"
-		}
-	},
-	"text-red-50": {
 		"style": {
 			"--tw-text-opacity": 1,
 			"color": "rgb(255 0 0 / var(--tw-text-opacity))"
@@ -1671,12 +1652,6 @@
 		}
 	},
 	"text-yellow-40": {
-		"style": {
-			"--tw-text-opacity": 1,
-			"color": "rgb(255 0 0 / var(--tw-text-opacity))"
-		}
-	},
-	"text-red-60": {
 		"style": {
 			"--tw-text-opacity": 1,
 			"color": "rgb(255 0 0 / var(--tw-text-opacity))"

@@ -31,7 +31,7 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     },
     {
       type: NotificationType.Error,
-      icon: <WarningOctagon weight="fill" color={getColor('text-red-50')} style={tailwind('mr-2')} />,
+      icon: <WarningOctagon weight="fill" color={getColor('text-red')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Upload,

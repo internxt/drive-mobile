@@ -52,9 +52,9 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
 
       {isDowngrading && (
         <View style={tailwind('mb-9')}>
-          <View style={tailwind('p-3 rounded-lg bg-red-/5 flex-row')}>
-            <Warning weight="fill" color={getColor('text-red-')} size={20} style={tailwind('mt-0.5 mr-3')} />
-            <AppText lineHeight={1.2} style={tailwind('text-sm flex-1 text-red-')}>
+          <View style={tailwind('p-3 rounded-lg bg-red/5 flex-row')}>
+            <Warning weight="fill" color={getColor('text-red')} size={20} style={tailwind('mt-0.5 mr-3')} />
+            <AppText lineHeight={1.2} style={tailwind('text-sm flex-1 text-red')}>
               {strings.formatString(
                 strings.modals.CancelSubscription.steps['cancel-subscription'].storageDowngradeWarning,
                 storageService.toString(usage),
@@ -75,7 +75,7 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
 
       <View style={tailwind('rounded-xl bg-gray-5/50 p-4 mb-10')}>
         <View style={tailwind('flex-row justify-center items-center')}>
-          <AppText style={tailwind('text-4xl text-red-')}>{storageService.toString(FREE_STORAGE)}</AppText>
+          <AppText style={tailwind('text-4xl text-red')}>{storageService.toString(FREE_STORAGE)}</AppText>
           <ArrowLeft style={tailwind('mx-3')} />
           <AppText style={tailwind('text-4xl line-through')}>{storageService.toString(limit)}</AppText>
         </View>
