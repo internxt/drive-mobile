@@ -21,7 +21,7 @@ const StrengthMeter = ({ style, value, maxValue, message }: StrengthMeterProps) 
     if (value === maxValue) {
       color = getColor('text-green');
     } else if (value >= Math.ceil(maxValue * 0.5)) {
-      color = getColor('text-orange-');
+      color = getColor('text-orange');
     }
 
     return color;

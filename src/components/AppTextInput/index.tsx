@@ -55,7 +55,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
           tailwind('flex-row items-center rounded-lg border border-gray-20 py-1.5'),
           isFocused && tailwind('border-primary'),
           status === 'error' && tailwind('border-red'),
-          status === 'warning' && tailwind('border-orange-'),
+          status === 'warning' && tailwind('border-orange'),
           status === 'success' && tailwind('border-green'),
           !editable && tailwind('border-gray-10'),
           props.wrapperStyle,

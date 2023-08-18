@@ -906,7 +906,7 @@
 			"borderLeftColor": "rgb(255 13 0 / var(--tw-border-opacity))"
 		}
 	},
-	"border-orange-": {
+	"border-orange": {
 		"style": {
 			"--tw-border-opacity": 1,
 			"borderTopColor": "rgb(255 149 0 / var(--tw-border-opacity))",
@@ -1687,7 +1687,7 @@
 			"color": "rgb(229 229 235 / var(--tw-text-opacity))"
 		}
 	},
-	"text-orange-": {
+	"text-orange": {
 		"style": {
 			"--tw-text-opacity": 1,
 			"color": "rgb(255 149 0 / var(--tw-text-opacity))"
