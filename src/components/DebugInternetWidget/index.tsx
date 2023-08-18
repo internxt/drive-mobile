@@ -18,7 +18,7 @@ const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
   const getColor = useGetColor();
   const [speed, setSpeed] = useState(0);
   const bySpeedFeatures = [
-    { min: 20, color: getColor('text-green-40') },
+    { min: 20, color: getColor('text-green') },
     { min: 10, color: getColor('text-yellow-40') },
     { min: 0, color: getColor('text-red-dark') },
   ];

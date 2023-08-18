@@ -67,9 +67,9 @@ const ReferralsWidget = (): JSX.Element => {
               {text}
             </AppText>
 
-            <AppText style={r.isCompleted ? tailwind('text-green-') : tailwind('text-gray-40')}>{creditText}</AppText>
+            <AppText style={r.isCompleted ? tailwind('text-green') : tailwind('text-gray-40')}>{creditText}</AppText>
             {r.isCompleted ? (
-              <CheckCircle weight="fill" color={getColor('text-green-')} size={20} style={tailwind('ml-2.5')} />
+              <CheckCircle weight="fill" color={getColor('text-green')} size={20} style={tailwind('ml-2.5')} />
             ) : (
               hasClickAction && <CaretRight color={getColor('text-gray-40')} size={20} style={tailwind('ml-2.5')} />
             )}
@@ -94,7 +94,7 @@ const ReferralsWidget = (): JSX.Element => {
                 <AppText style={tailwind('text-center text-lg')}>
                   {strings.screens.StorageScreen.referrals.youHaveUnlocked}
                 </AppText>
-                <AppText style={tailwind('text-center text-3xl text-green-')} medium>
+                <AppText style={tailwind('text-center text-3xl text-green')} medium>
                   {storageService.toString(unlockedReferralsStorage)}
                 </AppText>
                 <AppText style={tailwind('text-center text-lg')}>

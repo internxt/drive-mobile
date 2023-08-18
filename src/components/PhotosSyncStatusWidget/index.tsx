@@ -104,7 +104,7 @@ const PhotosSyncStatusWidget = () => {
     ),
     [PhotosSyncStatus.Completed]: (
       <View style={tailwind('flex-row items-center')}>
-        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('text-green-40')} size={14} />
+        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('text-green')} size={14} />
         <AppText style={tailwind('text-gray-100 text-sm')}>{strings.messages.photosSyncCompleted}</AppText>
       </View>
     ),

@@ -16,7 +16,7 @@ module.exports = {
       'orange-dark': 'rgba(230,134,0)',
       'yellow-': 'rgba(255,204,0)',
       'yellow-dark': 'rgba(230,184,0)',
-      'green-': 'rgba(50,195,86)',
+      'green': 'rgba(50,195,86)',
       'green-dark': 'rgba(45,174,77)',
       gray: {
         1: 'rgba(249,249,252)',
@@ -34,9 +34,6 @@ module.exports = {
       },
 
       // OLD DESIGN SYSTEM
-      green: {
-        40: 'rgba(255,0,0)',
-      },
       yellow: {
         30: 'rgba(255,0,0)',
         40: 'rgba(255,0,0)',

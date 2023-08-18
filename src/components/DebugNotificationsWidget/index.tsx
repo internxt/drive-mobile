@@ -23,7 +23,7 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     },
     {
       type: NotificationType.Success,
-      icon: <CheckCircle weight="fill" color={getColor('text-green-40')} style={tailwind('mr-2')} />,
+      icon: <CheckCircle weight="fill" color={getColor('text-green')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Warning,

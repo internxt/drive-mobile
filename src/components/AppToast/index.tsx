@@ -66,7 +66,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(<CheckCircle {...iconDefaultProps} weight="fill" color={getColor('text-green-40')} />)
+          renderIcon(<CheckCircle {...iconDefaultProps} weight="fill" color={getColor('text-green')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />

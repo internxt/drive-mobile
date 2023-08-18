@@ -130,7 +130,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{user?.email}</AppText>
             {user?.emailVerified ? (
-              <CheckCircle weight="fill" color={getColor('text-green-')} size={20} />
+              <CheckCircle weight="fill" color={getColor('text-green')} size={20} />
             ) : (
               <Warning weight="fill" color={getColor('text-yellow-')} size={20} />
             )}

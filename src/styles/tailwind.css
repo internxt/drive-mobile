@@ -691,7 +691,7 @@
   border-color: rgb(255 149 0 / var(--tw-border-opacity))
 }
 
-.border-green- {
+.border-green {
   --tw-border-opacity: 1;
   border-color: rgb(50 195 86 / var(--tw-border-opacity))
 }
@@ -1206,12 +1206,12 @@
   color: rgb(255 0 0 / var(--tw-text-opacity))
 }
 
-.text-green- {
+.text-green {
   --tw-text-opacity: 1;
   color: rgb(50 195 86 / var(--tw-text-opacity))
 }
 
-.text-red- {
+.text-red {
   --tw-text-opacity: 1;
   color: rgb(255 13 0 / var(--tw-text-opacity))
 }
@@ -1222,11 +1222,6 @@
 }
 
 .text-neutral-100 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
-}
-
-.text-green-40 {
   --tw-text-opacity: 1;
   color: rgb(255 0 0 / var(--tw-text-opacity))
 }
