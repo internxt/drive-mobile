@@ -27,7 +27,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const defaultColor = getColor('text-blue-60');
+  const defaultColor = getColor('text-primary');
   const syncingSpinnerRotationAnimation = useRef(new Animated.Value(0)).current;
   const syncingSpinnerRotationInterpolation = syncingSpinnerRotationAnimation.interpolate({
     inputRange: [0, 1],

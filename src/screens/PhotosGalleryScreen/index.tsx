@@ -123,10 +123,10 @@ function PhotosGalleryScreen(): JSX.Element {
               <View style={tailwind('flex-row pr-5')}>
                 <View style={tailwind('flex-row items-center justify-between')}>
                   <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                    style={tailwind('bg-primary/10 px-3.5 py-1 rounded-3xl')}
                     onPress={onCancelSelectButtonPressed}
                   >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                    <Text style={[tailwind('text-primary'), globalStyle.fontWeight.medium]}>
                       {strings.buttons.cancel}
                     </Text>
                   </TouchableOpacity>
@@ -144,10 +144,10 @@ function PhotosGalleryScreen(): JSX.Element {
               {photosCtx.ready && (
                 <View style={tailwind('flex-row items-center justify-between pr-5')}>
                   <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                    style={tailwind('bg-primary/10 px-3.5 py-1 rounded-3xl')}
                     onPress={onSelectButtonPressed}
                   >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                    <Text style={[tailwind('text-primary'), globalStyle.fontWeight.medium]}>
                       {strings.buttons.select}
                     </Text>
                   </TouchableOpacity>

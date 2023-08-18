@@ -35,11 +35,11 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     },
     {
       type: NotificationType.Upload,
-      icon: <ArrowCircleUp weight="fill" color={getColor('text-blue-30')} style={tailwind('mr-2')} />,
+      icon: <ArrowCircleUp weight="fill" color={getColor('text-primary')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Download,
-      icon: <ArrowCircleDown weight="fill" color={getColor('text-blue-30')} style={tailwind('mr-2')} />,
+      icon: <ArrowCircleDown weight="fill" color={getColor('text-primary')} style={tailwind('mr-2')} />,
     },
   ];
   const onNotificationButtonPressed = ({ type }: { type: NotificationType; icon: JSX.Element | null }) =>

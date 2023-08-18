@@ -96,8 +96,8 @@ export const PhotosPermissions: React.FC<PhotosPermissionsProps> = (props) => {
       <View style={tailwind('mb-5')}>{featuresList}</View>
 
       {permissions === MediaLibrary.PermissionStatus.DENIED && (
-        <View style={tailwind('mb-2 rounded-lg w-full p-3 bg-blue-10')}>
-          <Text style={tailwind('text-blue-90 text-center')}>
+        <View style={tailwind('mb-2 rounded-lg w-full p-3 bg-primary/10')}>
+          <Text style={tailwind('text-primary-dark text-center')}>
             {Platform.OS === 'android'
               ? strings.screens.photosPermissions.androidAdvice
               : strings.screens.photosPermissions.iosAdvice}

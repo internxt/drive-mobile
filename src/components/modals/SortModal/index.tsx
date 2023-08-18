@@ -103,10 +103,13 @@ function SortModalItem(props: {
   return (
     <TouchableOpacity activeOpacity={0.65} style={tailwind('rounded-lg')} onPress={onPress}>
       <View
-        style={[tailwind('items-center flex-row rounded-lg px-4 py-2.5'), props.isSelected && tailwind('bg-blue-10')]}
+        style={[
+          tailwind('items-center flex-row rounded-lg px-4 py-2.5'),
+          props.isSelected && tailwind('bg-primary/10'),
+        ]}
       >
         <AppText
-          style={[tailwind('text-lg text-neutral-500 mr-2'), props.isSelected && tailwind('text-blue-60')]}
+          style={[tailwind('text-lg text-neutral-500 mr-2'), props.isSelected && tailwind('text-primary')]}
           semibold
         >
           {props.text}
@@ -115,7 +118,7 @@ function SortModalItem(props: {
           style={[
             { textAlignVertical: 'center' },
             tailwind('text-neutral-500 opacity-50'),
-            props.isSelected && tailwind('text-blue-60'),
+            props.isSelected && tailwind('text-primary'),
           ]}
         >
           {props.advice}

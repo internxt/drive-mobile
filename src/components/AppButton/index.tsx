@@ -24,10 +24,10 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
       ? props.loading
         ? tailwind('bg-primary-dark')
         : tailwind('bg-gray-40')
-      : tailwind('bg-blue-60'),
+      : tailwind('bg-primary'),
     'accept-2': props.disabled ? tailwind('bg-gray-40') : tailwind('bg-primary/10'),
     cancel: tailwind('bg-gray-5'),
-    'cancel-2': tailwind('bg-blue-10'),
+    'cancel-2': tailwind('bg-primary/10'),
     delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red-'),
     white: {
       ...tailwind('bg-white'),
@@ -49,12 +49,12 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     accept: tailwind('text-white'),
     'accept-2': props.disabled ? tailwind('text-white') : tailwind('text-primary'),
     cancel: props.disabled ? tailwind('text-gray-40') : tailwind('text-gray-80'),
-    'cancel-2': tailwind('text-blue-60'),
+    'cancel-2': tailwind('text-primary'),
     delete: tailwind('text-white'),
     white: tailwind('text-gray-80'),
   }[props.type];
   const typeUnderlayColor = {
-    accept: getColor('text-blue-70'),
+    accept: getColor('text-primary-dark'),
     'accept-2': getColor('text-primary/20'),
     cancel: getColor('text-neutral-30'),
     'cancel-2': getColor('text-neutral-30'),

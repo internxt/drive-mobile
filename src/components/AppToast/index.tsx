@@ -49,7 +49,7 @@ const AppToast = (): JSX.Element => {
         style={tailwind('rounded-r-xl ')}
       >
         <View style={tailwind('justify-center flex-1 px-3.5')}>
-          <Text style={tailwind('text-blue-60 text-base')}>{text}</Text>
+          <Text style={tailwind('text-primary text-base')}>{text}</Text>
         </View>
       </TouchableHighlight>
     );
@@ -96,7 +96,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(<ArrowCircleUp {...iconDefaultProps} weight="fill" color={getColor('text-blue-60')} />)
+          renderIcon(<ArrowCircleUp {...iconDefaultProps} weight="fill" color={getColor('text-primary')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />
@@ -106,7 +106,7 @@ const AppToast = (): JSX.Element => {
         {...defaultProps}
         {...props}
         renderLeadingIcon={() =>
-          renderIcon(<ArrowCircleDown {...iconDefaultProps} weight="fill" color={getColor('text-blue-60')} />)
+          renderIcon(<ArrowCircleDown {...iconDefaultProps} weight="fill" color={getColor('text-primary')} />)
         }
         renderTrailingIcon={() => renderAction(props)}
       />

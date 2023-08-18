@@ -87,11 +87,11 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
 
             {isUploading &&
               (props.progress === 0 ? (
-                <Text style={tailwind('text-xs text-blue-60')}>{strings.screens.drive.encrypting}</Text>
+                <Text style={tailwind('text-xs text-primary')}>{strings.screens.drive.encrypting}</Text>
               ) : (
                 <View style={tailwind('flex-row items-center')}>
-                  <ArrowCircleUp weight="fill" color={getColor('text-blue-60')} size={16} />
-                  <AppText style={tailwind('ml-1.5 text-xs text-blue-60')}>
+                  <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
+                  <AppText style={tailwind('ml-1.5 text-xs text-primary')}>
                     {((props.progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
                   <ProgressBar

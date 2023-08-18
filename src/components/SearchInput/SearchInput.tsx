@@ -70,7 +70,7 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
       {isFocused && (
         <TouchableOpacity onPress={onCancelButtonPressed}>
           <View style={tailwind('flex-grow px-3 justify-center')}>
-            <AppText style={tailwind('text-sm text-blue-60')}>{strings.buttons.cancel}</AppText>
+            <AppText style={tailwind('text-sm text-primary')}>{strings.buttons.cancel}</AppText>
           </View>
         </TouchableOpacity>
       )}

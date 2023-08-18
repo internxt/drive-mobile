@@ -30,7 +30,7 @@ const ReferralsBanner = (): JSX.Element => {
   return isOpen ? (
     <View
       style={[
-        tailwind('absolute bottom-14 w-full px-5 bg-blue-60 flex-row justify-between items-center'),
+        tailwind('absolute bottom-14 w-full px-5 bg-primary flex-row justify-between items-center'),
         { marginBottom: safeAreaInsets.bottom },
       ]}
     >
@@ -39,7 +39,7 @@ const ReferralsBanner = (): JSX.Element => {
       </AppText>
       <TouchableWithoutFeedback onPress={onCloseButtonPressed}>
         <View style={tailwind('p-2')}>
-          <X color={getColor('text-blue-40')} size={26} />
+          <X color={getColor('text-primary')} size={26} />
         </View>
       </TouchableWithoutFeedback>
     </View>

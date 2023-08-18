@@ -90,8 +90,8 @@ function RunOutOfStorageModal(): JSX.Element {
             </View>
 
             <TouchableHighlight
-              underlayColor={getColor('text-blue-70')}
-              style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
+              underlayColor={getColor('text-primary-dark')}
+              style={tailwind('bg-primary rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={onUpgradeNowButtonPressed}
             >
               <AppText style={tailwind('text-lg text-white')} medium>

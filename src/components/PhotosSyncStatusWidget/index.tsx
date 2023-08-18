@@ -77,7 +77,7 @@ const PhotosSyncStatusWidget = () => {
       <View style={tailwind('flex-row items-center')}>
         <Text style={tailwind('text-sm text-yellow-30')}>{strings.messages.photosSyncPending}</Text>
         <TouchableWithoutFeedback onPress={onResumeSyncPressed}>
-          <AppText style={tailwind('ml-2 text-sm text-blue-60')}>{strings.buttons.syncNow}</AppText>
+          <AppText style={tailwind('ml-2 text-sm text-primary')}>{strings.buttons.syncNow}</AppText>
         </TouchableWithoutFeedback>
       </View>
     ),

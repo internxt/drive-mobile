@@ -54,7 +54,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
       const iconColor = isAddRoute
         ? getColor('text-white')
         : isFocused
-        ? getColor('text-blue-60')
+        ? getColor('text-primary')
         : getColor('text-neutral-80');
       const Icon = tabs[route.name as keyof typeof tabs].icon;
 
@@ -70,7 +70,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         >
           <View style={tailwind('h-14 items-center justify-center flex-1')}>
             {isAddRoute ? (
-              <Icon weight="fill" color={getColor('text-blue-60')} size={40} />
+              <Icon weight="fill" color={getColor('text-primary')} size={40} />
             ) : (
               <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
             )}
@@ -79,7 +79,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
               <Text
                 style={[
                   tailwind('text-supporting-2'),
-                  isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'),
+                  isFocused ? tailwind('text-primary') : tailwind('text-neutral-80'),
                   isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
                 ]}
               >

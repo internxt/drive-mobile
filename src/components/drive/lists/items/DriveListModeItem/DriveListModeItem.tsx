@@ -78,8 +78,8 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
                 <AppText style={tailwind('text-xs text-primary')}>{strings.screens.drive.encrypting}</AppText>
               ) : (
                 <View style={tailwind('flex-row items-center')}>
-                  <ArrowCircleUp weight="fill" color={getColor('text-blue-60')} size={16} />
-                  <AppText style={tailwind('ml-1.5 text-xs text-blue-60')}>
+                  <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
+                  <AppText style={tailwind('ml-1.5 text-xs text-primary')}>
                     {((progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
                   <ProgressBar
