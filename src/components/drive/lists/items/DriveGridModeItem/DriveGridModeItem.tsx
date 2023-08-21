@@ -96,7 +96,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={getColor('text-neutral-20')}
+      underlayColor={getColor('text-gray-5')}
       onLongPress={props.onActionsPress}
       onPress={props.onPress}
       onLayout={(event) => {

@@ -18,16 +18,16 @@ const AppToast = (): JSX.Element => {
   const defaultProps: BaseToastProps = {
     text1NumberOfLines: 1,
     style: {
-      ...tailwind('rounded-xl border-0 border-neutral-20 border pl-3.5 h-12'),
+      ...tailwind('rounded-xl border-0 border-gray-10 border pl-3.5 h-12'),
       width: screenDimensions.width - 24,
       marginBottom: safeAreaInsets.bottom,
     },
     contentContainerStyle: tailwind('p-0'),
     text1Style: {
-      ...tailwind('text-base text-neutral-700 font-normal m-0 pr-3.5'),
+      ...tailwind('text-base text-gray-100 font-normal m-0 pr-3.5'),
       fontFamily: styles.fontWeight.regular.fontFamily,
     },
-    text2Style: { ...tailwind('text-xs text-neutral-100'), fontFamily: styles.fontWeight.regular.fontFamily },
+    text2Style: { ...tailwind('text-xs text-gray-50'), fontFamily: styles.fontWeight.regular.fontFamily },
   };
   const iconDefaultProps = {
     size: 20,
@@ -43,11 +43,7 @@ const AppToast = (): JSX.Element => {
 
     const text = toastProps.props.action ? toastProps.props.action.text : strings.buttons.dismiss;
     return (
-      <TouchableHighlight
-        onPress={callback}
-        underlayColor={getColor('text-neutral-30')}
-        style={tailwind('rounded-r-xl ')}
-      >
+      <TouchableHighlight onPress={callback} underlayColor={getColor('text-gray-5')} style={tailwind('rounded-r-xl ')}>
         <View style={tailwind('justify-center flex-1 px-3.5')}>
           <Text style={tailwind('text-primary text-base')}>{text}</Text>
         </View>

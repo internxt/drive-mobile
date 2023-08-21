@@ -44,7 +44,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={getColor('text-neutral-20')}
+      underlayColor={getColor('text-gray-5')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
@@ -77,7 +77,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
 
           <View style={[tailwind('flex-1 flex items-start justify-center')]}>
             <AppText
-              style={[tailwind('text-left text-base text-neutral-500'), isUploading && tailwind('opacity-40')]}
+              style={[tailwind('text-left text-base text-gray-100'), isUploading && tailwind('opacity-40')]}
               numberOfLines={1}
               ellipsizeMode={'middle'}
               medium
@@ -126,7 +126,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
           onLongPress={onActionsButtonPressed}
         >
           <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
-            <DotsThree weight="bold" size={22} color={getColor('text-neutral-60')} />
+            <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
           </View>
         </TouchableOpacity>
       </View>

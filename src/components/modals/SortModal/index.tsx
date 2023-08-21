@@ -27,7 +27,7 @@ const SortModal: React.FC<SortModalProps> = (props) => {
   };
   const header = (
     <View>
-      <AppText numberOfLines={1} ellipsizeMode="middle" semibold style={tailwind('text-lg text-neutral-500')}>
+      <AppText numberOfLines={1} ellipsizeMode="middle" semibold style={tailwind('text-lg text-gray-100')}>
         {strings.screens.drive.sortBy}
       </AppText>
     </View>
@@ -109,7 +109,7 @@ function SortModalItem(props: {
         ]}
       >
         <AppText
-          style={[tailwind('text-lg text-neutral-500 mr-2'), props.isSelected && tailwind('text-primary')]}
+          style={[tailwind('text-lg text-gray-100 mr-2'), props.isSelected && tailwind('text-primary')]}
           semibold
         >
           {props.text}
@@ -117,7 +117,7 @@ function SortModalItem(props: {
         <AppText
           style={[
             { textAlignVertical: 'center' },
-            tailwind('text-neutral-500 opacity-50'),
+            tailwind('text-gray-100 opacity-50'),
             props.isSelected && tailwind('text-primary'),
           ]}
         >

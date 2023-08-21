@@ -25,7 +25,7 @@ function PhotosPreviewInfoModal({ isOpen, actions, data, size }: PhotosPreviewIn
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-neutral-30 w-10 h-10 rounded ')} source={{ uri: data.localPreviewPath }} />
+        <Image style={tailwind('bg-gray-10 w-10 h-10 rounded ')} source={{ uri: data.localPreviewPath }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
@@ -81,26 +81,24 @@ function PhotosPreviewInfoModal({ isOpen, actions, data, size }: PhotosPreviewIn
   ];
   return (
     <BottomModal isOpen={isOpen} onClosed={() => actions.closeModal('preview-info')} header={header}>
-      <View style={tailwind('bg-neutral-10 flex-grow')}>
-        <View style={tailwind('bg-white')}>
-          {options.map((opt, index) => {
-            return (
-              <BottomModalOption
-                key={index}
-                leftSlot={
-                  <View style={tailwind('flex-grow')}>
-                    <AppText style={tailwind('text-lg text-gray-100')}>{opt.label}</AppText>
-                  </View>
-                }
-                rightSlot={
-                  <AppText numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-base text-gray-60 mr-4')}>
-                    {opt.value}
-                  </AppText>
-                }
-              />
-            );
-          })}
-        </View>
+      <View style={tailwind('bg-white')}>
+        {options.map((opt, index) => {
+          return (
+            <BottomModalOption
+              key={index}
+              leftSlot={
+                <View style={tailwind('flex-grow')}>
+                  <AppText style={tailwind('text-lg text-gray-100')}>{opt.label}</AppText>
+                </View>
+              }
+              rightSlot={
+                <AppText numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-base text-gray-60 mr-4')}>
+                  {opt.value}
+                </AppText>
+              }
+            />
+          );
+        })}
       </View>
     </BottomModal>
   );

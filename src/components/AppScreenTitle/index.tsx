@@ -50,7 +50,7 @@ const AppScreenTitle = ({
       )}
 
       <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
-        <AppText numberOfLines={1} medium style={[tailwind('text-neutral-700 text-2xl'), textStyle]}>
+        <AppText numberOfLines={1} medium style={[tailwind('text-gray-100 text-2xl'), textStyle]}>
           {text}
         </AppText>
 

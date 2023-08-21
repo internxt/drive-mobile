@@ -112,7 +112,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
           </View>
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{userFullName}</AppText>
-            <CaretRight color={getColor('text-neutral-60')} size={20} />
+            <CaretRight color={getColor('text-gray-40')} size={20} />
           </View>
         </View>
       ),

@@ -64,11 +64,11 @@ function RunOutOfStorageModal(): JSX.Element {
 
         <View>
           <View style={tailwind('flex-row bg-white px-5 py-3 rounded-t-xl justify-center')}>
-            <View style={tailwind('h-1 w-20 bg-neutral-30 rounded-full')} />
+            <View style={tailwind('h-1 w-20 bg-gray-20 rounded-full')} />
           </View>
 
           <View style={tailwind('bg-white justify-center px-5 pt-3 pb-8')}>
-            <AppText style={tailwind('text-center text-lg text-neutral-500')} medium>
+            <AppText style={tailwind('text-center text-lg text-gray-100')} medium>
               {strings.modals.OutOfSpaceModal.title}
             </AppText>
 
@@ -77,14 +77,14 @@ function RunOutOfStorageModal(): JSX.Element {
                 <RunOutImage width={80} height={80} />
               </View>
 
-              <AppText style={tailwind('text-sm text-neutral-100 mt-3')} medium>
+              <AppText style={tailwind('text-sm text-gray-50 mt-3')} medium>
                 {strings.screens.StorageScreen.space.used.used} {getUsageString()}{' '}
                 {strings.screens.StorageScreen.space.used.of} {getLimitString()}
               </AppText>
             </View>
 
             <View style={tailwind('flex-grow mb-6')}>
-              <AppText style={tailwind('text-sm text-center text-neutral-100')}>
+              <AppText style={tailwind('text-sm text-center text-gray-50')}>
                 {strings.modals.OutOfSpaceModal.advice}
               </AppText>
             </View>

@@ -55,7 +55,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         ? getColor('text-white')
         : isFocused
         ? getColor('text-primary')
-        : getColor('text-neutral-80');
+        : getColor('text-gray-50');
       const Icon = tabs[route.name as keyof typeof tabs].icon;
 
       return (
@@ -79,7 +79,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
               <Text
                 style={[
                   tailwind('text-supporting-2'),
-                  isFocused ? tailwind('text-primary') : tailwind('text-neutral-80'),
+                  isFocused ? tailwind('text-primary') : tailwind('text-gray-50'),
                   isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
                 ]}
               >
@@ -92,7 +92,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     });
 
   return (
-    <View style={[tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')]}>
+    <View style={[tailwind('bg-white flex-row px-2 justify-around items-center border-t border-gray-10')]}>
       {items}
     </View>
   );

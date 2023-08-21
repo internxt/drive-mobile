@@ -33,7 +33,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={getColor('text-neutral-20')}
+      underlayColor={getColor('text-gray-5')}
       onLongPress={props.onActionsPress}
       onPress={props.onPress}
     >
@@ -114,7 +114,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
           onLongPress={props.onActionsPress}
         >
           <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
-            <DotsThree weight="bold" size={22} color={getColor('text-neutral-60')} />
+            <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
           </View>
         </TouchableOpacity>
       </View>

@@ -56,8 +56,8 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
   const typeUnderlayColor = {
     accept: getColor('text-primary-dark'),
     'accept-2': getColor('text-primary/20'),
-    cancel: getColor('text-neutral-30'),
-    'cancel-2': getColor('text-neutral-30'),
+    cancel: getColor('text-gray-10'),
+    'cancel-2': getColor('text-gray-10'),
     delete: getColor('text-red-dark'),
     white: getColor('text-gray-1'),
   }[props.type];

@@ -56,13 +56,11 @@ const ReferralsWidget = (): JSX.Element => {
       return (
         <TouchableHighlight
           disabled={r.isCompleted || !hasClickAction}
-          underlayColor={getColor('text-neutral-30')}
+          underlayColor={getColor('text-gray-5')}
           key={r.key}
           onPress={onPress}
         >
-          <View
-            style={[tailwind('flex-row items-center px-4 py-3'), !isTheLast && tailwind('border-b border-neutral-20')]}
-          >
+          <View style={[tailwind('flex-row items-center px-4 py-3'), !isTheLast && tailwind('border-b border-gray-5')]}>
             <AppText numberOfLines={1} style={[tailwind('text-lg flex-1'), r.isCompleted && tailwind('text-gray-40')]}>
               {text}
             </AppText>

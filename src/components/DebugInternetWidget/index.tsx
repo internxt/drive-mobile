@@ -54,7 +54,7 @@ const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
 
   return (
     <View style={[tailwind('flex-row justify-center'), props.style]}>
-      <AppText style={tailwind('text-neutral-300')}>{`${strings.screens.DebugScreen.internet.speed}: `}</AppText>
+      <AppText style={tailwind('text-gray-100')}>{`${strings.screens.DebugScreen.internet.speed}: `}</AppText>
       <AppText style={{ color: getSpeedColor() }}>{speed > 0 ? speed.toFixed(2) : '-'}</AppText>
     </View>
   );

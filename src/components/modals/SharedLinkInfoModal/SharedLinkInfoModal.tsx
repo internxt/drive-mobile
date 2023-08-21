@@ -172,7 +172,7 @@ export function SharedLinkInfoModal(): JSX.Element {
                   leftSlot={opt.icon}
                   rightSlot={
                     <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                      <Text style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</Text>
+                      <AppText style={[tailwind('text-lg text-gray-100'), opt.textStyle]}>{opt.label}</AppText>
                     </View>
                   }
                   hideBorderBottom={index === options.length - 1}

@@ -305,10 +305,6 @@
   margin-bottom: 0.75rem
 }
 
-.mt-3\.5 {
-  margin-top: 0.875rem
-}
-
 .ml-5 {
   margin-left: 1.25rem
 }
@@ -666,9 +662,9 @@
   border-bottom-width: 1px
 }
 
-.border-neutral-30 {
+.border-gray-5 {
   --tw-border-opacity: 1;
-  border-color: rgb(255 0 0 / var(--tw-border-opacity))
+  border-color: rgb(243 243 248 / var(--tw-border-opacity))
 }
 
 .border-gray-20 {
@@ -701,19 +697,9 @@
   border-color: rgb(229 229 235 / var(--tw-border-opacity))
 }
 
-.border-neutral-20 {
+.border-gray-100 {
   --tw-border-opacity: 1;
-  border-color: rgb(255 0 0 / var(--tw-border-opacity))
-}
-
-.border-gray-5 {
-  --tw-border-opacity: 1;
-  border-color: rgb(243 243 248 / var(--tw-border-opacity))
-}
-
-.border-neutral-500 {
-  --tw-border-opacity: 1;
-  border-color: rgb(255 0 0 / var(--tw-border-opacity))
+  border-color: rgb(24 24 27 / var(--tw-border-opacity))
 }
 
 .border-black\/5 {
@@ -722,6 +708,11 @@
 
 .border-transparent {
   border-color: rgba(0,0,0,0)
+}
+
+.border-gray-40 {
+  --tw-border-opacity: 1;
+  border-color: rgb(174 174 179 / var(--tw-border-opacity))
 }
 
 .bg-primary-dark {
@@ -773,11 +764,6 @@
   background-color: rgb(142 142 148 / var(--tw-bg-opacity))
 }
 
-.bg-neutral-20 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 0 0 / var(--tw-bg-opacity))
-}
-
 .bg-black\/60 {
   background-color: rgb(0 0 0 / 0.6)
 }
@@ -809,14 +795,9 @@
   background-color: rgb(99 99 103 / var(--tw-bg-opacity))
 }
 
-.bg-neutral-10 {
+.bg-gray-20 {
   --tw-bg-opacity: 1;
-  background-color: rgb(255 0 0 / var(--tw-bg-opacity))
-}
-
-.bg-neutral-30 {
-  --tw-bg-opacity: 1;
-  background-color: rgb(255 0 0 / var(--tw-bg-opacity))
+  background-color: rgb(209 209 215 / var(--tw-bg-opacity))
 }
 
 .bg-black {
@@ -1186,9 +1167,9 @@
   color: rgb(0 102 255 / 0.2)
 }
 
-.text-neutral-30 {
+.text-gray-10 {
   --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
+  color: rgb(229 229 235 / var(--tw-text-opacity))
 }
 
 .text-red-dark {
@@ -1201,9 +1182,9 @@
   color: rgb(249 249 252 / var(--tw-text-opacity))
 }
 
-.text-neutral-700 {
+.text-gray-100 {
   --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
+  color: rgb(24 24 27 / var(--tw-text-opacity))
 }
 
 .text-green {
@@ -1221,9 +1202,14 @@
   color: rgb(199 199 205 / var(--tw-text-opacity))
 }
 
-.text-neutral-100 {
+.text-gray-50 {
   --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
+  color: rgb(142 142 148 / var(--tw-text-opacity))
+}
+
+.text-gray-5 {
+  --tw-text-opacity: 1;
+  color: rgb(243 243 248 / var(--tw-text-opacity))
 }
 
 .text-yellow {
@@ -1231,29 +1217,9 @@
   color: rgb(255 204 0 / var(--tw-text-opacity))
 }
 
-.text-gray-50 {
-  --tw-text-opacity: 1;
-  color: rgb(142 142 148 / var(--tw-text-opacity))
-}
-
-.text-neutral-20 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
-}
-
-.text-neutral-80 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
-}
-
 .text-gray-60 {
   --tw-text-opacity: 1;
   color: rgb(99 99 103 / var(--tw-text-opacity))
-}
-
-.text-neutral-200 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
 }
 
 .text-yellow-dark {
@@ -1261,34 +1227,9 @@
   color: rgb(230 184 0 / var(--tw-text-opacity))
 }
 
-.text-neutral-300 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
-}
-
-.text-neutral-500 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
-}
-
-.text-neutral-60 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
-}
-
-.text-gray-100 {
-  --tw-text-opacity: 1;
-  color: rgb(24 24 27 / var(--tw-text-opacity))
-}
-
 .text-\[\#997A00\] {
   --tw-text-opacity: 1;
   color: rgb(153 122 0 / var(--tw-text-opacity))
-}
-
-.text-gray-10 {
-  --tw-text-opacity: 1;
-  color: rgb(229 229 235 / var(--tw-text-opacity))
 }
 
 .text-orange {
@@ -1301,19 +1242,9 @@
   color: rgb(209 209 215 / var(--tw-text-opacity))
 }
 
-.text-neutral-900 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
-}
-
 .text-black {
   --tw-text-opacity: 1;
   color: rgb(0 0 0 / var(--tw-text-opacity))
-}
-
-.text-neutral-600 {
-  --tw-text-opacity: 1;
-  color: rgb(255 0 0 / var(--tw-text-opacity))
 }
 
 .underline {
@@ -1328,14 +1259,14 @@
   opacity: 0.5
 }
 
+.opacity-40 {
+  opacity: 0.4
+}
+
 .opacity-100 {
   opacity: 1
 }
 
 .opacity-75 {
   opacity: 0.75
-}
-
-.opacity-40 {
-  opacity: 0.4
 }

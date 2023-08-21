@@ -93,14 +93,14 @@ export function PhotosPreviewOptionsModal({
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-neutral-30 w-10 h-10 rounded')} source={{ uri: data.localPreviewPath }} />
+        <Image style={tailwind('bg-gray-10 w-10 h-10 rounded')} source={{ uri: data.localPreviewPath }} />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
         <Text
           numberOfLines={1}
           ellipsizeMode="middle"
-          style={[tailwind('text-base text-neutral-500'), globalStyle.fontWeight.medium]}
+          style={[tailwind('text-base text-gray-100'), globalStyle.fontWeight.medium]}
         >
           {data.getDisplayName()}
         </Text>
@@ -115,20 +115,18 @@ export function PhotosPreviewOptionsModal({
 
   return (
     <BottomModal isOpen={isOpen} onClosed={() => actions.closeModal('preview-options')} header={header}>
-      <View style={tailwind('bg-neutral-10 flex-grow')}>
-        <View style={tailwind('bg-white')}>
-          {options.map((option, index) => {
-            return (
-              <BottomModalOption
-                disabled={option.disabled || !option.onPress}
-                key={index}
-                leftSlot={option.icon}
-                rightSlot={option.label}
-                onPress={option.onPress}
-              />
-            );
-          })}
-        </View>
+      <View style={tailwind('bg-white')}>
+        {options.map((option, index) => {
+          return (
+            <BottomModalOption
+              disabled={option.disabled || !option.onPress}
+              key={index}
+              leftSlot={option.icon}
+              rightSlot={option.label}
+              onPress={option.onPress}
+            />
+          );
+        })}
       </View>
     </BottomModal>
   );

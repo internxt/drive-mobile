@@ -181,14 +181,11 @@ function PhotosGalleryScreen(): JSX.Element {
                 disabled={!photosCtx.selection.selectedPhotosItems.length}
               >
                 <View style={tailwind('items-center flex-1')}>
-                  <Trash
-                    color={!hasPhotosSelected ? getColor('text-neutral-60') : getColor('text-red-dark')}
-                    size={24}
-                  />
+                  <Trash color={!hasPhotosSelected ? getColor('text-gray-40') : getColor('text-red-dark')} size={24} />
                   <Text
                     numberOfLines={1}
                     style={[
-                      !hasPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-red-dark'),
+                      !hasPhotosSelected ? tailwind('text-gray-40') : tailwind('text-red-dark'),
                       tailwind('text-xs'),
                     ]}
                   >
