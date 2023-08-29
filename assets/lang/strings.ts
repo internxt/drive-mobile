@@ -504,6 +504,10 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      rename: {
+        title: 'Rename',
+        label: 'Name',
+      },
       deleteShareLink: {
         title: 'Delete link',
       },
@@ -1276,6 +1280,10 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      rename: {
+        title: 'Renombrar',
+        label: 'Nombre',
+      },
       deleteShareLink: {
         title: 'Borrar link',
       },

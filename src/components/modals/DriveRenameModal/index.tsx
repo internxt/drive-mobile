@@ -17,6 +17,8 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import uuid from 'react-native-uuid';
 import Portal from '@burstware/react-native-portal';
+import AppTextInput from 'src/components/AppTextInput';
+import AppText from 'src/components/AppText';
 function RenameModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -113,46 +115,37 @@ function RenameModal(): JSX.Element {
 
   return (
     <Portal>
-      <CenterModal isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
-        <View style={tailwind('mx-8 flex-grow p-4')}>
-          <View style={tailwind('flex-grow justify-center px-8')}>
-            <View style={tailwind('pt-4 pb-8')}>
-              <View style={tailwind('items-center pb-3')}>
-                {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}
-              </View>
-
-              <View
-                style={[
-                  tailwind('px-4 items-center justify-center flex-grow'),
-                  tailwind('border border-gray-40 rounded-lg'),
-                  Platform.OS !== 'android' ? tailwind('pb-3') : tailwind(''),
-                ]}
-              >
-                <TextInput
-                  style={tailwind('text-lg text-center text-gray-100')}
-                  value={newName}
-                  onChangeText={setNewName}
-                  placeholderTextColor={getColor('text-gray-50')}
-                  autoComplete="off"
-                  key="name"
-                  autoCorrect={false}
-                />
-              </View>
-            </View>
+      <CenterModal backdropPressToClose={false} isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
+        <View style={tailwind('flex-grow px-4 py-4')}>
+          <AppText medium style={tailwind('text-gray-100 mb-4 text-xl')}>
+            {strings.modals.rename.title}
+          </AppText>
+          <View style={tailwind('flex-grow justify-center mb-5')}>
+            <AppTextInput
+              label={strings.modals.rename.label}
+              value={newName}
+              autoFocus
+              onChangeText={setNewName}
+              placeholderTextColor={getColor('text-gray-50')}
+              autoComplete="off"
+              key="name"
+              autoCorrect={false}
+            />
           </View>
 
           <View style={tailwind('flex-row justify-between')}>
             <AppButton
               title={strings.buttons.cancel}
-              type={'cancel'}
+              type="white"
               onPress={onCancelButtonPressed}
               disabled={isLoading}
               style={tailwind('flex-1')}
             />
 
-            <View style={tailwind('px-1')}></View>
+            <View style={tailwind('w-3')}></View>
 
             <AppButton
+              loading={isLoading}
               title={strings.buttons.rename}
               type={'accept'}
               onPress={onRenameButtonPressed}

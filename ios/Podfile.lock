@@ -75,7 +75,7 @@ PODS:
   - fmt (6.2.1)
   - glog (0.3.5)
   - IDZSwiftCommonCrypto (0.13.0)
-  - internxt-mobile-sdk (0.1.57):
+  - internxt-mobile-sdk (0.1.63):
     - React-Core
   - libwebp (1.2.4):
     - libwebp/demux (= 1.2.4)
@@ -811,7 +811,7 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   IDZSwiftCommonCrypto: 00dd37cdfbd149312a7e5a582cf9909f8b129f44
-  internxt-mobile-sdk: 4798c9dd5a93d2f7e4eec8b98b0943680ad162d3
+  internxt-mobile-sdk: 3bdcf5eea6287ec04a79949f904191d52a40d8bc
   libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
   Permission-AppTrackingTransparency: 9eedbc3b5a2907b8cb2c971461754616eac1661d
   Permission-Camera: bf6791b17c7f614b6826019fcfdcc286d3a107f6
