@@ -23,23 +23,23 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     },
     {
       type: NotificationType.Success,
-      icon: <CheckCircle weight="fill" color={getColor('text-green-40')} style={tailwind('mr-2')} />,
+      icon: <CheckCircle weight="fill" color={getColor('text-green')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Warning,
-      icon: <Warning weight="fill" color={getColor('text-yellow-30')} style={tailwind('mr-2')} />,
+      icon: <Warning weight="fill" color={getColor('text-yellow')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Error,
-      icon: <WarningOctagon weight="fill" color={getColor('text-red-50')} style={tailwind('mr-2')} />,
+      icon: <WarningOctagon weight="fill" color={getColor('text-red')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Upload,
-      icon: <ArrowCircleUp weight="fill" color={getColor('text-blue-30')} style={tailwind('mr-2')} />,
+      icon: <ArrowCircleUp weight="fill" color={getColor('text-primary')} style={tailwind('mr-2')} />,
     },
     {
       type: NotificationType.Download,
-      icon: <ArrowCircleDown weight="fill" color={getColor('text-blue-30')} style={tailwind('mr-2')} />,
+      icon: <ArrowCircleDown weight="fill" color={getColor('text-primary')} style={tailwind('mr-2')} />,
     },
   ];
   const onNotificationButtonPressed = ({ type }: { type: NotificationType; icon: JSX.Element | null }) =>
@@ -48,9 +48,7 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
   return (
     <View style={[tailwind('px-5'), props.style]}>
       <AppText style={tailwind('text-xl')}>{strings.screens.DebugScreen.notifications.title}</AppText>
-      <AppText style={tailwind('text-neutral-200 text-base')}>
-        {strings.screens.DebugScreen.notifications.advice}
-      </AppText>
+      <AppText style={tailwind('text-gray-50 text-base')}>{strings.screens.DebugScreen.notifications.advice}</AppText>
 
       <View style={tailwind('h-3')}></View>
       <View style={tailwind('flex flex-row flex-wrap')}>

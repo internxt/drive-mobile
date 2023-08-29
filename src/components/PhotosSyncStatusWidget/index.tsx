@@ -70,20 +70,20 @@ const PhotosSyncStatusWidget = () => {
     [PhotosSyncStatus.Calculating]: (
       <View style={tailwind('flex-row items-center')}>
         <LoadingSpinner style={tailwind('mr-2')} size={14} />
-        <AppText style={tailwind('text-sm text-neutral-100')}>{strings.generic.preparing}</AppText>
+        <AppText style={tailwind('text-sm text-gray-50')}>{strings.generic.preparing}</AppText>
       </View>
     ),
     [PhotosSyncStatus.Pending]: (
       <View style={tailwind('flex-row items-center')}>
-        <Text style={tailwind('text-sm text-yellow-30')}>{strings.messages.photosSyncPending}</Text>
+        <Text style={tailwind('text-sm text-yellow')}>{strings.messages.photosSyncPending}</Text>
         <TouchableWithoutFeedback onPress={onResumeSyncPressed}>
-          <AppText style={tailwind('ml-2 text-sm text-blue-60')}>{strings.buttons.syncNow}</AppText>
+          <AppText style={tailwind('ml-2 text-sm text-primary')}>{strings.buttons.syncNow}</AppText>
         </TouchableWithoutFeedback>
       </View>
     ),
     [PhotosSyncStatus.Pausing]: (
       <View style={tailwind('flex-row items-center')}>
-        <Text style={tailwind('text-sm text-neutral-100')}>{strings.screens.gallery.paused}</Text>
+        <Text style={tailwind('text-sm text-gray-50')}>{strings.screens.gallery.paused}</Text>
       </View>
     ),
     [PhotosSyncStatus.Paused]: (
@@ -91,7 +91,7 @@ const PhotosSyncStatusWidget = () => {
         <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
           {strings.screens.gallery.paused}
         </AppText>
-        <AppText style={tailwind('text-sm text-neutral-100')}>{renderPending()}</AppText>
+        <AppText style={tailwind('text-sm text-gray-50')}>{renderPending()}</AppText>
       </View>
     ),
     [PhotosSyncStatus.InProgress]: (
@@ -99,12 +99,12 @@ const PhotosSyncStatusWidget = () => {
         <AppText semibold style={tailwind('text-base mr-2 mb-0.5')}>
           {strings.screens.gallery.syncing}
         </AppText>
-        <AppText style={tailwind('text-sm text-neutral-100')}>{renderPending()}</AppText>
+        <AppText style={tailwind('text-sm text-gray-50')}>{renderPending()}</AppText>
       </View>
     ),
     [PhotosSyncStatus.Completed]: (
       <View style={tailwind('flex-row items-center')}>
-        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('text-green-40')} size={14} />
+        <CheckCircle weight="fill" style={tailwind('mr-1')} color={getColor('text-green')} size={14} />
         <AppText style={tailwind('text-gray-100 text-sm')}>{strings.messages.photosSyncCompleted}</AppText>
       </View>
     ),
@@ -195,7 +195,7 @@ const PhotosSyncStatusWidget = () => {
       <View style={tailwind('h-10 flex-row items-center justify-between')}>
         <View style={tailwind('pl-5 flex-1')}>{contentByStatus[photosCtx.sync.status]}</View>
         {appService.isDevMode ? (
-          <AppText style={tailwind('text-red-50 text-xs ml-auto mr-2')}>{photosCtx.sync.failedTasks} Failed</AppText>
+          <AppText style={tailwind('text-red text-xs ml-auto mr-2')}>{photosCtx.sync.failedTasks} Failed</AppText>
         ) : null}
         {showPauseResumeButton ? (
           !isPaused && !isPausing ? (

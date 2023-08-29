@@ -39,8 +39,8 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
       onPress: () => props.item && props.onRestoreDriveItem(props.item),
     },
     {
-      icon: <Trash size={20} color={tailwind('text-red-60').color as string} />,
-      textStyle: tailwind('text-red-60'),
+      icon: <Trash size={20} color={tailwind('text-red-dark').color as string} />,
+      textStyle: tailwind('text-red-dark'),
       label: strings.components.file_and_folder_options.deletePermanently,
       onPress: () => props.item && props.onDeleteDriveItem(props.item),
     },
@@ -76,7 +76,7 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
               leftSlot={opt.icon}
               rightSlot={
                 <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                  <AppText style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</AppText>
+                  <AppText style={[tailwind('text-lg text-gray-100'), opt.textStyle]}>{opt.label}</AppText>
                 </View>
               }
               hideBorderBottom={index === options.length - 1}

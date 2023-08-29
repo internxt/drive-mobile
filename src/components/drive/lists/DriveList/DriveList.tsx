@@ -147,7 +147,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
               : undefined
           }
         />
-        {isGrid ? <View></View> : <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View>}
+        {isGrid ? <View></View> : <View style={{ height: 1, ...tailwind('bg-gray-1 mx-4') }}></View>}
       </View>
     );
   }

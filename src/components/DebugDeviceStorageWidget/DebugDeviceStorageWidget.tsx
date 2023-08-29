@@ -49,7 +49,7 @@ export const DebugDeviceStorageWidget = ({ style }: { style: ViewStyle }) => {
   return (
     <View style={[tailwind('px-5'), style]}>
       <AppText style={tailwind('text-xl')}>Device Storage</AppText>
-      <AppText style={tailwind('text-neutral-200 text-base')}>Visualiza el uso del espacio en el dispositivo</AppText>
+      <AppText style={tailwind('text-gray-50 text-base')}>Visualiza el uso del espacio en el dispositivo</AppText>
 
       <View style={tailwind('h-3')}></View>
       <AppButton title={strings.buttons.showStorageSpace} onPress={() => setSheetOpen(true)} type="accept" />

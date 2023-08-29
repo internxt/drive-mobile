@@ -227,7 +227,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),

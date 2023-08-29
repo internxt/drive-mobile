@@ -123,10 +123,10 @@ function PhotosGalleryScreen(): JSX.Element {
               <View style={tailwind('flex-row pr-5')}>
                 <View style={tailwind('flex-row items-center justify-between')}>
                   <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                    style={tailwind('bg-primary/10 px-3.5 py-1 rounded-3xl')}
                     onPress={onCancelSelectButtonPressed}
                   >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                    <Text style={[tailwind('text-primary'), globalStyle.fontWeight.medium]}>
                       {strings.buttons.cancel}
                     </Text>
                   </TouchableOpacity>
@@ -144,10 +144,10 @@ function PhotosGalleryScreen(): JSX.Element {
               {photosCtx.ready && (
                 <View style={tailwind('flex-row items-center justify-between pr-5')}>
                   <TouchableOpacity
-                    style={tailwind('bg-blue-10 px-3.5 py-1 rounded-3xl')}
+                    style={tailwind('bg-primary/10 px-3.5 py-1 rounded-3xl')}
                     onPress={onSelectButtonPressed}
                   >
-                    <Text style={[tailwind('text-blue-60'), globalStyle.fontWeight.medium]}>
+                    <Text style={[tailwind('text-primary'), globalStyle.fontWeight.medium]}>
                       {strings.buttons.select}
                     </Text>
                   </TouchableOpacity>
@@ -181,11 +181,11 @@ function PhotosGalleryScreen(): JSX.Element {
                 disabled={!photosCtx.selection.selectedPhotosItems.length}
               >
                 <View style={tailwind('items-center flex-1')}>
-                  <Trash color={!hasPhotosSelected ? getColor('text-neutral-60') : getColor('text-red-60')} size={24} />
+                  <Trash color={!hasPhotosSelected ? getColor('text-gray-40') : getColor('text-red-dark')} size={24} />
                   <Text
                     numberOfLines={1}
                     style={[
-                      !hasPhotosSelected ? tailwind('text-neutral-60') : tailwind('text-red-60'),
+                      !hasPhotosSelected ? tailwind('text-gray-40') : tailwind('text-red-dark'),
                       tailwind('text-xs'),
                     ]}
                   >

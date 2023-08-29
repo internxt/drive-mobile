@@ -197,7 +197,7 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
         {isSelected && (
           <View
             style={[
-              tailwind('absolute bg-blue-60 w-5 h-5 bottom-1 right-1 flex justify-center items-center rounded-xl z-10'),
+              tailwind('absolute bg-primary w-5 h-5 bottom-1 right-1 flex justify-center items-center rounded-xl z-10'),
             ]}
           >
             <CheckCircle color={getColor('text-white')} size={24} />

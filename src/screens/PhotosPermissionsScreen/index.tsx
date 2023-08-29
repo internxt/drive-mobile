@@ -62,8 +62,8 @@ export const PhotosPermissions: React.FC<PhotosPermissionsProps> = (props) => {
   const featuresList = features.map((feature, index) => {
     return (
       <View style={tailwind('px-10 flex-row')} key={index.toString()}>
-        <Text style={tailwind('text-sm text-neutral-500 mr-2')}>{'\u2022'}</Text>
-        <Text style={tailwind('text-sm text-neutral-500')}>{feature}</Text>
+        <Text style={tailwind('text-sm text-gray-100 mr-2')}>{'\u2022'}</Text>
+        <Text style={tailwind('text-sm text-gray-100')}>{feature}</Text>
       </View>
     );
   });
@@ -89,15 +89,15 @@ export const PhotosPermissions: React.FC<PhotosPermissionsProps> = (props) => {
     <View style={tailwind('justify-center items-center px-6 pb-14')}>
       <SyncIcon style={tailwind('mb-6')} width={100} height={100} />
 
-      <AppText semibold style={[tailwind('mb-5 text-center text-3xl text-neutral-900')]}>
+      <AppText semibold style={[tailwind('mb-5 text-center text-3xl text-gray-100')]}>
         {strings.screens.photosPermissions.title}
       </AppText>
 
       <View style={tailwind('mb-5')}>{featuresList}</View>
 
       {permissions === MediaLibrary.PermissionStatus.DENIED && (
-        <View style={tailwind('mb-2 rounded-lg w-full p-3 bg-blue-10')}>
-          <Text style={tailwind('text-blue-90 text-center')}>
+        <View style={tailwind('mb-2 rounded-lg w-full p-3 bg-primary/10')}>
+          <Text style={tailwind('text-primary-dark text-center')}>
             {Platform.OS === 'android'
               ? strings.screens.photosPermissions.androidAdvice
               : strings.screens.photosPermissions.iosAdvice}
@@ -111,9 +111,7 @@ export const PhotosPermissions: React.FC<PhotosPermissionsProps> = (props) => {
         onPress={onButtonPressed}
         style={tailwind('mb-2 w-full')}
       />
-      <AppText style={tailwind('text-center text-xs text-neutral-100')}>
-        {strings.screens.photosPermissions.access}
-      </AppText>
+      <AppText style={tailwind('text-center text-xs text-gray-50')}>{strings.screens.photosPermissions.access}</AppText>
     </View>
   );
 };

@@ -312,7 +312,7 @@ function MoveItemsModal(): JSX.Element {
             ListHeaderComponent={renderListHeader()}
             data={folderItems}
             ItemSeparatorComponent={() => {
-              return <View style={{ height: 1, ...tailwind('bg-neutral-20') }}></View>;
+              return <View style={{ height: 1, ...tailwind('bg-gray-1 mx-4') }}></View>;
             }}
             ListEmptyComponent={renderListEmpty()}
             renderItem={({ item }) => {

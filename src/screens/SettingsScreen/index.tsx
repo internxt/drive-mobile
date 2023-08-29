@@ -174,7 +174,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                       <UserProfilePicture uri={profileAvatar} size={56} />
 
                       <View style={tailwind('flex-grow flex-1 ml-3')}>
-                        <AppText numberOfLines={1} medium style={tailwind('text-xl text-gray-80')}>
+                        <AppText numberOfLines={1} medium style={tailwind('text-xl text-gray-100')}>
                           {userFullName}
                         </AppText>
                         <AppText numberOfLines={1} style={tailwind('text-gray-40')}>
@@ -185,7 +185,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                       </View>
 
                       <View style={tailwind('items-end')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -200,7 +200,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                   key: 'sign-out',
                   template: (
                     <View style={tailwind('px-4 py-3')}>
-                      <AppText style={tailwind('text-center text-lg text-red-')}>{strings.buttons.signOut}</AppText>
+                      <AppText style={tailwind('text-center text-lg text-red')}>{strings.buttons.signOut}</AppText>
                     </View>
                   ),
                   onPress: onSignOutPressed,
@@ -228,7 +228,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                             {strings.formatString(strings.generic.usagePercent, usagePercent)}
                           </AppText>
                         ) : null}
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -247,7 +247,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                       <View style={tailwind('flex-row items-center')}>
                         {/* Disabled until we can get the Trash size */}
                         {/* <AppText style={tailwind('text-gray-40 mr-2.5')}>{prettysize(0)}</AppText> */}
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -267,7 +267,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                         <AppText style={tailwind('text-gray-40 mr-2.5')}>
                           {strings.languages[strings.getLanguage() as Language]}
                         </AppText>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -340,7 +340,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -357,7 +357,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -375,7 +375,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -397,7 +397,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -422,7 +422,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                           </AppText>
                         </View>
                         <View style={tailwind('justify-center')}>
-                          <CaretRight color={getColor('text-neutral-60')} size={20} />
+                          <CaretRight color={getColor('text-gray-40')} size={20} />
                         </View>
                       </View>
                     ),

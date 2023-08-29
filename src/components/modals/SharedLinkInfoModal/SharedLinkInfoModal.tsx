@@ -107,8 +107,8 @@ export function SharedLinkInfoModal(): JSX.Element {
       onPress: handleShareLinkSettingsPress,
     },
     {
-      icon: <LinkBreak size={20} color={getColor('text-red-60')} />,
-      textStyle: tailwind('text-red-60'),
+      icon: <LinkBreak size={20} color={getColor('text-red-dark')} />,
+      textStyle: tailwind('text-red-dark'),
       label: strings.components.file_and_folder_options.deleteLink,
       onPress: () => setConfirmDeleteModalOpen(true),
     },
@@ -172,7 +172,7 @@ export function SharedLinkInfoModal(): JSX.Element {
                   leftSlot={opt.icon}
                   rightSlot={
                     <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                      <Text style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</Text>
+                      <AppText style={[tailwind('text-lg text-gray-100'), opt.textStyle]}>{opt.label}</AppText>
                     </View>
                   }
                   hideBorderBottom={index === options.length - 1}

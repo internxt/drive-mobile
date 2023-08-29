@@ -112,7 +112,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
           </View>
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{userFullName}</AppText>
-            <CaretRight color={getColor('text-neutral-60')} size={20} />
+            <CaretRight color={getColor('text-gray-40')} size={20} />
           </View>
         </View>
       ),
@@ -130,7 +130,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
           <View style={tailwind('flex-row items-center')}>
             <AppText style={tailwind('text-gray-40 mr-2.5')}>{user?.email}</AppText>
             {user?.emailVerified ? (
-              <CheckCircle weight="fill" color={getColor('text-green-')} size={20} />
+              <CheckCircle weight="fill" color={getColor('text-green')} size={20} />
             ) : (
               <Warning weight="fill" color={getColor('text-yellow-')} size={20} />
             )}
@@ -273,7 +273,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                 key: 'delete-account',
                 template: (
                   <View style={tailwind('px-4 py-3')}>
-                    <AppText style={tailwind('text-center text-lg text-red-')}>
+                    <AppText style={tailwind('text-center text-lg text-red')}>
                       {strings.screens.AccountScreen.deleteAccount}
                     </AppText>
                   </View>

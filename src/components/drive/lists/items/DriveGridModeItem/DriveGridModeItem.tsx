@@ -96,7 +96,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={getColor('text-neutral-20')}
+      underlayColor={getColor('text-gray-5')}
       onLongPress={props.onActionsPress}
       onPress={props.onPress}
       onLayout={(event) => {
@@ -119,7 +119,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
 
             {isUploading && (
               <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
-                <View style={tailwind('rounded px-1 py-0.5 bg-blue-60 flex-row')}>
+                <View style={tailwind('rounded px-1 py-0.5 bg-primary flex-row')}>
                   <ArrowCircleUp weight="fill" color={getColor('text-white')} size={16} />
                   <AppText style={tailwind('ml-1.5 text-xs text-white')}>
                     {((props.progress || 0) * 100).toFixed(0) + '%'}

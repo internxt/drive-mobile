@@ -21,11 +21,11 @@ const Tabs = (props: TabsProps): JSX.Element => {
         style={[tailwind('relative top-1 px-2 pb-1')]}
         onPress={() => props.onTabChanged(tab.id)}
       >
-        <AppText style={[tailwind('text-lg'), isActive ? tailwind('text-neutral-500') : tailwind('text-neutral-100')]}>
+        <AppText style={[tailwind('text-lg'), isActive ? tailwind('text-gray-100') : tailwind('text-gray-80')]}>
           {tab.title}
         </AppText>
 
-        <View style={[isActive && tailwind('mt-1 text-neutral-500 border-b border-neutral-500')]}></View>
+        <View style={[isActive && tailwind('mt-1 text-gray-100 border-b border-gray-100')]}></View>
       </TouchableOpacity>
     );
   });
@@ -34,7 +34,7 @@ const Tabs = (props: TabsProps): JSX.Element => {
   return (
     <View style={tailwind('flex-1 mt-1')}>
       {/* HEADERS */}
-      <View style={tailwind('px-3 flex-row border-b border-neutral-30')}>{headers}</View>
+      <View style={tailwind('px-3 flex-row border-b border-gray-10')}>{headers}</View>
 
       {/* CONTENT */}
       <View style={tailwind('flex-1')}>

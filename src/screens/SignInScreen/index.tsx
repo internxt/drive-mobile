@@ -133,8 +133,8 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         : errors['email'] || errors['password'] || errors['loginFailed'];
       return (
         <View style={tailwind('flex flex-row items-center mt-0.5')}>
-          <WarningCircle weight="fill" color={tailwind('text-red-').color as string} size={13} />
-          <AppText style={tailwind('text-sm text-red- ml-1')}>{errorMessage}</AppText>
+          <WarningCircle weight="fill" color={tailwind('text-red').color as string} size={13} />
+          <AppText style={tailwind('text-sm text-red ml-1')}>{errorMessage}</AppText>
         </View>
       );
     }

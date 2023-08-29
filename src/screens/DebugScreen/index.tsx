@@ -20,7 +20,7 @@ function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element
   const onBackButtonPressed = () => navigation.goBack();
 
   return (
-    <AppScreen safeAreaTop style={tailwind('h-full')} backgroundColor={getColor('text-neutral-20')}>
+    <AppScreen safeAreaTop style={tailwind('h-full')}>
       <ScreenTitle
         textStyle={tailwind('text-2xl')}
         text={strings.screens.DebugScreen.title}

@@ -132,7 +132,7 @@ const DeleteAccountModal = (props: BaseModalProps) => {
                 {item.icon}
                 <AppText style={tailwind('ml-3 text-lg')}>{item.label}</AppText>
               </View>
-              <AppText style={tailwind('text-red-')} medium>
+              <AppText style={tailwind('text-red')} medium>
                 {item.redLabel}
               </AppText>
             </View>
@@ -144,7 +144,7 @@ const DeleteAccountModal = (props: BaseModalProps) => {
     return (
       <>
         <View style={tailwind('items-center mb-4')}>
-          <WarningCircle size={48} color={getColor('text-red-')} />
+          <WarningCircle size={48} color={getColor('text-red')} />
         </View>
 
         <AppText medium style={tailwind('mb-10 px-4 text-center text-lg')}>

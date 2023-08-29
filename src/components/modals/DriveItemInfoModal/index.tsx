@@ -277,8 +277,8 @@ function DriveItemInfoModal(): JSX.Element {
       onPress: handleGenerateShareLink,
     },
     {
-      icon: <Trash size={20} color={getColor('text-red-60')} />,
-      textStyle: tailwind('text-red-60'),
+      icon: <Trash size={20} color={getColor('text-red-dark')} />,
+      textStyle: tailwind('text-red-dark'),
       label: strings.components.file_and_folder_options.delete,
       onPress: handleTrashItem,
     },
@@ -338,7 +338,7 @@ function DriveItemInfoModal(): JSX.Element {
                     leftSlot={opt.icon}
                     rightSlot={
                       <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                        <AppText style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</AppText>
+                        <AppText style={[tailwind('text-lg text-gray-100'), opt.textStyle]}>{opt.label}</AppText>
                       </View>
                     }
                     hideBorderBottom={index === options.length - 1}

@@ -44,13 +44,13 @@ const AppScreenTitle = ({
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!onBackButtonPressed} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
-            <CaretLeft weight="bold" color={getColor('text-blue-60')} size={24} />
+            <CaretLeft weight="bold" color={getColor('text-primary')} size={24} />
           </View>
         </TouchableOpacity>
       )}
 
       <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
-        <AppText numberOfLines={1} medium style={[tailwind('text-neutral-700 text-2xl'), textStyle]}>
+        <AppText numberOfLines={1} medium style={[tailwind('text-gray-100 text-2xl'), textStyle]}>
           {text}
         </AppText>
 

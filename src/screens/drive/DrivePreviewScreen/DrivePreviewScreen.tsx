@@ -149,8 +149,8 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         {error ? (
           <View style={tailwind('mt-1')}>
             <View style={tailwind('flex flex-row items-center')}>
-              <WarningCircle weight="fill" size={20} color={tailwind('text-red-').color as string} />
-              <AppText style={tailwind('text-gray-60 text-center text-red- ml-1')}>{error}</AppText>
+              <WarningCircle weight="fill" size={20} color={tailwind('text-red').color as string} />
+              <AppText style={tailwind('text-gray-60 text-center text-red ml-1')}>{error}</AppText>
             </View>
             <AppButton
               style={tailwind('mt-5')}

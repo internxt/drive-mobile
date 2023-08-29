@@ -23,10 +23,8 @@ const LinkCopiedModal = (props: BaseModalProps): JSX.Element => {
   return (
     <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
       <View style={tailwind('p-6 w-32 h-32 justify-center items-center')}>
-        <Link style={tailwind('mb-2')} size={40} color={getColor('text-neutral-100')} />
-        <Text style={tailwind('text-center text-supporting-2 text-neutral-100')}>
-          {strings.modals.LinkCopied.message}
-        </Text>
+        <Link style={tailwind('mb-2')} size={40} color={getColor('text-gray-50')} />
+        <Text style={tailwind('text-center text-supporting-2 text-gray-50')}>{strings.modals.LinkCopied.message}</Text>
       </View>
     </CenterModal>
   );

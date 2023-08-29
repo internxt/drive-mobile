@@ -26,8 +26,8 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
 
   return (
     <TouchableHighlight
-      style={tailwind(`${isDisabled ? 'opacity-50' : 'opacity-100'}`)}
-      underlayColor={isDisabled ? 'transparent' : getColor('text-neutral-20')}
+      style={tailwind(`${isDisabled ? 'opacity-40' : 'opacity-100'}`)}
+      underlayColor={isDisabled ? 'transparent' : getColor('text-gray-40')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
@@ -43,14 +43,14 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
 
           <View style={[tailwind('flex-1 flex items-start justify-center')]}>
             <AppText
-              style={[tailwind('text-left text-base text-neutral-500'), globalStyle.fontWeight.medium]}
+              style={[tailwind('text-left text-base text-gray-100'), globalStyle.fontWeight.medium]}
               numberOfLines={1}
               ellipsizeMode={'middle'}
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
 
-            <AppText style={tailwind('text-xs text-neutral-100')}>
+            <AppText style={tailwind('text-xs text-gray-50')}>
               {!isFolder && (
                 <>
                   {prettysize(props.data.size || 0)}
@@ -69,7 +69,7 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
 
         {isFolder && (
           <View style={[tailwind('items-center justify-center')]}>
-            <CaretRight weight="bold" size={22} color={getColor('text-neutral-60')} />
+            <CaretRight weight="bold" size={22} color={getColor('text-gray-60')} />
           </View>
         )}
       </View>

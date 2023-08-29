@@ -162,10 +162,10 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                     <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
                       {is2FAEnabled ? (
                         <>
-                          <AppText style={tailwind('text-red- text-lg')}>
+                          <AppText style={tailwind('text-red text-lg')}>
                             {strings.screens.SecurityScreen.twoFactor.disable}
                           </AppText>
-                          <CaretRight size={20} color={getColor('text-red-')} />
+                          <CaretRight size={20} color={getColor('text-red')} />
                         </>
                       ) : (
                         <>

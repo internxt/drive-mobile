@@ -56,20 +56,18 @@ const ReferralsWidget = (): JSX.Element => {
       return (
         <TouchableHighlight
           disabled={r.isCompleted || !hasClickAction}
-          underlayColor={getColor('text-neutral-30')}
+          underlayColor={getColor('text-gray-5')}
           key={r.key}
           onPress={onPress}
         >
-          <View
-            style={[tailwind('flex-row items-center px-4 py-3'), !isTheLast && tailwind('border-b border-neutral-20')]}
-          >
+          <View style={[tailwind('flex-row items-center px-4 py-3'), !isTheLast && tailwind('border-b border-gray-5')]}>
             <AppText numberOfLines={1} style={[tailwind('text-lg flex-1'), r.isCompleted && tailwind('text-gray-40')]}>
               {text}
             </AppText>
 
-            <AppText style={r.isCompleted ? tailwind('text-green-') : tailwind('text-gray-40')}>{creditText}</AppText>
+            <AppText style={r.isCompleted ? tailwind('text-green') : tailwind('text-gray-40')}>{creditText}</AppText>
             {r.isCompleted ? (
-              <CheckCircle weight="fill" color={getColor('text-green-')} size={20} style={tailwind('ml-2.5')} />
+              <CheckCircle weight="fill" color={getColor('text-green')} size={20} style={tailwind('ml-2.5')} />
             ) : (
               hasClickAction && <CaretRight color={getColor('text-gray-40')} size={20} style={tailwind('ml-2.5')} />
             )}
@@ -94,7 +92,7 @@ const ReferralsWidget = (): JSX.Element => {
                 <AppText style={tailwind('text-center text-lg')}>
                   {strings.screens.StorageScreen.referrals.youHaveUnlocked}
                 </AppText>
-                <AppText style={tailwind('text-center text-3xl text-green-')} medium>
+                <AppText style={tailwind('text-center text-3xl text-green')} medium>
                   {storageService.toString(unlockedReferralsStorage)}
                 </AppText>
                 <AppText style={tailwind('text-center text-lg')}>

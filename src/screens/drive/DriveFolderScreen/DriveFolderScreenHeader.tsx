@@ -73,7 +73,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
             </View>
             <View style={tailwind('items-center justify-center')}>
               <TouchableOpacity style={tailwind('p-2')} onPress={props.onFolderActionsPress}>
-                <DotsThree weight="bold" color={getColor('text-gray-80')} size={24} />
+                <DotsThree weight="bold" color={getColor('text-gray-100')} size={24} />
               </TouchableOpacity>
             </View>
           </View>

@@ -16,7 +16,7 @@ const DebugDownloadWidget = (props: DebugDownloadWidgetProps): JSX.Element => {
   return (
     <View style={[tailwind('px-5'), props.style]}>
       <AppText style={tailwind('text-xl')}>{strings.screens.DebugScreen.download.title}</AppText>
-      <AppText style={tailwind('text-neutral-200 text-base')}>{strings.screens.DebugScreen.download.advice}</AppText>
+      <AppText style={tailwind('text-gray-50 text-base')}>{strings.screens.DebugScreen.download.advice}</AppText>
 
       <View style={tailwind('h-3')}></View>
 

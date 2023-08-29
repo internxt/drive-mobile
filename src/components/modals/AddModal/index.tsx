@@ -578,85 +578,87 @@ function AddModal(): JSX.Element {
         }}
       >
         <View style={tailwind('p-4')}>
-          <View style={tailwind('rounded-xl overflow-hidden')}>
+          <View style={tailwind('rounded-2xl bg-white overflow-hidden')}>
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-neutral-80')}
+              underlayColor={getColor('text-gray-40')}
               onPress={() => {
                 handleUploadFiles();
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFiles}</AppText>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <FileArrowUp color={getColor('text-neutral-500')} size={20} />
+              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
+                  <FileArrowUp color={getColor('text-gray-100')} size={24} />
                 </View>
+                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>{strings.buttons.uploadFiles}</AppText>
               </View>
             </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+            <View style={tailwind('flex-grow h-px bg-gray-10 mx-4')}></View>
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-neutral-80')}
+              underlayColor={getColor('text-gray-20')}
               onPress={() => {
                 handleUploadFromCameraRoll();
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFromCameraRoll}</AppText>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <ImageSquare color={getColor('text-neutral-500')} size={20} />
+              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
+                  <ImageSquare color={getColor('text-gray-100')} size={24} />
                 </View>
+                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>
+                  {strings.buttons.uploadFromCameraRoll}
+                </AppText>
               </View>
             </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+            <View style={tailwind('flex-grow h-px bg-gray-10 mx-4')}></View>
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-neutral-80')}
+              underlayColor={getColor('text-gray-40')}
               onPress={() => {
                 handleTakePhotoAndUpload();
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.takeAPhotoAnUpload}</AppText>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <Camera color={getColor('text-neutral-500')} size={20} />
+              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
+                  <Camera color={getColor('text-gray-100')} size={24} />
                 </View>
+                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>{strings.buttons.takeAPhotoAnUpload}</AppText>
               </View>
             </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-neutral-20')}></View>
+            <View style={tailwind('flex-grow h-px bg-gray-10 mx-4')}></View>
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-neutral-80')}
+              underlayColor={getColor('text-gray-40')}
               onPress={() => {
                 setShowCreateFolderModal(true);
                 dispatch(uiActions.setShowUploadFileModal(false));
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.newFolder}</AppText>
-                <View style={tailwind('p-3.5 items-center justify-center')}>
-                  <FolderSimplePlus color={getColor('text-neutral-500')} size={20} />
+              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
+                  <FolderSimplePlus color={getColor('text-gray-100')} size={24} />
                 </View>
+                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>{strings.buttons.newFolder}</AppText>
               </View>
             </TouchableHighlight>
           </View>
 
-          <View style={tailwind('mt-3.5 rounded-xl overflow-hidden')}>
+          <View style={tailwind('mt-4 rounded-2xl overflow-hidden')}>
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-neutral-80')}
+              underlayColor={getColor('text-gray-40')}
               onPress={() => {
                 dispatch(uiActions.setShowUploadFileModal(false));
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white h-12 items-center justify-center')}>
-                <AppText medium style={tailwind('text-lg text-neutral-500')}>
+              <View style={tailwind('flex-row flex-grow bg-white p-3.5 items-center justify-center')}>
+                <AppText medium style={tailwind('text-lg text-gray-100')}>
                   {strings.buttons.cancel}
                 </AppText>
               </View>

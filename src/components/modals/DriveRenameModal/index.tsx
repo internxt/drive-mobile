@@ -123,16 +123,16 @@ function RenameModal(): JSX.Element {
 
               <View
                 style={[
-                  tailwind('px-4 items-center justify-center flex-shrink flex-grow bg-neutral-10'),
-                  tailwind('border border-neutral-30 rounded-lg'),
+                  tailwind('px-4 items-center justify-center flex-grow'),
+                  tailwind('border border-gray-40 rounded-lg'),
                   Platform.OS !== 'android' ? tailwind('pb-3') : tailwind(''),
                 ]}
               >
                 <TextInput
-                  style={tailwind('text-lg text-center text-neutral-600')}
+                  style={tailwind('text-lg text-center text-gray-100')}
                   value={newName}
                   onChangeText={setNewName}
-                  placeholderTextColor={getColor('text-neutral-500')}
+                  placeholderTextColor={getColor('text-gray-50')}
                   autoComplete="off"
                   key="name"
                   autoCorrect={false}
