@@ -90,9 +90,9 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const filename = `${focusedItem.name || ''}${focusedItem.type ? `.${focusedItem.type}` : ''}`;
   const currentProgress = downloadingFile.downloadProgress * 0.5 + downloadingFile.decryptProgress * 0.5;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
-  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension);
-  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension);
-  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension);
+  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
+  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
+  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
   const getProgressMessage = () => {
     if (!downloadingFile) {
       return;
