@@ -9,20 +9,17 @@ export const INCREASED_TOUCH_AREA_X2 = {
 };
 export default {
   fontWeight: StyleSheet.create({
-    light: {
-      fontFamily: 'NeueEinstellung-Light',
-    },
     regular: {
-      fontFamily: 'NeueEinstellung-Regular',
+      fontFamily: 'InstrumentSans-Regular',
     },
     medium: {
-      fontFamily: 'NeueEinstellung-Medium',
+      fontFamily: 'InstrumentSans-Medium',
     },
     semibold: {
-      fontFamily: 'NeueEinstellung-SemiBold',
+      fontFamily: 'InstrumentSans-SemiBold',
     },
     bold: {
-      fontFamily: 'NeueEinstellung-Bold',
+      fontFamily: 'InstrumentSans-Bold',
     },
   }),
 };
