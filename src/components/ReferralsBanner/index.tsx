@@ -39,7 +39,7 @@ const ReferralsBanner = (): JSX.Element => {
       </AppText>
       <TouchableWithoutFeedback onPress={onCloseButtonPressed}>
         <View style={tailwind('p-2')}>
-          <X color={getColor('text-primary')} size={26} />
+          <X color={getColor('text-white')} size={26} />
         </View>
       </TouchableWithoutFeedback>
     </View>

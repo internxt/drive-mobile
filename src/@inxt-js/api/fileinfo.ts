@@ -75,8 +75,12 @@ export function GetFileMirrors(config: EnvironmentConfig, bucketId: string, file
           next(err);
         });
     },
-    (results: any, totalShard: any, next: any) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    (results: any, _: any, next: any) => {
       return next(null, results.length === 0);
     },
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
   ).then((result: any) => result[1]);
 }

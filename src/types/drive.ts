@@ -3,6 +3,7 @@ import {
   DriveFileData,
   DriveFolderData,
   FetchFolderContentResponse,
+  FolderChild,
   Thumbnail,
 } from '@internxt/sdk/dist/drive/storage/types';
 
@@ -203,7 +204,13 @@ export interface DriveCurrentFolderContent {
   folderContent: DriveItemData[];
 }
 
-export interface FetchFolderContentResponseWithThumbnails extends FetchFolderContentResponse {
+export type FolderContentChild = Omit<FolderChild, 'uuid'>;
+
+export type FolderContent = Omit<FetchFolderContentResponse, 'children'> & {
+  children: FolderContentChild[];
+};
+
+export interface FetchFolderContentResponseWithThumbnails extends FolderContent {
   files: (DriveFileData & { thumbnail?: DownloadedThumbnail })[];
 }
 
