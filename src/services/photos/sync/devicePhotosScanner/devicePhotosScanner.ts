@@ -123,7 +123,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
       if (asset.filename.includes('.')) {
         name = asset.filename.split('.')[0];
       }
-      const assetKey = `${name}-${asset.creationTime.toString()}`;
+      const assetKey = `${name}-${asset.id}`;
       this.cachedDevicePhotos[assetKey] = asset;
     });
   }
