@@ -114,6 +114,8 @@ export class FileObject extends EventEmitter {
               attempts++;
             });
         },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         (result: Shard | null, next: any) => {
           validPointer =
             result && result.farmer && result.farmer.nodeID && result.farmer.port && result.farmer.address
@@ -123,6 +125,8 @@ export class FileObject extends EventEmitter {
           return next(null, validPointer || attempts >= DEFAULT_INXT_MIRRORS);
         },
       )
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         .then((result: any) => {
           logger.info('Pointer replaced for shard %s', shard.index);
 

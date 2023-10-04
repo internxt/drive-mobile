@@ -10,6 +10,8 @@ import {
   DriveItemData,
   InsertSqliteDriveItemRowData,
   SqliteDriveFolderRecord,
+  FolderContentChild,
+  FolderContent,
 } from '../../../types/drive';
 import sqliteService from '../../SqliteService';
 import { driveLogger, DriveLogger } from '../logger';
@@ -33,6 +35,7 @@ export interface DriveRowItem {
   folderId?: number;
   icon_id: number | null;
 }
+
 class DriveLocalDB {
   private readonly logger: DriveLogger;
 
@@ -202,6 +205,9 @@ class DriveLocalDB {
         thumbnails: row.thumbnails,
         plain_name: row.plain_name,
         currentThumbnail: null,
+        // All the items in the DB are marked as EXISTS, trashed and removed ones
+        // should not exists in the db for now, we cannot handle those cases
+        status: 'EXISTS',
       };
       result = file;
     }
@@ -209,7 +215,7 @@ class DriveLocalDB {
     return result as DriveItemData;
   }
 
-  async getFolderContent(folderId: number): Promise<FetchFolderContentResponse | null> {
+  async getFolderContent(folderId: number): Promise<FolderContent | null> {
     const [items, folderContent] = await Promise.all([this.getDriveItems(folderId), this.getFolderRecord(folderId)]);
     if (!folderContent) return null;
     return {
@@ -229,7 +235,7 @@ class DriveLocalDB {
       files: items.filter((item) => item.fileId),
       children: items
         .filter((item) => !item.fileId)
-        .map<FolderChild>((item) => {
+        .map<FolderContentChild>((item) => {
           return {
             ...item,
             parent_id: item.parentId || folderId,
@@ -238,7 +244,10 @@ class DriveLocalDB {
             name: item.name,
             plain_name: item.plain_name,
             color: item.color || '-',
-          };
+            // We don't support uuid yet, this will involve
+            // a major refactor in the data models
+            uuid: undefined,
+          } as FolderContentChild;
         }),
     };
   }

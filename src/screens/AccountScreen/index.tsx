@@ -132,7 +132,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
             {user?.emailVerified ? (
               <CheckCircle weight="fill" color={getColor('text-green')} size={20} />
             ) : (
-              <Warning weight="fill" color={getColor('text-yellow-')} size={20} />
+              <Warning weight="fill" color={getColor('text-yellow')} size={20} />
             )}
           </View>
         </View>

@@ -68,7 +68,8 @@ class PaymentService {
   }
 
   public async updateSubscriptionPrice(priceId: string): Promise<UserSubscription> {
-    return this.sdk.payments.updateSubscriptionPrice(priceId);
+    const updated = await this.sdk.payments.updateSubscriptionPrice(priceId);
+    return updated.userSubscription;
   }
 
   public async cancelSubscription(): Promise<void> {

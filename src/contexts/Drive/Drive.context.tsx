@@ -5,6 +5,7 @@ import {
   DriveItemData,
   DriveListViewMode,
   FetchFolderContentResponseWithThumbnails,
+  FolderContent,
 } from '@internxt-mobile/types/drive';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
@@ -28,7 +29,7 @@ export interface DriveContextType {
   rootFolderId: number;
   toggleViewMode: () => void;
   loadFolderContent: (folderId: number, options?: LoadFolderContentOptions) => Promise<void>;
-  currentFolder: FetchFolderContentResponse | null;
+  currentFolder: FolderContent | null;
 }
 
 type LoadFolderContentOptions = {
@@ -132,7 +133,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     shouldSetAsFocused,
   }: {
     folderId: number;
-    folderContent?: FetchFolderContentResponse;
+    folderContent?: FolderContent;
     error?: Error;
     shouldSetAsFocused?: boolean;
   }) => {
