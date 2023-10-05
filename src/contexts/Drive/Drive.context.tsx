@@ -49,7 +49,7 @@ const logger = new BaseLogger({
   tag: 'DRIVE_CONTEXT',
 });
 
-export const checkIfItemsShouldBeDeletedFromLocalDB = async () => {
+export const removeOldItemsFromLocalDB = async () => {
   const lastUpdatedAt = (await asyncStorageService.getItem(AsyncStorageKey.LastUpdatedAt)) || new Date().toISOString();
 
   const [modifiedFiles, modifiedFolders] = await Promise.all([
@@ -148,7 +148,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
 
         // Check if the items have been modified from another platform
-        checkIfItemsShouldBeDeletedFromLocalDB().catch((error) => {
+        removeOldItemsFromLocalDB().catch((error) => {
           errorService.reportError(error);
         });
 
