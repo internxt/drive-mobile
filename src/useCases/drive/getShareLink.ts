@@ -15,23 +15,23 @@ import { Network } from 'src/lib/network';
  * Gets an already generated share link
  */
 export const getExistingShareLink = async ({
-  token,
+  uuid,
   code,
   copyLinkToClipboard,
   type,
 }: {
-  token?: string;
+  uuid?: string;
   code?: string;
   copyLinkToClipboard?: boolean;
   type: 'file' | 'folder';
 }) => {
   try {
-    if (!token || !code) {
-      throw new Error('Token or code missing, cannot generate share link');
+    if (!uuid || !code) {
+      throw new Error('Id or code missing, cannot generate share link');
     }
     const link = await drive.share.getShareLinkFromCodeAndToken({
       type,
-      token,
+      uuid,
       code,
     });
 
@@ -131,56 +131,20 @@ export const generateShareLink = async ({
     const encryptedMnemonic = aes.encrypt(mnemonic, plainCode);
 
     // 4. Generate the share link
-    const link = await drive.share.generateShareLink(plainCode, mnemonic, {
-      itemId,
-      type,
-      encryptedMnemonic,
-      encryptedCode,
-      timesValid: -1,
-      bucket,
-      itemToken,
-      plainPassword,
-    });
+    const link = await drive.share.generateShareLink(
+      {
+        encryptionAlgorithm: 'inxt-v2',
+        encryptionKey: encryptedMnemonic,
+        itemType: type,
+        encryptedCode,
+        itemId,
+      },
+      mnemonic,
+    );
 
     if (displayCopyNotification && link) {
       copyShareLink({ link, type });
     }
-    sharedLinksUpdated();
-    return {
-      link,
-    };
-  } catch (error) {
-    notificationsService.error(strings.errors.generateShareLinkError);
-    errorService.reportError({
-      error,
-    });
-  }
-};
-
-/**
- * Updates a share link for a given Drive item
- */
-export const updateShareLink = async ({
-  shareId,
-  plainPassword,
-}: {
-  shareId: string;
-  plainPassword: string | null;
-  type: 'file' | 'folder';
-}) => {
-  try {
-    const { credentials } = await AuthService.getAuthCredentials();
-
-    if (!credentials?.user) throw new Error('User credentials not found');
-
-    const { mnemonic } = credentials.user;
-
-    const link = await drive.share.updateShareLink({
-      mnemonic,
-      plainPassword,
-      shareId,
-    });
-
     sharedLinksUpdated();
     return {
       link,

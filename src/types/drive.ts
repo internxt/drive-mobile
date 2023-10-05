@@ -35,6 +35,7 @@ export type DriveItemFocused = {
   shareId?: string;
   isFromFolderActions?: boolean;
   isFolder: boolean;
+  uuid?: string;
 } | null;
 
 export interface DriveFolderMetadataPayload {
@@ -107,6 +108,7 @@ export type DriveItemDataProps = Pick<
   type?: string;
   shareId?: string;
   thumbnail?: DownloadedThumbnail;
+  uuid?: string;
 };
 
 export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps; id: string };
@@ -204,14 +206,14 @@ export interface DriveCurrentFolderContent {
   folderContent: DriveItemData[];
 }
 
-export type FolderContentChild = Omit<FolderChild, 'uuid'>;
+export type FolderContentChild = FolderChild;
 
 export type FolderContent = Omit<FetchFolderContentResponse, 'children'> & {
   children: FolderContentChild[];
 };
 
 export interface FetchFolderContentResponseWithThumbnails extends FolderContent {
-  files: (DriveFileData & { thumbnail?: DownloadedThumbnail })[];
+  files: (DriveFileData & { thumbnail?: DownloadedThumbnail; uuid?: string })[];
 }
 
 export interface DownloadedThumbnail {

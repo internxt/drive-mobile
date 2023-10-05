@@ -1,20 +1,10 @@
-import axios from 'axios';
-import {
-  DriveFileData,
-  DriveFolderData,
-  FetchFolderContentResponse,
-  MoveFolderPayload,
-} from '@internxt/sdk/dist/drive/storage/types';
-
-import { getHeaders } from '../../../helpers/headers';
+import { DriveFileData, MoveFolderPayload } from '@internxt/sdk/dist/drive/storage/types';
 import {
   DriveFolderMetadataPayload,
   DriveItemStatus,
   DriveListItem,
   FetchFolderContentResponseWithThumbnails,
 } from '../../../types/drive';
-import { constants } from '../../AppService';
-import { driveFileService } from '../file';
 import { SdkManager } from '@internxt-mobile/services/common';
 
 class DriveFolderService {
@@ -75,6 +65,7 @@ class DriveFolderService {
           type: child.type,
           fileId: child.fileId,
           thumbnail: child.thumbnail,
+          uuid: child.uuid,
         },
       };
     });
@@ -96,6 +87,7 @@ class DriveFolderService {
           size: undefined,
           type: undefined,
           fileId: undefined,
+          uuid: child.uuid,
         },
       };
     });

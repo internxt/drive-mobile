@@ -1,11 +1,9 @@
 import strings from 'assets/lang/strings';
-import { Check, Copy, Eye, EyeSlash } from 'phosphor-react-native';
+import { Check, Copy } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Keyboard, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import { Animated, Keyboard, TextInput, View } from 'react-native';
 import AppButton from 'src/components/AppButton';
-import AppSwitch from 'src/components/AppSwitch';
 import AppText from 'src/components/AppText';
-import AppTextInput from 'src/components/AppTextInput';
 import { useTailwind } from 'tailwind-rn';
 import BottomModal from '../BottomModal';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
@@ -15,6 +13,7 @@ import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
 import { animations } from './animations';
 import { GeneratingLinkModal } from '../common/GeneratingLinkModal';
 import { driveActions } from 'src/store/slices/drive';
+
 export interface SharedLinkSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -103,29 +102,29 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
     animate.displayPasswordMode(isAlreadyPasswordProtected);
   }, [isAlreadyPasswordProtected]);
 
-  const toggleShowPassword = () => {
-    setShowPassword(!showPassword);
-  };
-  const handleToggleProtectWithPassword = (protectWithPassword: boolean) => {
-    setPasswordError(false);
-    if (protectWithPassword !== isAlreadyPasswordProtected && !isCreatingShareLink) {
-      setShouldSave(true);
-    } else {
-      setShouldSave(false);
-    }
-    setProtectWithPassword(protectWithPassword);
-  };
+  // const toggleShowPassword = () => {
+  //   setShowPassword(!showPassword);
+  // };
+  // const handleToggleProtectWithPassword = (protectWithPassword: boolean) => {
+  //   setPasswordError(false);
+  //   if (protectWithPassword !== isAlreadyPasswordProtected && !isCreatingShareLink) {
+  //     setShouldSave(true);
+  //   } else {
+  //     setShouldSave(false);
+  //   }
+  //   setProtectWithPassword(protectWithPassword);
+  // };
 
-  const handleDismiss = () => {
-    onClose();
-  };
+  // const handleDismiss = () => {
+  //   onClose();
+  // };
 
-  const handleChangePasswordText = (newPassword: string) => {
-    if (newPassword && newPassword !== PASSWORD_PLACEHOLDER && !isCreatingShareLink) {
-      setShouldSave(true);
-    }
-    setShareLinkPassword(newPassword);
-  };
+  // const handleChangePasswordText = (newPassword: string) => {
+  //   if (newPassword && newPassword !== PASSWORD_PLACEHOLDER && !isCreatingShareLink) {
+  //     setShouldSave(true);
+  //   }
+  //   setShareLinkPassword(newPassword);
+  // };
 
   const handleCopyLinkPress = async () => {
     if (protectWithPassword && !shareLinkPassword) {
@@ -147,14 +146,16 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
 
     // A share link already exists, obtain it
     if (item?.token && item?.code) {
-      const existingLink = await driveUseCases.getExistingShareLink({
-        code: item.code,
-        token: item.token,
+      const existingLink = await driveUseCases.generateShareLink({
+        itemId: item?.uuid as string,
+        fileId: item?.fileId,
+        displayCopyNotification: false,
         type: isFolder ? 'folder' : 'file',
+        plainPassword: shareLinkPassword,
       });
-      if (!existingLink) return;
-      setGeneratedShareLink(existingLink);
-      Clipboard.setString(existingLink);
+      if (!existingLink?.link) return;
+      setGeneratedShareLink(existingLink?.link);
+      Clipboard.setString(existingLink?.link);
 
       return;
     }
@@ -162,7 +163,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
     // No share link, generate it
     setIsProcessingLink(true);
     const result = await driveUseCases.generateShareLink({
-      itemId: item?.id.toString() as string,
+      itemId: item?.uuid as string,
       fileId: item?.fileId,
       displayCopyNotification: false,
       type: isFolder ? 'folder' : 'file',
@@ -176,36 +177,36 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
     setIsProcessingLink(false);
   };
 
-  const handleSaveShareLinkChanges = async () => {
-    if (!focusedShareItem) return;
-    if (!item) return;
-    if (protectWithPassword && !shareLinkPassword) {
-      // You ned to provide a password
-      setPasswordError(true);
-      return;
-    }
+  // const handleSaveShareLinkChanges = async () => {
+  //   if (!focusedShareItem) return;
+  //   if (!item) return;
+  //   if (protectWithPassword && !shareLinkPassword) {
+  //     // You ned to provide a password
+  //     setPasswordError(true);
+  //     return;
+  //   }
 
-    setPasswordError(false);
-    setIsSaving(true);
-    setIsProcessingLink(true);
+  //   setPasswordError(false);
+  //   setIsSaving(true);
+  //   setIsProcessingLink(true);
 
-    const shouldIncludePassword = protectWithPassword ? true : false;
-    const result = await driveUseCases.updateShareLink({
-      plainPassword: shouldIncludePassword ? (shareLinkPassword as string) : null,
-      type: item.folderId ? 'folder' : 'file',
-      shareId: focusedShareItem.id,
-    });
+  //   const shouldIncludePassword = protectWithPassword ? true : false;
+  //   const result = await driveUseCases.updateShareLink({
+  //     plainPassword: shouldIncludePassword ? (shareLinkPassword as string) : null,
+  //     type: item.folderId ? 'folder' : 'file',
+  //     shareId: focusedShareItem.id,
+  //   });
 
-    if (result?.link) {
-      setIsAlreadyPasswordProtected(shouldIncludePassword);
-      setShareLinkPassword(shouldIncludePassword ? shareLinkPassword : undefined);
-      setGeneratedShareLink(result.link);
-      Clipboard.setString(result.link);
-      setShouldSave(false);
-      setIsSaving(false);
-      setIsProcessingLink(false);
-    }
-  };
+  //   if (result?.link) {
+  //     setIsAlreadyPasswordProtected(shouldIncludePassword);
+  //     setShareLinkPassword(shouldIncludePassword ? shareLinkPassword : undefined);
+  //     setGeneratedShareLink(result.link);
+  //     Clipboard.setString(result.link);
+  //     setShouldSave(false);
+  //     setIsSaving(false);
+  //     setIsProcessingLink(false);
+  //   }
+  // };
 
   return (
     <>
@@ -223,7 +224,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         isOpen={isOpen}
         style={{ paddingBottom: keyboardShown ? keyboardHeight : 0 }}
       >
-        <View style={tailwind('flex flex-row justify-between px-5 items-center mt-2')}>
+        {/* <View style={tailwind('flex flex-row justify-between px-5 items-center mt-2')}>
           <View style={tailwind('py-2.5')}>
             <AppText style={tailwind('text-lg')}>{strings.modals.shareLinkSettings.protectWithPassword.title}</AppText>
             <AppText style={tailwind('text-xs text-gray-40')}>
@@ -234,8 +235,8 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
             value={protectWithPassword}
             onChange={() => handleToggleProtectWithPassword(!protectWithPassword)}
           />
-        </View>
-        <Animated.View
+        </View> */}
+        {/* <Animated.View
           style={[tailwind('px-5 overflow-hidden'), { height: passwordModeHeight, opacity: passwordModeOpacity }]}
         >
           <View style={[tailwind('py-2')]}>
@@ -258,7 +259,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
               )}
             />
           </View>
-        </Animated.View>
+        </Animated.View> */}
         <View style={tailwind('px-5 mt-4')}>
           {!isCreatingShareLink && <View style={tailwind('border-b border-gray-10')} />}
         </View>
@@ -299,7 +300,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
             onPress={handleCopyLinkPress}
           ></AppButton>
         </Animated.View>
-        <Animated.View
+        {/* <Animated.View
           style={[
             tailwind('flex flex-row px-5 overflow-hidden'),
             { height: saveActionsHeight, opacity: saveActionsOpacity },
@@ -318,7 +319,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
             title={strings.buttons.save}
             onPress={handleSaveShareLinkChanges}
           ></AppButton>
-        </Animated.View>
+        </Animated.View> */}
       </BottomModal>
     </>
   );
