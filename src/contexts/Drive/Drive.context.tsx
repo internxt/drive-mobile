@@ -164,12 +164,14 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
     folderContentFromDB?.files?.forEach((file: DriveFileData) => {
       const fileModified = parsedModifiedFiles?.find((item: DriveFileData) => item.id === file.id);
-      if (fileModified.status === 'TRASHED') {
-        driveLocalDB.deleteItem({ id: file.id });
-        // Remove item from the array
-        folderContentFromDB.files = folderContentFromDB.files.filter((item) => item.id !== file.id);
-      } else if (fileModified) {
-        file = fileModified;
+      if (fileModified) {
+        if (fileModified.status === 'TRASHED' || fileModified.status === 'REMOVED') {
+          driveLocalDB.deleteItem({ id: file.id });
+          // Remove item from the array
+          folderContentFromDB.files = folderContentFromDB.files.filter((item) => item.id !== file.id);
+        } else if (fileModified === 'EXISTS') {
+          file = fileModified;
+        }
       }
     });
 
@@ -177,7 +179,13 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       folderContentFromDB.children.forEach((folder: FolderContentChild) => {
         const folderModified = parsedModifiedFolders?.find((item: DriveFileData) => item.id === folder.id);
         if (folderModified) {
-          folder = folderModified;
+          if (folderModified.status === 'TRASHED' || folderModified.status === 'REMOVED') {
+            driveLocalDB.deleteItem({ id: folder.id });
+            // Remove item from the array
+            folderContentFromDB.children = folderContentFromDB.children.filter((item) => item.id !== folder.id);
+          } else if (folderModified.status === 'EXISTS') {
+            folder = folderModified;
+          }
         }
       });
     }
