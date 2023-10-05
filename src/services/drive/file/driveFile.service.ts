@@ -254,18 +254,14 @@ class DriveFileService {
 
     const headers = await getHeaders(newToken);
 
-    try {
-      const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/files?${query}`, {
-        method: 'GET',
-        headers,
-      });
+    const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/files?${query}`, {
+      method: 'GET',
+      headers,
+    });
 
-      const parsedModifiedFiles = await modifiedItems.json();
+    const parsedModifiedFiles = await modifiedItems.json();
 
-      return parsedModifiedFiles;
-    } catch (error) {
-      errorService.reportError(error);
-    }
+    return parsedModifiedFiles;
   }
 
   public async getThumbnail(thumbnail: Thumbnail) {
