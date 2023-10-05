@@ -78,6 +78,7 @@ export default function App(): JSX.Element {
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
+      // TODO: Check the cache and remove the items if they are old
       dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.refreshTokensThunk());
     }

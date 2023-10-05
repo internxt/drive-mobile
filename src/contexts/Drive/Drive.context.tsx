@@ -1,4 +1,4 @@
-import { DriveFileData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 import React, { useEffect, useState } from 'react';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import {
@@ -6,19 +6,16 @@ import {
   DriveListViewMode,
   FetchFolderContentResponseWithThumbnails,
   FolderContent,
-  FolderContentChild,
-  GetModifiedFiles,
 } from '@internxt-mobile/types/drive';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import drive from '@internxt-mobile/services/drive';
-import _, { last } from 'lodash';
+import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
-import moment from 'moment';
 
 type DriveFoldersTree = {
   [folderId: number]:
@@ -82,67 +79,52 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     return driveUseCases.getFolderContent({ folderId });
   };
 
-  // Each conditional follows the same logic:
-  // 1. Get the last modified item in the folderContentFromDB (file or folder)
-  // 2. Get the recently modified items from the server
-  // 2.1 Get the recently modified files
-  // 2.2 Get the recently modified folders
-  // 3. Compare the recently modified items with the ones in the local cache (files or folders)
-  // 4. Remove the modified items from the local cache (files or folders)
+  const checkIfItemShouldBeUpdatedOrDeleted = async () => {
+    const lastUpdatedAt =
+      (await asyncStorageService.getItem(AsyncStorageKey.LastUpdatedAt)) || new Date().toISOString();
 
-  const checkIfItemShouldBeUpdatedOrDeleted = async (folderContentFromDB: FolderContent) => {
-    if (folderContentFromDB.files.length > 0) {
-      //1.
-      const lastModifiedFile = folderContentFromDB.files.reduce((before, actual) => {
-        return actual.updatedAt > before.updatedAt ? actual : before;
-      });
-      //2.1
-      const modifiedFiles = await driveFileService.getModifiedFiles({
-        updatedAt: lastModifiedFile.updatedAt,
+    const [modifiedFiles, modifiedFolders] = await Promise.all([
+      driveFileService.getModifiedFiles({
+        updatedAt: lastUpdatedAt,
         status: 'ALL',
-      });
-
-      if (!modifiedFiles) return;
-
-      // 3.
-      const modifiedFilesInFolder = modifiedFiles.filter((modifiedFile) => {
-        return folderContentFromDB.files.some((file) => file.id === modifiedFile.id);
-      });
-
-      console.log('MODIFIED FILES IN FOLDER', modifiedFilesInFolder);
-
-      // 4.
-      modifiedFilesInFolder.forEach((modifiedFile) => {
-        driveLocalDB.deleteItem({ id: modifiedFile.id });
-      });
-    }
-    if (folderContentFromDB.children.length > 0) {
-      // 1.
-      const lastModifiedFolder = folderContentFromDB.children.reduce((before, actual) => {
-        // Compara las fechas 'updatedAt' de los objetos
-        return actual.updatedAt > before.updatedAt ? actual : before;
-      });
-
-      // 2.2
-      const modifiedFolders = await driveFolderService.getModifiedFolders({
-        updatedAt: lastModifiedFolder.updatedAt,
+      }),
+      driveFolderService.getModifiedFolders({
+        updatedAt: lastUpdatedAt,
         status: 'ALL',
+      }),
+    ]);
+
+    if (!modifiedFiles || !modifiedFolders) return;
+
+    const modifiedFilesIds = modifiedFiles.map((file) => file.id);
+    const modifiedFoldersIds = modifiedFolders.map((folder) => folder.id);
+
+    modifiedFilesIds.forEach((fileId) => {
+      driveLocalDB.deleteItem({ id: fileId }).catch((error) => {
+        errorService.reportError(error);
       });
+    });
 
-      if (!modifiedFolders) return;
-
-      // 3.
-      const modifiedFoldersInFolder = modifiedFolders.filter((modifiedFolder) => {
-        return folderContentFromDB.children.some((folder) => folder.id === modifiedFolder.id);
+    modifiedFoldersIds.forEach((folderId) => {
+      driveLocalDB.deleteFolderRecord(folderId).catch((error) => {
+        errorService.reportError(error);
       });
+    });
 
-      console.log('MODIFIED FOLDERS IN FOLDER', modifiedFoldersInFolder);
+    // Get the last updated at date from the modified files and folders
+    let lastUpdatedAtFromModifiedFiles;
+    let lastUpdatedAtFromModifiedFolders;
 
-      // 4.
-      modifiedFoldersInFolder.forEach((modifiedFolder) => {
-        driveLocalDB.deleteFolderRecord(modifiedFolder.id);
-      });
-    }
+    if (modifiedFiles.length) lastUpdatedAtFromModifiedFiles = _.maxBy(modifiedFiles, 'updatedAt')?.updatedAt;
+    if (modifiedFolders.length)
+      lastUpdatedAtFromModifiedFolders = _.maxBy(modifiedFolders, 'updatedAt')?.updatedAt.toString();
+
+    // Get the most recent date
+    const newLastUpdatedAt = _.max([lastUpdatedAtFromModifiedFiles, lastUpdatedAtFromModifiedFolders]);
+
+    await asyncStorageService.saveItem(AsyncStorageKey.LastUpdatedAt, newLastUpdatedAt || new Date().toISOString());
+
+    // Get the id of the files and folders that have been modified
   };
 
   /**
@@ -164,13 +146,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     if (shouldPullFromCache) {
       const folderContentFromDB = await driveLocalDB.getFolderContent(folderId);
 
-      console.log('FOLDER CONTENT FROM DB', folderContentFromDB);
-
       if (folderContentFromDB) {
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
 
         // Check if the items have been modified from another platform
-        checkIfItemShouldBeUpdatedOrDeleted(folderContentFromDB).catch((error) => {
+        checkIfItemShouldBeUpdatedOrDeleted().catch((error) => {
           errorService.reportError(error);
         });
 
