@@ -17,8 +17,6 @@ import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
 import { getHeaders } from 'src/helpers/headers';
 import { constants } from '@internxt-mobile/services/AppService';
-import moment from 'moment';
-import sentryService from '@internxt-mobile/services/SentryService';
 
 type DriveFoldersTree = {
   [folderId: number]:
