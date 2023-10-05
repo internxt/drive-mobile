@@ -1,10 +1,5 @@
 import axios from 'axios';
-import {
-  DriveFileData,
-  DriveFolderData,
-  FetchFolderContentResponse,
-  MoveFolderPayload,
-} from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, MoveFolderPayload } from '@internxt/sdk/dist/drive/storage/types';
 
 import { getHeaders } from '../../../helpers/headers';
 import {
@@ -12,10 +7,13 @@ import {
   DriveItemStatus,
   DriveListItem,
   FetchFolderContentResponseWithThumbnails,
+  GetModifiedFolders,
 } from '../../../types/drive';
 import { constants } from '../../AppService';
-import { driveFileService } from '../file';
 import { SdkManager } from '@internxt-mobile/services/common';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { AsyncStorageKey } from '@internxt-mobile/types/index';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 class DriveFolderService {
   private sdk: SdkManager;
@@ -101,6 +99,38 @@ class DriveFolderService {
     });
 
     return childsAsDriveListItems.concat(filesAsDriveListItems);
+  }
+
+  public async getModifiedFolders({
+    limit = 50,
+    offset = 0,
+    updatedAt,
+    status,
+  }: {
+    limit?: number;
+    offset?: number;
+    updatedAt: string;
+    status: 'ALL' | 'TRASHED' | 'REMOVED';
+  }): Promise<GetModifiedFolders[] | undefined> {
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
+    const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+
+    if (!newToken) return;
+
+    const headers = await getHeaders(newToken);
+
+    try {
+      const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/folders?${query}`, {
+        method: 'GET',
+        headers,
+      });
+
+      const parsedModifiedFolders = await modifiedItems.json();
+
+      return parsedModifiedFolders;
+    } catch (error) {
+      errorService.reportError(error);
+    }
   }
 }
 
