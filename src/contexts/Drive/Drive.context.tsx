@@ -54,6 +54,51 @@ const logger = new BaseLogger({
   tag: 'DRIVE_CONTEXT',
 });
 
+export const removeOldItemsFromLocalDB = async () => {
+  const lastUpdatedAt = (await asyncStorageService.getItem(AsyncStorageKey.LastUpdatedAt)) || new Date().toISOString();
+
+  const [modifiedFiles, modifiedFolders] = await Promise.all([
+    driveFileService.getModifiedFiles({
+      updatedAt: lastUpdatedAt,
+      status: 'ALL',
+    }),
+    driveFolderService.getModifiedFolders({
+      updatedAt: lastUpdatedAt,
+      status: 'ALL',
+    }),
+  ]);
+
+  if (!modifiedFiles || !modifiedFolders) return;
+
+  const modifiedFilesIds = modifiedFiles.map((file) => file.id);
+  const modifiedFoldersIds = modifiedFolders.map((folder) => folder.id);
+
+  modifiedFilesIds.forEach((fileId) => {
+    driveLocalDB.deleteItem({ id: fileId }).catch((error) => {
+      errorService.reportError(error);
+    });
+  });
+
+  modifiedFoldersIds.forEach((folderId) => {
+    driveLocalDB.deleteFolderRecord(folderId).catch((error) => {
+      errorService.reportError(error);
+    });
+  });
+
+  // Get the last updatedAt date from the modified files and folders
+  let lastUpdatedAtFromModifiedFiles;
+  let lastUpdatedAtFromModifiedFolders;
+
+  if (modifiedFiles.length) lastUpdatedAtFromModifiedFiles = _.maxBy(modifiedFiles, 'updatedAt')?.updatedAt;
+  if (modifiedFolders.length)
+    lastUpdatedAtFromModifiedFolders = _.maxBy(modifiedFolders, 'updatedAt')?.updatedAt.toString();
+
+  // Get the most recent date
+  const newLastUpdatedAt = _.max([lastUpdatedAtFromModifiedFiles, lastUpdatedAtFromModifiedFolders]);
+
+  await asyncStorageService.saveItem(AsyncStorageKey.LastUpdatedAt, newLastUpdatedAt || new Date().toISOString());
+};
+
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({});
@@ -141,6 +186,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
       if (folderContentFromDB) {
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
+
+        // Check if the items have been modified from another platform
+        removeOldItemsFromLocalDB().catch((error) => {
+          errorService.reportError(error);
+        });
 
         updateDriveFoldersTree({
           folderId,
