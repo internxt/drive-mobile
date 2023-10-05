@@ -1,4 +1,4 @@
-import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 import React, { useEffect, useRef, useState } from 'react';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import {
@@ -6,6 +6,7 @@ import {
   DriveListViewMode,
   FetchFolderContentResponseWithThumbnails,
   FolderContent,
+  FolderContentChild,
 } from '@internxt-mobile/types/drive';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
@@ -14,6 +15,8 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
+import { getHeaders } from 'src/helpers/headers';
+import { constants } from '@internxt-mobile/services/AppService';
 
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
@@ -113,6 +116,73 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     return response;
   };
 
+  const getModifiedItems = async ({
+    itemsType,
+    limit = 50,
+    offset = 0,
+    updatedAt,
+    status,
+  }: {
+    itemsType: 'files' | 'folders';
+    limit?: number;
+    offset?: number;
+    updatedAt: string;
+    status: 'ALL' | 'TRASHED' | 'REMOVED';
+  }) => {
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
+    const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+    const headers = await getHeaders(newToken as string);
+
+    try {
+      const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/${itemsType}?${query}`, {
+        method: 'GET',
+        headers,
+      });
+
+      return modifiedItems;
+    } catch (error) {
+      console.log('ERROR: ', error);
+    }
+  };
+
+  const checkIfItemShouldBeUpdatedOrDeleted = async (folderContentFromDB: FolderContent) => {
+    const [modifiedFiles, modifiedFolders] = await Promise.all([
+      getModifiedItems({
+        itemsType: 'files',
+        updatedAt: new Date().toISOString(),
+        status: 'ALL',
+      }),
+      getModifiedItems({
+        itemsType: 'files',
+        updatedAt: new Date().toISOString(),
+        status: 'ALL',
+      }),
+    ]);
+
+    const parsedModifiedFiles = await modifiedFiles?.json();
+    const parsedModifiedFolders = await modifiedFolders?.json();
+
+    folderContentFromDB?.files?.forEach((file: DriveFileData) => {
+      const fileModified = parsedModifiedFiles?.find((item: DriveFileData) => item.id === file.id);
+      if (fileModified.status === 'TRASHED') {
+        driveLocalDB.deleteItem({ id: file.id });
+        // Remove item from the array
+        folderContentFromDB.files = folderContentFromDB.files.filter((item) => item.id !== file.id);
+      } else if (fileModified) {
+        file = fileModified;
+      }
+    });
+
+    if (folderContentFromDB.children.length > 0) {
+      folderContentFromDB.children.forEach((folder: FolderContentChild) => {
+        const folderModified = parsedModifiedFolders?.find((item: DriveFileData) => item.id === folder.id);
+        if (folderModified) {
+          folder = folderModified;
+        }
+      });
+    }
+  };
+
   /**
    * load the folder content so
    * the next folder will be loaded quickly
@@ -140,11 +210,18 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       if (folderContentFromDB) {
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
 
-        updateDriveFoldersTree({
-          folderId,
-          folderContent: folderContentFromDB,
-          shouldSetAsFocused: options?.focusFolder,
-        });
+        checkIfItemShouldBeUpdatedOrDeleted(folderContentFromDB)
+          .then(() => {
+            updateDriveFoldersTree({
+              folderId,
+              folderContent: folderContentFromDB,
+              shouldSetAsFocused: options?.focusFolder,
+            });
+          })
+          .catch((error) => {
+            console.log('ERROR: ', error);
+            errorService.reportError(error);
+          });
       }
     }
     // 2. Get fresh data from server and update silently
