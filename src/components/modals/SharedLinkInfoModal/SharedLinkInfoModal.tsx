@@ -48,7 +48,7 @@ export function SharedLinkInfoModal(): JSX.Element {
   const handleCopyLink = async () => {
     if (gettingShareLink) return;
     await getShareLink({
-      token: item.token,
+      uuid: item.uuid,
       code: item.code,
       copyLinkToClipboard: true,
       type: isFolder ? 'folder' : 'file',
@@ -59,7 +59,7 @@ export function SharedLinkInfoModal(): JSX.Element {
   const handleShareLink = async () => {
     if (gettingShareLink) return;
     const link = await getShareLink({
-      token: item.token,
+      uuid: item.uuid,
       code: item.code,
       copyLinkToClipboard: false,
       type: isFolder ? 'folder' : 'file',

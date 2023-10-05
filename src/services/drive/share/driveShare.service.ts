@@ -2,7 +2,7 @@ import appService from '@internxt-mobile/services/AppService';
 import AuthService from '@internxt-mobile/services/AuthService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { aes } from '@internxt/lib';
-import { GenerateShareLinkPayload } from '@internxt/sdk/dist/drive/share/types';
+import { CreateSharingPayload } from '@internxt/sdk/dist/drive/share/types';
 import Share from 'react-native-share';
 class DriveShareService {
   constructor(private sdk: SdkManager) {}
@@ -10,44 +10,25 @@ class DriveShareService {
     return this.sdk.share.getShareLinks(page, 50);
   }
 
-  async generateShareLink(plainCode: string, mnemonic: string, payload: GenerateShareLinkPayload) {
-    const result = await this.sdk.share.createShareLink(payload);
+  async generateShareLink(publicSharingPayload: CreateSharingPayload, mnemonic: string) {
+    const publicSharinresultgItemData = await this.sdk.share.createSharing(publicSharingPayload);
+    const { id: sharingId, encryptedCode } = publicSharinresultgItemData;
 
     return this.getUsableLink({
-      type: payload.type,
-      token: result.token,
-      /** Seems like the SDK TS signatures are wrong */
-      code: (result as unknown as { encryptedCode: string }).encryptedCode || plainCode,
+      type: publicSharingPayload.itemType,
+      sharingId,
+      code: encryptedCode,
       mnemonic,
     });
   }
 
-  async updateShareLink({
-    mnemonic,
-    shareId,
-    plainPassword,
-  }: {
-    shareId: string;
-    plainPassword: string | null;
-    mnemonic: string;
-  }) {
-    const shareLink = await this.sdk.share.updateShareLink({ itemId: shareId, plainPassword });
-
-    return this.getUsableLink({
-      type: shareLink.isFolder ? 'folder' : 'file',
-      mnemonic,
-      token: shareLink.token,
-      code: shareLink.code,
-    });
-  }
-
-  async getShareLinkFromCodeAndToken({ type, token, code }: { type: 'file' | 'folder'; token: string; code: string }) {
+  async getShareLinkFromCodeAndToken({ type, uuid, code }: { type: 'file' | 'folder'; uuid: string; code: string }) {
     const { credentials } = await AuthService.getAuthCredentials();
     if (!credentials?.user) throw new Error('User not found');
     return this.getUsableLink({
       type,
       mnemonic: credentials?.user.mnemonic,
-      token,
+      sharingId: uuid,
       code,
     });
   }
@@ -64,16 +45,16 @@ class DriveShareService {
 
   private getUsableLink({
     type,
-    token,
+    sharingId,
     code,
     mnemonic,
   }: {
     type: string;
-    token: string;
+    sharingId: string;
     code: string;
     mnemonic: string;
   }) {
-    return `${appService.constants.SHARE_LINKS_URL}/sh/${type}/${token}/${aes.decrypt(code, mnemonic)}`;
+    return `${appService.constants.SHARE_LINKS_URL}/sh/${type}/${sharingId}/${aes.decrypt(code, mnemonic)}`;
   }
 }
 
