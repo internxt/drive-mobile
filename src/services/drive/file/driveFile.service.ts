@@ -6,6 +6,7 @@ import {
   DriveFileMetadataPayload,
   DriveItemData,
   DriveListItem,
+  GetModifiedFiles,
   SortDirection,
   SortType,
 } from '../../../types/drive';
@@ -13,7 +14,7 @@ import { getHeaders } from '../../../helpers/headers';
 import { constants } from '../../AppService';
 
 import { SdkManager } from '@internxt-mobile/services/common';
-import { MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { getEnvironmentConfig } from 'src/lib/network';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
@@ -21,7 +22,9 @@ import network from 'src/network';
 import { Image } from 'react-native';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { driveFileCache } from './driveFileCache.service';
-import { Abortable } from '@internxt-mobile/types/index';
+import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 export type DriveFileDownloadOptions = {
@@ -231,6 +234,38 @@ class DriveFileService {
       },
       { headers: headersMap },
     );
+  }
+
+  public async getModifiedFiles({
+    limit = 50,
+    offset = 0,
+    updatedAt,
+    status,
+  }: {
+    limit?: number;
+    offset?: number;
+    updatedAt?: string;
+    status: 'ALL' | 'TRASHED' | 'REMOVED';
+  }): Promise<GetModifiedFiles[] | undefined> {
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
+    const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+
+    if (!newToken) return;
+
+    const headers = await getHeaders(newToken);
+
+    try {
+      const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/files?${query}`, {
+        method: 'GET',
+        headers,
+      });
+
+      const parsedModifiedFiles = await modifiedItems.json();
+
+      return parsedModifiedFiles;
+    } catch (error) {
+      errorService.reportError(error);
+    }
   }
 
   public async getThumbnail(thumbnail: Thumbnail) {
