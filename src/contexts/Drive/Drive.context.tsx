@@ -124,7 +124,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   // 2.1 Get the recently modified files
   // 2.2 Get the recently modified folders
   // 3. Compare the recently modified items with the ones in the local cache (files or folders)
-  // 3. Remove the modified items from the local cache (files or folders)
+  // 4. Remove the modified items from the local cache (files or folders)
 
   const checkIfItemShouldBeUpdatedOrDeleted = async (folderContentFromDB: FolderContent) => {
     if (folderContentFromDB.files.length > 0) {
