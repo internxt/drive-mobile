@@ -131,7 +131,10 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   }) => {
     const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
     const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
-    const headers = await getHeaders(newToken as string);
+
+    if (!newToken) return;
+
+    const headers = await getHeaders(newToken);
 
     try {
       const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/${itemsType}?${query}`, {
@@ -141,11 +144,12 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
       return modifiedItems;
     } catch (error) {
-      console.log('ERROR: ', error);
+      errorService.reportError(error);
     }
   };
 
   const checkIfItemShouldBeUpdatedOrDeleted = async (folderContentFromDB: FolderContent) => {
+    // 1. Get the modified items from the server
     const [modifiedFiles, modifiedFolders] = await Promise.all([
       getModifiedItems({
         itemsType: 'files',
@@ -162,7 +166,16 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const parsedModifiedFiles = await modifiedFiles?.json();
     const parsedModifiedFolders = await modifiedFolders?.json();
 
-    folderContentFromDB?.files?.forEach((file: DriveFileData) => {
+    if (
+      !parsedModifiedFiles ||
+      !parsedModifiedFolders ||
+      folderContentFromDB.children.length === 0 ||
+      folderContentFromDB.files.length === 0
+    ) {
+      return;
+    }
+
+    folderContentFromDB.files.forEach((file: DriveFileData) => {
       const fileModified = parsedModifiedFiles?.find((item: DriveFileData) => item.id === file.id);
       if (fileModified) {
         if (fileModified.status === 'TRASHED' || fileModified.status === 'REMOVED') {
@@ -175,20 +188,18 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       }
     });
 
-    if (folderContentFromDB.children.length > 0) {
-      folderContentFromDB.children.forEach((folder: FolderContentChild) => {
-        const folderModified = parsedModifiedFolders?.find((item: DriveFileData) => item.id === folder.id);
-        if (folderModified) {
-          if (folderModified.status === 'TRASHED' || folderModified.status === 'REMOVED') {
-            driveLocalDB.deleteItem({ id: folder.id });
-            // Remove item from the array
-            folderContentFromDB.children = folderContentFromDB.children.filter((item) => item.id !== folder.id);
-          } else if (folderModified.status === 'EXISTS') {
-            folder = folderModified;
-          }
+    folderContentFromDB.children.forEach((folder: FolderContentChild) => {
+      const folderModified = parsedModifiedFolders?.find((item: DriveFileData) => item.id === folder.id);
+      if (folderModified) {
+        if (folderModified.status === 'TRASHED' || folderModified.status === 'REMOVED') {
+          driveLocalDB.deleteItem({ id: folder.id });
+          // Remove item from the array
+          folderContentFromDB.children = folderContentFromDB.children.filter((item) => item.id !== folder.id);
+        } else if (folderModified.status === 'EXISTS') {
+          folder = folderModified;
         }
-      });
-    }
+      }
+    });
   };
 
   /**
@@ -218,6 +229,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       if (folderContentFromDB) {
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
 
+        // Check if the items have been modified from another platform
         checkIfItemShouldBeUpdatedOrDeleted(folderContentFromDB)
           .then(() => {
             updateDriveFoldersTree({
@@ -227,7 +239,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
             });
           })
           .catch((error) => {
-            console.log('ERROR: ', error);
             errorService.reportError(error);
           });
       }
