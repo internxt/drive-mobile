@@ -36,7 +36,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
 import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
-import { DriveContextProvider } from './contexts/Drive/Drive.context';
+import { DriveContextProvider, checkIfItemsShouldBeDeletedFromLocalDB } from './contexts/Drive/Drive.context';
 import { LockScreen } from './screens/common/LockScreen';
 import { logger } from './services/common';
 import { time } from './services/common/time';
@@ -78,7 +78,7 @@ export default function App(): JSX.Element {
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
-      // TODO: Check the cache and remove the items if they are old
+      checkIfItemsShouldBeDeletedFromLocalDB();
       dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.refreshTokensThunk());
     }
