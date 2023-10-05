@@ -61,23 +61,22 @@ export const removeOldItemsFromLocalDB = async () => {
       updatedAt: lastUpdatedAt,
       status: 'ALL',
     }),
-  ]);
+  ]).catch((error) => {
+    errorService.reportError(error);
+    return [[], []];
+  });
 
-  if (!modifiedFiles || !modifiedFolders) return;
+  if (!modifiedFiles || !modifiedFolders || (!modifiedFiles.length && !modifiedFolders.length)) return;
 
   const modifiedFilesIds = modifiedFiles.map((file) => file.id);
   const modifiedFoldersIds = modifiedFolders.map((folder) => folder.id);
 
-  modifiedFilesIds.forEach((fileId) => {
-    driveLocalDB.deleteItem({ id: fileId }).catch((error) => {
-      errorService.reportError(error);
-    });
+  modifiedFilesIds.forEach(async (fileId) => {
+    await driveLocalDB.deleteItem({ id: fileId });
   });
 
-  modifiedFoldersIds.forEach((folderId) => {
-    driveLocalDB.deleteFolderRecord(folderId).catch((error) => {
-      errorService.reportError(error);
-    });
+  modifiedFoldersIds.forEach(async (folderId) => {
+    await driveLocalDB.deleteFolderRecord(folderId);
   });
 
   // Get the last updatedAt date from the modified files and folders
