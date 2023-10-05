@@ -12,6 +12,7 @@ import { constants } from '../../AppService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 class DriveFolderService {
   private sdk: SdkManager;
@@ -116,22 +117,25 @@ class DriveFolderService {
     updatedAt: string;
     status: 'ALL' | 'TRASHED' | 'REMOVED';
   }): Promise<GetModifiedFolders[] | undefined> {
-    const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
-    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
     const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
 
     if (!newToken) return;
 
     const headers = await getHeaders(newToken);
 
-    const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/folders?${query}`, {
-      method: 'GET',
-      headers,
-    });
+    try {
+      const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/folders?${query}`, {
+        method: 'GET',
+        headers,
+      });
 
-    const parsedModifiedFolders = await modifiedItems.json();
+      const parsedModifiedFolders = await modifiedItems.json();
 
-    return parsedModifiedFolders;
+      return parsedModifiedFolders;
+    } catch (error) {
+      errorService.reportError(error);
+    }
   }
 }
 

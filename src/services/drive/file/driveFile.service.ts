@@ -24,6 +24,7 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { driveFileCache } from './driveFileCache.service';
 import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 export type DriveFileDownloadOptions = {
@@ -246,22 +247,25 @@ class DriveFileService {
     updatedAt?: string;
     status: 'ALL' | 'TRASHED' | 'REMOVED';
   }): Promise<GetModifiedFiles[] | undefined> {
-    const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
-    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
     const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
 
     if (!newToken) return;
 
     const headers = await getHeaders(newToken);
 
-    const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/files?${query}`, {
-      method: 'GET',
-      headers,
-    });
+    try {
+      const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/files?${query}`, {
+        method: 'GET',
+        headers,
+      });
 
-    const parsedModifiedFiles = await modifiedItems.json();
+      const parsedModifiedFiles = await modifiedItems.json();
 
-    return parsedModifiedFiles;
+      return parsedModifiedFiles;
+    } catch (error) {
+      errorService.reportError(error);
+    }
   }
 
   public async getThumbnail(thumbnail: Thumbnail) {
