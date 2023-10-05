@@ -124,18 +124,14 @@ class DriveFolderService {
 
     const headers = await getHeaders(newToken);
 
-    try {
-      const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/folders?${query}`, {
-        method: 'GET',
-        headers,
-      });
+    const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/folders?${query}`, {
+      method: 'GET',
+      headers,
+    });
 
-      const parsedModifiedFolders = await modifiedItems.json();
+    const parsedModifiedFolders = await modifiedItems.json();
 
-      return parsedModifiedFolders;
-    } catch (error) {
-      errorService.reportError(error);
-    }
+    return parsedModifiedFolders;
   }
 }
 
