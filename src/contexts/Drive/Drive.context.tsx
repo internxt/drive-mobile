@@ -14,11 +14,9 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
-import { driveFileService } from '@internxt-mobile/services/drive/file';
-import { driveFolderService } from '@internxt-mobile/services/drive/folder';
-
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
+
 import { getModifiedDriveItemsAndUpdateLocalCache } from './helpers';
 import { sleep } from 'src/helpers/services';
 
@@ -54,72 +52,23 @@ const logger = new BaseLogger({
   tag: 'DRIVE_CONTEXT',
 });
 
-export const getModifiedDriveItemsAndUpdateLocalCache = async () => {
-  const lastUpdatedAt = (await asyncStorageService.getItem(AsyncStorageKey.LastUpdatedAt)) || new Date().toISOString();
-
-  const [modifiedFiles, modifiedFolders] = await Promise.all([
-    driveFileService.getModifiedFiles({
-      updatedAt: lastUpdatedAt,
-      status: 'ALL',
-    }),
-    driveFolderService.getModifiedFolders({
-      updatedAt: lastUpdatedAt,
-      status: 'ALL',
-    }),
-  ]).catch((error) => {
-    errorService.reportError(error);
-    return [[], []];
-  });
-
-  if (!modifiedFiles || !modifiedFolders || (!modifiedFiles.length && !modifiedFolders.length)) return;
-
-  const modifiedFilesIds = modifiedFiles.map((file) => file.id);
-  const modifiedFoldersIds = modifiedFolders.map((folder) => folder.id);
-
-  modifiedFilesIds.forEach(async (fileId) => {
-    await driveLocalDB.deleteItem({ id: fileId });
-  });
-
-  modifiedFoldersIds.forEach(async (folderId) => {
-    await driveLocalDB.deleteFolderRecord(folderId);
-  });
-
-  // Get the last updatedAt date from the modified files and folders
-  let lastUpdatedAtFromModifiedFiles;
-  let lastUpdatedAtFromModifiedFolders;
-
-  if (modifiedFiles.length) lastUpdatedAtFromModifiedFiles = _.maxBy(modifiedFiles, 'updatedAt')?.updatedAt;
-
-  if (modifiedFolders.length)
-    lastUpdatedAtFromModifiedFolders = _.maxBy(modifiedFolders, 'updatedAt')?.updatedAt.toString();
-
-  // Get the most recent date
-  const newLastUpdatedAt = _.max([lastUpdatedAtFromModifiedFiles, lastUpdatedAtFromModifiedFolders]);
-
-  await asyncStorageService.saveItem(AsyncStorageKey.LastUpdatedAt, newLastUpdatedAt || new Date().toISOString());
-};
-
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({});
   const [currentFolder, setCurrentFolder] = useState<FetchFolderContentResponseWithThumbnails | null>(null);
-  const currentFolderId = useRef<number | null>(null);
-  const onAppStateChangeListener = useRef<NativeEventSubscription | null>(null);
-  const handleAppStateChange = (state: AppStateStatus) => {
-    if (state === 'active' && currentFolderId.current) {
-      loadFolderContent(currentFolderId.current, { pullFrom: ['network'] }).catch((error) => {
-        errorService.reportError(error);
-      });
+  const handleAppStateChange = async (state: AppStateStatus) => {
+    if (state === 'active') {
+      await loadFolderContent(currentFolder?.id as number, { pullFrom: ['network'] });
     }
   };
 
   useEffect(() => {
-    onAppStateChangeListener.current = appService.onAppStateChange(handleAppStateChange);
+    let listener: NativeEventSubscription | null = null;
+
+    listener = appService.onAppStateChange(handleAppStateChange);
 
     return () => {
-      if (!onAppStateChangeListener.current) return;
-      onAppStateChangeListener.current.remove();
-      onAppStateChangeListener.current = null;
+      if (listener) listener.remove();
     };
   }, []);
 
@@ -176,6 +125,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const shouldPullFromCache = options?.pullFrom ? options?.pullFrom.includes('cache') : true;
     const shouldPullFromNetwork = options?.pullFrom ? options?.pullFrom.includes('network') : true;
 
+    // Check if the items have been modified from another platform
     getModifiedDriveItemsAndUpdateLocalCache().catch((error) => {
       errorService.reportError(error);
     });
@@ -186,11 +136,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
       if (folderContentFromDB) {
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
-
-        // Check if the items have been modified from another platform
-        getModifiedDriveItemsAndUpdateLocalCache().catch((error) => {
-          errorService.reportError(error);
-        });
 
         updateDriveFoldersTree({
           folderId,
@@ -252,7 +197,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
     if (shouldSetAsFocused && folderContent) {
       setCurrentFolder(folderContent);
-      currentFolderId.current = folderId;
     }
   };
 

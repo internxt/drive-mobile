@@ -78,7 +78,6 @@ export default function App(): JSX.Element {
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
-      getModifiedDriveItemsAndUpdateLocalCache();
       dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.refreshTokensThunk());
     }
