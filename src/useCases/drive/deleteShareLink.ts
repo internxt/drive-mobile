@@ -8,8 +8,7 @@ import { sharedLinksUpdated } from './getShareLink';
 
 export const deleteShareLink = async ({ shareId, type }: { shareId: string; type: 'file' | 'folder' }) => {
   try {
-    const result = await drive.share.deleteShareLink({ shareId });
-
+    await drive.share.stopSharingItem({ itemUUID: shareId, itemType: type });
     sharedLinksUpdated();
 
     notificationsService.show({
@@ -19,7 +18,7 @@ export const deleteShareLink = async ({ shareId, type }: { shareId: string; type
     analytics.track(DriveAnalyticsEvent.SharedLinkDeleted, {
       type,
     });
-    return result;
+    return true;
   } catch (error) {
     throw new DisplayableError({
       userFriendlyMessage: strings.errors.deleteShareLinkError,

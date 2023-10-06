@@ -21,10 +21,11 @@ import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import CenterModal from '../CenterModal';
 import AppButton from 'src/components/AppButton';
 import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
+import { setStringAsync } from 'expo-clipboard';
+import notificationsService from '../../../services/NotificationsService';
+import { NotificationType } from '../../../types';
+
 export function SharedLinkInfoModal(): JSX.Element {
-  const { executeUseCase: getShareLink, loading: gettingShareLink } = useUseCase(driveUseCases.getExistingShareLink, {
-    lazy: true,
-  });
   const { executeUseCase: shareExistingShareLink } = useUseCase(driveUseCases.shareExistingShareLink, { lazy: true });
   const { executeUseCase: deleteShareLink, loading: deletingShareLink } = useUseCase(driveUseCases.deleteShareLink, {
     lazy: true,
@@ -46,41 +47,46 @@ export function SharedLinkInfoModal(): JSX.Element {
   const isFolder = !item.fileId;
 
   const handleCopyLink = async () => {
-    if (gettingShareLink) return;
-    await getShareLink({
-      uuid: item.uuid,
-      code: item.code,
-      copyLinkToClipboard: true,
+    const existingLink = await driveUseCases.generateShareLink({
+      itemId: item?.uuid as string,
+      fileId: item?.fileId,
+      displayCopyNotification: false,
       type: isFolder ? 'folder' : 'file',
     });
-    dispatch(uiActions.setIsSharedLinkOptionsModalOpen(false));
+
+    if (existingLink?.link) {
+      await setStringAsync(existingLink?.link);
+      notificationsService.show({
+        text1: strings.modals.LinkCopied.message,
+        type: NotificationType.Success,
+      });
+    }
   };
 
   const handleShareLink = async () => {
-    if (gettingShareLink) return;
-    const link = await getShareLink({
-      uuid: item.uuid,
-      code: item.code,
-      copyLinkToClipboard: false,
+    const existingLink = await driveUseCases.generateShareLink({
+      itemId: item?.uuid as string,
+      fileId: item?.fileId,
+      displayCopyNotification: false,
       type: isFolder ? 'folder' : 'file',
     });
 
-    if (link) {
-      await shareExistingShareLink({ link });
+    if (existingLink?.link) {
+      await shareExistingShareLink({ link: existingLink.link });
       dispatch(uiActions.setIsSharedLinkOptionsModalOpen(false));
     }
   };
 
   const handleDeleteShareLink = async () => {
-    if (!item.shareId) {
-      throw new Error('Share ID not found');
+    if (!item.uuid) {
+      throw new Error('Item ID not found');
     }
     const result = await deleteShareLink({
-      shareId: item.shareId,
+      shareId: item?.uuid,
       type: isFolder ? 'folder' : 'file',
     });
 
-    if (result?.deleted) {
+    if (result) {
       setConfirmDeleteModalOpen(false);
       dispatch(uiActions.setIsSharedLinkOptionsModalOpen(false));
     }
@@ -90,6 +96,7 @@ export function SharedLinkInfoModal(): JSX.Element {
     dispatch(uiActions.setIsSharedLinkOptionsModalOpen(false));
     setSharedLinkSettingsModalOpen(true);
   };
+
   const options = [
     {
       icon: <Copy size={20} color={getColor('text-gray-100')} />,
@@ -101,11 +108,11 @@ export function SharedLinkInfoModal(): JSX.Element {
       label: strings.components.file_and_folder_options.shareLink,
       onPress: handleShareLink,
     },
-    {
-      icon: <Gear size={20} color={getColor('text-gray-100')} />,
-      label: strings.components.file_and_folder_options.shareSettings,
-      onPress: handleShareLinkSettingsPress,
-    },
+    // {
+    //   icon: <Gear size={20} color={getColor('text-gray-100')} />,
+    //   label: strings.components.file_and_folder_options.shareSettings,
+    //   onPress: handleShareLinkSettingsPress,
+    // },
     {
       icon: <LinkBreak size={20} color={getColor('text-red-dark')} />,
       textStyle: tailwind('text-red-dark'),
