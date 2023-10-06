@@ -1,4 +1,4 @@
-import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
+import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import {
   DriveFileData,
   DriveFolderData,
@@ -164,7 +164,7 @@ export interface DriveItemProps {
   subtitle?: JSX.Element;
   progress?: number;
   isSelected?: boolean;
-  shareLink?: ShareLink;
+  shareLink?: SharedFiles & SharedFolders;
   onActionsPress?: () => void;
   onPress?: () => void;
 }

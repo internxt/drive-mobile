@@ -11,20 +11,22 @@ import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../type
 import { useTailwind } from 'tailwind-rn';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
-import { SharedLinkResult } from '@internxt-mobile/useCases/drive';
-import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
+import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { logger } from '../../../services/common';
 
 interface SharedScreenProps {
   searchText?: string;
   isLoading: boolean;
   refreshSharedLinks: () => void;
-  sharedLinks: SharedLinkResult[] | null;
+  sharedLinks: (SharedFolders & SharedFiles)[] | null;
+  onEndOfListReached: () => void;
 }
 export const SharedScreen: React.FC<SharedScreenProps> = ({
   searchText,
   isLoading,
   refreshSharedLinks,
   sharedLinks,
+  onEndOfListReached,
 }) => {
   const tailwind = useTailwind();
 
@@ -66,7 +68,9 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
     }
 
     if (sharedLinksToRender.length > 0) {
-      return sharedLinksToRender.map((sharedLink, i) => {
+      return sharedLinksToRender.map((sharedLink, i: React.Key) => {
+        logger.info({ sharedLinkData: sharedLink });
+
         return (
           <DriveItem
             key={i}
@@ -74,25 +78,27 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
             status={DriveItemStatus.Idle}
             viewMode={DriveListViewMode.List}
             data={{
-              ...sharedLink.item,
-              type: 'folderId' in sharedLink.item ? sharedLink.item.type : undefined,
+              ...sharedLink,
+              name: sharedLink?.plainName,
+              type: 'folderId' in sharedLink ? sharedLink.type : undefined,
               /** SDK types are wrong, should fix */
-              token: sharedLink.token,
-              shareId: sharedLink.id,
+              // token: sharedLink.token,
+              shareId: sharedLink.id.toString(),
               thumbnails: [],
               currentThumbnail: null,
               code: (sharedLink as unknown as { code: string }).code,
-              updatedAt: sharedLink.item.updatedAt,
-              createdAt: sharedLink.item.createdAt,
-              isFolder: sharedLink.isFolder,
+              updatedAt: sharedLink.updatedAt,
+              createdAt: sharedLink.createdAt,
+              isFolder: sharedLink.type === 'folder',
             }}
             progress={-1}
-            shareLink={sharedLink as ShareLink}
+            shareLink={sharedLink}
           />
         );
       });
     }
   };
+
   return (
     <View style={tailwind('bg-white flex-1')}>
       {getStatus() === UseCaseStatus.LOADING && !sharedLinks && (
@@ -107,6 +113,7 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
         <ScrollView
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           contentContainerStyle={tailwind('flex-grow')}
+          onTouchEnd={onEndOfListReached}
         >
           {renderContent()}
         </ScrollView>
