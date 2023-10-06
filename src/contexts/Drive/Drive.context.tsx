@@ -16,6 +16,8 @@ import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
+import { AppStateStatus, NativeEventSubscription } from 'react-native';
+import appService from '@internxt-mobile/services/AppService';
 
 type DriveFoldersTree = {
   [folderId: number]:
@@ -98,6 +100,22 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({});
   const [currentFolder, setCurrentFolder] = useState<FetchFolderContentResponseWithThumbnails | null>(null);
+  const handleAppStateChange = async (state: AppStateStatus) => {
+    if (state === 'active') {
+      await loadFolderContent(currentFolder?.id as number, { pullFrom: ['network'] });
+    }
+  };
+
+  useEffect(() => {
+    let listener: NativeEventSubscription | null = null;
+
+    listener = appService.onAppStateChange(handleAppStateChange);
+
+    return () => {
+      if (listener) listener.remove();
+    };
+  }, []);
+
   useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.PreferredDriveViewMode).then((preferredDriveViewMode) => {
       if (preferredDriveViewMode && preferredDriveViewMode !== viewMode) {
@@ -136,9 +154,15 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
    * 3. Network
    *
    */
+
   const loadFolderContent = async (folderId: number, options?: LoadFolderContentOptions) => {
     const shouldPullFromCache = options?.pullFrom ? options?.pullFrom.includes('cache') : true;
     const shouldPullFromNetwork = options?.pullFrom ? options?.pullFrom.includes('network') : true;
+
+    // Check if the items have been modified from another platform
+    getModifiedDriveItemsAndUpdateLocalCache().catch((error) => {
+      errorService.reportError(error);
+    });
 
     // 1. Check if we have the folder content in the DB
     if (shouldPullFromCache) {
@@ -146,11 +170,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
       if (folderContentFromDB) {
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
-
-        // Check if the items have been modified from another platform
-        getModifiedDriveItemsAndUpdateLocalCache().catch((error) => {
-          errorService.reportError(error);
-        });
 
         updateDriveFoldersTree({
           folderId,
