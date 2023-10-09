@@ -36,7 +36,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
 import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
-import { DriveContextProvider, getModifiedDriveItemsAndUpdateLocalCache } from './contexts/Drive/Drive.context';
+import { DriveContextProvider } from './contexts/Drive/Drive.context';
 import { LockScreen } from './screens/common/LockScreen';
 import { logger } from './services/common';
 import { time } from './services/common/time';
