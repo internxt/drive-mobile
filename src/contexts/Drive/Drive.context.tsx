@@ -1,4 +1,4 @@
-import { DriveFileData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 import React, { useEffect, useRef, useState } from 'react';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import {
@@ -14,7 +14,9 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
-import { AppStateStatus, NativeEventSubscription } from 'react-native';
+import { driveFileService } from '@internxt-mobile/services/drive/file';
+import { driveFolderService } from '@internxt-mobile/services/drive/folder';
+import { AppStateStatus } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
 
 import { getModifiedDriveItemsAndUpdateLocalCache } from './helpers';
@@ -56,19 +58,19 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({});
   const [currentFolder, setCurrentFolder] = useState<FetchFolderContentResponseWithThumbnails | null>(null);
+  const currentFolderId = useRef<number | null>(null);
+
   const handleAppStateChange = async (state: AppStateStatus) => {
     if (state === 'active') {
-      await loadFolderContent(currentFolder?.id as number, { pullFrom: ['network'] });
+      if (currentFolderId.current) await loadFolderContent(currentFolderId.current, { pullFrom: ['network'] });
     }
   };
 
   useEffect(() => {
-    let listener: NativeEventSubscription | null = null;
-
-    listener = appService.onAppStateChange(handleAppStateChange);
+    const listener = appService.onAppStateChange(handleAppStateChange);
 
     return () => {
-      if (listener) listener.remove();
+      listener && listener.remove();
     };
   }, []);
 
@@ -197,6 +199,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
     if (shouldSetAsFocused && folderContent) {
       setCurrentFolder(folderContent);
+      currentFolderId.current = folderId;
     }
   };
 
