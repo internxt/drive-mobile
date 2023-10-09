@@ -60,7 +60,10 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
   const handleAppStateChange = async (state: AppStateStatus) => {
     if (state === 'active') {
-      if (currentFolderId.current) await loadFolderContent(currentFolderId.current, { pullFrom: ['network'] });
+      if (currentFolderId.current)
+        loadFolderContent(currentFolderId.current, { pullFrom: ['network'] }).catch((error) => {
+          errorService.reportError(error);
+        });
     }
   };
 
