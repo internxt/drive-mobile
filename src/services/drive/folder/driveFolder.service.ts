@@ -12,7 +12,6 @@ import { constants } from '../../AppService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
-import errorService from '@internxt-mobile/services/ErrorService';
 
 class DriveFolderService {
   private sdk: SdkManager;
@@ -117,7 +116,8 @@ class DriveFolderService {
     updatedAt: string;
     status: 'ALL' | 'TRASHED' | 'REMOVED';
   }): Promise<GetModifiedFolders[] | undefined> {
-    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
+    const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
     const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
 
     if (!newToken) return;

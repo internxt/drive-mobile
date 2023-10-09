@@ -14,8 +14,6 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
-import { driveFileService } from '@internxt-mobile/services/drive/file';
-import { driveFolderService } from '@internxt-mobile/services/drive/folder';
 import { AppStateStatus } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
 
@@ -70,7 +68,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const listener = appService.onAppStateChange(handleAppStateChange);
 
     return () => {
-      listener && listener.remove();
+      if (listener) listener.remove();
     };
   }, []);
 
