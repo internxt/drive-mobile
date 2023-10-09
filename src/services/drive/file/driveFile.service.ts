@@ -14,7 +14,7 @@ import { getHeaders } from '../../../helpers/headers';
 import { constants } from '../../AppService';
 
 import { SdkManager } from '@internxt-mobile/services/common';
-import { DriveFileData, MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { getEnvironmentConfig } from 'src/lib/network';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
@@ -24,7 +24,6 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { driveFileCache } from './driveFileCache.service';
 import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import errorService from '@internxt-mobile/services/ErrorService';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 export type DriveFileDownloadOptions = {
@@ -247,7 +246,8 @@ class DriveFileService {
     updatedAt?: string;
     status: 'ALL' | 'TRASHED' | 'REMOVED';
   }): Promise<GetModifiedFiles[] | undefined> {
-    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAt && `&updatedAt=${updatedAt}`}`;
+    const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
     const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
 
     if (!newToken) return;
