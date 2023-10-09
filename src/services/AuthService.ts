@@ -11,6 +11,7 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SdkManager } from './common/sdk/SdkManager';
 import jwtDecode from 'jwt-decode';
 import errorService from './ErrorService';
+import { keysService } from './common/keys';
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -85,6 +86,11 @@ class AuthService {
     );
 
     loginResult.user.mnemonic = decryptTextWithKey(loginResult.user.mnemonic, password);
+
+    if (loginResult.user.privateKey) {
+      const decryptedPrivateKey = keysService.decryptPrivateKey(loginResult.user.privateKey, password);
+      loginResult.user.privateKey = Buffer.from(decryptedPrivateKey).toString('base64');
+    }
 
     // Get the refreshed tokens, they contain expiration, the ones returned
     // on the login doesn't have expiration
