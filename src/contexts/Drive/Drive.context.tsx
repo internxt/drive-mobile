@@ -52,7 +52,7 @@ const logger = new BaseLogger({
 });
 
 export const getModifiedDriveItemsAndUpdateLocalCache = async () => {
-  const lastUpdatedAt = (await asyncStorageService.getItem(AsyncStorageKey.LastUpdatedAt)) || new Date().toISOString();
+  const lastUpdatedAt = (await asyncStorageService.getItem(AsyncStorageKey.LastUpdatedAt)) ?? new Date().toISOString();
 
   const [modifiedFiles, modifiedFolders] = await Promise.all([
     driveFileService.getModifiedFiles({
@@ -93,7 +93,7 @@ export const getModifiedDriveItemsAndUpdateLocalCache = async () => {
   // Get the most recent date
   const newLastUpdatedAt = _.max([lastUpdatedAtFromModifiedFiles, lastUpdatedAtFromModifiedFolders]);
 
-  await asyncStorageService.saveItem(AsyncStorageKey.LastUpdatedAt, newLastUpdatedAt || new Date().toISOString());
+  await asyncStorageService.saveItem(AsyncStorageKey.LastUpdatedAt, newLastUpdatedAt ?? new Date().toISOString());
 };
 
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {
@@ -112,7 +112,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const listener = appService.onAppStateChange(handleAppStateChange);
 
     return () => {
-      listener && listener.remove();
+      if (listener) listener.remove();
     };
   }, []);
 
