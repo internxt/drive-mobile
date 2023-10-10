@@ -21,6 +21,8 @@ export type DriveNavigationStack = DriveNavigationStackItem[];
 
 export type DriveItemData = DriveFileData & DriveFolderData & { uuid?: string };
 
+export type DriveFile = DriveFileData & { uuid?: string };
+
 export type getModifiedItemsStatus = 'EXISTS' | 'TRASHED' | 'REMOVED';
 
 export type DriveItemFocused = {
@@ -253,7 +255,7 @@ export type FolderContent = Omit<FetchFolderContentResponse, 'children'> & {
 };
 
 export interface FetchFolderContentResponseWithThumbnails extends FolderContent {
-  files: (DriveFileData & { thumbnail?: DownloadedThumbnail; uuid?: string })[];
+  files: (DriveFile & { thumbnail?: DownloadedThumbnail })[];
 }
 
 export interface DownloadedThumbnail {
