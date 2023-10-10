@@ -14,7 +14,7 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
-import { AppStateStatus } from 'react-native';
+import { AppStateStatus, NativeEventSubscription } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
 
 import { getModifiedDriveItemsAndUpdateLocalCache } from './helpers';
@@ -57,21 +57,22 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({});
   const [currentFolder, setCurrentFolder] = useState<FetchFolderContentResponseWithThumbnails | null>(null);
   const currentFolderId = useRef<number | null>(null);
-
+  const onAppStateChangeListener = useRef<NativeEventSubscription | null>(null);
   const handleAppStateChange = async (state: AppStateStatus) => {
-    if (state === 'active') {
-      if (currentFolderId.current)
-        loadFolderContent(currentFolderId.current, { pullFrom: ['network'] }).catch((error) => {
-          errorService.reportError(error);
-        });
+    if (state === 'active' && currentFolderId.current) {
+      loadFolderContent(currentFolderId.current, { pullFrom: ['network'] }).catch((error) => {
+        errorService.reportError(error);
+      });
     }
   };
 
   useEffect(() => {
-    const listener = appService.onAppStateChange(handleAppStateChange);
+    onAppStateChangeListener.current = appService.onAppStateChange(handleAppStateChange);
 
     return () => {
-      if (listener) listener.remove();
+      if (!onAppStateChangeListener.current) return;
+      onAppStateChangeListener.current.remove();
+      onAppStateChangeListener.current = null;
     };
   }, []);
 
@@ -128,7 +129,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const shouldPullFromCache = options?.pullFrom ? options?.pullFrom.includes('cache') : true;
     const shouldPullFromNetwork = options?.pullFrom ? options?.pullFrom.includes('network') : true;
 
-    // Check if the items have been modified from another platform
     getModifiedDriveItemsAndUpdateLocalCache().catch((error) => {
       errorService.reportError(error);
     });
