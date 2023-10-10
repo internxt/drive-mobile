@@ -12,6 +12,7 @@ import * as useCases from '@internxt-mobile/useCases/drive';
 import { SearchInput } from 'src/components/SearchInput';
 import errorService from '../../services/ErrorService';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { sleep } from '../../helpers/services';
 
 enum HomeTab {
   Recents = 'recents',
@@ -66,6 +67,7 @@ const HomeScreen = (): JSX.Element => {
       setShouldGetMoreSharedFiles(true);
       setShouldGetMoreSharedFolders(true);
       setSharedItemsPage(1);
+      sleep(500);
       const result = await getSharedItems({ page: 0, shouldGetFiles: true, shouldGetFolders: true });
 
       if (!result?.data?.hasMoreFiles) {
@@ -89,6 +91,7 @@ const HomeScreen = (): JSX.Element => {
       if (shouldGetMoreSharedFiles || shouldGetMoreSharedFolders) {
         setSharedItemsPage(sharedItemsPage + 1);
       }
+      sleep(500);
       const result = await getSharedItems({
         page: sharedItemsPage,
         shouldGetFiles: shouldGetMoreSharedFiles,
