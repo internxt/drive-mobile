@@ -10,7 +10,7 @@ import { uiActions } from '../../../store/slices/ui';
 
 import BottomModalOption from '../../BottomModalOption';
 import BottomModal from '../BottomModal';
-import { Link, Copy, LinkBreak, Gear } from 'phosphor-react-native';
+import { Link, Copy, LinkBreak } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 
@@ -27,7 +27,7 @@ import { NotificationType } from '../../../types';
 
 export function SharedLinkInfoModal(): JSX.Element {
   const { executeUseCase: shareExistingShareLink } = useUseCase(driveUseCases.shareExistingShareLink, { lazy: true });
-  const { executeUseCase: deleteShareLink, loading: deletingShareLink } = useUseCase(driveUseCases.deleteShareLink, {
+  const { executeUseCase: stopShareLink, loading: deletingShareLink } = useUseCase(driveUseCases.stopShareLink, {
     lazy: true,
   });
 
@@ -81,9 +81,9 @@ export function SharedLinkInfoModal(): JSX.Element {
     if (!item.uuid) {
       throw new Error('Item ID not found');
     }
-    const result = await deleteShareLink({
-      shareId: item?.uuid,
-      type: isFolder ? 'folder' : 'file',
+    const result = await stopShareLink({
+      itemUUID: item?.uuid,
+      itemType: isFolder ? 'folder' : 'file',
     });
 
     if (result) {

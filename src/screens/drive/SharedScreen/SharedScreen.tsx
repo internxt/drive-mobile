@@ -12,7 +12,6 @@ import { useTailwind } from 'tailwind-rn';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
-import { logger } from '../../../services/common';
 
 interface SharedScreenProps {
   searchText?: string;
@@ -56,6 +55,12 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
     setRefreshing(false);
   };
 
+  const handleOnEndOfListReached = () => {
+    if (isLoading) return;
+
+    onEndOfListReached();
+  };
+
   const renderContent = () => {
     if (!sharedLinks?.length) {
       return renderEmpty();
@@ -69,8 +74,6 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
 
     if (sharedLinksToRender.length > 0) {
       return sharedLinksToRender.map((sharedLink, i: React.Key) => {
-        logger.info({ sharedLinkData: sharedLink });
-
         return (
           <DriveItem
             key={i}
@@ -101,7 +104,7 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
 
   return (
     <View style={tailwind('bg-white flex-1')}>
-      {getStatus() === UseCaseStatus.LOADING && !sharedLinks && (
+      {getStatus() === UseCaseStatus.LOADING && !sharedLinks?.length && (
         <View>
           {_.times(20, (n) => (
             <DriveItemSkinSkeleton key={n} />
@@ -113,7 +116,7 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
         <ScrollView
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           contentContainerStyle={tailwind('flex-grow')}
-          onTouchEnd={onEndOfListReached}
+          onTouchEnd={handleOnEndOfListReached}
         >
           {renderContent()}
         </ScrollView>

@@ -12,6 +12,7 @@ import * as useCases from '@internxt-mobile/useCases/drive';
 import { SearchInput } from 'src/components/SearchInput';
 import errorService from '../../services/ErrorService';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+
 enum HomeTab {
   Recents = 'recents',
   Shared = 'shared',
@@ -23,7 +24,6 @@ const HomeScreen = (): JSX.Element => {
   const [sharedItemsPage, setSharedItemsPage] = useState(1);
   const [shouldGetMoreSharedFiles, setShouldGetMoreSharedFiles] = useState(true);
   const [shouldGetMoreSharedFolders, setShouldGetMoreSharedFolders] = useState(true);
-  const [gettingSharedItems, setGettingSharedItems] = useState(false);
   const [sharedItems, setSharedItems] = useState<(SharedFiles & SharedFolders)[]>([]);
 
   const {
@@ -53,39 +53,44 @@ const HomeScreen = (): JSX.Element => {
 
   useEffect(() => {
     handleSharedLinksRefresh();
-    const unsubscribe = useCases.onSharedLinksUpdated(getSharedItems);
+    const unsubscribe = useCases.onSharedLinksUpdated(async () => {
+      getSharedItems();
+    });
 
     return unsubscribe;
   }, []);
 
   const handleSharedLinksRefresh = async () => {
     try {
-      setGettingSharedItems(true);
+      setSharedItems([]);
       setShouldGetMoreSharedFiles(true);
       setShouldGetMoreSharedFolders(true);
+      setSharedItemsPage(1);
       const result = await getSharedItems({ page: 0, shouldGetFiles: true, shouldGetFolders: true });
-      if (!result?.data?.items.length) return;
 
-      if (!result.data.hasMoreFiles) {
+      if (!result?.data?.hasMoreFiles) {
         setShouldGetMoreSharedFiles(false);
       }
 
-      if (!result.data.hasMoreFolders) {
+      if (!result?.data?.hasMoreFolders) {
         setShouldGetMoreSharedFolders(false);
       }
+
+      if (!result?.data?.items.length) return;
+
       setSharedItems(result.data.items);
     } catch (error) {
       errorService.reportError(error);
-    } finally {
-      setGettingSharedItems(false);
     }
   };
 
   const handleNextSharedItemsPage = async () => {
     try {
-      setSharedItemsPage(sharedItemsPage + 1);
+      if (shouldGetMoreSharedFiles || shouldGetMoreSharedFolders) {
+        setSharedItemsPage(sharedItemsPage + 1);
+      }
       const result = await getSharedItems({
-        page: sharedItemsPage + 1,
+        page: sharedItemsPage,
         shouldGetFiles: shouldGetMoreSharedFiles,
         shouldGetFolders: shouldGetMoreSharedFolders,
       });
@@ -131,8 +136,8 @@ const HomeScreen = (): JSX.Element => {
       screen: (
         <SharedScreen
           searchText={searchText}
-          isLoading={gettingSharedItems}
-          sharedLinks={sharedItems as unknown as []}
+          isLoading={sharedLoading}
+          sharedLinks={sharedItems}
           refreshSharedLinks={handleSharedLinksRefresh}
           onEndOfListReached={handleNextSharedItemsPage}
         ></SharedScreen>

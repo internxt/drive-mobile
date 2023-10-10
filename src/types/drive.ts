@@ -19,7 +19,7 @@ export interface DriveNavigationStackItem {
 }
 export type DriveNavigationStack = DriveNavigationStackItem[];
 
-export type DriveItemData = DriveFileData & DriveFolderData;
+export type DriveItemData = DriveFileData & DriveFolderData & { uuid?: string };
 
 export type DriveItemFocused = {
   id: number;

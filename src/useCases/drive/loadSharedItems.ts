@@ -1,15 +1,11 @@
 import drive from '@internxt-mobile/services/drive';
-import {
-  ListAllSharedFoldersResponse,
-  ListShareLinksItem,
-  SharedFiles,
-  SharedFolders,
-} from '@internxt/sdk/dist/drive/share/types';
+import { ListShareLinksItem, SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import { UseCaseResult } from '../../types';
 import errorService from '../../services/ErrorService';
 
 const ITEMS_PER_PAGE = 50;
+
 export type SharedLinkResult = ListShareLinksItem & { item: DriveFileData | DriveFolderData };
 
 export type AdvancedSharedItem = SharedFolders &
@@ -23,6 +19,7 @@ export type AdvancedSharedItem = SharedFolders &
     sharingId?: string;
     sharingType: 'public' | 'private';
   };
+
 /**
  * Gets all shared items available
  *
@@ -41,38 +38,21 @@ export const getSharedItems = async ({
 > => {
   try {
     const [sharedFolders, sharedFiles] = await Promise.all([
-      shouldGetFolders
-        ? drive.share.getSharedFolders({ page, perPage: ITEMS_PER_PAGE })
-        : Promise.resolve<ListAllSharedFoldersResponse>({
-            credentials: {
-              networkPass: '',
-              networkUser: '',
-            },
-            files: [],
-            folders: [],
-            token: '',
-          }),
-      shouldGetFiles
-        ? drive.share.getSharedFiles({ page, perPage: ITEMS_PER_PAGE })
-        : Promise.resolve<ListAllSharedFoldersResponse>({
-            credentials: {
-              networkPass: '',
-              networkUser: '',
-            },
-            files: [],
-            folders: [],
-            token: '',
-          }),
+      shouldGetFolders ? drive.share.getSharedFolders({ page, perPage: ITEMS_PER_PAGE }) : null,
+      shouldGetFiles ? drive.share.getSharedFiles({ page, perPage: ITEMS_PER_PAGE }) : null,
     ]);
 
-    const sharedItems = [...sharedFolders.folders, ...sharedFiles.files] as (SharedFiles & SharedFolders)[];
+    const sharedFoldersList = sharedFolders?.folders ?? [];
+    const sharedFilesList = sharedFiles?.files ?? [];
+
+    const sharedItems = [...sharedFoldersList, ...sharedFilesList] as (SharedFiles & SharedFolders)[];
 
     return {
       success: true,
       data: {
         items: sharedItems,
-        hasMoreFolders: sharedFolders.folders.length > 0,
-        hasMoreFiles: sharedFiles.files.length > 0,
+        hasMoreFolders: sharedFoldersList.length >= ITEMS_PER_PAGE,
+        hasMoreFiles: sharedFilesList.length >= ITEMS_PER_PAGE,
       },
     };
   } catch (error) {
