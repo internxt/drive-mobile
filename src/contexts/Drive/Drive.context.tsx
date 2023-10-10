@@ -57,7 +57,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const [currentFolder, setCurrentFolder] = useState<FetchFolderContentResponseWithThumbnails | null>(null);
   const currentFolderId = useRef<number | null>(null);
   const onAppStateChangeListener = useRef<NativeEventSubscription | null>(null);
-  const handleAppStateChange = async (state: AppStateStatus) => {
+  const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active' && currentFolderId.current) {
       loadFolderContent(currentFolderId.current, { pullFrom: ['network'] }).catch((error) => {
         errorService.reportError(error);
