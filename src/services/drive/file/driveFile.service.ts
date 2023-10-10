@@ -6,6 +6,7 @@ import {
   DriveFileMetadataPayload,
   DriveItemData,
   DriveListItem,
+  GetModifiedFiles,
   SortDirection,
   SortType,
 } from '../../../types/drive';
@@ -21,7 +22,8 @@ import network from 'src/network';
 import { Image } from 'react-native';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { driveFileCache } from './driveFileCache.service';
-import { Abortable } from '@internxt-mobile/types/index';
+import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 export type DriveFileDownloadOptions = {
@@ -231,6 +233,35 @@ class DriveFileService {
       },
       { headers: headersMap },
     );
+  }
+
+  public async getModifiedFiles({
+    limit = 50,
+    offset = 0,
+    updatedAt,
+    status,
+  }: {
+    limit?: number;
+    offset?: number;
+    updatedAt?: string;
+    status: 'ALL' | 'TRASHED' | 'REMOVED';
+  }): Promise<GetModifiedFiles[] | undefined> {
+    const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
+    const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+
+    if (!newToken) return;
+
+    const headers = await getHeaders(newToken);
+
+    const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/files?${query}`, {
+      method: 'GET',
+      headers,
+    });
+
+    const parsedModifiedFiles = await modifiedItems.json();
+
+    return parsedModifiedFiles;
   }
 
   public async getThumbnail(thumbnail: Thumbnail) {

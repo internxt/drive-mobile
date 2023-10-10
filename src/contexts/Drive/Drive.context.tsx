@@ -1,5 +1,5 @@
 import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import {
   DriveItemData,
@@ -14,6 +14,10 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
+
+import { AppStateStatus, NativeEventSubscription } from 'react-native';
+import appService from '@internxt-mobile/services/AppService';
+import { getModifiedDriveItemsAndUpdateLocalCache } from './helpers';
 
 type DriveFoldersTree = {
   [folderId: number]:
@@ -46,10 +50,31 @@ interface DriveContextProviderProps {
 const logger = new BaseLogger({
   tag: 'DRIVE_CONTEXT',
 });
+
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({});
   const [currentFolder, setCurrentFolder] = useState<FetchFolderContentResponseWithThumbnails | null>(null);
+  const currentFolderId = useRef<number | null>(null);
+  const onAppStateChangeListener = useRef<NativeEventSubscription | null>(null);
+  const handleAppStateChange = (state: AppStateStatus) => {
+    if (state === 'active' && currentFolderId.current) {
+      loadFolderContent(currentFolderId.current, { pullFrom: ['network'] }).catch((error) => {
+        errorService.reportError(error);
+      });
+    }
+  };
+
+  useEffect(() => {
+    onAppStateChangeListener.current = appService.onAppStateChange(handleAppStateChange);
+
+    return () => {
+      if (!onAppStateChangeListener.current) return;
+      onAppStateChangeListener.current.remove();
+      onAppStateChangeListener.current = null;
+    };
+  }, []);
+
   useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.PreferredDriveViewMode).then((preferredDriveViewMode) => {
       if (preferredDriveViewMode && preferredDriveViewMode !== viewMode) {
@@ -88,14 +113,22 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
    * 3. Network
    *
    */
+
   const loadFolderContent = async (folderId: number, options?: LoadFolderContentOptions) => {
     const shouldPullFromCache = options?.pullFrom ? options?.pullFrom.includes('cache') : true;
     const shouldPullFromNetwork = options?.pullFrom ? options?.pullFrom.includes('network') : true;
+
+    getModifiedDriveItemsAndUpdateLocalCache().catch((error) => {
+      errorService.reportError(error);
+    });
+
     // 1. Check if we have the folder content in the DB
     if (shouldPullFromCache) {
       const folderContentFromDB = await driveLocalDB.getFolderContent(folderId);
+
       if (folderContentFromDB) {
         logger.info(`FOLDER-${folderId} - FROM CACHE`);
+
         updateDriveFoldersTree({
           folderId,
           folderContent: folderContentFromDB,
@@ -144,6 +177,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
     if (shouldSetAsFocused && folderContent) {
       setCurrentFolder(folderContent);
+      currentFolderId.current = folderId;
     }
   };
 
