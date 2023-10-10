@@ -52,9 +52,8 @@ const HomeScreen = (): JSX.Element => {
   }, []);
 
   useEffect(() => {
-    handleSharedLinksRefresh();
     const unsubscribe = useCases.onSharedLinksUpdated(async () => {
-      getSharedItems();
+      handleSharedLinksRefresh();
     });
 
     return unsubscribe;
