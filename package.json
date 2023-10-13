@@ -137,6 +137,7 @@
     "rn-fetch-blob": "=0.11.2",
     "sentry-expo": "~6.0.0",
     "socket.io-client": "^4.5.1",
+    "tailwind": "^4.0.0",
     "tailwind-rn": "^4.2.0",
     "unorm": "^1.6.0",
     "usehooks-ts": "^2.6.0",
