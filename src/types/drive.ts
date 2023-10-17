@@ -25,8 +25,6 @@ export type DriveFile = DriveFileData & { uuid?: string };
 
 export type getModifiedItemsStatus = 'EXISTS' | 'TRASHED' | 'REMOVED';
 
-export type getModifiedItemsStatus = 'EXISTS' | 'TRASHED' | 'REMOVED';
-
 export type DriveItemFocused = {
   id: number;
   name: string;
