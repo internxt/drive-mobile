@@ -21,6 +21,8 @@ export type DriveNavigationStack = DriveNavigationStackItem[];
 
 export type DriveItemData = DriveFileData & DriveFolderData;
 
+export type getModifiedItemsStatus = 'EXISTS' | 'TRASHED' | 'REMOVED';
+
 export type DriveItemFocused = {
   id: number;
   name: string;
@@ -36,6 +38,44 @@ export type DriveItemFocused = {
   isFromFolderActions?: boolean;
   isFolder: boolean;
 } | null;
+
+export interface GetModifiedFiles {
+  id: number;
+  uuid: string;
+  fileId: string;
+  name: string;
+  type: string;
+  size: string;
+  bucket: string;
+  folderId: number;
+  folder: null;
+  folderUuid: string;
+  encryptVersion: string;
+  userId: number;
+  modificationTime: Date;
+  createdAt: Date;
+  updatedAt: string;
+  plainName: string;
+  status: getModifiedItemsStatus;
+}
+
+export interface GetModifiedFolders {
+  type: string;
+  id: number;
+  parentId: number;
+  name: string;
+  parent: null;
+  bucket: null;
+  userId: number;
+  user: null;
+  encryptVersion: null;
+  createdAt: Date;
+  updatedAt: Date;
+  uuid: string;
+  plainName: string;
+  size: number;
+  status: string;
+}
 
 export interface DriveFolderMetadataPayload {
   itemName: string;
