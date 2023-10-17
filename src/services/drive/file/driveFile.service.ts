@@ -161,14 +161,14 @@ class DriveFileService {
         sortFunction =
           direction === SortDirection.Asc
             ? (a: DriveListItem, b: DriveListItem) => {
-                const aName = Buffer.from(a.data.name.trim().toLowerCase()).toString('hex');
-                const bName = Buffer.from(b.data.name.trim().toLowerCase()).toString('hex');
+                const aName = a.data.name ? Buffer.from(a.data.name.trim().toLowerCase()).toString('hex') : '';
+                const bName = b.data.name ? Buffer.from(b.data.name.trim().toLowerCase()).toString('hex') : '';
 
                 return aName < bName ? -1 : aName > bName ? 1 : 0;
               }
             : (a: DriveListItem, b: DriveListItem) => {
-                const aName = Buffer.from(a.data.name.trim().toLowerCase()).toString('hex');
-                const bName = Buffer.from(b.data.name.trim().toLowerCase()).toString('hex');
+                const aName = Buffer.from(a.data.name?.trim().toLowerCase()).toString('hex');
+                const bName = Buffer.from(b.data.name?.trim().toLowerCase()).toString('hex');
 
                 return aName < bName ? 1 : aName > bName ? -1 : 0;
               };
