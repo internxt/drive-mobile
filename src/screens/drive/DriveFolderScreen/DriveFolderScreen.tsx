@@ -18,6 +18,7 @@ import { uiActions } from 'src/store/slices/ui';
 import { View } from 'react-native';
 import { DriveFolderError } from './DriveFolderError';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
+import errorService from '@internxt-mobile/services/ErrorService';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
@@ -30,11 +31,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   const folderHasError = folder?.error;
   const folderContent = folder?.content ? drive.folder.folderContentToDriveListItems(folder.content) : [];
-  const onBackButtonPressed = async () => {
+  const onBackButtonPressed = () => {
     navigation.goBack();
 
     if (folder?.content?.parentId) {
-      await driveCtx.loadFolderContent(folder.content.parentId, { focusFolder: true });
+      driveCtx.loadFolderContent(folder.content.parentId, { focusFolder: true }).catch(errorService.reportError);
     }
   };
 
