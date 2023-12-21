@@ -30,11 +30,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   const folderHasError = folder?.error;
   const folderContent = folder?.content ? drive.folder.folderContentToDriveListItems(folder.content) : [];
-  const onBackButtonPressed = () => {
+  const onBackButtonPressed = async () => {
     navigation.goBack();
 
     if (folder?.content?.parentId) {
-      driveCtx.loadFolderContent(folder.content.parentId, { focusFolder: true });
+      await driveCtx.loadFolderContent(folder.content.parentId, { focusFolder: true });
     }
   };
 

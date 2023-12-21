@@ -244,9 +244,9 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/signOut',
   async (_, { dispatch }) => {
-    await authService.signout();
-    await photos.clear();
-    await drive.clear();
+    authService.signout().catch(errorService.reportError);
+    photos.clear().catch(errorService.reportError);
+    drive.clear().catch(errorService.reportError);
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveActions.resetState());

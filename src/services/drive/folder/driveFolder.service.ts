@@ -53,48 +53,52 @@ class DriveFolderService {
   }
 
   public folderContentToDriveListItems(folderContent: FetchFolderContentResponseWithThumbnails): DriveListItem[] {
-    const filesAsDriveListItems = folderContent.files.map<DriveListItem>((child) => {
-      return {
-        id: child.id.toString(),
-        status: DriveItemStatus.Idle,
-        data: {
-          isFolder: false,
-          folderId: folderContent.parentId,
-          thumbnails: (child as DriveFileData).thumbnails || [],
-          currentThumbnail: null,
-          createdAt: child.createdAt,
-          updatedAt: child.updatedAt,
-          name: child.name,
-          id: child.id,
-          parentId: child.folderId,
-          size: child.size,
-          type: child.type,
-          fileId: child.fileId,
-          thumbnail: child.thumbnail,
-        },
-      };
-    });
+    const filesAsDriveListItems = folderContent.files
+      .filter((file) => file.status === 'EXISTS')
+      .map<DriveListItem>((child) => {
+        return {
+          id: child.id.toString(),
+          status: DriveItemStatus.Idle,
+          data: {
+            isFolder: false,
+            folderId: folderContent.parentId,
+            thumbnails: (child as DriveFileData).thumbnails || [],
+            currentThumbnail: null,
+            createdAt: child.createdAt,
+            updatedAt: child.updatedAt,
+            name: child.name,
+            id: child.id,
+            parentId: child.folderId,
+            size: child.size,
+            type: child.type,
+            fileId: child.fileId,
+            thumbnail: child.thumbnail,
+          },
+        };
+      });
 
-    const childsAsDriveListItems = folderContent.children.map<DriveListItem>((child) => {
-      return {
-        id: child.id.toString(),
-        status: DriveItemStatus.Idle,
-        data: {
-          thumbnails: [],
-          currentThumbnail: null,
-          createdAt: child.createdAt,
-          updatedAt: child.updatedAt,
-          name: child.name,
-          id: child.id,
-          isFolder: true,
-          parentId: child.parentId,
-          folderId: child.id,
-          size: undefined,
-          type: undefined,
-          fileId: undefined,
-        },
-      };
-    });
+    const childsAsDriveListItems = folderContent.children
+      .filter((child) => !child.deleted && !child.removed)
+      .map<DriveListItem>((child) => {
+        return {
+          id: child.id.toString(),
+          status: DriveItemStatus.Idle,
+          data: {
+            thumbnails: [],
+            currentThumbnail: null,
+            createdAt: child.createdAt,
+            updatedAt: child.updatedAt,
+            name: child.name,
+            id: child.id,
+            isFolder: true,
+            parentId: child.parentId,
+            folderId: child.id,
+            size: undefined,
+            type: undefined,
+            fileId: undefined,
+          },
+        };
+      });
 
     return childsAsDriveListItems.concat(filesAsDriveListItems);
   }

@@ -18,6 +18,7 @@ import { BaseLogger } from '@internxt-mobile/services/common';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
 import { getModifiedDriveItemsAndUpdateLocalCache } from './helpers';
+import { sleep } from 'src/helpers/services';
 
 type DriveFoldersTree = {
   [folderId: number]:
@@ -99,7 +100,17 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   }, [rootFolderId]);
 
   const fetchFolderContent = async (folderId: number) => {
-    return driveUseCases.getFolderContent({ folderId });
+    const response = await driveUseCases.getFolderContent({ folderId });
+
+    if (response.data?.files.length) {
+      response.data.files = response.data?.files.filter((file) => file.status === 'EXISTS');
+    }
+
+    if (response.data?.children.length) {
+      response.data.children = response.data?.children.filter((child) => !(child.removed && child.deleted));
+    }
+
+    return response;
   };
 
   /**
@@ -138,6 +149,18 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     }
     // 2. Get fresh data from server and update silently
     if (shouldPullFromNetwork) {
+      /**
+       * Wait before fetching, to avoid backend
+       * not returning yet just created items.
+       *
+       * See https://inxt.atlassian.net/browse/PB-1446
+       *
+       * Maybe this delay is too much, but if we don't get
+       * a reliable backend result, we are not going
+       * to update the UI with correct data, so is better to
+       * be slow, than to be wrong
+       */
+      sleep(500);
       const folderContent = await fetchFolderContent(folderId);
       if (folderContent) {
         logger.info(`FOLDER-${folderId} - FROM NETWORK`);

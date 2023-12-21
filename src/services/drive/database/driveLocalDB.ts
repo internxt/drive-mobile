@@ -1,9 +1,4 @@
-import {
-  DriveFileData,
-  DriveFolderData,
-  FetchFolderContentResponse,
-  FolderChild,
-} from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import {
   DRIVE_DB_NAME,
   SqliteDriveItemRow,
@@ -47,6 +42,7 @@ class DriveLocalDB {
 
   public async init(): Promise<void> {
     await sqliteService.open(DRIVE_DB_NAME);
+
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.createTable);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.createTable);
   }
@@ -157,6 +153,8 @@ class DriveLocalDB {
   }
 
   public async resetDatabase(): Promise<void> {
+    await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.dropTable);
+    await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.dropTable);
     await sqliteService.close(DRIVE_DB_NAME);
     await sqliteService.delete(DRIVE_DB_NAME);
     await this.init();
@@ -244,6 +242,9 @@ class DriveLocalDB {
             name: item.name,
             plain_name: item.plain_name,
             color: item.color || '-',
+            removed: false,
+            deleted: false,
+
             // We don't support uuid yet, this will involve
             // a major refactor in the data models
             uuid: undefined,
