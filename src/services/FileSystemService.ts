@@ -228,9 +228,18 @@ class FileSystemService {
           success: true,
         };
       } else {
-        await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
-          dialogTitle: title,
-        });
+        if (Platform.OS == 'ios') {
+          await Share.open({
+            title,
+            url: fileUri,
+            failOnCancel: false,
+            showAppsToView: true,
+          });
+        } else {
+          await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
+            dialogTitle: title,
+          });
+        }
 
         return {
           success: true,
