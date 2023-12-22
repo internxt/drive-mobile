@@ -79,7 +79,7 @@ class FileSystemService {
   }
 
   public tmpFilePath(filename?: string) {
-    return this.getTemporaryDir() + (filename || uuid.v4());
+    return (this.getTemporaryDir() + (filename || uuid.v4())).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
   public async clearTempDir(): Promise<number> {
     const items = await RNFS.readDir(this.getTemporaryDir());

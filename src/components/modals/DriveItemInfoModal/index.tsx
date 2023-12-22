@@ -97,8 +97,11 @@ function DriveItemInfoModal(): JSX.Element {
       () => dbItem && handleUndoMoveToTrash(dbItem),
     );
 
+    if (success && dbItem?.id) {
+      await driveLocalDB.deleteItem({ id: dbItem.id });
+    }
     if (success && driveCtx.currentFolder) {
-      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+      await driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
     }
   };
 

@@ -75,7 +75,7 @@ function AddModal(): JSX.Element {
       throw new Error('No current folder found');
     }
     setShowCreateFolderModal(false);
-    driveCtx.loadFolderContent(currentFolder.id);
+    await driveCtx.loadFolderContent(currentFolder.id, { pullFrom: ['network'] });
   };
   async function uploadAndroid(
     fileToUpload: UploadingFile,
