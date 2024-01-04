@@ -10,6 +10,10 @@ import { useTailwind } from 'tailwind-rn';
 import { useUseCase } from '@internxt-mobile/hooks/common';
 import * as useCases from '@internxt-mobile/useCases/drive';
 import { SearchInput } from 'src/components/SearchInput';
+import errorService from '../../services/ErrorService';
+import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { sleep } from '../../helpers/services';
+
 enum HomeTab {
   Recents = 'recents',
   Shared = 'shared',
@@ -18,16 +22,17 @@ enum HomeTab {
 const HomeScreen = (): JSX.Element => {
   const tailwind = useTailwind();
   const [searchText, setSearchText] = useState('');
+  const [sharedItemsPage, setSharedItemsPage] = useState(1);
+  const [shouldGetMoreSharedFiles, setShouldGetMoreSharedFiles] = useState(true);
+  const [shouldGetMoreSharedFolders, setShouldGetMoreSharedFolders] = useState(true);
+  const [sharedItems, setSharedItems] = useState<(SharedFiles & SharedFolders)[]>([]);
+
   const {
     data: recentItems,
     loading: recentsLoading,
     executeUseCase: refreshRecentItems,
   } = useUseCase(useCases.loadRecentItems);
-  const {
-    data: sharedLinks,
-    loading: sharedLoading,
-    executeUseCase: refreshSharedLinks,
-  } = useUseCase(useCases.loadSharedLinks);
+  const { loading: sharedLoading, executeUseCase: getSharedItems } = useUseCase(useCases.getSharedItems);
 
   useEffect(() => {
     const unsubscribeUploaded = useCases.onDriveItemUploaded(refreshRecentItems);
@@ -41,17 +46,74 @@ const HomeScreen = (): JSX.Element => {
   useEffect(() => {
     const unsubscribe = useCases.onDriveItemTrashed(async () => {
       refreshRecentItems();
-      refreshSharedLinks();
+      handleSharedLinksRefresh();
     });
 
     return unsubscribe;
   }, []);
 
   useEffect(() => {
-    const unsubscribe = useCases.onSharedLinksUpdated(refreshSharedLinks);
+    handleSharedLinksRefresh();
+    const unsubscribe = useCases.onSharedLinksUpdated(() => {
+      handleSharedLinksRefresh();
+    });
 
     return unsubscribe;
   }, []);
+
+  const handleSharedLinksRefresh = async () => {
+    try {
+      setSharedItems([]);
+      setShouldGetMoreSharedFiles(true);
+      setShouldGetMoreSharedFolders(true);
+      setSharedItemsPage(1);
+      sleep(500);
+      const result = await getSharedItems({ page: 0, shouldGetFiles: true, shouldGetFolders: true });
+
+      if (!result?.data?.hasMoreFiles) {
+        setShouldGetMoreSharedFiles(false);
+      }
+
+      if (!result?.data?.hasMoreFolders) {
+        setShouldGetMoreSharedFolders(false);
+      }
+
+      if (!result?.data?.items.length) return;
+
+      setSharedItems(result.data.items);
+    } catch (error) {
+      errorService.reportError(error);
+    }
+  };
+
+  const handleNextSharedItemsPage = async () => {
+    try {
+      if (shouldGetMoreSharedFiles || shouldGetMoreSharedFolders) {
+        setSharedItemsPage(sharedItemsPage + 1);
+      }
+      sleep(500);
+      const result = await getSharedItems({
+        page: sharedItemsPage,
+        shouldGetFiles: shouldGetMoreSharedFiles,
+        shouldGetFolders: shouldGetMoreSharedFolders,
+      });
+
+      if (!result?.data?.hasMoreFiles) {
+        setShouldGetMoreSharedFiles(false);
+      }
+
+      if (!result?.data?.hasMoreFolders) {
+        setShouldGetMoreSharedFolders(false);
+      }
+
+      if (!result?.data?.items.length) return;
+
+      setSharedItems(sharedItems.concat(result.data.items));
+    } catch (error) {
+      errorService.reportError(error);
+    }
+  };
+
   const [currentTab, setCurrentTab] = useState<HomeTab>(HomeTab.Recents);
   const searchPlaceholder = {
     [HomeTab.Recents]: strings.inputs.searchInRecents,
@@ -78,8 +140,9 @@ const HomeScreen = (): JSX.Element => {
         <SharedScreen
           searchText={searchText}
           isLoading={sharedLoading}
-          sharedLinks={sharedLinks}
-          refreshSharedLinks={() => refreshSharedLinks()}
+          sharedLinks={sharedItems}
+          refreshSharedLinks={handleSharedLinksRefresh}
+          onEndOfListReached={handleNextSharedItemsPage}
         ></SharedScreen>
       ),
     },

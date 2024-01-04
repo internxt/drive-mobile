@@ -1,4 +1,4 @@
-import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
+import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import {
   DriveFileData,
   DriveFolderData,
@@ -19,7 +19,9 @@ export interface DriveNavigationStackItem {
 }
 export type DriveNavigationStack = DriveNavigationStackItem[];
 
-export type DriveItemData = DriveFileData & DriveFolderData;
+export type DriveItemData = DriveFileData & DriveFolderData & { uuid?: string };
+
+export type DriveFile = DriveFileData & { uuid?: string };
 
 export type getModifiedItemsStatus = 'EXISTS' | 'TRASHED' | 'REMOVED';
 
@@ -37,6 +39,7 @@ export type DriveItemFocused = {
   shareId?: string;
   isFromFolderActions?: boolean;
   isFolder: boolean;
+  uuid?: string;
 } | null;
 
 export interface GetModifiedFiles {
@@ -147,6 +150,7 @@ export type DriveItemDataProps = Pick<
   type?: string;
   shareId?: string;
   thumbnail?: DownloadedThumbnail;
+  uuid?: string;
 };
 
 export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps; id: string };
@@ -162,7 +166,7 @@ export interface DriveItemProps {
   subtitle?: JSX.Element;
   progress?: number;
   isSelected?: boolean;
-  shareLink?: ShareLink;
+  shareLink?: SharedFiles & SharedFolders;
   onActionsPress?: () => void;
   onPress?: () => void;
 }
@@ -244,14 +248,14 @@ export interface DriveCurrentFolderContent {
   folderContent: DriveItemData[];
 }
 
-export type FolderContentChild = Omit<FolderChild, 'uuid'>;
+export type FolderContentChild = FolderChild;
 
 export type FolderContent = Omit<FetchFolderContentResponse, 'children'> & {
   children: FolderContentChild[];
 };
 
 export interface FetchFolderContentResponseWithThumbnails extends FolderContent {
-  files: (DriveFileData & { thumbnail?: DownloadedThumbnail })[];
+  files: (DriveFile & { thumbnail?: DownloadedThumbnail })[];
 }
 
 export interface DownloadedThumbnail {

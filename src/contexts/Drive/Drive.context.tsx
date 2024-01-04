@@ -14,9 +14,9 @@ import _ from 'lodash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { BaseLogger } from '@internxt-mobile/services/common';
-
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 import appService from '@internxt-mobile/services/AppService';
+
 import { getModifiedDriveItemsAndUpdateLocalCache } from './helpers';
 import { sleep } from 'src/helpers/services';
 

@@ -247,7 +247,6 @@ class DriveLocalDB {
 
             // We don't support uuid yet, this will involve
             // a major refactor in the data models
-            uuid: undefined,
           } as FolderContentChild;
         }),
     };

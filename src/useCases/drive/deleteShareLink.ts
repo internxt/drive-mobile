@@ -6,10 +6,9 @@ import { NotificationType } from '@internxt-mobile/types/index';
 import strings from 'assets/lang/strings';
 import { sharedLinksUpdated } from './getShareLink';
 
-export const deleteShareLink = async ({ shareId, type }: { shareId: string; type: 'file' | 'folder' }) => {
+export const stopShareLink = async ({ itemUUID, itemType }: { itemUUID: string; itemType: 'file' | 'folder' }) => {
   try {
-    const result = await drive.share.deleteShareLink({ shareId });
-
+    await drive.share.stopSharingItem({ itemUUID, itemType });
     sharedLinksUpdated();
 
     notificationsService.show({
@@ -17,9 +16,9 @@ export const deleteShareLink = async ({ shareId, type }: { shareId: string; type
       type: NotificationType.Success,
     });
     analytics.track(DriveAnalyticsEvent.SharedLinkDeleted, {
-      type,
+      type: itemType,
     });
-    return result;
+    return true;
   } catch (error) {
     throw new DisplayableError({
       userFriendlyMessage: strings.errors.deleteShareLinkError,

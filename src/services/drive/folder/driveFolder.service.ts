@@ -73,12 +73,13 @@ class DriveFolderService {
             type: child.type,
             fileId: child.fileId,
             thumbnail: child.thumbnail,
+            uuid: child.uuid,
           },
         };
       });
 
     const childsAsDriveListItems = folderContent.children
-      .filter((child) => !child.deleted && !child.removed)
+      .filter((folder) => !(folder.deleted && folder.removed))
       .map<DriveListItem>((child) => {
         return {
           id: child.id.toString(),
@@ -96,6 +97,7 @@ class DriveFolderService {
             size: undefined,
             type: undefined,
             fileId: undefined,
+            uuid: child.uuid,
           },
         };
       });
