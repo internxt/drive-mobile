@@ -8,7 +8,7 @@ import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
 import { shareAsync } from 'expo-sharing';
-import { fs as MobileSdkFS } from '@internxt/mobile-sdk';
+import { internxtFS } from '@internxt/mobile-sdk';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -25,6 +25,7 @@ const ANDROID_URI_PREFIX = 'file://';
 export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
 
 class FileSystemService {
+  private timestamp = Date.now();
   public async prepareFileSystem() {
     await this.prepareTmpDir();
   }
@@ -47,7 +48,7 @@ class FileSystemService {
   }
 
   public getRuntimeLogsFileName(): string {
-    return 'internxt_mobile_runtime_logs.txt';
+    return `internxt_mobile_runtime_logs_${this.timestamp}.txt`;
   }
 
   public getDownloadsDir(): string {
@@ -173,7 +174,7 @@ class FileSystemService {
     /** This is only for Android */
     if (Platform.OS === 'ios') return;
 
-    await MobileSdkFS.saveFileToDownloads(source);
+    await internxtFS.saveFileToDownloads(source);
   }
 
   public async fileExistsAndIsNotEmpty(uri: string): Promise<boolean> {

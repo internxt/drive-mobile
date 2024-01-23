@@ -16,6 +16,8 @@ import store from './src/store';
 import 'moment/locale/es';
 import 'moment/locale/en-in';
 import { decode, encode } from 'base-64';
+import { enableScreens } from 'react-native-screens';
+enableScreens(false);
 /**
  * Axios removed support for base64 encoding, so we need to provide
  * a polyfill

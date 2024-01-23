@@ -12,6 +12,7 @@ import { SdkManager } from './common/sdk/SdkManager';
 import jwtDecode from 'jwt-decode';
 import errorService from './ErrorService';
 import { keysService } from './common/keys';
+import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -105,6 +106,7 @@ class AuthService {
   }
 
   public async signout(): Promise<void> {
+    await internxtMobileSDKConfig.destroy();
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
   }

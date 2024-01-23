@@ -49,6 +49,10 @@ const strings = new LocalizedStrings({
       subscription: 'Subscription',
     },
     screens: {
+      photosPreviewScreen: {
+        pendingSync: 'Waiting to upload',
+        synced: 'Synced',
+      },
       LockScreen: {
         title: 'Internxt Locked',
         message: {
@@ -268,6 +272,10 @@ const strings = new LocalizedStrings({
         access: 'The Photos app needs access to your photos to let you view, sync and share photos from this device.',
       },
       gallery: {
+        backupsPaused: {
+          title: 'Photos backup is paused',
+          message: 'Photos backup will resume when your device is charging and connected to a wifi network',
+        },
         items_left: 'items left',
         title: 'Gallery',
         nPhotosSelected: '{0} selected',
@@ -826,6 +834,10 @@ const strings = new LocalizedStrings({
       subscription: 'Subscripción',
     },
     screens: {
+      photosPreviewScreen: {
+        pendingSync: 'Esperando para subir',
+        synced: 'Sincronizada',
+      },
       LockScreen: {
         title: 'Internxt bloqueado',
         message: {
@@ -1047,6 +1059,11 @@ const strings = new LocalizedStrings({
           'Se necesita acceder a tus fotos para que puedas ver, sincronizar y compartir fotos desde este dispositivo.',
       },
       gallery: {
+        backupsPaused: {
+          title: 'Copia de seguridad pausada',
+          message:
+            'La copia de seguridad de Photos se reanudará cuando el dispositivo este cargando y conectado a una red wifi.',
+        },
         items_left: 'items pendientes',
         title: 'Galería',
         nPhotosSelected: '{0} seleccionadas',

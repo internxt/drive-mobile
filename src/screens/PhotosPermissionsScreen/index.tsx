@@ -19,8 +19,9 @@ function PhotosPermissionsScreen({ navigation }: PhotosScreenProps<'PhotosPermis
   const photosCtx = useContext(PhotosContext);
 
   const handlePermissionsGranted = async () => {
-    navigation.replace('PhotosGallery');
     await photosCtx.enableSync(true);
+
+    navigation.replace('PhotosGallery');
   };
   return (
     <AppScreen safeAreaBottom safeAreaTop style={tailwind('justify-center flex-1 pt-20')}>
