@@ -163,10 +163,6 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     initializeSyncIsEnabled().catch((err) => {
       errorService.reportError(err);
     });
-
-    return () => {
-      // return subscription();
-    };
   }, []);
 
   useEffect(() => {

@@ -38,23 +38,6 @@ function PhotosGalleryAndroidScreen(): JSX.Element {
     pendingSyncs: 0,
   });
 
-  /* const checkForPhotosManagerUpdates = async () => {
-    try {
-      const photosManagerStatus = await internxtMobilePhotosSdk.getPhotosManagerStatus();
-      logger.info(`Photos manager status: ${JSON.stringify(photosManagerStatus)}`);
-      setPhotosProcessState({
-        ...photosProcessState,
-        status: photosManagerStatus.status,
-        successfulSyncs: photosManagerStatus.success,
-        pendingSyncs: photosManagerStatus.pending,
-        failedSyncs: photosManagerStatus.failed,
-      });
-    } catch (error) {
-      errorService.reportError(error);
-      logger.error(`Failed to get photos manager status: ${JSON.stringify(error)}`);
-    }
-  }; */
-
   useEffect(() => {
     const photosProgressUpdateSubscription = DeviceEventEmitter.addListener('PHOTOS_PROGRESS_UPDATE', (update) => {
       setPhotosProcessState(update);

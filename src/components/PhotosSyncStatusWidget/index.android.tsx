@@ -1,4 +1,4 @@
-import { CheckCircle, CloudArrowDown, Pause, Play, Warning } from 'phosphor-react-native';
+import { CheckCircle, CloudArrowDown, Warning } from 'phosphor-react-native';
 import React from 'react';
 import { Text, TouchableOpacity, TouchableWithoutFeedback, useWindowDimensions, View } from 'react-native';
 
@@ -122,14 +122,6 @@ const PhotosSyncStatusWidget: React.FC<PhotosSyncStatusWidgetProps> = (props) =>
       </View>
     ),
   };
-  const onPauseButtonPressed = () => {
-    photos.events.emit({
-      event: PhotosEventKey.PauseSync,
-    });
-  };
-  const onResumeButtonPressed = () => {
-    onResumeSyncPressed();
-  };
 
   const shouldRenderProgress = () => {
     if (props.status === PhotosSyncStatus.InProgress) {
@@ -146,9 +138,6 @@ const PhotosSyncStatusWidget: React.FC<PhotosSyncStatusWidgetProps> = (props) =>
 
     return false;
   };
-  const isPaused = props.status === PhotosSyncStatus.Paused;
-  const isPausing = props.status === PhotosSyncStatus.Pausing;
-  const showPauseResumeButton = false;
 
   const renderDisabledMessage = () => {
     return (
@@ -187,35 +176,6 @@ const PhotosSyncStatusWidget: React.FC<PhotosSyncStatusWidgetProps> = (props) =>
         <View style={tailwind('pl-5 flex-1')}>{contentByStatus[props.status]}</View>
         {appService.isDevMode ? (
           <AppText style={tailwind('text-red text-xs ml-auto mr-2')}>{props.failedSyncs} Failed</AppText>
-        ) : null}
-        {showPauseResumeButton ? (
-          !isPaused && !isPausing ? (
-            <TouchableOpacity
-              onPress={onPauseButtonPressed}
-              activeOpacity={0.7}
-              style={tailwind('h-full flex items-end justify-center px-5')}
-            >
-              <View style={tailwind('h-5 w-5 rounded-full flex-row items-center justify-center bg-primary')}>
-                <Pause weight="fill" color={getColor('text-white')} size={10} />
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              disabled={isPausing}
-              onPress={onResumeButtonPressed}
-              activeOpacity={0.7}
-              style={tailwind('h-full flex items-end justify-center px-5')}
-            >
-              <View style={tailwind('h-5 w-5 rounded-full flex-row items-center justify-center bg-primary')}>
-                <Play
-                  weight="fill"
-                  color={getColor('text-white')}
-                  style={tailwind('h-5 w-5 rounded-full flex-row items-center justify-center bg-primary')}
-                  size={10}
-                />
-              </View>
-            </TouchableOpacity>
-          )
         ) : null}
       </View>
       {shouldRenderProgress() ? (
