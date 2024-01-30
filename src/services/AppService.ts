@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { AppState, AppStateStatus, Platform } from 'react-native';
 import EnvTest from '../../env/.env.test.json';
 import packageJson from '../../package.json';
-import { logger } from './common';
+import { logger } from './common/logger';
 import deviceInfo from 'react-native-device-info';
 import prettysize from 'prettysize';
 export type AppStatus = AppStateStatus;

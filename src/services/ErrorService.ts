@@ -1,5 +1,5 @@
 import AppError from '../types';
-import { BaseLogger } from './common';
+import { BaseLogger } from './common/logger';
 import sentryService from './SentryService';
 
 export interface GlobalErrorContext {

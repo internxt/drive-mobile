@@ -226,6 +226,7 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
         }),
       );
     } catch (err) {
+      asyncStorageService.clearStorage();
       dispatch(authActions.setLoggedIn(false));
       dispatch(authThunks.signOutThunk());
     }
@@ -364,11 +365,36 @@ export const changePasswordThunk = createAsyncThunk<void, { newPassword: string 
   async ({ newPassword }, { dispatch, getState }) => {
     const { sessionPassword } = getState().auth;
     if (!sessionPassword) throw new Error('No session password found');
-    await authService.doChangePassword({
+    const { token, newToken } = await authService.doChangePassword({
       password: sessionPassword,
       newPassword: newPassword,
     });
 
+    if (!token || !newToken) throw new Error('No tokens found, this is fatal');
+
+    await asyncStorageService.saveItem(AsyncStorageKey.Token, token);
+    await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, newToken);
+    const user = getState().auth.user;
+    if (!user) throw new Error('No user found, this is fatal');
+
+    await initMobileSdk({
+      accessToken: token,
+      photosToken: newToken,
+      user,
+    });
+
+    SdkManager.setApiSecurity({
+      token,
+      newToken,
+    });
+
+    dispatch(
+      authActions.setSignInData({
+        token: token,
+        photosToken: newToken,
+        user,
+      }),
+    );
     dispatch(authActions.setSessionPassword(newPassword));
   },
 );

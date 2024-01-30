@@ -130,7 +130,10 @@ class AuthService {
     });
   }
 
-  public async doChangePassword(params: { password: string; newPassword: string }): Promise<void> {
+  public async doChangePassword(params: {
+    password: string;
+    newPassword: string;
+  }): Promise<{ token: string; newToken: string }> {
     const { credentials } = await this.getAuthCredentials();
     if (!credentials) throw new Error('User credentials not found');
     const salt = await this.getSalt(credentials.user.email);
@@ -160,13 +163,18 @@ class AuthService {
       privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
-    await this.sdk.users.changePassword({
+    const changePasswordResult = await this.sdk.users.changePassword({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,
       newEncryptedPassword: encNewPass,
       encryptedPrivateKey: privateKeyFinalValue,
     });
+
+    return {
+      token: changePasswordResult.token,
+      newToken: changePasswordResult.newToken,
+    };
   }
 
   public reset(email: string): Promise<void> {
@@ -323,28 +331,22 @@ class AuthService {
    * @returns A valid set of token and newToken
    */
   public async refreshAuthToken(currentAuthToken: string): Promise<{ newToken: string; token: string } | undefined> {
-    try {
-      const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
-        method: 'GET',
-        headers: await getHeaders(currentAuthToken),
-      });
+    const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
+      method: 'GET',
+      headers: await getHeaders(currentAuthToken),
+    });
 
-      const body = await result.json();
-      const { newToken, token, statusCode } = body;
+    const body = await result.json();
+    const { newToken, token, statusCode } = body;
 
-      if (statusCode === 401) {
-        throw new Error('Tokens no longer valid, should sign out');
-      }
-
-      return {
-        newToken,
-        token,
-      };
-    } catch (e) {
-      errorService.reportError(e);
-
-      return undefined;
+    if (!result.ok) {
+      throw new Error('Tokens no longer valid, should sign out');
     }
+
+    return {
+      newToken,
+      token,
+    };
   }
 
   /**
