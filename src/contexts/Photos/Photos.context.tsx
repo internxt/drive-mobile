@@ -10,8 +10,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { DataProvider } from 'recyclerlistview';
 
 import { startSync } from './sync';
-import * as MobileSdk from '@internxt/mobile-sdk';
-import { Photo, PhotoStatus } from '@internxt/sdk/dist/photos';
+import { Platform } from 'react-native';
+import { logger } from '@internxt-mobile/services/common';
 export interface PhotosContextType {
   dataSource: DataProvider;
   uploadedPhotosItems: PhotosItem[];
@@ -130,6 +130,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   const [uploadingPhotosItem, setUploadingPhotosItem] = useState<PhotosItem | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
   const [syncEnabled, setSyncEnabled] = useState<boolean>(true);
   const [selectionModeActivated, setSelectionModeActivated] = useState(false);
   const [uploadedPhotosItems, setUploadedPhotosItems] = useState<PhotosItem[]>([]);
@@ -159,47 +160,9 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   );
 
   useEffect(() => {
-    /**
-     * We receive here events with the serialized photo
-     * that was processed using the MobileSDK, those photos
-     * are processed in the background son we will
-     * receive this events when the app comes back to the foreground
-     */
-    const subscription = MobileSdk.photos.onPhotoSynced((photo) => {
-      const result = photo.result;
-
-      // Parse it
-      const parsedResult = JSON.parse(result) as Photo;
-
-      if (parsedResult.id && parsedResult.status === PhotoStatus.Exists) {
-        const photosItem = photos.utils.getPhotosItem(parsedResult);
-        photos.realm
-          .savePhotosItem(parsedResult)
-          .then(() => {
-            handleOnPhotosItemSynced(photosItem);
-            const pendingTasks = photos.localSync.getPhotosThatNeedsSyncCount();
-            setPendingTasks(pendingTasks);
-            // Hack to mark the sync as completed when running native photos,
-            // the native Photos queue, doesn't "finish" at all right now,
-            // it just goes to an idle state where it wait for more operations
-            // to process
-            if (pendingTasks <= 0) {
-              setSyncStatus(PhotosSyncStatus.Completed);
-            }
-          })
-          .catch((err) => {
-            errorService.reportError(err);
-          });
-      }
-    });
-
     initializeSyncIsEnabled().catch((err) => {
       errorService.reportError(err);
     });
-
-    return () => {
-      return subscription();
-    };
   }, []);
 
   useEffect(() => {
@@ -312,6 +275,16 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     await asyncStorageService.savePhotosSyncIsEnabled(enable);
 
     setSyncEnabled(enable);
+
+    if (Platform.OS === 'android') {
+      logger.info('Photos JS Sync is disabled on Android');
+
+      return {
+        canEnable: true,
+        enabled: enable,
+        permissionsStatus,
+      };
+    }
     if (enable && syncStatus === PhotosSyncStatus.Unknown) {
       await startPhotos();
     }

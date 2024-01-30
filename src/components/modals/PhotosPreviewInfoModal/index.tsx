@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { Image, Text, View } from 'react-native';
+import React from 'react';
+import { Text, View } from 'react-native';
 import prettysize from 'prettysize';
 import globalStyle from '../../../styles/global';
 import BottomModal from '../BottomModal';
@@ -11,6 +11,8 @@ import { time } from '@internxt-mobile/services/common/time';
 import AppText from 'src/components/AppText';
 import { PhotosItem } from '@internxt-mobile/types/photos';
 import { PhotosItemActions } from 'src/screens/PhotosPreviewScreen';
+import FastImage from 'react-native-fast-image';
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 
 interface PhotosPreviewInfoModalProps {
   data: PhotosItem;
@@ -25,7 +27,10 @@ function PhotosPreviewInfoModal({ isOpen, actions, data, size }: PhotosPreviewIn
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
-        <Image style={tailwind('bg-gray-10 w-10 h-10 rounded ')} source={{ uri: data.localPreviewPath }} />
+        <FastImage
+          style={tailwind('bg-gray-10 w-10 h-10 rounded ')}
+          source={{ uri: fileSystemService.pathToUri(data.localPreviewPath) }}
+        />
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>

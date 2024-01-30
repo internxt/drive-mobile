@@ -17,9 +17,8 @@ import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@in
 import UserService from '../../../services/UserService';
 import photos from '@internxt-mobile/services/photos';
 import drive from '@internxt-mobile/services/drive';
-import * as MobileSdk from '@internxt/mobile-sdk';
+import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import appService from '@internxt-mobile/services/AppService';
-import { getAuthFromCredentials, NetworkAuth } from 'src/network/requests';
 export interface AuthState {
   loggedIn: boolean | null;
   token: string;
@@ -29,22 +28,27 @@ export interface AuthState {
   sessionPassword: string | undefined;
 }
 
-const initMobileSdk = async (credentials: AuthCredentials, networkCredentials: NetworkAuth) => {
+const initMobileSdk = async (credentials: AuthCredentials) => {
   if (!appService.isAndroid) return;
-  await MobileSdk.setAuthTokens({
-    accessToken: credentials.accessToken,
-    newToken: credentials.photosToken,
-  });
-  await MobileSdk.initSdk({
+  await internxtMobileSDKConfig.initialize({
     BRIDGE_URL: appService.constants.BRIDGE_URL,
     DRIVE_API_URL: appService.constants.DRIVE_API_URL,
     DRIVE_NEW_API_URL: appService.constants.DRIVE_NEW_API_URL,
-    BRIDGE_AUTH_BASE64: btoa(`${networkCredentials.username}:${networkCredentials.password}`),
     PHOTOS_API_URL: appService.constants.PHOTOS_API_URL,
     PHOTOS_NETWORK_API_URL: appService.constants.PHOTOS_NETWORK_API_URL,
-    CRIPTO_SECRET: appService.constants.DRIVE_API_URL,
     MAGIC_IV: appService.constants.MAGIC_IV,
     MAGIC_SALT: appService.constants.MAGIC_SALT,
+  });
+
+  await internxtMobileSDKConfig.identifyUser({
+    legacyToken: credentials.accessToken,
+    authToken: credentials.photosToken,
+    email: credentials.user.email,
+    userId: credentials.user.userId,
+    userUuid: credentials.user.uuid,
+    plainMnemonic: credentials.user.mnemonic,
+    bucketId: credentials.user.bucket,
+    rootFolderId: credentials.user.root_folder_id.toString(),
   });
 };
 
@@ -71,11 +75,8 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
         email: credentials.user.email,
         userId: credentials.user.userId,
       });
-      const networkCredentials = getAuthFromCredentials({
-        user: credentials.user.bridgeUser,
-        pass: credentials.user.userId,
-      });
-      await initMobileSdk(credentials, networkCredentials);
+
+      await initMobileSdk(credentials);
       dispatch(refreshUserThunk());
       dispatch(loadSecurityDetailsThunk());
     } else {
@@ -107,12 +108,7 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         newToken: credentials.photosToken,
       });
 
-      const networkCredentials = getAuthFromCredentials({
-        user: credentials.user.bridgeUser,
-        pass: credentials.user.userId,
-      });
-
-      await initMobileSdk(credentials, networkCredentials);
+      await initMobileSdk(credentials);
       dispatch(
         authActions.setSignInData({
           token: credentials.accessToken,
@@ -213,12 +209,7 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
 
-      if (appService.isAndroid) {
-        MobileSdk.setAuthTokens({
-          accessToken: credentials.accessToken,
-          newToken: credentials.photosToken,
-        });
-      }
+      await initMobileSdk(credentials);
 
       // Pass the new tokens to the SdkManager
       SdkManager.init({

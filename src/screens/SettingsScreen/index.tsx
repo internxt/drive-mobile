@@ -24,10 +24,11 @@ import BottomModal from 'src/components/modals/BottomModal';
 import { PhotosPermissions } from '../PhotosPermissionsScreen';
 import Portal from '@burstware/react-native-portal';
 import { PermissionStatus } from 'expo-media-library';
-import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
+import { imageService, logger, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
+import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
 
 function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
@@ -123,10 +124,9 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
     try {
       setGettingLogs(true);
       const exists = await fs.fileExistsAndIsNotEmpty(fs.getRuntimeLogsPath());
-      if (!exists) {
-        notifications.error(strings.errors.runtimeLogsMissing);
-        return;
-      }
+
+      await internxtMobileSDKUtils.saveNativeLogs();
+
       if (Platform.OS === 'ios') {
         await fs.shareFile({
           title: 'Internxt Runtime logs',
@@ -135,12 +135,13 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
         });
       }
 
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' && exists) {
         await fs.moveToAndroidDownloads(fs.getRuntimeLogsPath());
       }
 
       notifications.success(strings.messages.logFileMovedToDownloads);
     } catch (error) {
+      logger.error(`Failed to save logs: ${error}`);
       notifications.error(strings.errors.generic.title);
     } finally {
       setGettingLogs(false);

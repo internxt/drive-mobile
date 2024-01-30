@@ -300,7 +300,6 @@ export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManager
       this.photosNetworkManager.addOperation({
         photosItem: operation.photosItem,
         retries: 0,
-        useNativePhotos: appService.isAndroid,
         onOperationCompleted: (err, result) => {
           // If we are on Android, result will be null, so we update the item and we will
           // wait for the event to mark the photo as backed up

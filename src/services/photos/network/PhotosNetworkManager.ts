@@ -186,25 +186,6 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
     const photoData = operation.photosItem;
     const name = photoData.name;
 
-    // If useNativePhotos is enabled, use it via mobile sdk
-    if (operation.useNativePhotos) {
-      this.log('Adding Photo to the native processing queue');
-      await MobileSdk.photos.processPhotosItem(
-        operation.photosItem.getDisplayName(),
-        operation.photosItem.type === PhotosItemType.PHOTO ? 'IMAGE' : 'VIDEO',
-        operation.photosItem.localUri,
-        credentials.user.mnemonic,
-        user.bucketId,
-        user.id,
-        device.id,
-        credentials.user.userId,
-        new Date(photoData.takenAt).toISOString(),
-      );
-
-      this.log(`Photo added to the native processing queue, ${this.queue.length()} photos pending to add`);
-      return null;
-    }
-
     this.log('Using JS photos processing');
     const localUriToPath = await photosUtils.cameraRollUriToFileSystemUri({
       name: operation.photosItem.name,

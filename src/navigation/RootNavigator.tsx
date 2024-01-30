@@ -10,7 +10,7 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
 import { driveActions } from '../store/slices/drive';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import analyticsService from '../services/AnalyticsService';
 import DebugScreen from '../screens/DebugScreen';
@@ -86,6 +86,10 @@ function AppNavigator(): JSX.Element {
   }, [isLoggedIn]);
 
   const initializePhotos = async () => {
+    if (Platform.OS === 'android') {
+      photosLogger.warn('Photos JS not being initialized on Android');
+      return;
+    }
     photosLogger.info('Initializing photos system');
     const status = await photosCtx.permissions.getPermissionsStatus();
     if (status === PermissionStatus.GRANTED) {

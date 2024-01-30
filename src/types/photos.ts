@@ -159,8 +159,6 @@ export interface PhotosNetworkOperation {
   photosItem: PhotosItem;
   lastError?: Error;
   retries: number;
-  // Enable to run using the native photos via mobile sdk
-  useNativePhotos: boolean;
   onOperationCompleted: (err: Error | null, result: { photo: Photo; photosItem: PhotosItem } | null) => void;
 }
 export type DevicePhoto = MediaLibrary.Asset;

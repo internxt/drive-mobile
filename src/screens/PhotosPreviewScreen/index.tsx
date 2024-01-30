@@ -2,12 +2,21 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from 'react';
 
 import { View, TouchableOpacity, Animated, Easing, Platform, Dimensions, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowSquareOut, CaretLeft, DotsThreeVertical, DownloadSimple, Link, Trash } from 'phosphor-react-native';
+import {
+  ArrowSquareOut,
+  CaretLeft,
+  Cloud,
+  CloudSlash,
+  DotsThreeVertical,
+  DownloadSimple,
+  Link,
+  Trash,
+} from 'phosphor-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RootStackScreenProps } from '../../types/navigation';
 import AppScreen from '../../components/AppScreen';
 
-import { PhotosItem, PhotosItemBacked, PhotoSizeType, PhotoSyncStatus } from '../../types/photos';
+import { PhotosItemBacked, PhotoSyncStatus } from '../../types/photos';
 
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
@@ -26,6 +35,8 @@ import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { VideoViewer } from 'src/components/photos/VideoViewer';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
 import { PhotosItemType } from '@internxt/sdk/dist/photos';
+import { time } from '@internxt-mobile/services/common/time';
+import errorService from '@internxt-mobile/services/ErrorService';
 export interface PhotosItemActions {
   exportPhoto: () => void;
   saveToGallery: () => void;
@@ -186,14 +197,21 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
       setGeneratingShareLink(false);
     },
     moveToTrash: async () => {
-      photosUseCases.deletePhotosItems({
-        photosToDelete: [photosItem as PhotosItemBacked],
-      });
-      await photosCtx.removePhotosItems([photosItem]);
-      actions.closeModal('trash');
-      actions.closeModal('preview-options');
+      try {
+        photosUseCases.deletePhotosItems({
+          photosToDelete: [photosItem as PhotosItemBacked],
+        });
+        if (Platform.OS != 'android') {
+          await photosCtx.removePhotosItems([photosItem]);
+        }
 
-      navigation.goBack();
+        actions.closeModal('trash');
+        actions.closeModal('preview-options');
+
+        navigation.goBack();
+      } catch (error) {
+        errorService.reportError(error);
+      }
     },
 
     closeModal(modal) {
@@ -218,6 +236,27 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
 
   function handleImageViewReset() {
     setShowActions(true);
+  }
+
+  function renderSyncStatus() {
+    const isSynced = photosItem.photoId && photosItem.photoFileId;
+
+    return (
+      <View style={tailwind('flex-row items-center opacity-80')}>
+        <AppText style={tailwind('text-white')}>{time.getFormattedDate(photosItem.takenAt, 'T')}</AppText>
+        <AppText bold style={tailwind('mx-2 text-white')}>
+          ·
+        </AppText>
+        {isSynced ? (
+          <Cloud size={16} color={tailwind('text-white').color as string} weight="fill" />
+        ) : (
+          <CloudSlash size={16} color={tailwind('text-white').color as string} weight="fill" />
+        )}
+        <AppText style={tailwind('text-white text-sm ml-2')}>
+          {isSynced ? strings.screens.photosPreviewScreen.synced : strings.screens.photosPreviewScreen.pendingSync}
+        </AppText>
+      </View>
+    );
   }
   function PhotoPreviewHeader() {
     return (
@@ -247,7 +286,13 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
             </TouchableOpacity>
 
             <View style={[tailwind('flex-1 px-10 justify-center items-center')]}>
-              <AppText style={tailwind('text-white text-sm mb-1.5')}>{}</AppText>
+              <View style={tailwind('')}>
+                <AppText medium style={tailwind('text-base text-white text-center')}>
+                  {time.getFormattedDate(photosItem.takenAt, 'EEE, d LLL yyyy')}
+                </AppText>
+                {renderSyncStatus()}
+              </View>
+
               <Animated.View style={{ opacity: fadeAnimProgress }}>
                 <AppProgressBar
                   currentValue={progress}

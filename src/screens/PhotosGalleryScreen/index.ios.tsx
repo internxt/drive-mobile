@@ -20,7 +20,7 @@ import { PhotosContext } from 'src/contexts/Photos/Photos.context';
 import GalleryAllView, { GalleryAllSkeleton } from 'src/components/gallery-views/GalleryAllView';
 import * as photosUseCases from '@internxt-mobile/useCases/photos';
 import AppText from 'src/components/AppText';
-function PhotosGalleryScreen(): JSX.Element {
+function PhotosGalleryiOSScreen(): JSX.Element {
   const photosCtx = useContext(PhotosContext);
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -201,4 +201,4 @@ function PhotosGalleryScreen(): JSX.Element {
   );
 }
 
-export default PhotosGalleryScreen;
+export default PhotosGalleryiOSScreen;
