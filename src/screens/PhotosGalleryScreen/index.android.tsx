@@ -108,7 +108,7 @@ function PhotosGalleryAndroidScreen(): JSX.Element {
 
   useEffect(() => {
     if (photosCtx.syncEnabled) {
-      initPhotosMobileSdk();
+      initPhotosMobileSdk().then(startPhotosMobileSdk);
     } else {
       stopPhotosMobileSdk();
     }
@@ -126,9 +126,16 @@ function PhotosGalleryAndroidScreen(): JSX.Element {
         photosDeviceId: device.id,
         photosUserId: user.id,
       });
+    } catch (error) {
+      errorService.reportError(error);
+    }
+  };
 
+  const startPhotosMobileSdk = async () => {
+    try {
       await internxtMobilePhotosSdk.startPhotos();
     } catch (error) {
+      logger.error(`Failed to start Photos native processor: ${JSON.stringify(error)}`);
       errorService.reportError(error);
     }
   };
