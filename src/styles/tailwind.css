@@ -1,3 +1,7 @@
+.fixed {
+  position: fixed
+}
+
 .absolute {
   position: absolute
 }
@@ -16,10 +20,6 @@
 
 .right-1 {
   right: 0.25rem
-}
-
-.left-1 {
-  left: 0.25rem
 }
 
 .bottom-0 {
@@ -131,6 +131,11 @@
   margin-bottom: 1rem
 }
 
+.mx-2 {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem
+}
+
 .my-2\.5 {
   margin-top: 0.625rem;
   margin-bottom: 0.625rem
@@ -149,11 +154,6 @@
 .mx-6 {
   margin-left: 1.5rem;
   margin-right: 1.5rem
-}
-
-.mx-2 {
-  margin-left: 0.5rem;
-  margin-right: 0.5rem
 }
 
 .my-5 {
@@ -410,10 +410,6 @@
   height: 7rem
 }
 
-.h-6 {
-  height: 1.5rem
-}
-
 .h-24 {
   height: 6rem
 }
@@ -572,6 +568,10 @@
 
 .items-center {
   align-items: center
+}
+
+.justify-start {
+  justify-content: flex-start
 }
 
 .justify-end {
@@ -807,6 +807,11 @@
 .bg-black {
   --tw-bg-opacity: 1;
   background-color: rgb(0 0 0 / var(--tw-bg-opacity))
+}
+
+.bg-debug {
+  --tw-bg-opacity: 1;
+  background-color: rgb(0 128 0 / var(--tw-bg-opacity))
 }
 
 .p-0 {
@@ -1074,6 +1079,14 @@
 
 .text-center {
   text-align: center
+}
+
+.text-right {
+  text-align: right
+}
+
+.text-end {
+  text-align: end
 }
 
 .text-base {

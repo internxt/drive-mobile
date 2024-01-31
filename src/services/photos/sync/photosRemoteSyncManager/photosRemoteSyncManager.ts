@@ -2,7 +2,7 @@ import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { BaseLogger } from '@internxt-mobile/services/common';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
-import { PhotosRemoteSyncManagerStatus } from '@internxt-mobile/types/photos';
+import { PhotosItem, PhotosRemoteSyncManagerStatus } from '@internxt-mobile/types/photos';
 import { Photo } from '@internxt/sdk/dist/photos';
 import async from 'async';
 import { RunnableService } from 'src/helpers/services';
@@ -12,6 +12,7 @@ import { photosNetwork } from '../../network/photosNetwork.service';
 import { photosPreview } from '../../preview';
 import { photosUtils } from '../../utils';
 import { devicePhotosScanner, DevicePhotosScannerService } from '../devicePhotosScanner';
+import { PhotosPreviewFixerService } from '../../preview/PhotosPreviewFixer.service';
 
 type OnStatusChangeCallback = (newStatus: PhotosRemoteSyncManagerStatus) => void;
 type OnRemotePhotosPageSyncedCallback = (photo: Photo[]) => void;
@@ -34,12 +35,21 @@ export class PhotosRemoteSyncManager implements RunnableService<PhotosRemoteSync
   }
   private previewsQueue = async.queue<{ photo: Photo; retries: number }, Photo, Error>(async (task, next) => {
     const startTaskTime = Date.now();
-    const photosItem = photosUtils.getPhotosItem(task.photo);
-
+    let photosItem: PhotosItem = photosUtils.getPhotosItem(task.photo);
     // Check if we have the preview locally,
     // if not download and save it
     try {
-      await photosRealmDB.savePhotosItem(task.photo, false);
+      let photo: Photo = task.photo;
+
+      const photoPreviewNeedsFix = PhotosPreviewFixerService.instance.needsFixing(photo);
+
+      if (photoPreviewNeedsFix) {
+        this.logger.info(`🔨 Photo ${photo.name} created at ${photo.createdAt} preview needs fixing, fixing it`);
+        photo = await PhotosPreviewFixerService.instance.fix(task.photo);
+        photosItem = photosUtils.getPhotosItem(photo);
+        this.logger.info('✅ Photo preview has been fixed');
+      }
+      await photosRealmDB.savePhotosItem(photo, false);
 
       const existsInDevice = this.devicePhotosScanner.getPhotoInDevice(photosItem.name, photosItem.takenAt)
         ? true
@@ -51,8 +61,8 @@ export class PhotosRemoteSyncManager implements RunnableService<PhotosRemoteSync
         );
 
         // We are done, save the date
-        await asyncStorageService.saveLastPhotoPulledDate(task.photo.updatedAt);
-        next(null, task.photo);
+        await asyncStorageService.saveLastPhotoPulledDate(photo.updatedAt);
+        next(null, photo);
 
         // Exists in device, add the photo
         this.totalPhotosSyncedFromRemote++;
@@ -64,7 +74,9 @@ export class PhotosRemoteSyncManager implements RunnableService<PhotosRemoteSync
       return;
     }
 
-    this.logger.info(`Checking if preview exists at ${photosItem.localPreviewPath}`);
+    this.logger.info(
+      `Checking if preview exists at ${photosItem.localPreviewPath}, ${this.previewsQueue.length()} pending items`,
+    );
     const existsPreviewFile = await fs.exists(photosItem.localPreviewPath);
 
     try {

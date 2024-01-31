@@ -106,9 +106,9 @@ class AuthService {
   }
 
   public async signout(): Promise<void> {
-    await internxtMobileSDKConfig.destroy();
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
+    await internxtMobileSDKConfig.destroy();
   }
 
   public async doRecoverPassword(newPassword: string): Promise<Response> {

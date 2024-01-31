@@ -20,9 +20,7 @@ export const downloadFullSizePhotosItem = async ({
       type: photosItem.format,
       takenAt: photosItem.takenAt,
     });
-    if (await fileSystemService.fileExistsAndIsNotEmpty(destination)) {
-      return destination;
-    }
+    await fileSystemService.unlinkIfExists(destination);
     return photos.network.download(photosItem.photoFileId as string, {
       destination,
       bucketId: photosItem.bucketId || undefined,
