@@ -37,6 +37,7 @@ import { photosUtils } from '@internxt-mobile/services/photos/utils';
 import { PhotosItemType } from '@internxt/sdk/dist/photos';
 import { time } from '@internxt-mobile/services/common/time';
 import errorService from '@internxt-mobile/services/ErrorService';
+import { titlerize } from 'src/helpers/strings';
 export interface PhotosItemActions {
   exportPhoto: () => void;
   saveToGallery: () => void;
@@ -288,7 +289,7 @@ function PhotosPreviewScreen({ navigation, route }: RootStackScreenProps<'Photos
             <View style={[tailwind('flex-1 px-10 justify-center items-center')]}>
               <View style={tailwind('')}>
                 <AppText medium style={tailwind('text-base text-white text-center')}>
-                  {time.getFormattedDate(photosItem.takenAt, 'EEE, d LLL yyyy')}
+                  {titlerize(time.getFormattedDate(photosItem.takenAt, 'EEE, d LLL yyyy'), false)}
                 </AppText>
                 {renderSyncStatus()}
               </View>

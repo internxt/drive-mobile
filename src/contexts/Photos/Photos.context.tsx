@@ -7,13 +7,12 @@ import { photosUtils } from '@internxt-mobile/services/photos/utils';
 import { PhotosItem, PhotosSyncStatus } from '@internxt-mobile/types/photos';
 import * as MediaLibrary from 'expo-media-library';
 import React, { useEffect, useRef, useState } from 'react';
-import { DataProvider } from 'recyclerlistview';
 
 import { startSync } from './sync';
 import { Platform } from 'react-native';
 import { logger } from '@internxt-mobile/services/common';
 export interface PhotosContextType {
-  dataSource: DataProvider;
+  photos: PhotosItem[];
   uploadedPhotosItems: PhotosItem[];
   syncedPhotosItems: PhotosItem[];
   ready: boolean;
@@ -54,11 +53,7 @@ export interface PhotosContextType {
   };
 }
 export const PhotosContext = React.createContext<PhotosContextType>({
-  dataSource: new DataProvider(function (row1, row2) {
-    const row1Key = `${row1.name}-${row1.takenAt}`;
-    const row2Key = `${row2.name}-${row2.takenAt}`;
-    return row1Key !== row2Key;
-  }),
+  photos: [],
   enableSync: async () => {
     return {
       canEnable: false,
@@ -151,13 +146,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   const syncedPhotosItems = useRef<PhotosItem[]>([]);
   const devicePhotosItems = useRef<PhotosItem[]>([]);
   const [selectedPhotosItems, setSelectedPhotosItems] = useState<PhotosItem[]>([]);
-  const [dataSource, setDataSource] = useState<DataProvider>(
-    new DataProvider(function (row1, row2) {
-      const row1Key = `${row1.name}-${row1.takenAt}`;
-      const row2Key = `${row2.name}-${row2.takenAt}`;
-      return row1Key !== row2Key;
-    }),
-  );
+  const [allPhotos, setAllPhotos] = useState<PhotosItem[]>([]);
 
   useEffect(() => {
     initializeSyncIsEnabled().catch((err) => {
@@ -203,13 +192,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   }
   function resetContext(config = { resetLoadedImages: true }) {
     if (config.resetLoadedImages) {
-      setDataSource(
-        new DataProvider(function (row1, row2) {
-          const row1Key = `${row1.name}-${row1.takenAt}`;
-          const row2Key = `${row2.name}-${row2.takenAt}`;
-          return row1Key !== row2Key;
-        }),
-      );
+      setAllPhotos([]);
       syncedPhotosItems.current = [];
       devicePhotosItems.current = [];
       uploadedPhotosItemsRef.current = [];
@@ -227,26 +210,20 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     setPhotosInDevice(0);
   }
 
-  function onRemotePhotosSynced() {
-    photos.realm
-      .getSyncedPhotos()
-      .then((syncedPhotos) => {
-        syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photos.utils.getPhotosItem(syncedPhoto));
-        setPhotosInLocalDB(syncedPhotosItems.current.length);
-        const mergedPhotosItems = photosUtils.mergePhotosItems(
-          devicePhotosItems.current.concat(syncedPhotosItems.current),
-        );
-        setDataSource(
-          new DataProvider(function (row1, row2) {
-            const row1Key = getListKey(row1);
-            const row2Key = getListKey(row2);
-            return row1Key !== row2Key;
-          }).cloneWithRows(mergedPhotosItems),
-        );
-      })
-      .catch((err) => {
-        errorService.reportError(err);
-      });
+  async function onRemotePhotosSynced() {
+    try {
+      const syncedPhotos = await photos.realm.getSyncedPhotos();
+      syncedPhotosItems.current = syncedPhotos.map((syncedPhoto) => photos.utils.getPhotosItem(syncedPhoto));
+      setPhotosInLocalDB(syncedPhotosItems.current.length);
+      const mergedPhotosItems = photosUtils.mergePhotosItems(
+        devicePhotosItems.current.concat(syncedPhotosItems.current),
+      );
+
+      setAllPhotos(mergedPhotosItems);
+    } catch (error) {
+      logger.error('Error getting synced photos', error);
+      errorService.reportError(error);
+    }
   }
 
   function handlePhotosItemUploadProgress(_: PhotosItem, progress: number) {
@@ -374,11 +351,9 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
       const someDevicePhotos = await getSomeDevicePhotos(100);
 
       // Populate the grid fast
-      setDataSource(
-        dataSource.cloneWithRows(
-          photos.utils.mergePhotosItems(
-            someDevicePhotos.concat(syncedPhotos.map((syncedPhoto) => photosUtils.getPhotosItem(syncedPhoto))),
-          ),
+      setAllPhotos(
+        photos.utils.mergePhotosItems(
+          someDevicePhotos.concat(syncedPhotos.map((syncedPhoto) => photosUtils.getPhotosItem(syncedPhoto))),
         ),
       );
       photosLogger.info(`Added initial photos to the gallery in ${Date.now() - startDb}ms`);
@@ -412,7 +387,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
         devicePhotosItems.current.concat(syncedPhotosItems.current),
       );
 
-      setDataSource(dataSource.cloneWithRows(mergedPhotosItems));
+      setAllPhotos(mergedPhotosItems);
 
       if (!syncIsEnabled) {
         setReady(true);
@@ -451,9 +426,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   }
 
   function getPhotosItem(name: string, takenAt: number) {
-    return (dataSource.getAllData() as PhotosItem[]).find(
-      (photosItem) => photosItem.name === name && photosItem.takenAt === takenAt,
-    );
+    return allPhotos.find((photosItem) => photosItem.name === name && photosItem.takenAt === takenAt);
   }
 
   /**
@@ -520,8 +493,6 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
     }, 1000);
   }
 
-  const getListKey = (photosItem: PhotosItem) => `${photosItem.name}-${photosItem.takenAt}-${photosItem.status}`;
-
   async function handleRemovePhotosItems(photosItems: PhotosItem[]) {
     for (const photosItem of photosItems) {
       if (photosItem.photoId) {
@@ -535,7 +506,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
 
     const merged = photosUtils.mergePhotosItems(devicePhotosItems.current.concat(syncedPhotosItems.current));
 
-    setDataSource(dataSource.cloneWithRows(merged));
+    setAllPhotos(merged);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -548,7 +519,7 @@ export const PhotosContextProvider: React.FC = ({ children }) => {
   return (
     <PhotosContext.Provider
       value={{
-        dataSource,
+        photos: allPhotos,
         selection,
         ready,
         uploadedPhotosItems,

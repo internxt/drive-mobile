@@ -125,7 +125,9 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
       setGettingLogs(true);
       const exists = await fs.fileExistsAndIsNotEmpty(fs.getRuntimeLogsPath());
 
-      await internxtMobileSDKUtils.saveNativeLogs();
+      if (Platform.OS === 'android') {
+        await internxtMobileSDKUtils.saveNativeLogs();
+      }
 
       if (Platform.OS === 'ios') {
         await fs.shareFile({

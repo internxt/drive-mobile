@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View } from 'react-native';
+import { Text, View, Image } from 'react-native';
 import prettysize from 'prettysize';
 import globalStyle from '../../../styles/global';
 import BottomModal from '../BottomModal';
@@ -13,6 +13,8 @@ import { PhotosItem } from '@internxt-mobile/types/photos';
 import { PhotosItemActions } from 'src/screens/PhotosPreviewScreen';
 import FastImage from 'react-native-fast-image';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import appService from '@internxt-mobile/services/AppService';
+import { titlerize } from 'src/helpers/strings';
 
 interface PhotosPreviewInfoModalProps {
   data: PhotosItem;
@@ -27,10 +29,18 @@ function PhotosPreviewInfoModal({ isOpen, actions, data, size }: PhotosPreviewIn
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
-        <FastImage
-          style={tailwind('bg-gray-10 w-10 h-10 rounded ')}
-          source={{ uri: fileSystemService.pathToUri(data.localPreviewPath) }}
-        />
+        {appService.isAndroid ? (
+          <FastImage
+            style={tailwind('bg-gray-10 w-10 h-10 rounded ')}
+            source={{ uri: fileSystemService.pathToUri(data.localPreviewPath) }}
+          />
+        ) : (
+          // Image component supports ph:// like URIs on iOS
+          <Image
+            style={tailwind('bg-gray-10 w-10 h-10 rounded ')}
+            source={{ uri: fileSystemService.pathToUri(data.localPreviewPath) }}
+          />
+        )}
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
@@ -92,14 +102,20 @@ function PhotosPreviewInfoModal({ isOpen, actions, data, size }: PhotosPreviewIn
             <BottomModalOption
               key={index}
               leftSlot={
-                <View style={tailwind('flex-grow')}>
+                <View style={tailwind('')}>
                   <AppText style={tailwind('text-lg text-gray-100')}>{opt.label}</AppText>
                 </View>
               }
               rightSlot={
-                <AppText numberOfLines={1} ellipsizeMode="middle" style={tailwind('text-base text-gray-60 mr-4')}>
-                  {opt.value}
-                </AppText>
+                <View style={tailwind('flex-1 ml-auto justify-center')}>
+                  <AppText
+                    numberOfLines={1}
+                    ellipsizeMode="middle"
+                    style={tailwind('text-base text-gray-60 text-right')}
+                  >
+                    {opt.value}
+                  </AppText>
+                </View>
               }
             />
           );

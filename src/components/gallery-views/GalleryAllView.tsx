@@ -5,21 +5,22 @@ import GalleryItem from '../GalleryItem';
 import { PhotosScreenNavigationProp } from '../../types/navigation';
 import { PhotosItem } from '../../types/photos';
 
-import { DataProvider, LayoutProvider, RecyclerListView } from 'recyclerlistview';
+import { FlashList, ListRenderItemInfo } from '@shopify/flash-list';
 import { PhotosContext } from 'src/contexts/Photos';
 import _ from 'lodash';
 import { useTailwind } from 'tailwind-rn';
 
-const COLUMNS = 5;
+const COLUMNS = 3;
 const GUTTER = 1.5;
 
 const GalleryAllView: React.FC<{
-  onLoadNextPage: () => Promise<void>;
   onRefresh: () => Promise<void>;
-  photos: DataProvider;
-}> = ({ onLoadNextPage, onRefresh, photos }) => {
+  photos: PhotosItem[];
+}> = ({ onRefresh, photos }) => {
   const photosCtx = useContext(PhotosContext);
   const navigation = useNavigation<PhotosScreenNavigationProp<'PhotosGallery'>>();
+
+  const GalleryFooter = useMemo(() => <></>, []);
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -53,28 +54,16 @@ const GalleryAllView: React.FC<{
     }
   };
 
-  async function onScrollEnd() {
-    await onLoadNextPage();
-  }
-
   async function handleRefresh() {
     setRefreshing(true);
     await onRefresh();
     setRefreshing(false);
   }
 
-  const layoutProvider = new LayoutProvider(
-    () => 0,
-    (_, dimensions) => {
-      dimensions.width = itemSizeNoGutter;
-      dimensions.height = itemSizeNoGutter;
-    },
-  );
+  function renderItem(info: ListRenderItemInfo<PhotosItem>) {
+    const isFirst = info.index % COLUMNS === 0;
+    const data = info.item;
 
-  layoutProvider.shouldRefreshWithAnchoring = false;
-
-  function renderRow(_: unknown, data: PhotosItem, index: number) {
-    const isFirst = index % COLUMNS === 0;
     return (
       <View
         style={{
@@ -89,21 +78,15 @@ const GalleryAllView: React.FC<{
     );
   }
 
-  function renderFooter() {
-    return <></>;
-  }
-
   return (
     <View style={{ flex: 1 }}>
-      <RecyclerListView
-        optimizeForInsertDeleteAnimations={true}
-        onEndReached={onScrollEnd}
-        layoutProvider={layoutProvider}
-        rowRenderer={renderRow}
-        dataProvider={photos}
+      <FlashList<PhotosItem>
+        renderItem={renderItem}
+        data={photos}
+        estimatedItemSize={itemSizeNoGutter}
+        numColumns={COLUMNS}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-        renderFooter={renderFooter}
-        scrollThrottle={16}
+        ListFooterComponent={GalleryFooter}
       />
     </View>
   );

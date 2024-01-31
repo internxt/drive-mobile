@@ -87,10 +87,6 @@ function PhotosGalleryiOSScreen(): JSX.Element {
     };
   }, []);
 
-  async function loadNextPage() {
-    return;
-  }
-
   async function handleRefresh() {
     await photosCtx.refresh();
   }
@@ -159,8 +155,8 @@ function PhotosGalleryiOSScreen(): JSX.Element {
           <PhotosSyncStatusWidget />
         </View>
         <View style={{ flex: 1 }}>
-          {photosCtx.dataSource.getSize() >= 1 ? (
-            <GalleryAllView photos={photosCtx.dataSource} onLoadNextPage={loadNextPage} onRefresh={handleRefresh} />
+          {photosCtx.photos.length >= 1 ? (
+            <GalleryAllView photos={photosCtx.photos} onRefresh={handleRefresh} />
           ) : (
             <GalleryAllSkeleton />
           )}

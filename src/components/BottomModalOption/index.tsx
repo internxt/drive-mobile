@@ -26,7 +26,7 @@ const BottomModalOption = (props: BottomModalOptionProps): JSX.Element => {
         <View style={tailwind('flex flex-row justify-center h-full flex-col w-full')}>
           <View style={[tailwind('flex-row items-center h-full ml-3')]}>
             {props.leftSlot}
-            <View style={tailwind('ml-6 ')}>{props.rightSlot}</View>
+            <View style={tailwind('ml-6 flex-1 justify-start items-start')}>{props.rightSlot}</View>
           </View>
           {!props.hideBorderBottom && <View style={[tailwind('border-b border-gray-5 w-full'), { height: 1 }]} />}
         </View>

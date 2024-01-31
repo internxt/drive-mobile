@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { View, Image, Animated, Easing } from 'react-native';
-import { GalleryItemType, PhotosItem, PhotosSyncStatus, PhotoSyncStatus } from '../../types/photos';
-import { ArrowUp, CheckCircle, CloudSlash, EyeSlash } from 'phosphor-react-native';
+import { GalleryItemType, PhotosItem } from '../../types/photos';
+import { CheckCircle, EyeSlash } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
 import { PhotosContext } from 'src/contexts/Photos';
@@ -12,10 +12,8 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { PhotosItemType } from '@internxt/sdk/dist/photos';
 import photos from '@internxt-mobile/services/photos';
 import { LinearGradient } from 'expo-linear-gradient';
-import LoadingSpinner from '../LoadingSpinner';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { PRIVATE_MODE_ENABLED } from '@internxt-mobile/services/photos/constants';
-import appService from '@internxt-mobile/services/AppService';
 interface GalleryItemProps {
   type?: GalleryItemType;
   data: PhotosItem;
@@ -55,9 +53,6 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
       fadeAnim.stopAnimation();
     }
   }, [data.localUri]);
-
-  const isUploading = photosCtx?.uploadingPhotosItem?.name === data.name;
-  const isPullingRemotePhotos = photosCtx?.sync.status === PhotosSyncStatus.PullingRemotePhotos;
 
   const uploadedItem = useMemo(
     () =>
@@ -103,23 +98,6 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
     }
   };
 
-  const canShowNotUploadedIcon = () => {
-    // If is Android we are running
-    // native mobile sdk, we don't have progress report here
-    // so we just show the not synced icon until we receive an
-    // item synced event
-    if (appService.isAndroid) {
-      return props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem;
-    }
-    return (
-      props.data.status === PhotoSyncStatus.IN_DEVICE_ONLY && !uploadedItem && !isUploading && !isPullingRemotePhotos
-    );
-  };
-
-  const isBeingUploaded = () => {
-    // On Android we don't have upload reporting
-    return isUploading && !uploadedItem && !appService.isAndroid;
-  };
   const renderGradient = () => {
     return (
       <LinearGradient
@@ -173,26 +151,6 @@ const GalleryItem: React.FC<GalleryItemProps> = (props) => {
             </AppText>
           </View>
         ) : null}
-        {canShowNotUploadedIcon() && (
-          <View style={[tailwind('absolute w-5 h-5 bottom-1 left-1 flex justify-center items-center rounded-xl z-10')]}>
-            <CloudSlash color={getColor('text-white')} size={16} />
-          </View>
-        )}
-        {isBeingUploaded() && (
-          <View style={tailwind('absolute bottom-1 left-1 flex justify-center items-center rounded-xl z-10')}>
-            <View style={tailwind('mb-0.5')}>
-              <LoadingSpinner
-                progress={photosCtx.uploadProgress}
-                size={18}
-                color={tailwind('text-white').color as string}
-                useDefaultSpinner
-                fill={'rgba(0,0,0,0.25)'}
-              >
-                <ArrowUp weight="bold" color={tailwind('text-white').color as string} size={12} />
-              </LoadingSpinner>
-            </View>
-          </View>
-        )}
 
         {isSelected && (
           <View

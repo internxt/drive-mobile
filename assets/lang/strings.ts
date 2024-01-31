@@ -374,6 +374,7 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      fixPhoto: 'Repair photo',
       goBackToSignIn: 'Go back to login',
 
       export_file: 'Export file',
@@ -1159,6 +1160,7 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      fixPhoto: 'Reparar foto',
       goBackToSignIn: 'Volver al login',
       duplicate: 'Duplicar',
       export_file: 'Exportar archivo',
