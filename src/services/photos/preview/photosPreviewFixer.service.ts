@@ -6,6 +6,11 @@ import { photosPreview } from './photosPreview.service';
 import { photosNetwork } from '../network/photosNetwork.service';
 import { SdkManager, logger } from '@internxt-mobile/services/common';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+
+/**
+ * A service that fixes the preview of a synced photo in case the aspect ratio
+ * is not matching the original photo aspect ratio
+ */
 export class PhotosPreviewFixerService {
   static instance = new PhotosPreviewFixerService(SdkManager.getInstance());
 
@@ -26,6 +31,12 @@ export class PhotosPreviewFixerService {
     return previewNeedsFixing;
   }
 
+  /**
+   * Given a synced photo, fixes the preview of the photo by checking the original photo aspect ratio
+   * @throws {Error} If the synced photo does not need fixing or the synced photo is not found.
+   * @param syncedPhotosItem  Synced photo to fix
+   * @returns The fixed photo
+   */
   public async fix(syncedPhotosItem: Photo): Promise<Photo> {
     const preview = syncedPhotosItem.previews?.[0];
 
