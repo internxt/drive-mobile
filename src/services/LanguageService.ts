@@ -10,7 +10,7 @@ class LanguageService {
   private async initialize() {
     const language = await asyncStorageService.getItem(AsyncStorageKey.Language);
 
-    Settings.defaultLocale = language || strings.getLanguage();
+    Settings.defaultLocale = language ?? strings.getLanguage();
 
     language && strings.setLanguage(language);
   }
@@ -19,7 +19,7 @@ class LanguageService {
     await asyncStorageService.saveItem(AsyncStorageKey.Language, language);
     strings.setLanguage(language);
 
-    Settings.defaultLocale = language || strings.getLanguage();
+    Settings.defaultLocale = language ?? strings.getLanguage();
     RNRestart.Restart();
   }
 }
