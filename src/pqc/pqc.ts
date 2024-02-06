@@ -16,7 +16,6 @@ async function doMlKem() {
   // The recipient decapsulates the ciphertext and generates the same shared secret with skR.
   const ssR = await recipient.decap(ct, skR);
 
-  // ssS === ssR
   return;
 }
 
