@@ -9,16 +9,12 @@ const KyberEncryptionApp = () => {
 
   const performKyberEncryption = async () => {
     try {
-      // Generate Kyber key pair
       const keyPair = Kyber.generateKeyPair();
 
-      // Encrypt the message
       const encryptionResult = Kyber.encrypt(keyPair.publicKey, Buffer.from(message, 'utf-8'));
 
-      // Convert to base64 for storage/transmission
       setEncryptedMessage(encryptionResult.ciphertext.toString('base64'));
 
-      // Demonstrate decryption
       const decrypted = Kyber.decrypt(keyPair.privateKey, encryptionResult.ciphertext);
 
       setDecryptedMessage(decrypted.toString('utf-8'));
