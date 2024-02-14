@@ -1,7 +1,3 @@
-//
-//  KyberCrypto.swift
-//  Internxt
-//
 import Foundation
 import SwiftKyber
 
@@ -35,10 +31,4 @@ class KyberCrypto {
     func decryptData(ciphertext: Data, privateKey: Data) -> (message: Data, sharedSecret: Data)? {
         do {
             let decryptionResult = try Kyber.decrypt(privateKey: privateKey, ciphertext: ciphertext)
-            return (decryptionResult.message, decryptionResult.sharedSecret)
-        } catch {
-            print("Error decrypting data: \(error)")
-            return nil
-        }
-    }
-}
+            return (decryptionResult.message, decrypti
