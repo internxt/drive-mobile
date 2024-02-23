@@ -20,6 +20,7 @@ const KyberEncryptionApp = () => {
       setDecryptedMessage(decrypted.toString('utf-8'));
     } catch (error) {
       console.error('Encryption error:', error);
+
       throw error;
     }
   };
