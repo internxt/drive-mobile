@@ -57,15 +57,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 20,
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: 'center',
-  },
+  title: {},
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
-    padding: 10,
     marginBottom: 20,
   },
   resultContainer: {
