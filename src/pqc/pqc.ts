@@ -1,13 +1,8 @@
-import { MlKem768 } from 'mlkem'; // or from "crystals-kyber-js"
+import { MlKem768 } from 'mlkem';
 
 async function doMlKem() {
-  // A recipient generates a key pair.
   const recipient = new MlKem768(); // MlKem512 and MlKem1024 are also available.
   const [pkR, skR] = await recipient.generateKeyPair();
-  //// Deterministic key generation is also supported
-  // const seed = new Uint8Array(64);
-  // globalThis.crypto.getRandomValues(seed); // node >= 19
-  // const [pkR, skR] = await recipient.deriveKeyPair(seed);
 
   // A sender generates a ciphertext and a shared secret with pkR.
   const sender = new MlKem768();
