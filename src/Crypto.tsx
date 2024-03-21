@@ -4,6 +4,7 @@ import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 
 const KyberEncryptionApp = () => {
   const [message, setMessage] = useState('');
+
   const [encryptedMessage, setEncryptedMessage] = useState('');
   const [decryptedMessage, setDecryptedMessage] = useState('');
 
