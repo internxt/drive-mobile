@@ -14,7 +14,7 @@ export const PHOTOS_NETWORK_MANAGER_QUEUE_CONCURRENCY = 1;
 export const PHOTOS_SYNC_CHECKER_QUEUE_CONCURRENCY = 2;
 
 // Enables the photos sync system
-export const ENABLE_PHOTOS_SYNC = true;
+export const ENABLE_PHOTOS_SYNC = false;
 
 // Enable the photos analytics reporting, such screen, track and identifying
 export const ENABLE_PHOTOS_ANALYTICS = true;

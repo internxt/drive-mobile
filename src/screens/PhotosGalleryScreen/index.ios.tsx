@@ -20,6 +20,7 @@ import { PhotosContext } from 'src/contexts/Photos/Photos.context';
 import GalleryAllView, { GalleryAllSkeleton } from 'src/components/gallery-views/GalleryAllView';
 import * as photosUseCases from '@internxt-mobile/useCases/photos';
 import AppText from 'src/components/AppText';
+import { ENABLE_PHOTOS_SYNC } from '@internxt-mobile/services/photos/constants';
 function PhotosGalleryiOSScreen(): JSX.Element {
   const photosCtx = useContext(PhotosContext);
   const tailwind = useTailwind();
@@ -130,7 +131,7 @@ function PhotosGalleryiOSScreen(): JSX.Element {
               </View>
             </View>
           ) : (
-            <View style={tailwind('h-10 flex-row justify-between')}>
+            <View style={tailwind('h-10 flex-row justify-between mb-4')}>
               <ScreenTitle
                 text={strings.screens.gallery.title}
                 showBackButton={false}
@@ -152,13 +153,19 @@ function PhotosGalleryiOSScreen(): JSX.Element {
             </View>
           )}
 
-          <PhotosSyncStatusWidget />
+          {ENABLE_PHOTOS_SYNC ? (
+            <View style={tailwind('h-10')}>
+              <PhotosSyncStatusWidget />
+            </View>
+          ) : null}
         </View>
         <View style={{ flex: 1 }}>
           {photosCtx.photos.length >= 1 ? (
             <GalleryAllView photos={photosCtx.photos} onRefresh={handleRefresh} />
           ) : (
-            <GalleryAllSkeleton />
+            <View style={tailwind('flex-1 items-center justify-center')}>
+              <AppText>Photos is no longer available.</AppText>
+            </View>
           )}
         </View>
 
