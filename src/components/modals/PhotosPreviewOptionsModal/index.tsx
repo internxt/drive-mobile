@@ -1,11 +1,11 @@
-import React from 'react';
-import { Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { Text, View, Image, Alert } from 'react-native';
 import prettysize from 'prettysize';
 import globalStyle from '../../../styles/global';
 import BottomModal from '../BottomModal';
 import BottomModalOption from '../../BottomModalOption';
 import strings from '../../../../assets/lang/strings';
-import { ArrowSquareOut, CloudSlash, Copy, DownloadSimple, Info, Link, Trash } from 'phosphor-react-native';
+import { ArrowSquareOut, CloudSlash, Copy, DownloadSimple, Info, Link, Trash, Wrench } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from 'src/hooks/useColor';
 import AppText from 'src/components/AppText';
@@ -16,6 +16,10 @@ import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analytics';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import FastImage from 'react-native-fast-image';
+import appService from '@internxt-mobile/services/AppService';
+import { PhotosPreviewFixerService } from '@internxt-mobile/services/photos/preview/PhotosPreviewFixer.service';
+import { SdkManager } from '@internxt-mobile/services/common';
+import LoadingSpinner from 'src/components/LoadingSpinner';
 
 interface PhotosPreviewOptionsModalProps {
   data: PhotosItem;
@@ -32,12 +36,32 @@ export function PhotosPreviewOptionsModal({
 }: PhotosPreviewOptionsModalProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const [fixingPhoto, setFixingPhoto] = useState(false);
 
   const isSynced = data.photoFileId && data.photoId;
   const getUpdatedAt = () => {
     return time.getFormattedDate(data.updatedAt, time.formats.dateAtTime);
   };
 
+  const handleFixPhoto = async () => {
+    try {
+      setFixingPhoto(true);
+      if (!data.photoFileId && !data.photoId) throw new Error('Photo is not synced yet, nothing to fix');
+
+      const syncedPhoto = await SdkManager.getInstance().photos.photos.getPhotoById(data.photoId as string);
+      const needFix = PhotosPreviewFixerService.instance.needsFixing(syncedPhoto);
+
+      if (!needFix) throw new Error('Photo is ok, nothing to fix');
+
+      await PhotosPreviewFixerService.instance.fix(syncedPhoto);
+
+      Alert.alert('Photo fixed', 'Photo has been fixed, restart the app to view repaired photo');
+    } catch (error) {
+      Alert.alert('Failed to repair photo', (error as Error).message ?? 'Something went wrong');
+    } finally {
+      setFixingPhoto(false);
+    }
+  };
   const options = [
     {
       icon: <Info size={22} color={getColor('text-gray-100')} />,
@@ -81,6 +105,22 @@ export function PhotosPreviewOptionsModal({
       onPress: actions.shareLink,
     },
     {
+      icon: <Wrench size={22} color={getColor('text-gray-100')} />,
+      disabled: fixingPhoto,
+      visible: appService.isDevMode,
+      label: (
+        <View style={tailwind('flex-row justify-between')}>
+          <AppText style={tailwind('text-lg text-gray-100')}>{strings.buttons.fixPhoto}</AppText>
+          {fixingPhoto ? (
+            <View style={tailwind('')}>
+              <LoadingSpinner />
+            </View>
+          ) : null}
+        </View>
+      ),
+      onPress: handleFixPhoto,
+    },
+    {
       icon: <Trash size={22} color={getColor('text-red')} />,
       disabled: false,
       label: <AppText style={tailwind('text-lg text-red')}>{strings.buttons.moveToThrash}</AppText>,
@@ -96,10 +136,17 @@ export function PhotosPreviewOptionsModal({
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
-        <FastImage
-          style={tailwind('bg-gray-10 w-10 h-10 rounded')}
-          source={{ uri: fileSystemService.pathToUri(data.localPreviewPath) }}
-        />
+        {appService.isAndroid ? (
+          <FastImage
+            style={tailwind('bg-gray-10 w-10 h-10 rounded')}
+            source={{ uri: fileSystemService.pathToUri(data.localPreviewPath) }}
+          /> // Image component supports ph:// like URIs on iOS
+        ) : (
+          <Image
+            style={tailwind('bg-gray-10 w-10 h-10 rounded ')}
+            source={{ uri: fileSystemService.pathToUri(data.localPreviewPath) }}
+          />
+        )}
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
@@ -132,17 +179,19 @@ export function PhotosPreviewOptionsModal({
   return (
     <BottomModal isOpen={isOpen} onClosed={() => actions.closeModal('preview-options')} header={header}>
       <View style={tailwind('bg-white')}>
-        {options.map((option, index) => {
-          return (
-            <BottomModalOption
-              disabled={option.disabled || !option.onPress}
-              key={index}
-              leftSlot={option.icon}
-              rightSlot={option.label}
-              onPress={option.onPress}
-            />
-          );
-        })}
+        {options
+          .filter((option) => (option.visible !== undefined ? option.visible : true))
+          .map((option, index) => {
+            return (
+              <BottomModalOption
+                disabled={option.disabled || !option.onPress}
+                key={index}
+                leftSlot={option.icon}
+                rightSlot={option.label}
+                onPress={option.onPress}
+              />
+            );
+          })}
       </View>
     </BottomModal>
   );

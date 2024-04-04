@@ -64,6 +64,7 @@ export class PhotosNetworkManager implements RunnableService<PhotosNetworkManage
           return sleep(WAIT_FOR_NEXT_PHOTO_PROCESSING).then(() => next(null, result));
         })
         .catch((err) => {
+          this.logger.error('Error processing upload operation', err);
           if (task.retries === MAX_UPLOAD_RETRIES) {
             sleep(WAIT_FOR_NEXT_PHOTO_PROCESSING).then(() => next(err as Error, null));
           } else {

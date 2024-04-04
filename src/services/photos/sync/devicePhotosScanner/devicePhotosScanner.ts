@@ -47,9 +47,7 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
   }
 
   public getPhotoInDevice(name: string, takenAt: number) {
-    const assetKey = `${name}-${takenAt.toString()}`;
-
-    return this.cachedDevicePhotos[assetKey];
+    return this.cachedDevicePhotos[this.getAssetCacheKey(name, takenAt)];
   }
 
   /**
@@ -116,15 +114,22 @@ export class DevicePhotosScannerService extends RunnableService<DevicePhotosScan
     };
   }
 
+  private getAssetCacheKeyFromAsset(asset: MediaLibrary.Asset) {
+    let name = asset.filename;
+
+    if (asset.filename.includes('.')) {
+      name = asset.filename.split('.')[0];
+    }
+
+    return this.getAssetCacheKey(name, asset.creationTime);
+  }
+
+  private getAssetCacheKey(name: string, takenAt: number) {
+    return `${name}-${takenAt.toString()}`;
+  }
   private saveCachedDevicePhotos(assets: MediaLibrary.Asset[]) {
     assets.forEach((asset) => {
-      let name = asset.filename;
-
-      if (asset.filename.includes('.')) {
-        name = asset.filename.split('.')[0];
-      }
-      const assetKey = `${name}-${asset.id}`;
-      this.cachedDevicePhotos[assetKey] = asset;
+      this.cachedDevicePhotos[this.getAssetCacheKeyFromAsset(asset)] = asset;
     });
   }
 

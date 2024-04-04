@@ -37,7 +37,7 @@ export class TimeService {
    */
   getFormattedDate(input: TimeInput, format: string) {
     const dateTime = this.getDateTime(input);
-    return dateTime.toFormat(format);
+    return dateTime.toFormat(format, { locale: Settings.defaultLocale });
   }
 
   /**
