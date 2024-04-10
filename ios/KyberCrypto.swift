@@ -1,6 +1,13 @@
 import Foundation
 import SwiftKyber
 
+enum KyberError: Error {
+    case keyGenerationFailed
+    case encryptionFailed
+    case decryptionFailed
+    case invalidKeySize
+}
+
 class KyberCrypto {
   // Generate a public-private key pair for asymmetric encryption
   // - Returns: A tuple containing the public key and private key as Data, or nil in case of an error.
