@@ -18,7 +18,6 @@ describe('MlKem768 Component with Props', () => {
   it('should render default content if no prop is provided', () => {
     const { getByText }: RenderAPI = render(<MlKem768 />);
 
-    // Verifies the default content
     const text = getByText('Default Text'); // Replace with actual default text
     expect(text).toBeTruthy();
   });
