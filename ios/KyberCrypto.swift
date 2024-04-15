@@ -32,7 +32,7 @@ class KyberCrypto {
           let encryptionResult = try Kyber.encrypt(publicKey: publicKey, message: message)
           return (encryptionResult.ciphertext, encryptionResult.sharedSecret)
       } catch {
-          print("Error encrypting message: \(error)")
+          print("Error encrypting message: \(KyberError.encryptionFailed)")
           return nil
       }
   }
