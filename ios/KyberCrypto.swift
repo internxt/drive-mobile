@@ -9,6 +9,12 @@ enum KyberError: Error {
 }
 
 class KyberCrypto {
+  
+    // Helper function to handle base64 encoding/decoding for debug logging
+     private func base64String(from data: Data) -> String {
+         return data.base64EncodedString()
+     }
+  
     // Generate a public-private key pair for asymmetric encryption
     // - Returns: A tuple containing the public key and private key as Data, or nil in case of an error.
     func generateAsymmetricKeyPair() -> (publicKey: Data, privateKey: Data)? {
