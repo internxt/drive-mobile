@@ -17,7 +17,6 @@ describe('MlKem768 Interaction', () => {
   it('should update the state when an action is performed', () => {
     const { getByTestId, getByText }: RenderAPI = render(<MlKem768 />);
 
-    // Assuming the component updates the text when interacted
     const button = getByTestId('mlkem768-button');
     fireEvent.press(button);
 
