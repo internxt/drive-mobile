@@ -10,6 +10,11 @@ enum KyberError: Error {
 
 class KyberCrypto {
   
+    // Validate the provided key size
+    private func isValidKeySize(_ size: Int) -> Bool {
+        return size == 512 || size == 768 || size == 1024
+    }
+    
     // Helper function to handle base64 encoding/decoding for debug logging
      private func base64String(from data: Data) -> String {
          return data.base64EncodedString()
