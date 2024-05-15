@@ -14,7 +14,7 @@ class KyberCrypto {
     private func isValidKeySize(_ size: Int) -> Bool {
         return size == 512 || size == 768 || size == 1024
     }
-    
+
     // Helper function to handle base64 encoding/decoding for debug logging
      private func base64String(from data: Data) -> String {
          return data.base64EncodedString()
@@ -23,6 +23,12 @@ class KyberCrypto {
     // Generate a public-private key pair for asymmetric encryption
     // - Returns: A tuple containing the public key and private key as Data, or nil in case of an error.
     func generateAsymmetricKeyPair() -> (publicKey: Data, privateKey: Data)? {
+
+         guard isValidKeySize(keySize) else {
+            print("Invalid key size: \(KyberError.invalidKeySize)")
+            return nil
+        }
+
         do {
             let keyPair = try Kyber.generateKeyPair(keySize: keySize)
             return (keyPair.publicKey, keyPair.privateKey)
