@@ -19,6 +19,15 @@ class KyberCrypto {
      private func base64String(from data: Data) -> String {
          return data.base64EncodedString()
      }
+
+     // Log errors in a consistent format
+    private func logError(_ error: KyberError, additionalInfo: String? = nil) {
+        var message = "Kyber Error: \(error)"
+        if let info = additionalInfo {
+            message += " - \(info)"
+        }
+        print(message)
+    }
   
     // Generate a public-private key pair for asymmetric encryption
     // - Returns: A tuple containing the public key and private key as Data, or nil in case of an error.
