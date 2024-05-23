@@ -10,6 +10,10 @@ enum KyberError: Error {
 
 class KyberCrypto {
   
+    static func generateKeyPair(size: Int) throws -> (publicKey: Data, privateKey: Data) {
+        return try Kyber.generateKeyPair(keySize: size)
+    }
+
     // Validate the provided key size
     private func isValidKeySize(_ size: Int) -> Bool {
         return size == 512 || size == 768 || size == 1024
@@ -32,20 +36,19 @@ class KyberCrypto {
     // Generate a public-private key pair for asymmetric encryption
     // - Returns: A tuple containing the public key and private key as Data, or nil in case of an error.
     func generateAsymmetricKeyPair() -> (publicKey: Data, privateKey: Data)? {
-
-         guard isValidKeySize(keySize) else {
-            print("Invalid key size: \(KyberError.invalidKeySize)")
+        guard isValidKeySize(keySize) else {
+            logError(.invalidKeySize)
             return nil
         }
 
         do {
-            let keyPair = try Kyber.generateKeyPair(keySize: keySize)
-            return (keyPair.publicKey, keyPair.privateKey)
+            return try KyberKeyManager.generateKeyPair(size: keySize)
         } catch {
-            print("Error generating asymmetric keys: \(error)")
+            logError(.keyGenerationFailed)
             return nil
         }
     }
+
 
 
     // Encrypt a message using a public key
