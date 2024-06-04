@@ -15,4 +15,18 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertEqual(keyPair?.publicKey.count ?? 0 > 0, true, "Public key should be non-empty")
         XCTAssertEqual(keyPair?.privateKey.count ?? 0 > 0, true, "Private key should be non-empty")
     }
+
+    func testEncryption() {
+        let kyber = KyberCrypto()
+        guard let keyPair = kyber.generateAsymmetricKeyPair() else {
+            XCTFail("Key generation failed")
+            return
+        }
+
+        let message = "Test Message".data(using: .utf8)!
+        let encryptionResult = kyber.encryptMessage(message, using: keyPair.publicKey)
+        XCTAssertNotNil(encryptionResult, "Encryption result should not be nil")
+        XCTAssertNotNil(encryptionResult?.ciphertext, "Ciphertext should not be nil")
+    }
+
 }
