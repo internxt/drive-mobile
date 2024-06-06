@@ -35,7 +35,6 @@ export const executeTransaction = async (transaction: {
 
 // Utility to track the status of a transaction
 export const checkTransactionStatus = async (txHash: string) => {
-  // Mock call to blockchain to get transaction status
   console.log(`Checking status for transaction: ${txHash}`);
   return {
     status: 'confirmed',
