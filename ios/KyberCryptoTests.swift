@@ -29,4 +29,22 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertNotNil(encryptionResult?.ciphertext, "Ciphertext should not be nil")
     }
 
+    func testDecryption() {
+        let kyber = KyberCrypto()
+        guard let keyPair = kyber.generateAsymmetricKeyPair() else {
+            XCTFail("Key generation failed")
+            return
+        }
+
+        let message = "Test Message".data(using: .utf8)!
+        guard let encryptionResult = kyber.encryptMessage(message, using: keyPair.publicKey) else {
+            XCTFail("Encryption failed")
+            return
+        }
+
+        let decryptionResult = kyber.decryptCiphertext(encryptionResult.ciphertext, using: keyPair.privateKey)
+        XCTAssertNotNil(decryptionResult, "Decryption result should not be nil")
+        XCTAssertEqual(decryptionResult?.message, message, "Decrypted message should match the original")
+    }
+
 }
