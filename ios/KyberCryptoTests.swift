@@ -46,5 +46,11 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertNotNil(decryptionResult, "Decryption result should not be nil")
         XCTAssertEqual(decryptionResult?.message, message, "Decrypted message should match the original")
     }
+    func testInvalidKeySize() {
+        let kyber = KyberCrypto()
+        kyber.keySize = 999 // Invalid key size
+        let keyPair = kyber.generateAsymmetricKeyPair()
+        XCTAssertNil(keyPair, "Key generation should fail for invalid key size")
+    }
 
 }
