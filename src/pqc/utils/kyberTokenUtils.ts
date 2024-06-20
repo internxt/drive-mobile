@@ -13,5 +13,5 @@ export const getTokenBalance = async (tokenAddress: string, userAddress: string)
 export const approveToken = async (tokenAddress: string, amount: string, spender: string): Promise<boolean> => {
   // Mock approval of tokens to a spender (e.g., Kyber network contract)
   console.log(`Approving ${amount} tokens for spender: ${spender}`);
-  return true; // Simulating a successful approval
+  return true;
 };
