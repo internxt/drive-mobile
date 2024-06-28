@@ -14,9 +14,10 @@ class KyberCrypto {
         return try Kyber.generateKeyPair(keySize: size)
     }
 
-    // Validate the provided key size
+    private var validKeySizes: Set<Int> = [512, 768, 1024]
+
     private func isValidKeySize(_ size: Int) -> Bool {
-        return size == 512 || size == 768 || size == 1024
+        return validKeySizes.contains(size)
     }
 
     // Helper function to handle base64 encoding/decoding for debug logging
