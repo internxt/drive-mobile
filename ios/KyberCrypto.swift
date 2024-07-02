@@ -8,6 +8,13 @@ enum KyberError: Error {
     case invalidKeySize
 }
 
+struct KyberErrorMessages {
+    static let keyGenerationFailed = "Key generation failed"
+    static let encryptionFailed = "Encryption failed"
+    static let decryptionFailed = "Decryption failed"
+    static let invalidKeySize = "Invalid key size"
+}
+
 class KyberCrypto {
   
     static func generateKeyPair(size: Int) throws -> (publicKey: Data, privateKey: Data) {
