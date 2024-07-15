@@ -4,7 +4,6 @@ import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
 import FileViewer from 'react-native-file-viewer';
 import * as FileSystem from 'expo-file-system';
 import prettysize from 'prettysize';
-import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
 import { shareAsync } from 'expo-sharing';
@@ -280,8 +279,6 @@ class FileSystemService {
     const cacheDir = await readDirOrNot(this.getCacheDir());
     const tmpDir = await readDirOrNot(this.getTemporaryDir());
     const documentsDir = await readDirOrNot(this.getDocumentsDir());
-    const photosPreviewsDir = await readDirOrNot(PHOTOS_PREVIEWS_DIRECTORY);
-    const photosFullSizeDir = await readDirOrNot(PHOTOS_FULL_SIZE_DIRECTORY);
     const cacheSize = cacheDir.reduce<number>((prev, current) => {
       return current.size + prev;
     }, 0);
@@ -293,13 +290,6 @@ class FileSystemService {
       return current.size + prev;
     }, 0);
 
-    const photosPreviewsSize = photosPreviewsDir.reduce<number>((prev, current) => {
-      return current.size + prev;
-    }, 0);
-
-    const photosFullSizeSize = photosFullSizeDir.reduce<number>((prev, current) => {
-      return current.size + prev;
-    }, 0);
     const dirs: UsageStatsResult = {
       cache: {
         items: cacheDir,
@@ -313,17 +303,10 @@ class FileSystemService {
         items: documentsDir,
         prettySize: prettysize(documentsSize),
       },
-      photos_previews: {
-        items: photosPreviewsDir,
-        prettySize: prettysize(photosPreviewsSize),
-      },
-      photos_full_size: {
-        items: photosFullSizeDir,
-        prettySize: prettysize(photosFullSizeSize),
-      },
+
       total: {
-        items: documentsDir.concat(cacheDir).concat(tmpDir).concat(photosPreviewsDir).concat(photosFullSizeDir),
-        prettySize: prettysize(cacheSize + tmpSize + documentsSize + photosPreviewsSize + photosFullSizeSize),
+        items: documentsDir.concat(cacheDir).concat(tmpDir),
+        prettySize: prettysize(cacheSize + tmpSize + documentsSize),
       },
     };
 

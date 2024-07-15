@@ -7,7 +7,6 @@ import AppProgressBar from '../../components/AppProgressBar';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { INFINITE_PLAN } from '../../types';
-import ReferralsWidget from '../../components/ReferralsWidget';
 import AppScreen from '../../components/AppScreen';
 import { SettingsScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
@@ -156,8 +155,6 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
               },
             ]}
           />
-
-          {!hasPaidPlan ? <ReferralsWidget /> : null}
         </View>
       </ScrollView>
     </AppScreen>

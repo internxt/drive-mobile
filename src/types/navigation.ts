@@ -1,7 +1,6 @@
 import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import { PhotosItem } from './photos';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -16,9 +15,8 @@ export type RootStackParamList = {
   SignUp: undefined;
   SignIn: undefined;
   DeactivatedAccount: undefined;
-  TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
+  TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   ForgotPassword: undefined;
-  PhotosPreview: { photosItem: PhotosItem };
   Trash: undefined;
   DrivePreview: undefined;
 };
@@ -60,23 +58,8 @@ export type TabExplorerScreenNavigationProp<Screen extends keyof TabExplorerStac
   NativeStackNavigationProp<RootStackParamList>
 >;
 
-export type PhotosStackParamList = {
-  PhotosPermissions: undefined;
-  PhotosGallery: undefined;
-};
-
-export type PhotosScreenProps<Screen extends keyof PhotosStackParamList> = CompositeScreenProps<
-  NativeStackScreenProps<PhotosStackParamList, Screen>,
-  TabExplorerScreenProps<keyof TabExplorerStackParamList>
->;
-
-export type PhotosScreenNavigationProp<Screen extends keyof PhotosStackParamList> = CompositeNavigationProp<
-  NativeStackNavigationProp<PhotosStackParamList, Screen>,
-  TabExplorerScreenNavigationProp<keyof TabExplorerStackParamList>
->;
-
 export type SettingsStackParamList = {
-  SettingsHome: { focusEnablePhotosSync?: number };
+  SettingsHome: undefined;
   Account: undefined;
   Storage: undefined;
   Plan: undefined;

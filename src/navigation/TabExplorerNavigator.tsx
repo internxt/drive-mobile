@@ -13,7 +13,6 @@ import DriveRenameModal from '../components/modals/DriveRenameModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../screens/HomeScreen';
-import ReferralsBanner from '../components/ReferralsBanner';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,7 +21,6 @@ import { RootStackScreenProps, TabExplorerStackParamList } from '../types/naviga
 import { useTailwind } from 'tailwind-rn';
 import SecurityModal from 'src/components/modals/SecurityModal';
 import { SettingsNavigator } from './SettingsNavigator';
-import { referralsThunks } from 'src/store/slices/referrals';
 import { storageThunks } from 'src/store/slices/storage';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '../types';
@@ -45,8 +43,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
 
   useEffect(() => {
-    props.route.params?.showReferralsBanner && dispatch(uiActions.setIsReferralsBannerOpen(true));
-
     const subscription = AppState.addEventListener('change', handleOnAppStateChange);
     return () => subscription.remove();
   }, []);
@@ -54,7 +50,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   async function handleOnAppStateChange(state: AppStateStatus) {
     if (state === 'active') {
       try {
-        await dispatch(referralsThunks.fetchReferralsThunk()).unwrap();
         await dispatch(storageThunks.loadLimitThunk()).unwrap();
       } catch {
         const isDeletingAccount = await asyncStorageService.getItem(AsyncStorageKey.IsDeletingAccount);
@@ -83,7 +78,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Settings" component={SettingsNavigator} options={{ lazy: false }} />
       </Tab.Navigator>
 
-      <ReferralsBanner />
       <AddModal />
       <DriveItemInfoModal />
       <SharedLinkInfoModal />

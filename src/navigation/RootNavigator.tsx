@@ -8,7 +8,6 @@ import SignUpScreen from '../screens/SignUpScreen';
 import AuthenticatedNavigator from './TabExplorerNavigator';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import PhotosPreviewScreen from '../screens/PhotosPreviewScreen';
 import { driveActions } from '../store/slices/drive';
 import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -84,7 +83,6 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="DeactivatedAccount" component={DeactivatedAccountScreen} />
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-      <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
       <Stack.Screen name="Trash" component={TrashScreen} />
       <Stack.Screen
         name="DrivePreview"

@@ -45,7 +45,7 @@ class ErrorService {
     return castedError;
   }
 
-  public reportError(error: Error | unknown, context: Partial<ErrorContext> = {}) {
+  public reportError = (error: Error | unknown, context: Partial<ErrorContext> = {}) => {
     this.log(context.level || 'error', error);
     if (!__DEV__) {
       sentryService.native.captureException(error, {
@@ -58,7 +58,7 @@ class ErrorService {
       const loggerMessage = (error as Error).message ? (error as Error).message : JSON.stringify(error);
       this.logger.error(`${loggerMessage} - Context: ${JSON.stringify(context, null, 2)}`);
     }
-  }
+  };
 
   private log(level: SeverityLevel, message: unknown) {
     if (level === 'info') {

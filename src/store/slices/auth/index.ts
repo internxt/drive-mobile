@@ -15,7 +15,6 @@ import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import errorService from 'src/services/ErrorService';
 import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
 import UserService from '../../../services/UserService';
-import photos from '@internxt-mobile/services/photos';
 import drive from '@internxt-mobile/services/drive';
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import appService from '@internxt-mobile/services/AppService';
@@ -34,8 +33,8 @@ const initMobileSdk = async (credentials: AuthCredentials) => {
     BRIDGE_URL: appService.constants.BRIDGE_URL,
     DRIVE_API_URL: appService.constants.DRIVE_API_URL,
     DRIVE_NEW_API_URL: appService.constants.DRIVE_NEW_API_URL,
-    PHOTOS_API_URL: appService.constants.PHOTOS_API_URL,
-    PHOTOS_NETWORK_API_URL: appService.constants.PHOTOS_NETWORK_API_URL,
+    PHOTOS_API_URL: '',
+    PHOTOS_NETWORK_API_URL: '',
     MAGIC_IV: appService.constants.MAGIC_IV,
     MAGIC_SALT: appService.constants.MAGIC_SALT,
   });
@@ -117,14 +116,6 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         }),
       );
 
-      /**
-       * TODO centralize this somewhere else
-       * this is not the right place
-       */
-      photos.analytics.setUser({
-        email: credentials.user.email,
-        uuid: credentials.user.uuid,
-      });
       authService.emitLoginEvent();
     } catch (error) {
       dispatch(authActions.setLoggedIn(false));
@@ -170,14 +161,6 @@ export const signInThunk = createAsyncThunk<
     }),
   );
 
-  /**
-   * TODO centralize this somewhere else
-   * this is not the right place
-   */
-  photos.analytics.setUser({
-    email: userToSave.email,
-    uuid: userToSave.uuid,
-  });
   authService.emitLoginEvent();
   return {
     user: userToSave,
@@ -237,7 +220,6 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/signOut',
   async (_, { dispatch }) => {
     authService.signout().catch(errorService.reportError);
-    photos.clear().catch(errorService.reportError);
     drive.clear().catch(errorService.reportError);
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());

@@ -92,18 +92,6 @@ export class SdkManager {
     );
   }
 
-  /** Referrals SDK */
-  get referrals() {
-    return Drive.Referrals.client(
-      constants.DRIVE_API_URL,
-      {
-        clientName: packageJson.name,
-        clientVersion: appService.version,
-      },
-      this.getApiSecurity(),
-    );
-  }
-
   /** Storage SDK */
   get storage() {
     return Drive.Storage.client(
@@ -128,11 +116,6 @@ export class SdkManager {
         token: this.getApiSecurity().newToken,
       },
     );
-  }
-
-  /** Photos SDK */
-  get photos() {
-    return new photos.Photos(constants.PHOTOS_API_URL, this.getApiSecurity().newToken);
   }
 
   /** Share SDK */

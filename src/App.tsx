@@ -18,7 +18,6 @@ import { authThunks } from './store/slices/auth';
 import { appActions, appThunks } from './store/slices/app';
 import appService from './services/AppService';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
-import NewsletterModal from './components/modals/NewsletterModal';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import { uiActions } from './store/slices/ui';
 import AppToast from './components/AppToast';
@@ -53,7 +52,6 @@ export default function App(): JSX.Element {
   const {
     isLinkCopiedModalOpen,
     isInviteFriendsModalOpen,
-    isNewsletterModalOpen,
     isDeleteAccountModalOpen,
     isEditNameModalOpen,
     isChangeProfilePictureModalOpen,
@@ -70,7 +68,6 @@ export default function App(): JSX.Element {
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
   const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
-  const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
@@ -200,7 +197,6 @@ export default function App(): JSX.Element {
 
                   <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
                   <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
-                  <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
                   <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
                   <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
                   <ChangeProfilePictureModal
