@@ -92,7 +92,6 @@ export enum AsyncStorageKey {
   LastPhotoPulledDate = 'lastPhotoPulledDate',
   IsDeletingAccount = 'isDeletingAccount',
   PreferredDriveViewMode = 'preferredDriveViewMode',
-  PhotosSyncEnabled = 'photosSyncEnabled',
   ScreenLockIsEnabled = 'screenLockIsEnabled',
   LastScreenLock = 'lastScreenLock',
   LastUpdatedAt = 'lastUpdatedAt',

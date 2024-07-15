@@ -10,7 +10,6 @@ import DebugDownloadWidget from '../../components/DebugDownloadWidget';
 import { RootStackScreenProps } from '../../types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
-import DebugPhotosWidget from '../../components/DebugPhotosWidget';
 import { DebugDeviceStorageWidget } from 'src/components/DebugDeviceStorageWidget';
 import { ScrollView } from 'react-native';
 
@@ -33,7 +32,6 @@ function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element
         <DebugUploadWidget style={tailwind('mb-5')} />
         <DebugDownloadWidget style={tailwind('mb-5')} />
         <DebugNotificationsWidget style={tailwind('mb-5')} />
-        <DebugPhotosWidget style={tailwind('mb-5')} />
         <DebugDeviceStorageWidget style={tailwind('mb-16')} />
       </ScrollView>
     </AppScreen>

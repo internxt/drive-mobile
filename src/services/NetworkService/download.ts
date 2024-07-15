@@ -7,11 +7,12 @@ import { createDecipheriv } from 'react-native-crypto';
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
 import { eachLimit } from 'async';
-import { FileId } from '@internxt/sdk/dist/photos';
+
 import fileSystemService from '../FileSystemService';
 import { NetworkCredentials } from '../../types';
 import { Platform } from 'react-native';
 import { decryptFile as nativeDecryptFile } from '@internxt/rn-crypto';
+import { FileId } from '@internxt/sdk/dist/photos';
 
 type FileDecryptedURI = string;
 
