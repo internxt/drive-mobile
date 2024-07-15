@@ -1,4 +1,4 @@
-import { constants } from './AppService';
+import appService, { constants } from './AppService';
 import {
   CreateCheckoutSessionPayload,
   CreatePaymentSessionPayload,
@@ -10,6 +10,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Linking from 'expo-linking';
 import { SdkManager } from '@internxt-mobile/services/common';
+import axios from 'axios';
 
 class PaymentService {
   private sdk: SdkManager;
@@ -23,6 +24,32 @@ class PaymentService {
 
   async createSetupIntent(): Promise<{ clientSecret: string }> {
     return this.sdk.payments.getSetupIntent();
+  }
+
+  async billingEnabled(): Promise<boolean> {
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    if (!token) throw new Error('No token, cannot check if should display billing');
+    const result = await axios.get<{ display: boolean; oses: { android: string; ios: string } }>(
+      `${constants.PAYMENTS_API_URL}/display-billing`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    console.log('RESULT', result.data);
+    // If is Android and version matches, obey the display flag
+    if (appService.isAndroid && result.data.oses.android == appService.version) {
+      return result.data.display || false;
+    }
+
+    // If is iOS and version matches, obey the display flag
+    if (appService.isIOS && result.data.oses.ios == appService.version) {
+      return result.data.display || false;
+    }
+
+    return true;
   }
 
   async getDefaultPaymentMethod(): Promise<PaymentMethod | null> {

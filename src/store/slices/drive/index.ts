@@ -121,6 +121,7 @@ const downloadFileThunk = createAsyncThunk<
   {
     id: number;
     size: number;
+    bucketId: string;
     parentId: number;
     name: string;
     type: string;
@@ -132,7 +133,7 @@ const downloadFileThunk = createAsyncThunk<
 >(
   'drive/downloadFile',
   async (
-    { id, size, parentId, name, type, fileId, openFileViewer, updatedAt },
+    { id, size, parentId, name, type, fileId, openFileViewer, updatedAt, bucketId },
     { signal, getState, dispatch, rejectWithValue },
   ) => {
     const { user } = getState().auth;
@@ -144,6 +145,7 @@ const downloadFileThunk = createAsyncThunk<
               id,
               size,
               parentId,
+              bucketId,
               name,
               type,
               fileId,
@@ -178,7 +180,7 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return drive.file.downloadFile(user, params.fileId, {
+      return drive.file.downloadFile(user, bucketId, params.fileId, {
         downloadPath: params.to,
         decryptionProgressCallback,
         downloadProgressCallback,
@@ -526,7 +528,9 @@ export const driveSelectors = {
   },
   driveItems(state: RootState): { uploading: DriveListItem[]; items: DriveListItem[] } {
     const { folderContent, uploadingFiles, searchString, currentFolderId } = state.drive;
+    const bucket = state.auth.user?.bucket;
 
+    if (!bucket) throw new Error('Bucket not found');
     let items = folderContent;
 
     if (searchString) {
@@ -545,6 +549,7 @@ export const driveSelectors = {
         status: DriveItemStatus.Uploading,
         progress: f.progress,
         data: {
+          bucket: bucket,
           folderId: currentFolderId,
           // TODO: Organize Drive item types
           thumbnails: [],

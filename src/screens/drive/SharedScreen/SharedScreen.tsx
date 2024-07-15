@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, RefreshControl } from 'react-native';
 import _ from 'lodash';
 import DriveItem from '../../../components/drive/lists/items';
@@ -10,27 +10,37 @@ import NoResultsImage from 'assets/images/screens/no-results.svg';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 import { useTailwind } from 'tailwind-rn';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import { UseCaseStatus } from '@internxt-mobile/hooks/common';
+import { UseCaseStatus, useUseCase } from '@internxt-mobile/hooks/common';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { sleep } from 'src/helpers/services';
+import AppScreen from 'src/components/AppScreen';
+import { SearchInput } from 'src/components/SearchInput';
+import ScreenTitle from '../../../components/AppScreenTitle';
+import { TabExplorerScreenProps } from '@internxt-mobile/types/navigation';
+import { useDrive } from '@internxt-mobile/hooks/drive';
 
-interface SharedScreenProps {
-  searchText?: string;
-  isLoading: boolean;
-  refreshSharedLinks: () => void;
-  sharedLinks: (SharedFolders & SharedFiles)[] | null;
-  onEndOfListReached: () => void;
-}
-export const SharedScreen: React.FC<SharedScreenProps> = ({
-  searchText,
-  isLoading,
-  refreshSharedLinks,
-  sharedLinks,
-  onEndOfListReached,
-}) => {
+type SharedItem = SharedFolders & SharedFiles;
+export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {
   const tailwind = useTailwind();
+  const driveCtx = useDrive();
 
+  const { loading: sharedLoading, executeUseCase: getSharedItems } = useUseCase(driveUseCases.getSharedItems);
+
+  const [sharedItemsPage, setSharedItemsPage] = useState(1);
+  const [shouldGetMoreSharedFiles, setShouldGetMoreSharedFiles] = useState(true);
+  const [shouldGetMoreSharedFolders, setShouldGetMoreSharedFolders] = useState(true);
+  const [sharedItems, setSharedItems] = useState<SharedItem[]>([]);
+  const [searchText, setSearchText] = useState<string>();
   const [refreshing, setRefreshing] = useState(false);
+  useEffect(() => {
+    refreshSharedItems();
+    const unsubscribe = driveUseCases.onSharedLinksUpdated(() => {
+      refreshSharedItems();
+    });
 
+    return unsubscribe;
+  }, []);
   const renderNoResults = () => (
     <EmptyList {...strings.components.DriveList.noResults} image={<NoResultsImage width={100} height={100} />} />
   );
@@ -39,44 +49,99 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
     <EmptyList {...strings.screens.shared.empty} image={<EmptySharesImage width={100} height={100} />} />
   );
 
+  const refreshSharedItems = async () => {
+    try {
+      setSharedItems([]);
+      setShouldGetMoreSharedFiles(true);
+      setShouldGetMoreSharedFolders(true);
+      setSharedItemsPage(1);
+      sleep(500);
+      const result = await getSharedItems({ page: 0, shouldGetFiles: true, shouldGetFolders: true });
+
+      if (!result?.data?.hasMoreFiles) {
+        setShouldGetMoreSharedFiles(false);
+      }
+
+      if (!result?.data?.hasMoreFolders) {
+        setShouldGetMoreSharedFolders(false);
+      }
+
+      if (!result?.data?.items.length) return;
+
+      setSharedItems(result.data.items);
+    } catch (error) {
+      errorService.reportError(error);
+    }
+  };
   const getStatus = () => {
-    if (isLoading) {
+    if (sharedLoading && !sharedItems?.length) {
       return UseCaseStatus.LOADING;
     }
 
-    if (!isLoading && sharedLinks) {
+    if (!sharedLoading && sharedItems) {
       return UseCaseStatus.SUCCESS;
     }
   };
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refreshSharedLinks();
+    await refreshSharedItems();
     setRefreshing(false);
   };
 
+  const onEndOfListReached = async () => {
+    try {
+      if (shouldGetMoreSharedFiles || shouldGetMoreSharedFolders) {
+        setSharedItemsPage(sharedItemsPage + 1);
+      }
+      sleep(500);
+      const result = await getSharedItems({
+        page: sharedItemsPage,
+        shouldGetFiles: shouldGetMoreSharedFiles,
+        shouldGetFolders: shouldGetMoreSharedFolders,
+      });
+
+      if (!result?.data?.hasMoreFiles) {
+        setShouldGetMoreSharedFiles(false);
+      }
+
+      if (!result?.data?.hasMoreFolders) {
+        setShouldGetMoreSharedFolders(false);
+      }
+
+      if (!result?.data?.items.length) return;
+
+      setSharedItems(sharedItems.concat(result.data.items));
+    } catch (error) {
+      errorService.reportError(error);
+    }
+  };
+
   const handleOnEndOfListReached = () => {
-    if (isLoading) return;
+    if (sharedLoading) return;
 
     onEndOfListReached();
   };
 
   const renderContent = () => {
-    if (!sharedLinks?.length) {
+    if (!sharedItems?.length) {
       return renderEmpty();
     }
 
-    const sharedLinksToRender = searchText ? driveUseCases.filterSharedLinks(sharedLinks, searchText) : sharedLinks;
+    const sharedItemsToRender = searchText ? driveUseCases.filterSharedLinks(sharedItems, searchText) : sharedItems;
 
-    if (searchText && !sharedLinksToRender.length) {
+    if (searchText && !sharedItemsToRender.length) {
       return renderNoResults();
     }
 
-    if (sharedLinksToRender.length > 0) {
-      return sharedLinksToRender.map((sharedLink, i: React.Key) => {
+    if (sharedItemsToRender.length > 0) {
+      return sharedItemsToRender.map((sharedLink, i: React.Key) => {
         return (
           <DriveItem
             key={i}
+            onPress={() => {
+              props.navigation.navigate('Drive');
+            }}
             type={DriveListType.Shared}
             status={DriveItemStatus.Idle}
             viewMode={DriveListViewMode.List}
@@ -103,24 +168,28 @@ export const SharedScreen: React.FC<SharedScreenProps> = ({
   };
 
   return (
-    <View style={tailwind('bg-white flex-1')}>
-      {getStatus() === UseCaseStatus.LOADING && !sharedLinks?.length && (
-        <View>
-          {_.times(20, (n) => (
-            <DriveItemSkinSkeleton key={n} />
-          ))}
-        </View>
-      )}
+    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
+      <ScreenTitle text={strings.screens.shared.title} showBackButton={false} />
+      <SearchInput value={searchText} onChangeText={setSearchText} placeholder={strings.inputs.searchInShared} />
+      <View style={tailwind('bg-white flex-1')}>
+        {getStatus() === UseCaseStatus.LOADING && !sharedItems?.length && (
+          <View>
+            {_.times(20, (n) => (
+              <DriveItemSkinSkeleton key={n} />
+            ))}
+          </View>
+        )}
 
-      {(getStatus() === UseCaseStatus.SUCCESS || sharedLinks) && (
-        <ScrollView
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          contentContainerStyle={tailwind('flex-grow')}
-          onTouchEnd={handleOnEndOfListReached}
-        >
-          {renderContent()}
-        </ScrollView>
-      )}
-    </View>
+        {(getStatus() === UseCaseStatus.SUCCESS || sharedItems) && (
+          <ScrollView
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+            contentContainerStyle={tailwind('flex-grow')}
+            onTouchEnd={handleOnEndOfListReached}
+          >
+            {renderContent()}
+          </ScrollView>
+        )}
+      </View>
+    </AppScreen>
   );
 };

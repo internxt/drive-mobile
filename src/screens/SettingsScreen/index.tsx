@@ -30,6 +30,7 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
 import { ENABLE_PHOTOS_SYNC } from '@internxt-mobile/services/photos/constants';
+import { paymentsSelectors } from 'src/store/slices/payments';
 
 function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
@@ -41,6 +42,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
   const scrollViewRef = useRef<ScrollView | null>(null);
 
   const photosCtx = useContext(PhotosContext);
+  const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const [profileAvatar, setProfileAvatar] = useState<string>();
@@ -182,7 +184,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                           {userFullName}
                         </AppText>
                         <AppText numberOfLines={1} style={tailwind('text-gray-40')}>
-                          {constants.SHOW_BILLING
+                          {showBilling
                             ? strings.screens.SettingsScreen.account.advice
                             : strings.screens.SettingsScreen.account.adviceNoBilling}
                         </AppText>
@@ -279,57 +281,6 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                 },
               ]}
             />
-            {/* PHOTOS GALLERY */}
-            {ENABLE_PHOTOS_SYNC ? (
-              <SettingsGroup
-                onLayout={(event) => {
-                  setEnablePhotosSyncScrollPoint(event.nativeEvent.layout.y);
-                }}
-                title={strings.screens.SettingsScreen.photos.title}
-                items={[
-                  {
-                    key: 'enable-photos-sync',
-                    template: (
-                      <View
-                        style={[
-                          tailwind(
-                            `flex-row px-4 py-3 items-center border ${
-                              highlightedSection === 'photos-sync' ? 'border-primary' : 'border-transparent'
-                            } rounded-xl`,
-                          ),
-                        ]}
-                      >
-                        <View style={tailwind('flex-1 pr-4')}>
-                          <AppText style={tailwind('text-lg text-gray-80')}>
-                            {strings.screens.SettingsScreen.photos.enablePhotosBackup.title}
-                          </AppText>
-                          <AppText style={tailwind('text-xs text-gray-40')}>
-                            {strings.screens.SettingsScreen.photos.enablePhotosBackup.message}
-                          </AppText>
-                        </View>
-                        <View style={tailwind('')}>
-                          <AppSwitch
-                            value={photosCtx.syncEnabled}
-                            onChange={async (event) => {
-                              const { canEnable, permissionsStatus } = await photosCtx.enableSync(
-                                event.nativeEvent.value,
-                              );
-                              if (!canEnable) {
-                                if (permissionsStatus === PermissionStatus.UNDETERMINED) {
-                                  navigation.navigate('Photos');
-                                } else {
-                                  setPhotosPermissionsModalOpen(true);
-                                }
-                              }
-                            }}
-                          />
-                        </View>
-                      </View>
-                    ),
-                  },
-                ]}
-              />
-            ) : null}
 
             {/* INFORMATION */}
             <SettingsGroup

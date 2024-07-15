@@ -17,6 +17,7 @@ import { NotificationType } from 'src/types';
 
 export interface PaymentsState {
   isLoading: boolean;
+  showBilling: boolean;
   prices: DisplayPrice[];
   subscription: UserSubscription;
   sessionId: string;
@@ -27,6 +28,7 @@ export interface PaymentsState {
 const initialState: PaymentsState = {
   isLoading: false,
   prices: [],
+  showBilling: false,
   subscription: {
     type: 'free',
   },
@@ -46,6 +48,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
         dispatch(loadUserSubscriptionThunk());
         dispatch(loadInvoicesThunk());
         dispatch(loadDefaultPaymentMethodThunk());
+        dispatch(checkShouldDisplayBilling());
       }
     } catch (err) {
       // Pass
@@ -80,6 +83,13 @@ const loadDefaultPaymentMethodThunk = createAsyncThunk<PaymentMethod | null, voi
   'payments/loadDefaultPaymentMethod',
   async () => {
     return paymentService.getDefaultPaymentMethod();
+  },
+);
+
+const checkShouldDisplayBilling = createAsyncThunk<boolean, void, { state: RootState }>(
+  'payments/checkShouldDisplayBilling',
+  async () => {
+    return paymentService.billingEnabled();
   },
 );
 
@@ -144,6 +154,14 @@ export const paymentsSlice = createSlice({
       state.defaultPaymentMethod = action.payload;
     });
 
+    builder.addCase(checkShouldDisplayBilling.fulfilled, (state, action) => {
+      state.showBilling = action.payload;
+    });
+
+    builder.addCase(checkShouldDisplayBilling.rejected, (state) => {
+      state.showBilling = false;
+    });
+
     builder.addCase(cancelSubscriptionThunk.rejected, () => {
       notificationsService.show({ type: NotificationType.Error, text1: strings.errors.cancelSubscription });
     });
@@ -157,6 +175,7 @@ export const paymentsSelectors = {
   hasPaidPlan: (state: RootState) => state.payments.subscription.type !== 'free',
   hasSubscription: (state: RootState) => state.payments.subscription.type === 'subscription',
   hasLifetime: (state: RootState) => state.payments.subscription.type === 'lifetime',
+  shouldShowBilling: (state: RootState) => state.payments.showBilling,
 };
 
 export const paymentsThunks = {
@@ -166,6 +185,7 @@ export const paymentsThunks = {
   loadInvoicesThunk,
   createSessionThunk,
   cancelSubscriptionThunk,
+  checkShouldDisplayBilling,
 };
 
 export default paymentsSlice.reducer;

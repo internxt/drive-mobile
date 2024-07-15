@@ -13,7 +13,6 @@ import DriveRenameModal from '../components/modals/DriveRenameModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import HomeScreen from '../screens/HomeScreen';
-import PhotosNavigator from './PhotosNavigator';
 import ReferralsBanner from '../components/ReferralsBanner';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
@@ -30,6 +29,7 @@ import { AsyncStorageKey } from '../types';
 import { authThunks } from 'src/store/slices/auth';
 import appService from '@internxt-mobile/services/AppService';
 import { DriveNavigator } from './DriveNavigator';
+import { SharedScreen } from 'src/screens/drive/SharedScreen';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -79,7 +79,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Add" component={EmptyScreen} />
-        <Tab.Screen name="Photos" component={PhotosNavigator} options={{ lazy: false }} />
+        <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
         <Tab.Screen name="Settings" component={SettingsNavigator} options={{ lazy: false }} />
       </Tab.Navigator>
 

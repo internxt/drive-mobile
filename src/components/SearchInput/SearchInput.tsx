@@ -9,7 +9,7 @@ import styles from '../../styles/global';
 import AppText from '../AppText';
 
 interface SearchInputProps {
-  value: string;
+  value?: string;
   onChangeText: (value: string) => void;
   placeholder?: string;
   style?: StyleProp<ViewStyle>;

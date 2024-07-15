@@ -319,6 +319,7 @@ class DriveFileService {
    */
   async downloadFile(
     user: UserSettings,
+    bucketId: string,
     fileId: string,
     {
       downloadPath,
@@ -335,7 +336,7 @@ class DriveFileService {
 
     await network.downloadFile(
       fileId,
-      user.bucket,
+      bucketId,
       user.mnemonic,
       {
         pass: user.userId,

@@ -34,12 +34,12 @@ import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import fileSystemService from './services/FileSystemService';
-import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
 import { DriveContextProvider } from './contexts/Drive/Drive.context';
 import { LockScreen } from './screens/common/LockScreen';
 import { logger } from './services/common';
 import { time } from './services/common/time';
+import { paymentsThunks } from './store/slices/payments';
 let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
@@ -80,6 +80,7 @@ export default function App(): JSX.Element {
     if (state === 'active') {
       dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.refreshTokensThunk());
+      dispatch(paymentsThunks.checkShouldDisplayBilling());
     }
 
     if (state === 'inactive') {
@@ -188,29 +189,27 @@ export default function App(): JSX.Element {
           <View style={tailwind('flex-1')}>
             {isAppInitialized && fontsAreReady ? (
               <DriveContextProvider rootFolderId={user?.root_folder_id}>
-                <PhotosContextProvider>
-                  <Portal.Host>
-                    <LockScreen
-                      locked={screenLocked}
-                      lastScreenLock={lastScreenLock}
-                      onScreenUnlocked={handleUnlockScreen}
-                    />
-                    {initialScreenLocked ? null : <Navigation />}
-                    <AppToast />
+                <Portal.Host>
+                  <LockScreen
+                    locked={screenLocked}
+                    lastScreenLock={lastScreenLock}
+                    onScreenUnlocked={handleUnlockScreen}
+                  />
+                  {initialScreenLocked ? null : <Navigation />}
+                  <AppToast />
 
-                    <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-                    <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
-                    <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
-                    <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
-                    <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
-                    <ChangeProfilePictureModal
-                      isOpen={isChangeProfilePictureModalOpen}
-                      onClose={onChangeProfilePictureModalClosed}
-                    />
-                    <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-                    <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-                  </Portal.Host>
-                </PhotosContextProvider>
+                  <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+                  <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
+                  <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
+                  <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+                  <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+                  <ChangeProfilePictureModal
+                    isOpen={isChangeProfilePictureModalOpen}
+                    onClose={onChangeProfilePictureModalClosed}
+                  />
+                  <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+                  <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+                </Portal.Host>
               </DriveContextProvider>
             ) : (
               <View style={tailwind('items-center flex-1 justify-center')}>

@@ -60,6 +60,7 @@ class DriveFolderService {
           id: child.id.toString(),
           status: DriveItemStatus.Idle,
           data: {
+            bucket: child.bucket,
             isFolder: false,
             folderId: folderContent.parentId,
             thumbnails: (child as DriveFileData).thumbnails || [],
@@ -85,6 +86,7 @@ class DriveFolderService {
           id: child.id.toString(),
           status: DriveItemStatus.Idle,
           data: {
+            bucket: folderContent.bucket,
             thumbnails: [],
             currentThumbnail: null,
             createdAt: child.createdAt,

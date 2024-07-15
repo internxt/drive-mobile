@@ -138,7 +138,7 @@ export enum SortType {
 
 export type DriveItemDataProps = Pick<
   DriveItemData,
-  'id' | 'name' | 'updatedAt' | 'createdAt' | 'currentThumbnail' | 'thumbnails'
+  'id' | 'name' | 'updatedAt' | 'createdAt' | 'currentThumbnail' | 'thumbnails' | 'bucket'
 > & {
   isFolder: boolean;
   folderId?: number;

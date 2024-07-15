@@ -10,7 +10,6 @@ import { INFINITE_PLAN } from '../../types';
 import ReferralsWidget from '../../components/ReferralsWidget';
 import AppScreen from '../../components/AppScreen';
 import { SettingsScreenProps } from '../../types/navigation';
-import appService from '../../services/AppService';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../components/AppText';
 import useGetColor from '../../hooks/useColor';
@@ -24,7 +23,9 @@ import { paymentsSelectors } from 'src/store/slices/payments';
 function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Element {
   const [currentStatusStep, setCurrentStatusStep] = useState(0);
   const { limit } = useAppSelector((state) => state.storage);
+
   const hasPaidPlan = useAppSelector(paymentsSelectors.hasPaidPlan);
+  const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const usage = useAppSelector(storageSelectors.usage);
   const availableStorage = useAppSelector(storageSelectors.availableStorage);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
@@ -134,7 +135,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
                       </View>
                     </View>
 
-                    {appService.constants.SHOW_BILLING &&
+                    {showBilling &&
                       (hasPaidPlan ? (
                         <AppButton
                           style={tailwind('mt-3')}

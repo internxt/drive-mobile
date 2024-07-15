@@ -58,6 +58,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     const thunk = dispatch(
       driveThunks.downloadFileThunk({
         ...props.data,
+        bucketId: props.data.bucket,
         size: props.data.size as number,
         parentId: props.data.parentId as number,
         name: props.data.name,

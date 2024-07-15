@@ -72,6 +72,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     const thunk = dispatch(
       driveThunks.downloadFileThunk({
         ...driveFile,
+        bucketId: driveFile.data.bucket,
         size: driveFile.data.size as number,
         parentId: driveFile.data.parentId as number,
         name: driveFile.data.name,

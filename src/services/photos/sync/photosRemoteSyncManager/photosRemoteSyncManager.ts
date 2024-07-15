@@ -12,7 +12,7 @@ import { photosNetwork } from '../../network/photosNetwork.service';
 import { photosPreview } from '../../preview';
 import { photosUtils } from '../../utils';
 import { devicePhotosScanner, DevicePhotosScannerService } from '../devicePhotosScanner';
-import { PhotosPreviewFixerService } from '../../preview/PhotosPreviewFixer.service';
+import { PhotosPreviewFixerService } from '../../preview/photosPreviewFixer.service';
 
 type OnStatusChangeCallback = (newStatus: PhotosRemoteSyncManagerStatus) => void;
 type OnRemotePhotosPageSyncedCallback = (photo: Photo[]) => void;

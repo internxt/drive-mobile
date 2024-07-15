@@ -23,6 +23,8 @@ import { fs } from '@internxt-mobile/services/FileSystemService';
 import errorService from '@internxt-mobile/services/ErrorService';
 
 function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Element {
+  const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
+
   const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({
     countStart: 90,
     intervalMs: 1000,
@@ -217,7 +219,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                         {strings.subscriptions[subscription.type]}
                       </AppText>
                     </View>
-                    {constants.SHOW_BILLING ? (
+                    {showBilling ? (
                       hasPaidPlan ? (
                         <View style={tailwind('flex-row items-center')}>
                           <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.buttons.manage}</AppText>
@@ -234,7 +236,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                     ) : null}
                   </View>
                 ),
-                onPress: hasPaidPlan && constants.SHOW_BILLING ? onManageSubscriptionPressed : undefined,
+                onPress: hasPaidPlan && showBilling ? onManageSubscriptionPressed : undefined,
               },
             ]}
           />

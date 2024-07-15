@@ -40,7 +40,7 @@ const strings = new LocalizedStrings({
       Home: 'Home',
       Drive: 'Drive',
       Add: 'Add',
-      Photos: 'Photos',
+      Shared: 'Shared',
       Settings: 'Settings',
     },
     subscriptions: {
@@ -217,10 +217,10 @@ const strings = new LocalizedStrings({
         },
       },
       shared: {
-        title: 'Shared links',
+        title: 'Shared',
         empty: {
-          title: 'No shared links',
-          message: 'Your shared links will show up here',
+          title: 'No shared items',
+          message: 'Your shared items will show up here',
         },
       },
       StorageScreen: {
@@ -460,7 +460,7 @@ const strings = new LocalizedStrings({
       firstName: 'First name',
       lastName: 'Last name',
       searchInRecents: 'Search in recents',
-      searchInShared: 'Search in shared links',
+      searchInShared: 'Search in shared items',
       twoFactorAuth: 'Two Factor Authentication',
     },
     placeholders: {
@@ -826,7 +826,7 @@ const strings = new LocalizedStrings({
       Home: 'Inicio',
       Drive: 'Drive',
       Add: 'Añadir',
-      Photos: 'Photos',
+      Shared: 'Compartido',
       Settings: 'Ajustes',
     },
     subscriptions: {
@@ -1004,10 +1004,10 @@ const strings = new LocalizedStrings({
         },
       },
       shared: {
-        title: 'Links compartidos',
+        title: 'Compartido',
         empty: {
-          title: 'No hay links compartidos',
-          message: 'Tus links compartidos se mostrarán aquí',
+          title: 'No hay items compartidos',
+          message: 'Tus items compartidos se mostrarán aquí',
         },
       },
       StorageScreen: {
@@ -1246,7 +1246,7 @@ const strings = new LocalizedStrings({
       firstName: 'Nombre',
       lastName: 'Primer apellido',
       searchInRecents: 'Buscar en recientes',
-      searchInShared: 'Buscar en links compartidos',
+      searchInShared: 'Buscar en items compartidos',
       twoFactorAuth: 'Autenticación de dos factores',
     },
     placeholders: {

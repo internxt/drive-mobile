@@ -39,7 +39,13 @@ const loadStorageUsageThunk = createAsyncThunk<void, void, { state: RootState }>
   'storage/loadUsage',
   async (_, { dispatch, getState }) => {
     await dispatch(driveThunks.loadUsageThunk()).unwrap();
-    const photosUsage = await photos.usage.getUsage();
+    let photosUsage = 0;
+
+    try {
+      photosUsage = await photos.usage.getUsage();
+    } catch (error) {
+      // Noop, if this fails, the photos usage will be 0
+    }
 
     const driveUsage = getState().drive.usage;
     const limit = getState().storage.limit;

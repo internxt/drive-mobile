@@ -17,7 +17,7 @@ import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analyt
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import FastImage from 'react-native-fast-image';
 import appService from '@internxt-mobile/services/AppService';
-import { PhotosPreviewFixerService } from '@internxt-mobile/services/photos/preview/PhotosPreviewFixer.service';
+import { PhotosPreviewFixerService } from '@internxt-mobile/services/photos/preview/photosPreviewFixer.service';
 import { SdkManager } from '@internxt-mobile/services/common';
 import LoadingSpinner from 'src/components/LoadingSpinner';
 

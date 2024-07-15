@@ -3,7 +3,6 @@ export interface AppEnv {
   APP_BUILD_NUMBER: number;
   IOS_BUILD_NUMBER: number;
   ANDROID_VERSION_CODE: number;
-  SHOW_BILLING: boolean;
   CRYPTO_SECRET: string;
   WEB_CLIENT_URL: string;
   DRIVE_API_URL: string;

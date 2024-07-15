@@ -41,12 +41,20 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   const getUpdatedAt = () => {
     return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime);
   };
+
+  const handleItemPress = () => {
+    if (props.onPress) {
+      props.onPress();
+    } else {
+      onItemPressed();
+    }
+  };
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
       underlayColor={getColor('text-gray-5')}
       onLongPress={onItemLongPressed}
-      onPress={onItemPressed}
+      onPress={handleItemPress}
     >
       <View style={[tailwind('flex-row pl-5')]}>
         <View style={[tailwind('flex-row flex-1 py-3')]}>

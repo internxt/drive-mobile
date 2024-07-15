@@ -6,7 +6,7 @@ import globalStyle from '../../styles/global';
 import strings from '../../../assets/lang/strings';
 import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
-import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
+import { FolderSimple, Gear, House, PlusCircle, Users } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import { storageThunks } from 'src/store/slices/storage';
@@ -15,7 +15,7 @@ const tabs = {
   Home: { label: strings.tabs.Home, icon: House },
   Drive: { label: strings.tabs.Drive, icon: FolderSimple },
   Add: { label: strings.tabs.Add, icon: PlusCircle },
-  Photos: { label: strings.tabs.Photos, icon: ImageSquare },
+  Shared: { label: strings.tabs.Shared, icon: Users },
   Settings: { label: strings.tabs.Settings, icon: Gear },
 };
 
