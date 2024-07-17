@@ -39,6 +39,7 @@ export type DriveItemFocused = {
   shareId?: string;
   isFromFolderActions?: boolean;
   isFolder: boolean;
+  bucket: string;
   uuid?: string;
 } | null;
 

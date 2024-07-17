@@ -70,7 +70,10 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
               numberOfLines={1}
               ellipsizeMode={'middle'}
             >
-              {items.getItemDisplayName(props.data)}
+              {items.getItemDisplayName({
+                name: props.data.name,
+                type: props.data.type,
+              })}
             </AppText>
 
             {isUploading &&

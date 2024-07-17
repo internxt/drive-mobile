@@ -174,10 +174,13 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
       // 3. Cache the data storing it in the local db
       if (folderContent.data) {
-        logger.info(`FOLDER-${folderId} - CACHED`);
-        cacheDriveItems(folderContent.data).catch((error) => {
-          errorService.reportError(error);
-        });
+        cacheDriveItems(folderContent.data)
+          .then(() => {
+            logger.info(`FOLDER-${folderId} - CACHED`);
+          })
+          .catch((error) => {
+            errorService.reportError(error);
+          });
       }
     }
   };
@@ -215,6 +218,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
    * Drive items in the localDB
    */
   const cacheDriveItems = async (folderContentResponse: FetchFolderContentResponse) => {
+    await drive.database.deleteFolderContent(folderContentResponse.id);
+
     const mapItems = _.concat(
       folderContentResponse.children as unknown as DriveItemData[],
       folderContentResponse.files as DriveItemData[],

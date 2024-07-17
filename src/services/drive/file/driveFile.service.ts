@@ -18,7 +18,7 @@ import { MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/ty
 import { getEnvironmentConfig } from 'src/lib/network';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
-import network from 'src/network';
+import * as networkDownload from 'src/network/download';
 import { Image } from 'react-native';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { driveFileCache } from './driveFileCache.service';
@@ -284,7 +284,7 @@ class DriveFileService {
     if (await fileSystemService.exists(destination)) {
       return measureThumbnail(fileSystemService.pathToUri(destination));
     }
-    await network.downloadFile(
+    await networkDownload.downloadFile(
       thumbnail.bucket_file.toString(),
       thumbnail.bucket_id,
       encryptionKey,
@@ -334,7 +334,7 @@ class DriveFileService {
       /** NOOP */
     };
 
-    await network.downloadFile(
+    await networkDownload.downloadFile(
       fileId,
       bucketId,
       user.mnemonic,

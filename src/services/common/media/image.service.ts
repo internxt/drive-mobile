@@ -95,26 +95,6 @@ class ImageService {
     };
   }
 
-  public async share(uri: string) {
-    try {
-      const result = await Share.open({
-        title: strings.modals.SharePhoto.nativeMesage,
-        url: uri,
-      });
-
-      if (result.success) {
-        notificationsService.show({
-          type: NotificationType.Success,
-          text1: strings.messages.photoShared,
-        });
-      } else if (result.dismissedAction) {
-        // dismissed
-      }
-    } catch (err) {
-      // notificationsService.show({ type: ToastType.Error, text1: strings.errors.photoShared });
-    }
-  }
-
   public async pathToBase64(uri: string): Promise<string> {
     return await RNFetchBlob.fs.readFile(uri, 'base64');
   }

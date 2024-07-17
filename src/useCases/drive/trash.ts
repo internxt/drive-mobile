@@ -36,16 +36,19 @@ export const getDriveTrashItems = async ({
     ]);
 
     const trashItems = trashFolders.items.concat(trashFiles.items).map<DriveListItem>((trashItem) => {
+      const isFolder = !trashItem.fileId ? true : false;
       return {
         status: DriveItemStatus.Idle,
         data: {
           ...trashItem,
           id: trashItem.id,
-          name: trashItem.name,
+          folderId: isFolder ? trashItem.id : undefined,
+          name: trashItem.plainName ?? trashItem.name,
           updatedAt: new Date(trashItem.updatedAt).toISOString(),
           createdAt: new Date(trashItem.createdAt).toISOString(),
-          isFolder: !trashItem.fileId ? true : false,
+          isFolder,
           currentThumbnail: null,
+          type: isFolder ? undefined : trashItem.type,
           thumbnails: [],
         },
         id: trashItem.id.toString(),
@@ -78,17 +81,13 @@ export const restoreDriveItems = async (
   config?: { displayNotification: boolean },
 ): Promise<UseCaseResult<unknown>> => {
   try {
-    const operations = items.map((item) => {
+    const operations = items.map(async (item) => {
       if (item.fileId) {
-        drive.trash
-          .restoreFile({ fileId: item.fileId, destinationFolderId: item.destinationFolderId })
-          .catch((err) => errorService.reportError(err));
+        await drive.trash.restoreFile({ fileId: item.fileId, destinationFolderId: item.destinationFolderId });
       }
 
       if (item.folderId) {
-        drive.trash
-          .restoreFolder({ folderId: item.folderId, destinationFolderId: item.destinationFolderId })
-          .catch((err) => errorService.reportError(err));
+        await drive.trash.restoreFolder({ folderId: item.folderId, destinationFolderId: item.destinationFolderId });
       }
     });
 

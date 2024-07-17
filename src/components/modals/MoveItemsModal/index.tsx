@@ -82,6 +82,7 @@ function MoveItemsModal(): JSX.Element {
           id: child.id.toString(),
           status: DriveItemStatus.Idle,
           data: {
+            bucket: child.bucket,
             isFolder: 'fileId' in child ? false : true,
             thumbnails: (child as DriveFileData).thumbnails,
             currentThumbnail: null,

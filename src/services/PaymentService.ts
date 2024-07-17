@@ -38,7 +38,6 @@ class PaymentService {
       },
     );
 
-    console.log('RESULT', result.data);
     // If is Android and version matches, obey the display flag
     if (appService.isAndroid && result.data.oses.android == appService.version) {
       return result.data.display || false;

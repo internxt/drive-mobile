@@ -178,7 +178,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     setSortModalOpen(false);
   };
 
-  const getItems = () => {
+  const driveItems = useMemo(() => {
     if (searchValue.length) {
       return driveSortedItems.filter((item) => {
         return item.data.name.toLowerCase().includes(searchValue.toLowerCase());
@@ -189,7 +189,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         ...item,
       };
     });
-  };
+  }, [driveSortedItems, searchValue]);
 
   async function handleRefresh() {
     await driveCtx.loadFolderContent(folderId, { focusFolder: true, pullFrom: ['network'] });
@@ -256,7 +256,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             isLoading={driveCtx.driveFoldersTree[folderId] ? false : true}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}
-            items={getItems()}
+            items={driveItems}
             type={DriveListType.Drive}
             viewMode={driveCtx.viewMode}
             onDriveItemPress={handleDriveItemPress}
