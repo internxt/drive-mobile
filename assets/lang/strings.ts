@@ -613,6 +613,10 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      maxBulkUploadReached: {
+        title: 'Upload limit reached',
+        message: 'You can only upload {0} files at a time',
+      },
       logFileMovedToDownloads: 'Logs file saved',
       planPeriodDisclaimer: "You'll be charged now and for each payment period until further change.",
       driveDownloadSuccess: 'File downloaded correctly',
@@ -1303,6 +1307,10 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      maxBulkUploadReached: {
+        title: 'Límite de subida de archivos alcanzado',
+        message: 'Solo puedes subir {0} archivos a la vez.',
+      },
       logFileMovedToDownloads: 'Archivo de logs guardado',
       planPeriodDisclaimer: 'Se te cobrará ahora y en cada periodo de facturación automáticamente.',
       driveDownloadSuccess: 'Archivo descargado correctamente',

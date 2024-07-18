@@ -20,6 +20,18 @@ class DriveFolderService {
     this.sdk = sdk;
   }
 
+  public async getFolderFiles(folderId: number, offset: number, limit: number) {
+    const [promise] = this.sdk.storageV2.getFolderFiles(folderId, offset, limit, 'plainName', 'ASC');
+
+    return promise;
+  }
+
+  public async getFolderFolders(folderId: number, offset: number, limit: number) {
+    const [promise] = this.sdk.storageV2.getFolderFolders(folderId, offset, limit, 'plainName', 'ASC');
+
+    return promise;
+  }
+
   public async createFolder(parentFolderId: number, folderName: string) {
     const sdkResult = this.sdk.storage.createFolder({
       parentFolderId,
@@ -50,61 +62,6 @@ class DriveFolderService {
   public getFolderContent(folderId: number) {
     const [contentPromise] = this.sdk.storage.getFolderContent(folderId);
     return contentPromise;
-  }
-
-  public folderContentToDriveListItems(folderContent: FetchFolderContentResponseWithThumbnails): DriveListItem[] {
-    const filesAsDriveListItems = folderContent.files
-      .filter((file) => file.status === 'EXISTS')
-      .map<DriveListItem>((child) => {
-        return {
-          id: child.id.toString(),
-          status: DriveItemStatus.Idle,
-          data: {
-            bucket: child.bucket,
-            isFolder: false,
-            folderId: folderContent.parentId,
-            thumbnails: (child as DriveFileData).thumbnails || [],
-            currentThumbnail: null,
-            createdAt: child.createdAt,
-            updatedAt: child.updatedAt,
-            name: child.name,
-            id: child.id,
-            parentId: child.folderId,
-            size: child.size,
-            type: child.type,
-            fileId: child.fileId,
-            thumbnail: child.thumbnail,
-            uuid: child.uuid,
-          },
-        };
-      });
-
-    const childsAsDriveListItems = folderContent.children
-      .filter((folder) => !(folder.deleted && folder.removed))
-      .map<DriveListItem>((child) => {
-        return {
-          id: child.id.toString(),
-          status: DriveItemStatus.Idle,
-          data: {
-            bucket: folderContent.bucket,
-            thumbnails: [],
-            currentThumbnail: null,
-            createdAt: child.createdAt,
-            updatedAt: child.updatedAt,
-            name: child.name,
-            id: child.id,
-            isFolder: true,
-            parentId: child.parentId,
-            folderId: child.id,
-            size: undefined,
-            type: undefined,
-            fileId: undefined,
-            uuid: child.uuid,
-          },
-        };
-      });
-
-    return childsAsDriveListItems.concat(filesAsDriveListItems);
   }
 
   public async getModifiedFolders({

@@ -7,6 +7,7 @@ export const SdkManagerMock: SdkManager = {
   users: jest.fn()(),
   payments: jest.fn()(),
   storage: jest.fn()(),
+  storageV2: jest.fn()(),
   share: jest.fn()(),
   trash: jest.fn()(),
 };

@@ -39,16 +39,16 @@ class PaymentService {
     );
 
     // If is Android and version matches, obey the display flag
-    if (appService.isAndroid && result.data.oses.android == appService.version) {
+    if (appService.isAndroid && result.data.oses.android === appService.version) {
       return result.data.display || false;
     }
 
     // If is iOS and version matches, obey the display flag
-    if (appService.isIOS && result.data.oses.ios == appService.version) {
+    if (appService.isIOS && result.data.oses.ios === appService.version) {
       return result.data.display || false;
     }
 
-    return true;
+    return false;
   }
 
   async getDefaultPaymentMethod(): Promise<PaymentMethod | null> {
@@ -149,7 +149,7 @@ class PaymentService {
 
   private catchUserNotFoundError(error: Error) {
     // The SDK throws this as an error when server sends a 404
-    if (error && error.message !== '{"message":"User not found"}') {
+    if (error && error.message !== 'User not found') {
       throw error;
     }
   }

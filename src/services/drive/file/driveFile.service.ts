@@ -264,7 +264,7 @@ class DriveFileService {
     return parsedModifiedFiles;
   }
 
-  public async getThumbnail(thumbnail: Thumbnail) {
+  public async getThumbnail(thumbnail: { bucket_id: string; bucket_file: string; type: string }) {
     const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
     const destination = `${DRIVE_THUMBNAILS_DIRECTORY}/${thumbnail.bucket_file}.${thumbnail.type}`;
 

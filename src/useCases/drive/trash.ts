@@ -184,22 +184,17 @@ export const moveItemsToTrash = async (
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {
-    drive.trash
-      .moveToTrash(items)
-      .then(() => {
-        notifications.show({
-          text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
-          type: NotificationType.Success,
-          action: {
-            text: strings.buttons.undo,
-            onActionPress: onUndo,
-          },
-        });
-      })
-      .catch((error) => errorService.reportError(error));
+    await drive.trash.moveToTrash(items);
 
     const isPlural = items.length > 1;
-
+    notifications.show({
+      text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
+      type: NotificationType.Success,
+      action: {
+        text: strings.buttons.undo,
+        onActionPress: onUndo,
+      },
+    });
     // Remove the items from the db
     await Promise.all(
       items.map((item) => {

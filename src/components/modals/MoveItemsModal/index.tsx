@@ -35,6 +35,7 @@ import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import Portal from '@burstware/react-native-portal';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 
 const colors = {
   primary: '#0066FF',
@@ -167,9 +168,11 @@ function MoveItemsModal(): JSX.Element {
       // TODO: Review Drive types, make stronger
       // definitions, this is getting confuse
       if (originFolderContentResponse?.id) {
-        setTimeout(async () => {
-          driveCtx.loadFolderContent(originFolderContentResponse.id);
-        }, 500);
+        await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+        await driveCtx.loadFolderContent(originFolderContentResponse.id, {
+          resetPagination: true,
+          pullFrom: ['network'],
+        });
       }
     }
     await dispatch(driveActions.setItemToMove(null));

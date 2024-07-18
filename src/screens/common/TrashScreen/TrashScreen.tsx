@@ -19,6 +19,7 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { times } from 'lodash';
 import DriveItemSkinSkeleton from 'src/components/DriveItemSkinSkeleton';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   const driveCtx = useDrive();
   const { executeUseCase: getDriveTrashItems } = useUseCase(driveUseCases.getDriveTrashItems, { lazy: true });
@@ -133,9 +134,8 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
       dispatch(driveActions.hideItemsById([item.id]));
       setHiddenItems(hiddenItems.filter((hiddenItem) => hiddenItem.id === item.id));
     } else {
-      setTimeout(() => {
-        driveCtx.loadFolderContent(destinationFolderId, { pullFrom: ['network'] });
-      }, 1000);
+      await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+      driveCtx.loadFolderContent(destinationFolderId, { pullFrom: ['network'], resetPagination: true });
     }
   };
 
