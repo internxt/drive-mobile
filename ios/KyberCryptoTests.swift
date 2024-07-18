@@ -55,4 +55,22 @@ class KyberCryptoTests: XCTestCase {
 
     }
 
+    func testKyberEncryptionManager() {
+        let message = "Hello, Kyber!".data(using: .utf8)!
+        guard let keyPair = KyberCrypto().generateAsymmetricKeyPair() else {
+            XCTFail("Key generation failed")
+            return
+        }
+
+        do {
+            let encryptionResult = try KyberEncryptionManager.encryptMessage(message, with: keyPair.publicKey)
+            let decryptionResult = try KyberEncryptionManager.decryptCiphertext(encryptionResult.ciphertext, with: keyPair.privateKey)
+
+            XCTAssertEqual(decryptionResult.message, message, "Decrypted message should match the original")
+        } catch {
+            XCTFail("Encryption/Decryption failed with error: \(error)")
+        }
+    }
+
+
 }
