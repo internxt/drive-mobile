@@ -21,3 +21,6 @@ export class NotInitializedServiceError extends Error {
 // Waits x ms before resolving, useful to avoid RN bridge message collapse
 export const sleep = (sleepTimeInMs: number) =>
   new Promise<void>((resolve) => setTimeout(() => resolve(), sleepTimeInMs));
+
+// See https://inxt.atlassian.net/browse/PB-1446 to understand this piece of code
+export const SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET = sleep;

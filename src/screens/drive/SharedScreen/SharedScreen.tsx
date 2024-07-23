@@ -13,17 +13,14 @@ import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { UseCaseStatus, useUseCase } from '@internxt-mobile/hooks/common';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { sleep } from 'src/helpers/services';
 import AppScreen from 'src/components/AppScreen';
 import { SearchInput } from 'src/components/SearchInput';
 import ScreenTitle from '../../../components/AppScreenTitle';
 import { TabExplorerScreenProps } from '@internxt-mobile/types/navigation';
-import { useDrive } from '@internxt-mobile/hooks/drive';
 
 type SharedItem = SharedFolders & SharedFiles;
 export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {
   const tailwind = useTailwind();
-  const driveCtx = useDrive();
 
   const { loading: sharedLoading, executeUseCase: getSharedItems } = useUseCase(driveUseCases.getSharedItems);
 
@@ -55,7 +52,6 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
       setShouldGetMoreSharedFiles(true);
       setShouldGetMoreSharedFolders(true);
       setSharedItemsPage(1);
-      sleep(500);
       const result = await getSharedItems({ page: 0, shouldGetFiles: true, shouldGetFolders: true });
 
       if (!result?.data?.hasMoreFiles) {
@@ -94,7 +90,6 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
       if (shouldGetMoreSharedFiles || shouldGetMoreSharedFolders) {
         setSharedItemsPage(sharedItemsPage + 1);
       }
-      sleep(500);
       const result = await getSharedItems({
         page: sharedItemsPage,
         shouldGetFiles: shouldGetMoreSharedFiles,

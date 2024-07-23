@@ -33,15 +33,13 @@ interface DriveListProps {
   isLoading?: boolean;
 }
 
-const PAGE_LIMIT = 50;
 export function DriveList(props: DriveListProps): JSX.Element {
   const tailwind = useTailwind();
-  const [currentPage, setCurrentPage] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
   const { width } = useWindowDimensions();
   const isGrid = props.viewMode === DriveListViewMode.Grid;
 
-  const listItems = useMemo(() => props.items?.slice(0, PAGE_LIMIT * currentPage), [props.items, currentPage]);
+  const listItems = useMemo(() => props.items, [props.items]);
 
   const isEmptyFolder = props.items?.length === 0;
   const sizeByMode = {
@@ -81,7 +79,6 @@ export function DriveList(props: DriveListProps): JSX.Element {
   }, []);
 
   function handleOnScrollEnd() {
-    setCurrentPage(currentPage + 1);
     props.onEndReached && props.onEndReached();
   }
 
@@ -121,7 +118,6 @@ export function DriveList(props: DriveListProps): JSX.Element {
   }
 
   async function handleOnRefresh() {
-    setCurrentPage(1);
     setRefreshing(true);
     props.onRefresh && (await props.onRefresh());
     setRefreshing(false);
@@ -169,7 +165,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
           ? { ...tailwind('py-6 ml-2'), ...props.contentContainerStyle }
           : props.contentContainerStyle),
       }}
-      onEndReachedThreshold={1000}
+      onEndReachedThreshold={0.5}
       onEndReached={handleOnScrollEnd}
       data={listItems}
     />

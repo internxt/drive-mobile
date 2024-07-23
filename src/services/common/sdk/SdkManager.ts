@@ -103,6 +103,19 @@ export class SdkManager {
       this.getApiSecurity(),
     );
   }
+  /** Storage SDK V2 */
+  get storageV2() {
+    return Drive.Storage.client(
+      constants.DRIVE_NEW_API_URL,
+      {
+        clientName: packageJson.name,
+        clientVersion: appService.version,
+      },
+      {
+        token: this.getApiSecurity().newToken,
+      },
+    );
+  }
 
   /** Trash SDK */
   get trash() {

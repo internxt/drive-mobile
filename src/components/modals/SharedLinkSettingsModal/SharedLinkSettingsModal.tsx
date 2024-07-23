@@ -13,6 +13,7 @@ import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
 import { animations } from './animations';
 import { GeneratingLinkModal } from '../common/GeneratingLinkModal';
 import { driveActions } from 'src/store/slices/drive';
+import notificationsService from '@internxt-mobile/services/NotificationsService';
 
 export interface SharedLinkSettingsModalProps {
   isOpen: boolean;
@@ -102,111 +103,60 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
     animate.displayPasswordMode(isAlreadyPasswordProtected);
   }, [isAlreadyPasswordProtected]);
 
-  // const toggleShowPassword = () => {
-  //   setShowPassword(!showPassword);
-  // };
-  // const handleToggleProtectWithPassword = (protectWithPassword: boolean) => {
-  //   setPasswordError(false);
-  //   if (protectWithPassword !== isAlreadyPasswordProtected && !isCreatingShareLink) {
-  //     setShouldSave(true);
-  //   } else {
-  //     setShouldSave(false);
-  //   }
-  //   setProtectWithPassword(protectWithPassword);
-  // };
-
-  // const handleDismiss = () => {
-  //   onClose();
-  // };
-
-  // const handleChangePasswordText = (newPassword: string) => {
-  //   if (newPassword && newPassword !== PASSWORD_PLACEHOLDER && !isCreatingShareLink) {
-  //     setShouldSave(true);
-  //   }
-  //   setShareLinkPassword(newPassword);
-  // };
-
   const handleCopyLinkPress = async () => {
-    if (protectWithPassword && !shareLinkPassword) {
-      // You ned to provide a password
-      setPasswordError(true);
-      return;
-    }
+    try {
+      if (protectWithPassword && !shareLinkPassword) {
+        // You ned to provide a password
+        setPasswordError(true);
+        return;
+      }
 
-    setPasswordError(false);
+      setPasswordError(false);
 
-    // If we already have a generated share link, copy it
-    if (generatedShareLink) {
-      await Clipboard.setStringAsync(generatedShareLink);
+      // If we already have a generated share link, copy it
+      if (generatedShareLink) {
+        await Clipboard.setStringAsync(generatedShareLink);
 
-      return;
-    }
+        return;
+      }
 
-    const isFolder = item?.fileId ? false : true;
+      const isFolder = item?.fileId ? false : true;
 
-    // A share link already exists, obtain it
-    if (item?.token && item?.code) {
-      const existingLink = await driveUseCases.generateShareLink({
+      // A share link already exists, obtain it
+      if (item?.token && item?.code) {
+        const existingLink = await driveUseCases.generateShareLink({
+          itemId: item?.uuid as string,
+          fileId: item?.fileId,
+          displayCopyNotification: false,
+          type: isFolder ? 'folder' : 'file',
+          plainPassword: shareLinkPassword,
+        });
+        if (!existingLink?.link) return;
+        setGeneratedShareLink(existingLink?.link);
+        Clipboard.setString(existingLink?.link);
+
+        return;
+      }
+
+      // No share link, generate it
+      setIsProcessingLink(true);
+      const result = await driveUseCases.generateShareLink({
         itemId: item?.uuid as string,
         fileId: item?.fileId,
         displayCopyNotification: false,
         type: isFolder ? 'folder' : 'file',
         plainPassword: shareLinkPassword,
       });
-      if (!existingLink?.link) return;
-      setGeneratedShareLink(existingLink?.link);
-      Clipboard.setString(existingLink?.link);
 
-      return;
+      if (!result?.link) return;
+      setGeneratedShareLink(result.link);
+      Clipboard.setString(result.link);
+    } catch (error) {
+      notificationsService.error(strings.errors.generateShareLinkError);
+    } finally {
+      setIsProcessingLink(false);
     }
-
-    // No share link, generate it
-    setIsProcessingLink(true);
-    const result = await driveUseCases.generateShareLink({
-      itemId: item?.uuid as string,
-      fileId: item?.fileId,
-      displayCopyNotification: false,
-      type: isFolder ? 'folder' : 'file',
-      plainPassword: shareLinkPassword,
-    });
-
-    if (!result?.link) return;
-    setGeneratedShareLink(result.link);
-    Clipboard.setString(result.link);
-
-    setIsProcessingLink(false);
   };
-
-  // const handleSaveShareLinkChanges = async () => {
-  //   if (!focusedShareItem) return;
-  //   if (!item) return;
-  //   if (protectWithPassword && !shareLinkPassword) {
-  //     // You ned to provide a password
-  //     setPasswordError(true);
-  //     return;
-  //   }
-
-  //   setPasswordError(false);
-  //   setIsSaving(true);
-  //   setIsProcessingLink(true);
-
-  //   const shouldIncludePassword = protectWithPassword ? true : false;
-  //   const result = await driveUseCases.updateShareLink({
-  //     plainPassword: shouldIncludePassword ? (shareLinkPassword as string) : null,
-  //     type: item.folderId ? 'folder' : 'file',
-  //     shareId: focusedShareItem.id,
-  //   });
-
-  //   if (result?.link) {
-  //     setIsAlreadyPasswordProtected(shouldIncludePassword);
-  //     setShareLinkPassword(shouldIncludePassword ? shareLinkPassword : undefined);
-  //     setGeneratedShareLink(result.link);
-  //     Clipboard.setString(result.link);
-  //     setShouldSave(false);
-  //     setIsSaving(false);
-  //     setIsProcessingLink(false);
-  //   }
-  // };
 
   return (
     <>
@@ -224,42 +174,6 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         isOpen={isOpen}
         style={{ paddingBottom: keyboardShown ? keyboardHeight : 0 }}
       >
-        {/* <View style={tailwind('flex flex-row justify-between px-5 items-center mt-2')}>
-          <View style={tailwind('py-2.5')}>
-            <AppText style={tailwind('text-lg')}>{strings.modals.shareLinkSettings.protectWithPassword.title}</AppText>
-            <AppText style={tailwind('text-xs text-gray-40')}>
-              {strings.modals.shareLinkSettings.protectWithPassword.advice}
-            </AppText>
-          </View>
-          <AppSwitch
-            value={protectWithPassword}
-            onChange={() => handleToggleProtectWithPassword(!protectWithPassword)}
-          />
-        </View> */}
-        {/* <Animated.View
-          style={[tailwind('px-5 overflow-hidden'), { height: passwordModeHeight, opacity: passwordModeOpacity }]}
-        >
-          <View style={[tailwind('py-2')]}>
-            <AppTextInput
-              status={passwordError ? ['error', ''] : undefined}
-              onChangeText={handleChangePasswordText}
-              inputRef={inputRef}
-              value={shareLinkPassword}
-              secureTextEntry={showPassword ? false : true}
-              renderAppend={() => (
-                <TouchableWithoutFeedback onPress={toggleShowPassword}>
-                  <View>
-                    {showPassword ? (
-                      <EyeSlash size={24} color={tailwind('text-gray-100').color as string} />
-                    ) : (
-                      <Eye size={24} color={tailwind('text-gray-100').color as string} />
-                    )}
-                  </View>
-                </TouchableWithoutFeedback>
-              )}
-            />
-          </View>
-        </Animated.View> */}
         <View style={tailwind('px-5 mt-4')}>
           {!isCreatingShareLink && <View style={tailwind('border-b border-gray-10')} />}
         </View>

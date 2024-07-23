@@ -40,7 +40,13 @@ export type TabExplorerStackParamList = {
 };
 
 export type DriveStackParamList = {
-  DriveFolder: { isRootFolder?: boolean; folderId: number; folderName: string; parentFolderName?: string };
+  DriveFolder: {
+    isRootFolder?: boolean;
+    folderId: number;
+    folderName: string;
+    parentFolderName?: string;
+    parentId: number;
+  };
 };
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
