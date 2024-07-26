@@ -15,8 +15,18 @@ struct KyberErrorMessages {
     static let invalidKeySize = "Invalid key size"
 }
 
+struct KyberDefaults {
+    static let defaultKeySize = 768
+    static let supportedKeySizes = [512, 768, 1024]
+}
+
 class KyberCrypto {
   
+    private let keySize = KyberDefaults.defaultKeySize
+
+    private func isValidKeySize(_ size: Int) -> Bool {
+        return KyberDefaults.supportedKeySizes.contains(size)
+    }
     static func generateKeyPair(size: Int) throws -> (publicKey: Data, privateKey: Data) {
         return try Kyber.generateKeyPair(keySize: size)
     }
