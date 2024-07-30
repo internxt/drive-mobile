@@ -15,8 +15,6 @@ export const getKyberRateFromAPI = async (tokenAddress: string, amount: string):
 // Example of getting liquidity information from Kyber
 export const getLiquidityInfo = async (tokenAddress: string): Promise<string> => {
   try {
-    // Mocking API call for liquidity data
-    console.log(`Fetching liquidity for token: ${tokenAddress}`);
     const mockLiquidity = '1000000000000000000000'; // Mock liquidity
     return mockLiquidity;
   } catch (error) {
