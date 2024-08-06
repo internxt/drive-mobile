@@ -53,14 +53,14 @@ class KyberCrypto {
   
     // Generate a public-private key pair for asymmetric encryption
     // - Returns: A tuple containing the public key and private key as Data, or nil in case of an error.
-    func generateAsymmetricKeyPair() -> (publicKey: Data, privateKey: Data)? {
-        guard isValidKeySize(keySize) else {
+    func generateAsymmetricKeyPair(size: Int = KyberDefaults.defaultKeySize) -> (publicKey: Data, privateKey: Data)? {
+        guard isValidKeySize(size) else {
             logError(.invalidKeySize)
             return nil
         }
 
         do {
-            return try KyberKeyManager.generateKeyPair(size: keySize)
+            return try KyberKeyManager.generateKeyPair(size: size)
         } catch {
             logError(.keyGenerationFailed)
             return nil
