@@ -72,5 +72,13 @@ class KyberCryptoTests: XCTestCase {
         }
     }
 
+    func testDynamicKeySizes() {
+        let sizes = [512, 768, 1024]
+        for size in sizes {
+            let kyber = KyberCrypto()
+            let keyPair = kyber.generateAsymmetricKeyPair(size: size)
+            XCTAssertNotNil(keyPair, "Key pair generation should work for size \(size)")
+        }
+    }
 
 }
