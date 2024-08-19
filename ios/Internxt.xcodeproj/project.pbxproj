@@ -20,6 +20,7 @@
 		DE11A5ED2D089E3B009E7A9C /* SwiftKyber in Frameworks */ = {isa = PBXBuildFile; productRef = DE11A5EC2D089E3B009E7A9C /* SwiftKyber */; };
 		DE11A5EF2D08A58F009E7A9C /* KyberCryptoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE11A5EE2D08A58B009E7A9C /* KyberCryptoTests.swift */; };
 		DE11A5F12D08A701009E7A9C /* KyberEncyptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE11A5F02D08A6F9009E7A9C /* KyberEncyptionManager.swift */; };
+		DE11A5F32D08A87F009E7A9C /* KyberLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE11A5F22D08A87C009E7A9C /* KyberLogger.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +41,7 @@
 		DE11A5E92D089E10009E7A9C /* KyberTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyberTest.swift; sourceTree = "<group>"; };
 		DE11A5EE2D08A58B009E7A9C /* KyberCryptoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyberCryptoTests.swift; sourceTree = "<group>"; };
 		DE11A5F02D08A6F9009E7A9C /* KyberEncyptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyberEncyptionManager.swift; sourceTree = "<group>"; };
+		DE11A5F22D08A87C009E7A9C /* KyberLogger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KyberLogger.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FAC715A2D49A985799AEE119 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -76,6 +78,7 @@
 			children = (
 				DE11A5F02D08A6F9009E7A9C /* KyberEncyptionManager.swift */,
 				DE11A5EE2D08A58B009E7A9C /* KyberCryptoTests.swift */,
+				DE11A5F22D08A87C009E7A9C /* KyberLogger.swift */,
 				DE11A5E92D089E10009E7A9C /* KyberTest.swift */,
 				DE11A5E72D089CB2009E7A9C /* KyberCrypto.swift */,
 				DE11A5E12D0899D5009E7A9C /* kyber */,
@@ -349,6 +352,7 @@
 				DE11A5EA2D089E16009E7A9C /* KyberTest.swift in Sources */,
 				DE11A5F12D08A701009E7A9C /* KyberEncyptionManager.swift in Sources */,
 				A2F1FB5E224D420F8533FE07 /* noop-file.swift in Sources */,
+				DE11A5F32D08A87F009E7A9C /* KyberLogger.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
