@@ -1,6 +1,3 @@
-// kyberAPI.ts
-
-// Example of interacting with a mock Kyber API to fetch rates
 export const getKyberRateFromAPI = async (tokenAddress: string, amount: string): Promise<string> => {
   try {
     console.log(`Fetching Kyber rate for ${amount} of token ${tokenAddress}`);
