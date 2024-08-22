@@ -60,6 +60,7 @@ class KyberCrypto {
         }
 
         do {
+            KyberLogger.log("Generated key pair successfully")
             return try KyberKeyManager.generateKeyPair(size: size)
         } catch {
             logError(.keyGenerationFailed)
