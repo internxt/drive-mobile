@@ -37,6 +37,7 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { Abortable } from '@internxt-mobile/types/index';
 import CenterModal from '../CenterModal';
 import AppProgressBar from 'src/components/AppProgressBar';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -66,7 +67,7 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(driveActions.setItemToMove(item));
   };
 
-  const handleUndoMoveToTrash = async (dbItem: DriveItemData) => {
+  const handleUndoMoveToTrash = async () => {
     const { success } = await driveUseCases.restoreDriveItems(
       [
         {
@@ -77,9 +78,9 @@ function DriveItemInfoModal(): JSX.Element {
       ],
       { displayNotification: false },
     );
-    if (success && driveCtx.currentFolder) {
-      await driveLocalDB.saveItems([dbItem]);
-      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+    if (success && driveCtx.focusedFolder?.id) {
+      await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
     }
   };
   const handleTrashItem = async () => {
@@ -94,14 +95,15 @@ function DriveItemInfoModal(): JSX.Element {
         },
       ],
 
-      () => dbItem && handleUndoMoveToTrash(dbItem),
+      () => handleUndoMoveToTrash(),
     );
 
     if (success && dbItem?.id) {
       await driveLocalDB.deleteItem({ id: dbItem.id });
     }
-    if (success && driveCtx.currentFolder) {
-      await driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+    if (driveCtx.focusedFolder?.id) {
+      await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
     }
   };
 
@@ -114,10 +116,10 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
-  const downloadItem = async (fileId: string, decryptedFilePath: string) => {
+  const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string) => {
     const { credentials } = await AuthService.getAuthCredentials();
 
-    const { downloadPath } = await drive.file.downloadFile(credentials.user, fileId, {
+    const { downloadPath } = await drive.file.downloadFile(credentials.user, bucketId, fileId, {
       downloadPath: decryptedFilePath,
       downloadProgressCallback(progress, bytesReceived, totalBytes) {
         setDownloadProgress({
@@ -152,7 +154,7 @@ function DriveItemInfoModal(): JSX.Element {
 
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       setExporting(true);
-      const downloadPath = await downloadItem(item.fileId, decryptedFilePath);
+      const downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
       setExporting(false);
       await fs.shareFile({
         title: item.name,
@@ -188,7 +190,7 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, decryptedFilePath);
+        await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
         setExporting(false);
       }
 
@@ -221,7 +223,7 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, decryptedFilePath);
+        await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
         setExporting(false);
       }
 

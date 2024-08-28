@@ -27,6 +27,7 @@ export const TrashScreenHeader: React.FC<TrashScreenHeaderProps> = (props) => {
       </View>
       <View style={tailwind(`flex-1 items-end justify-center ${props.emptyTrashIsDisabled ? 'opacity-50' : ''}`)}>
         <TouchableOpacity
+          style={tailwind('w-12 items-center')}
           disabled={props.emptyTrashIsDisabled}
           onPress={props.onTrashButtonPress}
           hitSlop={INCREASED_TOUCH_AREA}

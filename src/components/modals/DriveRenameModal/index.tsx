@@ -47,8 +47,8 @@ function RenameModal(): JSX.Element {
      * Should update the SDK to return it
      */
 
-    if (driveCtx.currentFolder) {
-      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+    if (driveCtx.focusedFolder) {
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
     }
 
     notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });

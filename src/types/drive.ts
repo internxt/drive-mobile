@@ -39,6 +39,7 @@ export type DriveItemFocused = {
   shareId?: string;
   isFromFolderActions?: boolean;
   isFolder: boolean;
+  bucket?: string;
   uuid?: string;
 } | null;
 
@@ -113,6 +114,7 @@ export interface UploadingFile {
   updatedAt: string;
   size: number;
   progress: number;
+  uploaded: boolean;
 }
 
 export interface DownloadingFile {
@@ -138,7 +140,7 @@ export enum SortType {
 
 export type DriveItemDataProps = Pick<
   DriveItemData,
-  'id' | 'name' | 'updatedAt' | 'createdAt' | 'currentThumbnail' | 'thumbnails' | 'bucket'
+  'id' | 'name' | 'updatedAt' | 'createdAt' | 'currentThumbnail' | 'thumbnails'
 > & {
   isFolder: boolean;
   folderId?: number;
@@ -146,11 +148,12 @@ export type DriveItemDataProps = Pick<
   parentId?: number | null;
   code?: string;
   token?: string;
-  size?: string | number;
+  size?: number;
   type?: string;
   shareId?: string;
   thumbnail?: DownloadedThumbnail;
   uuid?: string;
+  bucket?: string;
 };
 
 export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps; id: string };
@@ -257,6 +260,26 @@ export type FolderContent = Omit<FetchFolderContentResponse, 'children'> & {
 export interface FetchFolderContentResponseWithThumbnails extends FolderContent {
   files: (DriveFile & { thumbnail?: DownloadedThumbnail })[];
 }
+
+export type DriveFileForTree = Pick<
+  DriveFileData,
+  | 'bucket'
+  | 'createdAt'
+  | 'status'
+  | 'size'
+  | 'id'
+  | 'fileId'
+  | 'folderId'
+  | 'type'
+  | 'updatedAt'
+  | 'thumbnails'
+  | 'uuid'
+> & { plainName: string };
+
+export type DriveFolderForTree = Pick<
+  FolderChild,
+  'createdAt' | 'updatedAt' | 'id' | 'parentId' | 'name' | 'uuid' | 'userId'
+> & { plainName: string; status: DriveFileForTree['status'] };
 
 export interface DownloadedThumbnail {
   width: number;

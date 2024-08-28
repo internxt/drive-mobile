@@ -36,16 +36,20 @@ export const getDriveTrashItems = async ({
     ]);
 
     const trashItems = trashFolders.items.concat(trashFiles.items).map<DriveListItem>((trashItem) => {
+      const isFolder = !trashItem.fileId ? true : false;
+
       return {
         status: DriveItemStatus.Idle,
         data: {
           ...trashItem,
           id: trashItem.id,
-          name: trashItem.name,
+          folderId: trashItem.folderId,
+          name: trashItem.plainName ?? trashItem.name,
           updatedAt: new Date(trashItem.updatedAt).toISOString(),
           createdAt: new Date(trashItem.createdAt).toISOString(),
-          isFolder: !trashItem.fileId ? true : false,
+          isFolder,
           currentThumbnail: null,
+          type: isFolder ? undefined : trashItem.type,
           thumbnails: [],
         },
         id: trashItem.id.toString(),
@@ -78,17 +82,13 @@ export const restoreDriveItems = async (
   config?: { displayNotification: boolean },
 ): Promise<UseCaseResult<unknown>> => {
   try {
-    const operations = items.map((item) => {
+    const operations = items.map(async (item) => {
       if (item.fileId) {
-        drive.trash
-          .restoreFile({ fileId: item.fileId, destinationFolderId: item.destinationFolderId })
-          .catch((err) => errorService.reportError(err));
+        await drive.trash.restoreFile({ fileId: item.fileId, destinationFolderId: item.destinationFolderId });
       }
 
       if (item.folderId) {
-        drive.trash
-          .restoreFolder({ folderId: item.folderId, destinationFolderId: item.destinationFolderId })
-          .catch((err) => errorService.reportError(err));
+        await drive.trash.restoreFolder({ folderId: item.folderId, destinationFolderId: item.destinationFolderId });
       }
     });
 
@@ -185,22 +185,17 @@ export const moveItemsToTrash = async (
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {
-    drive.trash
-      .moveToTrash(items)
-      .then(() => {
-        notifications.show({
-          text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
-          type: NotificationType.Success,
-          action: {
-            text: strings.buttons.undo,
-            onActionPress: onUndo,
-          },
-        });
-      })
-      .catch((error) => errorService.reportError(error));
+    await drive.trash.moveToTrash(items);
 
     const isPlural = items.length > 1;
-
+    notifications.show({
+      text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
+      type: NotificationType.Success,
+      action: {
+        text: strings.buttons.undo,
+        onActionPress: onUndo,
+      },
+    });
     // Remove the items from the db
     await Promise.all(
       items.map((item) => {

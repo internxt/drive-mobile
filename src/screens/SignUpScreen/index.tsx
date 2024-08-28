@@ -17,7 +17,7 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
     navigation.canGoBack() ? navigation.goBack() : navigation.replace('SignIn');
   };
   const onFormSubmitSuccess = () => {
-    navigation.replace('TabExplorer', { screen: 'Home', showReferralsBanner: true });
+    navigation.replace('TabExplorer', { screen: 'Home' });
   };
 
   return (

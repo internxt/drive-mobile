@@ -358,13 +358,28 @@ export const driveSlice = createSlice({
       state.uploadingFiles = [...state.uploadingFiles, action.payload];
     },
     uploadingFileEnd(state, action: PayloadAction<number>) {
-      state.uploadingFiles = state.uploadingFiles.filter((file) => file.id !== action.payload);
+      state.uploadingFiles = state.uploadingFiles.map((file) => {
+        const sameFile = file.id === action.payload;
+
+        if (sameFile) {
+          return {
+            ...file,
+            uploaded: true,
+          };
+        }
+
+        return file;
+      });
+    },
+    clearUploadedFiles(state) {
+      state.uploadingFiles = [];
     },
     uploadFileFinished(state) {
       state.isLoading = false;
       state.isUploading = false;
       state.isUploadingFileName = null;
     },
+
     uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: number }>) {
       state.isLoading = false;
       state.isUploading = false;

@@ -15,7 +15,6 @@ import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
 import errorService from 'src/services/ErrorService';
 import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
 import UserService from '../../../services/UserService';
-import photos from '@internxt-mobile/services/photos';
 import drive from '@internxt-mobile/services/drive';
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import appService from '@internxt-mobile/services/AppService';
@@ -27,30 +26,6 @@ export interface AuthState {
   securityDetails: SecurityDetails | undefined;
   sessionPassword: string | undefined;
 }
-
-const initMobileSdk = async (credentials: AuthCredentials) => {
-  if (!appService.isAndroid) return;
-  await internxtMobileSDKConfig.initialize({
-    BRIDGE_URL: appService.constants.BRIDGE_URL,
-    DRIVE_API_URL: appService.constants.DRIVE_API_URL,
-    DRIVE_NEW_API_URL: appService.constants.DRIVE_NEW_API_URL,
-    PHOTOS_API_URL: appService.constants.PHOTOS_API_URL,
-    PHOTOS_NETWORK_API_URL: appService.constants.PHOTOS_NETWORK_API_URL,
-    MAGIC_IV: appService.constants.MAGIC_IV,
-    MAGIC_SALT: appService.constants.MAGIC_SALT,
-  });
-
-  await internxtMobileSDKConfig.identifyUser({
-    legacyToken: credentials.accessToken,
-    authToken: credentials.photosToken,
-    email: credentials.user.email,
-    userId: credentials.user.userId,
-    userUuid: credentials.user.uuid,
-    plainMnemonic: credentials.user.mnemonic,
-    bucketId: credentials.user.bucket,
-    rootFolderId: credentials.user.root_folder_id.toString(),
-  });
-};
 
 const initialState: AuthState = {
   loggedIn: null,
@@ -76,7 +51,6 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
         userId: credentials.user.userId,
       });
 
-      await initMobileSdk(credentials);
       dispatch(refreshUserThunk());
       dispatch(loadSecurityDetailsThunk());
     } else {
@@ -108,7 +82,6 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         newToken: credentials.photosToken,
       });
 
-      await initMobileSdk(credentials);
       dispatch(
         authActions.setSignInData({
           token: credentials.accessToken,
@@ -117,14 +90,6 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         }),
       );
 
-      /**
-       * TODO centralize this somewhere else
-       * this is not the right place
-       */
-      photos.analytics.setUser({
-        email: credentials.user.email,
-        uuid: credentials.user.uuid,
-      });
       authService.emitLoginEvent();
     } catch (error) {
       dispatch(authActions.setLoggedIn(false));
@@ -170,14 +135,6 @@ export const signInThunk = createAsyncThunk<
     }),
   );
 
-  /**
-   * TODO centralize this somewhere else
-   * this is not the right place
-   */
-  photos.analytics.setUser({
-    email: userToSave.email,
-    uuid: userToSave.uuid,
-  });
   authService.emitLoginEvent();
   return {
     user: userToSave,
@@ -209,8 +166,6 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
 
-      await initMobileSdk(credentials);
-
       // Pass the new tokens to the SdkManager
       SdkManager.init({
         token: credentials.accessToken,
@@ -237,7 +192,6 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/signOut',
   async (_, { dispatch }) => {
     authService.signout().catch(errorService.reportError);
-    photos.clear().catch(errorService.reportError);
     drive.clear().catch(errorService.reportError);
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
@@ -376,12 +330,6 @@ export const changePasswordThunk = createAsyncThunk<void, { newPassword: string 
     await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, newToken);
     const user = getState().auth.user;
     if (!user) throw new Error('No user found, this is fatal');
-
-    await initMobileSdk({
-      accessToken: token,
-      photosToken: newToken,
-      user,
-    });
 
     SdkManager.setApiSecurity({
       token,

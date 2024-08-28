@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Linking, View, ScrollView, Platform } from 'react-native';
 import { Bug, CaretRight, FileText, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
 
@@ -7,7 +7,7 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import AppScreen from '../../components/AppScreen';
-import appService, { constants } from '../../services/AppService';
+import appService from '../../services/AppService';
 import AppText from '../../components/AppText';
 import { SettingsScreenProps } from '../../types/navigation';
 import AppScreenTitle from '../../components/AppScreenTitle';
@@ -18,35 +18,26 @@ import { uiActions } from '../../store/slices/ui';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import { Language } from 'src/types';
 import { storageSelectors } from 'src/store/slices/storage';
-import AppSwitch from 'src/components/AppSwitch';
-import { PhotosContext } from 'src/contexts/Photos';
-import BottomModal from 'src/components/modals/BottomModal';
-import { PhotosPermissions } from '../PhotosPermissionsScreen';
-import Portal from '@burstware/react-native-portal';
-import { PermissionStatus } from 'expo-media-library';
+
 import { imageService, logger, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
-import { ENABLE_PHOTOS_SYNC } from '@internxt-mobile/services/photos/constants';
+
 import { paymentsSelectors } from 'src/store/slices/payments';
 
-function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
-  const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
-  const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [gettingLogs, setGettingLogs] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const scrollViewRef = useRef<ScrollView | null>(null);
 
-  const photosCtx = useContext(PhotosContext);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const [profileAvatar, setProfileAvatar] = useState<string>();
-  const [enablePhotosSyncScrollPoint, setEnablePhotosSyncScrollPoint] = useState(0);
   const userFullName = useAppSelector(authSelectors.userFullName);
   useEffect(() => {
     if (!user?.avatar) {
@@ -71,23 +62,6 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
       });
   }, [user?.avatar]);
 
-  useEffect(() => {
-    if (route?.params?.focusEnablePhotosSync && enablePhotosSyncScrollPoint) {
-      highlightEnablePhotosSyncSection();
-    }
-  }, [route?.params?.focusEnablePhotosSync]);
-
-  const highlightEnablePhotosSyncSection = () => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ x: 0, y: enablePhotosSyncScrollPoint, animated: true });
-      setTimeout(() => {
-        setHighlightedSection('photos-sync');
-        setTimeout(() => {
-          setHighlightedSection(null);
-        }, 500);
-      }, 200);
-    }, 500);
-  };
   const onAccountPressed = () => {
     navigation.navigate('Account');
   };
@@ -116,11 +90,6 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
   };
   const onDebugPressed = () => {
     navigation.push('Debug');
-  };
-
-  const handlePermissionsGranted = async () => {
-    await photosCtx.enableSync(true);
-    setPhotosPermissionsModalOpen(false);
   };
 
   const onShareLogsPressed = async () => {
@@ -391,18 +360,6 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
           </View>
         </ScrollView>
       </AppScreen>
-      <Portal>
-        <BottomModal
-          headerStyle={tailwind('bg-white')}
-          header={<View></View>}
-          isOpen={photosPermissionsModalOpen}
-          onClosed={() => setPhotosPermissionsModalOpen(false)}
-        >
-          <View style={tailwind('mt-6')}>
-            <PhotosPermissions onPermissionsGranted={handlePermissionsGranted} />
-          </View>
-        </BottomModal>
-      </Portal>
     </>
   );
 }

@@ -38,6 +38,9 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import uuid from 'react-native-uuid';
 import { SaveFormat } from 'expo-image-manipulator';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
+
+const MAX_FILES_BULK_UPLOAD = 25;
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -46,7 +49,7 @@ function AddModal(): JSX.Element {
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const { showUploadModal } = useAppSelector((state) => state.ui);
   const { folderContent } = useAppSelector((state) => state.drive);
-  const { currentFolder } = useDrive();
+  const { focusedFolder } = useDrive();
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
@@ -71,11 +74,12 @@ function AddModal(): JSX.Element {
   };
 
   const onFolderCreated = async () => {
-    if (!currentFolder) {
+    if (!focusedFolder) {
       throw new Error('No current folder found');
     }
     setShowCreateFolderModal(false);
-    await driveCtx.loadFolderContent(currentFolder.id, { pullFrom: ['network'] });
+    await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+    await driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
   };
   async function uploadAndroid(
     fileToUpload: UploadingFile,
@@ -273,7 +277,7 @@ function AddModal(): JSX.Element {
     filesAtSameLevel: { name: string; type: string }[],
     file: DocumentPickerResponse,
   ): UploadingFile {
-    if (!currentFolder) {
+    if (!focusedFolder) {
       throw new Error('No current folder found');
     }
     if (!isValidFilename(file.name)) {
@@ -289,11 +293,12 @@ function AddModal(): JSX.Element {
         drive.file.getExtensionFromUri(file.name) || '',
       )[2],
       type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
-      parentId: currentFolder.id,
+      parentId: focusedFolder.id,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
       size: file.size,
       progress: 0,
+      uploaded: false,
     };
   }
 
@@ -302,7 +307,7 @@ function AddModal(): JSX.Element {
     const filesExcluded: DocumentPickerResponse[] = [];
     const formattedFiles: UploadingFile[] = [];
 
-    if (!currentFolder) {
+    if (!focusedFolder) {
       throw new Error('No current folder found');
     }
     if (!documents.every((file) => isValidFilename(file.name))) {
@@ -343,11 +348,12 @@ function AddModal(): JSX.Element {
             drive.file.getExtensionFromUri(fileToUpload.name) || '',
           )[2],
           type: drive.file.getExtensionFromUri(fileToUpload.uri) || '',
-          parentId: currentFolder.id,
+          parentId: focusedFolder.id,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
           size: fileToUpload.size,
           progress: 0,
+          uploaded: false,
         };
       }
 
@@ -383,6 +389,7 @@ function AddModal(): JSX.Element {
         dispatch(driveActions.uploadFileFinished());
       }
     }
+    dispatch(driveActions.clearUploadedFiles());
   }
 
   /**
@@ -396,13 +403,24 @@ function AddModal(): JSX.Element {
         copyTo: 'cachesDirectory',
       });
 
+      const exceedsMaxFileUpload = pickedFiles.length > MAX_FILES_BULK_UPLOAD;
+
+      if (exceedsMaxFileUpload) {
+        Alert.alert(
+          strings.messages.maxBulkUploadReached.title,
+          strings.formatString(strings.messages.maxBulkUploadReached.message, MAX_FILES_BULK_UPLOAD) as string,
+        );
+        return;
+      }
+
       // 2. Add them to the uploader
       await processFilesFromPicker(pickedFiles);
       dispatch(driveThunks.loadUsageThunk());
 
       // 3. Refresh the current folder
-      if (currentFolder) {
-        driveCtx.loadFolderContent(currentFolder.id);
+      if (focusedFolder) {
+        await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+        driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
       }
     } catch (err) {
       const error = err as Error;
@@ -430,7 +448,7 @@ function AddModal(): JSX.Element {
       const { status } = await requestMediaLibraryPermissionsAsync(false);
 
       if (status === 'granted') {
-        launchImageLibrary({ mediaType: 'mixed', selectionLimit: 0 }, async (response) => {
+        launchImageLibrary({ mediaType: 'mixed', selectionLimit: MAX_FILES_BULK_UPLOAD }, async (response) => {
           if (response.errorMessage) {
             return Alert.alert(response.errorMessage);
           }
@@ -457,8 +475,8 @@ function AddModal(): JSX.Element {
               .then(() => {
                 dispatch(driveThunks.loadUsageThunk());
 
-                if (currentFolder) {
-                  driveCtx.loadFolderContent(currentFolder.id);
+                if (focusedFolder) {
+                  driveCtx.loadFolderContent(focusedFolder.id);
                 }
               })
               .catch((err) => {
@@ -485,8 +503,8 @@ function AddModal(): JSX.Element {
         .then(() => {
           dispatch(driveThunks.loadUsageThunk());
 
-          if (currentFolder) {
-            driveCtx.loadFolderContent(currentFolder.id);
+          if (focusedFolder) {
+            driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
           }
         })
         .catch((err) => {
@@ -511,7 +529,7 @@ function AddModal(): JSX.Element {
     const { status } = await requestCameraPermissionsAsync();
 
     if (status === 'granted') {
-      if (!currentFolder) {
+      if (!focusedFolder) {
         throw new Error('No current folder found');
       }
       try {
@@ -528,13 +546,14 @@ function AddModal(): JSX.Element {
           const file: UploadingFile = {
             id: new Date().getTime(),
             name,
-            parentId: currentFolder.id,
+            parentId: focusedFolder.id,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
             type: drive.file.getExtensionFromUri(assetToUpload.uri) as string,
             size: size || 0,
             uri: assetToUpload.uri,
             progress: 0,
+            uploaded: false,
           };
 
           trackUploadStart(file);
@@ -553,8 +572,8 @@ function AddModal(): JSX.Element {
             dispatch(driveActions.uploadFileFinished());
             dispatch(driveThunks.loadUsageThunk());
 
-            if (currentFolder) {
-              driveCtx.loadFolderContent(currentFolder.id);
+            if (focusedFolder) {
+              driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
             }
           }
         }
@@ -666,10 +685,10 @@ function AddModal(): JSX.Element {
           </View>
         </View>
       </BottomModal>
-      {currentFolder ? (
+      {focusedFolder ? (
         <CreateFolderModal
           isOpen={showCreateFolderModal}
-          currentFolderId={currentFolder.id}
+          currentFolderId={focusedFolder.id}
           onClose={onCloseCreateFolderModal}
           onCancel={onCancelCreateFolderModal}
           onFolderCreated={onFolderCreated}
