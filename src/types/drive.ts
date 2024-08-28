@@ -114,6 +114,7 @@ export interface UploadingFile {
   updatedAt: string;
   size: number;
   progress: number;
+  uploaded: boolean;
 }
 
 export interface DownloadingFile {

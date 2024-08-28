@@ -119,13 +119,13 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
     setSelectedDriveItem(undefined);
     setOptionsModalOpen(false);
 
-    const destinationFolderId = user?.root_folder_id;
+    const destinationFolderId = (item.data.isFolder ? item.data.parentId : item.data.folderId) ?? user?.root_folder_id;
 
     const { success } = await driveUseCases.restoreDriveItems([
       {
         fileId: item.data.fileId,
-        folderId: item.data.isFolder ? item.data.folderId : undefined,
-        // We move the item to the root folder, as we don't have the parent folder id
+        folderId: item.data.isFolder ? item.data.id : undefined,
+
         destinationFolderId,
       },
     ]);

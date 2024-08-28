@@ -17,6 +17,7 @@ type DriveFoldersTreeNode = {
   uuid: string;
   updatedAt: string;
   createdAt: string;
+  loading: boolean;
   files: DriveFileForTree[];
   folders: DriveFolderForTree[];
   error?: Error;
@@ -61,6 +62,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     uuid: '',
     updatedAt: '',
     createdAt: '',
+    loading: true,
     files: [],
     folders: [],
   };
@@ -99,7 +101,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   }, []);
   useEffect(() => {
     if (!rootFolderId) return;
-
+    setDriveFoldersTree({ [rootFolderId]: ROOT_FOLDER_NODE });
     loadFolderContent(rootFolderId, { pullFrom: ['network'], resetPagination: true, focusFolder: true }).catch(
       (err) => {
         errorService.reportError(err);
@@ -177,7 +179,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
   const loadFolderContent = async (folderId: number, options?: LoadFolderContentOptions) => {
     const shouldResetPagination = options?.resetPagination;
-    const driveFolderTreeNode: DriveFoldersTreeNode = driveFoldersTree[folderId] ?? null;
+    const driveFolderTreeNode: DriveFoldersTreeNode = driveFoldersTree[folderId] ?? ROOT_FOLDER_NODE;
 
     if (!driveFolderTreeNode) throw new Error('Cannot load this folder');
     if (options?.focusFolder && driveFolderTreeNode) {
@@ -231,6 +233,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         id: folderId,
         files: allFiles,
         folders: allFolders,
+        loading: false,
         error,
       } as DriveFoldersTreeNode,
     };
@@ -245,6 +248,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           id: folder.id,
           updatedAt: folder.updatedAt,
           createdAt: folder.createdAt,
+          loading: true,
           files: [],
           folders: [],
           currentFoldersPage: 2,

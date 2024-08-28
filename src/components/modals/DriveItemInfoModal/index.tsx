@@ -67,7 +67,7 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(driveActions.setItemToMove(item));
   };
 
-  const handleUndoMoveToTrash = async (dbItem: DriveItemData) => {
+  const handleUndoMoveToTrash = async () => {
     const { success } = await driveUseCases.restoreDriveItems(
       [
         {
@@ -79,7 +79,6 @@ function DriveItemInfoModal(): JSX.Element {
       { displayNotification: false },
     );
     if (success && driveCtx.focusedFolder?.id) {
-      await driveLocalDB.saveItems([dbItem]);
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
     }
@@ -96,14 +95,13 @@ function DriveItemInfoModal(): JSX.Element {
         },
       ],
 
-      () => dbItem && handleUndoMoveToTrash(dbItem),
+      () => handleUndoMoveToTrash(),
     );
 
     if (success && dbItem?.id) {
       await driveLocalDB.deleteItem({ id: dbItem.id });
     }
     if (driveCtx.focusedFolder?.id) {
-      console.log('TRASHED ITEM WITH ID', item.id);
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
     }

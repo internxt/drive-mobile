@@ -48,7 +48,7 @@ class PaymentService {
       return result.data.display || false;
     }
 
-    return false;
+    return true;
   }
 
   async getDefaultPaymentMethod(): Promise<PaymentMethod | null> {

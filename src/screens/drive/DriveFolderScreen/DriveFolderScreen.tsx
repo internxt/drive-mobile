@@ -315,7 +315,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
               </View>
             )}
             onEndReached={handleEndReached}
-            isLoading={driveCtx.driveFoldersTree[folderId] ? false : true}
+            isLoading={driveCtx.driveFoldersTree[folderId].loading}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}
             items={driveItems}

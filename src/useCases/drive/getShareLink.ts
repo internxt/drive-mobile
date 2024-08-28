@@ -129,7 +129,6 @@ export const generateShareLink = async ({
   // 3. Encrypt the mnemonic
   const encryptedMnemonic = aes.encrypt(mnemonic, plainCode);
 
-  console.log('ITEM', itemId);
   // 4. Generate the share link
   const link = await drive.share.generateShareLink(
     {

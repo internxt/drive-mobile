@@ -27,30 +27,6 @@ export interface AuthState {
   sessionPassword: string | undefined;
 }
 
-const initMobileSdk = async (credentials: AuthCredentials) => {
-  if (!appService.isAndroid) return;
-  await internxtMobileSDKConfig.initialize({
-    BRIDGE_URL: appService.constants.BRIDGE_URL,
-    DRIVE_API_URL: appService.constants.DRIVE_API_URL,
-    DRIVE_NEW_API_URL: appService.constants.DRIVE_NEW_API_URL,
-    PHOTOS_API_URL: '',
-    PHOTOS_NETWORK_API_URL: '',
-    MAGIC_IV: appService.constants.MAGIC_IV,
-    MAGIC_SALT: appService.constants.MAGIC_SALT,
-  });
-
-  await internxtMobileSDKConfig.identifyUser({
-    legacyToken: credentials.accessToken,
-    authToken: credentials.photosToken,
-    email: credentials.user.email,
-    userId: credentials.user.userId,
-    userUuid: credentials.user.uuid,
-    plainMnemonic: credentials.user.mnemonic,
-    bucketId: credentials.user.bucket,
-    rootFolderId: credentials.user.root_folder_id.toString(),
-  });
-};
-
 const initialState: AuthState = {
   loggedIn: null,
   token: '',
@@ -75,7 +51,6 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
         userId: credentials.user.userId,
       });
 
-      await initMobileSdk(credentials);
       dispatch(refreshUserThunk());
       dispatch(loadSecurityDetailsThunk());
     } else {
@@ -107,7 +82,6 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         newToken: credentials.photosToken,
       });
 
-      await initMobileSdk(credentials);
       dispatch(
         authActions.setSignInData({
           token: credentials.accessToken,
@@ -191,8 +165,6 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
 
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
-
-      await initMobileSdk(credentials);
 
       // Pass the new tokens to the SdkManager
       SdkManager.init({
@@ -358,12 +330,6 @@ export const changePasswordThunk = createAsyncThunk<void, { newPassword: string 
     await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, newToken);
     const user = getState().auth.user;
     if (!user) throw new Error('No user found, this is fatal');
-
-    await initMobileSdk({
-      accessToken: token,
-      photosToken: newToken,
-      user,
-    });
 
     SdkManager.setApiSecurity({
       token,

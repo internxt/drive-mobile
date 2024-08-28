@@ -37,12 +37,13 @@ export const getDriveTrashItems = async ({
 
     const trashItems = trashFolders.items.concat(trashFiles.items).map<DriveListItem>((trashItem) => {
       const isFolder = !trashItem.fileId ? true : false;
+
       return {
         status: DriveItemStatus.Idle,
         data: {
           ...trashItem,
           id: trashItem.id,
-          folderId: isFolder ? trashItem.id : undefined,
+          folderId: trashItem.folderId,
           name: trashItem.plainName ?? trashItem.name,
           updatedAt: new Date(trashItem.updatedAt).toISOString(),
           createdAt: new Date(trashItem.createdAt).toISOString(),

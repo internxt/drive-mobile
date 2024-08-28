@@ -41,7 +41,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
 
   const listItems = useMemo(() => props.items, [props.items]);
 
-  const isEmptyFolder = props.items?.length === 0;
+  const isEmptyFolder = !props.isLoading && Array.isArray(props.items) && props.items.length === 0;
   const sizeByMode = {
     [DriveListViewMode.List]: {
       width,

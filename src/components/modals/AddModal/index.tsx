@@ -78,6 +78,7 @@ function AddModal(): JSX.Element {
       throw new Error('No current folder found');
     }
     setShowCreateFolderModal(false);
+    await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
     await driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
   };
   async function uploadAndroid(
@@ -297,6 +298,7 @@ function AddModal(): JSX.Element {
       updatedAt: new Date().toString(),
       size: file.size,
       progress: 0,
+      uploaded: false,
     };
   }
 
@@ -351,6 +353,7 @@ function AddModal(): JSX.Element {
           updatedAt: new Date().toString(),
           size: fileToUpload.size,
           progress: 0,
+          uploaded: false,
         };
       }
 
@@ -386,6 +389,7 @@ function AddModal(): JSX.Element {
         dispatch(driveActions.uploadFileFinished());
       }
     }
+    dispatch(driveActions.clearUploadedFiles());
   }
 
   /**
@@ -549,6 +553,7 @@ function AddModal(): JSX.Element {
             size: size || 0,
             uri: assetToUpload.uri,
             progress: 0,
+            uploaded: false,
           };
 
           trackUploadStart(file);
