@@ -19,10 +19,16 @@ struct KyberDefaults {
     static let defaultKeySize = 768
     static let supportedKeySizes = [512, 768, 1024]
 }
-
+struct KyberConfig {
+    let keySize: Int
+}
 class KyberCrypto {
-  
+    private let config: KyberConfig
     private let keySize = KyberDefaults.defaultKeySize
+
+    init(config: KyberConfig = KyberConfig(keySize: KyberDefaults.defaultKeySize)) {
+        self.config = config
+    }
 
     private func isValidKeySize(_ size: Int) -> Bool {
         return KyberDefaults.supportedKeySizes.contains(size)
@@ -53,15 +59,14 @@ class KyberCrypto {
   
     // Generate a public-private key pair for asymmetric encryption
     // - Returns: A tuple containing the public key and private key as Data, or nil in case of an error.
-    func generateAsymmetricKeyPair(size: Int = KyberDefaults.defaultKeySize) -> (publicKey: Data, privateKey: Data)? {
-        guard isValidKeySize(size) else {
+    func generateAsymmetricKeyPair() -> (publicKey: Data, privateKey: Data)? {
+        guard isValidKeySize(config.keySize) else {
             logError(.invalidKeySize)
             return nil
         }
 
         do {
-            KyberLogger.log("Generated key pair successfully")
-            return try KyberKeyManager.generateKeyPair(size: size)
+            return try KyberKeyManager.generateKeyPair(size: config.keySize)
         } catch {
             logError(.keyGenerationFailed)
             return nil
