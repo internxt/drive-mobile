@@ -81,4 +81,11 @@ class KyberCryptoTests: XCTestCase {
         }
     }
 
+     func testCustomConfig() {
+        let config = KyberConfig(keySize: 1024)
+        let kyber = KyberCrypto(config: config)
+        let keyPair = kyber.generateAsymmetricKeyPair()
+        XCTAssertNotNil(keyPair, "Key pair generation should succeed with custom config")
+    }
+
 }
