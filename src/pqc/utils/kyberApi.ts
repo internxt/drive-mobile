@@ -1,7 +1,7 @@
 export const getKyberRateFromAPI = async (tokenAddress: string, amount: string): Promise<string> => {
   try {
     console.log(`Fetching Kyber rate for ${amount} of token ${tokenAddress}`);
-    const mockRate = '0.5'; // 1 token = 0.5 Ether for example
+    const mockRate = '0.5';
     return mockRate;
   } catch (error) {
     throw new Error('Failed to fetch rate from Kyber API');
