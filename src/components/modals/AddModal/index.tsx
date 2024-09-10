@@ -33,7 +33,7 @@ import { storageSelectors } from 'src/store/slices/storage';
 import drive from '@internxt-mobile/services/drive';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { DriveFileData, EncryptionVersion, FileEntry, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
-import { imageService } from '@internxt-mobile/services/common';
+import { imageService, logger } from '@internxt-mobile/services/common';
 import errorService from '@internxt-mobile/services/ErrorService';
 import uuid from 'react-native-uuid';
 import { SaveFormat } from 'expo-image-manipulator';
@@ -113,6 +113,7 @@ function AddModal(): JSX.Element {
       progressCallback,
     );
 
+    dispatch(driveActions.uploadingFileEnd(fileToUpload.id));
     fileSystemService.unlink(destPath).catch(() => null);
 
     return createdFileEntry;
@@ -131,8 +132,11 @@ function AddModal(): JSX.Element {
     progressCallback: ProgressCallback,
   ) {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
+    logger.info('Stating file...');
     const fileStat = await fileSystemService.stat(filePath);
+    logger.info('File stats: ', JSON.stringify(fileStat));
     const fileSize = fileStat.size;
+    logger.info('About to upload file...');
     const fileId = await network.uploadFile(
       filePath,
       bucket,
@@ -148,9 +152,13 @@ function AddModal(): JSX.Element {
       () => null,
     );
 
+    logger.info('File uploaded with fileId: ', fileId);
+
     const folderId = currentFolderId;
     const plainName = drive.file.removeExtension(fileName);
+    logger.info('Encrypting filename...');
     const name = encryptFilename(plainName, folderId.toString());
+    logger.info('Filename encrypted');
     const fileEntry: FileEntry = {
       type: fileExtension,
       bucket,
@@ -210,19 +218,26 @@ function AddModal(): JSX.Element {
     } as DriveFileData;
   }
   const uploadFile = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
+    logger.info('Starting file upload process: ', JSON.stringify(uploadingFile));
     function progressCallback(progress: number) {
       dispatch(driveActions.uploadFileSetProgress({ progress, id: uploadingFile.id }));
     }
 
     if (!isValidFilename(uploadingFile.name)) {
+      logger.error(`File name is not valid: ${uploadingFile.name}`);
       throw new Error('This file name is not valid');
     }
+    logger.info(`File name is valid: ${uploadingFile.name}`);
     if (uploadingFile.size + usage > limit) {
+      logger.error(`File size is bigger than user available Internxt storage: New -> ${uploadingFile.size + usage}`);
       dispatch(uiActions.setShowRunOutSpaceModal(true));
       throw new Error(strings.errors.storageLimitReached);
     }
 
+    logger.info(`File size fits into user available Internxt storage: New -> ${uploadingFile.size + usage}`);
+
     try {
+      logger.info('Starting file upload process');
       if (Platform.OS === 'ios') {
         await uploadIOS(uploadingFile, fileType, progressCallback);
       } else if (Platform.OS === 'android') {
@@ -230,7 +245,10 @@ function AddModal(): JSX.Element {
       } else {
         throw new Error('Unsuported platform');
       }
+      logger.info('File upload process finished');
+      dispatch(driveActions.uploadingFileEnd(uploadingFile.id));
     } catch (error) {
+      logger.error('File upload process failed: ', JSON.stringify(error));
       errorService.reportError(error);
       throw error;
     }
@@ -365,9 +383,6 @@ function AddModal(): JSX.Element {
       filesAtSameLevel.push({ name: file.name, type: file.type });
     }
 
-    if (Platform.OS === 'android') {
-      await fileSystemService.clearTempDir();
-    }
     for (const file of formattedFiles) {
       try {
         await uploadFile(file, 'document');
@@ -381,6 +396,7 @@ function AddModal(): JSX.Element {
         });
         trackUploadError(file, err);
         dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
+        logger.error('File upload process failed: ', JSON.stringify(err));
         notificationsService.show({
           type: NotificationType.Error,
           text1: strings.formatString(strings.errors.uploadFile, err.message) as string,

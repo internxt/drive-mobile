@@ -25,6 +25,7 @@ import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
 import { isValidFilename } from 'src/helpers';
+import { logger } from '@internxt-mobile/services/common';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -136,6 +137,7 @@ const downloadFileThunk = createAsyncThunk<
     { id, size, parentId, name, type, fileId, openFileViewer, updatedAt, bucketId },
     { signal, getState, dispatch, rejectWithValue },
   ) => {
+    logger.info('Starting file download...');
     const { user } = getState().auth;
     dispatch(
       driveActions.updateDownloadingFile({
@@ -216,6 +218,7 @@ const downloadFileThunk = createAsyncThunk<
     };
 
     const destinationPath = drive.file.getDecryptedFilePath(name, type);
+    logger.info(`Download destination path: ${destinationPath} `);
     const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
     try {
       if (!isValidFilename(name)) {
@@ -358,17 +361,8 @@ export const driveSlice = createSlice({
       state.uploadingFiles = [...state.uploadingFiles, action.payload];
     },
     uploadingFileEnd(state, action: PayloadAction<number>) {
-      state.uploadingFiles = state.uploadingFiles.map((file) => {
-        const sameFile = file.id === action.payload;
-
-        if (sameFile) {
-          return {
-            ...file,
-            uploaded: true,
-          };
-        }
-
-        return file;
+      state.uploadingFiles = state.uploadingFiles.filter((file) => {
+        return file.id !== action.payload;
       });
     },
     clearUploadedFiles(state) {

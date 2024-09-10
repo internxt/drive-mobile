@@ -16,7 +16,7 @@ const AppToast = (): JSX.Element => {
   const safeAreaInsets = useSafeAreaInsets();
   const screenDimensions = Dimensions.get('screen');
   const defaultProps: BaseToastProps = {
-    text1NumberOfLines: 1,
+    text1NumberOfLines: 3,
     style: {
       ...tailwind('rounded-xl border-0 border-gray-10 border pl-3.5 h-12'),
       width: screenDimensions.width - 24,
