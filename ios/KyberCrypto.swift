@@ -104,4 +104,9 @@ class KyberCrypto {
         }
     }
 
+   func clearKeyPair(_ keyPair: (publicKey: Data, privateKey: Data)) {
+        keyPair.publicKey.resetBytes(in: 0..<keyPair.publicKey.count)
+        keyPair.privateKey.resetBytes(in: 0..<keyPair.privateKey.count)
+    }
+    
 }
