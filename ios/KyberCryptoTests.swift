@@ -88,4 +88,16 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertNotNil(keyPair, "Key pair generation should succeed with custom config")
     }
 
+     func testKeyPairClearing() {
+        let kyber = KyberCrypto()
+        guard let keyPair = kyber.generateAsymmetricKeyPair() else {
+            XCTFail("Key generation failed")
+            return
+        }
+
+        kyber.clearKeyPair(keyPair)
+        XCTAssertEqual(keyPair.publicKey.count, 0, "Public key should be cleared")
+        XCTAssertEqual(keyPair.privateKey.count, 0, "Private key should be cleared")
+    }
+
 }
