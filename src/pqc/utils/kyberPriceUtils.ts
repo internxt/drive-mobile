@@ -23,7 +23,6 @@ export const convertTokenPrice = async (
   const fromTokenRate = await getKyberRateFromAPI(fromTokenAddress, amount);
   const toTokenRate = await getKyberRateFromAPI(toTokenAddress, amount);
 
-  // Simulate a price conversion
   const convertedPrice = new BigNumber(amount).times(fromTokenRate).div(toTokenRate).toString();
   return convertedPrice;
 };
