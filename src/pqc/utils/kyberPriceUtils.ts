@@ -19,7 +19,6 @@ export const convertTokenPrice = async (
   toTokenAddress: string,
   amount: string,
 ): Promise<string> => {
-  // Mock API call to get rates for both tokens
   const fromTokenRate = await getKyberRateFromAPI(fromTokenAddress, amount);
   const toTokenRate = await getKyberRateFromAPI(toTokenAddress, amount);
 
