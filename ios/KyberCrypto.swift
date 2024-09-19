@@ -108,5 +108,13 @@ class KyberCrypto {
         keyPair.publicKey.resetBytes(in: 0..<keyPair.publicKey.count)
         keyPair.privateKey.resetBytes(in: 0..<keyPair.privateKey.count)
     }
-    
+
+    func exportPublicKey(_ publicKey: Data) -> String {
+        return publicKey.base64EncodedString()
+    }
+
+    func exportPrivateKey(_ privateKey: Data) -> String {
+        return privateKey.base64EncodedString()
+    }
+
 }
