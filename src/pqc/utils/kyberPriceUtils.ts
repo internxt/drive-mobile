@@ -13,7 +13,6 @@ export const getTokenPriceInEther = async (tokenAddress: string, amount: string)
   }
 };
 
-// Utility to convert token price to another token using Kyber rates
 export const convertTokenPrice = async (
   fromTokenAddress: string,
   toTokenAddress: string,
