@@ -100,4 +100,18 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertEqual(keyPair.privateKey.count, 0, "Private key should be cleared")
     }
 
+    func testExportKeys() {
+        let kyber = KyberCrypto()
+        guard let keyPair = kyber.generateAsymmetricKeyPair() else {
+            XCTFail("Key generation failed")
+            return
+        }
+
+        let publicKeyString = kyber.exportPublicKey(keyPair.publicKey)
+        let privateKeyString = kyber.exportPrivateKey(keyPair.privateKey)
+
+        XCTAssertNotNil(publicKeyString, "Public key export should not be nil")
+        XCTAssertNotNil(privateKeyString, "Private key export should not be nil")
+    }
+
 }
