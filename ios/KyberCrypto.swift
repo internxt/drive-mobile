@@ -117,4 +117,12 @@ class KyberCrypto {
         return privateKey.base64EncodedString()
     }
 
+     func importPublicKey(_ publicKeyString: String) -> Data? {
+        return Data(base64Encoded: publicKeyString)
+    }
+
+    func importPrivateKey(_ privateKeyString: String) -> Data? {
+        return Data(base64Encoded: privateKeyString)
+    }
+
 }
