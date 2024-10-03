@@ -6,7 +6,7 @@ import { getKyberRateFromAPI } from './kyberAPI';
 export const getTokenPriceInEther = async (tokenAddress: string, amount: string): Promise<string> => {
   try {
     const rate = await getKyberRateFromAPI(tokenAddress, amount);
-    // Assuming rate is in Ether, if needed apply conversion logic here
+
     return rate;
   } catch (error) {
     throw new Error('Failed to get token price');
