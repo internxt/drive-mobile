@@ -2,7 +2,6 @@
 
 import { getKyberRateFromAPI } from './kyberAPI';
 
-// Utility to fetch the price of a specific token using Kyber
 export const getTokenPriceInEther = async (tokenAddress: string, amount: string): Promise<string> => {
   try {
     const rate = await getKyberRateFromAPI(tokenAddress, amount);
