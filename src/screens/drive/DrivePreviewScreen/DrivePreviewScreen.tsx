@@ -1,4 +1,4 @@
-import { GeneratedThumbnail, imageService } from '@internxt-mobile/services/common';
+import { GeneratedThumbnail } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
@@ -22,7 +22,7 @@ import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
-import { DrivePreviewScreenHeader, DRIVE_PREVIEW_HEADER_HEIGHT } from './DrivePreviewScreenHeader';
+import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
 import { DriveVideoPreview } from './DriveVideoPreview';
 
 const IMAGE_PREVIEW_TYPES = [FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC];
@@ -51,12 +51,12 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension) &&
       !generatedThumbnail
     ) {
-      imageService
-        .generateVideoThumbnail(downloadingFile.downloadedFilePath)
-        .then((generatedThumbnail) => {
-          setGeneratedThumbnail(generatedThumbnail);
-        })
-        .catch((err) => errorService.reportError(err));
+      // imageService
+      //   .generateVideoThumbnail(downloadingFile.downloadedFilePath)
+      //   .then((generatedThumbnail) => {
+      //     setGeneratedThumbnail(generatedThumbnail);
+      //   })
+      //   .catch((err) => errorService.reportError(err));
     }
   }, [downloadingFile?.downloadedFilePath]);
 
