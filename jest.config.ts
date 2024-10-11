@@ -12,8 +12,6 @@ const untranspiledModulePatterns = [
   '@react-navigation/.*',
   '@unimodules/.*',
   'unimodules',
-  '@sentry/.*',
-  'sentry-expo',
   'native-base',
   'react-native-svg',
   'rn-fetch-blob',
