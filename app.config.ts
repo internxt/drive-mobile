@@ -1,7 +1,7 @@
+import { AppEnv } from '@internxt-mobile/types/app';
 import { ExpoConfig } from 'expo/config';
 import env from './env';
 import packageJson from './package.json';
-import { AppEnv } from '@internxt-mobile/types/app';
 export enum AppStage {
   Development = 'development',
   Test = 'test',

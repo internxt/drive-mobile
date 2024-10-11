@@ -1,7 +1,7 @@
 apply plugin: "com.android.application"
+apply plugin: "com.facebook.react"
 
 import com.android.build.OutputFile
-import org.apache.tools.ant.taskdefs.condition.Os
 
 /**
  * The react.gradle file registers a task for each build variant (e.g. bundleDebugJsAndAssets
@@ -91,7 +91,7 @@ project.ext.react = [
     enableFlipper: false
 ]
 
-apply from: new File(reactNativeRoot, "react.gradle")
+// apply from: new File(reactNativeRoot, "react.gradle")
 
 /**
  * Set this to true to create two separate APKs instead of one:
@@ -150,6 +150,7 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
+    namespace "com.internxt.cloud"
     defaultConfig {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
@@ -220,6 +221,7 @@ android {
         pickFirst 'lib/x86_64/libc++_shared.so'
         pickFirst 'lib/armeabi-v7a/libc++_shared.so'
     }
+    buildToolsVersion '33.0.0'
 }
 
 // Apply static values from `gradle.properties` to the `android.packagingOptions`
@@ -245,7 +247,11 @@ android {
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     //noinspection GradleDynamicVersion
-    implementation "com.facebook.react:react-native:+"  // From node_modules
+    // implementation "com.facebook.react:react-native:0.71.14"  // From node_modules
+    implementation('com.facebook.react:react-android:0.71.3')
+    implementation("com.facebook.react:react-android:0.71.3") {
+        exclude group: 'com.facebook.react', module: 'react-native'
+    }
 
     def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
     def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
@@ -288,11 +294,13 @@ dependencies {
     }
     
 
-    if (enableHermes) {
+    // if (enableHermes) {
         //noinspection GradleDynamicVersion
-        implementation("com.facebook.react:hermes-engine:+") { // From node_modules
-            exclude group:'com.facebook.fbjni'
-        }
+        // implementation("com.facebook.react:hermes-engine:+") { // From node_modules
+        //     exclude group:'com.facebook.fbjni'
+        // }
+    if (hermesEnabled.toBoolean()) {
+        implementation("com.facebook.react:hermes-android:0.71.3")
     } else {
         implementation jscFlavor
     }
