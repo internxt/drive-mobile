@@ -43,6 +43,23 @@ class KyberCrypto {
         return validKeySizes.contains(size)
     }
 
+
+    func exportPublicKey(_ publicKey: Data) -> String {
+        return publicKey.base64EncodedString()
+    }
+
+    func exportPrivateKey(_ privateKey: Data) -> String {
+        return privateKey.base64EncodedString()
+    }
+
+     func importPublicKey(_ publicKeyString: String) -> Data? {
+        return Data(base64Encoded: publicKeyString)
+    }
+    
+    func importPrivateKey(_ privateKeyString: String) -> Data? {
+        return Data(base64Encoded: privateKeyString)
+    }
+
     // Helper function to handle base64 encoding/decoding for debug logging
      private func base64String(from data: Data) -> String {
          return data.base64EncodedString()
@@ -109,20 +126,5 @@ class KyberCrypto {
         keyPair.privateKey.resetBytes(in: 0..<keyPair.privateKey.count)
     }
 
-    func exportPublicKey(_ publicKey: Data) -> String {
-        return publicKey.base64EncodedString()
-    }
-
-    func exportPrivateKey(_ privateKey: Data) -> String {
-        return privateKey.base64EncodedString()
-    }
-
-     func importPublicKey(_ publicKeyString: String) -> Data? {
-        return Data(base64Encoded: publicKeyString)
-    }
-
-    func importPrivateKey(_ privateKeyString: String) -> Data? {
-        return Data(base64Encoded: privateKeyString)
-    }
 
 }

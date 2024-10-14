@@ -114,4 +114,22 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertNotNil(privateKeyString, "Private key export should not be nil")
     }
 
+    func testImportKeys() {
+        let kyber = KyberCrypto()
+        guard let keyPair = kyber.generateAsymmetricKeyPair() else {
+            XCTFail("Key generation failed")
+            return
+        }
+
+        let publicKeyString = kyber.exportPublicKey(keyPair.publicKey)
+        let privateKeyString = kyber.exportPrivateKey(keyPair.privateKey)
+
+        let importedPublicKey = kyber.importPublicKey(publicKeyString)
+        let importedPrivateKey = kyber.importPrivateKey(privateKeyString)
+
+        XCTAssertEqual(importedPublicKey, keyPair.publicKey, "Imported public key should match original")
+        XCTAssertEqual(importedPrivateKey, keyPair.privateKey, "Imported private key should match original")
+    }
+
+
 }
