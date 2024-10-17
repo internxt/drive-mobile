@@ -1,6 +1,6 @@
-import axios from 'axios';
 import { NavigationState } from '@react-navigation/native';
 import analytics from '@rudderstack/rudder-sdk-react-native';
+import axios from 'axios';
 
 import { getHeaders } from '../helpers/headers';
 import { constants } from './AppService';

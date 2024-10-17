@@ -1,25 +1,25 @@
-import React, { useContext, useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
+import React, { useEffect } from 'react';
 
-import { RootStackParamList } from '../types/navigation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View } from 'react-native';
+import { uiActions } from 'src/store/slices/ui';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import AuthenticatedNavigator from './TabExplorerNavigator';
-import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
+import analyticsService from '../services/AnalyticsService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { driveActions } from '../store/slices/drive';
-import { View } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import analyticsService from '../services/AnalyticsService';
-import DebugScreen from '../screens/DebugScreen';
-import { uiActions } from 'src/store/slices/ui';
-import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
+import { RootStackParamList } from '../types/navigation';
+import AuthenticatedNavigator from './TabExplorerNavigator';
 
 import { paymentsThunks } from 'src/store/slices/payments';
 import { storageThunks } from 'src/store/slices/storage';
-import { TrashScreen } from 'src/screens/common/TrashScreen';
-import { DrivePreviewScreen } from 'src/screens/drive/DrivePreviewScreen';
+import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
+import DebugScreen from '../screens/DebugScreen';
+import { TrashScreen } from '../screens/common/TrashScreen';
+import { DrivePreviewScreen } from '../screens/drive/DrivePreviewScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -69,6 +69,7 @@ function AppNavigator(): JSX.Element {
   // We send null here when we don't know the isLoggedIn status yet, so we avoid
   // redirects to the login screen even with the user logged
   if (isLoggedIn == null) return <View></View>;
+
   return (
     <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false, gestureEnabled: true }}>
       <Stack.Screen name="Debug" component={DebugScreen} />

@@ -1,33 +1,34 @@
-import React, { useEffect } from 'react';
-import { AppState, AppStateStatus, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+import React, { useEffect } from 'react';
+import { AppState, AppStateStatus, View } from 'react-native';
 
 import BottomTabNavigator from '../components/BottomTabNavigator';
-import EmptyScreen from '../screens/EmptyScreen';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
+import EmptyScreen from '../screens/EmptyScreen';
 
+import appService from '@internxt-mobile/services/AppService';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import SecurityModal from 'src/components/modals/SecurityModal';
+
+import { authThunks } from 'src/store/slices/auth';
+import { storageThunks } from 'src/store/slices/storage';
+import { useTailwind } from 'tailwind-rn';
 import AddModal from '../components/modals/AddModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
+import SignOutModal from '../components/modals/SignOutModal';
+import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import HomeScreen from '../screens/HomeScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import SignOutModal from '../components/modals/SignOutModal';
-import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
-import { useTailwind } from 'tailwind-rn';
-import SecurityModal from 'src/components/modals/SecurityModal';
-import { SettingsNavigator } from './SettingsNavigator';
-import { storageThunks } from 'src/store/slices/storage';
-import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { AsyncStorageKey } from '../types';
-import { authThunks } from 'src/store/slices/auth';
-import appService from '@internxt-mobile/services/AppService';
+import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
-import { SharedScreen } from 'src/screens/drive/SharedScreen';
+import { SettingsNavigator } from './SettingsNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
