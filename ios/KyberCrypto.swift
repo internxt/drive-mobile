@@ -126,5 +126,14 @@ class KyberCrypto {
         keyPair.privateKey.resetBytes(in: 0..<keyPair.privateKey.count)
     }
 
+    func signMessage(_ message: Data, using privateKey: Data) -> Data? {
+        do {
+            return try Kyber.sign(message: message, privateKey: privateKey)
+        } catch {
+            logError(.encryptionFailed, additionalInfo: "Failed to sign message")
+            return nil
+        }
+    }
+
 
 }
