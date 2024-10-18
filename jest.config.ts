@@ -27,6 +27,9 @@ const config: Config.InitialOptions = {
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  moduleNameMapper: {
+    '^uuid$': require.resolve('uuid'),
+  },
 };
 
 export default config;
