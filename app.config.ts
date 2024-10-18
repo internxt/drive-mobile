@@ -1,7 +1,7 @@
+import { AppEnv } from '@internxt-mobile/types/app';
 import { ExpoConfig } from 'expo/config';
 import env from './env';
 import packageJson from './package.json';
-import { AppEnv } from '@internxt-mobile/types/app';
 export enum AppStage {
   Development = 'development',
   Test = 'test',
@@ -88,20 +88,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     barStyle: 'dark-content',
     backgroundColor: '#091e42',
   },
-  hooks: {
-    postPublish: [
-      {
-        file: 'sentry-expo/upload-sourcemaps',
-        config: {
-          organization: env[stage].SENTRY_ORGANIZATION,
-          project: env[stage].SENTRY_PROJECT,
-          authToken: env[stage].SENTRY_AUTH_TOKEN,
-          url: env[stage].SENTRY_URL,
-          release: RELEASE_ID,
-        },
-      },
-    ],
-  },
   extra: {
     eas: {
       projectId: '680f4feb-6315-4a50-93ec-36dcd0b831d2',
@@ -110,6 +96,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     RELEASE_ID,
     ...env[stage],
   },
+  plugins: ['expo-font'],
 };
 
 export default appConfig;

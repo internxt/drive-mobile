@@ -1,14 +1,14 @@
+import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
 import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
+import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
 import AppText from '../../components/AppText';
-import { RootStackScreenProps } from '../../types/navigation';
-import { useTailwind } from 'tailwind-rn';
-import AppButton from '../../components/AppButton';
+import AppVersionWidget from '../../components/AppVersionWidget';
 import SignUpForm from '../../components/forms/SignUpForm';
-import AppVersionWidget from 'src/components/AppVersionWidget';
-import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
   const tailwind = useTailwind();

@@ -1,45 +1,47 @@
+import * as NavigationBar from 'expo-navigation-bar';
 import React, { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  KeyboardAvoidingView,
-  Platform,
-  ColorValue,
   AppStateStatus,
+  ColorValue,
+  KeyboardAvoidingView,
   NativeEventSubscription,
+  Platform,
+  Text,
+  View,
 } from 'react-native';
-import Portal from '@burstware/react-native-portal';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as NavigationBar from 'expo-navigation-bar';
 
-import analyticsService from './services/AnalyticsService';
-import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
-import { authThunks } from './store/slices/auth';
-import { appActions, appThunks } from './store/slices/app';
-import appService from './services/AppService';
-import InviteFriendsModal from './components/modals/InviteFriendsModal';
-import { useAppDispatch, useAppSelector } from './store/hooks';
-import { uiActions } from './store/slices/ui';
-import AppToast from './components/AppToast';
-import LinkCopiedModal from './components/modals/LinkCopiedModal';
-import Navigation from './navigation';
-import { useTailwind } from 'tailwind-rn';
-import DeleteAccountModal from './components/modals/DeleteAccountModal';
-import authService from './services/AuthService';
-import EditNameModal from './components/modals/EditNameModal';
-import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
-import LanguageModal from './components/modals/LanguageModal';
-import PlansModal from './components/modals/PlansModal';
+import Portal from '@burstware/react-native-portal';
 import * as Linking from 'expo-linking';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import fileSystemService from './services/FileSystemService';
-import errorService from './services/ErrorService';
-import { DriveContextProvider } from './contexts/Drive/Drive.context';
+import { useTailwind } from 'tailwind-rn';
+import AppToast from './components/AppToast';
+import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
+import DeleteAccountModal from './components/modals/DeleteAccountModal';
+import EditNameModal from './components/modals/EditNameModal';
+import InviteFriendsModal from './components/modals/InviteFriendsModal';
+import LanguageModal from './components/modals/LanguageModal';
+import LinkCopiedModal from './components/modals/LinkCopiedModal';
+import PlansModal from './components/modals/PlansModal';
+import { DriveContextProvider } from './contexts/Drive';
+import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
+import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
+import analyticsService from './services/AnalyticsService';
+import appService from './services/AppService';
+import authService from './services/AuthService';
 import { logger } from './services/common';
 import { time } from './services/common/time';
+import errorService from './services/ErrorService';
+import fileSystemService from './services/FileSystemService';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { appActions, appThunks } from './store/slices/app';
+import { authThunks } from './store/slices/auth';
 import { paymentsThunks } from './store/slices/payments';
+import { uiActions } from './store/slices/ui';
+
 let listener: NativeEventSubscription | null = null;
+
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
@@ -183,36 +185,35 @@ export default function App(): JSX.Element {
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
-          <View style={tailwind('flex-1')}>
-            {isAppInitialized && fontsAreReady ? (
-              <DriveContextProvider rootFolderId={user?.root_folder_id}>
-                <Portal.Host>
-                  <LockScreen
-                    locked={screenLocked}
-                    lastScreenLock={lastScreenLock}
-                    onScreenUnlocked={handleUnlockScreen}
-                  />
-                  {initialScreenLocked ? null : <Navigation />}
-                  <AppToast />
+          {isAppInitialized && fontsAreReady ? (
+            <DriveContextProvider rootFolderId={user?.root_folder_id}>
+              <Portal.Host>
+                <LockScreen
+                  locked={screenLocked}
+                  lastScreenLock={lastScreenLock}
+                  onScreenUnlocked={handleUnlockScreen}
+                />
 
-                  <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-                  <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
-                  <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
-                  <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
-                  <ChangeProfilePictureModal
-                    isOpen={isChangeProfilePictureModalOpen}
-                    onClose={onChangeProfilePictureModalClosed}
-                  />
-                  <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-                  <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-                </Portal.Host>
-              </DriveContextProvider>
-            ) : (
-              <View style={tailwind('items-center flex-1 justify-center')}>
-                {loadError ? <Text>{loadError}</Text> : null}
-              </View>
-            )}
-          </View>
+                {initialScreenLocked ? null : <Navigation />}
+                <AppToast />
+
+                <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+                <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
+                <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+                <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+                <ChangeProfilePictureModal
+                  isOpen={isChangeProfilePictureModalOpen}
+                  onClose={onChangeProfilePictureModalClosed}
+                />
+                <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+                <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+              </Portal.Host>
+            </DriveContextProvider>
+          ) : (
+            <View style={tailwind('items-center flex-1 justify-center')}>
+              {loadError ? <Text>{loadError}</Text> : null}
+            </View>
+          )}
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </SafeAreaProvider>

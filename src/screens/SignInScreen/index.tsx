@@ -1,24 +1,24 @@
-import React, { useEffect, useRef } from 'react';
-import { useState } from 'react';
-import { View, TouchableWithoutFeedback, Animated, TextInput, ScrollView } from 'react-native';
 import { Eye, EyeSlash, WarningCircle } from 'phosphor-react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, TextInput, View } from 'react-native';
 
+import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import validationService from '@internxt-mobile/services/ValidationService';
+import { ScrollView, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import AppText from 'src/components/AppText';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
-import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
+import AppButton from '../../components/AppButton';
+import AppScreen from '../../components/AppScreen';
+import AppTextInput from '../../components/AppTextInput';
 import AppVersionWidget from '../../components/AppVersionWidget';
+import useGetColor from '../../hooks/useColor';
+import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import authService from '../../services/AuthService';
-import { RootStackScreenProps } from '../../types/navigation';
+import errorService from '../../services/ErrorService';
 import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
-import errorService from '../../services/ErrorService';
-import AppScreen from '../../components/AppScreen';
-import AppButton from '../../components/AppButton';
-import { useTailwind } from 'tailwind-rn';
-import AppTextInput from '../../components/AppTextInput';
-import useGetColor from '../../hooks/useColor';
-import AppText from 'src/components/AppText';
-import validationService from '@internxt-mobile/services/ValidationService';
-import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
@@ -141,6 +141,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   };
 
   const hasErrors = (errors['loginFailed'] || errors['email'] || errors['password']) && isSubmitted;
+
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('h-full px-6')}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={tailwind('h-full')}>

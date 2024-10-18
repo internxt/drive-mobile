@@ -1,7 +1,8 @@
-import React from 'react';
-import { Keyboard, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
+import React from 'react';
+import { Keyboard, StyleProp, View, ViewStyle } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 
@@ -36,6 +37,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
         paddingBottom: props.hasBottomTabs ? 0 : 0,
         backgroundColor,
         ...propsStyle,
+        // flex: 1,
       }}
     >
       <View

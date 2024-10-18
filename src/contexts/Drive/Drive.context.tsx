@@ -1,12 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { DriveFileForTree, DriveFolderForTree, DriveListViewMode } from '@internxt-mobile/types/drive';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { DriveFileForTree, DriveFolderForTree, DriveListViewMode } from '@internxt-mobile/types/drive';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
+import React, { useEffect, useRef, useState } from 'react';
 
+import appService from '@internxt-mobile/services/AppService';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { BaseLogger } from '@internxt-mobile/services/common';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
-import appService from '@internxt-mobile/services/AppService';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
 
@@ -45,6 +45,7 @@ export const DriveContext = React.createContext<DriveContextType | undefined>(un
 
 interface DriveContextProviderProps {
   rootFolderId?: number;
+  children: React.ReactNode;
 }
 
 const logger = new BaseLogger({

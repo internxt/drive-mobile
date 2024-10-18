@@ -1,22 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
-import _ from 'lodash';
-import DriveItem from '../../../components/drive/lists/items';
-import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
-import strings from '../../../../assets/lang/strings';
-import EmptyList from '../../../components/EmptyList';
+import { UseCaseStatus, useUseCase } from '@internxt-mobile/hooks/common';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { TabExplorerScreenProps } from '@internxt-mobile/types/navigation';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
+import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import EmptySharesImage from 'assets/images/screens/empty-shares.svg';
 import NoResultsImage from 'assets/images/screens/no-results.svg';
-import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
-import { useTailwind } from 'tailwind-rn';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import { UseCaseStatus, useUseCase } from '@internxt-mobile/hooks/common';
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
-import errorService from '@internxt-mobile/services/ErrorService';
+import _ from 'lodash';
+import React, { useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { SearchInput } from 'src/components/SearchInput';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
 import ScreenTitle from '../../../components/AppScreenTitle';
-import { TabExplorerScreenProps } from '@internxt-mobile/types/navigation';
+import DriveItem from '../../../components/drive/lists/items';
+import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
+import EmptyList from '../../../components/EmptyList';
+import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 
 type SharedItem = SharedFolders & SharedFiles;
 export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {
