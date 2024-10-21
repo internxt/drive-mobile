@@ -1,4 +1,4 @@
-import appService, { constants } from './AppService';
+import { SdkManager } from '@internxt-mobile/services/common';
 import {
   CreateCheckoutSessionPayload,
   CreatePaymentSessionPayload,
@@ -6,11 +6,12 @@ import {
   Invoice,
   PaymentMethod,
   UserSubscription,
+  UserType,
 } from '@internxt/sdk/dist/drive/payments/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Linking from 'expo-linking';
-import { SdkManager } from '@internxt-mobile/services/common';
 import axios from 'axios';
+import * as Linking from 'expo-linking';
+import appService, { constants } from './AppService';
 
 class PaymentService {
   private sdk: SdkManager;
@@ -60,9 +61,11 @@ class PaymentService {
     }
   }
 
-  async getInvoices(): Promise<Invoice[] | null> {
+  async getInvoices(subscriptionId: string): Promise<Invoice[] | null> {
     try {
-      return await this.sdk.payments.getInvoices({});
+      return await this.sdk.payments.getInvoices({
+        subscriptionId,
+      });
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
       return null;
@@ -94,7 +97,7 @@ class PaymentService {
   }
 
   public async updateSubscriptionPrice(priceId: string): Promise<UserSubscription> {
-    const updated = await this.sdk.payments.updateSubscriptionPrice(priceId);
+    const updated = await this.sdk.payments.updateSubscriptionPrice({ priceId, userType: UserType.Individual });
     return updated.userSubscription;
   }
 

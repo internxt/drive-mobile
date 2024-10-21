@@ -148,7 +148,7 @@ export type DriveItemDataProps = Pick<
   parentId?: number | null;
   code?: string;
   token?: string;
-  size?: number;
+  size?: number | string;
   type?: string;
   shareId?: string;
   thumbnail?: DownloadedThumbnail;

@@ -1,8 +1,8 @@
 import strings from 'assets/lang/strings';
+
+import { Settings } from 'luxon';
 import { AsyncStorageKey, Language } from 'src/types';
 import asyncStorageService from './AsyncStorageService';
-// import RNRestart from 'react-native-restart';
-import { Settings } from 'luxon';
 class LanguageService {
   constructor() {
     this.initialize();
@@ -20,7 +20,7 @@ class LanguageService {
     strings.setLanguage(language);
 
     Settings.defaultLocale = language ?? strings.getLanguage();
-    // RNRestart.Restart();
+    // TODO: ADD WAY TO RESTART THE LANGUAGE IN RUNTIME WHEN IT CHANGES
   }
 }
 

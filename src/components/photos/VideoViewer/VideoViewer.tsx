@@ -1,8 +1,8 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { Play } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, View, Image, Platform } from 'react-native';
-import Video, { LoadError } from 'react-native-video';
+import { Image, Platform, TouchableOpacity, View } from 'react-native';
+import Video, { VideoRef } from 'react-native-video';
 import { useTailwind } from 'tailwind-rn';
 
 interface VideoViewerProps {
@@ -15,8 +15,8 @@ interface VideoViewerProps {
 export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPause, thumbnail, onVideoLoadError }) => {
   const tailwind = useTailwind();
   const [playing, setPlaying] = useState(false);
-  const [loadError, setLoadError] = useState<LoadError>();
-  const videoPlayer = useRef<Video>(null);
+  const [loadError, setLoadError] = useState<any>();
+  const videoPlayer = useRef<VideoRef>(null);
   useEffect(() => {
     if (playing) {
       onPlay && onPlay();
@@ -32,7 +32,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
       return;
     }
     if (Platform.OS === 'ios') {
-      videoPlayer.current?.presentFullscreenPlayer();
+      videoPlayer?.current?.presentFullscreenPlayer();
     }
 
     setPlaying(true);

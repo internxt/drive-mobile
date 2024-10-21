@@ -1,24 +1,24 @@
 import { decryptFile, encryptFile } from '@internxt/rn-crypto';
-import { randomBytes } from 'react-native-crypto';
-import { Platform } from 'react-native';
-import * as RNFS from 'react-native-fs';
-import RNFetchBlob from 'rn-fetch-blob';
-import uuid from 'react-native-uuid';
-import { validateMnemonic } from 'react-native-bip39';
-import { Network, ALGORITHMS } from '@internxt/sdk/dist/network';
+import { ALGORITHMS, Network } from '@internxt/sdk/dist/network';
+import { downloadFile } from '@internxt/sdk/dist/network/download';
 import { Crypto } from '@internxt/sdk/dist/network/types';
 import { uploadFile } from '@internxt/sdk/dist/network/upload';
-import { downloadFile } from '@internxt/sdk/dist/network/download';
+import { Platform } from 'react-native';
+import { validateMnemonic } from 'react-native-bip39';
+import { randomBytes } from 'react-native-crypto';
+import * as RNFS from 'react-native-fs';
+import uuid from 'react-native-uuid';
+import RNFetchBlob from 'rn-fetch-blob';
 
-import { generateFileKey } from '../lib/network';
-import { ripemd160 } from '../@inxt-js/lib/crypto';
-import { Abortable } from '../types';
-import appService from '../services/AppService';
-import { getAuthFromCredentials, NetworkCredentials } from './requests';
-import fileSystemService from '../services/FileSystemService';
-import { driveEvents } from '@internxt-mobile/services/drive/events';
-import { EncryptedFileDownloadedParams } from './download';
 import drive from '@internxt-mobile/services/drive';
+import { driveEvents } from '@internxt-mobile/services/drive/events';
+import { ripemd160 } from '../@inxt-js/lib/crypto';
+import { generateFileKey } from '../lib/network';
+import appService from '../services/AppService';
+import fileSystemService from '../services/FileSystemService';
+import { Abortable } from '../types';
+import { EncryptedFileDownloadedParams } from './download';
+import { getAuthFromCredentials, NetworkCredentials } from './requests';
 
 export interface DownloadFileParams {
   toPath: string;
@@ -96,7 +96,7 @@ export class NetworkFacade {
       mnemonic,
       fileSize,
       async (algorithm, key, iv) => {
-        let interval: NodeJS.Timeout | null = null;
+        let interval: number | null = null;
         if (shouldEnableEncryptionProgress)
           // TODO: Use real progress passing a callback to the native module
           interval = setInterval(() => {

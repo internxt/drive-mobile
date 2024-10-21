@@ -57,6 +57,7 @@ class UserService {
     const headersMap: Record<string, string> = {};
     const formData = new FormData();
 
+    //@ts-ignore
     formData.append('avatar', {
       //@ts-ignore
       uri: payload.uri,
