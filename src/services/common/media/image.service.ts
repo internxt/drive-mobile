@@ -2,10 +2,12 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 import { FileExtension } from '@internxt-mobile/types/drive';
+
 import RNFS from 'react-native-fs';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
 import RNFetchBlob from 'rn-fetch-blob';
+
 export type GeneratedThumbnail = {
   size: number;
   type: string;
@@ -21,9 +23,15 @@ export type ThumbnailGenerateConfig = {
   width?: number;
   height?: number;
 };
+
+// added this to omit video extension types, the package that produces the video thumbnail is
+// causing compilation errors, leave it to solve in other task
+type OmittedExtensions = 'avi' | 'mp4' | 'mov';
+type IncludedFileExtension = Exclude<FileExtension, OmittedExtensions>;
+
 class ImageService {
   private get thumbnailGenerators(): Record<
-    FileExtension,
+    IncludedFileExtension,
     (filePath: string, config: ThumbnailGenerateConfig) => Promise<GeneratedThumbnail>
   > {
     return {
@@ -146,7 +154,7 @@ class ImageService {
     filePath: string,
     config: { outputPath: string; quality?: number; extension: string; thumbnailFormat: SaveFormat },
   ): Promise<GeneratedThumbnail | null> {
-    const generator = this.thumbnailGenerators[config.extension.toLowerCase() as FileExtension];
+    const generator = this.thumbnailGenerators[config.extension.toLowerCase() as IncludedFileExtension];
 
     if (!generator) {
       // eslint-disable-next-line no-console
@@ -156,6 +164,8 @@ class ImageService {
     }
     return this.resizeThumbnail(await generator(filePath, config));
   }
+
+  // TODO: FIND A WAY TO GENERATE VIDEO THUMBNAILS
   /**
    * Generates a thumbnail for a video file
    */
