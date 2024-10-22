@@ -14,7 +14,6 @@ export const getKyberNetworkStatus = async () => {
   }
 };
 
-// Utility to check if Kyber network is online before performing transactions
 export const isKyberNetworkOnline = async (): Promise<boolean> => {
   const status = await getKyberNetworkStatus();
   return status.status === 'online';
