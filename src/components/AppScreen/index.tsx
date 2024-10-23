@@ -37,7 +37,6 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
         paddingBottom: props.hasBottomTabs ? 0 : 0,
         backgroundColor,
         ...propsStyle,
-        // flex: 1,
       }}
     >
       <View
