@@ -88,8 +88,8 @@ android {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 80
-        versionName "1.5.37"
+        versionCode 95
+        versionName "1.5.38"
 
         buildConfigField("boolean", "REACT_NATIVE_UNSTABLE_USE_RUNTIME_SCHEDULER_ALWAYS", (findProperty("reactNative.unstable_useRuntimeSchedulerAlways") ?: true).toString())
     }
@@ -99,6 +99,12 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
+        }
+        release {
+            storeFile file('release.jks')
+            storePassword "rBDVw77kvGten7F9"
+            keyAlias "inxtAndroidKey"
+            keyPassword "wxVA79rYvpxL4AaV"
         }
     }
     buildTypes {
