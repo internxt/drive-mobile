@@ -1,18 +1,17 @@
+import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import { Keys, Password, RegisterDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import EventEmitter from 'events';
+import jwtDecode from 'jwt-decode';
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
-import analytics, { AnalyticsEventKey } from './AnalyticsService';
+import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
-import asyncStorageService from './AsyncStorageService';
+import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import appService, { constants } from './AppService';
-import AesUtils from '../helpers/aesUtils';
-import EventEmitter from 'events';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import { SdkManager } from './common/sdk/SdkManager';
-import jwtDecode from 'jwt-decode';
-import errorService from './ErrorService';
+import asyncStorageService from './AsyncStorageService';
 import { keysService } from './common/keys';
-import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
+import { SdkManager } from './common/sdk/SdkManager';
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -163,7 +162,7 @@ class AuthService {
       privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
-    const changePasswordResult = await this.sdk.users.changePassword({
+    const changePasswordResult = await this.sdk.users.changePasswordLegacy({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,

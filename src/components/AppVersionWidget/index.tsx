@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
 import * as Updates from 'expo-updates';
+import React, { useEffect, useState } from 'react';
+import { StyleProp, View, ViewStyle } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 import InternxtLogo from '../../../assets/logo.svg';
 import appService from '../../services/AppService';
 import AppText from '../AppText';
-import { useTailwind } from 'tailwind-rn';
 
 interface AppVersionWidgetProps {
   style?: StyleProp<ViewStyle>;

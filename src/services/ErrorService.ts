@@ -1,6 +1,5 @@
 import AppError from '../types';
 import { BaseLogger } from './common/logger';
-import sentryService from './SentryService';
 
 export interface GlobalErrorContext {
   email: string;
@@ -25,10 +24,10 @@ export interface ErrorContext extends GlobalErrorContext {
 class ErrorService {
   private logger = new SentryLogger();
   public setGlobalErrorContext(globalContext: Partial<GlobalErrorContext>) {
-    sentryService.native.setUser({
-      email: globalContext.email,
-      id: globalContext.userId,
-    });
+    // sentryService.native.setUser({
+    //   email: globalContext.email,
+    //   id: globalContext.userId,
+    // });
   }
   public castError(err: unknown): AppError {
     let castedError: AppError = new AppError('Unknown error');
@@ -48,11 +47,11 @@ class ErrorService {
   public reportError = (error: Error | unknown, context: Partial<ErrorContext> = {}) => {
     this.log(context.level || 'error', error);
     if (!__DEV__) {
-      sentryService.native.captureException(error, {
-        level: context.level || 'error',
-        tags: context.tags,
-        extra: context.extra,
-      });
+      // sentryService.native.captureException(error, {
+      //   level: context.level || 'error',
+      //   tags: context.tags,
+      //   extra: context.extra,
+      // });
 
       // We are going to add the error to the logger too, with the context
       const loggerMessage = (error as Error).message ? (error as Error).message : JSON.stringify(error);

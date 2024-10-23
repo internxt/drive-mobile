@@ -74,8 +74,13 @@ const loadUserSubscriptionThunk = createAsyncThunk<UserSubscription, void, { sta
 
 const loadInvoicesThunk = createAsyncThunk<Invoice[] | null, void, { state: RootState }>(
   'payments/loadInvoices',
-  async () => {
-    return paymentService.getInvoices();
+  async (_, { getState }) => {
+    const state = getState();
+    const payments = state.payments;
+    if (payments.subscription.type === 'subscription') {
+      return paymentService.getInvoices(payments.subscription.subscriptionId);
+    }
+    return paymentService.getInvoices('');
   },
 );
 

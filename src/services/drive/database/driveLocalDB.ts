@@ -1,12 +1,12 @@
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import {
   DRIVE_DB_NAME,
-  SqliteDriveItemRow,
   DriveItemData,
+  FolderContent,
+  FolderContentChild,
   InsertSqliteDriveItemRowData,
   SqliteDriveFolderRecord,
-  FolderContentChild,
-  FolderContent,
+  SqliteDriveItemRow,
 } from '../../../types/drive';
 import sqliteService from '../../SqliteService';
 import { driveLogger, DriveLogger } from '../logger';
@@ -182,6 +182,9 @@ class DriveLocalDB {
         user_id: row.user_id,
         plain_name: row.name,
         deleted: false,
+        // TODO: add to database
+        parentUuid: '',
+        uuid: '',
       };
       result = folder;
     } else {
@@ -206,6 +209,9 @@ class DriveLocalDB {
         // All the items in the DB are marked as EXISTS, trashed and removed ones
         // should not exists in the db for now, we cannot handle those cases
         status: 'EXISTS',
+        // TODO: add to database
+        folderUuid: '',
+        uuid: '',
       };
       result = file;
     }

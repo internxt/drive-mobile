@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleProp, View, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import { Circle } from 'react-native-progress';
+import { useTailwind } from 'tailwind-rn';
 import SpinnerImage from '../../../assets/icons/spinner.svg';
 import useGetColor from '../../hooks/useColor';
 
@@ -13,6 +13,7 @@ interface LoadingSpinnerProps {
   fill?: string;
   renderIcon?: (size?: number, color?: string) => JSX.Element;
   progress?: number;
+  children?: JSX.Element;
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({

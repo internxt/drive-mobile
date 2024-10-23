@@ -148,12 +148,12 @@ export type DriveItemDataProps = Pick<
   parentId?: number | null;
   code?: string;
   token?: string;
-  size?: number;
+  size?: number | string;
   type?: string;
   shareId?: string;
   thumbnail?: DownloadedThumbnail;
   uuid?: string;
-  bucket?: string;
+  bucket?: string | null;
 };
 
 export type DriveListItem = { status: DriveItemStatus; progress?: number; data: DriveItemDataProps; id: string };
@@ -172,6 +172,7 @@ export interface DriveItemProps {
   shareLink?: SharedFiles & SharedFolders;
   onActionsPress?: () => void;
   onPress?: () => void;
+  children?: string;
 }
 
 export enum DriveEventKey {

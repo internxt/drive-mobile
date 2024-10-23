@@ -1,5 +1,5 @@
-import { ripemd160, sha256 } from './crypto';
 import { randomBytes } from 'react-native-crypto';
+import { ripemd160, sha256 } from './crypto';
 
 interface MerkleTree {
   leaf: string[];
@@ -16,7 +16,7 @@ function arrayBufferToString(array: Buffer[]): string[] {
   });
 }
 
-export function preleaf(challenge: Buffer, encrypted: Buffer): Buffer {
+export function preleaf(challenge: Uint8Array, encrypted: Uint8Array): Buffer {
   const preleafContent = Buffer.concat([challenge, encrypted]);
 
   return ripemd160(sha256(preleafContent));
@@ -24,6 +24,8 @@ export function preleaf(challenge: Buffer, encrypted: Buffer): Buffer {
 
 function preleafArray(encrypted: Buffer, challenge: Buffer[]): Buffer[] {
   const preleafArray = challenge.map((challenge) => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
     return Buffer.concat([challenge, encrypted]);
   });
 
@@ -96,4 +98,4 @@ function getTree(mT: MerkleTree): string[] {
   return tree;
 }
 
-export { merkleTree, getChallenges, getTree, MerkleTree };
+export { getChallenges, getTree, merkleTree, MerkleTree };

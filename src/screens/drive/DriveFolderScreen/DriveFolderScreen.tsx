@@ -1,24 +1,24 @@
-import React, { useMemo, useState } from 'react';
-import DriveList from '../../../components/drive/lists/DriveList/DriveList';
-import strings from '../../../../assets/lang/strings';
-import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import AppScreen from '../../../components/AppScreen';
-import { DriveItemStatus, DriveListItem, DriveListType, SortDirection, SortType } from '../../../types/drive';
-import SortModal, { SortMode } from '../../../components/modals/SortModal';
-import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
-import { useTailwind } from 'tailwind-rn';
 import Portal from '@burstware/react-native-portal';
-import drive from '@internxt-mobile/services/drive';
-import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { useHardwareBackPress } from '@internxt-mobile/hooks/common';
 import { useDrive } from '@internxt-mobile/hooks/drive';
-import { uiActions } from 'src/store/slices/ui';
-import { View } from 'react-native';
-import { DriveFolderError } from './DriveFolderError';
-import { DriveFolderEmpty } from './DriveFolderEmpty';
+import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import React, { useMemo, useState } from 'react';
+import { View } from 'react-native';
+import { uiActions } from 'src/store/slices/ui';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
+import AppScreen from '../../../components/AppScreen';
+import DriveList from '../../../components/drive/lists/DriveList/DriveList';
+import SortModal, { SortMode } from '../../../components/modals/SortModal';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
+import { DriveItemStatus, DriveListItem, DriveListType, SortDirection, SortType } from '../../../types/drive';
+import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
+import { DriveFolderEmpty } from './DriveFolderEmpty';
+import { DriveFolderError } from './DriveFolderError';
+import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
@@ -151,6 +151,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
           size: driveItem.data.size,
           updatedAt: driveItem.data.updatedAt,
           isFolder: driveItem.data.isFolder,
+          bucket: driveItem.data.bucket ?? undefined,
         }),
       );
       handleOnFilePress(driveItem);
@@ -178,6 +179,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         size: driveItem.data.size,
         updatedAt: driveItem.data.updatedAt,
         isFolder: driveItem.data.isFolder,
+        bucket: driveItem.data.bucket ?? undefined,
       }),
     );
 

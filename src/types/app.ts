@@ -22,6 +22,7 @@ export interface AppEnv {
   DATAPLANE_URL: string;
   ANALYTICS_WRITE_KEY: string;
   NOTIFICATIONS_URL: string;
+  NODE_ENV: string;
 }
 
 export enum BiometricAccessType {

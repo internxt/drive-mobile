@@ -1,44 +1,44 @@
-import React, { useState } from 'react';
-import { View, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
+import * as FileSystem from 'expo-file-system';
 import {
   launchCameraAsync,
   requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import React, { useState } from 'react';
+import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
-import { launchImageLibrary } from 'react-native-image-picker';
 import RNFS from 'react-native-fs';
+import { launchImageLibrary } from 'react-native-image-picker';
 
-import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
-import { encryptFilename, isValidFilename } from '../../../helpers';
-import fileSystemService from '../../../services/FileSystemService';
-import strings from '../../../../assets/lang/strings';
-import { NotificationType, ProgressCallback } from '../../../types';
-import asyncStorage from '../../../services/AsyncStorageService';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
-import { driveActions, driveThunks } from '../../../store/slices/drive';
-import network from '../../../network';
-import notificationsService from '../../../services/NotificationsService';
-import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
-import BottomModal from '../BottomModal';
-import { DriveEventKey, UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive';
-import { constants } from '../../../services/AppService';
-import CreateFolderModal from '../CreateFolderModal';
-import { useTailwind } from 'tailwind-rn';
-import AppText from '../../AppText';
-import useGetColor from '../../../hooks/useColor';
-import { storageSelectors } from 'src/store/slices/storage';
-import drive from '@internxt-mobile/services/drive';
 import { useDrive } from '@internxt-mobile/hooks/drive';
-import { DriveFileData, EncryptionVersion, FileEntry, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { imageService, logger } from '@internxt-mobile/services/common';
-import errorService from '@internxt-mobile/services/ErrorService';
-import uuid from 'react-native-uuid';
-import { SaveFormat } from 'expo-image-manipulator';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
+import drive from '@internxt-mobile/services/drive';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { DriveFileData, EncryptionVersion, FileEntry, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { SaveFormat } from 'expo-image-manipulator';
+import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
+import uuid from 'react-native-uuid';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
+import { storageSelectors } from 'src/store/slices/storage';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
+import { encryptFilename, isValidFilename } from '../../../helpers';
+import useGetColor from '../../../hooks/useColor';
+import network from '../../../network';
+import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
+import { constants } from '../../../services/AppService';
+import asyncStorage from '../../../services/AsyncStorageService';
+import fileSystemService from '../../../services/FileSystemService';
+import notificationsService from '../../../services/NotificationsService';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { driveActions, driveThunks } from '../../../store/slices/drive';
+import { uiActions } from '../../../store/slices/ui';
+import { NotificationType, ProgressCallback } from '../../../types';
+import { DriveEventKey, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../types/drive';
+import AppText from '../../AppText';
+import BottomModal from '../BottomModal';
+import CreateFolderModal from '../CreateFolderModal';
 
 const MAX_FILES_BULK_UPLOAD = 25;
 function AddModal(): JSX.Element {
@@ -558,7 +558,7 @@ function AddModal(): JSX.Element {
         if (!result.canceled) {
           const name = drive.file.removeExtension(assetToUpload.uri.split('/').pop() as string);
           const fileInfo = await FileSystem.getInfoAsync(assetToUpload.uri);
-          const size = fileInfo.size;
+          const size = fileInfo.exists ? fileInfo?.size : 0;
           const file: UploadingFile = {
             id: new Date().getTime(),
             name,
@@ -566,7 +566,7 @@ function AddModal(): JSX.Element {
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
             type: drive.file.getExtensionFromUri(assetToUpload.uri) as string,
-            size: size || 0,
+            size: size,
             uri: assetToUpload.uri,
             progress: 0,
             uploaded: false,

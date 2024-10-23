@@ -1,8 +1,8 @@
-import { Auth, Drive, photos } from '@internxt/sdk';
-import appService, { constants } from '../../AppService';
-import packageJson from '../../../../package.json';
-import { ApiSecurity } from '@internxt/sdk/dist/shared';
+import { Auth, Drive } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
+import { ApiSecurity } from '@internxt/sdk/dist/shared';
+import packageJson from '../../../../package.json';
+import appService, { constants } from '../../AppService';
 
 export type SdkManagerApiSecurity = ApiSecurity & { newToken: string };
 /**

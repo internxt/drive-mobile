@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
+import drive from '@internxt-mobile/services/drive';
+import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useAppDispatch } from '../store/hooks';
 import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
-import drive from '@internxt-mobile/services/drive';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
@@ -48,6 +48,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     dispatch(
       driveActions.setFocusedItem({
         ...props.data,
+        bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
         parentId: props.data.parentId as number,
         size: props.data.size,
@@ -91,6 +92,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     dispatch(
       driveActions.setFocusedItem({
         ...props.data,
+        bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
         parentId: props.data.parentId as number,
         size: props.data.size,

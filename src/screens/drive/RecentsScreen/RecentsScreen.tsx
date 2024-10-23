@@ -1,19 +1,20 @@
-import React, { useState } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
 import lodash from 'lodash';
+import React, { useState } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
 
+import strings from '../../../../assets/lang/strings';
 import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
-import strings from '../../../../assets/lang/strings';
 import EmptyList from '../../../components/EmptyList';
 
-import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
-import NoResultsImage from 'assets/images/screens/no-results.svg';
-import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
-import { useTailwind } from 'tailwind-rn';
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
 import * as useCases from '@internxt-mobile/useCases/drive';
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
+import NoResultsImage from 'assets/images/screens/no-results.svg';
+import { useTailwind } from 'tailwind-rn';
+import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
+
 interface RecentsScreenProps {
   searchText?: string;
   isLoading: boolean;
