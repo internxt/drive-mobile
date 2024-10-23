@@ -1,8 +1,8 @@
 /* eslint-disable quotes */
 import LocalizedStrings from 'react-native-localization';
 import { NotificationType } from '../../src/types';
-import { SortType } from '../../src/types/drive';
 import { BiometricAccessType } from '../../src/types/app';
+import { SortType } from '../../src/types/drive';
 
 const strings = new LocalizedStrings({
   en: {
@@ -522,6 +522,7 @@ const strings = new LocalizedStrings({
       },
       Language: {
         title: 'Select language',
+        info: 'Restart the application to see the language change.',
       },
       ChangeProfilePicture: {
         title: 'Edit photo',
@@ -1215,6 +1216,7 @@ const strings = new LocalizedStrings({
       },
       Language: {
         title: 'Selecciona idioma',
+        info: 'Reinicie la aplicación para ver el cambio de idioma.',
       },
       ChangeProfilePicture: {
         title: 'Editar foto',
