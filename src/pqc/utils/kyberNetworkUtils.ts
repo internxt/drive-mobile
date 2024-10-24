@@ -3,7 +3,6 @@
 // Utility to get the current Kyber network status
 export const getKyberNetworkStatus = async () => {
   try {
-    // Mocking a Kyber network status call
     console.log('Fetching Kyber network status...');
     return {
       status: 'online',
