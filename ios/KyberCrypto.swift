@@ -134,6 +134,14 @@ class KyberCrypto {
             return nil
         }
     }
+    func verifySignature(_ signature: Data, for message: Data, using publicKey: Data) -> Bool {
+        do {
+            return try Kyber.verify(signature: signature, message: message, publicKey: publicKey)
+        } catch {
+            logError(.decryptionFailed, additionalInfo: "Signature verification failed")
+            return false
+        }
+    }
 
 
 }
