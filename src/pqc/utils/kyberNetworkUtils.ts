@@ -1,6 +1,5 @@
 // kyberNetworkUtils.ts
 
-// Utility to get the current Kyber network status
 export const getKyberNetworkStatus = async () => {
   try {
     console.log('Fetching Kyber network status...');
