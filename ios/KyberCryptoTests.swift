@@ -130,6 +130,22 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertEqual(importedPublicKey, keyPair.publicKey, "Imported public key should match original")
         XCTAssertEqual(importedPrivateKey, keyPair.privateKey, "Imported private key should match original")
     }
+    func testSigningAndVerification() {
+        let kyber = KyberCrypto()
+        guard let keyPair = kyber.generateAsymmetricKeyPair() else {
+            XCTFail("Key generation failed")
+            return
+        }
+
+        let message = "Sign this message".data(using: .utf8)!
+        guard let signature = kyber.signMessage(message, using: keyPair.privateKey) else {
+            XCTFail("Signing failed")
+            return
+        }
+
+        let isValid = kyber.verifySignature(signature, for: message, using: keyPair.publicKey)
+        XCTAssertTrue(isValid, "Signature verification should succeed")
+    }
 
 
 }
