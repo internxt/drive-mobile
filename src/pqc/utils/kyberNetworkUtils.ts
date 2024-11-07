@@ -1,5 +1,3 @@
-// kyberNetworkUtils.ts
-
 export const getKyberNetworkStatus = async () => {
   try {
     console.log('Fetching Kyber network status...');
