@@ -940,7 +940,9 @@ PODS:
     - React-debug
   - react-native-document-picker (4.3.0):
     - React-Core
-  - react-native-image-picker (4.10.3):
+  - react-native-image-picker (7.1.2):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - react-native-pdf (6.7.5):
     - React-Core
@@ -1565,7 +1567,7 @@ SPEC CHECKSUMS:
   React-logger: 3eb80a977f0d9669468ef641a5e1fabbc50a09ec
   React-Mapbuffer: 84ea43c6c6232049135b1550b8c60b2faac19fab
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
-  react-native-image-picker: 60f4246eb5bb7187fc15638a8c1f13abd3820695
+  react-native-image-picker: d3db110a3ded6e48c93aef7e8e51afdde8b16ed0
   react-native-pdf: 103940c90d62adfd259f63cca99c7c0c306b514c
   react-native-pdf-thumbnail: 390b1bc4b115b613ca61d6b14cbc712b3621b1df
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
