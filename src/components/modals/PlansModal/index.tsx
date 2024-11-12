@@ -23,7 +23,7 @@ import { getLineHeight } from 'src/styles/global';
 
 export type SubscriptionInterval = 'month' | 'year';
 
-const formatAmount = (amount: number | undefined) => ((amount || 0) * 0.01).toFixed(2);
+const formatAmount = (amount: number | undefined) => ((amount ?? 0) * 0.01).toFixed(2);
 
 const PlansModal = (props: BaseModalProps) => {
   const [selectedStorageBytes, setSelectedStorageBytes] = useState<number>();
