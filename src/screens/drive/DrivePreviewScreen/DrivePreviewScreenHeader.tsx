@@ -4,6 +4,7 @@ import { TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
+import SwipeBackHandler from '../../../components/SwipeBackHandler';
 
 export interface DrivePreviewScreenHeaderProps {
   onCloseButtonPress: () => void;
@@ -21,6 +22,7 @@ export const DrivePreviewScreenHeader: React.FC<DrivePreviewScreenHeaderProps> =
         { height: DRIVE_PREVIEW_HEADER_HEIGHT },
       ]}
     >
+      <SwipeBackHandler swipeBack={props.onCloseButtonPress} />
       <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} onPress={props.onCloseButtonPress}>
         <X size={28} color={tailwind('text-gray-100').color as string} />
       </TouchableOpacity>
