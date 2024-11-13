@@ -121,9 +121,9 @@ class KyberCrypto {
         }
     }
 
-   func clearKeyPair(_ keyPair: (publicKey: Data, privateKey: Data)) {
-        keyPair.publicKey.resetBytes(in: 0..<keyPair.publicKey.count)
-        keyPair.privateKey.resetBytes(in: 0..<keyPair.privateKey.count)
+    func clearKeyPair(_ keyPair: inout (publicKey: Data, privateKey: Data)) {
+        securelyClearData(&keyPair.publicKey)
+        securelyClearData(&keyPair.privateKey)
     }
 
     func signMessage(_ message: Data, using privateKey: Data) -> Data? {
@@ -142,6 +142,8 @@ class KyberCrypto {
             return false
         }
     }
-
+    func securelyClearData(_ data: inout Data) {
+        data.resetBytes(in: 0..<data.count)
+    }
 
 }
