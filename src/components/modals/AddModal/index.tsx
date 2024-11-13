@@ -464,51 +464,54 @@ function AddModal(): JSX.Element {
       const { status } = await requestMediaLibraryPermissionsAsync(false);
 
       if (status === 'granted') {
-        launchImageLibrary({ mediaType: 'mixed', selectionLimit: MAX_FILES_BULK_UPLOAD }, async (response) => {
-          if (response.errorMessage) {
-            return Alert.alert(response.errorMessage);
-          }
-          if (response.assets) {
-            const documents: DocumentPickerResponse[] = [];
-
-            for (const asset of response.assets) {
-              const decodedURI = decodeURIComponent(asset.uri as string);
-              const stat = await RNFS.stat(decodedURI);
-
-              documents.push({
-                fileCopyUri: asset.uri || '',
-                name: decodeURIComponent(
-                  asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
-                ),
-                size: asset.fileSize || stat.size,
-                type: asset.type || '',
-                uri: asset.uri || '',
-              });
+        launchImageLibrary(
+          { mediaType: 'mixed', selectionLimit: MAX_FILES_BULK_UPLOAD, assetRepresentationMode: 'current' },
+          async (response) => {
+            if (response.errorMessage) {
+              return Alert.alert(response.errorMessage);
             }
+            if (response.assets) {
+              const documents: DocumentPickerResponse[] = [];
 
-            dispatch(uiActions.setShowUploadFileModal(false));
-            uploadDocuments(documents)
-              .then(() => {
-                dispatch(driveThunks.loadUsageThunk());
+              for (const asset of response.assets) {
+                const decodedURI = decodeURIComponent(asset.uri as string);
+                const stat = await RNFS.stat(decodedURI);
 
-                if (focusedFolder) {
-                  driveCtx.loadFolderContent(focusedFolder.id);
-                }
-              })
-              .catch((err) => {
-                if (err.message === 'User canceled document picker') {
-                  return;
-                }
-                notificationsService.show({
-                  type: NotificationType.Error,
-                  text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                documents.push({
+                  fileCopyUri: asset.uri || '',
+                  name: decodeURIComponent(
+                    asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
+                  ),
+                  size: asset.fileSize || stat.size,
+                  type: asset.type || '',
+                  uri: asset.uri || '',
                 });
-              })
-              .finally(() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-              });
-          }
-        });
+              }
+
+              dispatch(uiActions.setShowUploadFileModal(false));
+              uploadDocuments(documents)
+                .then(() => {
+                  dispatch(driveThunks.loadUsageThunk());
+
+                  if (focusedFolder) {
+                    driveCtx.loadFolderContent(focusedFolder.id);
+                  }
+                })
+                .catch((err) => {
+                  if (err.message === 'User canceled document picker') {
+                    return;
+                  }
+                  notificationsService.show({
+                    type: NotificationType.Error,
+                    text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                  });
+                })
+                .finally(() => {
+                  dispatch(uiActions.setShowUploadFileModal(false));
+                });
+            }
+          },
+        );
       }
     } else {
       DocumentPicker.pickMultiple({
