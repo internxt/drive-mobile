@@ -118,7 +118,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
       setIsLoading(false);
 
-      setErrors({ loginFailed: strings.errors.missingAuthCredentials });
+      setErrors({ loginFailed: castedError.message });
     }
   };
   const onGoToSignUpButtonPressed = () => {
