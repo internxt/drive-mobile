@@ -146,4 +146,11 @@ class KyberCrypto {
         data.resetBytes(in: 0..<data.count)
     }
 
+    func exportConfig() -> String? {
+        let configDictionary: [String: Any] = ["keySize": keySize]
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: configDictionary) else { return nil }
+        return String(data: jsonData, encoding: .utf8)
+    }
+
+
 }
