@@ -138,6 +138,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
     navigation.navigate('DrivePreview');
   };
+
   const handleDriveItemPress = (driveItem: DriveListItem) => {
     const isFolder = driveItem.data.type ? false : true;
     if (!isFolder) {

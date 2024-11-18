@@ -4,10 +4,9 @@ import Modal from 'react-native-modalbox';
 
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'phosphor-react-native';
+import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 
 export interface BottomModalProps {
   isOpen: boolean;
@@ -38,7 +37,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
     <Modal
       isOpen={props.isOpen}
       onClosed={props.onClosed}
-      position="bottom"
+      position="top"
       style={[
         { ...tailwind('bg-transparent'), paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top },
         props.modalStyle,
