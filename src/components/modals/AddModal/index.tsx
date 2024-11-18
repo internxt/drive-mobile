@@ -41,6 +41,7 @@ import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
 
 const MAX_FILES_BULK_UPLOAD = 25;
+
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -53,6 +54,7 @@ function AddModal(): JSX.Element {
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
+
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
     const name = decodeURI(file.uri).split('/').pop() || '';
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -81,6 +83,7 @@ function AddModal(): JSX.Element {
     await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
     await driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
   };
+
   async function uploadAndroid(
     fileToUpload: UploadingFile,
     fileType: 'document' | 'image',
@@ -217,6 +220,7 @@ function AddModal(): JSX.Element {
       thumbnails: uploadedThumbnail ? [uploadedThumbnail] : null,
     } as DriveFileData;
   }
+
   const uploadFile = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     logger.info('Starting file upload process: ', JSON.stringify(uploadingFile));
     function progressCallback(progress: number) {
@@ -674,8 +678,8 @@ function AddModal(): JSX.Element {
               style={tailwind('flex-grow')}
               underlayColor={getColor('text-gray-40')}
               onPress={() => {
-                setShowCreateFolderModal(true);
                 dispatch(uiActions.setShowUploadFileModal(false));
+                setShowCreateFolderModal(true);
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
