@@ -1,13 +1,14 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import * as FileSystem from 'expo-file-system';
 import {
   launchCameraAsync,
   requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
-import RNFS from 'react-native-fs';
+
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';

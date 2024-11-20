@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import EventEmitter from 'events';
-import RNFS from 'react-native-fs';
 
 import { Abortable } from '../../../types';
 import { DriveEventKey } from '../../../types/drive';

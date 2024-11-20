@@ -1,18 +1,19 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import { request } from '@internxt/lib';
-import RNFS from 'react-native-fs';
+
 import axios, { AxiosRequestConfig } from 'axios';
-import RNFetchBlob from 'rn-fetch-blob';
 import { createDecipheriv } from 'react-native-crypto';
+import RNFetchBlob from 'rn-fetch-blob';
 
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
 import { eachLimit } from 'async';
 
-import fileSystemService from '../FileSystemService';
-import { NetworkCredentials } from '../../types';
-import { Platform } from 'react-native';
 import { decryptFile as nativeDecryptFile } from '@internxt/rn-crypto';
 import { FileId } from '@internxt/sdk/dist/photos';
+import { Platform } from 'react-native';
+import { NetworkCredentials } from '../../types';
+import fileSystemService from '../FileSystemService';
 
 type FileDecryptedURI = string;
 

@@ -3,7 +3,8 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 import { FileExtension } from '@internxt-mobile/types/drive';
 
-import RNFS from 'react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
+
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
 import RNFetchBlob from 'rn-fetch-blob';

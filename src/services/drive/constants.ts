@@ -1,4 +1,5 @@
-import RNFS from 'react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
+
 export const DRIVE_ROOT_DIRECTORY = `${RNFS.DocumentDirectoryPath}/drive`;
 export const DRIVE_THUMBNAILS_DIRECTORY = `${DRIVE_ROOT_DIRECTORY}/thumbnails`;
 export const DRIVE_CACHE_DIRECTORY = `${DRIVE_ROOT_DIRECTORY}/cache`;

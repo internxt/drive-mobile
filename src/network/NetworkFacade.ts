@@ -1,3 +1,4 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import { decryptFile, encryptFile } from '@internxt/rn-crypto';
 import { ALGORITHMS, Network } from '@internxt/sdk/dist/network';
 import { downloadFile } from '@internxt/sdk/dist/network/download';
@@ -6,7 +7,6 @@ import { uploadFile } from '@internxt/sdk/dist/network/upload';
 import { Platform } from 'react-native';
 import { validateMnemonic } from 'react-native-bip39';
 import { randomBytes } from 'react-native-crypto';
-import * as RNFS from 'react-native-fs';
 import uuid from 'react-native-uuid';
 import RNFetchBlob from 'rn-fetch-blob';
 
@@ -114,7 +114,6 @@ export class NetworkFacade {
           interval !== null && clearInterval(interval);
           updateProgress(maxEncryptProgress);
         }
-
         fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
       },
       async (url: string) => {
@@ -172,7 +171,7 @@ export class NetworkFacade {
       throw new Error('Download error code 3');
     }
 
-    let downloadJob: { jobId: number; promise: Promise<RNFS.DownloadResult> };
+    let downloadJob: { jobId: number; promise: Promise<RNFS.DownloadResultT> };
     let expectedFileHash: string;
 
     const decryptFileFromFs: DecryptFileFromFsFunction =

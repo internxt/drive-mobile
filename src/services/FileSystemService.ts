@@ -1,13 +1,14 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import { Platform } from 'react-native';
-import RNFS from 'react-native-fs';
-import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
-import FileViewer from 'react-native-file-viewer';
+
+import { internxtFS } from '@internxt/mobile-sdk';
 import * as FileSystem from 'expo-file-system';
+import { shareAsync } from 'expo-sharing';
 import prettysize from 'prettysize';
+import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
-import { shareAsync } from 'expo-sharing';
-import { internxtFS } from '@internxt/mobile-sdk';
+import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -21,7 +22,7 @@ export interface FileWriter {
 
 const ANDROID_URI_PREFIX = 'file://';
 
-export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
+export type UsageStatsResult = Record<string, { items: RNFS.ReadDirResItemT[]; prettySize: string }>;
 
 class FileSystemService {
   private timestamp = Date.now();
@@ -50,7 +51,7 @@ class FileSystemService {
     return `internxt_mobile_runtime_logs_${this.timestamp}.txt`;
   }
 
-  public getDownloadsDir(): string {
+  public getDownloadsDir(): string | undefined {
     // MainBundlePath is only available on iOS
     return Platform.OS === 'ios' ? RNFS.MainBundlePath : RNFS.DownloadDirectoryPath;
   }
