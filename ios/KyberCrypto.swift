@@ -151,6 +151,12 @@ class KyberCrypto {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: configDictionary) else { return nil }
         return String(data: jsonData, encoding: .utf8)
     }
+    func importConfig(from jsonString: String) -> KyberConfig? {
+        guard let jsonData = jsonString.data(using: .utf8),
+              let configDict = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+              let keySize = configDict["keySize"] as? Int else { return nil }
 
+        return KyberConfig(keySize: keySize)
+    }
 
 }
