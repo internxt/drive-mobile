@@ -25,7 +25,6 @@ export const getKyberEventLogs = async (
   });
 };
 
-// Utility to decode Kyber event data
 export const decodeKyberEventData = (eventData: string, eventName: string) => {
   const abi = [
     'event TokenSwap(address indexed from, address indexed to, uint256 amountIn, uint256 amountOut)',
