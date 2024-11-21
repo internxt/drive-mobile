@@ -1,7 +1,7 @@
 PODS:
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
-  - dr-pogodin-react-native-fs (2.22.0):
+  - dr-pogodin-react-native-fs (2.24.6):
     - glog
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
@@ -942,6 +942,8 @@ PODS:
   - React-Mapbuffer (0.73.6):
     - glog
     - React-debug
+  - react-native-create-thumbnail (2.0.0):
+    - React-Core
   - react-native-document-picker (4.3.0):
     - React-Core
   - react-native-image-picker (7.1.2):
@@ -1251,6 +1253,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector-modern`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
+  - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -1418,6 +1421,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   React-Mapbuffer:
     :path: "../node_modules/react-native/ReactCommon"
+  react-native-create-thumbnail:
+    :path: "../node_modules/react-native-create-thumbnail"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
   react-native-image-picker:
@@ -1514,7 +1519,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
-  dr-pogodin-react-native-fs: c2b2640a9d71537c93620463030c8fafb59170be
+  dr-pogodin-react-native-fs: ef429362460ab16ade0132464d024d40baf2c2dc
   EASClient: a42ee8bf36c93b3128352faf2ae49405ab4f80bd
   EXConstants: a5f6276e565d98f9eb4280f81241fc342d641590
   EXFont: f20669cb266ef48b004f1eb1f2b20db96cd1df9f
@@ -1569,6 +1574,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 85583ef014ce53d731a98c66a0e24496f7a83066
   React-logger: 3eb80a977f0d9669468ef641a5e1fabbc50a09ec
   React-Mapbuffer: 84ea43c6c6232049135b1550b8c60b2faac19fab
+  react-native-create-thumbnail: ab55d24aea01723cf386f18b0b542aabb1982f27
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
   react-native-image-picker: d3db110a3ded6e48c93aef7e8e51afdde8b16ed0
   react-native-pdf: 103940c90d62adfd259f63cca99c7c0c306b514c

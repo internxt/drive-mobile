@@ -5,6 +5,7 @@ import { FileExtension } from '@internxt-mobile/types/drive';
 
 import * as RNFS from '@dr.pogodin/react-native-fs';
 
+import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
 import RNFetchBlob from 'rn-fetch-blob';
@@ -25,20 +26,15 @@ export type ThumbnailGenerateConfig = {
   height?: number;
 };
 
-// added this to omit video extension types, the package that produces the video thumbnail is
-// causing compilation errors, leave it to solve in other task
-type OmittedExtensions = 'avi' | 'mp4' | 'mov';
-type IncludedFileExtension = Exclude<FileExtension, OmittedExtensions>;
-
 class ImageService {
   private get thumbnailGenerators(): Record<
-    IncludedFileExtension,
+    FileExtension,
     (filePath: string, config: ThumbnailGenerateConfig) => Promise<GeneratedThumbnail>
   > {
     return {
-      // [FileExtension.AVI]: this.generateVideoThumbnail,
-      // [FileExtension.MP4]: this.generateVideoThumbnail,
-      // [FileExtension.MOV]: this.generateVideoThumbnail,
+      [FileExtension.AVI]: this.generateVideoThumbnail,
+      [FileExtension.MP4]: this.generateVideoThumbnail,
+      [FileExtension.MOV]: this.generateVideoThumbnail,
       [FileExtension.JPEG]: this.generateImageThumbnail,
       [FileExtension.JPG]: this.generateImageThumbnail,
       [FileExtension.PNG]: this.generateImageThumbnail,
@@ -155,7 +151,7 @@ class ImageService {
     filePath: string,
     config: { outputPath: string; quality?: number; extension: string; thumbnailFormat: SaveFormat },
   ): Promise<GeneratedThumbnail | null> {
-    const generator = this.thumbnailGenerators[config.extension.toLowerCase() as IncludedFileExtension];
+    const generator = this.thumbnailGenerators[config.extension.toLowerCase() as FileExtension];
 
     if (!generator) {
       // eslint-disable-next-line no-console
@@ -166,24 +162,23 @@ class ImageService {
     return this.resizeThumbnail(await generator(filePath, config));
   }
 
-  // TODO: FIND A WAY TO GENERATE VIDEO THUMBNAILS
   /**
    * Generates a thumbnail for a video file
    */
-  // public generateVideoThumbnail = async (filePath: string): Promise<GeneratedThumbnail> => {
-  //   const result = await createThumbnail({
-  //     url: fileSystemService.pathToUri(filePath),
-  //     dirSize: 100,
-  //   });
+  public generateVideoThumbnail = async (filePath: string): Promise<GeneratedThumbnail> => {
+    const result = await createThumbnail({
+      url: fileSystemService.pathToUri(filePath),
+      dirSize: 100,
+    });
 
-  //   return {
-  //     size: result.size,
-  //     type: 'JPEG',
-  //     width: result.width,
-  //     height: result.height,
-  //     path: result.path,
-  //   };
-  // };
+    return {
+      size: result.size,
+      type: 'JPEG',
+      width: result.width,
+      height: result.height,
+      path: result.path,
+    };
+  };
 
   /**
    * Generates a thumbnail for an image

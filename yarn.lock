@@ -1279,10 +1279,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@dr.pogodin/react-native-fs@2.22.0":
-  version "2.22.0"
-  resolved "https://registry.yarnpkg.com/@dr.pogodin/react-native-fs/-/react-native-fs-2.22.0.tgz#0d74c10244fdf644a903d1dba15e9f2f1a5509e9"
-  integrity sha512-ZgStaga81J0LwR3p/CM+SxjiOm1SYShQqB8n8aAvomhicQ6p2+VSwttobTlhtaHgPJW6YUe5Fa0yPIJSZnUPyg==
+"@dr.pogodin/react-native-fs@2.24.6":
+  version "2.24.6"
+  resolved "https://registry.yarnpkg.com/@dr.pogodin/react-native-fs/-/react-native-fs-2.24.6.tgz#a673628d0b4b26f28cab211af98a9e83c12ae90b"
+  integrity sha512-DMEL/FLf+LrRnegBDbLHDRCAv/flhrZwbSOzHmwGPjAd8gF6Bn48z8gFmrwlxcAtR0rxo1K1L8gWzddyR/LV8A==
   dependencies:
     buffer "^6.0.3"
 
@@ -10711,6 +10711,11 @@ react-native-collapsible@^1.6.0:
   version "1.6.2"
   resolved "https://registry.yarnpkg.com/react-native-collapsible/-/react-native-collapsible-1.6.2.tgz#3b67fa402a6ba3c291022f5db8f345083862c3d8"
   integrity sha512-MCOBVJWqHNjnDaGkvxX997VONmJeebh6wyJxnHEgg0L1PrlcXU1e/bo6eK+CDVFuMrCafw8Qh4DOv/C4V/+Iew==
+
+react-native-create-thumbnail@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-create-thumbnail/-/react-native-create-thumbnail-2.0.0.tgz#4eae9b4198cd484a1420608b53ce5872209b9a25"
+  integrity sha512-1GA0PHGlhSirKUqbtlLLk++3Wkd/fo8H8YUi71Lp5Y2z+AxZMKmY1/IcB9ooDiMzI1Pxr006Kq99JWuXowoykg==
 
 react-native-crypto@^2.0.1, react-native-crypto@^2.2.0:
   version "2.2.0"
