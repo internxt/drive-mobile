@@ -11,7 +11,6 @@ export const getKyberEventLogs = async (
   const contract = new ethers.Contract(
     contractAddress,
     [
-      // Define event ABI for Kyber network
       'event TokenSwap(address indexed from, address indexed to, uint256 amountIn, uint256 amountOut)',
       'event TokenApproval(address indexed spender, uint256 value)',
     ],
