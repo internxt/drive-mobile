@@ -159,4 +159,9 @@ class KyberCrypto {
         return KyberConfig(keySize: keySize)
     }
 
+    func validateConfig(_ config: KyberConfig) -> Bool {
+        return isValidKeySize(config.keySize)
+    }
+
+
 }
