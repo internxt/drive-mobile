@@ -105,6 +105,10 @@ class AuthService {
     const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
 
     if (!refreshedTokens?.token || !refreshedTokens?.newToken) throw new Error('Unable to refresh auth tokens');
+
+    const argon2 = await passToHash({ password });
+    await this.sdk.auth.upgradeHash(argon2.hash, argon2.salt);
+
     return {
       ...loginResult,
       token: refreshedTokens.token,
