@@ -1,25 +1,31 @@
 import CryptoJS from 'crypto-js';
-import crypto from 'react-native-crypto';
+import { argon2id, createSHA1, pbkdf2 } from 'hash-wasm';
+// import crypto from 'react-native-crypto';
+import * as crypto from 'crypto';
 import { constants } from '../../services/AppService';
 import errorService from '../../services/ErrorService';
 import AesUtils from '../aesUtils';
 
 const password = constants.CRYPTO_SECRET || ''; // Force env var loading
 
+/**
+ * Argon2id parameters taken from RFC9106 (variant for memory-constrained environments)
+ *  * @constant
+ * @type {number}
+ * @default
+ */
+const ARGON2ID_PARALLELISM = 4;
+const ARGON2ID_ITERATIONS = 3;
+const ARGON2ID_MEMORY = 65536;
+const ARGON2ID_TAG_LEN = 32;
+const ARGON2ID_SALT_LEN = 16;
+
+const PBKDF2_ITERATIONS = 10000;
+const PBKDF2_TAG_LEN = 32;
+
 interface PassObjectInterface {
+  salt?: string | null;
   password: string;
-  salt?: string;
-}
-
-export function passToHash(passObject: PassObjectInterface): { salt: string; hash: string } {
-  const salt = passObject.salt ? CryptoJS.enc.Hex.parse(passObject.salt) : CryptoJS.lib.WordArray.random(128 / 8);
-  const hash = CryptoJS.PBKDF2(passObject.password, salt, { keySize: 256 / 32, iterations: 10000 });
-  const hashedObjetc = {
-    salt: salt.toString(),
-    hash: hash.toString(),
-  };
-
-  return hashedObjetc;
 }
 
 // AES Plain text encryption method
@@ -56,32 +62,6 @@ export function decryptTextWithKey(encryptedText: string, keyToDecrypt: string):
   }
 }
 
-export function probabilisticEncryption(content: string): string | null {
-  try {
-    const b64 = crypto.createCipher('aes-256-gcm', constants.CRYPTO_SECRET);
-
-    b64.write(content);
-
-    const e64 = Buffer.concat([b64.update(content), b64.final()]).toString('base64');
-    const eHex = Buffer.from(e64, 'base64').toString('hex');
-
-    return eHex;
-  } catch (error) {
-    return null;
-  }
-}
-
-export function probabilisticDecryption(cipherText: string): string | null {
-  try {
-    const decrypt = crypto.createDecipher('aes-256-gcm', constants.CRYPTO_SECRET);
-    const plain = Buffer.concat([decrypt.update(cipherText), decrypt.final()]).toString('utf8');
-
-    return plain;
-  } catch (error) {
-    return null;
-  }
-}
-
 export function isValidFilename(filename: string) {
   const EXCLUDED = ['..'];
   if (EXCLUDED.includes(filename)) {
@@ -104,31 +84,102 @@ export function encryptFilename(filename: string, folderId: string): string {
   return AesUtils.encrypt(filename, `${CRYPTO_KEY}-${folderId}`);
 }
 
-export function deterministicEncryption(content: string, salt?: string | number): string | null {
-  try {
-    const key = Buffer.from(constants.CRYPTO_SECRET as string).toString('hex');
-    const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;
-    const encrypt = crypto.createCipheriv('aes-256-gcm', key, iv);
-    const b64 = Buffer.concat([encrypt.update(content), encrypt.final()]).toString('base64');
-    const eHex = Buffer.from(b64).toString('hex');
-
-    return eHex;
-  } catch (e) {
-    return null;
-  }
+/**
+ * Computes PBKDF2 and outputs the result in HEX format
+ * @param {string} password - The password
+ * @param {number} salt - The salt
+ * @param {number}[iterations=PBKDF2_ITERATIONS] - The number of iterations to perform
+ * @param {number} [hashLength=PBKDF2_TAG_LEN] - The desired output length
+ * @returns {Promise<string>} The result of PBKDF2 in HEX format
+ */
+export function getPBKDF2(
+  password: string,
+  salt: string | Uint8Array,
+  iterations = PBKDF2_ITERATIONS,
+  hashLength = PBKDF2_TAG_LEN,
+): Promise<string> {
+  return pbkdf2({
+    password,
+    salt,
+    iterations,
+    hashLength,
+    hashFunction: createSHA1(),
+    outputType: 'hex',
+  });
 }
 
-export function deterministicDecryption(cipherText: string, salt?: string | number): string | null {
-  try {
-    const key = Buffer.from(constants.CRYPTO_SECRET as string).toString('hex');
-    const iv = salt ? Buffer.from(salt.toString()).toString('hex') : key;
-    const reb64 = Buffer.from(cipherText).toString('hex');
-    const bytes = Buffer.from(reb64).toString('base64');
-    const decrypt = crypto.createDecipheriv('aes-256-gcm', key, iv);
-    const plain = Buffer.concat([decrypt.update(Buffer.from(bytes)), decrypt.final()]).toString('utf8');
+/**
+ * Computes Argon2 and outputs the result in HEX format
+ * @param {string} password - The password
+ * @param {number} salt - The salt
+ * @param {number} [parallelism=ARGON2ID_PARALLELISM] - The parallelism degree
+ * @param {number}[iterations=ARGON2ID_ITERATIONS] - The number of iterations to perform
+ * @param {number}[memorySize=ARGON2ID_MEMORY] - The number of KB of memeory to use
+ * @param {number} [hashLength=ARGON2ID_TAG_LEN] - The desired output length
+ * @param {'hex'|'binary'|'encoded'} [outputType="encoded"] - The output type
+ * @returns {Promise<string>} The result of Argon2
+ */
+export function getArgon2(
+  password: string,
+  salt: string,
+  parallelism: number = ARGON2ID_PARALLELISM,
+  iterations: number = ARGON2ID_ITERATIONS,
+  memorySize: number = ARGON2ID_MEMORY,
+  hashLength: number = ARGON2ID_TAG_LEN,
+  outputType: 'hex' | 'binary' | 'encoded' = 'encoded',
+): Promise<string> {
+  return argon2id({
+    password,
+    salt,
+    parallelism,
+    iterations,
+    memorySize,
+    hashLength,
+    outputType,
+  });
+}
 
-    return plain;
-  } catch (e) {
-    return null;
+/**
+ * Converts HEX string to Uint8Array the same way CryptoJS did it (for compatibility)
+ * @param {string} hex - The input string in HEX
+ * @returns {Uint8Array} The resulting Uint8Array identical to what CryptoJS previously did
+ */
+export function hex2oldEncoding(hex: string): Uint8Array {
+  const words: number[] = [];
+  for (let i = 0; i < hex.length; i += 8) {
+    words.push(parseInt(hex.slice(i, i + 8), 16) | 0);
   }
+  const sigBytes = hex.length / 2;
+  const uint8Array = new Uint8Array(sigBytes);
+
+  for (let i = 0; i < sigBytes; i++) {
+    uint8Array[i] = (words[i >>> 2] >>> ((3 - (i % 4)) * 8)) & 0xff;
+  }
+
+  return uint8Array;
+}
+
+/**
+ * Password hash computation. If no salt or salt starts with 'argon2id$'  - uses Argon2, else - PBKDF2
+ * @param {PassObjectInterface} passObject - The input object containing password and salt (optional)
+ * @returns {Promise<{salt: string; hash: string }>} The resulting hash and salt
+ */
+export async function passToHash(passObject: PassObjectInterface): Promise<{ salt: string; hash: string }> {
+  let salt;
+  let hash;
+
+  if (!passObject.salt) {
+    const argonSalt = crypto.randomBytes(ARGON2ID_SALT_LEN).toString('hex');
+    hash = await getArgon2(passObject.password, argonSalt);
+    salt = 'argon2id$' + argonSalt;
+  } else if (passObject.salt.startsWith('argon2id$')) {
+    const argonSalt = passObject.salt.replace('argon2id$', '');
+    hash = await getArgon2(passObject.password, argonSalt);
+    salt = passObject.salt;
+  } else {
+    salt = passObject.salt;
+    const encoded = hex2oldEncoding(salt);
+    hash = await getPBKDF2(passObject.password, encoded);
+  }
+  return { salt, hash };
 }

@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 
-import strings from '../../../../assets/lang/strings';
-import CenterModal from '../CenterModal';
-import AppButton from '../../AppButton';
-import AppTextInput from '../../AppTextInput';
+import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
-import { useTailwind } from 'tailwind-rn';
+import AppButton from '../../AppButton';
 import AppText from '../../AppText';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import AppTextInput from '../../AppTextInput';
+import CenterModal from '../CenterModal';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;

@@ -69,9 +69,9 @@ class AuthService {
         tfaCode,
       },
       {
-        encryptPasswordHash(password: Password, encryptedSalt: string): string {
+        async encryptPasswordHash(password: Password, encryptedSalt: string): Promise<string> {
           const salt = decryptText(encryptedSalt);
-          const hashObj = passToHash({ password, salt });
+          const hashObj = await passToHash({ password, salt });
           return encryptText(hashObj.hash);
         },
         async generateKeys(): Promise<Keys> {
@@ -79,6 +79,14 @@ class AuthService {
             privateKeyEncrypted: '',
             publicKey: '',
             revocationCertificate: '',
+            ecc: {
+              privateKeyEncrypted: '',
+              publicKey: '',
+            },
+            kyber: {
+              publicKey: '',
+              privateKeyEncrypted: '',
+            },
           };
           return keys;
         },
@@ -113,7 +121,7 @@ class AuthService {
   public async doRecoverPassword(newPassword: string): Promise<Response> {
     const xUser = await asyncStorageService.getUser();
     const mnemonic = xUser.mnemonic;
-    const hashPass = passToHash({ password: newPassword });
+    const hashPass = await passToHash({ password: newPassword });
     const encryptedPassword = encryptText(hashPass.hash);
     const encryptedSalt = encryptText(hashPass.salt);
     const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
@@ -140,10 +148,10 @@ class AuthService {
     if (!salt) {
       throw new Error('Internal server error. Please try later.');
     }
-    const hashedCurrentPassword = passToHash({ password: params.password, salt }).hash;
+    const hashedCurrentPassword = (await passToHash({ password: params.password, salt })).hash;
     const encCurrentPass = encryptText(hashedCurrentPassword);
 
-    const hashedNewPassword = passToHash({ password: params.newPassword });
+    const hashedNewPassword = await passToHash({ password: params.newPassword });
     const encNewPass = encryptText(hashedNewPassword.hash);
     const encryptedNewSalt = encryptText(hashedNewPassword.salt);
 
@@ -198,13 +206,13 @@ class AuthService {
   public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
     const plainSalt = await this.getSalt(email);
 
-    const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
+    const { hash: hashedPassword } = await passToHash({ password, salt: plainSalt });
 
     return this.sdk.auth.areCredentialsCorrect(email, hashedPassword) || false;
   }
 
   public async doRegister(params: RegisterParams) {
-    const hashObj = passToHash({ password: params.password });
+    const hashObj = await passToHash({ password: params.password });
     const encPass = encryptText(hashObj.hash);
     const encSalt = encryptText(hashObj.salt);
     const mnemonic = await this.getNewBits();
@@ -221,6 +229,14 @@ class AuthService {
         privateKeyEncrypted: '',
         publicKey: '',
         revocationCertificate: '',
+        ecc: {
+          privateKeyEncrypted: '',
+          publicKey: '',
+        },
+        kyber: {
+          publicKey: '',
+          privateKeyEncrypted: '',
+        },
       },
       captcha: params.captcha,
     };
@@ -247,7 +263,7 @@ class AuthService {
 
   public async disable2FA(encryptedSalt: string, password: string, code: string) {
     const salt = decryptText(encryptedSalt);
-    const { hash } = passToHash({ password: password, salt });
+    const { hash } = await passToHash({ password: password, salt });
     const encryptedPassword = encryptText(hash);
 
     return this.sdk.auth.disableTwoFactorAuth(encryptedPassword, code);
