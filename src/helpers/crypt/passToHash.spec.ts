@@ -1,7 +1,3 @@
-/**
- * @jest-environment jsdom
- */
-
 import CryptoJS from 'crypto-js';
 import { getArgon2, getPBKDF2, hex2oldEncoding, passToHash } from './crypt';
 
