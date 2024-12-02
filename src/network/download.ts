@@ -1,13 +1,13 @@
-import RNFS from 'react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 
-import { getNetwork } from './NetworkFacade';
+import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
+import FileManager from '../@inxt-js/api/FileManager';
+import { constants } from '../services/AppService';
 import { downloadFile as downloadFileV1, LegacyDownloadRequiredError } from '../services/NetworkService/download';
 import { downloadFile as downloadFileV1Legacy } from '../services/NetworkService/downloadLegacy';
-import { constants } from '../services/AppService';
-import { NetworkCredentials } from './requests';
-import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
 import { Abortable } from '../types';
-import FileManager from '../@inxt-js/api/FileManager';
+import { getNetwork } from './NetworkFacade';
+import { NetworkCredentials } from './requests';
 
 export type EncryptedFileDownloadedParams = {
   path: string;

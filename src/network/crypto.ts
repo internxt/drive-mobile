@@ -1,6 +1,6 @@
-import RNFetchBlob from 'rn-fetch-blob';
-import { stat, read } from 'react-native-fs';
+import { read, stat } from '@dr.pogodin/react-native-fs';
 import { createDecipheriv, Decipher } from 'react-native-crypto';
+import RNFetchBlob from 'rn-fetch-blob';
 
 function getAes256CtrDecipher(key: Buffer, iv: Buffer): Decipher {
   return createDecipheriv('aes-256-ctr', key, iv);

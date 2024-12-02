@@ -1,5 +1,6 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import { logger as RNLogger, consoleTransport, fileAsyncTransport } from 'react-native-logs';
-import RNFS from 'react-native-fs';
+
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import { InteractionManager } from 'react-native';
 
