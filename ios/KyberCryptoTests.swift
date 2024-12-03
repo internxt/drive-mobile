@@ -162,5 +162,19 @@ class KyberCryptoTests: XCTestCase {
         XCTAssertEqual(importedConfig.keySize, KyberDefaults.defaultKeySize, "Imported config should match exported")
     }
 
+    func testConfigExportAndImport() {
+        let kyber = KyberCrypto()
+        guard let exportedConfig = kyber.exportConfig() else {
+            XCTFail("Config export failed")
+            return
+        }
+
+        guard let importedConfig = kyber.importConfig(from: exportedConfig) else {
+            XCTFail("Config import failed")
+            return
+        }
+
+        XCTAssertEqual(importedConfig.keySize, KyberDefaults.defaultKeySize, "Imported config should match exported")
+    }
 
 }
