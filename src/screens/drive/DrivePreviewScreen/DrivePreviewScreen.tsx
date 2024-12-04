@@ -1,4 +1,4 @@
-import { GeneratedThumbnail } from '@internxt-mobile/services/common';
+import { GeneratedThumbnail, imageService } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
@@ -51,12 +51,12 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension) &&
       !generatedThumbnail
     ) {
-      // imageService
-      //   .generateVideoThumbnail(downloadingFile.downloadedFilePath)
-      //   .then((generatedThumbnail) => {
-      //     setGeneratedThumbnail(generatedThumbnail);
-      //   })
-      //   .catch((err) => errorService.reportError(err));
+      imageService
+        .generateVideoThumbnail(downloadingFile.downloadedFilePath)
+        .then((generatedThumbnail) => {
+          setGeneratedThumbnail(generatedThumbnail);
+        })
+        .catch((err) => errorService.reportError(err));
     }
   }, [downloadingFile?.downloadedFilePath]);
 
