@@ -1,31 +1,31 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 
-import { NotificationType } from '../../../types';
-import { RootState } from '../..';
-import strings from '../../../../assets/lang/strings';
-import notificationsService from '../../../services/NotificationsService';
-import {
-  DriveItemData,
-  DriveItemStatus,
-  DriveListItem,
-  UploadingFile,
-  DownloadingFile,
-  DriveEventKey,
-  DriveNavigationStack,
-  DriveNavigationStackItem,
-  DriveItemFocused,
-} from '../../../types/drive';
-import fileSystemService from '../../../services/FileSystemService';
-import { items } from '@internxt/lib';
+import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
+import { items } from '@internxt/lib';
+import { isValidFilename } from 'src/helpers';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
-import { isValidFilename } from 'src/helpers';
-import { logger } from '@internxt-mobile/services/common';
+import { RootState } from '../..';
+import strings from '../../../../assets/lang/strings';
+import fileSystemService from '../../../services/FileSystemService';
+import notificationsService from '../../../services/NotificationsService';
+import { NotificationType } from '../../../types';
+import {
+  DownloadingFile,
+  DriveEventKey,
+  DriveItemData,
+  DriveItemFocused,
+  DriveItemStatus,
+  DriveListItem,
+  DriveNavigationStack,
+  DriveNavigationStackItem,
+  UploadingFile,
+} from '../../../types/drive';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -231,6 +231,7 @@ const downloadFileThunk = createAsyncThunk<
       if (!fileAlreadyExists) {
         trackDownloadStart();
         downloadProgressCallback(0);
+
         await download({ fileId, to: destinationPath });
       }
 
@@ -242,6 +243,7 @@ const downloadFileThunk = createAsyncThunk<
 
       trackDownloadSuccess();
     } catch (err) {
+      logger.error('Error in downloadFileThunk ', JSON.stringify(err));
       dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
       /**
        * In case something fails, we remove the file in case it exists, that way
