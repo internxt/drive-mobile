@@ -243,7 +243,7 @@ const downloadFileThunk = createAsyncThunk<
 
       trackDownloadSuccess();
     } catch (err) {
-      logger.error('downloadFileThunk ', JSON.stringify(err));
+      logger.error('Error in downloadFileThunk ', JSON.stringify(err));
       dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
       /**
        * In case something fails, we remove the file in case it exists, that way
