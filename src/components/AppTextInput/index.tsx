@@ -57,14 +57,16 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
       let newPosition: number;
 
       const hasNothingSelected = selection.start === selection.end;
+      const selectionStart = Math.min(selection.start, selection.end);
+
       if (hasNothingSelected) {
         newPosition = selection.start + (newText.length - oldText.length);
-        setSelection({ start: newPosition, end: newPosition });
       } else {
-        const selectionStart = Math.min(selection.start, selection.end);
-        newPosition = selectionStart + newText.length - oldText.slice(selection.start, selection.end).length;
-        setSelection({ start: newPosition, end: newPosition });
+        newPosition = selectionStart;
       }
+      newPosition = Math.max(0, newPosition);
+
+      setSelection({ start: newPosition, end: newPosition });
 
       setTimeout(() => {
         if (localInputRef.current) {

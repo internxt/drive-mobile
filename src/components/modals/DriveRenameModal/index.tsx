@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import Portal from '@burstware/react-native-portal';
@@ -9,7 +9,6 @@ import AppText from 'src/components/AppText';
 import AppTextInput from 'src/components/AppTextInput';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import errorService from '../../../services/ErrorService';
 import notificationsService from '../../../services/NotificationsService';
@@ -19,6 +18,7 @@ import { uiActions } from '../../../store/slices/ui';
 import { NotificationType } from '../../../types';
 import AppButton from '../../AppButton';
 import CenterModal from '../CenterModal';
+
 function RenameModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -103,8 +103,7 @@ function RenameModal(): JSX.Element {
       onItemRenameFinally();
     }
   };
-  const IconFile = getFileTypeIcon(focusedItem?.type || '');
-  const IconFolder = FolderIcon;
+
   const onClosed = () => {
     dispatch(uiActions.setShowRenameModal(false));
     setNewName('');
