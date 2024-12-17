@@ -143,7 +143,7 @@ const downloadFileThunk = createAsyncThunk<
     logger.info('Starting file download...');
     const { user } = getState().auth;
 
-    if (parseInt(size?.toString() ?? '0') >= MAX_SIZE_TO_DOWNLOAD['3GB']) {
+    if (parseInt(size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['3GB']) {
       dispatch(
         driveActions.updateDownloadingFile({
           error: strings.messages.downloadLimit,
