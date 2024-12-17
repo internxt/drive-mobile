@@ -7,7 +7,7 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import AuthService from '@internxt-mobile/services/AuthService';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
-import { notifications } from '@internxt-mobile/services/NotificationsService';
+import notificationsService, { notifications } from '@internxt-mobile/services/NotificationsService';
 import { logger } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import drive from '@internxt-mobile/services/drive';
@@ -30,6 +30,7 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
+import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
@@ -65,6 +66,14 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(uiActions.setShowItemModal(false));
     dispatch(uiActions.setShowMoveModal(true));
     dispatch(driveActions.setItemToMove(item));
+  };
+
+  const isFileDownloadable = (): boolean => {
+    if (parseInt(item.size?.toString() ?? '0') >= MAX_SIZE_TO_DOWNLOAD['3GB']) {
+      notificationsService.info(strings.messages.downloadLimit);
+      return false;
+    }
+    return true;
   };
 
   const handleUndoMoveToTrash = async () => {
@@ -118,7 +127,6 @@ function DriveItemInfoModal(): JSX.Element {
 
   const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string) => {
     const { credentials } = await AuthService.getAuthCredentials();
-
     const { downloadPath } = await drive.file.downloadFile(credentials.user, bucketId, fileId, {
       downloadPath: decryptedFilePath,
       downloadProgressCallback(progress, bytesReceived, totalBytes) {
@@ -140,6 +148,11 @@ function DriveItemInfoModal(): JSX.Element {
     try {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
+      }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
       }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
@@ -181,6 +194,11 @@ function DriveItemInfoModal(): JSX.Element {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
       }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
+      }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
 
@@ -214,6 +232,11 @@ function DriveItemInfoModal(): JSX.Element {
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       if (!item.fileId) {
         throw new Error('Item fileID not found');
+      }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
       }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);

@@ -90,9 +90,9 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const filename = `${focusedItem.name || ''}${focusedItem.type ? `.${focusedItem.type}` : ''}`;
   const currentProgress = downloadingFile.downloadProgress * 0.5 + downloadingFile.decryptProgress * 0.5;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
-  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
-  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
-  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
+  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const getProgressMessage = () => {
     if (!downloadingFile) {
       return;
@@ -152,12 +152,14 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
               <WarningCircle weight="fill" size={20} color={tailwind('text-red').color as string} />
               <AppText style={tailwind('text-gray-60 text-center text-red ml-1')}>{error}</AppText>
             </View>
-            <AppButton
-              style={tailwind('mt-5')}
-              title={strings.buttons.tryAgain}
-              type={'white'}
-              onPress={() => downloadingFile.retry && downloadingFile.retry()}
-            ></AppButton>
+            {downloadingFile && error !== strings.messages.downloadLimit && (
+              <AppButton
+                style={tailwind('mt-5')}
+                title={strings.buttons.tryAgain}
+                type={'white'}
+                onPress={() => downloadingFile.retry && downloadingFile.retry()}
+              ></AppButton>
+            )}
           </View>
         ) : null}
         {isDownloaded && downloadedFilePath ? (
