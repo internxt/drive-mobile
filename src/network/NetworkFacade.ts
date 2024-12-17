@@ -187,7 +187,7 @@ export class NetworkFacade {
 
     const encryptedFileName = `${fileId}.enc`;
     let encryptedFileIsCached = false;
-    const totalBytes = 0;
+    let totalBytes = 0;
     const downloadPromise = downloadFile(
       fileId,
       bucketId,
@@ -209,50 +209,64 @@ export class NetworkFacade {
           encryptedFileIsCached = true;
           encryptedFileURI = path;
         } else {
-          const [{ url }] = downloadables;
-
-          const downloadChunkSize = 50 * 1024 * 1024;
+          const downloadChunkSize = 50 * 1024 * 1024; // 50MB
           const ranges: { start: number; end: number }[] = [];
+          const chunkFiles: string[] = [];
+
           for (let start = 0; start < fileSize; start += downloadChunkSize) {
             const end = Math.min(start + downloadChunkSize - 1, fileSize - 1);
             ranges.push({ start, end });
           }
+          params.downloadProgressCallback(0, 0, 0);
 
-          encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
-          console.log({ encryptedFileURI });
+          for (let i = 0; i < ranges.length; i++) {
+            const range = ranges[i];
+            const chunkFileName = `${encryptedFileName}-chunk-${i + 1}`;
+            const chunkFileURI = fileSystemService.tmpFilePath(chunkFileName);
+            chunkFiles.push(chunkFileURI);
 
-          // Create an empty file so RNFS can write to it directly
-          await fileSystemService.createEmptyFile(encryptedFileURI);
+            // Create an empty file for each chunk
+            await fileSystemService.createEmptyFile(chunkFileURI);
 
-          params.downloadProgressCallback(0, 0, fileSize);
-          for (const range of ranges) {
-            console.log({ range });
             try {
-              const response = await fetch(url, {
-                signal: params.signal,
+              downloadJob = RNFS.downloadFile({
+                fromUrl: downloadables[0].url,
+                toFile: chunkFileURI,
+                discretionary: true,
+                cacheable: false,
                 headers: {
                   Range: `bytes=${range.start}-${range.end}`,
                 },
+                progressDivider: 5,
+                progressInterval: 150,
+                begin: () => {
+                  console.log('begin ', chunkFileName);
+                },
+                progress: (res) => {
+                  if (res.contentLength) {
+                    totalBytes = res.contentLength + range.start;
+                  }
+                  const overallProgress = (res.contentLength + range.start) / fileSize;
+                  console.log({ res });
+                  params.downloadProgressCallback(overallProgress, res.contentLength + range.start, fileSize);
+                },
               });
-              console.log({ response });
-              if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to download chunk: ${response.status} ${response.statusText} - ${errorText}`);
-              }
-
-              const arrayBuffer = await response.arrayBuffer();
-              const uint8Array = new Uint8Array(arrayBuffer);
-              const base64String = Buffer.from(uint8Array).toString('base64');
               params.downloadProgressCallback(range.start / fileSize, range.start, fileSize);
-              await RNFS.appendFile(encryptedFileURI, base64String, 'base64');
+              await downloadJob.promise;
+              params.downloadProgressCallback(range.end / fileSize, range.end, fileSize);
             } catch (error) {
-              console.error('Error downloading chunk:', error);
+              console.error(`Error downloading chunk ${i + 1}:`, error);
+
+              await Promise.all(chunkFiles.map((file) => fileSystemService.deleteFile([file])));
+
               throw error;
             }
           }
 
-          // driveEvents.setJobId(null);
-          // expectedFileHash = downloadables[0].hash;
+          encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
+          await fileSystemService.combineFiles(chunkFiles, encryptedFileURI);
+
+          await Promise.all(chunkFiles.map((file) => fileSystemService.deleteFile([file])));
         }
       },
       async (_, key, iv) => {

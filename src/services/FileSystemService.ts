@@ -29,6 +29,43 @@ class FileSystemService {
   public async prepareFileSystem() {
     await this.prepareTmpDir();
   }
+  public async deleteFile(files: string[]): Promise<void> {
+    try {
+      await Promise.all(
+        files.map(async (file) => {
+          try {
+            await this.unlinkIfExists(file);
+          } catch (error) {
+            console.warn(`Error deleting file ${file}:`, error);
+          }
+        }),
+      );
+    } catch (error) {
+      console.error('Error in bulk file deletion:', error);
+      throw error;
+    }
+  }
+  public async combineFiles(sourceFiles: string[], destinationFile: string): Promise<void> {
+    try {
+      await this.unlinkIfExists(destinationFile);
+
+      await this.createEmptyFile(destinationFile);
+
+      const writeStream = await RNFetchBlob.fs.writeStream(destinationFile, 'base64');
+
+      for (const sourceFile of sourceFiles) {
+        const content = await this.readFile(sourceFile);
+        await writeStream.write(content.toString('base64'));
+      }
+
+      writeStream.close();
+
+      await Promise.all(sourceFiles.map((file) => this.unlinkIfExists(file)));
+    } catch (error) {
+      console.error('Error combining files:', error);
+      throw error;
+    }
+  }
 
   public pathToUri(path: string): string {
     if (path.startsWith(ANDROID_URI_PREFIX)) return path;
