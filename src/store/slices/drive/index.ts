@@ -195,13 +195,19 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return drive.file.downloadFile(user, bucketId, params.fileId, {
-        downloadPath: params.to,
-        decryptionProgressCallback,
-        downloadProgressCallback,
-        signal,
-        onAbortableReady: drive.events.setLegacyAbortable,
-      });
+      return drive.file.downloadFile(
+        user,
+        bucketId,
+        params.fileId,
+        {
+          downloadPath: params.to,
+          decryptionProgressCallback,
+          downloadProgressCallback,
+          signal,
+          onAbortableReady: drive.events.setLegacyAbortable,
+        },
+        size,
+      );
     };
 
     const trackDownloadStart = () => {

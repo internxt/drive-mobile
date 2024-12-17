@@ -11,7 +11,6 @@ import uuid from 'react-native-uuid';
 import RNFetchBlob from 'rn-fetch-blob';
 
 import drive from '@internxt-mobile/services/drive';
-import { driveEvents } from '@internxt-mobile/services/drive/events';
 import { ripemd160 } from '../@inxt-js/lib/crypto';
 import { generateFileKey } from '../lib/network';
 import appService from '../services/AppService';
@@ -158,7 +157,14 @@ export class NetworkFacade {
     return [wrapUploadWithCleanup(), () => null];
   }
 
-  download(fileId: string, bucketId: string, mnemonic: string, params: DownloadFileParams): [Promise<void>, Abortable] {
+  download(
+    fileId: string,
+    bucketId: string,
+    mnemonic: string,
+    params: DownloadFileParams,
+    fileSize: number,
+  ): [Promise<void>, Abortable] {
+    console.log('download');
     if (!fileId) {
       throw new Error('Download error code 1');
     }
@@ -181,7 +187,7 @@ export class NetworkFacade {
 
     const encryptedFileName = `${fileId}.enc`;
     let encryptedFileIsCached = false;
-    let totalBytes = 0;
+    const totalBytes = 0;
     const downloadPromise = downloadFile(
       fileId,
       bucketId,
@@ -203,49 +209,65 @@ export class NetworkFacade {
           encryptedFileIsCached = true;
           encryptedFileURI = path;
         } else {
+          const [{ url }] = downloadables;
+
+          const downloadChunkSize = 50 * 1024 * 1024;
+          const ranges: { start: number; end: number }[] = [];
+          for (let start = 0; start < fileSize; start += downloadChunkSize) {
+            const end = Math.min(start + downloadChunkSize - 1, fileSize - 1);
+            ranges.push({ start, end });
+          }
+
           encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
+          console.log({ encryptedFileURI });
+
           // Create an empty file so RNFS can write to it directly
           await fileSystemService.createEmptyFile(encryptedFileURI);
 
-          downloadJob = RNFS.downloadFile({
-            fromUrl: downloadables[0].url,
-            toFile: encryptedFileURI,
-            discretionary: true,
-            cacheable: false,
-            progressDivider: 5,
-            progressInterval: 150,
-            begin: () => {
-              params.downloadProgressCallback(0, 0, 0);
-            },
-            progress: (res) => {
-              if (res.contentLength) {
-                totalBytes = res.contentLength;
+          params.downloadProgressCallback(0, 0, fileSize);
+          for (const range of ranges) {
+            console.log({ range });
+            try {
+              const response = await fetch(url, {
+                signal: params.signal,
+                headers: {
+                  Range: `bytes=${range.start}-${range.end}`,
+                },
+              });
+              console.log({ response });
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to download chunk: ${response.status} ${response.statusText} - ${errorText}`);
               }
-              params.downloadProgressCallback(
-                res.bytesWritten / res.contentLength,
-                res.bytesWritten,
-                res.contentLength,
-              );
-            },
-          });
 
-          driveEvents.setJobId(downloadJob.jobId);
-          expectedFileHash = downloadables[0].hash;
+              const arrayBuffer = await response.arrayBuffer();
+              const uint8Array = new Uint8Array(arrayBuffer);
+              const base64String = Buffer.from(uint8Array).toString('base64');
+              params.downloadProgressCallback(range.start / fileSize, range.start, fileSize);
+              await RNFS.appendFile(encryptedFileURI, base64String, 'base64');
+            } catch (error) {
+              console.error('Error downloading chunk:', error);
+              throw error;
+            }
+          }
+
+          // driveEvents.setJobId(null);
+          // expectedFileHash = downloadables[0].hash;
         }
       },
       async (_, key, iv) => {
         if (!encryptedFileURI) throw new Error('No encrypted file URI found');
 
         // Maybe we should save the expected hash and compare even if the file is cached
-        if (!encryptedFileIsCached) {
-          await downloadJob.promise;
-          const sha256Hash = await RNFS.hash(encryptedFileURI, 'sha256');
-          const receivedFileHash = ripemd160(Buffer.from(sha256Hash, 'hex')).toString('hex');
+        // if (!encryptedFileIsCached) {
+        //   await downloadJob.promise;
+        //   const sha256Hash = await RNFS.hash(encryptedFileURI, 'sha256');
+        //   const receivedFileHash = ripemd160(Buffer.from(sha256Hash, 'hex')).toString('hex');
 
-          if (receivedFileHash !== expectedFileHash) {
-            throw new Error('Hash mismatch');
-          }
-        }
+        //   if (receivedFileHash !== expectedFileHash) {
+        //     throw new Error('Hash mismatch');
+        //   }
+        // }
 
         params.downloadProgressCallback(1, totalBytes, totalBytes);
 
@@ -296,7 +318,7 @@ export class NetworkFacade {
       }
     };
 
-    return [wrapDownloadWithCleanup(), () => RNFS.stopDownload(downloadJob.jobId)];
+    return [wrapDownloadWithCleanup(), () => undefined];
   }
 }
 

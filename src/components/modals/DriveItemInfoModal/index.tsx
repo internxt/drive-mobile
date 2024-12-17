@@ -125,21 +125,27 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
-  const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string) => {
+  const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string, fileSize: number) => {
     const { credentials } = await AuthService.getAuthCredentials();
-    const { downloadPath } = await drive.file.downloadFile(credentials.user, bucketId, fileId, {
-      downloadPath: decryptedFilePath,
-      downloadProgressCallback(progress, bytesReceived, totalBytes) {
-        setDownloadProgress({
-          progress,
-          bytesReceived,
-          totalBytes,
-        });
+    const { downloadPath } = await drive.file.downloadFile(
+      credentials.user,
+      bucketId,
+      fileId,
+      {
+        downloadPath: decryptedFilePath,
+        downloadProgressCallback(progress, bytesReceived, totalBytes) {
+          setDownloadProgress({
+            progress,
+            bytesReceived,
+            totalBytes,
+          });
+        },
+        onAbortableReady(abortable) {
+          downloadAbortableRef.current = abortable;
+        },
       },
-      onAbortableReady(abortable) {
-        downloadAbortableRef.current = abortable;
-      },
-    });
+      fileSize,
+    );
 
     return downloadPath;
   };
@@ -168,7 +174,12 @@ function DriveItemInfoModal(): JSX.Element {
 
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       setExporting(true);
-      const downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
+      const downloadPath = await downloadItem(
+        item.fileId,
+        item.bucket as string,
+        decryptedFilePath,
+        parseInt(item.size?.toString() ?? '0'),
+      );
       setExporting(false);
       await fs.shareFile({
         title: item.name,
@@ -210,7 +221,12 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
+        await downloadItem(
+          item.fileId,
+          item.bucket as string,
+          decryptedFilePath,
+          parseInt(item.size?.toString() ?? '0'),
+        );
         setExporting(false);
       }
 
@@ -249,7 +265,12 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
+        await downloadItem(
+          item.fileId,
+          item.bucket as string,
+          decryptedFilePath,
+          parseInt(item.size?.toString() ?? '0'),
+        );
         setExporting(false);
       }
 
