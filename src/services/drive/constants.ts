@@ -7,3 +7,7 @@ export const MAX_CACHE_DIRECTORY_SIZE_IN_BYTES = 1024 * 1024 * 500;
 
 // 10% of the directory size
 export const MAX_FILE_SIZE_FOR_CACHING = MAX_CACHE_DIRECTORY_SIZE_IN_BYTES * 0.1;
+
+export const MAX_SIZE_TO_DOWNLOAD = {
+  '3GB': 3221225472,
+};

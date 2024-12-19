@@ -5,7 +5,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import appService from '@internxt-mobile/services/AppService';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { BaseLogger } from '@internxt-mobile/services/common';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
@@ -47,10 +46,6 @@ interface DriveContextProviderProps {
   rootFolderId?: number;
   children: React.ReactNode;
 }
-
-const logger = new BaseLogger({
-  tag: 'DRIVE_CONTEXT',
-});
 
 const FILES_LIMIT_PER_PAGE = 50;
 const FOLDERS_LIMIT_PER_PAGE = 50;
@@ -146,6 +141,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           userId: folder.userId,
           // @ts-expect-error - API is returning status, missing from SDK
           status: folder.status,
+          // @ts-expect-error - API is returning status, missing from SDK
+          isFolder: true,
         };
 
         return driveFolder;
@@ -269,7 +266,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     setViewMode(newViewMode);
     asyncStorageService.saveItem(AsyncStorageKey.PreferredDriveViewMode, newViewMode);
   };
-
   return (
     <DriveContext.Provider
       value={{

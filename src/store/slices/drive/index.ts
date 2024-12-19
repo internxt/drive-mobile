@@ -12,6 +12,7 @@ import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
+import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
@@ -117,6 +118,8 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
   drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
+const DOWNLOAD_ERROR_CODES = { MAX_SIZE_TO_DOWNLOAD_REACHED: 1 };
+
 const downloadFileThunk = createAsyncThunk<
   void,
   {
@@ -139,6 +142,16 @@ const downloadFileThunk = createAsyncThunk<
   ) => {
     logger.info('Starting file download...');
     const { user } = getState().auth;
+
+    if (parseInt(size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['3GB']) {
+      dispatch(
+        driveActions.updateDownloadingFile({
+          error: strings.messages.downloadLimit,
+        }),
+      );
+      return rejectWithValue(DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED);
+    }
+
     dispatch(
       driveActions.updateDownloadingFile({
         retry: async () => {
@@ -484,7 +497,12 @@ export const driveSlice = createSlice({
         };
       })
       .addCase(downloadFileThunk.fulfilled, () => undefined)
-      .addCase(downloadFileThunk.rejected, () => undefined);
+      .addCase(downloadFileThunk.rejected, (_, action) => {
+        const errorCode = action.payload;
+        if (errorCode === DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED) {
+          notificationsService.info(strings.messages.downloadLimit);
+        }
+      });
 
     builder
       .addCase(createFolderThunk.pending, (state) => {

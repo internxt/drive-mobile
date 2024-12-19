@@ -1279,12 +1279,13 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@dr.pogodin/react-native-fs@2.24.6":
-  version "2.24.6"
-  resolved "https://registry.yarnpkg.com/@dr.pogodin/react-native-fs/-/react-native-fs-2.24.6.tgz#a673628d0b4b26f28cab211af98a9e83c12ae90b"
-  integrity sha512-DMEL/FLf+LrRnegBDbLHDRCAv/flhrZwbSOzHmwGPjAd8gF6Bn48z8gFmrwlxcAtR0rxo1K1L8gWzddyR/LV8A==
+"@dr.pogodin/react-native-fs@2.27.0":
+  version "2.27.0"
+  resolved "https://registry.yarnpkg.com/@dr.pogodin/react-native-fs/-/react-native-fs-2.27.0.tgz#2545a3414b24282aa3b311b97f7e5f9a238916f3"
+  integrity sha512-1wxXI0Y1LCfUhl5S1p3HxLVvOAS4ooc83KF5uc5gIfgk24JeSYyHbeKDpSwJrZhN5uFtsC+MZG3Gyq8nBV5QFQ==
   dependencies:
     buffer "^6.0.3"
+    http-status-codes "^2.3.0"
 
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
@@ -7433,6 +7434,11 @@ http-signature@~1.2.0:
     assert-plus "^1.0.0"
     jsprim "^1.2.2"
     sshpk "^1.7.0"
+
+http-status-codes@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/http-status-codes/-/http-status-codes-2.3.0.tgz#987fefb28c69f92a43aecc77feec2866349a8bfc"
+  integrity sha512-RJ8XvFvpPM/Dmc5SV+dC4y5PCeOhT3x1Hq0NU3rjGeg5a/CqlhZ7uudknPwZFz4aeAXDcbAyaeP7GAo9lvngtA==
 
 https-browserify@^1.0.0:
   version "1.0.0"
