@@ -30,7 +30,6 @@ export async function downloadFile(
   fileSize: number,
   onAbortableReady: (abortable: Abortable) => void,
 ): Promise<void> {
-  console.log('downloadFile');
   const network = getNetwork(constants.BRIDGE_URL, creds);
 
   const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params, fileSize);

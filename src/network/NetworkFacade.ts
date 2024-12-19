@@ -1,5 +1,6 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
-import { decryptFile, encryptFile } from '@internxt/rn-crypto';
+import { logger } from '@internxt-mobile/services/common';
+import { decryptFile, encryptFile, joinFiles } from '@internxt/rn-crypto';
 import { ALGORITHMS, Network } from '@internxt/sdk/dist/network';
 import { downloadFile } from '@internxt/sdk/dist/network/download';
 import { Crypto } from '@internxt/sdk/dist/network/types';
@@ -14,6 +15,7 @@ import drive from '@internxt-mobile/services/drive';
 import { ripemd160 } from '../@inxt-js/lib/crypto';
 import { generateFileKey } from '../lib/network';
 import appService from '../services/AppService';
+import { driveEvents } from '../services/drive/events';
 import fileSystemService from '../services/FileSystemService';
 import { Abortable } from '../types';
 import { EncryptedFileDownloadedParams } from './download';
@@ -164,7 +166,6 @@ export class NetworkFacade {
     params: DownloadFileParams,
     fileSize: number,
   ): [Promise<void>, Abortable] {
-    console.log('download');
     if (!fileId) {
       throw new Error('Download error code 1');
     }
@@ -178,6 +179,7 @@ export class NetworkFacade {
     }
 
     let downloadJob: { jobId: number; promise: Promise<RNFS.DownloadResultT> };
+
     let expectedFileHash: string;
 
     const decryptFileFromFs: DecryptFileFromFsFunction =
@@ -188,6 +190,25 @@ export class NetworkFacade {
     const encryptedFileName = `${fileId}.enc`;
     let encryptedFileIsCached = false;
     let totalBytes = 0;
+    let chunkFiles: string[] = [];
+
+    const cleanupChunks = async () => {
+      if (chunkFiles.length > 0) {
+        await Promise.all(chunkFiles.map((file) => fileSystemService.deleteFile([file])));
+        chunkFiles = [];
+      }
+    };
+    const abortDownload = () => {
+      if (downloadJob) {
+        RNFS.stopDownload(downloadJob.jobId);
+      }
+      cleanupChunks();
+    };
+
+    if (params.signal) {
+      params.signal.addEventListener('abort', abortDownload);
+    }
+
     const downloadPromise = downloadFile(
       fileId,
       bucketId,
@@ -209,9 +230,9 @@ export class NetworkFacade {
           encryptedFileIsCached = true;
           encryptedFileURI = path;
         } else {
-          const downloadChunkSize = 50 * 1024 * 1024; // 50MB
+          const FIFTY_MB = 50 * 1024 * 1024;
+          const downloadChunkSize = FIFTY_MB;
           const ranges: { start: number; end: number }[] = [];
-          const chunkFiles: string[] = [];
 
           for (let start = 0; start < fileSize; start += downloadChunkSize) {
             const end = Math.min(start + downloadChunkSize - 1, fileSize - 1);
@@ -220,12 +241,17 @@ export class NetworkFacade {
           params.downloadProgressCallback(0, 0, 0);
 
           for (let i = 0; i < ranges.length; i++) {
+            const isFirstChunk = i === 0;
+
+            if (params.signal?.aborted) {
+              throw new Error('Download aborted');
+            }
+
             const range = ranges[i];
             const chunkFileName = `${encryptedFileName}-chunk-${i + 1}`;
             const chunkFileURI = fileSystemService.tmpFilePath(chunkFileName);
             chunkFiles.push(chunkFileURI);
 
-            // Create an empty file for each chunk
             await fileSystemService.createEmptyFile(chunkFileURI);
 
             try {
@@ -240,33 +266,46 @@ export class NetworkFacade {
                 progressDivider: 5,
                 progressInterval: 150,
                 begin: () => {
-                  console.log('begin ', chunkFileName);
+                  if (isFirstChunk) {
+                    params.downloadProgressCallback(0, 0, 0);
+                  }
                 },
                 progress: (res) => {
-                  if (res.contentLength) {
-                    totalBytes = res.contentLength + range.start;
-                  }
-                  const overallProgress = (res.contentLength + range.start) / fileSize;
-                  console.log({ res });
-                  params.downloadProgressCallback(overallProgress, res.contentLength + range.start, fileSize);
+                  // NOT WORKING ON IOS. CHECK
+                  params.downloadProgressCallback(
+                    (totalBytes + res.bytesWritten) / fileSize,
+                    res.bytesWritten + totalBytes,
+                    fileSize,
+                  );
                 },
               });
-              params.downloadProgressCallback(range.start / fileSize, range.start, fileSize);
+              // BECAUSE PROGRESS IS NOT WORKING ON IOS
+              if (isFirstChunk) params.downloadProgressCallback(0, 0, 0);
+
+              driveEvents.setJobId(downloadJob.jobId);
               await downloadJob.promise;
-              params.downloadProgressCallback(range.end / fileSize, range.end, fileSize);
+
+              totalBytes = downloadChunkSize * (i + 1);
+              // BECAUSE PROGRESS IS NOT WORKING ON IOS
+              if (Platform.OS === 'ios') {
+                params.downloadProgressCallback(totalBytes / fileSize, totalBytes, fileSize);
+              }
             } catch (error) {
-              console.error(`Error downloading chunk ${i + 1}:`, error);
-
-              await Promise.all(chunkFiles.map((file) => fileSystemService.deleteFile([file])));
-
+              await cleanupChunks();
               throw error;
             }
           }
-
+          expectedFileHash = downloadables[0].hash;
           encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
-          await fileSystemService.combineFiles(chunkFiles, encryptedFileURI);
 
-          await Promise.all(chunkFiles.map((file) => fileSystemService.deleteFile([file])));
+          joinFiles(chunkFiles, encryptedFileURI, async (error) => {
+            if (error) {
+              logger.error('Error on joinFiles in download function:', JSON.stringify(error));
+              throw error;
+            }
+
+            await cleanupChunks();
+          });
         }
       },
       async (_, key, iv) => {
@@ -332,7 +371,7 @@ export class NetworkFacade {
       }
     };
 
-    return [wrapDownloadWithCleanup(), () => undefined];
+    return [wrapDownloadWithCleanup(), abortDownload];
   }
 }
 

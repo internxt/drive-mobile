@@ -45,27 +45,6 @@ class FileSystemService {
       throw error;
     }
   }
-  public async combineFiles(sourceFiles: string[], destinationFile: string): Promise<void> {
-    try {
-      await this.unlinkIfExists(destinationFile);
-
-      await this.createEmptyFile(destinationFile);
-
-      const writeStream = await RNFetchBlob.fs.writeStream(destinationFile, 'base64');
-
-      for (const sourceFile of sourceFiles) {
-        const content = await this.readFile(sourceFile);
-        await writeStream.write(content.toString('base64'));
-      }
-
-      writeStream.close();
-
-      await Promise.all(sourceFiles.map((file) => this.unlinkIfExists(file)));
-    } catch (error) {
-      console.error('Error combining files:', error);
-      throw error;
-    }
-  }
 
   public pathToUri(path: string): string {
     if (path.startsWith(ANDROID_URI_PREFIX)) return path;
@@ -357,6 +336,20 @@ class FileSystemService {
     }
     await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
     await this.clearTempDir();
+  }
+
+  public async checkAvailableStorage(requiredSpace: number): Promise<boolean> {
+    try {
+      const fsInfo = await RNFS.getFSInfo();
+      const freeSpace = fsInfo.freeSpace;
+
+      const spaceWithBuffer = requiredSpace * 1.3;
+
+      return freeSpace >= spaceWithBuffer;
+    } catch (error) {
+      console.error('Error checking storage:', error);
+      throw new Error('Could not check available storage');
+    }
   }
 }
 

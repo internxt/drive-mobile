@@ -676,7 +676,6 @@ const strings = new LocalizedStrings({
       unknown: 'Unknown error',
       uploadFile: 'File upload error: {0}',
       storageLimitReached: 'You have reached your storage limit',
-
       inviteAFriend: 'Error sending invitation: {0}',
       loadProducts: 'Cannot load products: {0}',
       passwordsDontMatch: "Passwords don't match",
@@ -698,6 +697,7 @@ const strings = new LocalizedStrings({
       changePassword: 'Error changing password',
       loadPrices: 'Error loading prices',
       cancelSubscription: 'Error cancelling subscription',
+      notEnoughSpaceOnDevice: 'Not enough storage space available for download',
     },
   },
   es: {
@@ -1396,6 +1396,7 @@ const strings = new LocalizedStrings({
       changePassword: 'Error cambiando contraseña',
       loadPrices: 'Error cargando precios',
       cancelSubscription: 'Error cancelando suscripción',
+      notEnoughSpaceOnDevice: 'No hay suficiente espacio de almacenamiento disponible para la descarga',
     },
   },
 });

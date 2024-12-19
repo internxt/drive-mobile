@@ -6,7 +6,7 @@ import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import AuthService from '@internxt-mobile/services/AuthService';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { fs } from '@internxt-mobile/services/FileSystemService';
+import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 import notificationsService, { notifications } from '@internxt-mobile/services/NotificationsService';
 import { logger } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
@@ -127,6 +127,11 @@ function DriveItemInfoModal(): JSX.Element {
 
   const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string, fileSize: number) => {
     const { credentials } = await AuthService.getAuthCredentials();
+    const hasEnoughSpace = await fileSystemService.checkAvailableStorage(fileSize);
+    if (!hasEnoughSpace) {
+      throw new Error(strings.errors.notEnoughSpaceOnDevice);
+    }
+
     const { downloadPath } = await drive.file.downloadFile(
       credentials.user,
       bucketId,
