@@ -205,6 +205,21 @@ export class NetworkFacade {
       cleanupChunks();
     };
 
+    const cleanupExistingChunks = async (encFileName: string) => {
+      try {
+        const tmpDir = fileSystemService.getTemporaryDir();
+        const files = await RNFS.readDir(tmpDir);
+        const chunkPattern = new RegExp(`${encFileName}\\-chunk-\\d+$`);
+
+        const existingChunks = files.filter((file) => chunkPattern.test(file.name));
+        if (existingChunks.length > 0) {
+          await Promise.all(existingChunks.map((file) => fileSystemService.deleteFile([file.path])));
+        }
+      } catch (error) {
+        logger.error('Error cleaning up existing chunks:', JSON.stringify(error));
+      }
+    };
+
     if (params.signal) {
       params.signal.addEventListener('abort', abortDownload);
     }
@@ -230,6 +245,7 @@ export class NetworkFacade {
           encryptedFileIsCached = true;
           encryptedFileURI = path;
         } else {
+          await cleanupExistingChunks(encryptedFileName);
           const FIFTY_MB = 50 * 1024 * 1024;
           const downloadChunkSize = FIFTY_MB;
           const ranges: { start: number; end: number }[] = [];

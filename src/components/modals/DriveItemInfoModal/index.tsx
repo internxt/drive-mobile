@@ -127,9 +127,15 @@ function DriveItemInfoModal(): JSX.Element {
 
   const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string, fileSize: number) => {
     const { credentials } = await AuthService.getAuthCredentials();
-    const hasEnoughSpace = await fileSystemService.checkAvailableStorage(fileSize);
-    if (!hasEnoughSpace) {
-      throw new Error(strings.errors.notEnoughSpaceOnDevice);
+    try {
+      const hasEnoughSpace = await fileSystemService.checkAvailableStorage(fileSize);
+      if (!hasEnoughSpace) {
+        notifications.error(strings.errors.notEnoughSpaceOnDevice);
+        throw new Error(strings.errors.notEnoughSpaceOnDevice);
+      }
+    } catch (error) {
+      logger.error('Error on downloadItem function:', JSON.stringify(error));
+      errorService.reportError(error);
     }
 
     const { downloadPath } = await drive.file.downloadFile(
@@ -353,6 +359,15 @@ function DriveItemInfoModal(): JSX.Element {
     if (!downloadProgress.totalBytes) {
       return strings.generic.calculating + '...';
     }
+
+    if (
+      item?.size &&
+      downloadProgress?.bytesReceived &&
+      downloadProgress?.bytesReceived >= parseInt(item?.size?.toString())
+    ) {
+      return strings.generic.decrypting + '...';
+    }
+
     const bytesReceivedStr = prettysize(downloadProgress.bytesReceived);
     const totalBytesStr = prettysize(downloadProgress.totalBytes);
     return `${bytesReceivedStr} ${strings.modals.downloadingFile.of} ${totalBytesStr}`;

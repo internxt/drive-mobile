@@ -20,6 +20,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
+import { driveThunks } from '../../../store/slices/drive';
 import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
@@ -242,7 +243,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         <DrivePreviewScreenHeader
           title={filename}
           subtitle={time.getFormattedDate(downloadingFile.data.updatedAt, time.formats.dateAtTimeLong)}
-          onCloseButtonPress={props.navigation.goBack}
+          onCloseButtonPress={() => {
+            dispatch(driveThunks.cancelDownloadThunk());
+            props.navigation.goBack();
+          }}
           onActionsButtonPress={handleActionsButtonPress}
         />
       </Animated.View>

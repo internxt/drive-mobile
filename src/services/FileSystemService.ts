@@ -347,7 +347,6 @@ class FileSystemService {
 
       return freeSpace >= spaceWithBuffer;
     } catch (error) {
-      console.error('Error checking storage:', error);
       throw new Error('Could not check available storage');
     }
   }
