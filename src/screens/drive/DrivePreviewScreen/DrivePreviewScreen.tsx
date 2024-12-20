@@ -88,7 +88,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     return <></>;
   }
   const filename = `${focusedItem.name || ''}${focusedItem.type ? `.${focusedItem.type}` : ''}`;
-  const currentProgress = downloadingFile.downloadProgress * 0.5 + downloadingFile.decryptProgress * 0.5;
+  const currentProgress = downloadingFile.downloadProgress * 0.95 + downloadingFile.decryptProgress * 0.05;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
   const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
@@ -99,7 +99,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     }
 
     const progressMessage = strings.formatString(
-      currentProgress < 0.5 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
+      currentProgress < 0.95 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
       (currentProgress * 100).toFixed(0),
     );
 
