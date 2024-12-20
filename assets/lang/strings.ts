@@ -647,7 +647,7 @@ const strings = new LocalizedStrings({
       confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
-      downloadLimit: 'The download limit in mobile app is 3GB.',
+      downloadLimit: 'The download limit in mobile app is 5GB.',
     },
     errors: {
       runtimeLogsMissing: 'The logs file is missing or empty',
@@ -1346,7 +1346,7 @@ const strings = new LocalizedStrings({
       confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
-      downloadLimit: 'El límite de descarga en la app movil son 3GB',
+      downloadLimit: 'El límite de descarga en la app movil son 5GB',
     },
     errors: {
       runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
