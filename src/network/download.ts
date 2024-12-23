@@ -27,11 +27,12 @@ export async function downloadFile(
   mnemonic: string,
   creds: NetworkCredentials,
   params: DownloadFileParams,
+  fileSize: number,
   onAbortableReady: (abortable: Abortable) => void,
 ): Promise<void> {
   const network = getNetwork(constants.BRIDGE_URL, creds);
 
-  const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params);
+  const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params, fileSize);
 
   onAbortableReady(abortable);
 

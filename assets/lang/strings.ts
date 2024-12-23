@@ -14,6 +14,7 @@ const strings = new LocalizedStrings({
       current: 'Current',
       new: 'New',
       calculating: 'Calculating',
+      decrypting: 'Decrypting',
       atTime: 'at',
       loading: 'Loading',
       downloading: 'Downloading...',
@@ -647,7 +648,7 @@ const strings = new LocalizedStrings({
       confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
-      downloadLimit: 'The download limit in mobile app is 3GB.',
+      downloadLimit: 'The download limit in mobile app is 5GB.',
     },
     errors: {
       runtimeLogsMissing: 'The logs file is missing or empty',
@@ -676,7 +677,6 @@ const strings = new LocalizedStrings({
       unknown: 'Unknown error',
       uploadFile: 'File upload error: {0}',
       storageLimitReached: 'You have reached your storage limit',
-
       inviteAFriend: 'Error sending invitation: {0}',
       loadProducts: 'Cannot load products: {0}',
       passwordsDontMatch: "Passwords don't match",
@@ -698,6 +698,7 @@ const strings = new LocalizedStrings({
       changePassword: 'Error changing password',
       loadPrices: 'Error loading prices',
       cancelSubscription: 'Error cancelling subscription',
+      notEnoughSpaceOnDevice: 'Not enough storage space available for download',
     },
   },
   es: {
@@ -709,6 +710,7 @@ const strings = new LocalizedStrings({
       current: 'Actual',
       new: 'Nuevo',
       calculating: 'Calculando',
+      decrypting: 'Desencriptando',
       atTime: 'a las',
       loading: 'Cargando',
       security: 'Seguridad',
@@ -1346,7 +1348,7 @@ const strings = new LocalizedStrings({
       confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
-      downloadLimit: 'El límite de descarga en la app movil son 3GB',
+      downloadLimit: 'El límite de descarga en la app movil son 5GB',
     },
     errors: {
       runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
@@ -1396,6 +1398,7 @@ const strings = new LocalizedStrings({
       changePassword: 'Error cambiando contraseña',
       loadPrices: 'Error cargando precios',
       cancelSubscription: 'Error cancelando suscripción',
+      notEnoughSpaceOnDevice: 'No hay suficiente espacio de almacenamiento disponible para la descarga',
     },
   },
 });

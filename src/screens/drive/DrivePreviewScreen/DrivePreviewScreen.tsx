@@ -20,6 +20,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
+import { driveThunks } from '../../../store/slices/drive';
 import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
@@ -88,7 +89,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     return <></>;
   }
   const filename = `${focusedItem.name || ''}${focusedItem.type ? `.${focusedItem.type}` : ''}`;
-  const currentProgress = downloadingFile.downloadProgress * 0.5 + downloadingFile.decryptProgress * 0.5;
+  const currentProgress = downloadingFile.downloadProgress * 0.95 + downloadingFile.decryptProgress * 0.05;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
   const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
@@ -99,7 +100,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     }
 
     const progressMessage = strings.formatString(
-      currentProgress < 0.5 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
+      currentProgress < 0.95 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
       (currentProgress * 100).toFixed(0),
     );
 
@@ -242,7 +243,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         <DrivePreviewScreenHeader
           title={filename}
           subtitle={time.getFormattedDate(downloadingFile.data.updatedAt, time.formats.dateAtTimeLong)}
-          onCloseButtonPress={props.navigation.goBack}
+          onCloseButtonPress={() => {
+            dispatch(driveThunks.cancelDownloadThunk());
+            props.navigation.goBack();
+          }}
           onActionsButtonPress={handleActionsButtonPress}
         />
       </Animated.View>

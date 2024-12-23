@@ -36,7 +36,7 @@
     "@hookform/resolvers": "^2.9.1",
     "@internxt/lib": "^1.2.0",
     "@internxt/mobile-sdk": "^0.2.41",
-    "@internxt/rn-crypto": "^0.1.12",
+    "@internxt/rn-crypto": "0.1.14",
     "@internxt/sdk": "^1.4.96",
     "@react-native-async-storage/async-storage": "1.21.0",
     "@react-navigation/bottom-tabs": "^6.2.0",

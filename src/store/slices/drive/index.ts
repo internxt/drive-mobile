@@ -143,7 +143,7 @@ const downloadFileThunk = createAsyncThunk<
     logger.info('Starting file download...');
     const { user } = getState().auth;
 
-    if (parseInt(size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['3GB']) {
+    if (parseInt(size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['5GB']) {
       dispatch(
         driveActions.updateDownloadingFile({
           error: strings.messages.downloadLimit,
@@ -195,13 +195,19 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return drive.file.downloadFile(user, bucketId, params.fileId, {
-        downloadPath: params.to,
-        decryptionProgressCallback,
-        downloadProgressCallback,
-        signal,
-        onAbortableReady: drive.events.setLegacyAbortable,
-      });
+      return drive.file.downloadFile(
+        user,
+        bucketId,
+        params.fileId,
+        {
+          downloadPath: params.to,
+          decryptionProgressCallback,
+          downloadProgressCallback,
+          signal,
+          onAbortableReady: drive.events.setLegacyAbortable,
+        },
+        size,
+      );
     };
 
     const trackDownloadStart = () => {

@@ -9,6 +9,7 @@ import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
 import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
+
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -28,6 +29,18 @@ class FileSystemService {
   private timestamp = Date.now();
   public async prepareFileSystem() {
     await this.prepareTmpDir();
+  }
+  public async deleteFile(files: string[]): Promise<void> {
+    try {
+      await Promise.all(
+        files.map(async (file) => {
+          await this.unlinkIfExists(file);
+        }),
+      );
+    } catch (error) {
+      console.error('Error in bulk file deletion:', error);
+      throw error;
+    }
   }
 
   public pathToUri(path: string): string {
@@ -320,6 +333,19 @@ class FileSystemService {
     }
     await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
     await this.clearTempDir();
+  }
+
+  public async checkAvailableStorage(requiredSpace: number): Promise<boolean> {
+    try {
+      const fsInfo = await RNFS.getFSInfo();
+      const freeSpace = fsInfo.freeSpace;
+
+      const spaceWithBuffer = requiredSpace * 1.3;
+
+      return freeSpace >= spaceWithBuffer;
+    } catch (error) {
+      throw new Error('Could not check available storage');
+    }
   }
 }
 

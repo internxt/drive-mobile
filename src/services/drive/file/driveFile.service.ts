@@ -301,6 +301,7 @@ class DriveFileService {
           /** NOOP */
         },
       },
+      0,
       function () {
         /** NOOP */
       },
@@ -329,6 +330,7 @@ class DriveFileService {
       disableCache,
       signal,
     }: DriveFileDownloadOptions,
+    fileSize: number,
   ) {
     const noop = () => {
       /** NOOP */
@@ -353,6 +355,7 @@ class DriveFileService {
         },
         signal,
       },
+      fileSize,
       (abortable) => {
         if (onAbortableReady) {
           onAbortableReady(abortable);

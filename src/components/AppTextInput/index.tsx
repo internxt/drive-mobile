@@ -62,7 +62,8 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
       if (hasNothingSelected) {
         newPosition = selection.start + (newText.length - oldText.length);
       } else {
-        newPosition = selectionStart;
+        const insertedLength = newText.length - (oldText.length - (selection.end - selection.start));
+        newPosition = selectionStart + insertedLength;
       }
       newPosition = Math.max(0, newPosition);
 
