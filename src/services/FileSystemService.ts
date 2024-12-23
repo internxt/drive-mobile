@@ -9,6 +9,7 @@ import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
 import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
+
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -33,11 +34,7 @@ class FileSystemService {
     try {
       await Promise.all(
         files.map(async (file) => {
-          try {
-            await this.unlinkIfExists(file);
-          } catch (error) {
-            console.warn(`Error deleting file ${file}:`, error);
-          }
+          await this.unlinkIfExists(file);
         }),
       );
     } catch (error) {

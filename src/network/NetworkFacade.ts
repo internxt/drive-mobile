@@ -327,6 +327,7 @@ export class NetworkFacade {
       async (_, key, iv) => {
         if (!encryptedFileURI) throw new Error('No encrypted file URI found');
 
+        // commented because it is giving errors, we should check if it is necessary
         // Maybe we should save the expected hash and compare even if the file is cached
         // if (!encryptedFileIsCached) {
         //   await downloadJob.promise;
