@@ -52,6 +52,7 @@ const CodeInput = (props: CodeInputProps) => {
           onChangeText={onDigitChangeText}
           onKeyPress={onDigitKeyPressed}
           keyboardType="numeric"
+          disableCustomAndroidCursor
         />
       );
     });
