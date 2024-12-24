@@ -106,13 +106,20 @@ class AuthService {
 
     if (!refreshedTokens?.token || !refreshedTokens?.newToken) throw new Error('Unable to refresh auth tokens');
 
-    const argon2 = await passToHash({ password });
-    await this.sdk.auth.upgradeHash(argon2.hash, argon2.salt);
+    const salt = await this.getSalt(email);
+
+    let changedPasswordNewToken;
+    let changedPasswordToken;
+    if (!salt.startsWith('argon2id$')) {
+      const changePasswordResponse = await this.doChangePassword({ password: password, newPassword: password });
+      changedPasswordToken = changePasswordResponse.token;
+      changedPasswordNewToken = changePasswordResponse.newToken;
+    }
 
     return {
       ...loginResult,
-      token: refreshedTokens.token,
-      newToken: refreshedTokens.newToken,
+      token: changedPasswordToken ?? refreshedTokens.token,
+      newToken: changedPasswordNewToken ?? refreshedTokens.newToken,
     };
   }
 
@@ -175,11 +182,11 @@ class AuthService {
     }
 
     const changePasswordResult = await this.sdk.users.changePasswordLegacy({
-      currentEncryptedPassword: encCurrentPass,
-      newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,
-      newEncryptedPassword: encNewPass,
       encryptedPrivateKey: privateKeyFinalValue,
+      newEncryptedSalt: encryptedNewSalt,
+      newEncryptedPassword: encNewPass,
+      currentEncryptedPassword: encCurrentPass,
     });
 
     return {
