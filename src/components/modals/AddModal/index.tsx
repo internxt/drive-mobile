@@ -1,13 +1,14 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import * as FileSystem from 'expo-file-system';
 import {
   launchCameraAsync,
   requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
-import RNFS from 'react-native-fs';
+
 import { launchImageLibrary } from 'react-native-image-picker';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
@@ -41,6 +42,7 @@ import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
 
 const MAX_FILES_BULK_UPLOAD = 25;
+
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -53,6 +55,7 @@ function AddModal(): JSX.Element {
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
+
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
     const name = decodeURI(file.uri).split('/').pop() || '';
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -81,6 +84,7 @@ function AddModal(): JSX.Element {
     await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
     await driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
   };
+
   async function uploadAndroid(
     fileToUpload: UploadingFile,
     fileType: 'document' | 'image',
@@ -217,6 +221,7 @@ function AddModal(): JSX.Element {
       thumbnails: uploadedThumbnail ? [uploadedThumbnail] : null,
     } as DriveFileData;
   }
+
   const uploadFile = async (uploadingFile: UploadingFile, fileType: 'document' | 'image') => {
     logger.info('Starting file upload process: ', JSON.stringify(uploadingFile));
     function progressCallback(progress: number) {
@@ -445,6 +450,7 @@ function AddModal(): JSX.Element {
       }
 
       errorService.reportError(error);
+      logger.error('Error on handleUploadFiles function:', JSON.stringify(err));
 
       notificationsService.show({
         type: NotificationType.Error,
@@ -464,51 +470,56 @@ function AddModal(): JSX.Element {
       const { status } = await requestMediaLibraryPermissionsAsync(false);
 
       if (status === 'granted') {
-        launchImageLibrary({ mediaType: 'mixed', selectionLimit: MAX_FILES_BULK_UPLOAD }, async (response) => {
-          if (response.errorMessage) {
-            return Alert.alert(response.errorMessage);
-          }
-          if (response.assets) {
-            const documents: DocumentPickerResponse[] = [];
-
-            for (const asset of response.assets) {
-              const decodedURI = decodeURIComponent(asset.uri as string);
-              const stat = await RNFS.stat(decodedURI);
-
-              documents.push({
-                fileCopyUri: asset.uri || '',
-                name: decodeURIComponent(
-                  asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
-                ),
-                size: asset.fileSize || stat.size,
-                type: asset.type || '',
-                uri: asset.uri || '',
-              });
+        launchImageLibrary(
+          { mediaType: 'mixed', selectionLimit: MAX_FILES_BULK_UPLOAD, assetRepresentationMode: 'current' },
+          async (response) => {
+            if (response.errorMessage) {
+              return Alert.alert(response.errorMessage);
             }
+            if (response.assets) {
+              const documents: DocumentPickerResponse[] = [];
 
-            dispatch(uiActions.setShowUploadFileModal(false));
-            uploadDocuments(documents)
-              .then(() => {
-                dispatch(driveThunks.loadUsageThunk());
+              for (const asset of response.assets) {
+                const decodedURI = decodeURIComponent(asset.uri as string);
+                const stat = await RNFS.stat(decodedURI);
 
-                if (focusedFolder) {
-                  driveCtx.loadFolderContent(focusedFolder.id);
-                }
-              })
-              .catch((err) => {
-                if (err.message === 'User canceled document picker') {
-                  return;
-                }
-                notificationsService.show({
-                  type: NotificationType.Error,
-                  text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                documents.push({
+                  fileCopyUri: asset.uri || '',
+                  name: decodeURIComponent(
+                    asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
+                  ),
+                  size: asset.fileSize || stat.size,
+                  type: asset.type || '',
+                  uri: asset.uri || '',
                 });
-              })
-              .finally(() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-              });
-          }
-        });
+              }
+
+              dispatch(uiActions.setShowUploadFileModal(false));
+              uploadDocuments(documents)
+                .then(() => {
+                  dispatch(driveThunks.loadUsageThunk());
+
+                  if (focusedFolder) {
+                    driveCtx.loadFolderContent(focusedFolder.id);
+                  }
+                })
+                .catch((err) => {
+                  if (err.message === 'User canceled document picker') {
+                    return;
+                  }
+
+                  logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+                  notificationsService.show({
+                    type: NotificationType.Error,
+                    text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                  });
+                })
+                .finally(() => {
+                  dispatch(uiActions.setShowUploadFileModal(false));
+                });
+            }
+          },
+        );
       }
     } else {
       DocumentPicker.pickMultiple({
@@ -527,6 +538,9 @@ function AddModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
+
+          logger.error('Error on hadleUploadFromCameraRoll function:', JSON.stringify(err));
+
           notificationsService.show({
             type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
@@ -593,10 +607,12 @@ function AddModal(): JSX.Element {
             }
           }
         }
-      } catch (err) {
+      } catch (error) {
+        logger.error('Error on handleTakePhotoAndUpload function:', JSON.stringify(error));
+
         notificationsService.show({
           type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.uploadFile, (err as Error).message) as string,
+          text1: strings.formatString(strings.errors.uploadFile, (error as Error)?.message) as string,
         });
       }
     }
@@ -671,8 +687,8 @@ function AddModal(): JSX.Element {
               style={tailwind('flex-grow')}
               underlayColor={getColor('text-gray-40')}
               onPress={() => {
-                setShowCreateFolderModal(true);
                 dispatch(uiActions.setShowUploadFileModal(false));
+                setShowCreateFolderModal(true);
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>

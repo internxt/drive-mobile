@@ -1,13 +1,13 @@
-import RNFS from 'react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 
-import { getNetwork } from './NetworkFacade';
+import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
+import FileManager from '../@inxt-js/api/FileManager';
+import { constants } from '../services/AppService';
 import { downloadFile as downloadFileV1, LegacyDownloadRequiredError } from '../services/NetworkService/download';
 import { downloadFile as downloadFileV1Legacy } from '../services/NetworkService/downloadLegacy';
-import { constants } from '../services/AppService';
-import { NetworkCredentials } from './requests';
-import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
 import { Abortable } from '../types';
-import FileManager from '../@inxt-js/api/FileManager';
+import { getNetwork } from './NetworkFacade';
+import { NetworkCredentials } from './requests';
 
 export type EncryptedFileDownloadedParams = {
   path: string;
@@ -27,11 +27,12 @@ export async function downloadFile(
   mnemonic: string,
   creds: NetworkCredentials,
   params: DownloadFileParams,
+  fileSize: number,
   onAbortableReady: (abortable: Abortable) => void,
 ): Promise<void> {
   const network = getNetwork(constants.BRIDGE_URL, creds);
 
-  const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params);
+  const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params, fileSize);
 
   onAbortableReady(abortable);
 

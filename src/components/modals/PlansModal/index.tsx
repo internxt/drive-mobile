@@ -1,27 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 
-import strings from '../../../../assets/lang/strings';
-import FileIcon from '../../../../assets/icons/file-icon.svg';
-import BottomModal from '../BottomModal';
-import { BaseModalProps } from '../../../types/ui';
-import { useTailwind } from 'tailwind-rn';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
+import StorageUsageBar from 'src/components/StorageUsageBar';
+import storageService from 'src/services/StorageService';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { paymentsSelectors, paymentsThunks } from 'src/store/slices/payments';
-import StorageUsageBar from 'src/components/StorageUsageBar';
 import { storageSelectors } from 'src/store/slices/storage';
-import storageService from 'src/services/StorageService';
+import { useTailwind } from 'tailwind-rn';
+import FileIcon from '../../../../assets/icons/file-icon.svg';
+import strings from '../../../../assets/lang/strings';
+import { BaseModalProps } from '../../../types/ui';
+import BottomModal from '../BottomModal';
 import { ConfirmationStep } from './ConfirmationStep';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { getLineHeight } from 'src/styles/global';
-import prettysize from 'prettysize';
-import { notifications } from '@internxt-mobile/services/NotificationsService';
 import errorService from '@internxt-mobile/services/ErrorService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
+import prettysize from 'prettysize';
+import { getLineHeight } from 'src/styles/global';
 
 export type SubscriptionInterval = 'month' | 'year';
+
+const formatAmount = (amount: number | undefined) => ((amount ?? 0) * 0.01).toFixed(2);
+
 const PlansModal = (props: BaseModalProps) => {
   const [selectedStorageBytes, setSelectedStorageBytes] = useState<number>();
   const [selectedInterval, setSelectedInterval] = useState<SubscriptionInterval>();
@@ -184,12 +187,13 @@ const PlansModal = (props: BaseModalProps) => {
         </TouchableWithoutFeedback>
       );
     });
+
   const renderButtons = (selectedBytes: number) => {
     const displayPrices = getDisplayPriceWithIntervals(selectedBytes);
     const monthlyPrice = displayPrices.find((display) => display.interval === 'month');
     const yearlyPrice = displayPrices.find((display) => display.interval === 'year');
-    const monthlyAmount = (monthlyPrice?.amount || 0) * 0.01;
-    const yearlyAmount = (yearlyPrice?.amount || 0) * 0.01;
+    const monthlyAmount = formatAmount(monthlyPrice?.amount);
+    const yearlyAmount = formatAmount(yearlyPrice?.amount);
 
     return (
       <>

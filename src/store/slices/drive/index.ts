@@ -1,31 +1,32 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 
-import { NotificationType } from '../../../types';
-import { RootState } from '../..';
-import strings from '../../../../assets/lang/strings';
-import notificationsService from '../../../services/NotificationsService';
-import {
-  DriveItemData,
-  DriveItemStatus,
-  DriveListItem,
-  UploadingFile,
-  DownloadingFile,
-  DriveEventKey,
-  DriveNavigationStack,
-  DriveNavigationStackItem,
-  DriveItemFocused,
-} from '../../../types/drive';
-import fileSystemService from '../../../services/FileSystemService';
-import { items } from '@internxt/lib';
+import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
+import { items } from '@internxt/lib';
+import { isValidFilename } from 'src/helpers';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
-import { isValidFilename } from 'src/helpers';
-import { logger } from '@internxt-mobile/services/common';
+import { RootState } from '../..';
+import strings from '../../../../assets/lang/strings';
+import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
+import fileSystemService from '../../../services/FileSystemService';
+import notificationsService from '../../../services/NotificationsService';
+import { NotificationType } from '../../../types';
+import {
+  DownloadingFile,
+  DriveEventKey,
+  DriveItemData,
+  DriveItemFocused,
+  DriveItemStatus,
+  DriveListItem,
+  DriveNavigationStack,
+  DriveNavigationStackItem,
+  UploadingFile,
+} from '../../../types/drive';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -117,6 +118,8 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
   drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
+const DOWNLOAD_ERROR_CODES = { MAX_SIZE_TO_DOWNLOAD_REACHED: 1 };
+
 const downloadFileThunk = createAsyncThunk<
   void,
   {
@@ -139,6 +142,16 @@ const downloadFileThunk = createAsyncThunk<
   ) => {
     logger.info('Starting file download...');
     const { user } = getState().auth;
+
+    if (parseInt(size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['5GB']) {
+      dispatch(
+        driveActions.updateDownloadingFile({
+          error: strings.messages.downloadLimit,
+        }),
+      );
+      return rejectWithValue(DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED);
+    }
+
     dispatch(
       driveActions.updateDownloadingFile({
         retry: async () => {
@@ -182,13 +195,19 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return drive.file.downloadFile(user, bucketId, params.fileId, {
-        downloadPath: params.to,
-        decryptionProgressCallback,
-        downloadProgressCallback,
-        signal,
-        onAbortableReady: drive.events.setLegacyAbortable,
-      });
+      return drive.file.downloadFile(
+        user,
+        bucketId,
+        params.fileId,
+        {
+          downloadPath: params.to,
+          decryptionProgressCallback,
+          downloadProgressCallback,
+          signal,
+          onAbortableReady: drive.events.setLegacyAbortable,
+        },
+        size,
+      );
     };
 
     const trackDownloadStart = () => {
@@ -231,6 +250,7 @@ const downloadFileThunk = createAsyncThunk<
       if (!fileAlreadyExists) {
         trackDownloadStart();
         downloadProgressCallback(0);
+
         await download({ fileId, to: destinationPath });
       }
 
@@ -242,6 +262,7 @@ const downloadFileThunk = createAsyncThunk<
 
       trackDownloadSuccess();
     } catch (err) {
+      logger.error('Error in downloadFileThunk ', JSON.stringify(err));
       dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
       /**
        * In case something fails, we remove the file in case it exists, that way
@@ -482,7 +503,12 @@ export const driveSlice = createSlice({
         };
       })
       .addCase(downloadFileThunk.fulfilled, () => undefined)
-      .addCase(downloadFileThunk.rejected, () => undefined);
+      .addCase(downloadFileThunk.rejected, (_, action) => {
+        const errorCode = action.payload;
+        if (errorCode === DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED) {
+          notificationsService.info(strings.messages.downloadLimit);
+        }
+      });
 
     builder
       .addCase(createFolderThunk.pending, (state) => {

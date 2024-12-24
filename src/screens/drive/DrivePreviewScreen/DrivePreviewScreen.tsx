@@ -1,4 +1,4 @@
-import { GeneratedThumbnail } from '@internxt-mobile/services/common';
+import { GeneratedThumbnail, imageService } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
@@ -20,6 +20,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
+import { driveThunks } from '../../../store/slices/drive';
 import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
@@ -51,12 +52,12 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension) &&
       !generatedThumbnail
     ) {
-      // imageService
-      //   .generateVideoThumbnail(downloadingFile.downloadedFilePath)
-      //   .then((generatedThumbnail) => {
-      //     setGeneratedThumbnail(generatedThumbnail);
-      //   })
-      //   .catch((err) => errorService.reportError(err));
+      imageService
+        .generateVideoThumbnail(downloadingFile.downloadedFilePath)
+        .then((generatedThumbnail) => {
+          setGeneratedThumbnail(generatedThumbnail);
+        })
+        .catch((err) => errorService.reportError(err));
     }
   }, [downloadingFile?.downloadedFilePath]);
 
@@ -88,18 +89,18 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     return <></>;
   }
   const filename = `${focusedItem.name || ''}${focusedItem.type ? `.${focusedItem.type}` : ''}`;
-  const currentProgress = downloadingFile.downloadProgress * 0.5 + downloadingFile.decryptProgress * 0.5;
+  const currentProgress = downloadingFile.downloadProgress * 0.95 + downloadingFile.decryptProgress * 0.05;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
-  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
-  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
-  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type.toLowerCase() as FileExtension);
+  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const getProgressMessage = () => {
     if (!downloadingFile) {
       return;
     }
 
     const progressMessage = strings.formatString(
-      currentProgress < 0.5 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
+      currentProgress < 0.95 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
       (currentProgress * 100).toFixed(0),
     );
 
@@ -152,12 +153,14 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
               <WarningCircle weight="fill" size={20} color={tailwind('text-red').color as string} />
               <AppText style={tailwind('text-gray-60 text-center text-red ml-1')}>{error}</AppText>
             </View>
-            <AppButton
-              style={tailwind('mt-5')}
-              title={strings.buttons.tryAgain}
-              type={'white'}
-              onPress={() => downloadingFile.retry && downloadingFile.retry()}
-            ></AppButton>
+            {downloadingFile && error !== strings.messages.downloadLimit && (
+              <AppButton
+                style={tailwind('mt-5')}
+                title={strings.buttons.tryAgain}
+                type={'white'}
+                onPress={() => downloadingFile.retry && downloadingFile.retry()}
+              ></AppButton>
+            )}
           </View>
         ) : null}
         {isDownloaded && downloadedFilePath ? (
@@ -240,7 +243,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         <DrivePreviewScreenHeader
           title={filename}
           subtitle={time.getFormattedDate(downloadingFile.data.updatedAt, time.formats.dateAtTimeLong)}
-          onCloseButtonPress={props.navigation.goBack}
+          onCloseButtonPress={() => {
+            dispatch(driveThunks.cancelDownloadThunk());
+            props.navigation.goBack();
+          }}
           onActionsButtonPress={handleActionsButtonPress}
         />
       </Animated.View>

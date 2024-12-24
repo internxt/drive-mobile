@@ -1,6 +1,10 @@
 PODS:
   - boost (1.83.0)
   - DoubleConversion (1.1.6)
+  - dr-pogodin-react-native-fs (2.27.0):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
+    - React-Core
   - EASClient (0.11.2):
     - ExpoModulesCore
   - EXConstants (15.4.6):
@@ -938,9 +942,13 @@ PODS:
   - React-Mapbuffer (0.73.6):
     - glog
     - React-debug
+  - react-native-create-thumbnail (2.0.0):
+    - React-Core
   - react-native-document-picker (4.3.0):
     - React-Core
-  - react-native-image-picker (4.10.3):
+  - react-native-image-picker (7.1.2):
+    - glog
+    - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - react-native-pdf (6.7.5):
     - React-Core
@@ -1134,7 +1142,7 @@ PODS:
     - React-Core
   - RealmJS (11.10.2):
     - React
-  - rn-crypto (0.1.12):
+  - rn-crypto (0.1.14):
     - IDZSwiftCommonCrypto (~> 0.13)
     - React-Core
   - rn-fetch-blob (0.11.2):
@@ -1150,8 +1158,6 @@ PODS:
   - RNFileViewer (2.1.5):
     - React-Core
   - RNFlashList (1.6.3):
-    - React-Core
-  - RNFS (2.20.0):
     - React-Core
   - RNGestureHandler (2.14.1):
     - glog
@@ -1195,6 +1201,7 @@ PODS:
 DEPENDENCIES:
   - boost (from `../node_modules/react-native/third-party-podspecs/boost.podspec`)
   - DoubleConversion (from `../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec`)
+  - "dr-pogodin-react-native-fs (from `../node_modules/@dr.pogodin/react-native-fs`)"
   - EASClient (from `../node_modules/expo-eas-client/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXFont (from `../node_modules/expo-font/ios`)
@@ -1246,6 +1253,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector-modern`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
+  - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
@@ -1284,7 +1292,6 @@ DEPENDENCIES:
   - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - "RNFlashList (from `../node_modules/@shopify/flash-list`)"
-  - RNFS (from `../node_modules/react-native-fs`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
@@ -1314,6 +1321,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/boost.podspec"
   DoubleConversion:
     :podspec: "../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec"
+  dr-pogodin-react-native-fs:
+    :path: "../node_modules/@dr.pogodin/react-native-fs"
   EASClient:
     :path: "../node_modules/expo-eas-client/ios"
   EXConstants:
@@ -1412,6 +1421,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   React-Mapbuffer:
     :path: "../node_modules/react-native/ReactCommon"
+  react-native-create-thumbnail:
+    :path: "../node_modules/react-native-create-thumbnail"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
   react-native-image-picker:
@@ -1488,8 +1499,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-file-viewer"
   RNFlashList:
     :path: "../node_modules/@shopify/flash-list"
-  RNFS:
-    :path: "../node_modules/react-native-fs"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNPermissions:
@@ -1510,6 +1519,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   boost: d3f49c53809116a5d38da093a8aa78bf551aed09
   DoubleConversion: fea03f2699887d960129cc54bba7e52542b6f953
+  dr-pogodin-react-native-fs: 3a0fa8611f662cafd0059aede51c56099deada1e
   EASClient: a42ee8bf36c93b3128352faf2ae49405ab4f80bd
   EXConstants: a5f6276e565d98f9eb4280f81241fc342d641590
   EXFont: f20669cb266ef48b004f1eb1f2b20db96cd1df9f
@@ -1564,8 +1574,9 @@ SPEC CHECKSUMS:
   React-jsinspector: 85583ef014ce53d731a98c66a0e24496f7a83066
   React-logger: 3eb80a977f0d9669468ef641a5e1fabbc50a09ec
   React-Mapbuffer: 84ea43c6c6232049135b1550b8c60b2faac19fab
+  react-native-create-thumbnail: ab55d24aea01723cf386f18b0b542aabb1982f27
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
-  react-native-image-picker: 60f4246eb5bb7187fc15638a8c1f13abd3820695
+  react-native-image-picker: d3db110a3ded6e48c93aef7e8e51afdde8b16ed0
   react-native-pdf: 103940c90d62adfd259f63cca99c7c0c306b514c
   react-native-pdf-thumbnail: 390b1bc4b115b613ca61d6b14cbc712b3621b1df
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
@@ -1595,14 +1606,13 @@ SPEC CHECKSUMS:
   ReactCommon: 447281ad2034ea3252bf81a60d1f77d5afb0b636
   ReactNativeLocalization: fb171138cdc80d5d0d4f20243d2fc82c2b3cc48f
   RealmJS: 73a36da3cbbe85e1bdcbf55683172b51f35070d3
-  rn-crypto: 160ce10c618571e5c051c8e12315df0b04ac7c3e
+  rn-crypto: 11206fba572b93aa936f225fa7e9dec24a330a58
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNCAsyncStorage: 618d03a5f52fbccb3d7010076bc54712844c18ef
   RNDeviceInfo: aad3c663b25752a52bf8fce93f2354001dd185aa
   RNFastImage: 5c9c9fed9c076e521b3f509fe79e790418a544e8
   RNFileViewer: ce7ca3ac370e18554d35d6355cffd7c30437c592
   RNFlashList: 4b4b6b093afc0df60ae08f9cbf6ccd4c836c667a
-  RNFS: 4ac0f0ea233904cb798630b3c077808c06931688
   RNGestureHandler: 15c6ef51acba34c49ff03003806cf5dd6098f383
   RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReanimated: f6b02d8f5eaa2830296411d4ec3b8ef5442dd13d
