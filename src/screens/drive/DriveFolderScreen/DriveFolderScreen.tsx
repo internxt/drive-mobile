@@ -4,7 +4,7 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
@@ -140,7 +140,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleDriveItemPress = (driveItem: DriveListItem) => {
-    const isFolder = driveItem.data.type ? false : true;
+    const isFolder = driveItem?.data?.isFolder;
     if (!isFolder) {
       dispatch(
         driveActions.setFocusedItem({

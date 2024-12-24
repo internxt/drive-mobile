@@ -1,6 +1,7 @@
-import { createHash } from 'crypto';
 import axios from 'axios';
+import { createHash } from 'crypto';
 
+import { getHeaders } from '../../../helpers/headers';
 import {
   DownloadedThumbnail,
   DriveFileMetadataPayload,
@@ -10,20 +11,19 @@ import {
   SortDirection,
   SortType,
 } from '../../../types/drive';
-import { getHeaders } from '../../../helpers/headers';
 import { constants } from '../../AppService';
 
-import { SdkManager } from '@internxt-mobile/services/common';
-import { MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
-import { getEnvironmentConfig } from 'src/lib/network';
-import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
-import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
-import * as networkDownload from 'src/network/download';
-import { Image } from 'react-native';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import { driveFileCache } from './driveFileCache.service';
-import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { SdkManager } from '@internxt-mobile/services/common';
+import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
+import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
+import { MoveFileResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import { Image } from 'react-native';
+import { getEnvironmentConfig } from 'src/lib/network';
+import * as networkDownload from 'src/network/download';
+import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
+import { driveFileCache } from './driveFileCache.service';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 export type DriveFileDownloadOptions = {
@@ -301,6 +301,7 @@ class DriveFileService {
           /** NOOP */
         },
       },
+      0,
       function () {
         /** NOOP */
       },
@@ -329,6 +330,7 @@ class DriveFileService {
       disableCache,
       signal,
     }: DriveFileDownloadOptions,
+    fileSize: number,
   ) {
     const noop = () => {
       /** NOOP */
@@ -353,6 +355,7 @@ class DriveFileService {
         },
         signal,
       },
+      fileSize,
       (abortable) => {
         if (onAbortableReady) {
           onAbortableReady(abortable);

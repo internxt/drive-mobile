@@ -450,6 +450,7 @@ function AddModal(): JSX.Element {
       }
 
       errorService.reportError(error);
+      logger.error('Error on handleUploadFiles function:', JSON.stringify(err));
 
       notificationsService.show({
         type: NotificationType.Error,
@@ -506,6 +507,8 @@ function AddModal(): JSX.Element {
                   if (err.message === 'User canceled document picker') {
                     return;
                   }
+
+                  logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
                   notificationsService.show({
                     type: NotificationType.Error,
                     text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
@@ -535,6 +538,9 @@ function AddModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
+
+          logger.error('Error on hadleUploadFromCameraRoll function:', JSON.stringify(err));
+
           notificationsService.show({
             type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
@@ -601,10 +607,12 @@ function AddModal(): JSX.Element {
             }
           }
         }
-      } catch (err) {
+      } catch (error) {
+        logger.error('Error on handleTakePhotoAndUpload function:', JSON.stringify(error));
+
         notificationsService.show({
           type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.uploadFile, (err as Error).message) as string,
+          text1: strings.formatString(strings.errors.uploadFile, (error as Error)?.message) as string,
         });
       }
     }

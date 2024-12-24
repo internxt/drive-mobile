@@ -1,43 +1,44 @@
 import prettysize from 'prettysize';
-import React, { useRef, useState } from 'react';
-import { PermissionsAndroid, Platform, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Platform, TouchableOpacity, View } from 'react-native';
 
-import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles/global';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
-import { driveActions } from '../../../store/slices/drive';
-import BottomModalOption from '../../BottomModalOption';
-import BottomModal from '../BottomModal';
+import Portal from '@burstware/react-native-portal';
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import AuthService from '@internxt-mobile/services/AuthService';
+import errorService from '@internxt-mobile/services/ErrorService';
+import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
+import notificationsService, { notifications } from '@internxt-mobile/services/NotificationsService';
+import { logger } from '@internxt-mobile/services/common';
+import { time } from '@internxt-mobile/services/common/time';
+import drive from '@internxt-mobile/services/drive';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { Abortable } from '@internxt-mobile/types/index';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import {
-  Link,
-  Trash,
   ArrowsOutCardinal,
-  Eye,
   ArrowSquareOut,
   DownloadSimple,
+  Eye,
+  Link,
   PencilSimple,
+  Trash,
 } from 'phosphor-react-native';
-import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../../hooks/useColor';
-import { time } from '@internxt-mobile/services/common/time';
-import AppText from 'src/components/AppText';
-import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
-import { DriveItemData } from '@internxt-mobile/types/drive';
-import Portal from '@burstware/react-native-portal';
-import { fs } from '@internxt-mobile/services/FileSystemService';
-import errorService from '@internxt-mobile/services/ErrorService';
-import drive from '@internxt-mobile/services/drive';
-import AuthService from '@internxt-mobile/services/AuthService';
-import { notifications } from '@internxt-mobile/services/NotificationsService';
-import { Abortable } from '@internxt-mobile/types/index';
-import CenterModal from '../CenterModal';
 import AppProgressBar from 'src/components/AppProgressBar';
+import AppText from 'src/components/AppText';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
+import { FolderIcon, getFileTypeIcon } from '../../../helpers';
+import useGetColor from '../../../hooks/useColor';
+import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { driveActions } from '../../../store/slices/drive';
+import { uiActions } from '../../../store/slices/ui';
+import globalStyle from '../../../styles/global';
+import BottomModalOption from '../../BottomModalOption';
+import BottomModal from '../BottomModal';
+import CenterModal from '../CenterModal';
+import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -65,6 +66,14 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(uiActions.setShowItemModal(false));
     dispatch(uiActions.setShowMoveModal(true));
     dispatch(driveActions.setItemToMove(item));
+  };
+
+  const isFileDownloadable = (): boolean => {
+    if (parseInt(item.size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['5GB']) {
+      notificationsService.info(strings.messages.downloadLimit);
+      return false;
+    }
+    return true;
   };
 
   const handleUndoMoveToTrash = async () => {
@@ -116,29 +125,51 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
-  const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string) => {
+  const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string, fileSize: number) => {
     const { credentials } = await AuthService.getAuthCredentials();
+    try {
+      const hasEnoughSpace = await fileSystemService.checkAvailableStorage(fileSize);
+      if (!hasEnoughSpace) {
+        notifications.error(strings.errors.notEnoughSpaceOnDevice);
+        throw new Error(strings.errors.notEnoughSpaceOnDevice);
+      }
+    } catch (error) {
+      logger.error('Error on downloadItem function:', JSON.stringify(error));
+      errorService.reportError(error);
+    }
 
-    const { downloadPath } = await drive.file.downloadFile(credentials.user, bucketId, fileId, {
-      downloadPath: decryptedFilePath,
-      downloadProgressCallback(progress, bytesReceived, totalBytes) {
-        setDownloadProgress({
-          progress,
-          bytesReceived,
-          totalBytes,
-        });
+    const { downloadPath } = await drive.file.downloadFile(
+      credentials.user,
+      bucketId,
+      fileId,
+      {
+        downloadPath: decryptedFilePath,
+        downloadProgressCallback(progress, bytesReceived, totalBytes) {
+          setDownloadProgress({
+            progress,
+            bytesReceived,
+            totalBytes,
+          });
+        },
+        onAbortableReady(abortable) {
+          downloadAbortableRef.current = abortable;
+        },
       },
-      onAbortableReady(abortable) {
-        downloadAbortableRef.current = abortable;
-      },
-    });
+      fileSize,
+    );
 
     return downloadPath;
   };
+
   const handleExportFile = async () => {
     try {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
+      }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
       }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
@@ -154,7 +185,12 @@ function DriveItemInfoModal(): JSX.Element {
 
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       setExporting(true);
-      const downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
+      const downloadPath = await downloadItem(
+        item.fileId,
+        item.bucket as string,
+        decryptedFilePath,
+        parseInt(item.size?.toString() ?? '0'),
+      );
       setExporting(false);
       await fs.shareFile({
         title: item.name,
@@ -162,6 +198,7 @@ function DriveItemInfoModal(): JSX.Element {
       });
     } catch (error) {
       notifications.error(strings.errors.generic.message);
+      logger.error('Error on handleExportFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
       setExporting(false);
@@ -179,6 +216,11 @@ function DriveItemInfoModal(): JSX.Element {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
       }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
+      }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
 
@@ -190,7 +232,12 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
+        await downloadItem(
+          item.fileId,
+          item.bucket as string,
+          decryptedFilePath,
+          parseInt(item.size?.toString() ?? '0'),
+        );
         setExporting(false);
       }
 
@@ -200,6 +247,7 @@ function DriveItemInfoModal(): JSX.Element {
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
       notifications.error(strings.errors.generic.message);
+      logger.error('Error on handleAndroidDownloadFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
       setExporting(false);
@@ -212,6 +260,11 @@ function DriveItemInfoModal(): JSX.Element {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
       }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
+      }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
 
@@ -223,7 +276,12 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, item.bucket as string, decryptedFilePath);
+        await downloadItem(
+          item.fileId,
+          item.bucket as string,
+          decryptedFilePath,
+          parseInt(item.size?.toString() ?? '0'),
+        );
         setExporting(false);
       }
 
@@ -235,6 +293,7 @@ function DriveItemInfoModal(): JSX.Element {
       });
     } catch (error) {
       notifications.error(strings.errors.generic.message);
+      logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
       setExporting(false);
@@ -300,6 +359,15 @@ function DriveItemInfoModal(): JSX.Element {
     if (!downloadProgress.totalBytes) {
       return strings.generic.calculating + '...';
     }
+
+    if (
+      item?.size &&
+      downloadProgress?.bytesReceived &&
+      downloadProgress?.bytesReceived >= parseInt(item?.size?.toString())
+    ) {
+      return strings.generic.decrypting + '...';
+    }
+
     const bytesReceivedStr = prettysize(downloadProgress.bytesReceived);
     const totalBytesStr = prettysize(downloadProgress.totalBytes);
     return `${bytesReceivedStr} ${strings.modals.downloadingFile.of} ${totalBytesStr}`;
