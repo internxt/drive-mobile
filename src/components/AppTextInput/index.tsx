@@ -22,6 +22,7 @@ export interface AppTextInputProps extends TextInputProps {
   label?: string;
   renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element | undefined;
   inputRef?: React.LegacyRef<TextInput>;
+  disableCustomAndroidCursor?: boolean;
 }
 
 const AppTextInput = (props: AppTextInputProps): JSX.Element => {
@@ -110,7 +111,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
   const inputProps = {
     ...props,
     ref: props.inputRef || localInputRef,
-    onChangeText: isAndroid ? handleChangeText : props.onChangeText,
+    onChangeText: isAndroid && !props.disableCustomAndroidCursor ? handleChangeText : props.onChangeText,
     onSelectionChange: isAndroid ? handleSelectionChange : props.onSelectionChange,
     selection: isAndroid ? selection : props.selection,
   };
