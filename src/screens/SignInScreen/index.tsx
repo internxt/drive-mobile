@@ -1,5 +1,5 @@
 import { Eye, EyeSlash, WarningCircle } from 'phosphor-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, TextInput, View } from 'react-native';
 
 import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
@@ -212,6 +212,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               keyboardType="decimal-pad"
               status={failed2FA ? ['error', renderErrorMessage()] : undefined}
               onChangeText={setTwoFactorCode}
+              disableCustomAndroidCursor
             />
           </Animated.View>
 
