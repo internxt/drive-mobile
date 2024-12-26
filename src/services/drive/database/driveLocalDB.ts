@@ -75,7 +75,7 @@ class DriveLocalDB {
   }
 
   public async saveFolderContent(
-    folderRecordData: { id: number; parentId: number; name: string; updatedAt: string },
+    folderRecordData: { id: number; parentId: number; name: string; updatedAt: Date },
     items: DriveItemData[],
   ) {
     const { id, parentId, name, updatedAt } = folderRecordData;
