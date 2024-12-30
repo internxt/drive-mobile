@@ -284,7 +284,8 @@ class DriveFileService {
     if (await fileSystemService.exists(destination)) {
       return measureThumbnail(fileSystemService.pathToUri(destination));
     }
-    await networkDownload.downloadFile(
+
+    await networkDownload.downloadThumbnail(
       thumbnail.bucket_file.toString(),
       thumbnail.bucket_id,
       encryptionKey,
@@ -301,7 +302,6 @@ class DriveFileService {
           /** NOOP */
         },
       },
-      0,
       function () {
         /** NOOP */
       },

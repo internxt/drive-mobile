@@ -159,7 +159,148 @@ export class NetworkFacade {
     return [wrapUploadWithCleanup(), () => null];
   }
 
-  download(
+  download(fileId: string, bucketId: string, mnemonic: string, params: DownloadFileParams): [Promise<void>, Abortable] {
+    if (!fileId) {
+      throw new Error('Download error code 1');
+    }
+
+    if (!bucketId) {
+      throw new Error('Download error code 2');
+    }
+
+    if (!mnemonic) {
+      throw new Error('Download error code 3');
+    }
+
+    let downloadJob: { jobId: number; promise: Promise<RNFS.DownloadResultT> };
+    let expectedFileHash: string;
+
+    const decryptFileFromFs: DecryptFileFromFsFunction =
+      Platform.OS === 'android' ? androidDecryptFileFromFs : iosDecryptFileFromFs;
+
+    let encryptedFileURI: string | undefined;
+
+    const encryptedFileName = `${fileId}.enc`;
+    let encryptedFileIsCached = false;
+    let totalBytes = 0;
+    const downloadPromise = downloadFile(
+      fileId,
+      bucketId,
+      mnemonic,
+      this.network,
+      this.cryptoLib,
+      Buffer.from,
+      async (downloadables) => {
+        /**
+         * TODO make this product agnostic, right now we
+         * use the Drive FileCacheManager, but Photos
+         * uses this download function too, is not a problem
+         * since the fileID is an unique key, but we should
+         * improve this
+         */
+        const { isCached, path } = await drive.cache.isCached(encryptedFileName);
+
+        if (isCached) {
+          encryptedFileIsCached = true;
+          encryptedFileURI = path;
+        } else {
+          encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
+          // Create an empty file so RNFS can write to it directly
+          await fileSystemService.createEmptyFile(encryptedFileURI);
+
+          downloadJob = RNFS.downloadFile({
+            fromUrl: downloadables[0].url,
+            toFile: encryptedFileURI,
+            discretionary: true,
+            cacheable: false,
+            progressDivider: 5,
+            progressInterval: 150,
+            begin: () => {
+              params.downloadProgressCallback(0, 0, 0);
+            },
+            progress: (res) => {
+              if (res.contentLength) {
+                totalBytes = res.contentLength;
+              }
+              params.downloadProgressCallback(
+                res.bytesWritten / res.contentLength,
+                res.bytesWritten,
+                res.contentLength,
+              );
+            },
+          });
+
+          driveEvents.setJobId(downloadJob.jobId);
+          expectedFileHash = downloadables[0].hash;
+        }
+      },
+      async (_, key, iv) => {
+        if (!encryptedFileURI) throw new Error('No encrypted file URI found');
+
+        // Maybe we should save the expected hash and compare even if the file is cached
+        if (!encryptedFileIsCached) {
+          await downloadJob.promise;
+          const sha256Hash = await RNFS.hash(encryptedFileURI, 'sha256');
+          const receivedFileHash = ripemd160(Buffer.from(sha256Hash, 'hex')).toString('hex');
+
+          if (receivedFileHash !== expectedFileHash) {
+            throw new Error('Hash mismatch');
+          }
+        }
+
+        params.downloadProgressCallback(1, totalBytes, totalBytes);
+
+        // The encrypted file should exists at this path and has size, otherwise something went wrong
+        const encryptedFileExists = await fileSystemService.fileExistsAndIsNotEmpty(encryptedFileURI);
+
+        if (!encryptedFileExists) throw new Error('An error ocurred while downloading the file');
+
+        await decryptFileFromFs(
+          encryptedFileURI,
+          params.toPath,
+          key as Buffer,
+          iv as Buffer,
+          params.decryptionProgressCallback,
+        );
+
+        if (params.onEncryptedFileDownloaded) {
+          await params.onEncryptedFileDownloaded({
+            path: encryptedFileURI,
+            name: encryptedFileName,
+          });
+        }
+
+        params.decryptionProgressCallback(1);
+      },
+    );
+
+    const cleanup = async () => {
+      if (!encryptedFileURI) return;
+      const exists = await fileSystemService.exists(encryptedFileURI);
+      // Remove the encrypted version
+      exists && (await fileSystemService.unlink(encryptedFileURI));
+    };
+
+    const wrapDownloadWithCleanup = async () => {
+      try {
+        const fileId = await downloadPromise;
+        return fileId;
+      } catch (err) {
+        // If the "download" failed and the file is cached, remove the cached file
+        if (encryptedFileIsCached) {
+          await drive.cache.removeCachedFile(encryptedFileName);
+        }
+        throw err;
+      } finally {
+        // Cleanup always even if the download fails
+        await cleanup();
+      }
+    };
+
+    return [wrapDownloadWithCleanup(), () => RNFS.stopDownload(downloadJob.jobId)];
+  }
+
+  downloadMultipart(
     fileId: string,
     bucketId: string,
     mnemonic: string,
