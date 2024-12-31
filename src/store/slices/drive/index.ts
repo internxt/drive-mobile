@@ -261,23 +261,18 @@ const downloadFileThunk = createAsyncThunk<
       analytics.trackSuccess(fileInfo);
     } catch (err) {
       logger.error('Error in downloadFileThunk ', JSON.stringify(err));
-      console.log({ err });
       /**
        * In case something fails, we remove the file in case it exists, that way
        * we don't use wrong encrypted cached files
        */
-
       if (fileAlreadyExists) {
         await fileSystemService.unlink(destinationPath);
       }
 
       if (!signal.aborted) {
-        console.log('signal aborted --------------');
         dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
-        console.log('updateDownloadingFiled --------------');
 
         analytics.trackError(fileInfo);
-        console.log('trackError --------------');
 
         drive.events.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
         if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {

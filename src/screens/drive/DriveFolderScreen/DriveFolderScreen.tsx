@@ -30,7 +30,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
   const { downloadingFile } = useAppSelector((state) => state.drive);
-  console.log({ downloadingFile });
+
   const folder = driveCtx.driveFoldersTree[folderId];
 
   const folderHasError = folder?.error;
