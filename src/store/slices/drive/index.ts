@@ -1,8 +1,6 @@
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
-
 import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
 import { items } from '@internxt/lib';
@@ -12,6 +10,7 @@ import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
+import analyticsService from '../../../services/AnalyticsService';
 import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
@@ -27,6 +26,7 @@ import {
   DriveNavigationStackItem,
   UploadingFile,
 } from '../../../types/drive';
+import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -34,6 +34,8 @@ export enum ThunkOperationStatus {
   LOADING = 'LOADING',
   IDLE = 'IDLE',
 }
+
+const DOWNLOAD_ERROR_CODES = { MAX_SIZE_TO_DOWNLOAD_REACHED: 1 };
 
 export interface FocusedShareItem {
   id: string;
@@ -118,8 +120,6 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
   drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
-const DOWNLOAD_ERROR_CODES = { MAX_SIZE_TO_DOWNLOAD_REACHED: 1 };
-
 const downloadFileThunk = createAsyncThunk<
   void,
   {
@@ -142,6 +142,12 @@ const downloadFileThunk = createAsyncThunk<
   ) => {
     logger.info('Starting file download...');
     const { user } = getState().auth;
+    // BEFORE DOWNLOAD VALIDATIONS
+    const currentDownload = getState().drive.downloadingFile;
+
+    if (currentDownload && currentDownload.data.fileId === fileId) {
+      await dispatch(cancelDownloadThunk());
+    }
 
     if (parseInt(size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['5GB']) {
       dispatch(
@@ -155,6 +161,7 @@ const downloadFileThunk = createAsyncThunk<
     dispatch(
       driveActions.updateDownloadingFile({
         retry: async () => {
+          dispatch(driveActions.clearDownloadingFile());
           dispatch(
             driveThunks.downloadFileThunk({
               id,
@@ -171,23 +178,31 @@ const downloadFileThunk = createAsyncThunk<
         },
       }),
     );
+
+    // PROGRESS CALLBACKS
     const downloadProgressCallback = (progress: number) => {
-      dispatch(
-        driveActions.updateDownloadingFile({
-          downloadProgress: progress,
-        }),
-      );
-    };
-    const decryptionProgressCallback = (progress: number) => {
       if (signal.aborted) {
         return;
       }
 
       dispatch(
         driveActions.updateDownloadingFile({
-          decryptProgress: Math.max(getState().drive.downloadingFile?.downloadProgress || 0, progress),
+          downloadProgress: progress,
         }),
       );
+    };
+
+    const decryptionProgressCallback = (progress: number) => {
+      if (signal.aborted) return;
+
+      const currentState = getState().drive.downloadingFile;
+      if (currentState && currentState.data.fileId === fileId) {
+        dispatch(
+          driveActions.updateDownloadingFile({
+            decryptProgress: Math.max(currentState.downloadProgress || 0, progress),
+          }),
+        );
+      }
     };
 
     const download = (params: { fileId: string; to: string }) => {
@@ -203,37 +218,20 @@ const downloadFileThunk = createAsyncThunk<
           downloadPath: params.to,
           decryptionProgressCallback,
           downloadProgressCallback,
-          signal,
+          signal: signal,
           onAbortableReady: drive.events.setLegacyAbortable,
         },
         size,
       );
     };
 
-    const trackDownloadStart = () => {
-      return analytics.track(DriveAnalyticsEvent.FileDownloadStarted, {
-        file_id: id,
-        size: size,
-        type: type,
-        parent_folder_id: parentId,
-      });
-    };
-    const trackDownloadSuccess = () => {
-      return analytics.track(DriveAnalyticsEvent.FileDownloadCompleted, {
-        file_id: id,
-        size: size,
-        type: type,
-        parent_folder_id: parentId,
-      });
-    };
+    const analytics = new DownloadAnalytics(analyticsService);
 
-    const trackDownloadError = () => {
-      return analytics.track(DriveAnalyticsEvent.FileDownloadError, {
-        file_id: id,
-        size: size,
-        type: type,
-        parent_folder_id: parentId,
-      });
+    const fileInfo: FileInfo = {
+      id: id,
+      size: size,
+      type: type,
+      parentId: parentId,
     };
 
     const destinationPath = drive.file.getDecryptedFilePath(name, type);
@@ -248,7 +246,7 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       if (!fileAlreadyExists) {
-        trackDownloadStart();
+        analytics.trackStart(fileInfo);
         downloadProgressCallback(0);
 
         await download({ fileId, to: destinationPath });
@@ -260,10 +258,10 @@ const downloadFileThunk = createAsyncThunk<
         await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
       }
 
-      trackDownloadSuccess();
+      analytics.trackSuccess(fileInfo);
     } catch (err) {
       logger.error('Error in downloadFileThunk ', JSON.stringify(err));
-      dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
+      console.log({ err });
       /**
        * In case something fails, we remove the file in case it exists, that way
        * we don't use wrong encrypted cached files
@@ -274,7 +272,13 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       if (!signal.aborted) {
-        trackDownloadError();
+        console.log('signal aborted --------------');
+        dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
+        console.log('updateDownloadingFiled --------------');
+
+        analytics.trackError(fileInfo);
+        console.log('trackError --------------');
+
         drive.events.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
         if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {
           errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
@@ -296,6 +300,7 @@ const downloadFileThunk = createAsyncThunk<
       }
     } finally {
       if (signal.aborted) {
+        dispatch(driveActions.clearDownloadingFile());
         drive.events.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
       drive.events.emit({ event: DriveEventKey.DownloadFinally });
@@ -462,7 +467,9 @@ export const driveSlice = createSlice({
     updateDownloadingFile(state, action: PayloadAction<Partial<DownloadingFile>>) {
       state.downloadingFile && Object.assign(state.downloadingFile, action.payload);
     },
-
+    clearDownloadingFile(state) {
+      state.downloadingFile = undefined;
+    },
     setRecentsStatus(state, action: PayloadAction<ThunkOperationStatus>) {
       state.recentsStatus = action.payload;
     },

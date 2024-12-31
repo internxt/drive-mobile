@@ -12,8 +12,10 @@ import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
 import SortModal, { SortMode } from '../../../components/modals/SortModal';
+import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
+import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem, DriveListType, SortDirection, SortType } from '../../../types/drive';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
@@ -27,7 +29,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
-
+  const { downloadingFile } = useAppSelector((state) => state.drive);
+  console.log({ downloadingFile });
   const folder = driveCtx.driveFoldersTree[folderId];
 
   const folderHasError = folder?.error;
@@ -116,6 +119,16 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
    * TODO: WARNING REDUX USAGE OVER HERE, SHOULD REMOVE
    */
   const handleOnFilePress = (driveFile: DriveListItem) => {
+    const isCurrentFileDownloading = downloadingFile?.data.fileId === driveFile.data.fileId;
+    if (isCurrentFileDownloading) {
+      dispatch(driveThunks.cancelDownloadThunk());
+
+      notificationsService.show({
+        type: NotificationType.Info,
+        text1: strings.errors.fileAlreadyDownloading,
+      });
+      return;
+    }
     const thunk = dispatch(
       driveThunks.downloadFileThunk({
         ...driveFile,
