@@ -699,6 +699,7 @@ const strings = new LocalizedStrings({
       loadPrices: 'Error loading prices',
       cancelSubscription: 'Error cancelling subscription',
       notEnoughSpaceOnDevice: 'Not enough storage space available for download',
+      fileAlreadyDownloading: 'File is already downloading, stopping download',
     },
   },
   es: {
@@ -1399,6 +1400,7 @@ const strings = new LocalizedStrings({
       loadPrices: 'Error cargando precios',
       cancelSubscription: 'Error cancelando suscripción',
       notEnoughSpaceOnDevice: 'No hay suficiente espacio de almacenamiento disponible para la descarga',
+      fileAlreadyDownloading: 'El archivo ya se está descargando, deteniendo la descarga',
     },
   },
 });

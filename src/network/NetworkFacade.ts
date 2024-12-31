@@ -178,7 +178,8 @@ export class NetworkFacade {
       throw new Error('Download error code 3');
     }
 
-    let downloadJob: { jobId: number; promise: Promise<RNFS.DownloadResultT> };
+    let isAborting = false;
+    let currentDownloadJob: { jobId: number; promise: Promise<RNFS.DownloadResultT> } | null = null;
 
     let expectedFileHash: string;
 
@@ -198,11 +199,28 @@ export class NetworkFacade {
         chunkFiles = [];
       }
     };
-    const abortDownload = () => {
-      if (downloadJob) {
-        RNFS.stopDownload(downloadJob.jobId);
+
+    const abortDownload = async () => {
+      if (isAborting) return;
+      isAborting = true;
+
+      try {
+        if (currentDownloadJob) {
+          await RNFS.stopDownload(currentDownloadJob.jobId);
+          currentDownloadJob = null;
+        }
+
+        await cleanupChunks();
+
+        if (encryptedFileURI && !encryptedFileIsCached) {
+          const exists = await fileSystemService.exists(encryptedFileURI);
+          if (exists) {
+            await fileSystemService.unlink(encryptedFileURI);
+          }
+        }
+      } catch (error) {
+        logger.error('Error during abort cleanup:', JSON.stringify(error));
       }
-      cleanupChunks();
     };
 
     const cleanupExistingChunks = async (encFileName: string) => {
@@ -259,7 +277,7 @@ export class NetworkFacade {
           for (let i = 0; i < ranges.length; i++) {
             const isFirstChunk = i === 0;
 
-            if (params.signal?.aborted) {
+            if (isAborting || params.signal?.aborted) {
               throw new Error('Download aborted');
             }
 
@@ -271,7 +289,7 @@ export class NetworkFacade {
             await fileSystemService.createEmptyFile(chunkFileURI);
 
             try {
-              downloadJob = RNFS.downloadFile({
+              currentDownloadJob = RNFS.downloadFile({
                 fromUrl: downloadables[0].url,
                 toFile: chunkFileURI,
                 discretionary: true,
@@ -288,19 +306,23 @@ export class NetworkFacade {
                 },
                 progress: (res) => {
                   // NOT WORKING ON IOS. CHECK
-                  params.downloadProgressCallback(
-                    (totalBytes + res.bytesWritten) / fileSize,
-                    res.bytesWritten + totalBytes,
-                    fileSize,
-                  );
+                  if (!isAborting) {
+                    params.downloadProgressCallback(
+                      (totalBytes + res.bytesWritten) / fileSize,
+                      res.bytesWritten + totalBytes,
+                      fileSize,
+                    );
+                  }
                 },
               });
               // BECAUSE PROGRESS IS NOT WORKING ON IOS
               if (isFirstChunk) params.downloadProgressCallback(0, 0, 0);
 
-              driveEvents.setJobId(downloadJob.jobId);
-              await downloadJob.promise;
-
+              driveEvents.setJobId(currentDownloadJob.jobId);
+              await currentDownloadJob.promise;
+              if (isAborting || params.signal?.aborted) {
+                throw new Error('Download aborted');
+              }
               totalBytes = downloadChunkSize * (i + 1);
               // BECAUSE PROGRESS IS NOT WORKING ON IOS
               if (Platform.OS === 'ios') {
@@ -308,6 +330,9 @@ export class NetworkFacade {
               }
             } catch (error) {
               await cleanupChunks();
+              if (isAborting) {
+                throw new Error('Download aborted');
+              }
               throw error;
             }
           }
@@ -326,7 +351,9 @@ export class NetworkFacade {
       },
       async (_, key, iv) => {
         if (!encryptedFileURI) throw new Error('No encrypted file URI found');
-
+        if (isAborting || params.signal?.aborted) {
+          throw new Error('Download aborted');
+        }
         // commented because it is giving errors, we should check if it is necessary
         // Maybe we should save the expected hash and compare even if the file is cached
         // if (!encryptedFileIsCached) {
