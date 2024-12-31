@@ -120,6 +120,16 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
   drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
+const validateDownload = (size: number | undefined): number | null => {
+  if (!size) return null;
+
+  const sizeInBytes = parseInt(size.toString());
+  if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['5GB']) {
+    return DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED;
+  }
+  return null;
+};
+
 const downloadFileThunk = createAsyncThunk<
   void,
   {
@@ -149,13 +159,14 @@ const downloadFileThunk = createAsyncThunk<
       await dispatch(cancelDownloadThunk());
     }
 
-    if (parseInt(size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['5GB']) {
+    const validationError = validateDownload(size);
+    if (validationError) {
       dispatch(
         driveActions.updateDownloadingFile({
           error: strings.messages.downloadLimit,
         }),
       );
-      return rejectWithValue(DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED);
+      return rejectWithValue(validationError);
     }
 
     dispatch(

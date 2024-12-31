@@ -8,7 +8,7 @@ export interface FileInfo {
 }
 
 export class DownloadAnalytics {
-  constructor(private analytics: AnalyticsService) {}
+  constructor(private readonly analytics: AnalyticsService) {}
 
   trackStart(fileInfo: FileInfo) {
     return this.analytics.track(DriveAnalyticsEvent.FileDownloadStarted, {
