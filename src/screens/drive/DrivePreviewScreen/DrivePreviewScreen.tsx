@@ -225,7 +225,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
             style={{ height: availableHeight }}
             onTap={() => setTopbarVisible(!topbarVisible)}
             width={dimensions.width}
-            height={availableHeight}
+            height={dimensions.height}
             source={downloadingFile.downloadedFilePath as string}
           />
         </View>
