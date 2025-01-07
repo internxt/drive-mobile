@@ -77,7 +77,6 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
 
   const newChargeDate =
     'nextPayment' in subscription && moment(subscription.nextPayment * 1000).locale(strings.getLanguage());
-  console.log({ defaultPaymentMethod });
 
   return (
     <AppScreen hasBottomTabs safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
