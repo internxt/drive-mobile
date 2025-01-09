@@ -161,15 +161,15 @@ export class NetworkFacade {
 
   download(fileId: string, bucketId: string, mnemonic: string, params: DownloadFileParams): [Promise<void>, Abortable] {
     if (!fileId) {
-      throw new Error('Download error code 1');
+      throw new Error('Missing file id in download');
     }
 
     if (!bucketId) {
-      throw new Error('Download error code 2');
+      throw new Error('Missing bucket id in download');
     }
 
     if (!mnemonic) {
-      throw new Error('Download error code 3');
+      throw new Error('Missing mnemonic in download');
     }
 
     let downloadJob: { jobId: number; promise: Promise<RNFS.DownloadResultT> };
