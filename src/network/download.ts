@@ -32,7 +32,34 @@ export async function downloadFile(
 ): Promise<void> {
   const network = getNetwork(constants.BRIDGE_URL, creds);
 
-  const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params, fileSize);
+  const [downloadPromise, abortable] = network.downloadMultipart(fileId, bucketId, mnemonic, params, fileSize);
+
+  onAbortableReady(abortable);
+
+  try {
+    await downloadPromise;
+  } catch (err) {
+    const requiresV1Download = err instanceof FileVersionOneError;
+
+    if (!requiresV1Download) {
+      throw err;
+    }
+
+    return downloadV1(fileId, bucketId, mnemonic, creds, params, onAbortableReady);
+  }
+}
+
+export async function downloadThumbnail(
+  fileId: string,
+  bucketId: string,
+  mnemonic: string,
+  creds: NetworkCredentials,
+  params: DownloadFileParams,
+  onAbortableReady: (abortable: Abortable) => void,
+): Promise<void> {
+  const network = getNetwork(constants.BRIDGE_URL, creds);
+
+  const [downloadPromise, abortable] = network.download(fileId, bucketId, mnemonic, params);
 
   onAbortableReady(abortable);
 
