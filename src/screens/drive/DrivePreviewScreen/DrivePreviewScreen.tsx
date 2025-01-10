@@ -25,6 +25,7 @@ import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
 import { DriveVideoPreview } from './DriveVideoPreview';
+import AnimatedLoadingDots from './LoadingDots';
 
 const IMAGE_PREVIEW_TYPES = [FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC];
 const VIDEO_PREVIEW_TYPES = [FileExtension.MP4, FileExtension.MOV, FileExtension.AVI];
@@ -101,10 +102,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       return;
     }
 
-    const progressMessage = strings.formatString(
-      currentProgress < 0.95 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
-      (currentProgress * 100).toFixed(0),
-    );
+    const progressMessage = currentProgress < 0.95 ? strings.generic.downloading : strings.generic.decrypting;
 
     return progressMessage;
   };
@@ -141,7 +139,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
             {filename}
           </AppText>
           {!isDownloaded && !error ? (
-            <AppText style={tailwind('text-gray-60 text-center mt-1')}>{getProgressMessage()}</AppText>
+            <AnimatedLoadingDots
+              previousDotsText={getProgressMessage()}
+              progress={parseInt((currentProgress * 100).toFixed(0))}
+            />
           ) : null}
         </View>
         {!isDownloaded && !error ? (

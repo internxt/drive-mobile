@@ -21,6 +21,8 @@ import { Abortable } from '../types';
 import { EncryptedFileDownloadedParams } from './download';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 
+const HUNDRED_MB = 100 * 1024 * 1024;
+
 export interface DownloadFileParams {
   toPath: string;
   downloadProgressCallback: (progress: number, bytesReceived: number, totalBytes: number) => void;
@@ -320,18 +322,25 @@ export class NetworkFacade {
     }
 
     let isAborting = false;
-    let currentDownloadJob: { jobId: number; promise: Promise<RNFS.DownloadResultT> } | null = null;
+
+    const downloadJobs: {
+      [key: number]: {
+        jobId: number;
+        promise: Promise<RNFS.DownloadResultT>;
+        bytesWritten: number;
+      };
+    } = {};
 
     let expectedFileHash: string;
+    const CONCURRENT_DOWNLOADS = 3;
 
     const decryptFileFromFs: DecryptFileFromFsFunction =
       Platform.OS === 'android' ? androidDecryptFileFromFs : iosDecryptFileFromFs;
 
     let encryptedFileURI: string | undefined;
-
     const encryptedFileName = `${fileId}.enc`;
     let encryptedFileIsCached = false;
-    let totalBytes = 0;
+    const totalBytes = 0;
     let chunkFiles: string[] = [];
 
     const cleanupChunks = async () => {
@@ -346,13 +355,12 @@ export class NetworkFacade {
       isAborting = true;
 
       try {
-        if (currentDownloadJob) {
-          await RNFS.stopDownload(currentDownloadJob.jobId);
-          currentDownloadJob = null;
-        }
+        // Abort all active download jobs
+        await Promise.all(Object.values(downloadJobs).map((job) => RNFS.stopDownload(job.jobId)));
 
         await cleanupChunks();
 
+        // Clean up encrypted file if needed
         if (encryptedFileURI && !encryptedFileIsCached) {
           const exists = await fileSystemService.exists(encryptedFileURI);
           if (exists) {
@@ -383,6 +391,61 @@ export class NetworkFacade {
       params.signal.addEventListener('abort', abortDownload);
     }
 
+    const downloadChunk = async (
+      url: string,
+      range: { start: number; end: number },
+      chunkIndex: number,
+    ): Promise<string> => {
+      const chunkFileName = `${encryptedFileName}-chunk-${chunkIndex + 1}`;
+      const chunkFileURI = fileSystemService.tmpFilePath(chunkFileName);
+      chunkFiles.push(chunkFileURI);
+
+      await fileSystemService.createEmptyFile(chunkFileURI);
+
+      downloadJobs[chunkIndex] = {
+        jobId: -1, // Will be updated when download begins
+        promise: Promise.resolve({} as RNFS.DownloadResultT),
+        bytesWritten: 0,
+      };
+
+      const downloadJob = RNFS.downloadFile({
+        fromUrl: url,
+        toFile: chunkFileURI,
+        discretionary: true,
+        cacheable: false,
+        headers: {
+          Range: `bytes=${range.start}-${range.end}`,
+        },
+        progressDivider: 5,
+        progressInterval: 150,
+        begin: () => {
+          if (chunkIndex === 0) {
+            params.downloadProgressCallback(0, 0, 0);
+          }
+        },
+        progress: (res) => {
+          downloadJobs[chunkIndex].bytesWritten = res.bytesWritten;
+
+          const currentTotalBytes = Object.values(downloadJobs).reduce((acc, job) => {
+            return acc + job.bytesWritten;
+          }, 0);
+          params.downloadProgressCallback(currentTotalBytes / fileSize, currentTotalBytes, fileSize);
+        },
+      });
+
+      downloadJobs[chunkIndex].jobId = downloadJob.jobId;
+      downloadJobs[chunkIndex].promise = downloadJob.promise;
+      driveEvents.setJobId(downloadJob.jobId);
+
+      try {
+        await downloadJob.promise;
+        return chunkFileURI;
+      } catch (error) {
+        await fileSystemService.deleteFile([chunkFileURI]);
+        throw error;
+      }
+    };
+
     const downloadPromise = downloadFile(
       fileId,
       bucketId,
@@ -391,13 +454,6 @@ export class NetworkFacade {
       this.cryptoLib,
       Buffer.from,
       async (downloadables) => {
-        /**
-         * TODO make this product agnostic, right now we
-         * use the Drive FileCacheManager, but Photos
-         * uses this download function too, is not a problem
-         * since the fileID is an unique key, but we should
-         * improve this
-         */
         const { isCached, path } = await drive.cache.isCached(encryptedFileName);
 
         if (isCached) {
@@ -405,70 +461,28 @@ export class NetworkFacade {
           encryptedFileURI = path;
         } else {
           await cleanupExistingChunks(encryptedFileName);
-          const FIFTY_MB = 50 * 1024 * 1024;
-          const downloadChunkSize = FIFTY_MB;
+          const downloadChunkSize = HUNDRED_MB;
           const ranges: { start: number; end: number }[] = [];
 
           for (let start = 0; start < fileSize; start += downloadChunkSize) {
             const end = Math.min(start + downloadChunkSize - 1, fileSize - 1);
             ranges.push({ start, end });
           }
+
           params.downloadProgressCallback(0, 0, 0);
 
-          for (let i = 0; i < ranges.length; i++) {
-            const isFirstChunk = i === 0;
-
+          for (let i = 0; i < ranges.length; i += CONCURRENT_DOWNLOADS) {
             if (isAborting || params.signal?.aborted) {
               throw new Error('Download aborted');
             }
 
-            const range = ranges[i];
-            const chunkFileName = `${encryptedFileName}-chunk-${i + 1}`;
-            const chunkFileURI = fileSystemService.tmpFilePath(chunkFileName);
-            chunkFiles.push(chunkFileURI);
-
-            await fileSystemService.createEmptyFile(chunkFileURI);
+            const currentBatch = ranges.slice(i, i + CONCURRENT_DOWNLOADS);
+            const batchPromises = currentBatch.map((range, index) =>
+              downloadChunk(downloadables[0].url, range, i + index),
+            );
 
             try {
-              currentDownloadJob = RNFS.downloadFile({
-                fromUrl: downloadables[0].url,
-                toFile: chunkFileURI,
-                discretionary: true,
-                cacheable: false,
-                headers: {
-                  Range: `bytes=${range.start}-${range.end}`,
-                },
-                progressDivider: 5,
-                progressInterval: 150,
-                begin: () => {
-                  if (isFirstChunk) {
-                    params.downloadProgressCallback(0, 0, 0);
-                  }
-                },
-                progress: (res) => {
-                  // NOT WORKING ON IOS. CHECK
-                  if (!isAborting) {
-                    params.downloadProgressCallback(
-                      (totalBytes + res.bytesWritten) / fileSize,
-                      res.bytesWritten + totalBytes,
-                      fileSize,
-                    );
-                  }
-                },
-              });
-              // BECAUSE PROGRESS IS NOT WORKING ON IOS
-              if (isFirstChunk) params.downloadProgressCallback(0, 0, 0);
-
-              driveEvents.setJobId(currentDownloadJob.jobId);
-              await currentDownloadJob.promise;
-              if (isAborting || params.signal?.aborted) {
-                throw new Error('Download aborted');
-              }
-              totalBytes = downloadChunkSize * (i + 1);
-              // BECAUSE PROGRESS IS NOT WORKING ON IOS
-              if (Platform.OS === 'ios') {
-                params.downloadProgressCallback(totalBytes / fileSize, totalBytes, fileSize);
-              }
+              await Promise.all(batchPromises);
             } catch (error) {
               await cleanupChunks();
               if (isAborting) {
@@ -476,7 +490,14 @@ export class NetworkFacade {
               }
               throw error;
             }
+
+            // Update progress for iOS
+            if (Platform.OS === 'ios') {
+              const completedBytes = Math.min((i + CONCURRENT_DOWNLOADS) * downloadChunkSize, fileSize);
+              params.downloadProgressCallback(completedBytes / fileSize, completedBytes, fileSize);
+            }
           }
+
           expectedFileHash = downloadables[0].hash;
           encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
 
