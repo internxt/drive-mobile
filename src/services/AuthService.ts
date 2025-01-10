@@ -79,6 +79,14 @@ class AuthService {
             privateKeyEncrypted: '',
             publicKey: '',
             revocationCertificate: '',
+            ecc: {
+              publicKey: '',
+              privateKeyEncrypted: '',
+            },
+            kyber: {
+              publicKey: '',
+              privateKeyEncrypted: '',
+            },
           };
           return keys;
         },
@@ -221,6 +229,14 @@ class AuthService {
         privateKeyEncrypted: '',
         publicKey: '',
         revocationCertificate: '',
+        ecc: {
+          publicKey: '',
+          privateKeyEncrypted: '',
+        },
+        kyber: {
+          publicKey: '',
+          privateKeyEncrypted: '',
+        },
       },
       captcha: params.captcha,
     };

@@ -1766,10 +1766,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@^1.4.96":
-  version "1.5.19"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.5.19/efbd2745afe86b551a32235ac92b1a54615aa949#efbd2745afe86b551a32235ac92b1a54615aa949"
-  integrity sha512-KIVs/KPQL1Hs1AAIG9d35Co+fKEMUQTnpW8XrxYw+uXJzvW7UWrw5Wl79nppw5x4HSx9E9Kg7y2LznyEtSjejA==
+"@internxt/sdk@=1.9.1":
+  version "1.9.1"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.9.1/f78fe79c261782bb2ff181977558ba25fd546aca#f78fe79c261782bb2ff181977558ba25fd546aca"
+  integrity sha512-4FgFjlLqcPy5btZ3BNsLjFSkot0giTA6UgbFzIS7mtvpNAD12ce3l7Ok7uhAvcs9ujy9TMr0cW/aj5HyrY70rg==
   dependencies:
     axios "^0.24.0"
     query-string "^7.1.0"
