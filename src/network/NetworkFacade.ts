@@ -355,12 +355,10 @@ export class NetworkFacade {
       isAborting = true;
 
       try {
-        // Abort all active download jobs
         await Promise.all(Object.values(downloadJobs).map((job) => RNFS.stopDownload(job.jobId)));
 
         await cleanupChunks();
 
-        // Clean up encrypted file if needed
         if (encryptedFileURI && !encryptedFileIsCached) {
           const exists = await fileSystemService.exists(encryptedFileURI);
           if (exists) {
@@ -403,7 +401,7 @@ export class NetworkFacade {
       await fileSystemService.createEmptyFile(chunkFileURI);
 
       downloadJobs[chunkIndex] = {
-        jobId: -1, // Will be updated when download begins
+        jobId: -1,
         promise: Promise.resolve({} as RNFS.DownloadResultT),
         bytesWritten: 0,
       };
@@ -491,7 +489,6 @@ export class NetworkFacade {
               throw error;
             }
 
-            // Update progress for iOS
             if (Platform.OS === 'ios') {
               const completedBytes = Math.min((i + CONCURRENT_DOWNLOADS) * downloadChunkSize, fileSize);
               params.downloadProgressCallback(completedBytes / fileSize, completedBytes, fileSize);
