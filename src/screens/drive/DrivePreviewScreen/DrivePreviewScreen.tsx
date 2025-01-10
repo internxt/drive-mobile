@@ -20,7 +20,7 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
-import { driveThunks } from '../../../store/slices/drive';
+import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
@@ -34,6 +34,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const tailwind = useTailwind();
   const [topbarVisible, setTopbarVisible] = useState(true);
   const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail>();
+
   const dimensions = useWindowDimensions();
   // REDUX USAGE STARTS
   const insets = useSafeAreaInsets();
@@ -94,6 +95,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+
   const getProgressMessage = () => {
     if (!downloadingFile) {
       return;
@@ -246,6 +248,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
           onCloseButtonPress={() => {
             dispatch(driveThunks.cancelDownloadThunk());
             props.navigation.goBack();
+            dispatch(driveActions.clearDownloadingFile());
           }}
           onActionsButtonPress={handleActionsButtonPress}
         />
