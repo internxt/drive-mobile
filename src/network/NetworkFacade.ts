@@ -527,11 +527,6 @@ export class NetworkFacade {
 
         params.downloadProgressCallback(1, totalBytes, totalBytes);
 
-        // The encrypted file should exists at this path and has size, otherwise something went wrong
-        const encryptedFileExists = await fileSystemService.fileExistsAndIsNotEmpty(encryptedFileURI);
-
-        if (!encryptedFileExists) throw new Error('An error ocurred while downloading the file');
-
         await decryptFileFromFs(
           encryptedFileURI,
           params.toPath,
