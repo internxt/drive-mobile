@@ -153,7 +153,6 @@ function AddModal(): JSX.Element {
       {
         notifyProgress: progressCallback,
       },
-      () => null,
     );
 
     logger.info('File uploaded with fileId: ', fileId);

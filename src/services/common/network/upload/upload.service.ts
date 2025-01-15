@@ -1,8 +1,8 @@
-import network from '../../../../network';
 import { getEnvironmentConfig } from '../../../../lib/network';
+import network from '../../../../network';
 
-import { SdkManager } from '../../sdk';
 import { DriveFileData, FileEntry, Thumbnail, ThumbnailEntry } from '@internxt/sdk/dist/drive/storage/types';
+import { SdkManager } from '../../sdk';
 
 export interface FileMeta {
   progress: number;

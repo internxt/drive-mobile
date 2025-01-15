@@ -1,6 +1,17 @@
+import Portal from '@burstware/react-native-portal';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { biometrics } from '@internxt-mobile/services/common';
 import { CaretRight } from 'phosphor-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import AppSwitch from 'src/components/AppSwitch';
+import DisableTwoFactorModal from 'src/components/modals/DisableTwoFactorModal';
+import EnableTwoFactorModal from 'src/components/modals/EnableTwoFactorModal';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { appActions } from 'src/store/slices/app';
+import { authSelectors } from 'src/store/slices/auth';
+import { uiActions } from 'src/store/slices/ui';
+import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppScreen from '../../components/AppScreen';
@@ -8,19 +19,8 @@ import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import ChangePasswordModal from '../../components/modals/ChangePasswordModal';
 import SettingsGroup from '../../components/SettingsGroup';
-import Portal from '@burstware/react-native-portal';
 import useGetColor from '../../hooks/useColor';
 import { SettingsScreenProps } from '../../types/navigation';
-import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { uiActions } from 'src/store/slices/ui';
-import EnableTwoFactorModal from 'src/components/modals/EnableTwoFactorModal';
-import DisableTwoFactorModal from 'src/components/modals/DisableTwoFactorModal';
-import { authSelectors } from 'src/store/slices/auth';
-import { getLineHeight } from 'src/styles/global';
-import AppSwitch from 'src/components/AppSwitch';
-import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { appActions } from 'src/store/slices/app';
-import { biometrics } from '@internxt-mobile/services/common';
 
 const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
@@ -118,7 +118,8 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
               />
             ) : null}
             {/* CHANGE PASSWORD */}
-            <SettingsGroup
+            {/* TEMPORARY DISABLED */}
+            {/* <SettingsGroup
               title={strings.screens.SecurityScreen.changePassword.title}
               items={[
                 {
@@ -142,7 +143,7 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                   onPress: onChangePasswordPressed,
                 },
               ]}
-            />
+            /> */}
 
             {/* TWO FACTOR */}
             <SettingsGroup
