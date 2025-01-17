@@ -84,6 +84,7 @@
     "luxon": "^3.0.3",
     "moment": "^2.29.2",
     "node-libs-react-native": "^1.2.1",
+    "p-limit": "^6.2.0",
     "phosphor-react-native": "^1.1.1",
     "prettysize": "^2.0.0",
     "punycode": "^1.4.1",

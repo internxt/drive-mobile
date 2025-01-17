@@ -12,6 +12,7 @@ import uuid from 'react-native-uuid';
 import RNFetchBlob from 'rn-fetch-blob';
 
 import drive from '@internxt-mobile/services/drive';
+import pLimit from 'p-limit';
 import { ripemd160 } from '../@inxt-js/lib/crypto';
 import { generateFileKey } from '../lib/network';
 import appService from '../services/AppService';
@@ -182,155 +183,141 @@ export class NetworkFacade {
     return [wrapUploadWithCleanup(), () => null];
   }
 
-  uploadFileBlob =
-    ({
-      encryptedFilePath,
-      shouldEnableEncryptionProgress,
-      updateProgress,
-      maxEncryptProgress,
-      fileHash,
-    }: {
-      encryptedFilePath: string;
-      shouldEnableEncryptionProgress: boolean;
-      updateProgress: (progress: number) => void;
-      maxEncryptProgress: number;
-      fileHash: string;
-    }) =>
-    async (url: string) => {
-      await RNFetchBlob.fetch(
-        'PUT',
-        url,
-        {
-          'Content-Type': 'application/octet-stream',
-        },
-        RNFetchBlob.wrap(encryptedFilePath),
-      ).uploadProgress({ interval: 150 }, (bytesSent, totalBytes) => {
-        const uploadProgress = bytesSent / totalBytes;
-
-        if (shouldEnableEncryptionProgress) {
-          updateProgress(maxEncryptProgress + uploadProgress * maxEncryptProgress);
-        } else {
-          updateProgress(uploadProgress);
-        }
-      });
-
-      return fileHash;
-    };
-
   async uploadMultipart(
     bucketId: string,
     mnemonic: string,
     filePath: string,
     options: UploadMultipartOptions,
   ): Promise<string> {
+    const CONCURRENT_UPLOADS = 3;
+    const limit = pLimit(CONCURRENT_UPLOADS);
+
     const partsUploadedBytes: Record<number, number> = {};
     const fileParts: PartInfo[] = [];
     let fileHash: string;
-    let encryptedFilePath: string;
+    const encryptedPartPaths: string[] = [];
 
     const uploadsAbortController = new AbortController();
-    options.abortController?.addEventListener('abort', () => uploadsAbortController.abort());
+    options.abortController?.addEventListener('abort', () => {
+      uploadsAbortController.abort();
+    });
 
-    function notifyProgress(partId: number, uploadedBytes: number) {
+    function notifyProgress(partId: number, uploadedBytes: number): void {
       partsUploadedBytes[partId] = uploadedBytes;
-      console.log({ typeOF: typeof uploadedBytes });
-      console.log({ partsUploadedBytes });
       const totalUploaded = Object.values(partsUploadedBytes).reduce((a, p) => a + p, 0);
-      console.log({ totalUploaded });
-      console.log({ fileSize });
       options?.uploadingCallback?.(totalUploaded / fileSize);
     }
 
     const stat = await RNFS.stat(filePath);
     const fileSize = stat.size;
-    console.log({ fileSize });
-
     const partSize = options.partSize;
     const parts = Math.ceil(fileSize / options.partSize);
-    console.log({ partSize });
 
     const readFilePart = async (path: string, start: number, length: number): Promise<string> => {
-      const tempPartPath = `${RNFS.TemporaryDirectoryPath}/temp_part_${Date.now()}`;
-      console.log({ tempPartPath });
-
-      const chunk = await RNFS.read(path, length, start, 'ascii');
-
-      await RNFS.writeFile(tempPartPath, chunk, 'ascii');
-
+      const tempPartPath = fileSystemService.tmpFilePath(`part_${Date.now()}_${start}`);
+      const chunk = await RNFS.read(path, length, start, 'base64');
+      await RNFS.writeFile(tempPartPath, chunk, 'base64');
       return tempPartPath;
     };
 
-    const encryptFile: EncryptFileFunction = async (algorithm, key, iv) => {
-      encryptedFilePath = `${RNFS.TemporaryDirectoryPath}/${Date.now()}.enc`;
+    const encryptFile = async (algorithm: string, key: BinaryData, iv: BinaryData) => {
+      const currentKey = key as Buffer;
+      const currentIV = iv as Buffer;
 
-      if (Platform.OS === 'android') {
-        await androidEncryptFileFromFs(filePath, encryptedFilePath, key as Buffer, iv as Buffer);
-      } else {
-        await iosEncryptFileFromFs(filePath, encryptedFilePath, key as Buffer, iv as Buffer);
-      }
-    };
+      console.log('Encrypting parts');
+      for (let i = 0; i < parts; i++) {
+        const start = i * partSize;
+        const chunkSize = Math.min(partSize, fileSize - start);
 
-    const uploadPart = async (url: string, partPath: string, partNumber: number): Promise<string> => {
-      console.log('uploadPart--------------------------');
+        const plainPartPath = await readFilePart(filePath, start, chunkSize);
 
-      const response = await RNFetchBlob.fetch(
-        'PUT',
-        url,
-        {
-          'Content-Type': 'application/octet-stream',
-        },
-        RNFetchBlob.wrap(partPath),
-      ).uploadProgress({ interval: 150 }, (sent, total) => {
-        console.log({ typeOfSent: typeof sent });
-        const sentBytes = parseInt(sent.toString());
-        notifyProgress(partNumber, sentBytes);
-      });
+        const encryptedPartPath = fileSystemService.tmpFilePath(`part_${Date.now()}_${start}.enc`);
+        console.log({ encryptedPartPath });
 
-      const etag = response.info().headers.Etag;
-      console.log({ responseInfo: response.info() });
-      console.log({ response });
-      console.log({ etag });
-      if (!etag) {
-        throw new Error('ETag header was not returned');
-      }
-
-      return etag;
-    };
-
-    const uploadFileMultipart: UploadFileMultipartFunction = async (urls) => {
-      console.log({ urls });
-      try {
-        for (let i = 0; i < parts; i++) {
-          if (uploadsAbortController.signal.aborted) {
-            throw new Error('Upload cancelled by user');
-          }
-
-          const start = i * partSize;
-          const length = Math.min(partSize, fileSize - start);
-
-          const partPath = await readFilePart(encryptedFilePath, start, length);
-
-          try {
-            const etag = await uploadPart(urls[i], partPath, i);
-            fileParts.push({
-              PartNumber: i + 1,
-              ETag: etag,
-            });
-          } finally {
-            await RNFS.unlink(partPath);
-          }
+        if (Platform.OS === 'android') {
+          await androidEncryptFileFromFs(plainPartPath, encryptedPartPath, currentKey, currentIV);
+        } else {
+          await iosEncryptFileFromFs(plainPartPath, encryptedPartPath, currentKey, currentIV);
         }
-        console.log({ fileParts });
+        console.log('finished encryption');
 
-        fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
+        await fileSystemService.unlink(plainPartPath);
+
+        encryptedPartPaths[i] = encryptedPartPath;
+      }
+    };
+
+    const uploadPart = async (url: string, partPath: string, partNumber: number): Promise<PartInfo> => {
+      try {
+        if (uploadsAbortController.signal.aborted) {
+          throw new Error('Upload cancelled by user');
+        }
+
+        const response = await RNFetchBlob.fetch(
+          'PUT',
+          url,
+          { 'Content-Type': 'application/octet-stream' },
+          RNFetchBlob.wrap(partPath),
+        ).uploadProgress({ interval: 150 }, (sent: number, total: number) => {
+          const sentBytes = parseInt(sent.toString());
+          notifyProgress(partNumber, sentBytes);
+        });
+
+        let etag;
+        if (Platform.OS === 'android') {
+          etag = response.info().headers.ETag;
+        } else {
+          etag = response.info().headers.Etag;
+        }
+        console.log({ responseEtag: response.info().headers });
+        if (!etag) throw new Error('Missing ETag in upload response');
+
+        return {
+          PartNumber: partNumber + 1,
+          ETag: etag,
+        };
+      } catch (error) {
+        logger.error('Error en uploadPart:', error);
+        throw error;
+      }
+    };
+
+    const uploadFileMultipart = async (urls: string[]): Promise<{ hash: string; parts: PartInfo[] }> => {
+      try {
+        const uploadTasks = Array.from({ length: parts }, (_, i) => {
+          return limit(async () => {
+            if (uploadsAbortController.signal.aborted) {
+              throw new Error('Upload cancelled by user');
+            }
+
+            const encryptedPartPath = encryptedPartPaths[i];
+            const partInfo = await uploadPart(urls[i], encryptedPartPath, i);
+            fileParts.push(partInfo);
+            console.log({ fileParts });
+            return partInfo;
+          });
+        });
+
+        await Promise.all(uploadTasks);
+
+        const allPartsHash = await Promise.all(encryptedPartPaths.map((path) => RNFS.hash(path, 'sha256')));
+        const combinedHash = allPartsHash.join('');
+        fileHash = ripemd160(Buffer.from(combinedHash, 'hex')).toString('hex');
 
         return {
           hash: fileHash,
           parts: fileParts.sort((a, b) => a.PartNumber - b.PartNumber),
         };
       } finally {
-        if (encryptedFilePath) {
-          await RNFS.unlink(encryptedFilePath);
+        for (const path of encryptedPartPaths) {
+          try {
+            const exists = await fileSystemService.exists(path);
+            if (exists) {
+              await fileSystemService.unlink(path);
+            }
+          } catch (error) {
+            logger.error('Error during cleanup:', path, error);
+          }
         }
       }
     };
