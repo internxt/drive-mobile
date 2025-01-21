@@ -340,7 +340,7 @@ export class NetworkFacade {
     let encryptedFileURI: string | undefined;
     const encryptedFileName = `${fileId}.enc`;
     let encryptedFileIsCached = false;
-    const totalBytes = 0;
+
     let chunkFiles: string[] = [];
 
     const cleanupChunks = async () => {
@@ -525,7 +525,7 @@ export class NetworkFacade {
         //   }
         // }
 
-        params.downloadProgressCallback(1, totalBytes, totalBytes);
+        params.downloadProgressCallback(1, fileSize, fileSize);
 
         await decryptFileFromFs(
           encryptedFileURI,
