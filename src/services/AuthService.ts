@@ -12,6 +12,7 @@ import appService, { constants } from './AppService';
 import asyncStorageService from './AsyncStorageService';
 import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -100,6 +101,11 @@ class AuthService {
       loginResult.user.privateKey = Buffer.from(decryptedPrivateKey).toString('base64');
     }
 
+    if (loginResult.user.keys.kyber.privateKey) {
+      const decryptedPrivateKey = keysService.decryptPrivateKey(loginResult.user.keys.kyber.privateKey, password);
+      loginResult.user.keys.kyber.privateKey = Buffer.from(decryptedPrivateKey).toString('base64');
+    }
+
     // Get the refreshed tokens, they contain expiration, the ones returned
     // on the login doesn't have expiration
     const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
@@ -116,25 +122,6 @@ class AuthService {
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
     await internxtMobileSDKConfig.destroy();
-  }
-
-  public async doRecoverPassword(newPassword: string): Promise<Response> {
-    const xUser = await asyncStorageService.getUser();
-    const mnemonic = xUser.mnemonic;
-    const hashPass = passToHash({ password: newPassword });
-    const encryptedPassword = encryptText(hashPass.hash);
-    const encryptedSalt = encryptText(hashPass.salt);
-    const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
-    return fetch(`${constants.DRIVE_API_URL}/user/recover`, {
-      method: 'patch',
-      headers: await getHeaders(),
-      body: JSON.stringify({
-        password: encryptedPassword,
-        salt: encryptedSalt,
-        mnemonic: encryptedMnemonic,
-        privateKey: null,
-      }),
-    });
   }
 
   public async doChangePassword(params: {
@@ -167,15 +154,34 @@ class AuthService {
        * so could be possible that the user doesn't has one associated
        * in that case, we send this value
        */
-      privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
+      privateKeyFinalValue = '';
     }
 
-    const changePasswordResult = await this.sdk.users.changePasswordLegacy({
+    let privateKyberKeyFinalValue;
+    if (credentials.user.keys.kyber.privateKey) {
+      const privateKyberKey = Buffer.from(credentials.user.keys.kyber.privateKey, 'base64').toString();
+      const privateKyberKeyEncrypted = AesUtils.encrypt(privateKyberKey, params.newPassword);
+      privateKyberKeyFinalValue = privateKyberKeyEncrypted;
+    } else {
+      /**
+       * We are not generating the public/private key in mobile
+       * so could be possible that the user doesn't has one associated
+       * in that case, we send this value
+       */
+      privateKyberKeyFinalValue = '';
+    }
+
+    const changePasswordResult = await this.sdk.users.changePassword({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,
       newEncryptedPassword: encNewPass,
       encryptedPrivateKey: privateKeyFinalValue,
+      keys: {
+        encryptedPrivateKey: privateKeyFinalValue,
+        encryptedPrivateKyberKey: privateKyberKeyFinalValue,
+      },
+      encryptVersion: StorageTypes.EncryptionVersion.Aes03,
     });
 
     return {
