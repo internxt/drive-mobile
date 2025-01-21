@@ -138,6 +138,7 @@ function AddModal(): JSX.Element {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
     logger.info('Stating file...');
     const fileStat = await fileSystemService.stat(filePath);
+
     logger.info('File stats: ', JSON.stringify(fileStat));
     const fileSize = fileStat.size;
     logger.info('About to upload file...');
@@ -401,7 +402,6 @@ function AddModal(): JSX.Element {
         trackUploadError(file, err);
         dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
         logger.error('File upload process failed: ', JSON.stringify(err));
-        console.log({ e });
         notificationsService.show({
           type: NotificationType.Error,
           text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
