@@ -119,6 +119,15 @@ class FileSystemService {
     return RNFS.CachesDirectoryPath;
   }
 
+  public writeFileStream(uri: string): Promise<FileWriter> {
+    return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
+      return {
+        write: (content: string) => writeStream.write(content),
+        close: () => writeStream.close(),
+      };
+    });
+  }
+
   public readFileStream(): void {
     throw new Error('Not implemented yet');
   }

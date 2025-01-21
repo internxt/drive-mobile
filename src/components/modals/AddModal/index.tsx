@@ -165,7 +165,7 @@ function AddModal(): JSX.Element {
     const fileEntry: FileEntry = {
       type: fileExtension,
       bucket,
-      size: parseInt(fileSize),
+      size: fileSize,
       folder_id: folderId,
       name,
       encrypt_version: EncryptionVersion.Aes03,
@@ -401,6 +401,7 @@ function AddModal(): JSX.Element {
         trackUploadError(file, err);
         dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
         logger.error('File upload process failed: ', JSON.stringify(err));
+        console.log({ e });
         notificationsService.show({
           type: NotificationType.Error,
           text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
@@ -421,6 +422,7 @@ function AddModal(): JSX.Element {
       const pickedFiles = await DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.allFiles],
         copyTo: 'cachesDirectory',
+        mode: 'import',
       });
 
       const exceedsMaxFileUpload = pickedFiles.length > MAX_FILES_BULK_UPLOAD;
@@ -487,7 +489,7 @@ function AddModal(): JSX.Element {
                   name: decodeURIComponent(
                     asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
                   ),
-                  size: asset.fileSize || stat.size,
+                  size: stat.size,
                   type: asset.type || '',
                   uri: asset.uri || '',
                 });
