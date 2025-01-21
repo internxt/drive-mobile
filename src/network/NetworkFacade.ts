@@ -12,7 +12,7 @@ import uuid from 'react-native-uuid';
 import RNFetchBlob from 'rn-fetch-blob';
 
 import drive from '@internxt-mobile/services/drive';
-import pLimit from 'p-limit';
+import pLimit, { LimitFunction } from 'p-limit';
 import { ripemd160 } from '../@inxt-js/lib/crypto';
 import { generateFileKey } from '../lib/network';
 import appService from '../services/AppService';
@@ -39,11 +39,6 @@ interface PartInfo {
 }
 
 type EncryptFileFunction = (algorithm: string, key: BinaryData, iv: BinaryData) => Promise<void>;
-
-type UploadFileMultipartFunction = (urls: string[]) => Promise<{
-  hash: string;
-  parts: PartInfo[];
-}>;
 
 export interface DownloadFileParams {
   toPath: string;
@@ -192,108 +187,155 @@ export class NetworkFacade {
     const CONCURRENT_UPLOADS = 3;
     const limit = pLimit(CONCURRENT_UPLOADS);
 
-    const partsUploadedBytes: Record<number, number> = {};
-    const fileParts: PartInfo[] = [];
-    let fileHash: string;
+    const uploadState = {
+      partsUploadedBytes: {} as Record<number, number>,
+      fileParts: [] as PartInfo[],
+      fileHash: '',
+    };
 
-    function notifyProgress(partId: number, uploadedBytes: number): void {
-      partsUploadedBytes[partId] = uploadedBytes;
-      const totalUploaded = Object.values(partsUploadedBytes).reduce((a, p) => a + p, 0);
-      options?.uploadingCallback?.(totalUploaded / fileSize);
+    const fileInfo = await this.getFileInfo(filePath, options.partSize);
+    const encryptedPartPaths = this.createEncryptedPartPaths(fileInfo.parts);
+    const uploadMultipart = async (urls: string[]) => {
+      await this.processUploadParts(urls, encryptedPartPaths, uploadState, limit, fileInfo.size, options);
+      uploadState.fileHash = await this.calculateFileHash(encryptedPartPaths);
+
+      return {
+        hash: uploadState.fileHash,
+        parts: uploadState.fileParts.sort((a, b) => a.PartNumber - b.PartNumber),
+      };
+    };
+    try {
+      return await uploadMultipartFile(
+        this.network,
+        this.cryptoLib,
+        bucketId,
+        mnemonic,
+        fileInfo.size,
+        this.createEncryptFunction(filePath, encryptedPartPaths, options.partSize),
+        uploadMultipart,
+        fileInfo.parts,
+      );
+    } finally {
+      await this.cleanupEncryptedFiles(encryptedPartPaths);
     }
+  }
 
+  private async getFileInfo(filePath: string, partSize: number) {
     const stat = await RNFS.stat(filePath);
-    const fileSize = stat.size;
-    const partSize = options.partSize;
-    const parts = Math.ceil(fileSize / partSize);
+    return {
+      size: stat.size,
+      parts: Math.ceil(stat.size / partSize),
+    };
+  }
 
-    const encryptedPartPaths = Array.from(
+  private createEncryptedPartPaths(parts: number): string[] {
+    return Array.from(
       { length: parts },
       (_, index) => `${RNFS.TemporaryDirectoryPath}/encrypted_${Date.now()}_${index}`,
     );
+  }
 
-    const encryptFile: EncryptFileFunction = async (algorithm, key, iv) => {
+  private createEncryptFunction(filePath: string, encryptedPaths: string[], partSize: number): EncryptFileFunction {
+    return async (_, key, iv) => {
       return new Promise((resolve, reject) => {
         encryptFileToChunks(
           filePath,
-          encryptedPartPaths,
+          encryptedPaths,
           (key as Buffer).toString('hex'),
           (iv as Buffer).toString('hex'),
           partSize,
-          (error: Error | null) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve();
-            }
-          },
+          (error: Error | null) => (error ? reject(error) : resolve()),
         );
       });
     };
+  }
 
-    const uploadPart = async (url: string, encryptedPartPath: string, index: number) => {
-      try {
-        const response = await RNFetchBlob.fetch(
-          'PUT',
-          url,
-          { 'Content-Type': 'application/octet-stream' },
-          RNFetchBlob.wrap(encryptedPartPath),
-        ).uploadProgress({ interval: 150 }, (sent: number) => {
-          notifyProgress(index, parseInt(sent.toString()));
-        });
+  private async processUploadParts(
+    urls: string[],
+    encryptedPaths: string[],
+    uploadState: {
+      partsUploadedBytes: Record<number, number>;
+      fileParts: PartInfo[];
+      fileHash: string;
+    },
+    limit: LimitFunction,
+    fileSize: number,
+    options: UploadMultipartOptions,
+  ): Promise<void> {
+    const uploadTasks = encryptedPaths.map((path, index) =>
+      limit(async () => {
+        const partInfo = await this.uploadPart(
+          urls[index],
+          path,
+          index,
+          uploadState.partsUploadedBytes,
+          fileSize,
+          options.uploadingCallback,
+        );
+        uploadState.fileParts.push(partInfo);
+        return partInfo;
+      }),
+    );
 
-        const etag = Platform.OS === 'android' ? response.info().headers.ETag : response.info().headers.Etag;
+    await Promise.all(uploadTasks);
+  }
 
-        if (!etag) throw new Error('Missing ETag in upload response');
+  private async uploadPart(
+    url: string,
+    encryptedPartPath: string,
+    index: number,
+    partsUploadedBytes: Record<number, number>,
+    fileSize: number,
+    progressCallback?: (progress: number) => void,
+  ): Promise<PartInfo> {
+    try {
+      const response = await RNFetchBlob.fetch(
+        'PUT',
+        url,
+        { 'Content-Type': 'application/octet-stream' },
+        RNFetchBlob.wrap(encryptedPartPath),
+      ).uploadProgress({ interval: 150 }, (sent: number) => {
+        this.updateUploadProgress(index, parseInt(sent.toString()), partsUploadedBytes, fileSize, progressCallback);
+      });
 
-        return {
-          PartNumber: index + 1,
-          ETag: etag,
-        };
-      } catch (error) {
-        logger.error('Error uploading part:', error);
-        throw error;
-      }
-    };
+      const etag = Platform.OS === 'android' ? response.info().headers.ETag : response.info().headers.Etag;
+      if (!etag) throw new Error('Missing ETag in upload response');
 
-    return uploadMultipartFile(
-      this.network,
-      this.cryptoLib,
-      bucketId,
-      mnemonic,
-      fileSize,
-      encryptFile,
-      async (urls: string[]) => {
-        try {
-          const uploadTasks = encryptedPartPaths.map((path, index) => {
-            return limit(async () => {
-              const partInfo = await uploadPart(urls[index], path, index);
-              fileParts.push(partInfo);
-              return partInfo;
-            });
-          });
+      return {
+        PartNumber: index + 1,
+        ETag: etag,
+      };
+    } catch (error) {
+      logger.error('Error uploading part:', error);
+      throw error;
+    }
+  }
 
-          await Promise.all(uploadTasks);
+  private updateUploadProgress(
+    partId: number,
+    uploadedBytes: number,
+    partsUploadedBytes: Record<number, number>,
+    fileSize: number,
+    progressCallback?: (progress: number) => void,
+  ): void {
+    partsUploadedBytes[partId] = uploadedBytes;
+    const totalUploaded = Object.values(partsUploadedBytes).reduce((a, p) => a + p, 0);
+    progressCallback?.(totalUploaded / fileSize);
+  }
 
-          const allPartsHash = await Promise.all(encryptedPartPaths.map((path) => RNFS.hash(path, 'sha256')));
-          fileHash = ripemd160(Buffer.from(allPartsHash.join(''), 'hex')).toString('hex');
+  private async calculateFileHash(encryptedPaths: string[]): Promise<string> {
+    const allPartsHash = await Promise.all(encryptedPaths.map((path) => RNFS.hash(path, 'sha256')));
+    return ripemd160(Buffer.from(allPartsHash.join(''), 'hex')).toString('hex');
+  }
 
-          return {
-            hash: fileHash,
-            parts: fileParts.sort((a, b) => a.PartNumber - b.PartNumber),
-          };
-        } finally {
-          await Promise.all(
-            encryptedPartPaths.map(async (path) => {
-              const exists = await fileSystemService.exists(path);
-              if (exists) {
-                await fileSystemService.unlink(path);
-              }
-            }),
-          );
+  private async cleanupEncryptedFiles(paths: string[]): Promise<void> {
+    await Promise.all(
+      paths.map(async (path) => {
+        const exists = await fileSystemService.exists(path);
+        if (exists) {
+          await fileSystemService.unlink(path);
         }
-      },
-      parts,
+      }),
     );
   }
 
