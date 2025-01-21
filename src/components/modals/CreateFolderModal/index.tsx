@@ -38,9 +38,19 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
     drive.folder
       .createFolder(props.currentFolderId, folderName)
       .then((newFolder) => {
-        driveLocalDB.saveFolderContent(newFolder, []).then(() => {
-          notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
-        });
+        driveLocalDB
+          .saveFolderContent(
+            {
+              id: newFolder.id,
+              parentId: newFolder.parentId,
+              name: newFolder.name,
+              updatedAt: new Date().toISOString(),
+            },
+            [],
+          )
+          .then(() => {
+            notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
+          });
 
         props.onFolderCreated();
       })
