@@ -345,7 +345,7 @@ function AddModal(): JSX.Element {
     }
 
     if (filesExcluded.length > 0) {
-      Alert.alert(`${filesExcluded.length} files will not be uploaded. Max upload size per file is 1GB`);
+      Alert.alert(`${strings.formatString(strings.messages.uploadLimit, filesExcluded.length).toString()}`);
     }
 
     // TODO: load files in current folder
