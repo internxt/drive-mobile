@@ -184,7 +184,7 @@ export class NetworkFacade {
     filePath: string,
     options: UploadMultipartOptions,
   ): Promise<string> {
-    const CONCURRENT_UPLOADS = 3;
+    const CONCURRENT_UPLOADS = 6;
     const limit = pLimit(CONCURRENT_UPLOADS);
 
     const uploadState = {
@@ -262,16 +262,39 @@ export class NetworkFacade {
     fileSize: number,
     options: UploadMultipartOptions,
   ): Promise<void> {
-    const uploadTasks = encryptedPaths.map((path, index) =>
-      limit(async () => {
-        const partInfo = await this.uploadPart(
-          urls[index],
+    const uploadWithRetry = async (path: string, url: string, index: number): Promise<PartInfo> => {
+      try {
+        const result = await this.uploadPart(
+          url,
           path,
           index,
           uploadState.partsUploadedBytes,
           fileSize,
           options.uploadingCallback,
         );
+        return result;
+      } catch (error) {
+        logger.error(`First attempt failed for part ${index + 1}, retrying...`);
+        try {
+          const retryResult = await this.uploadPart(
+            url,
+            path,
+            index,
+            uploadState.partsUploadedBytes,
+            fileSize,
+            options.uploadingCallback,
+          );
+          return retryResult;
+        } catch (retryError) {
+          logger.error(`Retry failed for part ${index + 1}`);
+          throw retryError;
+        }
+      }
+    };
+
+    const uploadTasks = encryptedPaths.map((path, index) =>
+      limit(async () => {
+        const partInfo = await uploadWithRetry(path, urls[index], index);
         uploadState.fileParts.push(partInfo);
         return partInfo;
       }),
@@ -306,7 +329,7 @@ export class NetworkFacade {
         ETag: etag,
       };
     } catch (error) {
-      logger.error('Error uploading part:', error);
+      logger.error(`Error uploading part ${index + 1}:`, error);
       throw error;
     }
   }
