@@ -649,7 +649,8 @@ const strings = new LocalizedStrings({
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
       downloadLimit: 'The download limit in mobile app is 5GB.',
-      uploadLimit: '{0} files will not be uploaded. Max upload size per file is 5GB',
+      uploadFileLimit: '{0} file will not be uploaded. Max upload size per file is 5GB',
+      uploadFilesLimit: '{0} files will not be uploaded. Max upload size per file is 5GB',
     },
     errors: {
       runtimeLogsMissing: 'The logs file is missing or empty',
@@ -1351,7 +1352,8 @@ const strings = new LocalizedStrings({
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
       downloadLimit: 'El límite de descarga en la app móvil son 5GB',
-      uploadLimit: '{0} archivo/s no se subira/n. El tamaño máximo por archivo es de 5 GB',
+      uploadFileLimit: '{0} archivo no se ha subido. El tamaño máximo por archivo es de 5 GB',
+      uploadFilesLimit: '{0} archivos no se han subido. El tamaño máximo por archivo es de 5 GB',
     },
     errors: {
       runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
