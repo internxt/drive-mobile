@@ -124,7 +124,7 @@ const validateDownload = (size: number | undefined): number | null => {
   if (!size) return null;
 
   const sizeInBytes = parseInt(size.toString());
-  if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['5GB']) {
+  if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['10GB']) {
     return DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED;
   }
   return null;
