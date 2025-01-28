@@ -1,19 +1,19 @@
+import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import notificationsService from '@internxt-mobile/services/NotificationsService';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import strings from 'assets/lang/strings';
+import * as Clipboard from 'expo-clipboard';
 import { Check, Copy } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Keyboard, TextInput, View } from 'react-native';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { driveActions } from 'src/store/slices/drive';
 import { useTailwind } from 'tailwind-rn';
 import BottomModal from '../BottomModal';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import * as Clipboard from 'expo-clipboard';
-import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
-import { animations } from './animations';
 import { GeneratingLinkModal } from '../common/GeneratingLinkModal';
-import { driveActions } from 'src/store/slices/drive';
-import notificationsService from '@internxt-mobile/services/NotificationsService';
+import { animations } from './animations';
 
 export interface SharedLinkSettingsModalProps {
   isOpen: boolean;
@@ -172,7 +172,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         }
         onClosed={onClose}
         isOpen={isOpen}
-        style={{ paddingBottom: keyboardShown ? keyboardHeight : 0 }}
+        style={{ paddingBottom: keyboardShown ? keyboardHeight : 20 }}
       >
         <View style={tailwind('px-5 mt-4')}>
           {!isCreatingShareLink && <View style={tailwind('border-b border-gray-10')} />}
