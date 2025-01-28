@@ -1,7 +1,7 @@
 import moment from 'moment';
 
 import { CaretRight, DownloadSimple } from 'phosphor-react-native';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import RNFetchBlob, { RNFetchBlobConfig } from 'rn-fetch-blob';
 import CancelSubscriptionModal from 'src/components/modals/CancelSubscriptionModal';
@@ -15,12 +15,14 @@ import { paymentsSelectors } from 'src/store/slices/payments';
 import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
+
 import AppScreen from '../../components/AppScreen';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
 import useGetColor from '../../hooks/useColor';
 import { SettingsScreenProps } from '../../types/navigation';
+
 function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -32,6 +34,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
   const hasLifetime = useAppSelector(paymentsSelectors.hasLifetime);
   const hasSubscription = useAppSelector(paymentsSelectors.hasSubscription);
   const title = hasLifetime ? strings.screens.PlanScreen.lifetimeTitle : strings.screens.PlanScreen.subscriptionTitle;
+  const isPaypalPaymentMethod = !!defaultPaymentMethod?.paypal;
 
   const onBackButtonPressed = () => {
     navigation.goBack();
@@ -123,7 +126,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
           />
 
           {/* PAYMENT METHOD */}
-          {defaultPaymentMethod && (
+          {isPaypalPaymentMethod && (
             <SettingsGroup
               title={strings.screens.PlanScreen.paymentMethod.title}
               items={[
@@ -132,7 +135,26 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                   template: (
                     <View style={tailwind('flex-row items-center px-4 py-3')}>
                       <Image
-                        source={paymentService.getCardImage(defaultPaymentMethod.card.brand)}
+                        source={require('assets/images/paypal.png')}
+                        style={tailwind('w-20 h-8 rounded-md mr-2.5')}
+                      />
+                    </View>
+                  ),
+                },
+              ]}
+            />
+          )}
+
+          {defaultPaymentMethod && !isPaypalPaymentMethod && defaultPaymentMethod.card && (
+            <SettingsGroup
+              title={strings.screens.PlanScreen.paymentMethod.title}
+              items={[
+                {
+                  key: 'payment-method',
+                  template: (
+                    <View style={tailwind('flex-row items-center px-4 py-3')}>
+                      <Image
+                        source={paymentService.getCardImage(defaultPaymentMethod.card?.brand)}
                         style={tailwind('w-12 h-8 rounded-md mr-2.5')}
                       />
                       <View>
@@ -140,14 +162,16 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                           <AppText style={tailwind('text-2xl')} bold>
                             {'···· ···· ···· '}
                           </AppText>
-                          <AppText>{defaultPaymentMethod.card.last4}</AppText>
+                          <AppText>{defaultPaymentMethod.card?.last4}</AppText>
                         </View>
 
-                        <AppText style={tailwind('text-sm text-gray-40')}>{`${defaultPaymentMethod.card.exp_month
-                          .toString()
-                          .padStart(2, '0')}/${defaultPaymentMethod.card.exp_year
-                          .toString()
-                          .padStart(2, '0')}`}</AppText>
+                        {defaultPaymentMethod.card && (
+                          <AppText style={tailwind('text-sm text-gray-40')}>{`${defaultPaymentMethod.card?.exp_month
+                            .toString()
+                            .padStart(2, '0')}/${defaultPaymentMethod.card?.exp_year
+                            .toString()
+                            .padStart(2, '0')}`}</AppText>
+                        )}
                       </View>
                     </View>
                   ),

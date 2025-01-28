@@ -118,7 +118,7 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
               />
             ) : null}
             {/* CHANGE PASSWORD */}
-            {/* TEMPORARY DISABLED */}
+            {/* TEMPORARILY HIDDEN */}
             {/* <SettingsGroup
               title={strings.screens.SecurityScreen.changePassword.title}
               items={[

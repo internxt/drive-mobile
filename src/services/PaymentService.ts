@@ -11,6 +11,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Linking from 'expo-linking';
+import { DefaultPaymentMethod } from '../store/slices/payments';
 import appService, { constants } from './AppService';
 
 class PaymentService {
@@ -52,7 +53,7 @@ class PaymentService {
     return true;
   }
 
-  async getDefaultPaymentMethod(): Promise<PaymentMethod | null> {
+  async getDefaultPaymentMethod(): Promise<DefaultPaymentMethod | null> {
     try {
       return await this.sdk.payments.getDefaultPaymentMethod();
     } catch (error) {
