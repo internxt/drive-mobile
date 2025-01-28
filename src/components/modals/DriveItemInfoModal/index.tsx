@@ -69,7 +69,7 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const isFileDownloadable = (): boolean => {
-    if (parseInt(item.size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['5GB']) {
+    if (parseInt(item.size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['10GB']) {
       notificationsService.info(strings.messages.downloadLimit);
       return false;
     }
