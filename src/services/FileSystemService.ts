@@ -1,6 +1,7 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import { Platform } from 'react-native';
 
+import { StatResultT } from '@dr.pogodin/react-native-fs/lib/typescript/src/NativeReactNativeFs';
 import { internxtFS } from '@internxt/mobile-sdk';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
@@ -8,9 +9,9 @@ import prettysize from 'prettysize';
 import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
-import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
+import RNFetchBlob from 'rn-fetch-blob';
 
-enum AcceptedEncodings {
+export enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
   Base64 = 'base64',
@@ -118,6 +119,15 @@ class FileSystemService {
     return RNFS.CachesDirectoryPath;
   }
 
+  public writeFileStream(uri: string): Promise<FileWriter> {
+    return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
+      return {
+        write: (content: string) => writeStream.write(content),
+        close: () => writeStream.close(),
+      };
+    });
+  }
+
   public readFileStream(): void {
     throw new Error('Not implemented yet');
   }
@@ -153,15 +163,6 @@ class FileSystemService {
     }
   }
 
-  public writeFileStream(uri: string): Promise<FileWriter> {
-    return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
-      return {
-        write: (content: string) => writeStream.write(content),
-        close: () => writeStream.close(),
-      };
-    });
-  }
-
   public writeFile(): void {
     throw new Error('Not implemented yet');
   }
@@ -169,8 +170,8 @@ class FileSystemService {
   public statRNFS(uri: string) {
     return RNFS.stat(uri);
   }
-  public stat(uri: string): Promise<RNFetchBlobStat> {
-    return RNFetchBlob.fs.stat(uri);
+  public stat(uri: string): Promise<StatResultT> {
+    return RNFS.stat(uri);
   }
 
   public async showFileViewer(uri: string, options?: string | Record<string, unknown>): Promise<void> {

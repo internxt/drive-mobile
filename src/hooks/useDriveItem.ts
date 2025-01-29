@@ -3,9 +3,12 @@ import { useState } from 'react';
 import drive from '@internxt-mobile/services/drive';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import strings from '../../assets/lang/strings';
+import notificationsService from '../services/NotificationsService';
 import { useAppDispatch } from '../store/hooks';
 import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
+import { NotificationType } from '../types';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
 
 interface UseDriveItemProps {
@@ -41,6 +44,16 @@ const useDriveItem = (props: UseDriveItemProps) => {
 
   const onFilePressed = () => {
     if (!isIdle) {
+      return;
+    }
+
+    if (isDownloading) {
+      dispatch(driveThunks.cancelDownloadThunk());
+
+      notificationsService.show({
+        type: NotificationType.Info,
+        text1: strings.errors.fileAlreadyDownloading,
+      });
       return;
     }
 

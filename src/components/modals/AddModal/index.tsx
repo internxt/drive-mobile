@@ -123,6 +123,17 @@ function AddModal(): JSX.Element {
     return createdFileEntry;
   }
 
+  const checkFileSizeLimitToUpload = (fileSize: number, fileName: string) => {
+    if (fileSize >= UPLOAD_FILE_SIZE_LIMIT) {
+      const messageKey = strings.messages.uploadFileLimitName;
+
+      const alertText = strings.formatString(messageKey, fileName).toString();
+      Alert.alert(strings.messages.limitPerFile, alertText);
+      return false;
+    }
+    return true;
+  };
+
   /**
    * TODO: This function does a lot of stuff, we should
    * separate things in smaller units so this code can be
@@ -138,6 +149,13 @@ function AddModal(): JSX.Element {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
     logger.info('Stating file...');
     const fileStat = await fileSystemService.stat(filePath);
+    // Fix for Android, native document picker not returns the correct fileSize when file is big
+    // and cannnot get the stat before we got the file in temporary path
+    const isFileSizeValid = checkFileSizeLimitToUpload(fileStat.size, fileName);
+    if (!isFileSizeValid) {
+      return;
+    }
+
     logger.info('File stats: ', JSON.stringify(fileStat));
     const fileSize = fileStat.size;
     logger.info('About to upload file...');
@@ -153,7 +171,6 @@ function AddModal(): JSX.Element {
       {
         notifyProgress: progressCallback,
       },
-      () => null,
     );
 
     logger.info('File uploaded with fileId: ', fileId);
@@ -166,7 +183,7 @@ function AddModal(): JSX.Element {
     const fileEntry: FileEntry = {
       type: fileExtension,
       bucket,
-      size: parseInt(fileSize),
+      size: fileSize,
       folder_id: folderId,
       name,
       encrypt_version: EncryptionVersion.Aes03,
@@ -345,7 +362,12 @@ function AddModal(): JSX.Element {
     }
 
     if (filesExcluded.length > 0) {
-      Alert.alert(`${filesExcluded.length} files will not be uploaded. Max upload size per file is 1GB`);
+      const messageKey =
+        filesExcluded.length === 1 ? strings.messages.uploadFileLimit : strings.messages.uploadFilesLimit;
+
+      const alertText = strings.formatString(messageKey, filesExcluded.length).toString();
+
+      Alert.alert(strings.messages.limitPerFile, alertText);
     }
 
     // TODO: load files in current folder
@@ -422,6 +444,7 @@ function AddModal(): JSX.Element {
       const pickedFiles = await DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.allFiles],
         copyTo: 'cachesDirectory',
+        mode: 'import',
       });
 
       const exceedsMaxFileUpload = pickedFiles.length > MAX_FILES_BULK_UPLOAD;
@@ -488,7 +511,7 @@ function AddModal(): JSX.Element {
                   name: decodeURIComponent(
                     asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
                   ),
-                  size: asset.fileSize || stat.size,
+                  size: stat.size,
                   type: asset.type || '',
                   uri: asset.uri || '',
                 });

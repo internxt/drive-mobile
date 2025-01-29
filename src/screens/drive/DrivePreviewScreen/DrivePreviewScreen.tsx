@@ -20,11 +20,12 @@ import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
-import { driveThunks } from '../../../store/slices/drive';
+import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
 import { DriveVideoPreview } from './DriveVideoPreview';
+import AnimatedLoadingDots from './LoadingDots';
 
 const IMAGE_PREVIEW_TYPES = [FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC];
 const VIDEO_PREVIEW_TYPES = [FileExtension.MP4, FileExtension.MOV, FileExtension.AVI];
@@ -34,6 +35,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const tailwind = useTailwind();
   const [topbarVisible, setTopbarVisible] = useState(true);
   const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail>();
+
   const dimensions = useWindowDimensions();
   // REDUX USAGE STARTS
   const insets = useSafeAreaInsets();
@@ -94,15 +96,13 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
   const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+
   const getProgressMessage = () => {
     if (!downloadingFile) {
       return;
     }
 
-    const progressMessage = strings.formatString(
-      currentProgress < 0.95 ? strings.screens.drive.downloadingPercent : strings.screens.drive.decryptingPercent,
-      (currentProgress * 100).toFixed(0),
-    );
+    const progressMessage = currentProgress < 0.95 ? strings.generic.downloading : strings.generic.decrypting;
 
     return progressMessage;
   };
@@ -139,7 +139,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
             {filename}
           </AppText>
           {!isDownloaded && !error ? (
-            <AppText style={tailwind('text-gray-60 text-center mt-1')}>{getProgressMessage()}</AppText>
+            <AnimatedLoadingDots
+              previousDotsText={getProgressMessage()}
+              progress={parseInt((currentProgress * 100).toFixed(0))}
+            />
           ) : null}
         </View>
         {!isDownloaded && !error ? (
@@ -225,7 +228,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
             style={{ height: availableHeight }}
             onTap={() => setTopbarVisible(!topbarVisible)}
             width={dimensions.width}
-            height={availableHeight}
+            height={dimensions.height}
             source={downloadingFile.downloadedFilePath as string}
           />
         </View>
@@ -246,6 +249,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
           onCloseButtonPress={() => {
             dispatch(driveThunks.cancelDownloadThunk());
             props.navigation.goBack();
+            dispatch(driveActions.clearDownloadingFile());
           }}
           onActionsButtonPress={handleActionsButtonPress}
         />

@@ -15,6 +15,16 @@ import paymentService from 'src/services/PaymentService';
 import { RootState } from 'src/store';
 import { NotificationType } from 'src/types';
 
+export type Paypal = {
+  paypal?: {
+    country: string;
+    payer_email: string;
+    payer_id: string;
+  };
+};
+
+export type DefaultPaymentMethod = PaymentMethod & Paypal;
+
 export interface PaymentsState {
   isLoading: boolean;
   showBilling: boolean;
@@ -22,7 +32,7 @@ export interface PaymentsState {
   subscription: UserSubscription;
   sessionId: string;
   invoices: Invoice[] | null;
-  defaultPaymentMethod: PaymentMethod | null;
+  defaultPaymentMethod: DefaultPaymentMethod | null;
 }
 
 const initialState: PaymentsState = {

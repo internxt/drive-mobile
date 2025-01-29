@@ -1,6 +1,6 @@
 {
   "name": "drive-mobile",
-  "version": "v1.6.1",
+  "version": "v1.7.0",
   "private": true,
   "license": "GNU",
   "scripts": {
@@ -36,7 +36,7 @@
     "@hookform/resolvers": "^2.9.1",
     "@internxt/lib": "^1.2.0",
     "@internxt/mobile-sdk": "^0.2.41",
-    "@internxt/rn-crypto": "0.1.14",
+    "@internxt/rn-crypto": "0.1.15",
     "@internxt/sdk": "^1.4.96",
     "@react-native-async-storage/async-storage": "1.21.0",
     "@react-navigation/bottom-tabs": "^6.2.0",
@@ -84,6 +84,7 @@
     "luxon": "^3.0.3",
     "moment": "^2.29.2",
     "node-libs-react-native": "^1.2.1",
+    "p-limit": "^6.2.0",
     "phosphor-react-native": "^1.1.1",
     "prettysize": "^2.0.0",
     "punycode": "^1.4.1",
@@ -106,7 +107,7 @@
     "react-native-logs": "^5.0.1",
     "react-native-modalbox": "^2.0.2",
     "react-native-network-bandwith-speed": "^3.0.0",
-    "react-native-pdf": "^6.6.2",
+    "react-native-pdf": "^6.7.6",
     "react-native-pdf-thumbnail": "^1.2.0",
     "react-native-permissions": "^3.2.0",
     "react-native-progress": "^5.0.0",
