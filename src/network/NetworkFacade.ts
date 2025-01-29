@@ -22,8 +22,6 @@ import { Abortable } from '../types';
 import { EncryptedFileDownloadedParams } from './download';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 
-const HUNDRED_MB = 100 * 1024 * 1024;
-
 interface UploadMultipartOptions {
   partSize: number;
   uploadingCallback?: (progress: number) => void;
@@ -523,6 +521,8 @@ export class NetworkFacade {
     }
 
     let isAborting = false;
+    const CONCURRENT_DOWNLOADS = 3;
+    const limit = pLimit(CONCURRENT_DOWNLOADS);
 
     const downloadJobs: {
       [key: number]: {
@@ -533,7 +533,6 @@ export class NetworkFacade {
     } = {};
 
     let expectedFileHash: string;
-    const CONCURRENT_DOWNLOADS = 3;
 
     const decryptFileFromFs: DecryptFileFromFsFunction =
       Platform.OS === 'android' ? androidDecryptFileFromFs : iosDecryptFileFromFs;
@@ -623,12 +622,14 @@ export class NetworkFacade {
           }
         },
         progress: (res) => {
-          downloadJobs[chunkIndex].bytesWritten = res.bytesWritten;
+          if (Platform.OS === 'android') {
+            downloadJobs[chunkIndex].bytesWritten = res.bytesWritten;
 
-          const currentTotalBytes = Object.values(downloadJobs).reduce((acc, job) => {
-            return acc + job.bytesWritten;
-          }, 0);
-          params.downloadProgressCallback(currentTotalBytes / fileSize, currentTotalBytes, fileSize);
+            const currentTotalBytes = Object.values(downloadJobs).reduce((acc, job) => {
+              return acc + job.bytesWritten;
+            }, 0);
+            params.downloadProgressCallback(currentTotalBytes / fileSize, currentTotalBytes, fileSize);
+          }
         },
       });
 
@@ -638,6 +639,13 @@ export class NetworkFacade {
 
       try {
         await downloadJob.promise;
+
+        if (Platform.OS === 'ios') {
+          downloadJobs[chunkIndex].bytesWritten = range.end - range.start + 1;
+          const currentTotalBytes = Object.values(downloadJobs).reduce((acc, job) => acc + job.bytesWritten, 0);
+          const normalizedProgress = Math.min(currentTotalBytes, fileSize);
+          params.downloadProgressCallback(normalizedProgress / fileSize, normalizedProgress, fileSize);
+        }
         return chunkFileURI;
       } catch (error) {
         await fileSystemService.deleteFile([chunkFileURI]);
@@ -653,6 +661,8 @@ export class NetworkFacade {
       this.cryptoLib,
       Buffer.from,
       async (downloadables) => {
+        const MEGA_BYTE = 1 * 1024 * 1024;
+
         const { isCached, path } = await drive.cache.isCached(encryptedFileName);
 
         if (isCached) {
@@ -660,7 +670,9 @@ export class NetworkFacade {
           encryptedFileURI = path;
         } else {
           await cleanupExistingChunks(encryptedFileName);
-          const downloadChunkSize = HUNDRED_MB;
+
+          // temporary workaround to display the progress of the download more continuously in iOS
+          const downloadChunkSize = Platform.OS === 'android' ? 100 * MEGA_BYTE : 25 * MEGA_BYTE;
           const ranges: { start: number; end: number }[] = [];
 
           for (let start = 0; start < fileSize; start += downloadChunkSize) {
@@ -670,30 +682,18 @@ export class NetworkFacade {
 
           params.downloadProgressCallback(0, 0, 0);
 
-          for (let i = 0; i < ranges.length; i += CONCURRENT_DOWNLOADS) {
-            if (isAborting || params.signal?.aborted) {
-              throw new Error('Download aborted');
-            }
-
-            const currentBatch = ranges.slice(i, i + CONCURRENT_DOWNLOADS);
-            const batchPromises = currentBatch.map((range, index) =>
-              downloadChunk(downloadables[0].url, range, i + index),
+          try {
+            const downloadTasks = ranges.map((range, index) =>
+              limit(() => downloadChunk(downloadables[0].url, range, index)),
             );
 
-            try {
-              await Promise.all(batchPromises);
-            } catch (error) {
-              await cleanupChunks();
-              if (isAborting) {
-                throw new Error('Download aborted');
-              }
-              throw error;
+            await Promise.all(downloadTasks);
+          } catch (error) {
+            await cleanupChunks();
+            if (isAborting) {
+              throw new Error('Download aborted');
             }
-
-            if (Platform.OS === 'ios') {
-              const completedBytes = Math.min((i + CONCURRENT_DOWNLOADS) * downloadChunkSize, fileSize);
-              params.downloadProgressCallback(completedBytes / fileSize, completedBytes, fileSize);
-            }
+            throw error;
           }
 
           expectedFileHash = downloadables[0].hash;
