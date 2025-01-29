@@ -123,6 +123,17 @@ function AddModal(): JSX.Element {
     return createdFileEntry;
   }
 
+  const checkFileSizeLimitToUpload = (fileSize: number, fileName: string) => {
+    if (fileSize >= UPLOAD_FILE_SIZE_LIMIT) {
+      const messageKey = strings.messages.uploadFileLimitName;
+
+      const alertText = strings.formatString(messageKey, fileName).toString();
+      Alert.alert(strings.messages.limitPerFile, alertText);
+      return false;
+    }
+    return true;
+  };
+
   /**
    * TODO: This function does a lot of stuff, we should
    * separate things in smaller units so this code can be
@@ -138,6 +149,12 @@ function AddModal(): JSX.Element {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
     logger.info('Stating file...');
     const fileStat = await fileSystemService.stat(filePath);
+    // Fix for Android, native document picker not returns the correct fileSize when file is big
+    // and cannnot get the stat before we got the file in temporary path
+    const isFileSizeValid = checkFileSizeLimitToUpload(fileStat.size, fileName);
+    if (!isFileSizeValid) {
+      return;
+    }
 
     logger.info('File stats: ', JSON.stringify(fileStat));
     const fileSize = fileStat.size;
@@ -350,7 +367,7 @@ function AddModal(): JSX.Element {
 
       const alertText = strings.formatString(messageKey, filesExcluded.length).toString();
 
-      Alert.alert(alertText);
+      Alert.alert(strings.messages.limitPerFile, alertText);
     }
 
     // TODO: load files in current folder
