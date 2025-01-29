@@ -138,6 +138,7 @@ function AddModal(): JSX.Element {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
     logger.info('Stating file...');
     const fileStat = await fileSystemService.stat(filePath);
+
     logger.info('File stats: ', JSON.stringify(fileStat));
     const fileSize = fileStat.size;
     logger.info('About to upload file...');
@@ -153,7 +154,6 @@ function AddModal(): JSX.Element {
       {
         notifyProgress: progressCallback,
       },
-      () => null,
     );
 
     logger.info('File uploaded with fileId: ', fileId);
@@ -166,7 +166,7 @@ function AddModal(): JSX.Element {
     const fileEntry: FileEntry = {
       type: fileExtension,
       bucket,
-      size: parseInt(fileSize),
+      size: fileSize,
       folder_id: folderId,
       name,
       encrypt_version: EncryptionVersion.Aes03,
@@ -427,6 +427,7 @@ function AddModal(): JSX.Element {
       const pickedFiles = await DocumentPicker.pickMultiple({
         type: [DocumentPicker.types.allFiles],
         copyTo: 'cachesDirectory',
+        mode: 'import',
       });
 
       const exceedsMaxFileUpload = pickedFiles.length > MAX_FILES_BULK_UPLOAD;
@@ -493,7 +494,7 @@ function AddModal(): JSX.Element {
                   name: decodeURIComponent(
                     asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
                   ),
-                  size: asset.fileSize || stat.size,
+                  size: stat.size,
                   type: asset.type || '',
                   uri: asset.uri || '',
                 });
