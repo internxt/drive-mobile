@@ -521,7 +521,7 @@ export class NetworkFacade {
     }
 
     let isAborting = false;
-    const CONCURRENT_DOWNLOADS = 3;
+    const CONCURRENT_DOWNLOADS = Platform.OS === 'android' ? 3 : 6;
     const limit = pLimit(CONCURRENT_DOWNLOADS);
 
     const downloadJobs: {
