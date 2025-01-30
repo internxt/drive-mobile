@@ -641,7 +641,7 @@ export class NetworkFacade {
         await downloadJob.promise;
 
         if (Platform.OS === 'ios') {
-          downloadJobs[chunkIndex].bytesWritten = range.end - range.start + 1;
+          downloadJobs[chunkIndex].bytesWritten = range.end - range.start;
           const currentTotalBytes = Object.values(downloadJobs).reduce((acc, job) => acc + job.bytesWritten, 0);
           const normalizedProgress = Math.min(currentTotalBytes, fileSize);
           params.downloadProgressCallback(normalizedProgress / fileSize, normalizedProgress, fileSize);
