@@ -1,16 +1,17 @@
-import React from 'react';
 import prettysize from 'prettysize';
-import { View, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
+import { TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import Modal from 'react-native-modalbox';
 
+import AppText from 'src/components/AppText';
+import { useTailwind } from 'tailwind-rn';
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import strings from '../../../../assets/lang/strings';
-import { INFINITE_PLAN } from '../../../types';
-import { uiActions } from '../../../store/slices/ui';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { useTailwind } from 'tailwind-rn';
+import { openUrl } from '../../../helpers/utils';
 import useGetColor from '../../../hooks/useColor';
-import AppText from 'src/components/AppText';
+import { PRICING_URL } from '../../../services/drive/constants';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { uiActions } from '../../../store/slices/ui';
+import { INFINITE_PLAN } from '../../../types';
 
 function RunOutOfStorageModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -34,9 +35,10 @@ function RunOutOfStorageModal(): JSX.Element {
   const getUsageString = () => {
     return prettysize(totalUsage);
   };
-  const onUpgradeNowButtonPressed = () => {
+
+  const onUpgradeNowButtonPressed = async () => {
     dispatch(uiActions.setShowRunOutSpaceModal(false));
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
 
   return (
