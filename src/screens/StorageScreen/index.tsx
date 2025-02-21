@@ -45,7 +45,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   };
   const onBackButtonPressed = () => navigation.goBack();
 
-  const onUpgradePressed = async () => {
+  const onUpgradePressed = () => {
     openUrl(PRICING_URL);
   };
 

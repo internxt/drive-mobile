@@ -82,7 +82,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
       Alert.alert(strings.screens.AccountScreen.warningUnableToDeleteAccount);
     }
   };
-  const onBillingPressed = async () => {
+  const onBillingPressed = () => {
     openUrl(PRICING_URL);
   };
 

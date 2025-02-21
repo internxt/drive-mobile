@@ -36,7 +36,7 @@ function RunOutOfStorageModal(): JSX.Element {
     return prettysize(totalUsage);
   };
 
-  const onUpgradeNowButtonPressed = async () => {
+  const onUpgradeNowButtonPressed = () => {
     dispatch(uiActions.setShowRunOutSpaceModal(false));
     openUrl(PRICING_URL);
   };
