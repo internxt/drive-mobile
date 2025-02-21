@@ -1,6 +1,13 @@
+import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { fs } from '@internxt-mobile/services/FileSystemService';
 import { CaretRight, CheckCircle, Warning } from 'phosphor-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
+import storageService from 'src/services/StorageService';
+import { paymentsSelectors } from 'src/store/slices/payments';
 import { useTailwind } from 'tailwind-rn';
+import { useCountdown } from 'usehooks-ts';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
@@ -8,19 +15,13 @@ import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
 import UserProfilePicture from '../../components/UserProfilePicture';
+import { openUrl } from '../../helpers/utils';
 import useGetColor from '../../hooks/useColor';
+import { PRICING_URL } from '../../services/drive/constants';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
 import { uiActions } from '../../store/slices/ui';
 import { SettingsScreenProps } from '../../types/navigation';
-import { useCountdown } from 'usehooks-ts';
-import { useEffect, useMemo, useState } from 'react';
-import storageService from 'src/services/StorageService';
-import { paymentsSelectors } from 'src/store/slices/payments';
-import { constants } from 'src/services/AppService';
-import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
-import { fs } from '@internxt-mobile/services/FileSystemService';
-import errorService from '@internxt-mobile/services/ErrorService';
 
 function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Element {
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
@@ -82,8 +83,9 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
     }
   };
   const onBillingPressed = () => {
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
+
   const onManageSubscriptionPressed = () => {
     navigation.navigate('Plan');
   };
