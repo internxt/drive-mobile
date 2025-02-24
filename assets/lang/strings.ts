@@ -50,12 +50,12 @@ const strings = new LocalizedStrings({
     },
     screens: {
       LockScreen: {
-        title: 'Internxt Locked',
+        title: 'PcCloud Locked',
         message: {
-          [BiometricAccessType.FaceId]: 'Unlock with Face ID to open Internxt',
-          [BiometricAccessType.TouchId]: 'Unlock with your Touch ID to open Internxt',
-          [BiometricAccessType.FingerPrint]: 'Unlock with your fingerprint to open Internxt',
-          [BiometricAccessType.Pin]: 'Unlock with your pin to open Internxt',
+          [BiometricAccessType.FaceId]: 'Unlock with Face ID to open PcCloud',
+          [BiometricAccessType.TouchId]: 'Unlock with your Touch ID to open PcCloud',
+          [BiometricAccessType.FingerPrint]: 'Unlock with your fingerprint to open PcCloud',
+          [BiometricAccessType.Pin]: 'Unlock with your pin to open PcCloud',
         },
         button: {
           [BiometricAccessType.FaceId]: 'Use Face ID',
@@ -122,7 +122,7 @@ const strings = new LocalizedStrings({
       SignInScreen: {
         title: 'Login',
         forgot: 'Forgot your password?',
-        no_register: 'Don’t have an Internxt account?',
+        no_register: 'Don’t have an PcCloud account?',
         register: 'Get started',
         back: 'Back to login',
       },
@@ -133,19 +133,19 @@ const strings = new LocalizedStrings({
         second:
           'Files are {0} on your device. There is {1} we nor any other third-party can access them. {2}, as it should have always been.',
         third:
-          'Access Internxt from {7}, {8} or {9}. Start using Internxt today with {10} on us. {11} when needed, free for a month, cancel anytime.',
-        bold_first: ['Internxt', 'different', 'better', 'revolution', 'Internxt'],
+          'Access PcCloud from {7}, {8} or {9}. Start using PcCloud today with {10} on us. {11} when needed, free for a month, cancel anytime.',
+        bold_first: ['PcCloud', 'different', 'better', 'revolution', 'PcCloud'],
         bold_second: ['encrypted', 'no way', 'Privacy'],
         bold_third: ['Desktop', 'Web', 'Mobile', '10 GB', 'Upgrade your storage'],
-        security_title: 'Internxt Security',
+        security_title: 'PcCloud Security',
         security_subtitle: [
-          "Internxt doesn't store passwords.",
+          "PcCloud doesn't store passwords.",
           'If you forget your password, you will lose access to all your files.',
-          'With Internxt, you’re the only owner of your files.',
+          'With PcCloud, you’re the only owner of your files.',
         ],
         suggestion_1: 'Store your password. Keep it safe and secure.',
         suggestion_2: 'Keep an offline backup of your password.',
-        create_account_title: 'Create an Internxt account',
+        create_account_title: 'Create an PcCloud account',
         acceptTermsAndConditions: 'Accept terms, conditions and privacy policy',
         alreadyHaveAccount: 'Already have an account?',
       },
@@ -167,9 +167,9 @@ const strings = new LocalizedStrings({
           'Your account and all its files, photos and backups has been successfully deleted, now you can sign up with the same email.',
         title: 'Deactivation email',
         subtitle_1:
-          'Please check your email and follow the instructions to deactivate your account so you can start using Internxt again.',
+          'Please check your email and follow the instructions to deactivate your account so you can start using PcCloud again.',
         subtitle_2:
-          'Once you deactivate your account, you will be able to sign up using the same email address. Please store your password somewhere safe. With Internxt Drive, only you are the true owner of your files on the cloud. With great power there must also come great responsibility.',
+          'Once you deactivate your account, you will be able to sign up using the same email address. Please store your password somewhere safe. With PcCloud Drive, only you are the true owner of your files on the cloud. With great power there must also come great responsibility.',
       },
       drive: {
         title: 'Drive',
@@ -284,11 +284,10 @@ const strings = new LocalizedStrings({
             [BiometricAccessType.Pin]: 'Require PIN',
           },
           message: {
-            [BiometricAccessType.FaceId]: 'When enabled, you will need to use Face ID to unlock Internxt.',
-            [BiometricAccessType.TouchId]: 'When enabled, you will need to use Touch ID to unlock Internxt.',
-            [BiometricAccessType.FingerPrint]:
-              'When enabled, you will need to use your fingerprint to unlock Internxt.',
-            [BiometricAccessType.Pin]: 'When enabled, you will need to use your pin to unlock Internxt.',
+            [BiometricAccessType.FaceId]: 'When enabled, you will need to use Face ID to unlock PcCloud.',
+            [BiometricAccessType.TouchId]: 'When enabled, you will need to use Touch ID to unlock PcCloud.',
+            [BiometricAccessType.FingerPrint]: 'When enabled, you will need to use your fingerprint to unlock PcCloud.',
+            [BiometricAccessType.Pin]: 'When enabled, you will need to use your pin to unlock PcCloud.',
           },
         },
         changePassword: {
@@ -502,7 +501,7 @@ const strings = new LocalizedStrings({
         moneyBack: '30 Days money-back guarantee',
         cancelAtAnyMoment: 'Cancel at any moment',
         subscriptionRenew:
-          'Subscriptions automatically renew unless you cancel your subscription at least 24 hours before the current period ends. To manage your subscription please go to “Account” > “Subscription”. Thank you for reading the fine print and considering subscribing to Internxt.',
+          'Subscriptions automatically renew unless you cancel your subscription at least 24 hours before the current period ends. To manage your subscription please go to “Account” > “Subscription”. Thank you for reading the fine print and considering subscribing to PcCloud.',
         freeUpSpace: {
           title: 'You are over {0}',
           message: 'By downgrading you understand that sync will stop and you won’t be able to add more files',
@@ -542,9 +541,9 @@ const strings = new LocalizedStrings({
       DeleteAccount: {
         title: 'Delete account',
         apologies:
-          'Hey {0}, we are sorry to hear that you want to leave Internxt, we would like to ask you one last favor...',
+          'Hey {0}, we are sorry to hear that you want to leave PcCloud, we would like to ask you one last favor...',
         poll: {
-          title: 'What made you want to leave Internxt?',
+          title: 'What made you want to leave PcCloud?',
           options: {
             ['better-alternative']: 'I’ve found a better alternative',
             ['save-money']: 'I want to save money',
@@ -568,7 +567,7 @@ const strings = new LocalizedStrings({
         title: 'Choose a folder to move this file.',
       },
       ShareModal: {
-        title: 'Internxt Drive file sharing',
+        title: 'PcCloud Drive file sharing',
         message: '{0}',
         share: 'Share',
         copy: 'Copy',
@@ -751,12 +750,12 @@ const strings = new LocalizedStrings({
     },
     screens: {
       LockScreen: {
-        title: 'Internxt bloqueado',
+        title: 'PcCloud bloqueado',
         message: {
-          [BiometricAccessType.FaceId]: 'Desbloquea con Face ID para abrir Internxt',
-          [BiometricAccessType.TouchId]: 'Desbloquea con Touch ID para abrir Internxt',
-          [BiometricAccessType.FingerPrint]: 'Desbloquea con tu huella para abrir Internxt',
-          [BiometricAccessType.Pin]: 'Desbloquea con tu pin para abrir Internxt',
+          [BiometricAccessType.FaceId]: 'Desbloquea con Face ID para abrir PcCloud',
+          [BiometricAccessType.TouchId]: 'Desbloquea con Touch ID para abrir PcCloud',
+          [BiometricAccessType.FingerPrint]: 'Desbloquea con tu huella para abrir PcCloud',
+          [BiometricAccessType.Pin]: 'Desbloquea con tu pin para abrir PcCloud',
         },
         button: {
           [BiometricAccessType.FaceId]: 'Usar Face ID',
@@ -823,7 +822,7 @@ const strings = new LocalizedStrings({
       SignInScreen: {
         title: 'Inicia sesión',
         forgot: '¿Has olvidado la contraseña?',
-        no_register: '¿No tienes una cuenta de Internxt?',
+        no_register: '¿No tienes una cuenta de PcCloud?',
         register: 'Regístrate',
         back: 'Iniciar sesión',
       },
@@ -834,15 +833,15 @@ const strings = new LocalizedStrings({
         second:
           'Los archivos son {4} en tu dispositivo. {5} de terceros podemos acceder a ellos. {6}, como siempre tuvo que ser.',
         third:
-          'Accede a Internxt desde {7}, {8} o {9}. Empieza a usar Internxt hoy con {10} gratis. {11} cuando lo necesites, gratis por un mes, cancela cuando quieras.',
-        bold_first: ['Internxt', 'diferente', 'mejor', 'revolución', 'Internxt'],
+          'Accede a PcCloud desde {7}, {8} o {9}. Empieza a usar PcCloud hoy con {10} gratis. {11} cuando lo necesites, gratis por un mes, cancela cuando quieras.',
+        bold_first: ['PcCloud', 'diferente', 'mejor', 'revolución', 'PcCloud'],
         bold_second: ['encriptados', 'Ni nosotros ni ningún servicio', 'Privacidad'],
         bold_third: ['escritorio', 'web', 'móvil', '10 GB', 'Mejora tu almacenamiento'],
-        security_title: 'Internxt Security',
+        security_title: 'PcCloud Security',
         security_subtitle: [
-          'Internxt no almacena tus contraseñas.',
+          'PcCloud no almacena tus contraseñas.',
           'Si olvidas tu contraseña, perderás el acceso a todos tus archivos.',
-          'Con Internxt, tu eres el único propietario de tus datos.',
+          'Con PcCloud, tu eres el único propietario de tus datos.',
         ],
 
         suggestion_1: 'Guardes tu contraseña. Mantenla sana y salva.',
@@ -869,9 +868,9 @@ const strings = new LocalizedStrings({
           'Tu cuenta y todos sus archivos, fotos y backups han sido eliminadas correctamente. Ahora puedes crear una cuenta con el mismo email.',
         title: 'Email de desactivación',
         subtitle_1:
-          'Por favor, comprueba el email que te hemos enviado y sigue las intrucciones para desactivar tu cuenta para que puedas seguir usando Internxt Drive.',
+          'Por favor, comprueba el email que te hemos enviado y sigue las intrucciones para desactivar tu cuenta para que puedas seguir usando PcCloud Drive.',
         subtitle_2:
-          'Una vez desactives tu cuenta, podrás volver a registrarte usando el mismo correo electrónico. Por favor guarda tu contraseña en un lugar seguro. Con Internxt Drive, solo tú eres el propietario de tus archivos. Un gran poder convella una gran responsabilidad.',
+          'Una vez desactives tu cuenta, podrás volver a registrarte usando el mismo correo electrónico. Por favor guarda tu contraseña en un lugar seguro. Con PcCloud Drive, solo tú eres el propietario de tus archivos. Un gran poder convella una gran responsabilidad.',
       },
       drive: {
         title: 'Drive',
@@ -985,9 +984,9 @@ const strings = new LocalizedStrings({
             [BiometricAccessType.Pin]: 'Usar pin',
           },
           message: {
-            [BiometricAccessType.FaceId]: 'Usa el Face ID para desbloquear la app de Internxt.',
-            [BiometricAccessType.FingerPrint]: 'Usa tu huella para desbloquear la app de Internxt.',
-            [BiometricAccessType.Pin]: 'Usa tu pin para desbloquear la app de Internxt.',
+            [BiometricAccessType.FaceId]: 'Usa el Face ID para desbloquear la app de PcCloud.',
+            [BiometricAccessType.FingerPrint]: 'Usa tu huella para desbloquear la app de PcCloud.',
+            [BiometricAccessType.Pin]: 'Usa tu pin para desbloquear la app de PcCloud.',
           },
         },
         changePassword: {
@@ -1202,7 +1201,7 @@ const strings = new LocalizedStrings({
         moneyBack: 'Garantía de devolución de dinero de 30 días',
         cancelAtAnyMoment: 'Cancela en cualquier momento',
         subscriptionRenew:
-          'Las suscripciones se renuevan automáticamente a menos que cancele su suscripción al menos 24 horas antes de que finalice el período actual. Para administrar su suscripción, vaya a "Cuenta" > "Suscripción". Gracias por leer la letra pequeña y considerar suscribirte a Internxt.',
+          'Las suscripciones se renuevan automáticamente a menos que cancele su suscripción al menos 24 horas antes de que finalice el período actual. Para administrar su suscripción, vaya a "Cuenta" > "Suscripción". Gracias por leer la letra pequeña y considerar suscribirte a PcCloud.',
 
         freeUpSpace: {
           title: 'Tienes más de {0}',
@@ -1243,9 +1242,9 @@ const strings = new LocalizedStrings({
       DeleteAccount: {
         title: 'Eliminar cuenta',
         apologies:
-          'Hola {userFullName}, lamentamos que quieras abandonar Internxt, nos gustaría pedirte un último favor...',
+          'Hola {userFullName}, lamentamos que quieras abandonar PcCloud, nos gustaría pedirte un último favor...',
         poll: {
-          title: '¿Qué te hizo querer dejar Internxt?',
+          title: '¿Qué te hizo querer dejar PcCloud?',
           options: {
             ['better-alternative']: 'He encontrado una alternativa mejor',
             ['save-money']: 'Quiero ahorrar dinero',
@@ -1269,7 +1268,7 @@ const strings = new LocalizedStrings({
         title: 'Selecciona una carpeta a la que mover el archivo.',
       },
       ShareModal: {
-        title: 'Compartir archivo de Internxt Drive',
+        title: 'Compartir archivo de PcCloud Drive',
         message: '{0}',
         share: 'Compartir',
         copy: 'Copiar',

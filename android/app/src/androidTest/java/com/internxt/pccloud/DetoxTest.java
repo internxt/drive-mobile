@@ -1,4 +1,4 @@
-package com.internxt.cloud;
+package com.internxt.pccloud;
 
 import com.wix.detox.Detox;
 import com.wix.detox.config.DetoxConfig;

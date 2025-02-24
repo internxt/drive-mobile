@@ -1,4 +1,4 @@
-package com.internxt.cloud
+package com.internxt.pccloud
 
 import android.os.Build
 import android.os.Bundle

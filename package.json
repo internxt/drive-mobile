@@ -1,6 +1,6 @@
 {
-  "name": "drive-mobile",
-  "version": "v1.7.1",
+  "name": "drive-pc-cloud",
+  "version": "v1.0.0",
   "private": true,
   "license": "GNU",
   "scripts": {

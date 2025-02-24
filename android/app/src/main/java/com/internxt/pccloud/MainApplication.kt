@@ -1,4 +1,4 @@
-package com.internxt.cloud
+package com.internxt.pccloud
 
 import android.app.Application
 import android.content.res.Configuration
@@ -18,6 +18,7 @@ import com.facebook.soloader.SoLoader
 
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
+
 
 class MainApplication : Application(), ReactApplication {
 

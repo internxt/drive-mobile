@@ -1,4 +1,4 @@
-rootProject.name = 'Internxt'
+rootProject.name = 'PcCloud'
 include ':expo-modules-core'
 
 dependencyResolutionManagement {

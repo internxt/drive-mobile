@@ -1,12 +1,12 @@
 [![Build Status](https://travis-ci.com/internxt/drive-mobile.svg?branch=master)](https://travis-ci.com/internxt/drive-mobile)
 ![GitHub](https://img.shields.io/github/license/internxt/drive-mobile)
 
-# Internxt Drive Mobile
+# PcCloud Drive
 
 <p align="center">
   <img src="./assets/icon.png?raw=true" style="width: 200px; max-width: 200px" />
 </p>
-<p align="center" style="margin-top: 10px;">Internxt</p>
+<p align="center" style="margin-top: 10px;">PcCloud Drive</p>
 
 ## Requirements
 
