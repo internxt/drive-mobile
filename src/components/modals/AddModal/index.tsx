@@ -98,7 +98,7 @@ function AddModal(): JSX.Element {
     if (fileType === 'document') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
         title: 'Files Permission',
-        message: 'Internxt needs access to your files in order to upload documents',
+        message: 'PcCloud needs access to your files in order to upload documents',
         buttonNegative: strings.buttons.cancel,
         buttonPositive: strings.buttons.grant,
       });

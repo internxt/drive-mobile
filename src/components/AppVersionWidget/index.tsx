@@ -1,5 +1,5 @@
 import * as Updates from 'expo-updates';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import InternxtLogo from '../../../assets/logo.svg';

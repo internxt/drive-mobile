@@ -39,7 +39,7 @@ export type JWTPayload = {
 
 class AuthService {
   defaultName = 'My';
-  defaultLastname = 'Internxt';
+  defaultLastname = 'PcCloud';
   private readonly eventEmitter: EventEmitter;
   private sdk: SdkManager;
 

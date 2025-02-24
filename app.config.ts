@@ -15,13 +15,13 @@ const packageVersion = packageJson.version.replace('v', '');
 const RELEASE_ID = `${packageVersion} (${env[stage].APP_BUILD_NUMBER}) - ${stage}`;
 
 const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID: string } } = {
-  name: 'Internxt',
-  scheme: 'inxt',
-  slug: 'drive-mobile',
+  name: 'PcCloud',
+  scheme: 'pccloud',
+  slug: 'drive-pc-cloud',
   version: packageVersion,
   orientation: 'portrait',
   splash: {
-    image: './assets/images/splash.png',
+    image: './assets/images/icon.png',
     resizeMode: 'cover',
     backgroundColor: '#091e42',
   },
@@ -35,9 +35,9 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   runtimeVersion: packageVersion,
   ios: {
     jsEngine: 'jsc',
-    icon: './assets/icon-ios.png',
+    icon: './assets/icon.png',
     supportsTablet: true,
-    bundleIdentifier: 'com.internxt.snacks',
+    bundleIdentifier: 'com.internxt.pccloud',
     usesIcloudStorage: true,
     backgroundColor: '#FFFFFF',
     associatedDomains: ['webcredentials:www.internxt.com'],
@@ -54,12 +54,12 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   android: {
     jsEngine: 'hermes',
     versionCode: env[stage].ANDROID_VERSION_CODE,
-    icon: './assets/icon-android.png',
+    icon: './assets/icon.png',
     adaptiveIcon: {
-      foregroundImage: './assets/icon-android.png',
+      foregroundImage: './assets/icon.png',
       backgroundColor: '#091e42',
     },
-    package: 'com.internxt.cloud',
+    package: 'com.internxt.pccloud',
     intentFilters: [
       {
         action: 'VIEW',
