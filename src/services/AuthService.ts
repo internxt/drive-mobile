@@ -1,5 +1,5 @@
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import { Keys, Password, RegisterDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
 import jwtDecode from 'jwt-decode';
@@ -12,6 +12,7 @@ import appService, { constants } from './AppService';
 import asyncStorageService from './AsyncStorageService';
 import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
+
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -62,7 +63,7 @@ class AuthService {
   }
 
   public async doLogin(email: string, password: string, tfaCode?: string) {
-    const loginResult = await this.sdk.auth.login(
+    const loginResult = await this.sdk.authV2.loginWithoutKeys(
       {
         email,
         password,
@@ -75,10 +76,18 @@ class AuthService {
           return encryptText(hashObj.hash);
         },
         async generateKeys(): Promise<Keys> {
-          const keys: Keys = {
+          const keys = {
             privateKeyEncrypted: '',
             publicKey: '',
             revocationCertificate: '',
+            ecc: {
+              privateKeyEncrypted: '',
+              publicKey: '',
+            },
+            kyber: {
+              publicKey: '',
+              privateKeyEncrypted: '',
+            },
           };
           return keys;
         },
@@ -108,25 +117,6 @@ class AuthService {
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
     await internxtMobileSDKConfig.destroy();
-  }
-
-  public async doRecoverPassword(newPassword: string): Promise<Response> {
-    const xUser = await asyncStorageService.getUser();
-    const mnemonic = xUser.mnemonic;
-    const hashPass = passToHash({ password: newPassword });
-    const encryptedPassword = encryptText(hashPass.hash);
-    const encryptedSalt = encryptText(hashPass.salt);
-    const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
-    return fetch(`${constants.DRIVE_API_URL}/user/recover`, {
-      method: 'patch',
-      headers: await getHeaders(),
-      body: JSON.stringify({
-        password: encryptedPassword,
-        salt: encryptedSalt,
-        mnemonic: encryptedMnemonic,
-        privateKey: null,
-      }),
-    });
   }
 
   public async doChangePassword(params: {
@@ -162,6 +152,7 @@ class AuthService {
       privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
+    // TODO: CANNOT BE UPDATED UNTILI WE STORE THE PRIVATE AND THE PUBLIC KEY
     const changePasswordResult = await this.sdk.users.changePasswordLegacy({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
@@ -177,15 +168,11 @@ class AuthService {
   }
 
   public reset(email: string): Promise<void> {
-    return fetch(`${constants.DRIVE_API_URL}/reset/${email}`, {}).then(async (res) => {
-      if (res.status !== 200) {
-        throw Error();
-      }
-    });
+    return this.sdk.authV2.sendChangePasswordEmail(email);
   }
 
-  public async deleteAccount(email: string): Promise<void> {
-    await this.sdk.auth.sendDeactivationEmail(email);
+  public async deleteAccount(token: string): Promise<void> {
+    await this.sdk.authV2.sendUserDeactivationEmail(token);
   }
 
   public async getNewBits(): Promise<string> {
@@ -197,10 +184,11 @@ class AuthService {
 
   public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
     const plainSalt = await this.getSalt(email);
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
 
     const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
 
-    return this.sdk.auth.areCredentialsCorrect(email, hashedPassword) || false;
+    return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) || false;
   }
 
   public async doRegister(params: RegisterParams) {
@@ -210,38 +198,34 @@ class AuthService {
     const mnemonic = await this.getNewBits();
     const encMnemonic = encryptTextWithKey(mnemonic, params.password);
 
-    const payload: RegisterDetails = {
+    const payload = {
       email: params.email.toLowerCase(),
       name: params.firstName,
       lastname: params.lastName,
       password: encPass,
       mnemonic: encMnemonic,
       salt: encSalt,
-      keys: {
-        privateKeyEncrypted: '',
-        publicKey: '',
-        revocationCertificate: '',
-      },
       captcha: params.captcha,
     };
 
-    return this.sdk.authV2.register(payload);
+    return this.sdk.authV2.registerWithoutKeys(payload);
   }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
-    return this.sdk.auth.generateTwoFactorAuthQR();
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
+    return this.sdk.authV2.generateTwoFactorAuthQR(newToken);
   }
 
   public async enable2FA(backupKey: string, code: string) {
-    return this.sdk.auth.storeTwoFactorAuthKey(backupKey, code);
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
+    return this.sdk.authV2.storeTwoFactorAuthKey(backupKey, code, newToken);
   }
 
   public getSecurityDetails(email: string) {
-    return this.sdk.auth.securityDetails(email);
+    return this.sdk.authV2.securityDetails(email);
   }
   public async is2FAEnabled(email: string): Promise<boolean> {
     const securityDetails = await this.getSecurityDetails(email);
-
     return securityDetails.tfaEnabled;
   }
 
@@ -249,8 +233,9 @@ class AuthService {
     const salt = decryptText(encryptedSalt);
     const { hash } = passToHash({ password: password, salt });
     const encryptedPassword = encryptText(hash);
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
 
-    return this.sdk.auth.disableTwoFactorAuth(encryptedPassword, code);
+    return this.sdk.authV2.disableTwoFactorAuth(encryptedPassword, code, newToken);
   }
 
   public addLoginListener(listener: () => void) {
@@ -355,7 +340,7 @@ class AuthService {
    * @returns The salt obtained and decrypted
    */
   private async getSalt(email: string) {
-    const securityDetails = await this.sdk.auth.securityDetails(email);
+    const securityDetails = await this.sdk.authV2.securityDetails(email);
 
     if (!securityDetails) throw new Error('Security details not found');
 
