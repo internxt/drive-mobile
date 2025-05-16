@@ -14,10 +14,6 @@ class UserService {
     this.sdk = sdk;
   }
 
-  public async initializeUser(email: string, mnemonic: string) {
-    return this.sdk.users.initialize(email, mnemonic);
-  }
-
   public payment(token: string, stripePlan: string): Promise<void> {
     return new Promise((resolve, reject) => {
       fetch(`${constants.DRIVE_API_URL}/buy`, {
@@ -39,16 +35,14 @@ class UserService {
     });
   }
 
-  public async inviteAFriend(email: string): Promise<void> {
-    return this.sdk.users.sendInvitation(email);
-  }
-
   public updateProfile(payload: UpdateProfilePayload) {
-    return this.sdk.users.updateProfile(payload);
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    return this.sdk.usersV2.updateUserProfile(payload, token);
   }
 
   public async deleteUserAvatar() {
-    await this.sdk.users.deleteAvatar();
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    await this.sdk.usersV2.deleteUserAvatar(token);
   }
 
   public async updateUserAvatar(payload: { name: string; uri: string }) {
@@ -77,12 +71,13 @@ class UserService {
   /**
    * ! This endpoint accepts a body but is using GET method
    */
-  public refreshUser(): Promise<{ user: UserSettings; token: string }> {
-    return this.sdk.users.refreshUser();
+  public refreshUser(userUuid: string): Promise<{ user: UserSettings; oldToken: string; newToken: string }> {
+    return this.sdk.usersV2.getUserData({ userUuid });
   }
 
   public sendVerificationEmail() {
-    return this.sdk.users.sendVerificationEmail();
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    return this.sdk.usersV2.sendVerificationEmail(token);
   }
 }
 

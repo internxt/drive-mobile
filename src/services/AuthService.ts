@@ -1,5 +1,6 @@
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
 import jwtDecode from 'jwt-decode';
@@ -124,6 +125,8 @@ class AuthService {
     newPassword: string;
   }): Promise<{ token: string; newToken: string }> {
     const { credentials } = await this.getAuthCredentials();
+    const user = await asyncStorageService.getUser();
+
     if (!credentials) throw new Error('User credentials not found');
     const salt = await this.getSalt(credentials.user.email);
 
@@ -152,13 +155,21 @@ class AuthService {
       privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
-    // TODO: CANNOT BE UPDATED UNTILI WE STORE THE PRIVATE AND THE PUBLIC KEY
-    const changePasswordResult = await this.sdk.users.changePasswordLegacy({
+    const keys = user.keys;
+    const kyberKeys = keys.kyber;
+    const eccKeys = keys.ecc;
+
+    const changePasswordResult = await this.sdk.usersV2.changePassword({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,
       newEncryptedPassword: encNewPass,
       encryptedPrivateKey: privateKeyFinalValue,
+      keys: {
+        encryptedPrivateKey: eccKeys.privateKey,
+        encryptedPrivateKyberKey: kyberKeys.privateKey,
+      },
+      encryptVersion: StorageTypes.EncryptionVersion.Aes03,
     });
 
     return {
