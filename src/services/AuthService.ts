@@ -152,7 +152,6 @@ class AuthService {
       privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
-    // TODO: CANNOT BE UPDATED UNTILI WE STORE THE PRIVATE AND THE PUBLIC KEY
     const changePasswordResult = await this.sdk.users.changePasswordLegacy({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
@@ -188,7 +187,7 @@ class AuthService {
 
     const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
 
-    return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) || false;
+    return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
   }
 
   public async doRegister(params: RegisterParams) {
