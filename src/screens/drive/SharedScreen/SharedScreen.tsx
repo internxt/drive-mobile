@@ -142,10 +142,9 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
             viewMode={DriveListViewMode.List}
             data={{
               ...sharedLink,
+              token: sharedLink.token === null ? undefined : sharedLink.token,
               name: sharedLink?.plainName,
               type: 'folderId' in sharedLink ? sharedLink.type : undefined,
-              /** SDK types are wrong, should fix */
-              // token: sharedLink.token,
               shareId: sharedLink.id.toString(),
               thumbnails: [],
               currentThumbnail: null,
