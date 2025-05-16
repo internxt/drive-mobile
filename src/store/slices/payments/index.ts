@@ -4,7 +4,7 @@ import {
   Invoice,
   PaymentMethod,
   UserSubscription,
-} from '@internxt/sdk/dist/drive/payments/types';
+} from '@internxt/sdk/dist/drive/payments/types/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';

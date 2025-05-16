@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 
-import strings from '../../../../assets/lang/strings';
-import CenterModal from '../CenterModal';
-import AppButton from '../../AppButton';
-import AppTextInput from '../../AppTextInput';
+import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
-import { useTailwind } from 'tailwind-rn';
+import AppButton from '../../AppButton';
 import AppText from '../../AppText';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import AppTextInput from '../../AppTextInput';
+import CenterModal from '../CenterModal';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
@@ -38,7 +38,14 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
     drive.folder
       .createFolder(props.currentFolderId, folderName)
       .then((newFolder) => {
-        driveLocalDB.saveFolderContent(newFolder, []).then(() => {
+        const folderData = {
+          id: newFolder.id,
+          parentId: newFolder.parentId,
+          name: newFolder.name,
+          updatedAt: newFolder.updatedAt.toString(),
+        };
+
+        driveLocalDB.saveFolderContent(folderData, []).then(() => {
           notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
         });
 

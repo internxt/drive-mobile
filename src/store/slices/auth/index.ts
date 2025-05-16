@@ -1,23 +1,20 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import asyncStorageService from '../../../services/AsyncStorageService';
+import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
+import drive from '@internxt-mobile/services/drive';
+import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import errorService from 'src/services/ErrorService';
 import { RootState } from '../..';
-import authService, { AuthCredentials } from '../../../services/AuthService';
-import userService from '../../../services/UserService';
+import strings from '../../../../assets/lang/strings';
+import asyncStorageService from '../../../services/AsyncStorageService';
+import authService from '../../../services/AuthService';
+import notificationsService from '../../../services/NotificationsService';
+import { default as userService, default as UserService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
 import { uiActions } from '../ui';
-import notificationsService from '../../../services/NotificationsService';
-import strings from '../../../../assets/lang/strings';
-import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
-import errorService from 'src/services/ErrorService';
-import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
-import UserService from '../../../services/UserService';
-import drive from '@internxt-mobile/services/drive';
-import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import appService from '@internxt-mobile/services/AppService';
 export interface AuthState {
   loggedIn: boolean | null;
   token: string;
@@ -238,8 +235,8 @@ export const deleteAccountThunk = createAsyncThunk<void, void, { state: RootStat
   'auth/deleteAccount',
   async (payload, { getState }) => {
     const { user } = getState().auth;
-
-    user && (await authService.deleteAccount(user.email));
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    user && (await authService.deleteAccount(token));
 
     await asyncStorageService.saveItem(AsyncStorageKey.IsDeletingAccount, 'DELETING');
   },
