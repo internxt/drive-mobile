@@ -80,15 +80,16 @@ export class SdkManager {
     );
   }
 
-  /** Users SDK */
-  get users() {
+  get usersV2() {
     return Drive.Users.client(
-      constants.DRIVE_API_URL,
+      constants.DRIVE_NEW_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: appService.version,
       },
-      this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
+      {
+        token: this.getApiSecurity().newToken,
+      },
     );
   }
 
