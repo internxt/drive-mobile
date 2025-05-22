@@ -54,17 +54,6 @@ export class SdkManager {
     );
   }
 
-  /** Auth old client SDK */
-  get auth() {
-    return Auth.client(
-      constants.DRIVE_API_URL,
-      {
-        clientName: packageJson.name,
-        clientVersion: appService.version,
-      },
-      this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
-    );
-  }
   /** Payments SDK */
   get payments() {
     return Drive.Payments.client(
