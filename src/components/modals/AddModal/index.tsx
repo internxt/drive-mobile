@@ -16,7 +16,7 @@ import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { DriveFileData, EncryptionVersion, FileEntry, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { SaveFormat } from 'expo-image-manipulator';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import uuid from 'react-native-uuid';
@@ -24,7 +24,7 @@ import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATE
 import { storageSelectors } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { encryptFilename, isValidFilename } from '../../../helpers';
+import { isValidFilename } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
@@ -65,7 +65,7 @@ function AddModal(): JSX.Element {
     const fileURI = finalUri;
     const fileExtension = extension;
 
-    return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentId, progressCallback);
+    return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentUuid, progressCallback);
   }
 
   const onCloseCreateFolderModal = () => {
@@ -82,7 +82,7 @@ function AddModal(): JSX.Element {
     }
     setShowCreateFolderModal(false);
     await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-    await driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+    await driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
   };
 
   async function uploadAndroid(
@@ -109,11 +109,12 @@ function AddModal(): JSX.Element {
       }
     }
     const fileExtension = fileToUpload.type;
+
     const createdFileEntry = await uploadAndCreateFileEntry(
       destPath,
       name,
       fileExtension,
-      fileToUpload.parentId,
+      fileToUpload.parentUuid,
       progressCallback,
     );
 
@@ -143,7 +144,7 @@ function AddModal(): JSX.Element {
     filePath: string,
     fileName: string,
     fileExtension: string,
-    currentFolderId: number,
+    currentFolderId: string,
     progressCallback: ProgressCallback,
   ) {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
@@ -176,22 +177,22 @@ function AddModal(): JSX.Element {
     logger.info('File uploaded with fileId: ', fileId);
 
     const folderId = currentFolderId;
+
     const plainName = drive.file.removeExtension(fileName);
-    logger.info('Encrypting filename...');
-    const name = encryptFilename(plainName, folderId.toString());
-    logger.info('Filename encrypted');
-    const fileEntry: FileEntry = {
-      type: fileExtension,
-      bucket,
-      size: fileSize,
-      folder_id: folderId,
-      name,
-      encrypt_version: EncryptionVersion.Aes03,
+
+    const fileEntryByUuid: FileEntryByUuid = {
       id: fileId,
+      type: fileExtension,
+      size: fileSize,
+      name: plainName,
       plain_name: plainName,
+      bucket,
+      folder_id: folderId,
+      encrypt_version: EncryptionVersion.Aes03,
     };
+
     let uploadedThumbnail: Thumbnail | null = null;
-    const generatedDriveItem = await uploadService.createFileEntry(fileEntry);
+    const generatedDriveItem = await uploadService.createFileEntry(fileEntryByUuid);
 
     // If thumbnail generation fails, don't block the upload, we can
     // try thumbnail generation later
@@ -218,14 +219,14 @@ function AddModal(): JSX.Element {
         );
 
         uploadedThumbnail = await uploadService.createThumbnailEntry({
-          file_id: generatedDriveItem.id,
-          max_width: generatedThumbnail.width,
-          max_height: generatedThumbnail.height,
+          fileUuid: generatedDriveItem.uuid,
+          maxWidth: generatedThumbnail.width,
+          maxHeight: generatedThumbnail.height,
           type: generatedThumbnail.type,
           size: generatedThumbnail.size,
-          bucket_id: bucket,
-          bucket_file: thumbnailFileId,
-          encrypt_version: EncryptionVersion.Aes03,
+          bucketId: bucket,
+          bucketFile: thumbnailFileId,
+          encryptVersion: EncryptionVersion.Aes03,
         });
       }
     } catch (error) {
@@ -326,6 +327,7 @@ function AddModal(): JSX.Element {
     const nameSplittedByDots = file.name.split('.');
     return {
       id: new Date().getTime(),
+      uuid: uuid.v4().toString(),
       uri: file.uri,
       name: drive.file.renameIfAlreadyExists(
         filesAtSameLevel,
@@ -334,6 +336,7 @@ function AddModal(): JSX.Element {
       )[2],
       type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
       parentId: focusedFolder.id,
+      parentUuid: focusedFolder.uuid,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
       size: file.size,
@@ -386,6 +389,7 @@ function AddModal(): JSX.Element {
       } else {
         file = {
           id: new Date().getTime(),
+          uuid: uuid.v4().toString(),
           uri: fileToUpload.uri,
           name: drive.file.renameIfAlreadyExists(
             filesAtSameLevel,
@@ -394,6 +398,7 @@ function AddModal(): JSX.Element {
           )[2],
           type: drive.file.getExtensionFromUri(fileToUpload.uri) || '',
           parentId: focusedFolder.id,
+          parentUuid: focusedFolder.uuid,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
           size: fileToUpload.size,
@@ -464,7 +469,7 @@ function AddModal(): JSX.Element {
       // 3. Refresh the current folder
       if (focusedFolder) {
         await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-        driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+        driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
       }
     } catch (err) {
       const error = err as Error;
@@ -523,7 +528,7 @@ function AddModal(): JSX.Element {
                   dispatch(driveThunks.loadUsageThunk());
 
                   if (focusedFolder) {
-                    driveCtx.loadFolderContent(focusedFolder.id);
+                    driveCtx.loadFolderContent(focusedFolder.uuid);
                   }
                 })
                 .catch((err) => {
@@ -554,7 +559,7 @@ function AddModal(): JSX.Element {
           dispatch(driveThunks.loadUsageThunk());
 
           if (focusedFolder) {
-            driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+            driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
           }
         })
         .catch((err) => {
@@ -598,8 +603,10 @@ function AddModal(): JSX.Element {
           const size = fileInfo.exists ? fileInfo?.size : 0;
           const file: UploadingFile = {
             id: new Date().getTime(),
+            uuid: uuid.v4().toString(),
             name,
             parentId: focusedFolder.id,
+            parentUuid: focusedFolder.uuid,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
             type: drive.file.getExtensionFromUri(assetToUpload.uri) as string,
@@ -626,7 +633,7 @@ function AddModal(): JSX.Element {
             dispatch(driveThunks.loadUsageThunk());
 
             if (focusedFolder) {
-              driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+              driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
             }
           }
         }
@@ -743,7 +750,7 @@ function AddModal(): JSX.Element {
       {focusedFolder ? (
         <CreateFolderModal
           isOpen={showCreateFolderModal}
-          currentFolderId={focusedFolder.id}
+          currentFolderUuid={focusedFolder.uuid}
           onClose={onCloseCreateFolderModal}
           onCancel={onCancelCreateFolderModal}
           onFolderCreated={onFolderCreated}

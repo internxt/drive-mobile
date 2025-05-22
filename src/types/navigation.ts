@@ -1,6 +1,6 @@
-import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -42,10 +42,10 @@ export type TabExplorerStackParamList = {
 export type DriveStackParamList = {
   DriveFolder: {
     isRootFolder?: boolean;
-    folderId: number;
+    folderUuid: string;
     folderName: string;
     parentFolderName?: string;
-    parentId: number;
+    parentUuid: string;
   };
 };
 

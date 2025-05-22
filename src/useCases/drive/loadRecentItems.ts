@@ -3,9 +3,14 @@ import drive from '@internxt-mobile/services/drive';
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import strings from 'assets/lang/strings';
 
-export const loadRecentItems = (): Promise<DriveFileData[]> => {
+export const loadRecentItems = async (): Promise<DriveFileData[]> => {
   try {
-    return drive.recents.getRecents();
+    const recents = await drive.recents.getRecents();
+    const recentsParsed = recents.map((recent) => ({
+      ...recent,
+      name: recent.plainName ?? recent.name,
+    }));
+    return recentsParsed;
   } catch (error) {
     throw new DisplayableError({
       userFriendlyMessage: strings.errors.recentsLoadError,

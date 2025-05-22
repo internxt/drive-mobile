@@ -183,7 +183,7 @@ export default function App(): JSX.Element {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
           {isAppInitialized && fontsAreReady ? (
-            <DriveContextProvider rootFolderId={user?.root_folder_id}>
+            <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
               <Portal.Host>
                 <LockScreen
                   locked={screenLocked}

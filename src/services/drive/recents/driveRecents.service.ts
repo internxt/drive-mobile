@@ -1,5 +1,5 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '@internxt-mobile/services/common';
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 
 class DriveRecentsService {
   private sdk: SdkManager;
@@ -8,7 +8,7 @@ class DriveRecentsService {
   }
 
   public async getRecents(limit = 25): Promise<DriveFileData[]> {
-    return this.sdk.storage.getRecentFiles(limit);
+    return this.sdk.storageV2.getRecentFilesV2(limit);
   }
 }
 

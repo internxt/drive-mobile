@@ -11,9 +11,9 @@ import { driveFolderService } from '@internxt-mobile/services/drive/folder';
 
 type DriveFoldersTreeNode = {
   name: string;
-  parentId: number;
+  parentId: string; //uuid of the parent folder
   id: number;
-  uuid: string;
+  uuid: string; //uuid of current folder
   updatedAt: string;
   createdAt: string;
   loading: boolean;
@@ -22,15 +22,14 @@ type DriveFoldersTreeNode = {
   error?: Error;
 };
 type DriveFoldersTree = {
-  [folderId: number]: DriveFoldersTreeNode;
+  [folderId: string]: DriveFoldersTreeNode;
 };
 export interface DriveContextType {
   driveFoldersTree: DriveFoldersTree;
   viewMode: DriveListViewMode;
-  rootFolderId: number;
+  rootFolderId: string;
   toggleViewMode: () => void;
-  loadFolderContent: (folderId: number, options?: LoadFolderContentOptions) => Promise<void>;
-
+  loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
   focusedFolder: DriveFoldersTreeNode | null;
 }
 
@@ -43,7 +42,7 @@ type LoadFolderContentOptions = {
 export const DriveContext = React.createContext<DriveContextType | undefined>(undefined);
 
 interface DriveContextProviderProps {
-  rootFolderId?: number;
+  rootFolderId: string;
   children: React.ReactNode;
 }
 
@@ -53,21 +52,23 @@ const FOLDERS_LIMIT_PER_PAGE = 50;
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {
   const ROOT_FOLDER_NODE: DriveFoldersTreeNode = {
     name: 'Drive',
-    parentId: -1,
-    id: rootFolderId || -1,
-    uuid: '',
+    parentId: '',
+    id: -1,
+    uuid: rootFolderId as string,
     updatedAt: '',
     createdAt: '',
     loading: true,
     files: [],
     folders: [],
   };
+
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({
-    [rootFolderId as number]: ROOT_FOLDER_NODE,
+    [rootFolderId]: ROOT_FOLDER_NODE,
   });
+
   const [currentFolder, setCurrentFolder] = useState<DriveFoldersTreeNode | null>(null);
-  const currentFolderId = useRef<number | null>(null);
+  const currentFolderId = useRef<string | null>(null);
   const onAppStateChangeListener = useRef<NativeEventSubscription | null>(null);
 
   const handleAppStateChange = (state: AppStateStatus) => {
@@ -106,7 +107,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   }, [rootFolderId]);
 
   const fetchFolderContent = async (
-    folderId: number,
+    folderId: string,
     currentFilesPage: number,
     currentFoldersPage: number,
   ): Promise<{
@@ -118,56 +119,49 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const filesOffset = (currentFilesPage - 1) * FILES_LIMIT_PER_PAGE;
     const filesInFolder = await driveFolderService.getFolderFiles(folderId, filesOffset, FILES_LIMIT_PER_PAGE);
 
-    const thereAreMoreFiles = filesInFolder.result.length === FILES_LIMIT_PER_PAGE;
+    const thereAreMoreFiles = filesInFolder.files.length === FILES_LIMIT_PER_PAGE;
 
     const foldersOffset = (currentFoldersPage - 1) * FOLDERS_LIMIT_PER_PAGE;
     const foldersInFolder = await driveFolderService.getFolderFolders(folderId, foldersOffset, FOLDERS_LIMIT_PER_PAGE);
-    const thereAreMoreFolders = foldersInFolder.result.length === FOLDERS_LIMIT_PER_PAGE;
+    const thereAreMoreFolders = foldersInFolder.folders.length === FOLDERS_LIMIT_PER_PAGE;
 
     return {
       thereAreMoreFiles,
       thereAreMoreFolders,
-      folders: foldersInFolder.result.map((folder) => {
-        const driveFolder: DriveFolderForTree = {
-          updatedAt: folder.updatedAt,
-          createdAt: folder.createdAt,
-          // @ts-expect-error - SDK type is plain_name, missing plainName
+      folders: foldersInFolder.folders.map((folder) => {
+        const driveFolder = {
+          ...folder,
+          updatedAt: folder.updatedAt.toString(),
+          createdAt: folder.createdAt.toString(),
           plainName: folder.plainName,
           parentId: folder.parentId,
           name: folder.name,
-          // @ts-expect-error - Missing type from SDK
           uuid: folder.uuid,
           id: folder.id,
           userId: folder.userId,
           // @ts-expect-error - API is returning status, missing from SDK
           status: folder.status,
-          // @ts-expect-error - API is returning status, missing from SDK
           isFolder: true,
         };
 
         return driveFolder;
       }),
-      files: filesInFolder.result.map((file) => {
-        const driveFile: DriveFileForTree = {
-          // @ts-expect-error - API is returning UUID, type missing
+      files: filesInFolder.files.map((file) => {
+        const driveFile = {
+          ...file,
           uuid: file.uuid,
           id: file.id,
-          // @ts-expect-error - API is returning fileID, type missing
           fileId: file.fileId,
-          // @ts-expect-error - SDK type is plain_name, missing plainName
           plainName: file.plainName,
           type: file.type,
           bucket: file.bucket,
-          createdAt: file.createdAt,
-          updatedAt: file.updatedAt,
-          // @ts-expect-error - API is returning status, missing from SDK
+          createdAt: file.createdAt.toString(),
+          updatedAt: file.updatedAt.toString(),
+          deletedAt: null,
           status: file.status,
-          // @ts-expect-error - API is returning size, missing from SDK
-          size: typeof file.size === 'string' ? parseInt(file.size) : file.size,
-          // @ts-expect-error - API is returning folderId, missing from SDK
+          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
           folderId: file.folderId,
-          // @ts-expect-error - API is returning thumbnails, missing from SDK
-          thumbnails: file.thumbnails,
+          thumbnails: file.thumbnails ?? [],
         };
 
         return driveFile;
@@ -175,11 +169,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     };
   };
 
-  const loadFolderContent = async (folderId: number, options?: LoadFolderContentOptions) => {
+  const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
     const shouldResetPagination = options?.resetPagination;
     const driveFolderTreeNode: DriveFoldersTreeNode = driveFoldersTree[folderId] ?? ROOT_FOLDER_NODE;
-
     if (!driveFolderTreeNode) throw new Error('Cannot load this folder');
+
     if (options?.focusFolder && driveFolderTreeNode) {
       setCurrentFolder(driveFolderTreeNode);
     }
@@ -211,8 +205,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     parentId,
     resetPagination,
   }: {
-    parentId: number;
-    folderId: number;
+    parentId: string;
+    folderId: string;
     newFiles: DriveFileForTree[];
     resetPagination: boolean;
     newFolders: DriveFolderForTree[];
@@ -228,7 +222,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       [folderId]: {
         name: driveFolderTreeNode?.name || 'Drive',
         parentId: parentId,
-        id: folderId,
+        uuid: folderId,
         files: allFiles,
         folders: allFolders,
         loading: false,
@@ -237,21 +231,22 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     };
 
     allFolders.forEach((folder) => {
-      const existingNode = driveFoldersTree[folder.id];
+      const existingNode = driveFoldersTree[folder.uuid];
       if (!existingNode) {
-        newTreeNodes[folder.id] = {
+        newTreeNodes[folder.uuid] = {
           uuid: folder.uuid,
-          name: folder.plainName,
-          parentId: folder.parentId,
+          name: folder.plainName ?? '',
+          parentId: folder.parentUuid,
           id: folder.id,
           updatedAt: folder.updatedAt,
           createdAt: folder.createdAt,
           loading: true,
           files: [],
           folders: [],
+          // @ts-expect-error - leave old implementation in order to not break anything
           currentFoldersPage: 2,
           error: undefined,
-        } as DriveFoldersTreeNode;
+        };
       }
     });
 
@@ -266,6 +261,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     setViewMode(newViewMode);
     asyncStorageService.saveItem(AsyncStorageKey.PreferredDriveViewMode, newViewMode);
   };
+
   return (
     <DriveContext.Provider
       value={{
@@ -275,7 +271,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         loadFolderContent,
         // Default current folder is the root folder
         focusedFolder: currentFolder,
-        rootFolderId: rootFolderId || -1,
+        rootFolderId: rootFolderId ?? '',
       }}
     >
       {children}

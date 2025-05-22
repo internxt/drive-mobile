@@ -93,17 +93,6 @@ export class SdkManager {
     );
   }
 
-  /** Storage SDK */
-  get storage() {
-    return Drive.Storage.client(
-      constants.DRIVE_API_URL,
-      {
-        clientName: packageJson.name,
-        clientVersion: appService.version,
-      },
-      this.getApiSecurity(),
-    );
-  }
   /** Storage SDK V2 */
   get storageV2() {
     return Drive.Storage.client(
