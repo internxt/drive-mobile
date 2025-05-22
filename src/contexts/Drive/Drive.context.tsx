@@ -243,7 +243,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           loading: true,
           files: [],
           folders: [],
-          // currentFoldersPage: 2,
+          // @ts-expect-error - leave old implementation in order to not break anything
+          currentFoldersPage: 2,
           error: undefined,
         };
       }
