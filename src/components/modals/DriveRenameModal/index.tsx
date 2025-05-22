@@ -69,8 +69,8 @@ function RenameModal(): JSX.Element {
       if (focusedItem && isFolder) {
         // TODO: Move to a useCase
         if (focusedItem?.uuid) await drive.folder.updateMetaData(focusedItem.uuid, newName);
-      } else if (focusedItem?.fileId && user) {
-        await drive.file.updateMetaData(focusedItem.fileId, newName);
+      } else if (focusedItem?.uuid && user) {
+        await drive.file.updateMetaData(focusedItem.uuid, newName);
       }
 
       // Update the item in the local DB
