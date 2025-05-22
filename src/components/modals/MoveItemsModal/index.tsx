@@ -1,10 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, FlatList, TouchableOpacity, Dimensions, Platform, StyleSheet } from 'react-native';
+import drive from '@internxt-mobile/services/drive';
+import { DriveFileData, DriveFolderData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import _ from 'lodash';
+import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
+import { useEffect, useMemo, useState } from 'react';
+import { Dimensions, FlatList, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import strings from '../../../../assets/lang/strings';
-import AppSeparator from '../../AppSeparator';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
+import { uiActions } from '../../../store/slices/ui';
 import {
   DriveItemDataProps,
   DriveItemStatus,
@@ -14,28 +18,24 @@ import {
   SortDirection,
   SortType,
 } from '../../../types/drive';
+import AppSeparator from '../../AppSeparator';
 import DriveNavigableItem from '../../DriveNavigableItem';
-import drive from '@internxt-mobile/services/drive';
-import _ from 'lodash';
-import { DriveFileData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
-import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
-import AppText from '../../AppText';
-import SortModal, { SortMode } from '../SortModal';
-import BottomModal from '../BottomModal';
-import CreateFolderModal from '../CreateFolderModal';
-import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
-import notificationsService from '../../../services/NotificationsService';
-import { NotificationType } from '../../../types';
+import Portal from '@burstware/react-native-portal';
+import { useDrive } from '@internxt-mobile/hooks/drive';
 import { useNavigation } from '@react-navigation/native';
-import { RootScreenNavigationProp } from '../../../types/navigation';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import Portal from '@burstware/react-native-portal';
-import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
+import notificationsService from '../../../services/NotificationsService';
+import { NotificationType } from '../../../types';
+import { RootScreenNavigationProp } from '../../../types/navigation';
+import AppText from '../../AppText';
+import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
+import BottomModal from '../BottomModal';
+import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
+import CreateFolderModal from '../CreateFolderModal';
+import SortModal, { SortMode } from '../SortModal';
 
 const colors = {
   primary: '#0066FF',
@@ -57,11 +57,12 @@ function MoveItemsModal(): JSX.Element {
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
   const [isMovingItem, setIsMovingItem] = useState(false);
-  const [destinationFolderContentResponse, setDestinationFolderContentResponse] =
-    useState<FetchFolderContentResponse | null>(null);
-  const [originFolderContentResponse, setOriginFolderContentResponse] = useState<FetchFolderContentResponse | null>(
-    null,
-  );
+  const [destinationFolderContentResponse, setDestinationFolderContentResponse] = useState<
+    (FetchFolderContentResponse & { uuid: string; parentUuid: string; plainName: string }) | null
+  >(null);
+  const [originFolderContentResponse, setOriginFolderContentResponse] = useState<
+    (FetchFolderContentResponse & { uuid: string; parentUuid: string; plainName: string }) | null
+  >(null);
   const safeInsets = useSafeAreaInsets();
   const modalHeight = useMemo(
     () =>
@@ -74,8 +75,9 @@ function MoveItemsModal(): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   const { showMoveModal } = useAppSelector((state) => state.ui);
   const { itemToMove, folderContent } = useAppSelector((state) => state.drive);
-  const currentFolderIsRootFolder = destinationFolderContentResponse?.id === user?.root_folder_id;
-  const originFolderId = itemToMove?.parentId || itemToMove?.folderId || user?.root_folder_id;
+  const currentFolderIsRootFolder = destinationFolderContentResponse?.uuid === user?.rootFolderId;
+  const originFolderId = itemToMove?.parentUuid || itemToMove?.folderUuid || user?.rootFolderUuid;
+
   const folderItems = useMemo(
     () =>
       [...(destinationFolderContentResponse?.children || []), ...(destinationFolderContentResponse?.files || [])]
@@ -89,11 +91,14 @@ function MoveItemsModal(): JSX.Element {
             currentThumbnail: null,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
-            name: child.name,
+            name: child?.plainName || child.name,
             id: child.id,
+            uuid: child.uuid,
             size: (child as DriveFileData).size,
             type: (child as DriveFileData).type,
             fileId: (child as DriveFileData).fileId,
+            folderUuid: (child as DriveFileData)?.folderUuid,
+            parentUuid: (child as DriveFolderData)?.parentUuid,
           },
         }))
         .sort(drive.file.getSortFunction(sortMode))
@@ -112,11 +117,11 @@ function MoveItemsModal(): JSX.Element {
   };
   const moveIsDisabled = () => {
     // Current folder is origin folder
-    if (originFolderContentResponse?.id === destinationFolderContentResponse?.id) return true;
+    if (originFolderContentResponse?.uuid === destinationFolderContentResponse?.uuid) return true;
     return false;
   };
   const confirmMoveItem = async () => {
-    if (!itemToMove || !originFolderId || !originFolderContentResponse?.name || !destinationFolderContentResponse?.id) {
+    if (!originFolderContentResponse || !itemToMove || !originFolderId || !destinationFolderContentResponse?.uuid) {
       notificationsService.show({
         text1: strings.errors.moveError,
         type: NotificationType.Error,
@@ -131,13 +136,13 @@ function MoveItemsModal(): JSX.Element {
         isFolder,
         origin: {
           itemId: itemToMove.fileId || itemToMove.id,
-          parentId: itemToMove.parentId as number,
-          name: originFolderContentResponse.name,
+          parentUuid: itemToMove.parentUuid ?? '',
+          name: originFolderContentResponse.plainName,
           updatedAt: originFolderContentResponse.updatedAt,
           createdAt: originFolderContentResponse.createdAt,
-          id: originFolderContentResponse.id,
+          uuid: itemToMove.uuid as string,
         },
-        destination: destinationFolderContentResponse.id,
+        destinationUuid: destinationFolderContentResponse.uuid,
         itemMovedAction: () => {
           navigation.push('TabExplorer', { screen: 'Drive' });
         },
@@ -152,8 +157,8 @@ function MoveItemsModal(): JSX.Element {
     }
   };
   const onFolderCreated = async () => {
-    if (destinationFolderContentResponse?.id) {
-      await loadDestinationFolderContent(destinationFolderContentResponse.id);
+    if (destinationFolderContentResponse?.uuid) {
+      await loadDestinationFolderContent(destinationFolderContentResponse.uuid);
     }
     setCreateFolderModalOpen(false);
   };
@@ -169,7 +174,7 @@ function MoveItemsModal(): JSX.Element {
       // definitions, this is getting confuse
       if (originFolderContentResponse?.id) {
         await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-        await driveCtx.loadFolderContent(originFolderContentResponse.id, {
+        await driveCtx.loadFolderContent(originFolderContentResponse.uuid, {
           resetPagination: true,
           pullFrom: ['network'],
         });
@@ -183,21 +188,23 @@ function MoveItemsModal(): JSX.Element {
   };
   const getOriginFolderName = () => {
     return (
-      (originFolderContentResponse?.parentId ? originFolderContentResponse?.name : strings.generic.root_folder_name) ||
-      ''
+      (originFolderContentResponse?.parentId
+        ? originFolderContentResponse?.plainName
+        : strings.generic.root_folder_name) || ''
     );
   };
   const getDestinationFolderName = () => {
     return (
-      (currentFolderIsRootFolder ? strings.generic.root_folder_name : destinationFolderContentResponse?.name) || ''
+      (currentFolderIsRootFolder ? strings.generic.root_folder_name : destinationFolderContentResponse?.plainName) || ''
     );
   };
-  const loadDestinationFolderContent = async (folderId: number) => {
+  const loadDestinationFolderContent = async (folderId?: string) => {
     try {
+      if (!folderId) throw new Error('Missing folder uuid');
       setSortMode(INITIAL_SORT_MODE);
-      const response = await drive.folder.getFolderContent(folderId);
+      const response = await drive.folder.getFolderContentByUuid(folderId);
 
-      setDestinationFolderContentResponse(response);
+      setDestinationFolderContentResponse({ ...response, name: (response as any)?.plainName } as any);
     } catch (e) {
       notificationsService.show({ type: NotificationType.Error, text1: 'Cannot load destination folder' });
     }
@@ -205,25 +212,27 @@ function MoveItemsModal(): JSX.Element {
   const loadOriginFolderContent = async () => {
     try {
       if (originFolderId) {
-        const response = await drive.folder.getFolderContent(originFolderId);
-        setOriginFolderContentResponse(response);
+        const response = await drive.folder.getFolderContentByUuid(originFolderId);
+
+        // Need to mach type = FetchFolderContentResponse & { uuid: string; parentUuid: string }
+        setOriginFolderContentResponse(response as any);
       }
     } catch (e) {
       notificationsService.show({ type: NotificationType.Error, text1: 'Cannot load origin folder' });
     }
   };
   const onNavigationButtonPressed = async (item: DriveItemDataProps) => {
-    if (!item.id) return;
-    await loadDestinationFolderContent(item.id);
+    if (!item.uuid) return;
+    await loadDestinationFolderContent(item?.uuid);
   };
   const onNavigateBack = () => {
-    if (destinationFolderContentResponse?.parentId) {
-      loadDestinationFolderContent(destinationFolderContentResponse.parentId);
+    if (destinationFolderContentResponse?.parentUuid) {
+      loadDestinationFolderContent(destinationFolderContentResponse.parentUuid);
     }
   };
   const getHeaderName = () => {
     if (currentFolderIsRootFolder) return strings.generic.root_folder_name;
-    return destinationFolderContentResponse?.name;
+    return destinationFolderContentResponse?.plainName;
   };
   const onCreateNewFolder = async () => {
     setCreateFolderModalOpen(true);
@@ -379,7 +388,7 @@ function MoveItemsModal(): JSX.Element {
           isOpen={createFolderModalOpen}
           onCancel={onCancelCreateFolder}
           onClose={onCloseCreateFolder}
-          currentFolderId={destinationFolderContentResponse?.id}
+          currentFolderUuid={destinationFolderContentResponse?.uuid}
           onFolderCreated={onFolderCreated}
         />
       ) : null}

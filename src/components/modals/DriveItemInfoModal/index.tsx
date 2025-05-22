@@ -47,6 +47,7 @@ function DriveItemInfoModal(): JSX.Element {
   const driveCtx = useDrive();
   const [downloadProgress, setDownloadProgress] = useState({ progress: 0, totalBytes: 0, bytesReceived: 0 });
   const { focusedItem: item } = useAppSelector((state) => state.drive);
+
   const { showItemModal } = useAppSelector((state) => state.ui);
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -80,16 +81,16 @@ function DriveItemInfoModal(): JSX.Element {
     const { success } = await driveUseCases.restoreDriveItems(
       [
         {
-          fileId: item.fileId,
-          folderId: isFolder ? item.folderId : undefined,
-          destinationFolderId: item.parentId || (item.folderId as number),
+          fileId: isFolder ? undefined : item.uuid,
+          folderId: isFolder ? item.uuid : undefined,
+          destinationFolderId: item.parentUuid ?? item.folderUuid ?? '',
         },
       ],
       { displayNotification: false },
     );
     if (success && driveCtx.focusedFolder?.id) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-      driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
   };
   const handleTrashItem = async () => {
@@ -112,7 +113,7 @@ function DriveItemInfoModal(): JSX.Element {
     }
     if (driveCtx.focusedFolder?.id) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-      driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
   };
 

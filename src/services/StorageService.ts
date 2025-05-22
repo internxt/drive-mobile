@@ -1,31 +1,28 @@
 import prettysize from 'prettysize';
-import { getHeaders } from '../helpers/headers';
-import { constants } from './AppService';
+import { SdkManager } from './common';
 
-export const FREE_STORAGE = 2147483648;
+export const FREE_STORAGE = 1073741824; // 1GB
 
 class StorageService {
+  private sdk: SdkManager;
+
+  constructor(sdk: SdkManager) {
+    this.sdk = sdk;
+  }
+
   public toString(bytes: number) {
     return prettysize(bytes, true);
   }
 
   public async loadLimit(): Promise<number> {
-    return fetch(`${constants.DRIVE_API_URL}/limit`, {
-      method: 'get',
-      headers: await getHeaders(),
-    })
-      .then((res) => {
-        if (res.status !== 200) {
-          throw Error('Cannot load limit');
-        }
-        return res;
-      })
-      .then((res) => res.json())
-      .then((res) => {
-        return res.maxSpaceBytes;
-      });
+    try {
+      const limit = await this.sdk.storageV2.spaceLimitV2();
+      return limit.maxSpaceBytes;
+    } catch (error) {
+      throw Error('Cannot load limit');
+    }
   }
 }
 
-const storageService = new StorageService();
+const storageService = new StorageService(SdkManager.getInstance());
 export default storageService;

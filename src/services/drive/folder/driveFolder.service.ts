@@ -1,17 +1,11 @@
-import { DriveFileData, MoveFolderPayload } from '@internxt/sdk/dist/drive/storage/types';
+import { MoveFolderUuidPayload } from '@internxt/sdk/dist/drive/storage/types';
 
-import { getHeaders } from '../../../helpers/headers';
-import {
-  DriveFolderMetadataPayload,
-  DriveItemStatus,
-  DriveListItem,
-  FetchFolderContentResponseWithThumbnails,
-  GetModifiedFolders,
-} from '../../../types/drive';
-import { constants } from '../../AppService';
-import { SdkManager } from '@internxt-mobile/services/common';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { SdkManager } from '@internxt-mobile/services/common';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
+import { getHeaders } from '../../../helpers/headers';
+import { GetModifiedFolders } from '../../../types/drive';
+import { constants } from '../../AppService';
 
 class DriveFolderService {
   private sdk: SdkManager;
@@ -20,47 +14,39 @@ class DriveFolderService {
     this.sdk = sdk;
   }
 
-  public async getFolderFiles(folderId: number, offset: number, limit: number) {
-    const [promise] = this.sdk.storageV2.getFolderFiles(folderId, offset, limit, 'plainName', 'ASC');
+  public async getFolderFiles(folderId: string, offset: number, limit: number) {
+    const [promise] = this.sdk.storageV2.getFolderFilesByUuid(folderId, offset, limit, 'plainName', 'ASC');
 
     return promise;
   }
 
-  public async getFolderFolders(folderId: number, offset: number, limit: number) {
-    const [promise] = this.sdk.storageV2.getFolderFolders(folderId, offset, limit, 'plainName', 'ASC');
+  public async getFolderFolders(folderId: string, offset: number, limit: number) {
+    const [promise] = this.sdk.storageV2.getFolderFoldersByUuid(folderId, offset, limit, 'plainName', 'ASC');
 
     return promise;
   }
 
-  public async createFolder(parentFolderId: number, folderName: string) {
-    const sdkResult = this.sdk.storage.createFolder({
-      parentFolderId,
-      folderName,
+  public async createFolder(parentFolderId: string, folderName: string) {
+    const sdkResult = this.sdk.storageV2.createFolderByUuid({
+      parentFolderUuid: parentFolderId,
+      plainName: folderName,
     });
     return sdkResult ? sdkResult[0] : Promise.reject('createFolder Sdk method did not return a valid result');
   }
 
-  public async moveFolder(payload: MoveFolderPayload) {
-    return this.sdk.storage.moveFolder(payload);
+  public async moveFolder(payload: MoveFolderUuidPayload) {
+    return this.sdk.storageV2.moveFolderByUuid(payload);
   }
 
-  public async updateMetaData(folderId: number, metadata: DriveFolderMetadataPayload): Promise<void> {
-    await this.sdk.storage.updateFolder({
-      folderId,
-      changes: {
-        itemName: metadata.itemName,
-      },
+  public async updateMetaData(folderUuid: string, newName: string): Promise<void> {
+    await this.sdk.storageV2.updateFolderNameWithUUID({
+      folderUuid,
+      name: newName,
     });
   }
 
-  /**
-   * Gets the folder content by folderID
-   *
-   * @param {number} folderId The folder ID which content you want to retrieve
-   * @returns The content and a request canceler
-   */
-  public getFolderContent(folderId: number) {
-    const [contentPromise] = this.sdk.storage.getFolderContent(folderId);
+  public getFolderContentByUuid(folderUuid: string) {
+    const [contentPromise] = this.sdk.storageV2.getFolderContentByUuid({ folderUuid });
     return contentPromise;
   }
 

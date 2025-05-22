@@ -104,7 +104,7 @@ export const signInThunk = createAsyncThunk<
     token: payload.token,
     newToken: payload.newToken,
   });
-  if (!payload.user.root_folder_id) {
+  if (!payload.user.rootFolderId) {
     userToSave = {
       ...userToSave,
     };

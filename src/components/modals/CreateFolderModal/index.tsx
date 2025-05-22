@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 
-import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { useTailwind } from 'tailwind-rn';
@@ -17,11 +16,10 @@ import CenterModal from '../CenterModal';
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
   onCancel: () => void;
-  currentFolderId: number;
+  currentFolderUuid: string;
 }
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const tailwind = useTailwind();
-  const driveCtx = useDrive();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -36,11 +34,13 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
     setIsLoading(true);
 
     drive.folder
-      .createFolder(props.currentFolderId, folderName)
+      .createFolder(props.currentFolderUuid, folderName)
       .then((newFolder) => {
         const folderData = {
           id: newFolder.id,
+          uuid: newFolder.uuid,
           parentId: newFolder.parentId,
+          parentUuid: newFolder.parentUuid,
           name: newFolder.name,
           updatedAt: newFolder.updatedAt.toString(),
         };
