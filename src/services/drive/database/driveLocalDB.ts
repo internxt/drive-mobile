@@ -93,9 +93,9 @@ class DriveLocalDB {
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [id]);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.insert, [
       id,
-      uuid || '',
+      uuid ?? '',
       parentId,
-      parentUuid || '',
+      parentUuid ?? '',
       name,
       updatedAt,
       new Date().toString(),
@@ -113,21 +113,21 @@ class DriveLocalDB {
         const rows = items.map<InsertSqliteDriveItemRowData>((item) => {
           return {
             id: item.id,
-            uuid: item.uuid || '',
+            uuid: item.uuid ?? '',
             bucket: item.bucket,
             color: item.color,
             encrypt_version: item.encrypt_version,
             icon: item.icon,
-            icon_id: item.icon_id || null,
+            icon_id: item.icon_id ?? null,
             is_folder: item.parentId !== undefined,
-            created_at: item.createdAt || '',
-            updated_at: item.updatedAt || '',
+            created_at: item.createdAt ?? '',
+            updated_at: item.updatedAt ?? '',
             file_id: item.fileId,
             // SQlite way to insert double quotes
             name: item.name.toString().replace(/"/g, '\\""'),
-            parent_id: item.parentId || item.folderId,
-            parent_uuid: item.parentUuid || '',
-            folder_uuid: item.folderUuid || '',
+            parent_id: item.parentId ?? item.folderId,
+            parent_uuid: item.parentUuid ?? '',
+            folder_uuid: item.folderUuid ?? '',
             size: item.size,
             type: item.type,
           } as InsertSqliteDriveItemRowData;
@@ -197,8 +197,8 @@ class DriveLocalDB {
         plain_name: row.name,
         deleted: false,
         // TODO: add to database
-        parentUuid: row.parent_uuid || '',
-        uuid: row.uuid || '',
+        parentUuid: row.parent_uuid ?? '',
+        uuid: row.uuid ?? '',
       };
       result = folder;
     } else {
@@ -215,7 +215,7 @@ class DriveLocalDB {
         folder_id: row.parent_id as number,
         name: row.name,
         size: row.size as number,
-        type: row.type || '',
+        type: row.type ?? '',
         updatedAt: row.updated_at,
         thumbnails: row.thumbnails,
         plain_name: row.plain_name,
@@ -224,8 +224,8 @@ class DriveLocalDB {
         // should not exists in the db for now, we cannot handle those cases
         status: 'EXISTS',
         // TODO: add to database
-        folderUuid: row.folder_uuid || row.parent_uuid || '',
-        uuid: row.uuid || '',
+        folderUuid: row.folder_uuid ?? row.parent_uuid ?? '',
+        uuid: row.uuid ?? '',
       };
       result = file;
     }
@@ -252,25 +252,25 @@ class DriveLocalDB {
       user_id: -1,
       userId: -1,
       // Añadir los UUIDs
-      uuid: folderContent.uuid || '',
-      parentUuid: folderContent.parent_uuid || '',
+      uuid: folderContent.uuid ?? '',
+      parentUuid: folderContent.parent_uuid ?? '',
       files: items.filter((item) => item.fileId),
       children: items
         .filter((item) => !item.fileId)
         .map<FolderContentChild>((item) => {
           return {
             ...item,
-            parent_id: item.parentId || folderId,
-            parentId: item.parentId || folderId,
-            icon: item.icon || '-',
+            parent_id: item.parentId ?? folderId,
+            parentId: item.parentId ?? folderId,
+            icon: item.icon ?? '-',
             name: item.name,
             plain_name: item.plain_name,
-            color: item.color || '-',
+            color: item.color ?? '-',
             removed: false,
             deleted: false,
             // Incluir los UUIDs
-            uuid: item.uuid || '',
-            parentUuid: item.parentUuid || '',
+            uuid: item.uuid ?? '',
+            parentUuid: item.parentUuid ?? '',
           } as FolderContentChild;
         }),
     };

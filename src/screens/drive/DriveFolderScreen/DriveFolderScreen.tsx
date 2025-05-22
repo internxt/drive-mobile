@@ -35,8 +35,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const folder = driveCtx.driveFoldersTree[folderUuid];
 
   const folderHasError = folder?.error;
-  const folderFiles = folder?.files || [];
-  const folderFolders = folder?.folders || [];
+  const folderFiles = folder?.files ?? [];
+  const folderFolders = folder?.folders ?? [];
   const folderContent = useMemo<DriveListItem[]>(() => {
     const files = folderFiles.map((file) => {
       return {
@@ -299,7 +299,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             onFolderActionsPress={handleFolderActionsPress}
             title={screenTitle}
             backButtonConfig={{
-              label: parentFolderName || '',
+              label: parentFolderName ?? '',
               canGoBack: isRootFolder ? false : true,
               onBackButtonPressed,
             }}

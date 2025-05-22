@@ -76,11 +76,11 @@ function MoveItemsModal(): JSX.Element {
   const { showMoveModal } = useAppSelector((state) => state.ui);
   const { itemToMove, folderContent } = useAppSelector((state) => state.drive);
   const currentFolderIsRootFolder = destinationFolderContentResponse?.uuid === user?.rootFolderId;
-  const originFolderId = itemToMove?.parentUuid || itemToMove?.folderUuid || user?.rootFolderUuid;
+  const originFolderId = itemToMove?.parentUuid ?? itemToMove?.folderUuid ?? user?.rootFolderUuid;
 
   const folderItems = useMemo(
     () =>
-      [...(destinationFolderContentResponse?.children || []), ...(destinationFolderContentResponse?.files || [])]
+      [...(destinationFolderContentResponse?.children ?? []), ...(destinationFolderContentResponse?.files ?? [])]
         .map<DriveListItem>((child) => ({
           id: child.id.toString(),
           status: DriveItemStatus.Idle,
@@ -91,7 +91,7 @@ function MoveItemsModal(): JSX.Element {
             currentThumbnail: null,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
-            name: child?.plainName || child.name,
+            name: child?.plainName ?? child.name,
             id: child.id,
             uuid: child.uuid,
             size: (child as DriveFileData).size,
@@ -135,7 +135,7 @@ function MoveItemsModal(): JSX.Element {
       driveThunks.moveItemThunk({
         isFolder,
         origin: {
-          itemId: itemToMove.fileId || itemToMove.id,
+          itemId: itemToMove.fileId ?? itemToMove.id,
           parentUuid: itemToMove.parentUuid ?? '',
           name: originFolderContentResponse.plainName,
           updatedAt: originFolderContentResponse.updatedAt,
@@ -190,12 +190,12 @@ function MoveItemsModal(): JSX.Element {
     return (
       (originFolderContentResponse?.parentId
         ? originFolderContentResponse?.plainName
-        : strings.generic.root_folder_name) || ''
+        : strings.generic.root_folder_name) ?? ''
     );
   };
   const getDestinationFolderName = () => {
     return (
-      (currentFolderIsRootFolder ? strings.generic.root_folder_name : destinationFolderContentResponse?.plainName) || ''
+      (currentFolderIsRootFolder ? strings.generic.root_folder_name : destinationFolderContentResponse?.plainName) ?? ''
     );
   };
   const loadDestinationFolderContent = async (folderId?: string) => {
