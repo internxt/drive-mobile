@@ -1,6 +1,6 @@
 import { Bug, CaretRight, FileText, FolderSimple, Info, Moon, Question, Translate, Trash } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Appearance, Linking, Platform, ScrollView, Switch, useColorScheme, View } from 'react-native';
+import { Appearance, Linking, Platform, ScrollView, Switch, View } from 'react-native';
 
 import { storageSelectors } from 'src/store/slices/storage';
 import { Language } from 'src/types';
@@ -26,18 +26,16 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
 
 import { paymentsSelectors } from 'src/store/slices/payments';
+import asyncStorageService from '../../services/AsyncStorageService';
 
 function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [gettingLogs, setGettingLogs] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
   const dispatch = useAppDispatch();
   const scrollViewRef = useRef<ScrollView | null>(null);
 
-  const [isDarkMode, setIsDarkMode] = useState(isDark);
-
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
@@ -45,8 +43,38 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const userFullName = useAppSelector(authSelectors.userFullName);
 
   useEffect(() => {
-    setIsDarkMode(isDark);
-  }, [isDark]);
+    const loadThemePreference = async () => {
+      try {
+        const savedTheme = await asyncStorageService.getThemePreference();
+
+        if (savedTheme) {
+          setIsDarkMode(savedTheme === 'dark');
+
+          Appearance.setColorScheme(savedTheme);
+        } else {
+          const systemTheme = Appearance.getColorScheme() || 'light';
+          setIsDarkMode(systemTheme === 'dark');
+        }
+      } catch (error) {
+        const systemTheme = Appearance.getColorScheme() || 'light';
+        setIsDarkMode(systemTheme === 'dark');
+      }
+    };
+
+    loadThemePreference();
+  }, []);
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme: newColorScheme }) => {
+      asyncStorageService.getThemePreference().then((savedTheme) => {
+        if (!savedTheme && newColorScheme) {
+          setIsDarkMode(newColorScheme === 'dark');
+        }
+      });
+    });
+
+    return () => subscription?.remove();
+  }, []);
 
   useEffect(() => {
     if (!user?.avatar) {
@@ -71,11 +99,19 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
       });
   }, [user?.avatar]);
 
-  const handleDarkModeToggle = (value: boolean) => {
-    setIsDarkMode(value);
-    Appearance.setColorScheme(value ? 'dark' : 'light');
-  };
+  const handleDarkModeToggle = async (value: boolean) => {
+    try {
+      const newTheme = value ? 'dark' : 'light';
+      setIsDarkMode(value);
 
+      Appearance.setColorScheme(newTheme);
+
+      await asyncStorageService.saveThemePreference(newTheme);
+    } catch (error) {
+      setIsDarkMode(!value);
+      Appearance.setColorScheme(!value ? 'dark' : 'light');
+    }
+  };
   const onAccountPressed = () => {
     navigation.navigate('Account');
   };

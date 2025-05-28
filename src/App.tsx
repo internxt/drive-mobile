@@ -1,6 +1,7 @@
 import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect, useState } from 'react';
 import {
+  Appearance,
   AppStateStatus,
   ColorValue,
   KeyboardAvoidingView,
@@ -28,6 +29,7 @@ import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
 import analyticsService from './services/AnalyticsService';
 import appService from './services/AppService';
+import asyncStorageService from './services/AsyncStorageService';
 import authService from './services/AuthService';
 import { logger } from './services/common';
 import { time } from './services/common/time';
@@ -47,8 +49,19 @@ export default function App(): JSX.Element {
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked } = useAppSelector((state) => state.app);
-
   const { color: whiteColor } = tailwind('text-white');
+
+  useEffect(() => {
+    const initializeTheme = async () => {
+      const savedTheme = await asyncStorageService.getThemePreference();
+      if (savedTheme) {
+        Appearance.setColorScheme(savedTheme);
+      }
+    };
+
+    initializeTheme();
+  }, []);
+
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const {
     isLinkCopiedModalOpen,
