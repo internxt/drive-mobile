@@ -25,6 +25,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     resizeMode: 'cover',
     backgroundColor: '#091e42',
   },
+  userInterfaceStyle: 'automatic',
 
   updates: {
     url: 'https://u.expo.dev/680f4feb-6315-4a50-93ec-36dcd0b831d2',
@@ -36,6 +37,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   ios: {
     jsEngine: 'jsc',
     icon: './assets/icon-ios.png',
+    userInterfaceStyle: 'automatic',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
     usesIcloudStorage: true,
@@ -54,6 +56,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   android: {
     jsEngine: 'hermes',
     versionCode: env[stage].ANDROID_VERSION_CODE,
+    userInterfaceStyle: 'automatic',
     icon: './assets/icon-android.png',
     adaptiveIcon: {
       foregroundImage: './assets/icon-android.png',

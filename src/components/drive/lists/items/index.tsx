@@ -1,24 +1,25 @@
-import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, TouchableHighlight, Animated, Easing } from 'react-native';
+import { useEffect } from 'react';
+import { Animated, Easing, Text, TouchableHighlight, TouchableOpacity, View } from 'react-native';
 
-import { FolderIcon, getFileTypeIcon } from '../../../../helpers';
-import prettysize from 'prettysize';
-import { useAppSelector } from '../../../../store/hooks';
-import { ArrowCircleUp, DotsThree, Link } from 'phosphor-react-native';
-import strings from '../../../../../assets/lang/strings';
-import ProgressBar from '../../../AppProgressBar';
 import { items } from '@internxt/lib';
+import { ArrowCircleUp, DotsThree, Link } from 'phosphor-react-native';
+import prettysize from 'prettysize';
+import strings from '../../../../../assets/lang/strings';
+import { FolderIcon, getFileTypeIcon } from '../../../../helpers';
+import { useAppSelector } from '../../../../store/hooks';
+import ProgressBar from '../../../AppProgressBar';
 import AppText from '../../../AppText';
 
-import { DriveItemProps, DriveListType } from '../../../../types/drive';
-import useDriveItem from '../../../../hooks/useDriveItem';
+import { time } from '@internxt-mobile/services/common/time';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../hooks/useColor';
-import { time } from '@internxt-mobile/services/common/time';
+import useDriveItem from '../../../../hooks/useDriveItem';
+import { DriveItemProps, DriveListType } from '../../../../types/drive';
 
 function DriveItemTable(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+
   const { selectedItems } = useAppSelector((state) => state.drive);
   const isSelectionMode = selectedItems.length > 0;
   const spinValue = new Animated.Value(1);
@@ -49,14 +50,16 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
       onItemPressed();
     }
   };
+
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={getColor('text-gray-5')}
+      underlayColor={getColor('bg-gray-5')}
       onLongPress={onItemLongPressed}
       onPress={handleItemPress}
+      style={{ backgroundColor: getColor('bg-surface') }}
     >
-      <View style={[tailwind('flex-row pl-5')]}>
+      <View style={[tailwind('flex-row pl-5'), { backgroundColor: getColor('bg-surface') }]}>
         <View style={[tailwind('flex-row flex-1 py-3')]}>
           <View style={[tailwind('mb-1 mr-4 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
             {isFolder ? (
@@ -67,14 +70,22 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
             {props.type === DriveListType.Shared && (
               <View
                 style={[
-                  tailwind('absolute -bottom-1 -right-2 flex bg-white items-center justify-center rounded-full'),
-                  { width: 20, height: 20 },
+                  tailwind('absolute -bottom-1 -right-2 flex items-center justify-center rounded-full'),
+                  {
+                    width: 20,
+                    height: 20,
+                    backgroundColor: getColor('bg-surface'),
+                  },
                 ]}
               >
                 <View
                   style={[
-                    tailwind('bg-primary rounded-full flex items-center justify-center'),
-                    { width: 16, height: 16 },
+                    tailwind('rounded-full flex items-center justify-center'),
+                    {
+                      width: 16,
+                      height: 16,
+                      backgroundColor: getColor('text-primary'),
+                    },
                   ]}
                 >
                   <Link weight="bold" size={10} color={getColor('text-white')} />
@@ -85,7 +96,11 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
 
           <View style={[tailwind('flex-1 flex items-start justify-center')]}>
             <AppText
-              style={[tailwind('text-left text-base text-gray-100'), isUploading && tailwind('opacity-40')]}
+              style={[
+                tailwind('text-left text-base'),
+                { color: getColor('text-gray-100') },
+                isUploading && tailwind('opacity-40'),
+              ]}
               numberOfLines={1}
               ellipsizeMode={'middle'}
               medium
@@ -95,11 +110,13 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
 
             {isUploading &&
               (props.progress === 0 ? (
-                <Text style={tailwind('text-xs text-primary')}>{strings.screens.drive.encrypting}</Text>
+                <Text style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
+                  {strings.screens.drive.encrypting}
+                </Text>
               ) : (
                 <View style={tailwind('flex-row items-center')}>
                   <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
-                  <AppText style={tailwind('ml-1.5 text-xs text-primary')}>
+                  <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
                     {((props.progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
                   <ProgressBar
@@ -118,10 +135,23 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
               ) : (
                 <View style={tailwind('flex flex-row items-center')}>
                   {!isFolder && (
-                    <AppText style={tailwind('text-xs text-gray-60')}>{prettysize(props.data.size || 0)}</AppText>
+                    <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+                      {prettysize(props.data.size || 0)}
+                    </AppText>
                   )}
-                  {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
-                  <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+                  {!isFolder && (
+                    <View
+                      style={[
+                        tailwind('rounded-full mx-1.5'),
+                        {
+                          width: 3,
+                          height: 3,
+                          backgroundColor: getColor('text-gray-60'),
+                        },
+                      ]}
+                    />
+                  )}
+                  <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
                 </View>
               ))}
           </View>

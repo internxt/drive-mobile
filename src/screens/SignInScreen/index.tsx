@@ -23,6 +23,7 @@ import { RootStackScreenProps } from '../../types/navigation';
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+
   const dispatch = useAppDispatch();
   const { keyboardShown } = useKeyboard();
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -36,6 +37,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const animatedHeight = useRef(new Animated.Value(0));
   const passwordInputRef = useRef<TextInput>(null);
   const [failed2FA, setFailed2FA] = useState(false);
+
   useEffect(() => {
     if (!twoFactorCode.length) {
       setFailed2FA(false);
@@ -66,6 +68,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const focusPassword = () => {
     passwordInputRef.current?.focus();
   };
+
   const onSignInButtonPressed = async () => {
     setIsSubmitted(true);
     if (!email || !password) {
@@ -117,10 +120,10 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       });
 
       setIsLoading(false);
-
       setErrors({ loginFailed: castedError.message });
     }
   };
+
   const onGoToSignUpButtonPressed = () => {
     setErrors({});
     navigation.navigate('SignUp');
@@ -133,8 +136,8 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         : errors['email'] || errors['password'] || errors['loginFailed'];
       return (
         <View style={tailwind('flex flex-row items-center mt-0.5')}>
-          <WarningCircle weight="fill" color={tailwind('text-red').color as string} size={13} />
-          <AppText style={tailwind('text-sm text-red ml-1')}>{errorMessage}</AppText>
+          <WarningCircle weight="fill" color={getColor('text-red')} size={13} />
+          <AppText style={[tailwind('text-sm ml-1'), { color: getColor('text-red') }]}>{errorMessage}</AppText>
         </View>
       );
     }
@@ -143,13 +146,20 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const hasErrors = (errors['loginFailed'] || errors['email'] || errors['password']) && isSubmitted;
 
   return (
-    <AppScreen safeAreaTop safeAreaBottom style={tailwind('h-full px-6')}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={tailwind('h-full')}>
+    <AppScreen
+      safeAreaTop
+      safeAreaBottom
+      style={[tailwind('h-full px-6'), { backgroundColor: getColor('bg-surface') }]}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[tailwind('h-full px-6'), { backgroundColor: getColor('bg-surface') }]}
+      >
         <View style={tailwind('h-12')} />
 
         <View>
           <View style={tailwind('mb-5')}>
-            <AppText medium style={tailwind('text-2xl text-gray-100')}>
+            <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
               {strings.screens.SignInScreen.title}
             </AppText>
           </View>
@@ -228,15 +238,34 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
             <TouchableWithoutFeedback onPress={() => navigation.navigate('ForgotPassword')}>
               <View style={tailwind('w-64 text-sm')}>
-                <AppText medium style={tailwind('text-center text-primary')}>
+                <AppText medium style={[tailwind('text-center'), { color: getColor('text-primary') }]}>
                   {strings.screens.SignInScreen.forgot}
                 </AppText>
               </View>
             </TouchableWithoutFeedback>
-            <View style={tailwind('border-b border-gray-10 my-6 w-full')}></View>
-            <AppText style={tailwind('text-sm bg-transparent mb-4')}>
+
+            <View
+              style={[
+                tailwind('my-6 w-full'),
+                {
+                  borderBottomWidth: 1,
+                  borderBottomColor: getColor('border-gray-10'),
+                },
+              ]}
+            />
+
+            <AppText
+              style={[
+                tailwind('text-sm mb-4'),
+                {
+                  backgroundColor: 'transparent',
+                  color: getColor('text-gray-80'),
+                },
+              ]}
+            >
               {strings.screens.SignInScreen.no_register}{' '}
             </AppText>
+
             <AppButton
               style={tailwind('w-full py-0 h-11')}
               type="white"

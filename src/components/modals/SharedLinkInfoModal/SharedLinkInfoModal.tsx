@@ -1,29 +1,29 @@
 import prettysize from 'prettysize';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles/global';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
+import globalStyle from '../../../styles/global';
 
-import BottomModalOption from '../../BottomModalOption';
-import BottomModal from '../BottomModal';
-import { Link, Copy, LinkBreak } from 'phosphor-react-native';
+import { Copy, Link, LinkBreak } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import BottomModalOption from '../../BottomModalOption';
+import BottomModal from '../BottomModal';
 
-import { time } from '@internxt-mobile/services/common/time';
-import AppText from 'src/components/AppText';
 import { useUseCase } from '@internxt-mobile/hooks/common';
+import { time } from '@internxt-mobile/services/common/time';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import CenterModal from '../CenterModal';
-import AppButton from 'src/components/AppButton';
-import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 import { setStringAsync } from 'expo-clipboard';
+import AppButton from 'src/components/AppButton';
+import AppText from 'src/components/AppText';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
+import CenterModal from '../CenterModal';
+import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 
 export function SharedLinkInfoModal(): JSX.Element {
   const { executeUseCase: shareExistingShareLink } = useUseCase(driveUseCases.shareExistingShareLink, { lazy: true });
@@ -99,12 +99,12 @@ export function SharedLinkInfoModal(): JSX.Element {
 
   const options = [
     {
-      icon: <Copy size={20} color={getColor('text-gray-100')} />,
+      icon: <Copy size={20} color={getColor('text-gray-80')} />,
       label: strings.buttons.copyLink,
       onPress: handleCopyLink,
     },
     {
-      icon: <Link size={20} color={getColor('text-gray-100')} />,
+      icon: <Link size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.shareLink,
       onPress: handleShareLink,
     },
@@ -114,8 +114,8 @@ export function SharedLinkInfoModal(): JSX.Element {
     //   onPress: handleShareLinkSettingsPress,
     // },
     {
-      icon: <LinkBreak size={20} color={getColor('text-red-dark')} />,
-      textStyle: tailwind('text-red-dark'),
+      icon: <LinkBreak size={20} color={getColor('text-red')} />,
+      textStyle: { color: getColor('text-red') },
       label: strings.components.file_and_folder_options.deleteLink,
       onPress: () => setConfirmDeleteModalOpen(true),
     },
@@ -128,18 +128,30 @@ export function SharedLinkInfoModal(): JSX.Element {
     // eslint-disable-next-line quotes
     return time.getFormattedDate(item.updatedAt, "dd LLL yyyy 'at' HH:mm");
   };
+
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
         {isFolder ? <FolderIcon width={40} height={40} /> : <FileIcon width={40} height={40} />}
         <View
           style={[
-            tailwind('absolute -bottom-1 -right-2 flex bg-gray-5 items-center justify-center rounded-full'),
-            { width: 20, height: 20 },
+            tailwind('absolute -bottom-1 -right-2 flex items-center justify-center rounded-full'),
+            {
+              width: 20,
+              height: 20,
+              backgroundColor: getColor('bg-gray-5'),
+            },
           ]}
         >
           <View
-            style={[tailwind('bg-primary rounded-full flex items-center justify-center'), { width: 16, height: 16 }]}
+            style={[
+              tailwind('rounded-full flex items-center justify-center'),
+              {
+                width: 16,
+                height: 16,
+                backgroundColor: getColor('text-primary'),
+              },
+            ]}
           >
             <Link weight="bold" size={10} color={getColor('text-white')} />
           </View>
@@ -150,14 +162,27 @@ export function SharedLinkInfoModal(): JSX.Element {
         <Text
           numberOfLines={1}
           ellipsizeMode="middle"
-          style={[tailwind('text-base text-gray-100'), globalStyle.fontWeight.medium]}
+          style={[tailwind('text-base'), { color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}
         >
           {getDisplayName()}
         </Text>
         <View style={tailwind('flex flex-row items-center')}>
-          <AppText style={tailwind('text-xs text-gray-60')}>{!isFolder && <>{prettysize(item?.size || 0)}</>}</AppText>
-          {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
-          <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+            {!isFolder && <>{prettysize(item?.size || 0)}</>}
+          </AppText>
+          {!isFolder && (
+            <View
+              style={[
+                tailwind('rounded-full mx-1.5'),
+                {
+                  width: 3,
+                  height: 3,
+                  backgroundColor: getColor('bg-gray-60'),
+                },
+              ]}
+            />
+          )}
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
         </View>
       </View>
     </View>
@@ -169,9 +194,10 @@ export function SharedLinkInfoModal(): JSX.Element {
         isOpen={isSharedLinkOptionsModalOpen}
         onClosed={() => dispatch(uiActions.setIsSharedLinkOptionsModalOpen(false))}
         header={header}
+        style={{ backgroundColor: getColor('bg-surface') }}
       >
         <View style={tailwind('flex-grow')}>
-          <View style={tailwind('border-t border-gray-5 overflow-hidden')}>
+          <View style={[tailwind('border-t overflow-hidden'), { borderTopColor: getColor('border-gray-10') }]}>
             {options.map((opt, index) => {
               return (
                 <BottomModalOption
@@ -179,7 +205,9 @@ export function SharedLinkInfoModal(): JSX.Element {
                   leftSlot={opt.icon}
                   rightSlot={
                     <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                      <AppText style={[tailwind('text-lg text-gray-100'), opt.textStyle]}>{opt.label}</AppText>
+                      <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-100') }, opt.textStyle]}>
+                        {opt.label}
+                      </AppText>
                     </View>
                   }
                   hideBorderBottom={index === options.length - 1}
@@ -196,11 +224,11 @@ export function SharedLinkInfoModal(): JSX.Element {
         onClose={() => setSharedLinkSettingsModalOpen(false)}
       />
       <CenterModal isOpen={confirmDeleteModalOpen} onClosed={() => setConfirmDeleteModalOpen(false)}>
-        <View style={tailwind('bg-white rounded-xl p-4')}>
-          <AppText style={tailwind('text-xl mb-4')} medium>
+        <View style={[tailwind('rounded-xl p-4'), { backgroundColor: getColor('bg-surface') }]}>
+          <AppText style={[tailwind('text-xl mb-4'), { color: getColor('text-gray-100') }]} medium>
             {strings.modals.deleteShareLink.title}
           </AppText>
-          <AppText style={tailwind('mb-6 mt-0')}>
+          <AppText style={[tailwind('mb-6 mt-0'), { color: getColor('text-gray-80') }]}>
             {strings.formatString(strings.messages.confirmDeleteSharedLink, getDisplayName())}
           </AppText>
           <View style={tailwind('flex flex-row')}>

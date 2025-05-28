@@ -5,6 +5,7 @@ import drive from '@internxt-mobile/services/drive';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
+import useGetColor from '../../../hooks/useColor';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
@@ -18,8 +19,10 @@ interface CreateFolderModalProps extends BaseModalProps {
   onCancel: () => void;
   currentFolderUuid: string;
 }
+
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,9 +30,11 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
     if (isLoading) return;
     props.onCancel();
   };
+
   const onClosed = () => {
     setFolderName(strings.screens.create_folder.defaultName);
   };
+
   const onCreateFolderButtonPressed = () => {
     setIsLoading(true);
 
@@ -61,8 +66,8 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
 
   return (
     <CenterModal isOpen={props.isOpen} onClosed={onClosed}>
-      <View style={tailwind('p-4')}>
-        <AppText style={tailwind('text-xl mb-6')} medium>
+      <View style={[tailwind('p-4 rounded-xl'), { backgroundColor: getColor('bg-surface') }]}>
+        <AppText style={[tailwind('text-xl mb-6'), { color: getColor('text-gray-100') }]} medium>
           {strings.modals.CreateFolder.title}
         </AppText>
 

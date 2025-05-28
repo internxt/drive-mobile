@@ -30,6 +30,7 @@ function RenameModal(): JSX.Element {
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const isFolder = focusedItem?.type ? false : true;
+
   const onItemRenameSuccess = () => {
     /**
      * Weird stuff over here
@@ -53,15 +54,18 @@ function RenameModal(): JSX.Element {
     notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
     setNewName('');
   };
+
   const onItemRenameFinally = () => {
     dispatch(uiActions.setShowRenameModal(false));
     dispatch(uiActions.setShowItemModal(false));
     setIsLoading(false);
   };
+
   const onCancelButtonPressed = () => {
     dispatch(driveActions.deselectAll());
     dispatch(uiActions.setShowRenameModal(false));
   };
+
   const onRenameButtonPressed = async () => {
     try {
       setIsLoading(true);
@@ -97,6 +101,7 @@ function RenameModal(): JSX.Element {
     dispatch(uiActions.setShowRenameModal(false));
     setNewName('');
   };
+
   const onOpened = () => {
     setNewName(focusedItem?.name || '');
   };
@@ -105,7 +110,7 @@ function RenameModal(): JSX.Element {
     <Portal>
       <CenterModal backdropPressToClose={false} isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
         <View style={tailwind('flex-grow px-4 py-4')}>
-          <AppText medium style={tailwind('text-gray-100 mb-4 text-xl')}>
+          <AppText medium style={[tailwind('mb-4 text-xl'), { color: getColor('text-gray-100') }]}>
             {strings.modals.rename.title}
           </AppText>
           <View style={tailwind('flex-grow justify-center mb-5')}>

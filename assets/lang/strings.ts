@@ -256,6 +256,8 @@ const strings = new LocalizedStrings({
         legal: 'Legal',
         debug: 'Debug',
         signOut: 'Log out',
+        darkMode: 'Dark mode',
+        darkModeDescription: 'Change the app theme',
       },
       AccountScreen: {
         title: 'Account',
@@ -958,6 +960,8 @@ const strings = new LocalizedStrings({
         legal: 'Legal',
         debug: 'Debug',
         signOut: 'Cerrar sesión',
+        darkMode: 'Modo oscuro',
+        darkModeDescription: 'Cambiar apariencia de la aplicación',
       },
       AccountScreen: {
         title: 'Cuenta',

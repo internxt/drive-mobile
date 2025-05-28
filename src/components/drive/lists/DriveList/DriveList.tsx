@@ -1,18 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, useWindowDimensions, ViewStyle, FlatList } from 'react-native';
 import _ from 'lodash';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FlatList, useWindowDimensions, View, ViewStyle } from 'react-native';
 
-import { DriveListModeItem } from '../items/DriveListModeItem';
-import { DriveGridModeItem } from '../items/DriveGridModeItem';
-import DriveItemSkinSkeleton from '../../../DriveItemSkinSkeleton';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
+import { useTailwind } from 'tailwind-rn';
 import EmptyDriveImage from '../../../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../../../assets/images/screens/empty-folder.svg';
 import NoResultsImage from '../../../../../assets/images/screens/no-results.svg';
-import EmptyList from '../../../EmptyList';
 import strings from '../../../../../assets/lang/strings';
-import { DriveListType, DriveListViewMode, DriveListItem } from '../../../../types/drive';
-import { useTailwind } from 'tailwind-rn';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
+import useGetColor from '../../../../hooks/useColor';
+import { DriveListItem, DriveListType, DriveListViewMode } from '../../../../types/drive';
+import DriveItemSkinSkeleton from '../../../DriveItemSkinSkeleton';
+import EmptyList from '../../../EmptyList';
+import { DriveGridModeItem } from '../items/DriveGridModeItem';
+import { DriveListModeItem } from '../items/DriveListModeItem';
+
 interface DriveListProps {
   type?: DriveListType;
   viewMode: DriveListViewMode;
@@ -35,6 +37,8 @@ interface DriveListProps {
 
 export function DriveList(props: DriveListProps): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+
   const [refreshing, setRefreshing] = useState(false);
   const { width } = useWindowDimensions();
   const isGrid = props.viewMode === DriveListViewMode.Grid;
@@ -85,7 +89,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
   function renderEmptyState() {
     if (props.isLoading || !props.items) {
       return (
-        <View style={tailwind('h-full w-full')}>
+        <View style={[tailwind('h-full w-full'), { backgroundColor: getColor('bg-surface') }]}>
           {_.times(20, (n) => (
             <View style={tailwind(`${props.viewMode === DriveListViewMode.Grid ? 'h-auto' : 'h-16'} `)} key={n}>
               <DriveItemSkinSkeleton viewMode={props.viewMode} />
@@ -126,7 +130,13 @@ export function DriveList(props: DriveListProps): JSX.Element {
   function renderItem({ item }: { item: DriveListItem }) {
     return (
       <View
-        style={[tailwind('flex justify-center'), { width: props.viewMode === DriveListViewMode.List ? '100%' : '33%' }]}
+        style={[
+          tailwind('flex justify-center'),
+          {
+            width: props.viewMode === DriveListViewMode.List ? '100%' : '33%',
+            backgroundColor: getColor('bg-surface'),
+          },
+        ]}
       >
         <ItemComponent
           type={props.type || DriveListType.Drive}
@@ -143,27 +153,49 @@ export function DriveList(props: DriveListProps): JSX.Element {
               : undefined
           }
         />
-        {isGrid ? <View></View> : <View style={{ height: 1, ...tailwind('bg-gray-1 mx-4') }}></View>}
+        {isGrid ? (
+          <View />
+        ) : (
+          <View
+            style={{
+              height: 1,
+              backgroundColor: getColor('bg-gray-1'),
+              marginHorizontal: 16,
+            }}
+          />
+        )}
       </View>
     );
   }
 
   return (
     <FlatList
+      style={{ backgroundColor: getColor('bg-surface') }}
       getItemLayout={(_, index) => {
         return { length: sizeByMode[props.viewMode].height, offset: sizeByMode[props.viewMode].height * index, index };
       }}
       refreshing={refreshing}
       onRefresh={handleOnRefresh}
-      ListEmptyComponent={<View style={tailwind('h-full')}>{renderEmptyState() as React.ReactElement}</View>}
+      ListEmptyComponent={
+        <View style={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}>
+          {renderEmptyState() as React.ReactElement}
+        </View>
+      }
       key={props.viewMode}
       numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
       renderItem={renderItem}
       contentContainerStyle={{
         ...{ flex: props.items?.length ? 0 : 1 },
         ...(props.viewMode === DriveListViewMode.Grid
-          ? { ...tailwind('py-6 ml-2'), ...props.contentContainerStyle }
-          : props.contentContainerStyle),
+          ? {
+              ...tailwind('py-6 ml-2'),
+              ...props.contentContainerStyle,
+              backgroundColor: getColor('bg-surface'),
+            }
+          : {
+              ...props.contentContainerStyle,
+              backgroundColor: getColor('bg-surface'),
+            }),
       }}
       onEndReachedThreshold={0.5}
       onEndReached={handleOnScrollEnd}
