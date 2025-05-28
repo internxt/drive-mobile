@@ -300,50 +300,51 @@ function DriveItemInfoModal(): JSX.Element {
       setExporting(false);
     }
   };
+
   const options = [
     {
       visible: false,
-      icon: <Eye size={20} color={getColor('text-gray-100')} />,
+      icon: <Eye size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.open,
       onPress: handleOpenItem,
     },
     {
-      icon: <PencilSimple size={20} color={getColor('text-gray-100')} />,
+      icon: <PencilSimple size={20} color={getColor('text-gray-80')} />,
       label: strings.buttons.rename,
       onPress: handleRenameItem,
     },
     {
-      icon: <ArrowsOutCardinal size={20} color={getColor('text-gray-100')} />,
+      icon: <ArrowsOutCardinal size={20} color={getColor('text-gray-80')} />,
       label: strings.buttons.move,
       onPress: handleMoveItem,
     },
     {
       visible: !isFolder,
-      icon: <ArrowSquareOut size={20} color={getColor('text-gray-100')} />,
+      icon: <ArrowSquareOut size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.exportFile,
       onPress: handleExportFile,
       disabled: exporting,
     },
     {
       visible: Platform.OS === 'ios' && !isFolder,
-      icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
+      icon: <DownloadSimple size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.saveToFiles,
       onPress: handleiOSSaveToFiles,
     },
     {
       visible: Platform.OS === 'android' && !isFolder,
-      icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
+      icon: <DownloadSimple size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.downloadFile,
       onPress: handleAndroidDownloadFile,
     },
     {
-      icon: <Link size={20} color={getColor('text-gray-100')} />,
+      icon: <Link size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.getLink,
       onPress: handleGenerateShareLink,
     },
     {
-      icon: <Trash size={20} color={getColor('text-red-dark')} />,
-      textStyle: tailwind('text-red-dark'),
+      icon: <Trash size={20} color={getColor('text-red')} />,
+      textStyle: { color: getColor('text-red') },
       label: strings.components.file_and_folder_options.delete,
       onPress: handleTrashItem,
     },
@@ -373,6 +374,7 @@ function DriveItemInfoModal(): JSX.Element {
     const totalBytesStr = prettysize(downloadProgress.totalBytes);
     return `${bytesReceivedStr} ${strings.modals.downloadingFile.of} ${totalBytesStr}`;
   };
+
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
@@ -383,15 +385,28 @@ function DriveItemInfoModal(): JSX.Element {
         <AppText
           numberOfLines={1}
           ellipsizeMode="middle"
-          style={[tailwind('text-base text-gray-100'), globalStyle.fontWeight.medium]}
+          style={[tailwind('text-base'), { color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}
         >
           {item?.name}
           {item?.type ? '.' + item.type : ''}
         </AppText>
         <View style={tailwind('flex flex-row items-center')}>
-          <AppText style={tailwind('text-xs text-gray-60')}>{!isFolder && <>{prettysize(item?.size || 0)}</>}</AppText>
-          {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
-          <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+            {!isFolder && <>{prettysize(item?.size || 0)}</>}
+          </AppText>
+          {!isFolder && (
+            <View
+              style={[
+                tailwind('rounded-full mx-1.5'),
+                {
+                  width: 3,
+                  height: 3,
+                  backgroundColor: getColor('bg-gray-60'),
+                },
+              ]}
+            />
+          )}
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
         </View>
       </View>
     </View>
@@ -399,9 +414,15 @@ function DriveItemInfoModal(): JSX.Element {
 
   return (
     <Portal>
-      <BottomModal isOpen={showItemModal} onClosed={() => dispatch(uiActions.setShowItemModal(false))} header={header}>
-        <View style={tailwind('flex-grow')}>
-          <View style={tailwind('border-t border-gray-5 overflow-hidden')}>
+      <BottomModal
+        safeAreaColor={getColor('bg-surface')}
+        style={{ backgroundColor: getColor('bg-gray-5') }}
+        isOpen={showItemModal}
+        onClosed={() => dispatch(uiActions.setShowItemModal(false))}
+        header={header}
+      >
+        <View style={tailwind('p-4')}>
+          <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
             {options
               .filter((opt) => opt.visible !== false)
               .map((opt, index) => {
@@ -412,7 +433,9 @@ function DriveItemInfoModal(): JSX.Element {
                     leftSlot={opt.icon}
                     rightSlot={
                       <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                        <AppText style={[tailwind('text-lg text-gray-100'), opt.textStyle]}>{opt.label}</AppText>
+                        <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-100') }, opt.textStyle]}>
+                          {opt.label}
+                        </AppText>
                       </View>
                     }
                     hideBorderBottom={index === options.length - 1}
@@ -437,20 +460,27 @@ function DriveItemInfoModal(): JSX.Element {
       >
         <>
           <View style={tailwind('mt-6 mb-4 mx-6')}>
-            <AppText medium style={tailwind('text-lg text-center text-gray-100')}>
+            <AppText medium style={[tailwind('text-lg text-center'), { color: getColor('text-gray-100') }]}>
               {strings.modals.downloadingFile.title}
             </AppText>
 
-            <AppText style={tailwind('text-center text-gray-50 mt-1')}>{getDownloadProgressMessage()}</AppText>
+            <AppText style={[tailwind('text-center mt-1'), { color: getColor('text-gray-50') }]}>
+              {getDownloadProgressMessage()}
+            </AppText>
           </View>
           <View style={tailwind('mx-6 mb-6')}>
             <AppProgressBar totalValue={1} height={4} currentValue={downloadProgress.progress} />
           </View>
           <TouchableOpacity
             onPress={handleAbortDownload}
-            style={tailwind('h-14 flex items-center justify-center border-t border-gray-10')}
+            style={[
+              tailwind('h-14 flex items-center justify-center border-t'),
+              { borderTopColor: getColor('border-gray-10') },
+            ]}
           >
-            <AppText medium>{strings.buttons.cancel}</AppText>
+            <AppText medium style={{ color: getColor('text-gray-100') }}>
+              {strings.buttons.cancel}
+            </AppText>
           </TouchableOpacity>
         </>
       </CenterModal>

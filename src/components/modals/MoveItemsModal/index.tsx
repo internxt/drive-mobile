@@ -3,7 +3,7 @@ import { DriveFileData, DriveFolderData, FetchFolderContentResponse } from '@int
 import _ from 'lodash';
 import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Platform, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -37,10 +37,6 @@ import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
 import CreateFolderModal from '../CreateFolderModal';
 import SortModal, { SortMode } from '../SortModal';
 
-const colors = {
-  primary: '#0066FF',
-};
-
 const INITIAL_SORT_MODE: SortMode = {
   direction: SortDirection.Asc,
   type: SortType.Name,
@@ -49,6 +45,7 @@ const INITIAL_SORT_MODE: SortMode = {
 function MoveItemsModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+
   const driveCtx = useDrive();
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const dispatch = useAppDispatch();
@@ -170,8 +167,6 @@ function MoveItemsModal(): JSX.Element {
   };
   const cleanUp = async (options?: { shouldRefreshFolder: boolean }) => {
     if (options?.shouldRefreshFolder) {
-      // TODO: Review Drive types, make stronger
-      // definitions, this is getting confuse
       if (originFolderContentResponse?.id) {
         await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
         await driveCtx.loadFolderContent(originFolderContentResponse.uuid, {
@@ -213,8 +208,6 @@ function MoveItemsModal(): JSX.Element {
     try {
       if (originFolderId) {
         const response = await drive.folder.getFolderContentByUuid(originFolderId);
-
-        // Need to mach type = FetchFolderContentResponse & { uuid: string; parentUuid: string }
         setOriginFolderContentResponse(response as any);
       }
     } catch (e) {
@@ -254,7 +247,7 @@ function MoveItemsModal(): JSX.Element {
     return (
       <TouchableOpacity onPress={onSortButtonPressed} style={tailwind('px-4 mt-3')}>
         <View style={tailwind('py-1 flex-row items-center')}>
-          <AppText medium style={tailwind('text-sm text-gray-60 mr-1')}>
+          <AppText medium style={[tailwind('text-sm mr-1'), { color: getColor('text-gray-60') }]}>
             {strings.screens.drive.sort[sortMode.type]}
           </AppText>
           {sortMode.direction === SortDirection.Asc ? (
@@ -271,7 +264,7 @@ function MoveItemsModal(): JSX.Element {
       return <></>;
     }
     return (
-      <View style={tailwind('h-full')}>
+      <View style={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}>
         {_.times(20, (n) => (
           <DriveItemSkinSkeleton key={n} />
         ))}
@@ -292,21 +285,22 @@ function MoveItemsModal(): JSX.Element {
         isOpen={showMoveModal}
         onClosed={onCloseMoveModal}
         style={[
-          tailwind('bg-white rounded-t-2xl overflow-hidden'),
+          tailwind('rounded-t-2xl overflow-hidden'),
           {
             height: modalHeight,
+            backgroundColor: getColor('bg-surface'),
           },
         ]}
       >
-        <View style={tailwind('h-full flex flex-col')}>
+        <View style={[tailwind('h-full flex flex-col'), { backgroundColor: getColor('bg-surface') }]}>
           <View style={tailwind('flex flex-row justify-between')}>
             {canGoBack ? (
               <TouchableOpacity onPress={onNavigateBack} style={tailwind('py-4 px-5 flex items-center justify-center')}>
-                <CaretLeft size={28} />
+                <CaretLeft size={28} color={getColor('text-gray-100')} />
               </TouchableOpacity>
             ) : null}
             <View style={tailwind('px-5 flex items-center justify-center')}>
-              <AppText medium style={tailwind('text-xl text-gray-80')}>
+              <AppText medium style={[tailwind('text-xl'), { color: getColor('text-gray-80') }]}>
                 {getHeaderName()}
               </AppText>
             </View>
@@ -314,7 +308,7 @@ function MoveItemsModal(): JSX.Element {
               style={tailwind('py-4 px-5 flex items-center justify-center')}
               onPress={onCancelButtonPressed}
             >
-              <X size={28} />
+              <X size={28} color={getColor('text-gray-100')} />
             </TouchableOpacity>
           </View>
 
@@ -325,7 +319,15 @@ function MoveItemsModal(): JSX.Element {
             ListHeaderComponent={renderListHeader()}
             data={folderItems}
             ItemSeparatorComponent={() => {
-              return <View style={{ height: 1, ...tailwind('bg-gray-1 mx-4') }}></View>;
+              return (
+                <View
+                  style={{
+                    height: 1,
+                    backgroundColor: getColor('bg-gray-1'),
+                    marginHorizontal: 16,
+                  }}
+                />
+              );
             }}
             ListEmptyComponent={renderListEmpty()}
             renderItem={({ item }) => {
@@ -342,19 +344,36 @@ function MoveItemsModal(): JSX.Element {
               );
             }}
             keyExtractor={(folder) => folder.data.id.toString()}
+            style={{ backgroundColor: getColor('bg-surface') }}
           />
 
           <AppSeparator style={tailwind('mb-3')} />
 
-          <View style={[tailwind('flex justify-between flex-row px-8'), { marginBottom: safeInsets.bottom }]}>
+          <View
+            style={[
+              tailwind('flex justify-between flex-row px-8'),
+              {
+                marginBottom: safeInsets.bottom,
+                backgroundColor: getColor('bg-surface'),
+              },
+            ]}
+          >
             <TouchableOpacity activeOpacity={0.7} onPress={onCreateNewFolder}>
-              <AppText medium style={[styles.text, tailwind('text-lg')]}>
+              <AppText medium style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
                 {strings.buttons.newFolder}
               </AppText>
             </TouchableOpacity>
 
             <TouchableOpacity activeOpacity={0.7} onPress={onMoveButtonPressed} disabled={moveIsDisabled()}>
-              <AppText medium style={[styles.text, tailwind(`text-lg ${moveIsDisabled() ? 'text-gray-30' : ''} `)]}>
+              <AppText
+                medium
+                style={[
+                  tailwind('text-lg'),
+                  {
+                    color: moveIsDisabled() ? getColor('text-gray-30') : getColor('text-primary'),
+                  },
+                ]}
+              >
                 {strings.buttons.moveHere}
               </AppText>
             </TouchableOpacity>
@@ -395,11 +414,5 @@ function MoveItemsModal(): JSX.Element {
     </Portal>
   );
 }
-
-const styles = StyleSheet.create({
-  text: {
-    color: colors.primary,
-  },
-});
 
 export default MoveItemsModal;

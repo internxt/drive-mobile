@@ -1,6 +1,6 @@
-import React from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 
 interface TabsProps {
@@ -11,6 +11,7 @@ interface TabsProps {
 
 const Tabs = (props: TabsProps): JSX.Element => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const headers = props.tabs.map((tab) => {
     const isActive = tab.id === props.value;
 
@@ -21,7 +22,9 @@ const Tabs = (props: TabsProps): JSX.Element => {
         style={[tailwind('relative top-1 px-2 pb-1')]}
         onPress={() => props.onTabChanged(tab.id)}
       >
-        <AppText style={[tailwind('text-lg'), isActive ? tailwind('text-gray-100') : tailwind('text-gray-80')]}>
+        <AppText
+          style={[tailwind('text-lg'), { color: isActive ? getColor('text-gray-100') : getColor('text-gray-80') }]}
+        >
           {tab.title}
         </AppText>
 

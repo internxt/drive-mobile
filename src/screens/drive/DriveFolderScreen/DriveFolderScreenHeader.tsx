@@ -73,14 +73,19 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
             </View>
             <View style={tailwind('items-center justify-center')}>
               <TouchableOpacity style={tailwind('p-2')} onPress={props.onFolderActionsPress}>
-                <DotsThree weight="bold" color={getColor('text-gray-100')} size={24} />
+                <DotsThree weight="bold" color={getColor('text-gray-80')} size={24} />
               </TouchableOpacity>
             </View>
           </View>
         </View>
       )}
       <View style={[tailwind('px-4'), { marginBottom: 14 }]}>
-        <AppText style={tailwind('text-2xl')} medium ellipsizeMode="tail" numberOfLines={1}>
+        <AppText
+          style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}
+          medium
+          ellipsizeMode="tail"
+          numberOfLines={1}
+        >
           {props.title}
         </AppText>
       </View>
@@ -96,7 +101,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       <View style={[tailwind('flex-row justify-between items-center px-4')]}>
         <TouchableOpacity onPress={onSortButtonPress}>
           <View style={tailwind('flex-row items-center')}>
-            <AppText style={tailwind('text-base text-gray-80 mr-1')}>
+            <AppText style={[tailwind('text-base mr-1'), { color: getColor('text-gray-80') }]}>
               {strings.screens.drive.sort[sortMode.type]}
             </AppText>
             {sortMode.direction === SortDirection.Asc ? (

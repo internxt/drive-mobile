@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import GestureRecognizer from 'react-native-swipe-gestures';
 
-import strings from '../../../assets/lang/strings';
-import AppProgressBar from '../../components/AppProgressBar';
-import AppScreenTitle from '../../components/AppScreenTitle';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { INFINITE_PLAN } from '../../types';
-import AppScreen from '../../components/AppScreen';
-import { SettingsScreenProps } from '../../types/navigation';
-import { useTailwind } from 'tailwind-rn';
-import AppText from '../../components/AppText';
-import useGetColor from '../../hooks/useColor';
-import { uiActions } from 'src/store/slices/ui';
+import AppButton from 'src/components/AppButton';
 import SettingsGroup from 'src/components/SettingsGroup';
 import storageService from 'src/services/StorageService';
-import { storageSelectors } from 'src/store/slices/storage';
-import AppButton from 'src/components/AppButton';
 import { paymentsSelectors } from 'src/store/slices/payments';
+import { storageSelectors } from 'src/store/slices/storage';
+import { uiActions } from 'src/store/slices/ui';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../assets/lang/strings';
+import AppProgressBar from '../../components/AppProgressBar';
+import AppScreen from '../../components/AppScreen';
+import AppScreenTitle from '../../components/AppScreenTitle';
+import AppText from '../../components/AppText';
+import useGetColor from '../../hooks/useColor';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { INFINITE_PLAN } from '../../types';
+import { SettingsScreenProps } from '../../types/navigation';
 
 function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Element {
   const [currentStatusStep, setCurrentStatusStep] = useState(0);
@@ -31,6 +31,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+
   const getLimitString = () => {
     if (limit === 0) {
       return '...';
@@ -42,10 +43,12 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
 
     return storageService.toString(limit);
   };
+
   const onBackButtonPressed = () => navigation.goBack();
   const onUpgradePressed = () => {
     dispatch(uiActions.setIsPlansModalOpen(true));
   };
+
   const statusSteps = [
     () => (
       <>
@@ -66,7 +69,9 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
       </>
     ),
   ];
+
   const renderStatusStep = statusSteps[currentStatusStep];
+
   const onStatusSwipeLeft = () => {
     setCurrentStatusStep(currentStatusStep - 1 < 0 ? statusSteps.length - 1 : currentStatusStep - 1);
   };
@@ -76,16 +81,16 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('bg-surface')} style={tailwind('flex-1 bg-gray-5')}>
       <AppScreenTitle
         text={strings.screens.StorageScreen.title}
-        containerStyle={tailwind('bg-white')}
+        containerStyle={{ backgroundColor: getColor('bg-surface') }}
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
 
-      <ScrollView style={tailwind('flex-1')}>
-        <View style={tailwind('pb-10 px-4 bg-gray-5')}>
+      <ScrollView style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
           {/* STATUS */}
           <GestureRecognizer
             onSwipeLeft={onStatusSwipeLeft}
