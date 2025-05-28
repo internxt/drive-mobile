@@ -177,7 +177,12 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
-      <ScrollView showsVerticalScrollIndicator>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 80,
+        }}
+      >
         <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>
@@ -201,7 +206,6 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
             <AppText style={[tailwind('text-2xl'), { color: getColor('text-gray-80') }]}>{userFullName}</AppText>
             <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-40') }]}>{user?.email}</AppText>
           </View>
-
           {/* PLAN */}
           <SettingsGroup
             title={'Plan'}
@@ -241,10 +245,8 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
               },
             ]}
           />
-
           {/* ACCOUNT DETAILS */}
           <SettingsGroup title={strings.screens.AccountScreen.accountDetails.title} items={accountDetailsItems} />
-
           {/* SECURITY */}
           <SettingsGroup
             title={strings.screens.AccountScreen.security.title}
@@ -266,7 +268,6 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
             ]}
             advice={strings.screens.AccountScreen.security.advice}
           />
-
           {/* DELETE ACCOUNT */}
           <SettingsGroup
             items={[
