@@ -1,5 +1,5 @@
 import * as NavigationBar from 'expo-navigation-bar';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AppStateStatus,
   ColorValue,
@@ -19,7 +19,6 @@ import AppToast from './components/AppToast';
 import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
 import DeleteAccountModal from './components/modals/DeleteAccountModal';
 import EditNameModal from './components/modals/EditNameModal';
-import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import LanguageModal from './components/modals/LanguageModal';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import PlansModal from './components/modals/PlansModal';
@@ -53,7 +52,6 @@ export default function App(): JSX.Element {
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const {
     isLinkCopiedModalOpen,
-    isInviteFriendsModalOpen,
     isDeleteAccountModalOpen,
     isEditNameModalOpen,
     isChangeProfilePictureModalOpen,
@@ -69,7 +67,6 @@ export default function App(): JSX.Element {
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
-  const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
@@ -198,7 +195,6 @@ export default function App(): JSX.Element {
                 <AppToast />
 
                 <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-                <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
                 <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
                 <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
                 <ChangeProfilePictureModal

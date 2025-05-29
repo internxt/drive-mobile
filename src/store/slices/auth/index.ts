@@ -11,7 +11,7 @@ import strings from '../../../../assets/lang/strings';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
 import notificationsService from '../../../services/NotificationsService';
-import { default as userService, default as UserService } from '../../../services/UserService';
+import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
 import { uiActions } from '../ui';
@@ -99,19 +99,11 @@ export const signInThunk = createAsyncThunk<
   { user: UserSettings; token: string; newToken: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
-  let userToSave = payload.user;
+  const userToSave = payload.user;
   SdkManager.init({
     token: payload.token,
     newToken: payload.newToken,
   });
-  if (!payload.user.root_folder_id) {
-    const initializedUser = await UserService.initializeUser(payload.user.email, payload.user.mnemonic);
-
-    userToSave = {
-      ...userToSave,
-      ...initializedUser,
-    };
-  }
 
   // Set the new SDK tokens
   SdkManager.setApiSecurity({
@@ -200,8 +192,11 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
 
 export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/refreshUser',
-  async (payload: void, { dispatch }) => {
-    const { user, token } = await userService.refreshUser();
+  async (payload: void, { dispatch, getState }) => {
+    const { user: currentUserData } = getState().auth;
+
+    const res = await userService.refreshUser(currentUserData?.uuid as string);
+    const { user, oldToken: token } = res;
     const { avatar, emailVerified, name, lastname } = user;
 
     if (avatar) {
