@@ -196,7 +196,7 @@ class AuthService {
 
     const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
 
-    return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) || false;
+    return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
   }
 
   public async doRegister(params: RegisterParams) {
