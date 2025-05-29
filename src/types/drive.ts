@@ -268,7 +268,7 @@ export interface DriveCurrentFolderContent {
 
 export type FolderContentChild = FolderChild;
 
-export type FolderContent = Omit<FetchFolderContentResponse, 'children'> & { uuid: string; parentUuid: string } & {
+export type FolderContent = Omit<FetchFolderContentResponse, 'children'> & {
   children: FolderContentChild[];
 };
 
