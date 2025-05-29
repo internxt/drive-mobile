@@ -196,7 +196,7 @@ export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState 
     const { user: currentUserData } = getState().auth;
 
     const res = await userService.refreshUser(currentUserData?.uuid as string);
-    const { user, oldToken: token, newToken } = res;
+    const { user, oldToken: token } = res;
     const { avatar, emailVerified, name, lastname } = user;
 
     if (avatar) {
