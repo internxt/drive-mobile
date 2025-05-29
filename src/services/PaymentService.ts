@@ -7,7 +7,8 @@ import {
   PaymentMethod,
   UserSubscription,
   UserType,
-} from '@internxt/sdk/dist/drive/payments/types';
+} from '@internxt/sdk/dist/drive/payments/types/types';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Linking from 'expo-linking';
