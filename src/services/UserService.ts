@@ -2,7 +2,6 @@
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import Axios from 'axios';
-import { getHeaders } from 'src/helpers/headers';
 import { constants } from './AppService';
 import { SdkManager } from './common/sdk/SdkManager';
 const FormData = global.FormData;
@@ -46,11 +45,10 @@ class UserService {
   }
 
   public async updateUserAvatar(payload: { name: string; uri: string }) {
-    const url = `${constants.DRIVE_API_URL}/user/avatar`;
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
-    const formData = new FormData();
+    const url = `${constants.DRIVE_NEW_API_URL}/users/avatar`;
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
 
+    const formData = new FormData();
     //@ts-ignore
     formData.append('avatar', {
       //@ts-ignore
@@ -58,13 +56,13 @@ class UserService {
       type: 'image/jpg',
       name: payload.name,
     });
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
-    });
-    headersMap['content-type'] = 'multipart/form-data';
 
-    const response = await Axios.put<{ avatar: string }>(url, formData, { headers: headersMap });
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'multipart/form-data',
+    };
 
+    const response = await Axios.put<{ avatar: string }>(url, formData, { headers });
     return response.data;
   }
 

@@ -92,6 +92,18 @@ export class SdkManager {
       },
     );
   }
+  get usersV2WithoutToken() {
+    const apiSecurity = this.getApiSecurity({ throwErrorOnMissingCredentials: false });
+
+    return Drive.Users.client(
+      constants.DRIVE_NEW_API_URL,
+      {
+        clientName: packageJson.name,
+        clientVersion: appService.version,
+      },
+      apiSecurity,
+    );
+  }
 
   /** Storage SDK V2 */
   get storageV2() {
