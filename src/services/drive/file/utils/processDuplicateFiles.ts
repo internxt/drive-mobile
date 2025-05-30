@@ -37,7 +37,7 @@ export const processDuplicateFiles = async ({
     newFilesToUpload.push({
       name: finalFilename,
       size: file.size,
-      type: extension || file.type || '',
+      type: extension ?? file.type ?? '',
       uri: file.uri,
       parentUuid: parentFolderUuid,
     });

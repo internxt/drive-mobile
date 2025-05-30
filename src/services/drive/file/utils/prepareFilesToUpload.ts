@@ -52,7 +52,7 @@ export const prepareFilesToUpload = async ({
         name: f.name,
         uri: f.uri,
         size: f.size,
-        type: f.type || '',
+        type: f.type ?? '',
       }));
 
       const { duplicatedFilesResponse, filesWithoutDuplicates, filesWithDuplicates } = await checkDuplicatedFiles(

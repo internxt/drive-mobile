@@ -66,7 +66,7 @@ const parseFile = (file: File): FileInfo => {
   const { plainName, extension } = getFilenameAndExt(file.name);
   return {
     plainName,
-    type: extension || file.type || '',
+    type: extension ?? file.type ?? '',
     originalFile: file,
   };
 };

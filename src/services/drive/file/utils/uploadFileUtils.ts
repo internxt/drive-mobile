@@ -70,7 +70,7 @@ export async function handleDuplicateFiles(
     name: file.name,
     uri: file.uri,
     size: file.size,
-    type: file.type || '',
+    type: file.type ?? '',
   }));
 
   const { filesWithoutDuplicates, filesWithDuplicates } = await checkDuplicatedFiles(mappedFiles, folderUuid);
@@ -216,7 +216,7 @@ export async function uploadSingleFile(
     uploadSuccess(file);
   } catch (e) {
     const err = e as Error;
-    errorService.reportError(err as Error, {
+    errorService.reportError(err, {
       extra: {
         fileId: file.id,
       },
