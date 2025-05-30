@@ -2,8 +2,6 @@ import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage
 import {
   DRIVE_DB_NAME,
   DriveItemData,
-  FolderContent,
-  FolderContentChild,
   InsertSqliteDriveItemRowData,
   SqliteDriveFolderRecord,
   SqliteDriveItemRow,
@@ -231,49 +229,6 @@ class DriveLocalDB {
     }
 
     return result as DriveItemData;
-  }
-
-  async getFolderContent(folderId: number): Promise<FolderContent | null> {
-    const [items, folderContent] = await Promise.all([this.getDriveItems(folderId), this.getFolderRecord(folderId)]);
-    if (!folderContent) return null;
-
-    return {
-      name: folderContent.name,
-      icon: '',
-      parent_id: folderContent.parent_id,
-      parentId: folderContent.parent_id,
-      bucket: '-',
-      color: '',
-      createdAt: '-',
-      encrypt_version: '-',
-      id: folderId,
-      plain_name: folderContent.name,
-      updatedAt: folderContent.updated_at,
-      user_id: -1,
-      userId: -1,
-      // Añadir los UUIDs
-      uuid: folderContent.uuid ?? '',
-      parentUuid: folderContent.parent_uuid ?? '',
-      files: items.filter((item) => item.fileId),
-      children: items
-        .filter((item) => !item.fileId)
-        .map<FolderContentChild>((item) => {
-          return {
-            ...item,
-            parent_id: item.parentId ?? folderId,
-            parentId: item.parentId ?? folderId,
-            icon: item.icon ?? '-',
-            name: item.name,
-            plain_name: item.plain_name,
-            color: item.color ?? '-',
-            removed: false,
-            deleted: false,
-            // Incluir los UUIDs
-            uuid: item.uuid ?? '',
-            parentUuid: item.parentUuid ?? '',
-          } as FolderContentChild;
-        }),
-    };
   }
 }
 

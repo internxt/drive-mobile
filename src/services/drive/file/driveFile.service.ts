@@ -325,6 +325,10 @@ class DriveFileService {
   getName(filename: string, type?: string) {
     return filename + (type ? `.${type}` : '');
   }
+
+  public async checkFileExistence(parentFolderUuid: string, filesList: { plainName: string; type: string }[]) {
+    return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
+  }
 }
 
 export const driveFileService = new DriveFileService(SdkManager.getInstance());
