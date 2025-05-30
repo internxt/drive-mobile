@@ -9,7 +9,7 @@ import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
-import appService, { constants } from './AppService';
+import appService from './AppService';
 import asyncStorageService from './AsyncStorageService';
 import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
@@ -186,11 +186,8 @@ class AuthService {
     await this.sdk.authV2.sendUserDeactivationEmail(token);
   }
 
-  public async getNewBits(): Promise<string> {
-    return fetch(`${constants.DRIVE_API_URL}/bits`)
-      .then((res) => res.json())
-      .then((res) => res.bits)
-      .then((bits) => decryptText(bits));
+  public async getNewBits(): Promise<{ mnemonic: string }> {
+    return this.sdk.usersV2WithoutToken.generateMnemonic();
   }
 
   public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
@@ -206,7 +203,8 @@ class AuthService {
     const hashObj = passToHash({ password: params.password });
     const encPass = encryptText(hashObj.hash);
     const encSalt = encryptText(hashObj.salt);
-    const mnemonic = await this.getNewBits();
+    const bits = await this.getNewBits();
+    const mnemonic = bits.mnemonic;
     const encMnemonic = encryptTextWithKey(mnemonic, params.password);
 
     const payload = {

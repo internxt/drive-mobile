@@ -4,7 +4,6 @@ import { View } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
-import uuid from 'react-native-uuid';
 import AppText from 'src/components/AppText';
 import AppTextInput from 'src/components/AppTextInput';
 import { useTailwind } from 'tailwind-rn';
@@ -48,7 +47,7 @@ function RenameModal(): JSX.Element {
      */
 
     if (driveCtx.focusedFolder) {
-      driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
 
     notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
@@ -69,19 +68,9 @@ function RenameModal(): JSX.Element {
 
       if (focusedItem && isFolder) {
         // TODO: Move to a useCase
-        await drive.folder.updateMetaData(focusedItem.id, {
-          itemName: newName,
-        });
-      } else if (focusedItem?.fileId && user) {
-        await drive.file.updateMetaData(
-          focusedItem.fileId,
-          {
-            itemName: newName,
-          },
-          user.bucket,
-          // Picked from drive-web
-          uuid.v4().toString(),
-        );
+        if (focusedItem?.uuid) await drive.folder.updateMetaData(focusedItem.uuid, newName);
+      } else if (focusedItem?.uuid && user) {
+        await drive.file.updateMetaData(focusedItem.uuid, newName);
       }
 
       // Update the item in the local DB
