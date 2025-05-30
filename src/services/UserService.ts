@@ -13,27 +13,6 @@ class UserService {
     this.sdk = sdk;
   }
 
-  public payment(token: string, stripePlan: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      fetch(`${constants.DRIVE_API_URL}/buy`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          token: JSON.stringify(token),
-          plan: stripePlan,
-        }),
-      })
-        .then(async (response) => {
-          const body = await response.json();
-
-          resolve(body.message);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-  }
-
   public updateProfile(payload: UpdateProfilePayload) {
     const token = SdkManager.getInstance().getApiSecurity().newToken;
     return this.sdk.usersV2.updateUserProfile(payload, token);
