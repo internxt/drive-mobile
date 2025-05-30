@@ -9,7 +9,7 @@ import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
 
-type DriveFoldersTreeNode = {
+export type DriveFoldersTreeNode = {
   name: string;
   parentId: string; //uuid of the parent folder
   id: number;
@@ -24,6 +24,7 @@ type DriveFoldersTreeNode = {
 type DriveFoldersTree = {
   [folderId: string]: DriveFoldersTreeNode;
 };
+
 export interface DriveContextType {
   driveFoldersTree: DriveFoldersTree;
   viewMode: DriveListViewMode;

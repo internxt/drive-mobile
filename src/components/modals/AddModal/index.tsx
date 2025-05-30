@@ -30,6 +30,15 @@ import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import { constants } from '../../../services/AppService';
 import asyncStorage from '../../../services/AsyncStorageService';
+import {
+  createUploadingFiles,
+  handleDuplicateFiles,
+  initializeUploads,
+  prepareUploadFiles,
+  showFileSizeAlert,
+  uploadSingleFile,
+  validateAndFilterFiles,
+} from '../../../services/drive/file/utils/uploadFileUtils';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -50,14 +59,13 @@ function AddModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const { showUploadModal } = useAppSelector((state) => state.ui);
-  const { folderContent } = useAppSelector((state) => state.drive);
   const { focusedFolder } = useDrive();
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
 
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
-    const name = decodeURI(file.uri).split('/').pop() || '';
+    const name = file.name ?? decodeURI(file.uri).split('/').pop();
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
     const fileUri = file.uri.replace(regex, '$2');
     const extension = file.type;
@@ -314,129 +322,30 @@ function AddModal(): JSX.Element {
     return uploadDocuments(documents);
   }
 
-  function toUploadingFile(
-    filesAtSameLevel: { name: string; type: string }[],
-    file: DocumentPickerResponse,
-  ): UploadingFile {
-    if (!focusedFolder) {
-      throw new Error('No current folder found');
-    }
-    if (!isValidFilename(file.name)) {
-      throw new Error('This file name is not valid');
-    }
-    const nameSplittedByDots = file.name.split('.');
-    return {
-      id: new Date().getTime(),
-      uuid: uuid.v4().toString(),
-      uri: file.uri,
-      name: drive.file.renameIfAlreadyExists(
-        filesAtSameLevel,
-        drive.file.removeExtension(file.name),
-        drive.file.getExtensionFromUri(file.name) || '',
-      )[2],
-      type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
-      parentId: focusedFolder.id,
-      parentUuid: focusedFolder.uuid,
-      createdAt: new Date().toString(),
-      updatedAt: new Date().toString(),
-      size: file.size,
-      progress: 0,
-      uploaded: false,
-    };
-  }
-
   async function uploadDocuments(documents: DocumentPickerResponse[]) {
-    const filesToUpload: DocumentPickerResponse[] = [];
-    const filesExcluded: DocumentPickerResponse[] = [];
-    const formattedFiles: UploadingFile[] = [];
-
     if (!focusedFolder) {
       throw new Error('No current folder found');
     }
-    if (!documents.every((file) => isValidFilename(file.name))) {
-      throw new Error('Some file names are not valid');
-    }
-    for (const file of documents) {
-      if (file.size <= UPLOAD_FILE_SIZE_LIMIT) {
-        filesToUpload.push(file);
-      } else {
-        filesExcluded.push(file);
-      }
-    }
 
-    if (filesExcluded.length > 0) {
-      const messageKey =
-        filesExcluded.length === 1 ? strings.messages.uploadFileLimit : strings.messages.uploadFilesLimit;
+    const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents);
+    showFileSizeAlert(filesExcluded);
 
-      const alertText = strings.formatString(messageKey, filesExcluded.length).toString();
+    const filesToProcess = await handleDuplicateFiles(filesToUpload, focusedFolder.uuid);
 
-      Alert.alert(strings.messages.limitPerFile, alertText);
+    if (filesToProcess.length === 0) {
+      dispatch(uiActions.setShowUploadFileModal(false));
+      return;
     }
 
-    // TODO: load files in current folder
-    const filesAtSameLevel =
-      folderContent
-        ?.filter((item) => item.fileId)
-        .map((file) => {
-          return { name: drive.file.removeExtension(file.name), type: file.type };
-        }) || [];
+    const preparedFiles = await prepareUploadFiles(filesToProcess, focusedFolder.uuid);
+    const formattedFiles = createUploadingFiles(preparedFiles, focusedFolder);
 
-    for (const fileToUpload of filesToUpload) {
-      let file: UploadingFile;
-
-      if (Platform.OS === 'android') {
-        file = toUploadingFile(filesAtSameLevel, fileToUpload);
-      } else {
-        file = {
-          id: new Date().getTime(),
-          uuid: uuid.v4().toString(),
-          uri: fileToUpload.uri,
-          name: drive.file.renameIfAlreadyExists(
-            filesAtSameLevel,
-            drive.file.removeExtension(fileToUpload.name),
-            drive.file.getExtensionFromUri(fileToUpload.name) || '',
-          )[2],
-          type: drive.file.getExtensionFromUri(fileToUpload.uri) || '',
-          parentId: focusedFolder.id,
-          parentUuid: focusedFolder.uuid,
-          createdAt: new Date().toString(),
-          updatedAt: new Date().toString(),
-          size: fileToUpload.size,
-          progress: 0,
-          uploaded: false,
-        };
-      }
-
-      trackUploadStart(file);
-      dispatch(driveActions.uploadFileStart(file.name));
-      dispatch(driveActions.addUploadingFile({ ...file }));
-
-      formattedFiles.push(file);
-      filesAtSameLevel.push({ name: file.name, type: file.type });
-    }
+    initializeUploads(formattedFiles, dispatch);
 
     for (const file of formattedFiles) {
-      try {
-        await uploadFile(file, 'document');
-        uploadSuccess(file);
-      } catch (e) {
-        const err = e as Error;
-        errorService.reportError(err as Error, {
-          extra: {
-            fileId: file.id,
-          },
-        });
-        trackUploadError(file, err);
-        dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
-        logger.error('File upload process failed: ', JSON.stringify(err));
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
-        });
-      } finally {
-        dispatch(driveActions.uploadFileFinished());
-      }
+      await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess);
     }
+
     dispatch(driveActions.clearUploadedFiles());
   }
 
@@ -523,12 +432,16 @@ function AddModal(): JSX.Element {
               }
 
               dispatch(uiActions.setShowUploadFileModal(false));
+
               uploadDocuments(documents)
                 .then(() => {
                   dispatch(driveThunks.loadUsageThunk());
 
                   if (focusedFolder) {
-                    driveCtx.loadFolderContent(focusedFolder.uuid);
+                    driveCtx.loadFolderContent(focusedFolder.uuid, {
+                      pullFrom: ['network'],
+                      resetPagination: true,
+                    });
                   }
                 })
                 .catch((err) => {
@@ -566,9 +479,7 @@ function AddModal(): JSX.Element {
           if (err.message === 'User canceled document picker') {
             return;
           }
-
-          logger.error('Error on hadleUploadFromCameraRoll function:', JSON.stringify(err));
-
+          logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
           notificationsService.show({
             type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
