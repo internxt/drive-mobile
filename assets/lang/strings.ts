@@ -299,7 +299,7 @@ const strings = new LocalizedStrings({
         },
         twoFactor: {
           title: 'Two factor authentication (2FA)',
-          text: 'Two-factor authentication provides an extra layer of security by requiring an extra verification when you log in. In adittion to your password, you’ll also need a generated code.',
+          text: 'Two-factor authentication provides an extra layer of security by requiring an extra verification when you log in. In addition to your password, you’ll also need a generated code.',
           enable: 'Enable 2FA',
           disable: 'Disable 2FA',
         },
