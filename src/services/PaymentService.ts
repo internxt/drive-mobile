@@ -63,10 +63,10 @@ class PaymentService {
     }
   }
 
-  async getInvoices(subscriptionId: string): Promise<Invoice[] | null> {
+  async getInvoices(): Promise<Invoice[] | null> {
     try {
       return await this.sdk.payments.getInvoices({
-        subscriptionId,
+        userType: UserType.Individual,
       });
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
@@ -84,7 +84,7 @@ class PaymentService {
 
   async getUserSubscription(): Promise<UserSubscription> {
     try {
-      return this.sdk.payments.getUserSubscription();
+      return this.sdk.payments.getUserSubscription(UserType.Individual);
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
     }
