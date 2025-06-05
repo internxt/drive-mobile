@@ -35,8 +35,6 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
   const safeAreaColor = props.safeAreaColor || getColor('bg-surface');
 
   const statusBarStyle = isDark ? 'light' : 'dark';
-  const statusBarBackgroundColor =
-    Platform.OS === 'android' ? (isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)') : undefined;
 
   return (
     <Modal
@@ -53,11 +51,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
-        <StatusBar
-          style={statusBarStyle}
-          translucent={Platform.OS === 'android'}
-          backgroundColor={statusBarBackgroundColor}
-        />
+        <StatusBar style={statusBarStyle} translucent={Platform.OS === 'android'} />
 
         <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>
           <View style={tailwind('flex-grow')}>
