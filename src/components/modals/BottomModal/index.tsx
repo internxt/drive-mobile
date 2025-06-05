@@ -1,4 +1,4 @@
-import { Easing, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { Easing, Platform, StyleProp, TouchableWithoutFeedback, useColorScheme, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modalbox';
 
 import { StatusBar } from 'expo-status-bar';
@@ -29,8 +29,14 @@ export interface BottomModalProps {
 const BottomModal = (props: BottomModalProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const safeAreaInsets = useSafeAreaInsets();
   const safeAreaColor = props.safeAreaColor || getColor('bg-surface');
+
+  const statusBarStyle = isDark ? 'light' : 'dark';
+  const statusBarBackgroundColor =
+    Platform.OS === 'android' ? (isDark ? 'rgba(0,0,0,0.8)' : 'rgba(0,0,0,0.5)') : undefined;
 
   return (
     <Modal
@@ -47,7 +53,11 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
-        <StatusBar translucent />
+        <StatusBar
+          style={statusBarStyle}
+          translucent={Platform.OS === 'android'}
+          backgroundColor={statusBarBackgroundColor}
+        />
 
         <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>
           <View style={tailwind('flex-grow')}>
@@ -67,11 +77,6 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
                     ]}
                   >
                     <View style={tailwind('flex-1')}>{props.header}</View>
-                    {/* <TouchableWithoutFeedback onPress={props.onClosed}>
-                      <View style={tailwind('h-8 w-8 justify-center items-center ml-5')}>
-                        <X weight="bold" color={getColor('text-gray-30')} size={20} />
-                      </View>
-                    </TouchableWithoutFeedback> */}
                   </View>
                 )}
 
