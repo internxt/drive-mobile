@@ -56,7 +56,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
         data: {
           uuid: result.itemId,
           name: result.name,
-          size: result.item.size || 0,
+          size: result.item.size ?? 0,
           createdAt: '',
           updatedAt: '',
           isFolder: isFolder,
@@ -97,8 +97,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
       const parentFolder = ancestors.length > 0 ? ancestors[ancestors.length - 1] : null;
       navigation.push('DriveFolder', {
         folderUuid: folderUuid,
-        parentUuid: parentFolder?.uuid || '',
-        parentFolderName: parentFolder?.plainName || 'Drive',
+        parentUuid: parentFolder?.uuid ?? '',
+        parentFolderName: parentFolder?.plainName ?? 'Drive',
         folderName: folderMeta.plainName,
         isRootFolder: false,
       });
@@ -131,7 +131,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           isFolder: false,
           currentThumbnail: null,
           id: fileMeta.id,
-          thumbnails: fileMeta.thumbnails || [],
+          thumbnails: fileMeta.thumbnails ?? [],
           parentId: fileMeta.folderId,
         },
       };
