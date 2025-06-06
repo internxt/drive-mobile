@@ -446,6 +446,11 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      duplicatedFiles: {
+        duplicateFilesTitle: 'Duplicate Files Found',
+        duplicateFilesMessage: 'The following files already exist: %s\n\nDo you want to upload them with a new name?',
+        duplicateFilesAction: 'Upload with new name',
+      },
       rename: {
         title: 'Rename',
         label: 'Name',
@@ -1147,6 +1152,11 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      duplicatedFiles: {
+        duplicateFilesTitle: 'Archivos duplicados encontrados',
+        duplicateFilesMessage: 'Los siguientes archivos ya existen: %s\n\n¿Quieres subirlos con un nuevo nombre?',
+        duplicateFilesAction: 'Subir con nuevo nombre',
+      },
       rename: {
         title: 'Renombrar',
         label: 'Nombre',

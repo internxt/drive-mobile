@@ -10,6 +10,7 @@ export interface UploadFileParams {
 
 const MAX_SIZE_FOR_SINGLE_UPLOAD = 100 * 1024 * 1024;
 const MULTIPART_PART_SIZE = 30 * 1024 * 1024;
+
 export async function uploadFile(
   filePath: string,
   bucketId: string,
