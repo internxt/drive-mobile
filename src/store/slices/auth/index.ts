@@ -99,16 +99,11 @@ export const signInThunk = createAsyncThunk<
   { user: UserSettings; token: string; newToken: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
-  let userToSave = payload.user;
+  const userToSave = payload.user;
   SdkManager.init({
     token: payload.token,
     newToken: payload.newToken,
   });
-  if (!payload.user.rootFolderId) {
-    userToSave = {
-      ...userToSave,
-    };
-  }
 
   // Set the new SDK tokens
   SdkManager.setApiSecurity({
@@ -201,7 +196,7 @@ export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState 
     const { user: currentUserData } = getState().auth;
 
     const res = await userService.refreshUser(currentUserData?.uuid as string);
-    const { user, oldToken: token, newToken } = res;
+    const { user, oldToken: token } = res;
     const { avatar, emailVerified, name, lastname } = user;
 
     if (avatar) {
