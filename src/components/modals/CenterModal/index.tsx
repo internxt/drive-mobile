@@ -46,6 +46,7 @@ const CenterModal = ({
   const getColor = useGetColor();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const isTranslucent = Platform.OS === 'android';
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -90,7 +91,7 @@ const CenterModal = ({
       easing={Easing.ease}
     >
       <Animated.View style={[tailwind('h-full'), animatedStyle]}>
-        <StatusBar style={statusBarStyle} translucent={Platform.OS === 'android'} />
+        <StatusBar style={statusBarStyle} translucent={isTranslucent} />
 
         <TouchableWithoutFeedback onPress={onBackdropPressed}>
           <View style={[tailwind('px-5 flex-grow justify-center items-center')]}>
