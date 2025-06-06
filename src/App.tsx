@@ -1,4 +1,6 @@
 import * as NavigationBar from 'expo-navigation-bar';
+import { usePreventScreenCapture } from 'expo-screen-capture';
+
 import { useEffect, useState } from 'react';
 import {
   Appearance,
@@ -50,6 +52,7 @@ export default function App(): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked } = useAppSelector((state) => state.app);
   const { color: whiteColor } = tailwind('text-white');
+  usePreventScreenCapture();
 
   useEffect(() => {
     const initializeTheme = async () => {

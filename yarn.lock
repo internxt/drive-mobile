@@ -6468,6 +6468,11 @@ expo-navigation-bar@~2.8.1:
     "@react-native/normalize-color" "^2.0.0"
     debug "^4.3.2"
 
+expo-screen-capture@~5.8.1:
+  version "5.8.1"
+  resolved "https://registry.yarnpkg.com/expo-screen-capture/-/expo-screen-capture-5.8.1.tgz#38fdf1523f461612cfc9be0ef36273611086421d"
+  integrity sha512-dWlU5botnVfxnF/CzerZzxmVH7lDXWNXQjPUKNHO8dKZv/N41Zjo7TuKbdYGMSUybJlXfi0nP/EU6JzXc2d2rw==
+
 expo-sharing@~11.10.0:
   version "11.10.0"
   resolved "https://registry.yarnpkg.com/expo-sharing/-/expo-sharing-11.10.0.tgz#0e85197ee4d2634b00fe201e571fbdc64cf83eef"

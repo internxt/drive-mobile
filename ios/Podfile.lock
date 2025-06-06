@@ -54,6 +54,8 @@ PODS:
     - ExpoModulesCore
   - ExpoSystemUI (2.9.4):
     - ExpoModulesCore
+  - EXScreenCapture (5.8.1):
+    - ExpoModulesCore
   - EXSplashScreen (0.26.5):
     - ExpoModulesCore
     - glog
@@ -1222,6 +1224,7 @@ DEPENDENCIES:
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSharing (from `../node_modules/expo-sharing/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
+  - EXScreenCapture (from `../node_modules/expo-screen-capture/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
@@ -1363,6 +1366,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-sharing/ios"
   ExpoSystemUI:
     :path: "../node_modules/expo-system-ui/ios"
+  EXScreenCapture:
+    :path: "../node_modules/expo-screen-capture/ios"
   EXSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   EXStructuredHeaders:
@@ -1540,6 +1545,7 @@ SPEC CHECKSUMS:
   ExpoModulesCore: 421e9c6bcb63baf153a5ec22b2b4319addfe331c
   ExpoSharing: 752ad6ae2b693de9cd4e7fddb78297bdc658b815
   ExpoSystemUI: 735278045c1a28de0018a300bb5abb3f9090652b
+  EXScreenCapture: 7a491c16de021638078f50281d411e3352bb28c2
   EXSplashScreen: fb4d80520d2348d57879e7a272415438bbcdffd3
   EXStructuredHeaders: 5b0f47259db047dc1fdfa84752e292c2bfa68ecd
   EXUpdates: 4aa99ef9610e0d6fbf80d7f2b3f169b527f24a1d
