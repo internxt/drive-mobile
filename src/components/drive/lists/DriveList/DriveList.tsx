@@ -19,7 +19,6 @@ interface DriveListProps {
   type?: DriveListType;
   viewMode: DriveListViewMode;
   items?: DriveListItem[];
-
   // Starting to refactor this component
   // so it can be reused consistently
   onDriveItemActionsPress: (driveItem: DriveListItem) => void;
@@ -33,6 +32,7 @@ interface DriveListProps {
   // but we need it to render the empty image
   isRootFolder?: boolean;
   isLoading?: boolean;
+  hideOptionsButton?: boolean;
 }
 
 export function DriveList(props: DriveListProps): JSX.Element {
@@ -152,6 +152,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
                 }
               : undefined
           }
+          hideOptionsButton={props.hideOptionsButton}
         />
         {isGrid ? (
           <View />

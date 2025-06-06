@@ -25,7 +25,11 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const isDownloading = props.status === DriveItemStatus.Downloading;
 
   const getUpdatedAt = () => {
-    return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime);
+    if (props.data.createdAt) {
+      return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime);
+    }
+
+    return '';
   };
 
   const progress = props.progress;
@@ -136,17 +140,18 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
               ))}
           </View>
         </View>
-
-        <TouchableOpacity
-          disabled={isUploading || isDownloading}
-          style={props.isSelected && tailwind('hidden')}
-          onPress={props.onActionsPress}
-          onLongPress={props.onActionsPress}
-        >
-          <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
-            <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
-          </View>
-        </TouchableOpacity>
+        {props.hideOptionsButton ? null : (
+          <TouchableOpacity
+            disabled={isUploading || isDownloading}
+            style={props.isSelected && tailwind('hidden')}
+            onPress={props.onActionsPress}
+            onLongPress={props.onActionsPress}
+          >
+            <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
+              <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
+            </View>
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableHighlight>
   );
