@@ -15,7 +15,9 @@ import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
 import UserProfilePicture from '../../components/UserProfilePicture';
+import { openUrl } from '../../helpers/utils';
 import useGetColor from '../../hooks/useColor';
+import { PRICING_URL } from '../../services/drive/constants';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
 import { uiActions } from '../../store/slices/ui';
@@ -81,8 +83,9 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
     }
   };
   const onBillingPressed = () => {
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
+
   const onManageSubscriptionPressed = () => {
     navigation.navigate('Plan');
   };

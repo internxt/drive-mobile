@@ -2,7 +2,7 @@ import { FileMeta, FolderMeta, SearchResultData } from '@internxt/sdk/dist/drive
 import prettysize from 'prettysize';
 import { SdkManager } from './common';
 
-export const FREE_STORAGE = 1073741824; // 1GB
+export const FREE_STORAGE = 1 * 1024 * 1024 * 1024; // 1GB
 
 class StorageService {
   private readonly sdk: SdkManager;

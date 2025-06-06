@@ -54,12 +54,11 @@ function MoveItemsModal(): JSX.Element {
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
   const [isMovingItem, setIsMovingItem] = useState(false);
-  const [destinationFolderContentResponse, setDestinationFolderContentResponse] = useState<
-    (FetchFolderContentResponse & { uuid: string; parentUuid: string; plainName: string }) | null
-  >(null);
-  const [originFolderContentResponse, setOriginFolderContentResponse] = useState<
-    (FetchFolderContentResponse & { uuid: string; parentUuid: string; plainName: string }) | null
-  >(null);
+  const [destinationFolderContentResponse, setDestinationFolderContentResponse] =
+    useState<FetchFolderContentResponse | null>(null);
+  const [originFolderContentResponse, setOriginFolderContentResponse] = useState<FetchFolderContentResponse | null>(
+    null,
+  );
   const safeInsets = useSafeAreaInsets();
   const modalHeight = useMemo(
     () =>
@@ -134,7 +133,7 @@ function MoveItemsModal(): JSX.Element {
         origin: {
           itemId: itemToMove.fileId ?? itemToMove.id,
           parentUuid: itemToMove.parentUuid ?? '',
-          name: originFolderContentResponse.plainName,
+          name: originFolderContentResponse.plainName ?? '',
           updatedAt: originFolderContentResponse.updatedAt,
           createdAt: originFolderContentResponse.createdAt,
           uuid: itemToMove.uuid as string,
@@ -208,7 +207,8 @@ function MoveItemsModal(): JSX.Element {
     try {
       if (originFolderId) {
         const response = await drive.folder.getFolderContentByUuid(originFolderId);
-        setOriginFolderContentResponse(response as any);
+
+        setOriginFolderContentResponse(response);
       }
     } catch (e) {
       notificationsService.show({ type: NotificationType.Error, text1: 'Cannot load origin folder' });

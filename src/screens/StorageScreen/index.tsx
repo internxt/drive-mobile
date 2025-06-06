@@ -7,15 +7,16 @@ import SettingsGroup from 'src/components/SettingsGroup';
 import storageService from 'src/services/StorageService';
 import { paymentsSelectors } from 'src/store/slices/payments';
 import { storageSelectors } from 'src/store/slices/storage';
-import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppProgressBar from '../../components/AppProgressBar';
 import AppScreen from '../../components/AppScreen';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
+import { openUrl } from '../../helpers/utils';
 import useGetColor from '../../hooks/useColor';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { PRICING_URL } from '../../services/drive/constants';
+import { useAppSelector } from '../../store/hooks';
 import { INFINITE_PLAN } from '../../types';
 import { SettingsScreenProps } from '../../types/navigation';
 
@@ -30,7 +31,6 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const dispatch = useAppDispatch();
 
   const getLimitString = () => {
     if (limit === 0) {
@@ -45,8 +45,9 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   };
 
   const onBackButtonPressed = () => navigation.goBack();
+
   const onUpgradePressed = () => {
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
 
   const statusSteps = [
