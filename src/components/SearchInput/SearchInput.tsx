@@ -1,6 +1,6 @@
 import { MagnifyingGlass, XCircle } from 'phosphor-react-native';
-import React, { createRef, useState } from 'react';
-import { View, TextInput, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
+import { createRef, useState } from 'react';
+import { StyleProp, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
@@ -13,6 +13,7 @@ interface SearchInputProps {
   onChangeText: (value: string) => void;
   placeholder?: string;
   style?: StyleProp<ViewStyle>;
+  onFocusChange?: (isFocused: boolean) => void;
 }
 
 export function SearchInput(props: SearchInputProps): JSX.Element {
@@ -20,16 +21,22 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
   const getColor = useGetColor();
   const [inputRef] = useState(createRef<TextInput>());
   const [isFocused, setIsFocused] = useState(false);
+
   const onBlur = () => {
     setIsFocused(false);
+    props.onFocusChange?.(false);
   };
+
   const onFocus = () => {
     setIsFocused(true);
+    props.onFocusChange?.(true);
   };
+
   const onClearButtonPressed = () => {
     inputRef.current?.clear();
     props.onChangeText('');
   };
+
   const onCancelButtonPressed = () => {
     inputRef.current?.blur();
   };

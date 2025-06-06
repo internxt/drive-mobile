@@ -179,6 +179,7 @@ export interface DriveItemProps {
   onActionsPress?: () => void;
   onPress?: () => void;
   children?: string;
+  hideOptionsButton?: boolean;
 }
 
 export enum DriveEventKey {
