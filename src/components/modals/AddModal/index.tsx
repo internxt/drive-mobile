@@ -183,10 +183,10 @@ function AddModal(): JSX.Element {
     );
 
     logger.info('File uploaded with fileId: ', fileId);
+    logger.info('File uploaded with name: ', fileName);
 
     const folderId = currentFolderId;
-
-    const plainName = drive.file.removeExtension(fileName);
+    const plainName = fileName;
 
     const fileEntryByUuid: FileEntryByUuid = {
       id: fileId,
