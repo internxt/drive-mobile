@@ -1,6 +1,6 @@
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
 import React from 'react';
-import { Keyboard, StyleProp, View, ViewStyle, useColorScheme } from 'react-native';
+import { Keyboard, Platform, StyleProp, View, ViewStyle, useColorScheme } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -29,7 +29,10 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
 
   const safeAreaColor = props.safeAreaColor || getColor('bg-surface');
   const backgroundColor = props.backgroundColor || getColor('bg-surface');
+
   const statusBarStyle = props.statusBarStyle || (isDark ? 'light' : 'dark');
+  const statusBarBackgroundColor = Platform.OS === 'android' ? backgroundColor : undefined;
+  const statusBarTranslucent = props.statusBarTranslucent ?? (Platform.OS === 'android' ? false : undefined);
 
   const onBackgroundPressed = () => {
     Keyboard.dismiss();
@@ -53,8 +56,8 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
       <StatusBar
         hidden={props.statusBarHidden}
         style={statusBarStyle}
-        translucent={props.statusBarTranslucent}
-        backgroundColor={backgroundColor}
+        translucent={statusBarTranslucent}
+        backgroundColor={statusBarBackgroundColor}
       />
 
       {/* DISMISS KEYBOARD ON OUTSIDE TAP */}

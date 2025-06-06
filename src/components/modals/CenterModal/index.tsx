@@ -1,6 +1,15 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { Dimensions, Easing, Keyboard, Platform, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import {
+  Dimensions,
+  Easing,
+  Keyboard,
+  Platform,
+  TouchableWithoutFeedback,
+  View,
+  ViewStyle,
+  useColorScheme,
+} from 'react-native';
 import Modal from 'react-native-modalbox';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useKeyboard } from 'src/hooks/useKeyboard';
@@ -35,6 +44,9 @@ const CenterModal = ({
   const top = useSharedValue<number>(0);
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const isTranslucent = Platform.OS === 'android';
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -64,6 +76,8 @@ const CenterModal = ({
     onClosed();
   };
 
+  const statusBarStyle = isDark ? 'light' : 'dark';
+
   return (
     <Modal
       isOpen={isOpen}
@@ -77,7 +91,7 @@ const CenterModal = ({
       easing={Easing.ease}
     >
       <Animated.View style={[tailwind('h-full'), animatedStyle]}>
-        <StatusBar translucent />
+        <StatusBar style={statusBarStyle} translucent={isTranslucent} />
 
         <TouchableWithoutFeedback onPress={onBackdropPressed}>
           <View style={[tailwind('px-5 flex-grow justify-center items-center')]}>
