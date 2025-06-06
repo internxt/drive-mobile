@@ -1,6 +1,6 @@
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
 import React from 'react';
-import { Keyboard, StyleProp, View, ViewStyle } from 'react-native';
+import { Keyboard, StyleProp, View, ViewStyle, useColorScheme } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -22,11 +22,15 @@ interface AppScreenProps {
 const AppScreen = (props: AppScreenProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const safeAreaInsets = useSafeAreaInsets();
   const propsStyle = Object.assign({}, props.style || {}) as Record<string, string>;
-  const safeAreaColor = props.safeAreaColor || getColor('text-white');
-  const backgroundColor = props.backgroundColor || getColor('text-white');
-  const statusBarStyle = props.statusBarStyle || 'dark';
+
+  const safeAreaColor = props.safeAreaColor || getColor('bg-surface');
+  const backgroundColor = props.backgroundColor || getColor('bg-surface');
+  const statusBarStyle = props.statusBarStyle || (isDark ? 'light' : 'dark');
+
   const onBackgroundPressed = () => {
     Keyboard.dismiss();
   };

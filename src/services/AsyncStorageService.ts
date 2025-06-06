@@ -59,6 +59,18 @@ class AsyncStorageService {
     return AsyncStorage.getAllKeys();
   }
 
+  async getThemePreference(): Promise<'light' | 'dark' | null> {
+    const theme = await this.getItem(AsyncStorageKey.ThemePreference);
+    if (theme === 'dark' || theme === 'light') {
+      return theme;
+    }
+    return null;
+  }
+
+  saveThemePreference(theme: 'light' | 'dark'): Promise<void> {
+    return this.saveItem(AsyncStorageKey.ThemePreference, theme);
+  }
+
   async clearStorage(): Promise<void> {
     await AsyncStorage.multiRemove([
       AsyncStorageKey.User,
@@ -67,6 +79,7 @@ class AsyncStorageService {
       AsyncStorageKey.LastPhotoPulledDate,
       AsyncStorageKey.ScreenLockIsEnabled,
       AsyncStorageKey.LastScreenLock,
+      AsyncStorageKey.ThemePreference,
     ]);
 
     // eslint-disable-next-line no-console

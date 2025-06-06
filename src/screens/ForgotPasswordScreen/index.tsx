@@ -1,20 +1,25 @@
-import { View, Text, Alert, TouchableHighlight, TouchableWithoutFeedback } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useColorScheme, View } from 'react-native';
 
-import strings from '../../../assets/lang/strings';
-import validationService from '../../services/ValidationService';
-import authService from '../../services/AuthService';
-import AppScreen from '../../components/AppScreen';
-import { RootStackScreenProps } from '../../types/navigation';
-import { useTailwind } from 'tailwind-rn';
-import AppText from '../../components/AppText';
-import AppButton from '../../components/AppButton';
-import AppTextInput from '../../components/AppTextInput';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { EnvelopeSimple, WarningCircle } from 'phosphor-react-native';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../assets/lang/strings';
+import AppButton from '../../components/AppButton';
+import AppScreen from '../../components/AppScreen';
+import AppText from '../../components/AppText';
+import AppTextInput from '../../components/AppTextInput';
+import useGetColor from '../../hooks/useColor';
+import authService from '../../services/AuthService';
+import validationService from '../../services/ValidationService';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPassword'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
   const [currentContainer, setCurrentCointainer] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState<string | undefined>(undefined);
@@ -60,8 +65,8 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
   const getEmailError = () => {
     return (
       <View style={tailwind('flex flex-row items-center mt-1')}>
-        <WarningCircle weight="fill" color={tailwind('text-red').color as string} size={13} />
-        <AppText style={tailwind('text-sm text-red ml-1 leading-4')}>{emailError}</AppText>
+        <WarningCircle weight="fill" color={getColor('text-red')} size={13} />
+        <AppText style={[tailwind('text-sm ml-1 leading-4'), { color: getColor('text-red') }]}>{emailError}</AppText>
       </View>
     );
   };
@@ -71,15 +76,26 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
       <AppScreen safeAreaTop style={tailwind('h-full px-6')}>
         <View style={tailwind('h-12')} />
         <View style={tailwind('mb-4')}>
-          <AppText medium style={tailwind('text-2xl text-gray-100')}>
+          <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
             {strings.screens.forgot_password.title}
           </AppText>
         </View>
         <View style={tailwind('')}>
           <View>
             <View>
-              <View style={tailwind('bg-gray-1 p-4 border border-gray-10 rounded-xl mb-4')}>
-                <AppText style={tailwind('text-sm')}>{strings.screens.forgot_password.message}</AppText>
+              <View
+                style={[
+                  tailwind('p-4 rounded-xl mb-4'),
+                  {
+                    backgroundColor: getColor('bg-gray-1'),
+                    borderWidth: 1,
+                    borderColor: getColor('border-gray-10'),
+                  },
+                ]}
+              >
+                <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-100') }]}>
+                  {strings.screens.forgot_password.message}
+                </AppText>
               </View>
               <AppTextInput
                 value={email}
@@ -122,19 +138,19 @@ function ForgotPasswordScreen({ navigation }: RootStackScreenProps<'ForgotPasswo
               {
                 width: 100,
                 height: 100,
-                backgroundColor: '#ebf2ff',
-                borderColor: '#f6faff',
+                backgroundColor: getColor('bg-forgot-password-screen'),
+                borderColor: getColor('border-color-forgot-password-screen'),
                 borderWidth: 16,
               },
             ]}
           >
-            <EnvelopeSimple size={46} weight="light" color={tailwind('text-primary').color as string} />
+            <EnvelopeSimple size={46} weight="light" color={getColor('text-primary')} />
           </View>
           <View style={tailwind('flex items-center justify-center')}>
-            <AppText style={tailwind('text-2xl text-center')} medium>
+            <AppText style={[tailwind('text-2xl text-center'), { color: getColor('text-gray-100') }]} medium>
               {strings.screens.forgot_password.confirmation.title}
             </AppText>
-            <AppText style={tailwind('text-lg text-center text-gray-80 leading-6 mt-4')}>
+            <AppText style={[tailwind('text-lg text-center leading-6 mt-4'), { color: getColor('text-gray-80') }]}>
               {strings.formatString(strings.screens.forgot_password.confirmation.subtitle, email)}
             </AppText>
           </View>

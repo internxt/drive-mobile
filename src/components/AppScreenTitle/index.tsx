@@ -1,10 +1,9 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
+import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
 
 import { CaretLeft } from 'phosphor-react-native';
-import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import AppText from '../AppText';
 
 interface AppScreenTitleProps {
   text: string;
@@ -37,7 +36,11 @@ const AppScreenTitle = ({
     <View
       style={[
         tailwind('flex-row justify-center items-center px-4'),
-        { paddingTop: 22, paddingBottom: 14 },
+        {
+          paddingTop: 22,
+          paddingBottom: 14,
+          backgroundColor: getColor('bg-surface'),
+        },
         containerStyle,
       ]}
     >
@@ -50,7 +53,11 @@ const AppScreenTitle = ({
       )}
 
       <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
-        <AppText numberOfLines={1} medium style={[tailwind('text-gray-100 text-2xl'), textStyle]}>
+        <AppText
+          numberOfLines={1}
+          medium
+          style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }, textStyle]}
+        >
           {text}
         </AppText>
 

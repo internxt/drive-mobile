@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from 'react';
-import { View, TouchableHighlight, Animated, Easing, InteractionManager } from 'react-native';
-
-import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
-import { ArrowCircleUp } from 'phosphor-react-native';
-import { items } from '@internxt/lib';
-import AppText from '../../../../AppText';
-
-import { DownloadedThumbnail, DriveItemProps, DriveItemStatus } from '../../../../../types/drive';
-import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../../../../hooks/useColor';
 import { time } from '@internxt-mobile/services/common/time';
-import prettysize from 'prettysize';
-import FastImage from 'react-native-fast-image';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
+import { items } from '@internxt/lib';
+import { ArrowCircleUp } from 'phosphor-react-native';
+import prettysize from 'prettysize';
+import { useEffect, useState } from 'react';
+import { Animated, Easing, InteractionManager, TouchableHighlight, View } from 'react-native';
+import FastImage from 'react-native-fast-image';
+import { useTailwind } from 'tailwind-rn';
+import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
+import useGetColor from '../../../../../hooks/useColor';
+import { DownloadedThumbnail, DriveItemProps, DriveItemStatus } from '../../../../../types/drive';
+import AppText from '../../../../AppText';
 
 function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
@@ -93,10 +91,11 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
       </View>
     );
   };
+
   return (
     <TouchableHighlight
       disabled={isUploading || isDownloading}
-      underlayColor={getColor('text-gray-5')}
+      underlayColor={getColor('bg-gray-5')}
       onLongPress={props.onActionsPress}
       onPress={props.onPress}
       onLayout={(event) => {
@@ -119,9 +118,9 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
 
             {isUploading && (
               <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
-                <View style={tailwind('rounded px-1 py-0.5 bg-primary flex-row')}>
+                <View style={[tailwind('rounded px-1 py-0.5 flex-row'), { backgroundColor: getColor('text-primary') }]}>
                   <ArrowCircleUp weight="fill" color={getColor('text-white')} size={16} />
-                  <AppText style={tailwind('ml-1.5 text-xs text-white')}>
+                  <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-white') }]}>
                     {((props.progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
                 </View>
@@ -132,7 +131,8 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
           <View style={[tailwind('flex items-start justify-center items-center mt-2.5 px-2 py-1')]}>
             <AppText
               style={[
-                tailwind('text-base text-gray-100 text-center leading-5'),
+                tailwind('text-base text-center leading-5'),
+                { color: getColor('text-gray-100') },
                 isUploading && tailwind('opacity-40'),
                 { lineHeight: 16 * 1.2 },
               ]}
@@ -141,11 +141,13 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
-            <AppText style={[tailwind('text-xs text-gray-50 mt-1'), { lineHeight: 14 }]}>
+            <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-50') }, { lineHeight: 14 }]}>
               {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
             </AppText>
             {props.data.size ? (
-              <AppText style={tailwind('text-xs text-gray-50')}>{prettysize(props.data.size)}</AppText>
+              <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-50') }]}>
+                {prettysize(props.data.size)}
+              </AppText>
             ) : null}
           </View>
         </View>

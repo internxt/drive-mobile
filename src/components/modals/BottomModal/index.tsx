@@ -1,4 +1,3 @@
-import React from 'react';
 import { Easing, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modalbox';
 
@@ -31,7 +30,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
-  const safeAreaColor = props.safeAreaColor || getColor('text-white');
+  const safeAreaColor = props.safeAreaColor || getColor('bg-surface');
 
   return (
     <Modal
@@ -54,10 +53,10 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
           <View style={tailwind('flex-grow')}>
             <View style={tailwind('flex-grow')} />
             <TouchableWithoutFeedback>
-              <View style={[tailwind('bg-white rounded-t-xl'), props.style]}>
+              <View style={[tailwind('rounded-t-xl'), { backgroundColor: getColor('bg-surface') }, props.style]}>
                 {props.topDecoration && (
                   <View style={tailwind('py-4 items-center')}>
-                    <View style={tailwind('rounded-full h-1 w-14 bg-gray-10')} />
+                    <View style={[tailwind('rounded-full h-1 w-14'), { backgroundColor: getColor('bg-gray-10') }]} />
                   </View>
                 )}
                 {props.header && (

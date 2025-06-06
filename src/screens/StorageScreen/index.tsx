@@ -43,6 +43,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
 
     return storageService.toString(limit);
   };
+
   const onBackButtonPressed = () => navigation.goBack();
 
   const onUpgradePressed = () => {
@@ -69,7 +70,9 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
       </>
     ),
   ];
+
   const renderStatusStep = statusSteps[currentStatusStep];
+
   const onStatusSwipeLeft = () => {
     setCurrentStatusStep(currentStatusStep - 1 < 0 ? statusSteps.length - 1 : currentStatusStep - 1);
   };
@@ -79,16 +82,16 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('bg-surface')} style={tailwind('flex-1 bg-gray-5')}>
       <AppScreenTitle
         text={strings.screens.StorageScreen.title}
-        containerStyle={tailwind('bg-white')}
+        containerStyle={{ backgroundColor: getColor('bg-surface') }}
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
 
-      <ScrollView style={tailwind('flex-1')}>
-        <View style={tailwind('pb-10 px-4 bg-gray-5')}>
+      <ScrollView style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
           {/* STATUS */}
           <GestureRecognizer
             onSwipeLeft={onStatusSwipeLeft}
