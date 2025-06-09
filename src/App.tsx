@@ -96,7 +96,7 @@ export default function App(): JSX.Element {
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
       dispatch(appActions.setLastScreenLock(Date.now()));
-      dispatch(authThunks.refreshTokensThunk());
+      dispatch(authThunks.checkAndRefreshTokenThunk());
       dispatch(paymentsThunks.checkShouldDisplayBilling());
     }
 
