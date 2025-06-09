@@ -65,6 +65,8 @@ const initializeUserPreferencesThunk = createAsyncThunk<void, void, { state: Roo
     dispatch(appActions.setScreenLocked(screenLockEnabled));
     if (screenLockEnabled) {
       dispatch(appActions.setInitialScreenLocked(true));
+    } else {
+      dispatch(appActions.setInitialScreenLocked(false));
     }
   },
 );
