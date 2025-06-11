@@ -238,6 +238,7 @@ function AddModal(): JSX.Element {
         });
       }
     } catch (error) {
+      logger.error('Error generating and uploading thumbnail: ', JSON.stringify(error));
       errorService.reportError(error);
     }
 

@@ -111,7 +111,7 @@ function DriveItemInfoModal(): JSX.Element {
     if (success && dbItem?.id) {
       await driveLocalDB.deleteItem({ id: dbItem.id });
     }
-    if (driveCtx.focusedFolder?.id) {
+    if (driveCtx.focusedFolder?.uuid) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
