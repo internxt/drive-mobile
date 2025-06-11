@@ -4,7 +4,7 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
@@ -12,6 +12,7 @@ import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
 import SortModal, { SortMode } from '../../../components/modals/SortModal';
+import { logger } from '../../../services/common';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
@@ -85,12 +86,27 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     return folders.concat(files);
   }, [folderFiles]);
 
+  useEffect(() => {
+    // to ensure that the folder content is loaded when new folder is focused
+    const currentFocusedFolder = driveCtx.focusedFolder;
+    if (currentFocusedFolder?.uuid !== folderUuid) {
+      driveCtx
+        .loadFolderContent(folderUuid, {
+          focusFolder: true,
+          resetPagination: false,
+        })
+        .catch((error) => {
+          logger.error('Error loading folder content in DriveFolderScreen:', error);
+        });
+    }
+  }, [folderUuid]);
+
   const onBackButtonPressed = () => {
     navigation.goBack();
 
     if (parentUuid) {
       driveCtx
-        .loadFolderContent(parentUuid, { pullFrom: ['network'], resetPagination: false })
+        .loadFolderContent(parentUuid, { pullFrom: ['network'], resetPagination: false, focusFolder: true })
         .catch(errorService.reportError);
     }
   };
@@ -256,7 +272,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       await driveCtx.loadFolderContent(folderUuid, {
         pullFrom: ['network'],
         resetPagination: false,
-        focusFolder: true,
       });
     } catch (error) {
       errorService.reportError(error);
