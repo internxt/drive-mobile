@@ -315,6 +315,27 @@ class AuthService {
   }
 
   /**
+   * Checks if token needs refresh (expires in less than 3 days)
+   * @param authToken The token to check
+   * @returns true if token expires in less than 7 days
+   */
+  public tokenNeedsRefresh(authToken: string): boolean {
+    try {
+      const payload = jwtDecode<JWTPayload>(authToken);
+
+      if (!payload.exp) return true;
+
+      const expiration = payload.exp * 1000;
+      const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
+      const threeDaysFromNow = Date.now() + THREE_DAYS_IN_MS;
+
+      return expiration < threeDaysFromNow;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
    * Exchange a current token for a new one with
    * extended expiration
    *

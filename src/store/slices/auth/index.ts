@@ -170,9 +170,29 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
         }),
       );
     } catch (err) {
+      logger.info('Auth tokens refresh failed: ', JSON.stringify(err));
       asyncStorageService.clearStorage();
       dispatch(authActions.setLoggedIn(false));
       dispatch(authThunks.signOutThunk());
+    }
+  },
+);
+
+export const checkAndRefreshTokenThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/checkAndRefreshToken',
+  async (_, { dispatch }) => {
+    try {
+      const token = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+      const tokenNeedsRefresh = token && authService.tokenNeedsRefresh(token);
+
+      if (tokenNeedsRefresh) {
+        logger.info('Token expires soon, refreshing...');
+        await dispatch(refreshTokensThunk());
+      } else {
+        logger.info('Token still valid, no refresh needed');
+      }
+    } catch (err) {
+      logger.info('Could not check token expiration:', err);
     }
   },
 );
@@ -520,6 +540,7 @@ export const authThunks = {
   sendVerificationEmailThunk,
   changePasswordThunk,
   refreshTokensThunk,
+  checkAndRefreshTokenThunk,
 };
 
 export default authSlice.reducer;

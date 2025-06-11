@@ -48,7 +48,7 @@ export default function App(): JSX.Element {
   const tailwind = useTailwind();
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
-  const { screenLocked, lastScreenLock, initialScreenLocked } = useAppSelector((state) => state.app);
+  const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const { color: whiteColor } = tailwind('text-white');
 
   useEffect(() => {
@@ -60,6 +60,13 @@ export default function App(): JSX.Element {
     };
 
     initializeTheme();
+
+    return () => {
+      if (!screenLockEnabled) {
+        dispatch(appActions.setInitialScreenLocked(false));
+        dispatch(appActions.setScreenLocked(false));
+      }
+    };
   }, []);
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
@@ -85,10 +92,11 @@ export default function App(): JSX.Element {
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
+
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
       dispatch(appActions.setLastScreenLock(Date.now()));
-      dispatch(authThunks.refreshTokensThunk());
+      dispatch(authThunks.checkAndRefreshTokenThunk());
       dispatch(paymentsThunks.checkShouldDisplayBilling());
     }
 
@@ -204,7 +212,7 @@ export default function App(): JSX.Element {
                   onScreenUnlocked={handleUnlockScreen}
                 />
 
-                {initialScreenLocked ? null : <Navigation />}
+                {initialScreenLocked && screenLocked ? null : <Navigation />}
                 <AppToast />
 
                 <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />

@@ -1,3 +1,4 @@
+import { logger } from '@internxt-mobile/services/common';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageKey } from '../types';
@@ -84,6 +85,7 @@ class AsyncStorageService {
 
     // eslint-disable-next-line no-console
     console.info('Async Storage cleaned');
+    logger.info('Async Storage cleaned');
   }
 }
 
