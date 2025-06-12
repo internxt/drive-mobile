@@ -37,7 +37,7 @@ export interface DriveFolderScreenHeaderProps {
 }
 
 const SEARCH_BAR_HEIGHT = 52;
-const GLOBAL_SEARCH_BUTTON_HEIGHT = 32;
+const GLOBAL_SEARCH_BUTTON_HEIGHT = 40;
 
 export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (props) => {
   const tailwind = useTailwind();
