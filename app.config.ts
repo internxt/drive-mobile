@@ -37,7 +37,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   ios: {
     jsEngine: 'jsc',
     icon: './assets/icon-ios.png',
-    userInterfaceStyle: 'automatic',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
     usesIcloudStorage: true,
@@ -56,7 +55,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   android: {
     jsEngine: 'hermes',
     versionCode: env[stage].ANDROID_VERSION_CODE,
-    userInterfaceStyle: 'automatic',
     icon: './assets/icon-android.png',
     adaptiveIcon: {
       foregroundImage: './assets/icon-android.png',
