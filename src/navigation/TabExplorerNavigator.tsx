@@ -1,6 +1,6 @@
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 
 import BottomTabNavigator from '../components/BottomTabNavigator';
@@ -21,6 +21,7 @@ import DriveRenameModal from '../components/modals/DriveRenameModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import SignOutModal from '../components/modals/SignOutModal';
+import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import HomeScreen from '../screens/HomeScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -39,6 +40,7 @@ const LAUNCH_ON_ROUTE_ON_DEV_MODE: keyof TabExplorerStackParamList | undefined =
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
+  const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
   const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
@@ -62,7 +64,9 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
     }
   }
   return (
-    <View style={{ ...tailwind('h-full'), paddingBottom: safeAreaInsets.bottom }}>
+    <View
+      style={{ ...tailwind('h-full'), backgroundColor: getColor('bg-surface'), paddingBottom: safeAreaInsets.bottom }}
+    >
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
         initialRouteName={LAUNCH_ON_ROUTE_ON_DEV_MODE || 'Home'}
