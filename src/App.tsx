@@ -1,6 +1,7 @@
 import * as NavigationBar from 'expo-navigation-bar';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
+  Appearance,
   AppStateStatus,
   ColorValue,
   KeyboardAvoidingView,
@@ -19,7 +20,6 @@ import AppToast from './components/AppToast';
 import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
 import DeleteAccountModal from './components/modals/DeleteAccountModal';
 import EditNameModal from './components/modals/EditNameModal';
-import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import LanguageModal from './components/modals/LanguageModal';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import PlansModal from './components/modals/PlansModal';
@@ -29,6 +29,7 @@ import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
 import analyticsService from './services/AnalyticsService';
 import appService from './services/AppService';
+import asyncStorageService from './services/AsyncStorageService';
 import authService from './services/AuthService';
 import { logger } from './services/common';
 import { time } from './services/common/time';
@@ -47,13 +48,30 @@ export default function App(): JSX.Element {
   const tailwind = useTailwind();
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
-  const { screenLocked, lastScreenLock, initialScreenLocked } = useAppSelector((state) => state.app);
-
+  const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const { color: whiteColor } = tailwind('text-white');
+
+  useEffect(() => {
+    const initializeTheme = async () => {
+      const savedTheme = await asyncStorageService.getThemePreference();
+      if (savedTheme) {
+        Appearance.setColorScheme(savedTheme);
+      }
+    };
+
+    initializeTheme();
+
+    return () => {
+      if (!screenLockEnabled) {
+        dispatch(appActions.setInitialScreenLocked(false));
+        dispatch(appActions.setScreenLocked(false));
+      }
+    };
+  }, []);
+
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const {
     isLinkCopiedModalOpen,
-    isInviteFriendsModalOpen,
     isDeleteAccountModalOpen,
     isEditNameModalOpen,
     isChangeProfilePictureModalOpen,
@@ -69,16 +87,16 @@ export default function App(): JSX.Element {
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
-  const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
+
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
       dispatch(appActions.setLastScreenLock(Date.now()));
-      dispatch(authThunks.refreshTokensThunk());
+      dispatch(authThunks.checkAndRefreshTokenThunk());
       dispatch(paymentsThunks.checkShouldDisplayBilling());
     }
 
@@ -186,7 +204,7 @@ export default function App(): JSX.Element {
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
           {isAppInitialized && fontsAreReady ? (
-            <DriveContextProvider rootFolderId={user?.root_folder_id}>
+            <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
               <Portal.Host>
                 <LockScreen
                   locked={screenLocked}
@@ -194,11 +212,10 @@ export default function App(): JSX.Element {
                   onScreenUnlocked={handleUnlockScreen}
                 />
 
-                {initialScreenLocked ? null : <Navigation />}
+                {initialScreenLocked && screenLocked ? null : <Navigation />}
                 <AppToast />
 
                 <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-                <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
                 <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
                 <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
                 <ChangeProfilePictureModal

@@ -1,7 +1,12 @@
 import { getEnvironmentConfig } from '../../../../lib/network';
 import network from '../../../../network';
 
-import { DriveFileData, FileEntry, Thumbnail, ThumbnailEntry } from '@internxt/sdk/dist/drive/storage/types';
+import {
+  CreateThumbnailEntryPayload,
+  DriveFileData,
+  FileEntryByUuid,
+  Thumbnail,
+} from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '../../sdk';
 
 export interface FileMeta {
@@ -46,12 +51,12 @@ class UploadService {
     );
   }
 
-  public async createFileEntry(entry: FileEntry): Promise<DriveFileData> {
-    return this.sdk.storage.createFileEntry(entry);
+  public async createFileEntry(entry: FileEntryByUuid): Promise<DriveFileData> {
+    return this.sdk.storageV2.createFileEntryByUuid(entry);
   }
 
-  public async createThumbnailEntry(entry: ThumbnailEntry): Promise<Thumbnail> {
-    return this.sdk.storage.createThumbnailEntry(entry);
+  public async createThumbnailEntry(entry: CreateThumbnailEntryPayload): Promise<Thumbnail> {
+    return this.sdk.storageV2.createThumbnailEntryWithUUID(entry);
   }
 
   public getFinalUri(fileUri: string, fileType: FileType): string {

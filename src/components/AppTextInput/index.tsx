@@ -133,7 +133,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
         <TextInput
           placeholderTextColor={getColor('text-gray-30')}
           {...inputProps}
-          style={[tailwind('flex-1 text-gray-80 py-2 px-4'), props.style]}
+          style={[tailwind('flex-1 py-2 px-4'), { color: getColor('text-gray-80') }, props.style]}
           onFocus={handleOnFocusInput}
           onBlur={(e) => {
             setIsFocused(false);

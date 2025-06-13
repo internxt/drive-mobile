@@ -4,7 +4,7 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
@@ -12,6 +12,7 @@ import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
 import SortModal, { SortMode } from '../../../components/modals/SortModal';
+import { logger } from '../../../services/common';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
@@ -25,23 +26,25 @@ import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
   const [loadingMore, setLoadingMore] = useState(false);
-  const { isRootFolder, folderId, folderName, parentFolderName, parentId } = route.params;
+  const { isRootFolder, folderUuid, folderName, parentFolderName, parentUuid } = route.params;
+
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
   const { downloadingFile } = useAppSelector((state) => state.drive);
 
-  const folder = driveCtx.driveFoldersTree[folderId];
+  const folder = driveCtx.driveFoldersTree[folderUuid];
 
   const folderHasError = folder?.error;
-  const folderFiles = folder?.files || [];
-  const folderFolders = folder?.folders || [];
+  const folderFiles = folder?.files ?? [];
+  const folderFolders = folder?.folders ?? [];
   const folderContent = useMemo<DriveListItem[]>(() => {
     const files = folderFiles.map((file) => {
       return {
         status: DriveItemStatus.Idle,
         id: file.id.toString(),
         data: {
+          folderUuid: file.folderUuid,
           uuid: file.uuid,
           name: file.plainName,
           size: file.size,
@@ -64,6 +67,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         id: folder.id.toString(),
         data: {
           uuid: folder.uuid,
+          parentUuid: folder.parentUuid,
           name: folder.plainName,
           createdAt: folder.createdAt,
           updatedAt: folder.updatedAt,
@@ -82,12 +86,27 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     return folders.concat(files);
   }, [folderFiles]);
 
+  useEffect(() => {
+    // to ensure that the folder content is loaded when new folder is focused
+    const currentFocusedFolder = driveCtx.focusedFolder;
+    if (currentFocusedFolder?.uuid !== folderUuid) {
+      driveCtx
+        .loadFolderContent(folderUuid, {
+          focusFolder: true,
+          resetPagination: false,
+        })
+        .catch((error) => {
+          logger.error('Error loading folder content in DriveFolderScreen:', error);
+        });
+    }
+  }, [folderUuid]);
+
   const onBackButtonPressed = () => {
     navigation.goBack();
 
-    if (parentId) {
+    if (parentUuid) {
       driveCtx
-        .loadFolderContent(parentId, { pullFrom: ['network'], resetPagination: false })
+        .loadFolderContent(parentUuid, { pullFrom: ['network'], resetPagination: false, focusFolder: true })
         .catch(errorService.reportError);
     }
   };
@@ -154,12 +173,14 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   const handleDriveItemPress = (driveItem: DriveListItem) => {
     const isFolder = driveItem?.data?.isFolder;
+
     if (!isFolder) {
       dispatch(
         driveActions.setFocusedItem({
           ...driveItem.data,
           id: driveItem.data.id,
-          uuid: driveItem.data.uuid,
+          uuid: driveItem.data.uuid ?? undefined,
+          folderUuid: driveItem.data.folderUuid ?? undefined,
           shareId: driveItem.data.shareId,
           parentId: driveItem.data.parentId as number,
           size: driveItem.data.size,
@@ -169,13 +190,13 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         }),
       );
       handleOnFilePress(driveItem);
-    } else if (driveItem.data.folderId) {
-      driveCtx.loadFolderContent(driveItem.data.folderId, { focusFolder: true, resetPagination: true });
+    } else if (driveItem.data.uuid) {
+      driveCtx.loadFolderContent(driveItem.data.uuid, { focusFolder: true, resetPagination: true });
 
       // Navigate to the folder, this is the minimal data
       navigation.push('DriveFolder', {
-        folderId: driveItem.data.folderId,
-        parentId: driveItem.data.parentId as number,
+        folderUuid: driveItem.data.uuid as string,
+        parentUuid: driveItem.data.parentUuid as string,
         parentFolderName: screenTitle,
         folderName: driveItem.data.name,
         isRootFolder: false,
@@ -188,6 +209,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       driveActions.setFocusedItem({
         ...driveItem.data,
         id: driveItem.data.id,
+        folderUuid: driveItem.data.folderUuid ?? undefined,
         shareId: driveItem.data.shareId,
         parentId: driveItem.data.parentId as number,
         size: driveItem.data.size,
@@ -224,7 +246,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       driveActions.setFocusedItem({
         id: focusedFolder.id,
         uuid: focusedFolder.uuid,
-        parentId: focusedFolder.parentId,
+        parentUuid: focusedFolder.parentId,
         updatedAt: focusedFolder.updatedAt,
         name: focusedFolder.name,
         isFromFolderActions: true,
@@ -247,7 +269,10 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     try {
       if (loadingMore) return;
       setLoadingMore(true);
-      await driveCtx.loadFolderContent(folderId, { pullFrom: ['network'], resetPagination: false, focusFolder: true });
+      await driveCtx.loadFolderContent(folderUuid, {
+        pullFrom: ['network'],
+        resetPagination: false,
+      });
     } catch (error) {
       errorService.reportError(error);
     } finally {
@@ -269,7 +294,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   }, [driveSortedItems, searchValue]);
 
   async function handleRefresh() {
-    await driveCtx.loadFolderContent(folderId, { focusFolder: true, pullFrom: ['network'], resetPagination: true });
+    await driveCtx.loadFolderContent(folderUuid, { focusFolder: true, pullFrom: ['network'], resetPagination: true });
   }
 
   return (
@@ -289,7 +314,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             onFolderActionsPress={handleFolderActionsPress}
             title={screenTitle}
             backButtonConfig={{
-              label: parentFolderName || '',
+              label: parentFolderName ?? '',
               canGoBack: isRootFolder ? false : true,
               onBackButtonPressed,
             }}
@@ -331,7 +356,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
               </View>
             )}
             onEndReached={handleEndReached}
-            isLoading={driveCtx.driveFoldersTree[folderId].loading}
+            isLoading={driveCtx.driveFoldersTree[folderUuid].loading}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}
             items={driveItems}

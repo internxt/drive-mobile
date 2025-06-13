@@ -1,23 +1,20 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import asyncStorageService from '../../../services/AsyncStorageService';
+import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
+import drive from '@internxt-mobile/services/drive';
+import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import errorService from 'src/services/ErrorService';
 import { RootState } from '../..';
-import authService, { AuthCredentials } from '../../../services/AuthService';
-import userService from '../../../services/UserService';
+import strings from '../../../../assets/lang/strings';
+import asyncStorageService from '../../../services/AsyncStorageService';
+import authService from '../../../services/AuthService';
+import notificationsService from '../../../services/NotificationsService';
+import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
 import { uiActions } from '../ui';
-import notificationsService from '../../../services/NotificationsService';
-import strings from '../../../../assets/lang/strings';
-import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
-import errorService from 'src/services/ErrorService';
-import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
-import UserService from '../../../services/UserService';
-import drive from '@internxt-mobile/services/drive';
-import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import appService from '@internxt-mobile/services/AppService';
 export interface AuthState {
   loggedIn: boolean | null;
   token: string;
@@ -102,19 +99,11 @@ export const signInThunk = createAsyncThunk<
   { user: UserSettings; token: string; newToken: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
-  let userToSave = payload.user;
+  const userToSave = payload.user;
   SdkManager.init({
     token: payload.token,
     newToken: payload.newToken,
   });
-  if (!payload.user.root_folder_id) {
-    const initializedUser = await UserService.initializeUser(payload.user.email, payload.user.mnemonic);
-
-    userToSave = {
-      ...userToSave,
-      ...initializedUser,
-    };
-  }
 
   // Set the new SDK tokens
   SdkManager.setApiSecurity({
@@ -181,9 +170,29 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
         }),
       );
     } catch (err) {
+      logger.info('Auth tokens refresh failed: ', JSON.stringify(err));
       asyncStorageService.clearStorage();
       dispatch(authActions.setLoggedIn(false));
       dispatch(authThunks.signOutThunk());
+    }
+  },
+);
+
+export const checkAndRefreshTokenThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/checkAndRefreshToken',
+  async (_, { dispatch }) => {
+    try {
+      const token = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+      const tokenNeedsRefresh = token && authService.tokenNeedsRefresh(token);
+
+      if (tokenNeedsRefresh) {
+        logger.info('Token expires soon, refreshing...');
+        await dispatch(refreshTokensThunk());
+      } else {
+        logger.info('Token still valid, no refresh needed');
+      }
+    } catch (err) {
+      logger.info('Could not check token expiration:', err);
     }
   },
 );
@@ -203,8 +212,11 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
 
 export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/refreshUser',
-  async (payload: void, { dispatch }) => {
-    const { user, token } = await userService.refreshUser();
+  async (payload: void, { dispatch, getState }) => {
+    const { user: currentUserData } = getState().auth;
+
+    const res = await userService.refreshUser(currentUserData?.uuid as string);
+    const { user, oldToken: token } = res;
     const { avatar, emailVerified, name, lastname } = user;
 
     if (avatar) {
@@ -238,8 +250,8 @@ export const deleteAccountThunk = createAsyncThunk<void, void, { state: RootStat
   'auth/deleteAccount',
   async (payload, { getState }) => {
     const { user } = getState().auth;
-
-    user && (await authService.deleteAccount(user.email));
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    user && (await authService.deleteAccount(token));
 
     await asyncStorageService.saveItem(AsyncStorageKey.IsDeletingAccount, 'DELETING');
   },
@@ -528,6 +540,7 @@ export const authThunks = {
   sendVerificationEmailThunk,
   changePasswordThunk,
   refreshTokensThunk,
+  checkAndRefreshTokenThunk,
 };
 
 export default authSlice.reducer;

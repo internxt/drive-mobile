@@ -78,17 +78,17 @@ export const getDriveTrashItems = async ({
  * Restores a drive item currently in trash
  */
 export const restoreDriveItems = async (
-  items: { fileId?: string; folderId?: number; destinationFolderId: number }[],
+  items: { fileId?: string; folderId?: string; destinationFolderId: string }[],
   config?: { displayNotification: boolean },
 ): Promise<UseCaseResult<unknown>> => {
   try {
     const operations = items.map(async (item) => {
       if (item.fileId) {
-        await drive.trash.restoreFile({ fileId: item.fileId, destinationFolderId: item.destinationFolderId });
+        await drive.trash.restoreFile({ fileUuid: item.fileId, destinationFolderUuid: item.destinationFolderId });
       }
 
       if (item.folderId) {
-        await drive.trash.restoreFolder({ folderId: item.folderId, destinationFolderId: item.destinationFolderId });
+        await drive.trash.restoreFolder({ folderUuid: item.folderId, destinationFolderUuid: item.destinationFolderId });
       }
     });
 

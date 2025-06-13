@@ -1,8 +1,8 @@
-import { AddItemsToTrashPayload, FetchTrashContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { SdkManager } from '@internxt-mobile/services/common';
+import { AddItemsToTrashPayload, FetchTrashContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { DeleteItemsPermanentlyPayload } from '@internxt/sdk/dist/drive/trash/types';
-import { driveFolderService } from '../folder';
 import { driveFileService } from '../file';
+import { driveFolderService } from '../folder';
 
 export type TrashItem = FetchTrashContentResponse['result'][number];
 
@@ -60,17 +60,23 @@ class DriveTrashService {
     return this.sdk.trash.deleteItemsPermanently({ items: itemsToDelete } as DeleteItemsPermanentlyPayload);
   }
 
-  public async restoreFolder({ destinationFolderId, folderId }: { folderId: number; destinationFolderId: number }) {
+  public async restoreFolder({
+    destinationFolderUuid,
+    folderUuid,
+  }: {
+    folderUuid: string;
+    destinationFolderUuid: string;
+  }) {
     return driveFolderService.moveFolder({
-      folderId,
-      destinationFolderId: destinationFolderId,
+      folderUuid,
+      destinationFolderUuid,
     });
   }
 
-  public async restoreFile({ destinationFolderId, fileId }: { fileId: string; destinationFolderId: number }) {
+  public async restoreFile({ destinationFolderUuid, fileUuid }: { fileUuid: string; destinationFolderUuid: string }) {
     return driveFileService.moveFile({
-      fileId,
-      destination: destinationFolderId,
+      fileUuid,
+      destinationFolderUuid,
     });
   }
 

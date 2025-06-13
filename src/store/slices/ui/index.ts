@@ -14,7 +14,6 @@ export interface UIState {
   showRenameModal: boolean;
   showRunOutOfSpaceModal: boolean;
   isLinkCopiedModalOpen: boolean;
-  isInviteFriendsModalOpen: boolean;
   isSignOutModalOpen: boolean;
   isDeleteAccountModalOpen: boolean;
   isEditNameModalOpen: boolean;
@@ -41,7 +40,6 @@ const initialState: UIState = {
   showRenameModal: false,
   showRunOutOfSpaceModal: false,
   isLinkCopiedModalOpen: false,
-  isInviteFriendsModalOpen: false,
   isSignOutModalOpen: false,
   isDeleteAccountModalOpen: false,
   isEditNameModalOpen: false,
@@ -92,9 +90,6 @@ export const uiSlice = createSlice({
     },
     setIsLinkCopiedModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isLinkCopiedModalOpen = action.payload;
-    },
-    setIsInviteFriendsModalOpen: (state, action: PayloadAction<boolean>) => {
-      state.isInviteFriendsModalOpen = action.payload;
     },
     setIsSignOutModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isSignOutModalOpen = action.payload;

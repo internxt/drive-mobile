@@ -193,7 +193,8 @@ const strings = new LocalizedStrings({
           title: 'Folder is empty',
           message: 'Tap the + button to upload a file or create something new',
         },
-        searchInThisFolder: 'Search in this folder',
+        searchInThisFolder: 'Search items in this folder',
+        searchInAllFolders: 'Search all my files',
         encrypting: 'Encrypting',
         decrypting: 'Decrypting',
         downloadingPercent: 'Downloading... {0}%',
@@ -256,6 +257,8 @@ const strings = new LocalizedStrings({
         legal: 'Legal',
         debug: 'Debug',
         signOut: 'Log out',
+        darkMode: 'Dark mode',
+        darkModeDescription: 'Change the app theme',
       },
       AccountScreen: {
         title: 'Account',
@@ -297,7 +300,7 @@ const strings = new LocalizedStrings({
         },
         twoFactor: {
           title: 'Two factor authentication (2FA)',
-          text: 'Two-factor authentication provides an extra layer of security by requiring an extra verification when you log in. In adittion to your password, you’ll also need a generated code.',
+          text: 'Two-factor authentication provides an extra layer of security by requiring an extra verification when you log in. In addition to your password, you’ll also need a generated code.',
           enable: 'Enable 2FA',
           disable: 'Disable 2FA',
         },
@@ -444,6 +447,23 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      GlobalSearchModal: {
+        searchPlaceholder: 'Search all my files',
+        searching: 'Searching...',
+        noResultsTitle: 'No results found',
+        noResultsMessage: 'Try a different search',
+        searchPromptTitle: 'Search files and folders',
+        searchPromptMessage: 'Type to start your search',
+        clear: 'Clear',
+        opening: 'Opening...',
+        searchError: 'Search error. Try again.',
+        tryAgainButton: 'Try again',
+      },
+      duplicatedFiles: {
+        duplicateFilesTitle: 'Duplicate Files Found',
+        duplicateFilesMessage: 'The following files already exist: %s\n\nDo you want to upload them with a new name?',
+        duplicateFilesAction: 'Upload with new name',
+      },
       rename: {
         title: 'Rename',
         label: 'Name',
@@ -896,6 +916,7 @@ const strings = new LocalizedStrings({
           message: 'Prueba a subir un archivo o crear una carpeta',
         },
         searchInThisFolder: 'Buscar en esta carpeta',
+        searchInAllFolders: 'Buscar en todos mis archivos',
         encrypting: 'Encriptando',
         decrypting: 'Desencriptando',
         downloadingPercent: 'Descargando... {0}%',
@@ -958,6 +979,8 @@ const strings = new LocalizedStrings({
         legal: 'Legal',
         debug: 'Debug',
         signOut: 'Cerrar sesión',
+        darkMode: 'Modo oscuro',
+        darkModeDescription: 'Cambiar apariencia de la aplicación',
       },
       AccountScreen: {
         title: 'Cuenta',
@@ -1143,6 +1166,23 @@ const strings = new LocalizedStrings({
       },
     },
     modals: {
+      GlobalSearchModal: {
+        searchPlaceholder: 'Buscar en todos mis archivos',
+        searching: 'Buscando...',
+        noResultsTitle: 'No se encontraron resultados',
+        noResultsMessage: 'Intenta con una búsqueda diferente',
+        searchPromptTitle: 'Buscar archivos y carpetas',
+        searchPromptMessage: 'Escribe para comenzar tu búsqueda',
+        clear: 'Limpiar',
+        opening: 'Abriendo...',
+        searchError: 'Error al buscar. Inténtalo de nuevo.',
+        tryAgainButton: 'Intentar de nuevo',
+      },
+      duplicatedFiles: {
+        duplicateFilesTitle: 'Archivos duplicados encontrados',
+        duplicateFilesMessage: 'Los siguientes archivos ya existen: %s\n\n¿Quieres subirlos con un nuevo nombre?',
+        duplicateFilesAction: 'Subir con nuevo nombre',
+      },
       rename: {
         title: 'Renombrar',
         label: 'Nombre',

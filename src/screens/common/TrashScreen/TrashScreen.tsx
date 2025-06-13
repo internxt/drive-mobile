@@ -1,25 +1,25 @@
 import { useUseCase } from '@internxt-mobile/hooks/common';
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import analytics, { AnalyticsEventKey } from '@internxt-mobile/services/AnalyticsService';
+import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveListItem, DriveListViewMode } from '@internxt-mobile/types/drive';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
+import strings from 'assets/lang/strings';
+import { times } from 'lodash';
 import React, { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
-import { useTailwind } from 'tailwind-rn';
-import { TrashEmptyState } from './TrashEmptyState';
-import { TrashScreenHeader } from './TrashScreenHeader';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { DriveList } from 'src/components/drive/lists/DriveList';
-import { TrashOptionsModal } from './modals/TrashOptionsModal';
+import DriveItemSkinSkeleton from 'src/components/DriveItemSkinSkeleton';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
-import strings from 'assets/lang/strings';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveActions } from 'src/store/slices/drive';
-import analytics, { AnalyticsEventKey } from '@internxt-mobile/services/AnalyticsService';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import errorService from '@internxt-mobile/services/ErrorService';
-import { times } from 'lodash';
-import DriveItemSkinSkeleton from 'src/components/DriveItemSkinSkeleton';
-import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
+import { useTailwind } from 'tailwind-rn';
+import { TrashOptionsModal } from './modals/TrashOptionsModal';
+import { TrashEmptyState } from './TrashEmptyState';
+import { TrashScreenHeader } from './TrashScreenHeader';
 export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   const driveCtx = useDrive();
   const { executeUseCase: getDriveTrashItems } = useUseCase(driveUseCases.getDriveTrashItems, { lazy: true });
@@ -119,13 +119,13 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
     setSelectedDriveItem(undefined);
     setOptionsModalOpen(false);
 
-    const destinationFolderId = (item.data.isFolder ? item.data.parentId : item.data.folderId) ?? user?.root_folder_id;
+    const destinationFolderId =
+      (item.data.isFolder ? item.data.parentUuid : item.data.folderUuid) ?? user?.rootFolderId;
 
     const { success } = await driveUseCases.restoreDriveItems([
       {
-        fileId: item.data.fileId,
-        folderId: item.data.isFolder ? item.data.id : undefined,
-
+        fileId: item.data.isFolder ? undefined : item.data.uuid,
+        folderId: item.data.isFolder ? item.data.uuid : undefined,
         destinationFolderId,
       },
     ]);

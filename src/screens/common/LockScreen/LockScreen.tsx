@@ -1,6 +1,6 @@
 import Portal from '@burstware/react-native-portal';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { biometrics } from '@internxt-mobile/services/common';
+import { biometrics, logger } from '@internxt-mobile/services/common';
 import errorService from '@internxt-mobile/services/ErrorService';
 
 import strings from 'assets/lang/strings';
@@ -39,6 +39,8 @@ export const LockScreen: React.FC<LockScreenProps> = (props) => {
         setUnlockCancelled(true);
       }
     } catch (error) {
+      logger.info('initializeAuthentication on LockScreen failed or cancelled:', JSON.stringify(error));
+      logger.info('initializeAuthentication on LockScreen failed, biometricAccessType=', biometricAccessType);
       errorService.reportError(error);
     }
   };

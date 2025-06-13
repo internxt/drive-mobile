@@ -4,7 +4,6 @@ import { View } from 'react-native';
 import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
-import uuid from 'react-native-uuid';
 import AppText from 'src/components/AppText';
 import AppTextInput from 'src/components/AppTextInput';
 import { useTailwind } from 'tailwind-rn';
@@ -31,6 +30,7 @@ function RenameModal(): JSX.Element {
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const isFolder = focusedItem?.type ? false : true;
+
   const onItemRenameSuccess = () => {
     /**
      * Weird stuff over here
@@ -48,40 +48,33 @@ function RenameModal(): JSX.Element {
      */
 
     if (driveCtx.focusedFolder) {
-      driveCtx.loadFolderContent(driveCtx.focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
 
     notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
     setNewName('');
   };
+
   const onItemRenameFinally = () => {
     dispatch(uiActions.setShowRenameModal(false));
     dispatch(uiActions.setShowItemModal(false));
     setIsLoading(false);
   };
+
   const onCancelButtonPressed = () => {
     dispatch(driveActions.deselectAll());
     dispatch(uiActions.setShowRenameModal(false));
   };
+
   const onRenameButtonPressed = async () => {
     try {
       setIsLoading(true);
 
       if (focusedItem && isFolder) {
         // TODO: Move to a useCase
-        await drive.folder.updateMetaData(focusedItem.id, {
-          itemName: newName,
-        });
-      } else if (focusedItem?.fileId && user) {
-        await drive.file.updateMetaData(
-          focusedItem.fileId,
-          {
-            itemName: newName,
-          },
-          user.bucket,
-          // Picked from drive-web
-          uuid.v4().toString(),
-        );
+        if (focusedItem?.uuid) await drive.folder.updateMetaData(focusedItem.uuid, newName);
+      } else if (focusedItem?.uuid && user) {
+        await drive.file.updateMetaData(focusedItem.uuid, newName);
       }
 
       // Update the item in the local DB
@@ -108,6 +101,7 @@ function RenameModal(): JSX.Element {
     dispatch(uiActions.setShowRenameModal(false));
     setNewName('');
   };
+
   const onOpened = () => {
     setNewName(focusedItem?.name || '');
   };
@@ -116,7 +110,7 @@ function RenameModal(): JSX.Element {
     <Portal>
       <CenterModal backdropPressToClose={false} isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
         <View style={tailwind('flex-grow px-4 py-4')}>
-          <AppText medium style={tailwind('text-gray-100 mb-4 text-xl')}>
+          <AppText medium style={[tailwind('mb-4 text-xl'), { color: getColor('text-gray-100') }]}>
             {strings.modals.rename.title}
           </AppText>
           <View style={tailwind('flex-grow justify-center mb-5')}>

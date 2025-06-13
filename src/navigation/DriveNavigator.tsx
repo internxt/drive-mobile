@@ -14,7 +14,7 @@ export const DriveNavigator = () => {
         component={DriveFolderScreen}
         initialParams={{
           isRootFolder: true,
-          folderId: user?.root_folder_id,
+          folderUuid: user?.rootFolderId,
         }}
         options={{ animation: 'default' }}
       />

@@ -1,7 +1,4 @@
-import Axios from 'axios';
-
 import { SdkManager } from '@internxt-mobile/services/common';
-import appService from '@internxt-mobile/services/AppService';
 
 class DriveUsageService {
   private readonly sdk: SdkManager;
@@ -10,18 +7,9 @@ class DriveUsageService {
     this.sdk = sdk;
   }
 
-  /**
-   * NO SDK - Should be replaced by the SDK corresponding method
-   * @returns
-   */
   public async getUsage(): Promise<number> {
-    const response = await Axios.get<{ total: number }>(`${appService.constants.DRIVE_API_URL}/usage`, {
-      headers: {
-        Authorization: `Bearer ${this.sdk.getApiSecurity().token}`,
-      },
-    });
-
-    return response.data.total;
+    const usage = await this.sdk.storageV2.spaceUsageV2();
+    return usage.total;
   }
 }
 
