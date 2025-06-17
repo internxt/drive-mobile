@@ -167,7 +167,7 @@ export const useSecurity = () => {
       if (hasInitialized.current) return;
 
       try {
-        performPeriodicSecurityCheck();
+        await performPeriodicSecurityCheck();
 
         hasInitialized.current = true;
       } catch (error) {

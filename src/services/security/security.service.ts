@@ -47,7 +47,7 @@ export interface SecurityConfig {
 
 class SecurityService {
   private static instance: SecurityService;
-  private config: SecurityConfig;
+  private readonly config: SecurityConfig;
 
   constructor() {
     this.config = {
