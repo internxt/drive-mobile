@@ -72,6 +72,15 @@ class AsyncStorageService {
     return this.saveItem(AsyncStorageKey.ThemePreference, theme);
   }
 
+  async getLastSecurityCheck(): Promise<Date | null> {
+    const lastCheck = await this.getItem(AsyncStorageKey.LastSecurityCheck);
+    return lastCheck ? new Date(lastCheck) : null;
+  }
+
+  saveLastSecurityCheck(date: Date): Promise<void> {
+    return this.saveItem(AsyncStorageKey.LastSecurityCheck, date.toISOString());
+  }
+
   async clearStorage(): Promise<void> {
     await AsyncStorage.multiRemove([
       AsyncStorageKey.User,
@@ -81,6 +90,7 @@ class AsyncStorageService {
       AsyncStorageKey.ScreenLockIsEnabled,
       AsyncStorageKey.LastScreenLock,
       AsyncStorageKey.ThemePreference,
+      AsyncStorageKey.LastSecurityCheck,
     ]);
 
     // eslint-disable-next-line no-console
