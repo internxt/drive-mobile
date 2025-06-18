@@ -7991,6 +7991,11 @@ jackspeak@^3.1.2:
   optionalDependencies:
     "@pkgjs/parseargs" "^0.11.0"
 
+jail-monkey@^2.8.3:
+  version "2.8.3"
+  resolved "https://registry.yarnpkg.com/jail-monkey/-/jail-monkey-2.8.3.tgz#f3b92b5c517c177340744d7bdf157386dc5b9da5"
+  integrity sha512-+MMjFZ45svBkPurEn/QLZ4K8+Dc7XRWta3gofjSqiJemdIfD7MZeR2z5g6T3D2IlNUDqJ7lISYM21YWmSIoDZA==
+
 jake@^10.8.5:
   version "10.9.2"
   resolved "https://registry.yarnpkg.com/jake/-/jake-10.9.2.tgz#6ae487e6a69afec3a5e167628996b59f35ae2b7f"
