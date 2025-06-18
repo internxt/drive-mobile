@@ -47,8 +47,6 @@
     <string>Allow $(PRODUCT_NAME) to access your camera to upload a newly captured photo to the storage service</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Protect the app access to secure the available files</string>
-    <key>NSMicrophoneUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to save/download photos from the storage service</string>
     <key>NSPhotoLibraryUsageDescription</key>
