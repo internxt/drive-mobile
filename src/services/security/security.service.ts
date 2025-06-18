@@ -71,10 +71,10 @@ class SecurityService {
     try {
       const details = await this.gatherSecurityDetails();
       const risks = this.analyzeSecurityRisks(details);
-      const isSecure = this.determineSecurityStatus(risks);
+      const hasAnyRisk = this.determineSecurityStatus(risks);
 
       const result: SecurityCheckResult = {
-        isSecure,
+        isSecure: !hasAnyRisk,
         risks,
         details,
       };
@@ -240,7 +240,7 @@ class SecurityService {
   }
 
   /**
-   * Determine overall security status
+   * Returns if exist any security risk
    */
   private determineSecurityStatus(risks: SecurityRisk[]): boolean {
     const criticalRisks = risks.filter((risk) => risk.severity === 'critical');
