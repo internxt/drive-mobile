@@ -42,7 +42,6 @@ export interface SecurityConfig {
   blockOnCriticalRisk: boolean;
   allowDebugMode: boolean;
   checkMinutesInterval: number;
-  maxFailedChecks: number;
 }
 
 class SecurityService {
@@ -55,7 +54,6 @@ class SecurityService {
       blockOnCriticalRisk: true,
       allowDebugMode: __DEV__,
       checkMinutesInterval: 30,
-      maxFailedChecks: 3,
     };
   }
 
@@ -95,7 +93,7 @@ class SecurityService {
   /**
    * Check if device is compromised (rooted/jailbroken)
    */
-  public async isDeviceCompromised(): Promise<boolean> {
+  public isDeviceCompromised(): boolean {
     try {
       return JailMonkey.isJailBroken();
     } catch (error) {
@@ -107,7 +105,7 @@ class SecurityService {
   /**
    * Check if location can be mocked
    */
-  public async canMockLocation(): Promise<boolean> {
+  public canMockLocation(): boolean {
     try {
       return JailMonkey.canMockLocation();
     } catch (error) {
@@ -119,7 +117,7 @@ class SecurityService {
   /**
    * Check for suspicious hooking frameworks
    */
-  public async isHookingDetected(): Promise<boolean> {
+  public isHookingDetected(): boolean {
     try {
       return JailMonkey.hookDetected();
     } catch (error) {
@@ -131,12 +129,12 @@ class SecurityService {
   /**
    * Check if app is in debug mode
    */
-  public async isInDebugMode(): Promise<boolean> {
+  public isInDebugMode(): Promise<boolean> {
     try {
-      return await JailMonkey.isDebuggedMode();
+      return JailMonkey.isDebuggedMode();
     } catch (error) {
       logger.error('Failed to check debug mode:', error);
-      return false;
+      return Promise.resolve(false);
     }
   }
 
