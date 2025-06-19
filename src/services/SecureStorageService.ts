@@ -63,6 +63,7 @@ class SecureStorageService {
         return await this.valueExists(key);
       }
     } catch (error) {
+      logger.info(`Key ${key} not exist in secure storage`);
       return false;
     }
   }

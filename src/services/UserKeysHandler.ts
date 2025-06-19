@@ -18,9 +18,9 @@ export interface KeyData {
 
 export class UserKeysHandler {
   constructor(
-    private setLargeValue: (key: string, value: string) => Promise<void>,
-    private getLargeValue: (key: string) => Promise<string | null>,
-    private removeLargeValue: (key: string) => Promise<void>,
+    private readonly setLargeValue: (key: string, value: string) => Promise<void>,
+    private readonly getLargeValue: (key: string) => Promise<string | null>,
+    private readonly removeLargeValue: (key: string) => Promise<void>,
   ) {}
 
   async saveKeysField(baseKey: string, keysObject: UserKeysObject): Promise<void> {
@@ -70,7 +70,7 @@ export class UserKeysHandler {
   }
 
   private hasAnyKeyData(keyData: KeyData): boolean {
-    return Boolean(keyData.eccPrivateKey || keyData.eccPublicKey || keyData.kyberPrivateKey || keyData.kyberPublicKey);
+    return Boolean(keyData.eccPrivateKey ?? keyData.eccPublicKey ?? keyData.kyberPrivateKey ?? keyData.kyberPublicKey);
   }
 
   private restoreEccKeys(userData: UserData, keyData: KeyData): void {
