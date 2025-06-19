@@ -1,3 +1,5 @@
+import Portal from '@burstware/react-native-portal';
+import * as Linking from 'expo-linking';
 import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect, useState } from 'react';
 import {
@@ -10,11 +12,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-import Portal from '@burstware/react-native-portal';
-import * as Linking from 'expo-linking';
+import { CaptureProtection } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import AppToast from './components/AppToast';
 import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
@@ -175,6 +175,8 @@ export default function App(): JSX.Element {
   };
 
   useEffect(() => {
+    CaptureProtection.prevent();
+
     const initializeTheme = async () => {
       const savedTheme = await asyncStorageService.getThemePreference();
       if (savedTheme) {
