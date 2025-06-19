@@ -97,7 +97,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     RELEASE_ID,
     ...env[stage],
   },
-  plugins: ['expo-font'],
+  plugins: ['expo-font', 'expo-secure-store'],
 };
 
 export default appConfig;
