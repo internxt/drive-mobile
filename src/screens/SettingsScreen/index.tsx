@@ -1,4 +1,15 @@
-import { Bug, CaretRight, FileText, FolderSimple, Info, Moon, Question, Translate, Trash } from 'phosphor-react-native';
+import {
+  Bug,
+  CaretRight,
+  FileText,
+  FolderSimple,
+  Info,
+  Moon,
+  Question,
+  Shield,
+  Translate,
+  Trash,
+} from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { Appearance, Linking, Platform, ScrollView, Switch, View } from 'react-native';
 
@@ -25,6 +36,7 @@ import { fs } from '@internxt-mobile/services/FileSystemService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
 
+import { CaptureProtection, useCaptureProtection } from 'react-native-capture-protection';
 import { paymentsSelectors } from 'src/store/slices/payments';
 import asyncStorageService from '../../services/AsyncStorageService';
 
@@ -33,9 +45,11 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const { protectionStatus } = useCaptureProtection();
   const scrollViewRef = useRef<ScrollView | null>(null);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [screenProtectionEnabled, setScreenProtectionEnabled] = useState(protectionStatus?.screenshot ? false : true);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
@@ -112,6 +126,22 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
       Appearance.setColorScheme(!value ? 'dark' : 'light');
     }
   };
+
+  const handleScreenProtection = async (value: boolean) => {
+    try {
+      setScreenProtectionEnabled(value);
+
+      if (value) {
+        await CaptureProtection.prevent();
+      } else {
+        await CaptureProtection.allow();
+      }
+    } catch (error) {
+      setScreenProtectionEnabled(true);
+      await CaptureProtection.prevent();
+    }
+  };
+
   const onAccountPressed = () => {
     navigation.navigate('Account');
   };
@@ -327,6 +357,35 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                           ios_backgroundColor={getColor('text-gray-20')}
                           onValueChange={handleDarkModeToggle}
                           value={isDarkMode}
+                        />
+                      </View>
+                    </View>
+                  ),
+                  onPress: undefined,
+                },
+                {
+                  key: 'screen-protection',
+                  template: (
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <Shield size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
+                      <View style={tailwind('flex-grow justify-center')}>
+                        <AppText style={[tailwind('text-lg')]}>
+                          {strings.screens.SettingsScreen.screenProtection}
+                        </AppText>
+                        <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}>
+                          {strings.screens.SettingsScreen.screenProtectionDescription}
+                        </AppText>
+                      </View>
+                      <View style={tailwind('flex-row items-center')}>
+                        <Switch
+                          trackColor={{
+                            false: getColor('text-gray-20'),
+                            true: getColor('text-primary'),
+                          }}
+                          thumbColor={isDarkMode ? getColor('text-white') : getColor('text-gray-40')}
+                          ios_backgroundColor={getColor('text-gray-20')}
+                          onValueChange={handleScreenProtection}
+                          value={screenProtectionEnabled}
                         />
                       </View>
                     </View>
