@@ -726,6 +726,7 @@ const strings = new LocalizedStrings({
       cancelSubscription: 'Error cancelling subscription',
       notEnoughSpaceOnDevice: 'Not enough storage space available for download',
       fileAlreadyDownloading: 'File is already downloading, stopping download',
+      genericError: 'An unexpected error occurred. Please try again.',
     },
     security: {
       alerts: {
@@ -1503,6 +1504,7 @@ const strings = new LocalizedStrings({
       cancelSubscription: 'Error cancelando suscripción',
       notEnoughSpaceOnDevice: 'No hay suficiente espacio de almacenamiento disponible para la descarga',
       fileAlreadyDownloading: 'El archivo ya se está descargando, deteniendo la descarga',
+      genericError: 'Se ha producido un error inesperado. Por favor, inténtelo de nuevo.',
     },
     security: {
       alerts: {
