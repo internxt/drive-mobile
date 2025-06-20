@@ -259,6 +259,8 @@ const strings = new LocalizedStrings({
         signOut: 'Log out',
         darkMode: 'Dark mode',
         darkModeDescription: 'Change the app theme',
+        screenProtection: 'Screen protection',
+        screenProtectionDescription: 'Enable screen protection',
       },
       AccountScreen: {
         title: 'Account',
@@ -1031,6 +1033,8 @@ const strings = new LocalizedStrings({
         signOut: 'Cerrar sesión',
         darkMode: 'Modo oscuro',
         darkModeDescription: 'Cambiar apariencia de la aplicación',
+        screenProtection: 'Protección de pantalla',
+        screenProtectionDescription: 'Activar protección de pantalla',
       },
       AccountScreen: {
         title: 'Cuenta',
