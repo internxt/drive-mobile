@@ -25,6 +25,7 @@ import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import PlansModal from './components/modals/PlansModal';
 import { DriveContextProvider } from './contexts/Drive';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
+import useGetColor from './hooks/useColor';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
 import analyticsService from './services/AnalyticsService';
@@ -46,6 +47,8 @@ let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
@@ -198,6 +201,23 @@ export default function App(): JSX.Element {
       authService.removeLogoutListener(onUserLoggedOut);
     };
   }, []);
+
+  useEffect(() => {
+    const isAndroidOS = Platform.OS === 'android';
+    if (isAndroidOS) {
+      const configureNavigationBar = async () => {
+        try {
+          const backgroundColor = getColor('bg-surface');
+
+          await NavigationBar.setBackgroundColorAsync(backgroundColor);
+        } catch (error) {
+          logger.error('Error configuring navigation bar:', error);
+        }
+      };
+
+      configureNavigationBar();
+    }
+  }, [getColor]);
 
   return (
     <SafeAreaProvider>
