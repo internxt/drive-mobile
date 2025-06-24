@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import {
   Appearance,
   AppStateStatus,
-  ColorValue,
   KeyboardAvoidingView,
   NativeEventSubscription,
   Platform,
@@ -52,19 +51,28 @@ export default function App(): JSX.Element {
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
-  const { color: whiteColor } = tailwind('text-white');
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
     const initializeTheme = async () => {
       const savedTheme = await asyncStorageService.getThemePreference();
-      if (savedTheme) {
-        Appearance.setColorScheme(savedTheme);
-      }
+      const themeToApply = savedTheme || Appearance.getColorScheme() || 'light';
+
+      setCurrentTheme(themeToApply as 'light' | 'dark');
+      Appearance.setColorScheme(themeToApply);
     };
 
     initializeTheme();
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      asyncStorageService.getThemePreference().then((savedTheme) => {
+        if (!savedTheme && colorScheme) {
+          setCurrentTheme(colorScheme);
+        }
+      });
+    });
 
     return () => {
+      subscription?.remove();
       if (!screenLockEnabled) {
         dispatch(appActions.setInitialScreenLocked(false));
         dispatch(appActions.setScreenLocked(false));
@@ -184,11 +192,6 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setBackgroundColorAsync(whiteColor as ColorValue);
-      NavigationBar.setButtonStyleAsync('dark');
-    }
-
     authService.addLoginListener(onUserLoggedIn);
     authService.addLogoutListener(onUserLoggedOut);
 
@@ -203,21 +206,22 @@ export default function App(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const isAndroidOS = Platform.OS === 'android';
-    if (isAndroidOS) {
-      const configureNavigationBar = async () => {
+    const configureNavigationBar = async () => {
+      if (Platform.OS === 'android') {
         try {
           const backgroundColor = getColor('bg-surface');
+          const isDark = currentTheme === 'dark';
 
           await NavigationBar.setBackgroundColorAsync(backgroundColor);
+          await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
         } catch (error) {
           logger.error('Error configuring navigation bar:', error);
         }
-      };
+      }
+    };
 
-      configureNavigationBar();
-    }
-  }, [getColor]);
+    configureNavigationBar();
+  }, [getColor, currentTheme]);
 
   return (
     <SafeAreaProvider>
