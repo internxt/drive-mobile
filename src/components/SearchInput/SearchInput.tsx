@@ -1,6 +1,6 @@
 import { MagnifyingGlass, XCircle } from 'phosphor-react-native';
-import React, { createRef, useState } from 'react';
-import { View, TextInput, StyleProp, ViewStyle, TouchableOpacity } from 'react-native';
+import { createRef, useState } from 'react';
+import { StyleProp, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
@@ -13,6 +13,7 @@ interface SearchInputProps {
   onChangeText: (value: string) => void;
   placeholder?: string;
   style?: StyleProp<ViewStyle>;
+  onFocusChange?: (isFocused: boolean) => void;
 }
 
 export function SearchInput(props: SearchInputProps): JSX.Element {
@@ -20,16 +21,22 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
   const getColor = useGetColor();
   const [inputRef] = useState(createRef<TextInput>());
   const [isFocused, setIsFocused] = useState(false);
+
   const onBlur = () => {
     setIsFocused(false);
+    props.onFocusChange?.(false);
   };
+
   const onFocus = () => {
     setIsFocused(true);
+    props.onFocusChange?.(true);
   };
+
   const onClearButtonPressed = () => {
     inputRef.current?.clear();
     props.onChangeText('');
   };
+
   const onCancelButtonPressed = () => {
     inputRef.current?.blur();
   };
@@ -37,7 +44,9 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
   return (
     <View style={[tailwind('flex-row'), props.style]}>
       <View style={[tailwind('flex-1 py-2'), isFocused ? tailwind('pl-3') : tailwind('px-4')]}>
-        <View style={tailwind('bg-gray-5 flex-grow rounded-xl flex-shrink')}>
+        <View
+          style={[tailwind('bg-gray-5 flex-grow rounded-xl flex-shrink'), { backgroundColor: getColor('bg-gray-5') }]}
+        >
           <View style={tailwind('flex-row items-center')}>
             {!isFocused && (
               <View style={tailwind('pl-3')}>
@@ -51,9 +60,13 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
               onBlur={onBlur}
               onChangeText={props.onChangeText}
               value={props.value}
-              style={[styles.fontWeight.regular, tailwind('text-base pl-3 h-9 flex-1'), { marginBottom: 2 }]}
+              style={[
+                styles.fontWeight.regular,
+                tailwind('text-base pl-3 h-9 flex-1'),
+                { marginBottom: 2, color: getColor('text-gray-100') },
+              ]}
               placeholder={props.placeholder || ''}
-              placeholderTextColor={getColor('text-gray-40')}
+              placeholderTextColor={getColor('text-gray-80')}
             />
 
             {!!props.value && (

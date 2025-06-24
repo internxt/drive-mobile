@@ -4,7 +4,7 @@ import {
   Invoice,
   PaymentMethod,
   UserSubscription,
-} from '@internxt/sdk/dist/drive/payments/types';
+} from '@internxt/sdk/dist/drive/payments/types/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
@@ -84,13 +84,8 @@ const loadUserSubscriptionThunk = createAsyncThunk<UserSubscription, void, { sta
 
 const loadInvoicesThunk = createAsyncThunk<Invoice[] | null, void, { state: RootState }>(
   'payments/loadInvoices',
-  async (_, { getState }) => {
-    const state = getState();
-    const payments = state.payments;
-    if (payments.subscription.type === 'subscription') {
-      return paymentService.getInvoices(payments.subscription.subscriptionId);
-    }
-    return paymentService.getInvoices('');
+  async () => {
+    return paymentService.getInvoices();
   },
 );
 

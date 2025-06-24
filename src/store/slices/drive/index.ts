@@ -112,8 +112,11 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
   dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
   const recents = await drive.recents.getRecents();
-
-  dispatch(driveActions.setRecents(recents));
+  const recentsParsed = recents.map((recent) => ({
+    ...recent,
+    name: recent.plainName ?? recent.name,
+  }));
+  dispatch(driveActions.setRecents(recentsParsed));
 });
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
@@ -316,10 +319,10 @@ const downloadFileThunk = createAsyncThunk<
 
 const createFolderThunk = createAsyncThunk<
   void,
-  { parentFolderId: number; newFolderName: string },
+  { parentFolderUuid: string; newFolderName: string },
   { state: RootState }
->('drive/createFolder', async ({ parentFolderId, newFolderName }) => {
-  await drive.folder.createFolder(parentFolderId, newFolderName);
+>('drive/createFolder', async ({ parentFolderUuid, newFolderName }) => {
+  await drive.folder.createFolder(parentFolderUuid, newFolderName);
 });
 
 export interface MoveItemThunkPayload {
@@ -327,27 +330,27 @@ export interface MoveItemThunkPayload {
   origin: {
     name: string;
     itemId: number | string;
-    parentId: number;
-    id: number;
+    parentUuid: string;
+    uuid: string;
     updatedAt: string;
     createdAt: string;
   };
-  destination: number;
+  destinationUuid: string;
   itemMovedAction: () => void;
 }
 
 const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: RootState }>(
   'drive/moveItem',
-  async ({ isFolder, origin, destination, itemMovedAction }) => {
+  async ({ isFolder, origin, destinationUuid, itemMovedAction }) => {
     if (!isFolder) {
       await drive.file.moveFile({
-        fileId: origin?.itemId as string,
-        destination: destination,
+        fileUuid: origin?.uuid,
+        destinationFolderUuid: destinationUuid,
       });
     } else {
       await drive.folder.moveFolder({
-        folderId: origin.itemId as number,
-        destinationFolderId: destination,
+        folderUuid: origin.uuid,
+        destinationFolderUuid: destinationUuid,
       });
     }
 
@@ -572,7 +575,7 @@ export const driveSelectors = {
   navigationStackPeek: (state: RootState) => {
     return state.drive.navigationStack.length > 0
       ? state.drive.navigationStack[0]
-      : { id: state.auth.user?.root_folder_id || -1, name: '', parentId: null, updatedAt: Date.now().toString() };
+      : { id: state.auth.user?.rootFolderId ?? null, name: '', parentId: null, updatedAt: Date.now().toString() };
   },
   driveItems(state: RootState): { uploading: DriveListItem[]; items: DriveListItem[] } {
     const { folderContent, uploadingFiles, searchString, currentFolderId } = state.drive;

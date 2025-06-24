@@ -1,5 +1,4 @@
-import React from 'react';
-import { StyleProp, TouchableHighlight, View, ViewStyle } from 'react-native';
+import { StyleProp, TouchableHighlight, View, ViewStyle, useColorScheme } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
@@ -18,53 +17,79 @@ interface AppButtonProps {
 const AppButton = (props: AppButtonProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const isTitleString = typeof props.title === 'string';
-  const typeBgStyle = {
-    accept: props.disabled
-      ? props.loading
-        ? tailwind('bg-primary-dark')
-        : tailwind('bg-gray-40')
-      : tailwind('bg-primary'),
-    'accept-2': props.disabled ? tailwind('bg-gray-40') : tailwind('bg-primary/10'),
-    cancel: tailwind('bg-gray-5'),
-    'cancel-2': tailwind('bg-primary/10'),
-    delete: props.disabled ? tailwind('bg-gray-40') : tailwind('bg-red'),
-    white: {
-      ...tailwind('bg-white'),
-      ...({
-        borderColor: 'rgba(0,0,0,0.1)',
-        borderWidth: 1,
-        shadowColor: '#000000',
-        shadowOffset: {
-          width: 0,
-          height: 1,
-        },
-        shadowOpacity: 0.16,
-        shadowRadius: 1.51,
-        elevation: 2,
-      } as ViewStyle),
-    },
-  }[props.type];
-  const typeTextStyle = {
-    accept: tailwind('text-white'),
-    'accept-2': props.disabled ? tailwind('text-white') : tailwind('text-primary'),
-    cancel: props.disabled ? tailwind('text-gray-40') : tailwind('text-gray-80'),
-    'cancel-2': tailwind('text-primary'),
-    delete: tailwind('text-white'),
-    white: tailwind('text-gray-80'),
-  }[props.type];
-  const typeUnderlayColor = {
-    accept: getColor('text-primary-dark'),
-    'accept-2': getColor('text-primary/20'),
-    cancel: getColor('text-gray-10'),
-    'cancel-2': getColor('text-gray-10'),
-    delete: getColor('text-red-dark'),
-    white: getColor('text-gray-1'),
-  }[props.type];
+
+  const getButtonStyles = () => {
+    switch (props.type) {
+      case 'accept':
+        return {
+          backgroundColor: props.disabled
+            ? props.loading
+              ? getColor('text-primary-dark')
+              : getColor('bg-gray-30')
+            : getColor('text-primary'),
+          textColor: getColor('text-white'),
+          underlayColor: getColor('text-primary-dark'),
+        };
+
+      case 'accept-2':
+        return {
+          backgroundColor: props.disabled ? getColor('bg-gray-10') : getColor('bg-primary-10'),
+          textColor: props.disabled ? getColor('text-gray-40') : getColor('text-primary'),
+          underlayColor: getColor('bg-primary-20'),
+        };
+
+      case 'cancel':
+        return {
+          backgroundColor: getColor('bg-gray-5'),
+          textColor: props.disabled ? getColor('text-gray-40') : getColor('text-gray-80'),
+          underlayColor: getColor('bg-gray-10'),
+        };
+
+      case 'cancel-2':
+        return {
+          backgroundColor: getColor('bg-primary-10'),
+          textColor: getColor('text-primary'),
+          underlayColor: getColor('bg-gray-10'),
+        };
+
+      case 'delete':
+        return {
+          backgroundColor: props.disabled ? getColor('bg-gray-30') : getColor('text-red'),
+          textColor: getColor('text-white'),
+          underlayColor: getColor('text-red-dark'),
+        };
+
+      case 'white':
+        return {
+          backgroundColor: getColor('bg-surface'),
+          textColor: getColor('text-gray-80'),
+          underlayColor: getColor('bg-gray-5'),
+          borderColor: getColor('border-gray-20'),
+          borderWidth: 1,
+          shadowColor: isDark ? 'transparent' : '#000000',
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: isDark ? 0 : 0.16,
+          shadowRadius: 1.51,
+          elevation: isDark ? 0 : 2,
+        };
+
+      default:
+        return {
+          backgroundColor: getColor('text-primary'),
+          textColor: getColor('text-white'),
+          underlayColor: getColor('text-primary-dark'),
+        };
+    }
+  };
+
+  const buttonStyles = getButtonStyles();
 
   const renderContent = () => {
     const title = isTitleString ? (
-      <AppText medium numberOfLines={1} style={[tailwind('text-base'), typeTextStyle]}>
+      <AppText medium numberOfLines={1} style={[tailwind('text-base'), { color: buttonStyles.textColor }]}>
         {props.title}
       </AppText>
     ) : (
@@ -72,10 +97,10 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     );
 
     return (
-      <View style={tailwind('flex-row')}>
+      <View style={tailwind('flex-row items-center')}>
         {props.loading && (
           <View style={tailwind('mr-2 items-center justify-center')}>
-            <LoadingSpinner color={getColor('text-white')} size={16} />
+            <LoadingSpinner color={buttonStyles.textColor} size={16} />
           </View>
         )}
         {title}
@@ -86,8 +111,21 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
   return (
     <TouchableHighlight
       testID={props.testID}
-      underlayColor={typeUnderlayColor}
-      style={[tailwind('rounded-lg px-4 py-3 items-center justify-center'), typeBgStyle, props.style]}
+      underlayColor={buttonStyles.underlayColor}
+      style={[
+        tailwind('rounded-lg px-4 py-3 items-center justify-center'),
+        {
+          backgroundColor: buttonStyles.backgroundColor,
+          borderColor: buttonStyles.borderColor,
+          borderWidth: buttonStyles.borderWidth,
+          shadowColor: buttonStyles.shadowColor,
+          shadowOffset: buttonStyles.shadowOffset,
+          shadowOpacity: buttonStyles.shadowOpacity,
+          shadowRadius: buttonStyles.shadowRadius,
+          elevation: buttonStyles.elevation,
+        },
+        props.style,
+      ]}
       onPress={props.onPress}
       disabled={!!props.disabled || !!props.loading}
     >

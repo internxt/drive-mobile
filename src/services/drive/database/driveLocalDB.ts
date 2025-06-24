@@ -2,8 +2,6 @@ import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage
 import {
   DRIVE_DB_NAME,
   DriveItemData,
-  FolderContent,
-  FolderContentChild,
   InsertSqliteDriveItemRowData,
   SqliteDriveFolderRecord,
   SqliteDriveItemRow,
@@ -15,12 +13,15 @@ import folderRecordTable from './tables/folder_record';
 
 export interface DriveRowItem {
   id: number;
+  uuid?: string;
   bucket?: string;
   color: string | null;
   name: string;
   encrypt_version: string;
   parentId: number | null;
+  parentUuid?: string;
   fileId?: string;
+  folderUuid?: string;
   icon: string | null;
   size?: number;
   type?: string;
@@ -75,15 +76,24 @@ class DriveLocalDB {
   }
 
   public async saveFolderContent(
-    folderRecordData: { id: number; parentId: number; name: string; updatedAt: string },
+    folderRecordData: {
+      id: number;
+      uuid: string;
+      parentId: number;
+      parentUuid: string;
+      name: string;
+      updatedAt: string;
+    },
     items: DriveItemData[],
   ) {
-    const { id, parentId, name, updatedAt } = folderRecordData;
+    const { id, uuid, parentId, parentUuid, name, updatedAt } = folderRecordData;
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [id]);
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [id]);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.insert, [
       id,
+      uuid ?? '',
       parentId,
+      parentUuid ?? '',
       name,
       updatedAt,
       new Date().toString(),
@@ -101,21 +111,23 @@ class DriveLocalDB {
         const rows = items.map<InsertSqliteDriveItemRowData>((item) => {
           return {
             id: item.id,
+            uuid: item.uuid ?? '',
             bucket: item.bucket,
             color: item.color,
             encrypt_version: item.encrypt_version,
             icon: item.icon,
-            icon_id: item.icon_id || null,
+            icon_id: item.icon_id ?? null,
             is_folder: item.parentId !== undefined,
-            created_at: item.createdAt,
-            updated_at: item.updatedAt,
+            created_at: item.createdAt ?? '',
+            updated_at: item.updatedAt ?? '',
             file_id: item.fileId,
             // SQlite way to insert double quotes
             name: item.name.toString().replace(/"/g, '\\""'),
-            parent_id: item.parentId || item.folderId,
+            parent_id: item.parentId ?? item.folderId,
+            parent_uuid: item.parentUuid ?? '',
+            folder_uuid: item.folderUuid ?? '',
             size: item.size,
             type: item.type,
-            user_id: item.userId,
           } as InsertSqliteDriveItemRowData;
         });
         const bulkInsertQuery = driveItemTable.statements.bulkInsert(rows);
@@ -183,8 +195,8 @@ class DriveLocalDB {
         plain_name: row.name,
         deleted: false,
         // TODO: add to database
-        parentUuid: '',
-        uuid: '',
+        parentUuid: row.parent_uuid ?? '',
+        uuid: row.uuid ?? '',
       };
       result = folder;
     } else {
@@ -201,7 +213,7 @@ class DriveLocalDB {
         folder_id: row.parent_id as number,
         name: row.name,
         size: row.size as number,
-        type: row.type || '',
+        type: row.type ?? '',
         updatedAt: row.updated_at,
         thumbnails: row.thumbnails,
         plain_name: row.plain_name,
@@ -210,52 +222,13 @@ class DriveLocalDB {
         // should not exists in the db for now, we cannot handle those cases
         status: 'EXISTS',
         // TODO: add to database
-        folderUuid: '',
-        uuid: '',
+        folderUuid: row.folder_uuid ?? row.parent_uuid ?? '',
+        uuid: row.uuid ?? '',
       };
       result = file;
     }
 
     return result as DriveItemData;
-  }
-
-  async getFolderContent(folderId: number): Promise<FolderContent | null> {
-    const [items, folderContent] = await Promise.all([this.getDriveItems(folderId), this.getFolderRecord(folderId)]);
-    if (!folderContent) return null;
-    return {
-      name: folderContent.name,
-      icon: '',
-      parent_id: folderContent.parent_id,
-      parentId: folderContent.parent_id,
-      bucket: '-',
-      color: '',
-      createdAt: '-',
-      encrypt_version: '-',
-      id: folderId,
-      plain_name: folderContent.name,
-      updatedAt: folderContent.updated_at,
-      user_id: -1,
-      userId: -1,
-      files: items.filter((item) => item.fileId),
-      children: items
-        .filter((item) => !item.fileId)
-        .map<FolderContentChild>((item) => {
-          return {
-            ...item,
-            parent_id: item.parentId || folderId,
-            parentId: item.parentId || folderId,
-            icon: item.icon || '-',
-            name: item.name,
-            plain_name: item.plain_name,
-            color: item.color || '-',
-            removed: false,
-            deleted: false,
-
-            // We don't support uuid yet, this will involve
-            // a major refactor in the data models
-          } as FolderContentChild;
-        }),
-    };
   }
 }
 

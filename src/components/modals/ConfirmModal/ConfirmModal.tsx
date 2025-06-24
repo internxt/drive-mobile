@@ -4,6 +4,7 @@ import React from 'react';
 import { View } from 'react-native';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
+import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
 import CenterModal from '../CenterModal';
 
@@ -20,17 +21,22 @@ export interface ConfirmModalProps {
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = (props) => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+
   return (
     <Portal>
       <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
-        <View style={tailwind('px-4 py-4')}>
-          <AppText medium style={tailwind('text-xl text-gray-80')}>
+        <View style={[tailwind('px-4 py-4'), { backgroundColor: getColor('bg-surface') }]}>
+          <AppText medium style={[tailwind('text-xl'), { color: getColor('text-gray-100') }]}>
             {props.title}
           </AppText>
           <AppText
             style={[
-              tailwind('text-gray-60 mb-6 mt-2'),
-              { lineHeight: (tailwind('text-base').fontSize as number) * 1.2 },
+              tailwind('mb-6 mt-2'),
+              {
+                color: getColor('text-gray-60'),
+                lineHeight: (tailwind('text-base').fontSize as number) * 1.2,
+              },
             ]}
           >
             {props.message}

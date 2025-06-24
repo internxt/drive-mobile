@@ -1,5 +1,6 @@
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import { Keys, Password, RegisterDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
+import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
 import jwtDecode from 'jwt-decode';
@@ -8,10 +9,11 @@ import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
-import appService, { constants } from './AppService';
+import appService from './AppService';
 import asyncStorageService from './AsyncStorageService';
 import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
+
 interface RegisterParams {
   firstName: string;
   lastName: string;
@@ -62,7 +64,7 @@ class AuthService {
   }
 
   public async doLogin(email: string, password: string, tfaCode?: string) {
-    const loginResult = await this.sdk.auth.login(
+    const loginResult = await this.sdk.authV2.loginWithoutKeys(
       {
         email,
         password,
@@ -75,10 +77,18 @@ class AuthService {
           return encryptText(hashObj.hash);
         },
         async generateKeys(): Promise<Keys> {
-          const keys: Keys = {
+          const keys = {
             privateKeyEncrypted: '',
             publicKey: '',
             revocationCertificate: '',
+            ecc: {
+              privateKeyEncrypted: '',
+              publicKey: '',
+            },
+            kyber: {
+              publicKey: '',
+              privateKeyEncrypted: '',
+            },
           };
           return keys;
         },
@@ -110,30 +120,13 @@ class AuthService {
     await internxtMobileSDKConfig.destroy();
   }
 
-  public async doRecoverPassword(newPassword: string): Promise<Response> {
-    const xUser = await asyncStorageService.getUser();
-    const mnemonic = xUser.mnemonic;
-    const hashPass = passToHash({ password: newPassword });
-    const encryptedPassword = encryptText(hashPass.hash);
-    const encryptedSalt = encryptText(hashPass.salt);
-    const encryptedMnemonic = encryptTextWithKey(mnemonic, newPassword);
-    return fetch(`${constants.DRIVE_API_URL}/user/recover`, {
-      method: 'patch',
-      headers: await getHeaders(),
-      body: JSON.stringify({
-        password: encryptedPassword,
-        salt: encryptedSalt,
-        mnemonic: encryptedMnemonic,
-        privateKey: null,
-      }),
-    });
-  }
-
   public async doChangePassword(params: {
     password: string;
     newPassword: string;
   }): Promise<{ token: string; newToken: string }> {
     const { credentials } = await this.getAuthCredentials();
+    const user = await asyncStorageService.getUser();
+
     if (!credentials) throw new Error('User credentials not found');
     const salt = await this.getSalt(credentials.user.email);
 
@@ -162,12 +155,21 @@ class AuthService {
       privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
     }
 
-    const changePasswordResult = await this.sdk.users.changePasswordLegacy({
+    const keys = user.keys;
+    const kyberKeys = keys.kyber;
+    const eccKeys = keys.ecc;
+
+    const changePasswordResult = await this.sdk.usersV2.changePassword({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,
       newEncryptedPassword: encNewPass,
       encryptedPrivateKey: privateKeyFinalValue,
+      keys: {
+        encryptedPrivateKey: eccKeys.privateKey,
+        encryptedPrivateKyberKey: kyberKeys.privateKey,
+      },
+      encryptVersion: StorageTypes.EncryptionVersion.Aes03,
     });
 
     return {
@@ -177,71 +179,62 @@ class AuthService {
   }
 
   public reset(email: string): Promise<void> {
-    return fetch(`${constants.DRIVE_API_URL}/reset/${email}`, {}).then(async (res) => {
-      if (res.status !== 200) {
-        throw Error();
-      }
-    });
+    return this.sdk.authV2.sendChangePasswordEmail(email);
   }
 
-  public async deleteAccount(email: string): Promise<void> {
-    await this.sdk.auth.sendDeactivationEmail(email);
+  public async deleteAccount(token: string): Promise<void> {
+    await this.sdk.authV2.sendUserDeactivationEmail(token);
   }
 
-  public async getNewBits(): Promise<string> {
-    return fetch(`${constants.DRIVE_API_URL}/bits`)
-      .then((res) => res.json())
-      .then((res) => res.bits)
-      .then((bits) => decryptText(bits));
+  public async getNewBits(): Promise<{ mnemonic: string }> {
+    return this.sdk.usersV2WithoutToken.generateMnemonic();
   }
 
   public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
     const plainSalt = await this.getSalt(email);
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
 
     const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
 
-    return this.sdk.auth.areCredentialsCorrect(email, hashedPassword) || false;
+    return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
   }
 
   public async doRegister(params: RegisterParams) {
     const hashObj = passToHash({ password: params.password });
     const encPass = encryptText(hashObj.hash);
     const encSalt = encryptText(hashObj.salt);
-    const mnemonic = await this.getNewBits();
+    const bits = await this.getNewBits();
+    const mnemonic = bits.mnemonic;
     const encMnemonic = encryptTextWithKey(mnemonic, params.password);
 
-    const payload: RegisterDetails = {
+    const payload = {
       email: params.email.toLowerCase(),
       name: params.firstName,
       lastname: params.lastName,
       password: encPass,
       mnemonic: encMnemonic,
       salt: encSalt,
-      keys: {
-        privateKeyEncrypted: '',
-        publicKey: '',
-        revocationCertificate: '',
-      },
       captcha: params.captcha,
     };
 
-    return this.sdk.authV2.register(payload);
+    return this.sdk.authV2.registerWithoutKeys(payload);
   }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
-    return this.sdk.auth.generateTwoFactorAuthQR();
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
+    return this.sdk.authV2.generateTwoFactorAuthQR(newToken);
   }
 
   public async enable2FA(backupKey: string, code: string) {
-    return this.sdk.auth.storeTwoFactorAuthKey(backupKey, code);
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
+    return this.sdk.authV2.storeTwoFactorAuthKey(backupKey, code, newToken);
   }
 
   public getSecurityDetails(email: string) {
-    return this.sdk.auth.securityDetails(email);
+    return this.sdk.authV2.securityDetails(email);
   }
   public async is2FAEnabled(email: string): Promise<boolean> {
     const securityDetails = await this.getSecurityDetails(email);
-
     return securityDetails.tfaEnabled;
   }
 
@@ -249,8 +242,9 @@ class AuthService {
     const salt = decryptText(encryptedSalt);
     const { hash } = passToHash({ password: password, salt });
     const encryptedPassword = encryptText(hash);
+    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
 
-    return this.sdk.auth.disableTwoFactorAuth(encryptedPassword, code);
+    return this.sdk.authV2.disableTwoFactorAuth(encryptedPassword, code, newToken);
   }
 
   public addLoginListener(listener: () => void) {
@@ -321,6 +315,27 @@ class AuthService {
   }
 
   /**
+   * Checks if token needs refresh (expires in less than 3 days)
+   * @param authToken The token to check
+   * @returns true if token expires in less than 7 days
+   */
+  public tokenNeedsRefresh(authToken: string): boolean {
+    try {
+      const payload = jwtDecode<JWTPayload>(authToken);
+
+      if (!payload.exp) return true;
+
+      const expiration = payload.exp * 1000;
+      const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
+      const threeDaysFromNow = Date.now() + THREE_DAYS_IN_MS;
+
+      return expiration < threeDaysFromNow;
+    } catch {
+      return true;
+    }
+  }
+
+  /**
    * Exchange a current token for a new one with
    * extended expiration
    *
@@ -355,7 +370,7 @@ class AuthService {
    * @returns The salt obtained and decrypted
    */
   private async getSalt(email: string) {
-    const securityDetails = await this.sdk.auth.securityDetails(email);
+    const securityDetails = await this.sdk.authV2.securityDetails(email);
 
     if (!securityDetails) throw new Error('Security details not found');
 

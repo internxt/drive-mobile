@@ -21,23 +21,34 @@ interface SettingsGroupProps extends ViewProps {
 function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupProps) {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+
   const SettingsGroupItem = (props: SettingsGroupItemProps) => {
     return (
       <TouchableHighlight
         disabled={!props.onPress || props.loading}
-        underlayColor={getColor('text-gray-10')}
+        underlayColor={getColor('bg-gray-5')}
         onPress={(event) => {
           props.onPress && props.onPress(event);
         }}
+        style={{ backgroundColor: getColor('bg-surface') }}
       >
         {props.template}
       </TouchableHighlight>
     );
   };
+
   const renderItems = () =>
     items.map((i, index) => {
       const isTheLast = index === items.length - 1;
-      const separator = <View style={{ height: 1, ...tailwind('bg-gray-5 mx-4') }}></View>;
+      const separator = (
+        <View
+          style={{
+            height: 1,
+            backgroundColor: getColor('bg-gray-5'),
+            marginHorizontal: 16,
+          }}
+        />
+      );
 
       return isTheLast ? (
         <SettingsGroupItem {...i} />
@@ -52,12 +63,16 @@ function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupPr
   return (
     <View style={[tailwind('mb-8'), style]} {...rest}>
       {title !== undefined && (
-        <AppText style={tailwind('text-xs ml-4 mb-2')} semibold>
+        <AppText style={[tailwind('text-xs ml-4 mb-2'), { color: getColor('text-gray-60') }]} semibold>
           {title.toUpperCase()}
         </AppText>
       )}
-      <View style={tailwind('bg-white rounded-xl overflow-hidden')}>{renderItems()}</View>
-      {advice && <AppText style={tailwind('mt-2 mx-4 text-xs text-gray-40')}>{advice}</AppText>}
+      <View style={[tailwind('rounded-xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
+        {renderItems()}
+      </View>
+      {advice && (
+        <AppText style={[tailwind('mt-2 mx-4 text-xs'), { color: getColor('text-gray-40') }]}>{advice}</AppText>
+      )}
     </View>
   );
 }

@@ -54,17 +54,6 @@ export class SdkManager {
     );
   }
 
-  /** Auth old client SDK */
-  get auth() {
-    return Auth.client(
-      constants.DRIVE_API_URL,
-      {
-        clientName: packageJson.name,
-        clientVersion: appService.version,
-      },
-      this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
-    );
-  }
   /** Payments SDK */
   get payments() {
     return Drive.Payments.client(
@@ -80,29 +69,31 @@ export class SdkManager {
     );
   }
 
-  /** Users SDK */
-  get users() {
+  get usersV2() {
     return Drive.Users.client(
-      constants.DRIVE_API_URL,
+      constants.DRIVE_NEW_API_URL,
       {
         clientName: packageJson.name,
         clientVersion: appService.version,
       },
-      this.getApiSecurity({ throwErrorOnMissingCredentials: false }),
+      {
+        token: this.getApiSecurity().newToken,
+      },
+    );
+  }
+  get usersV2WithoutToken() {
+    const apiSecurity = this.getApiSecurity({ throwErrorOnMissingCredentials: false });
+
+    return Drive.Users.client(
+      constants.DRIVE_NEW_API_URL,
+      {
+        clientName: packageJson.name,
+        clientVersion: appService.version,
+      },
+      apiSecurity,
     );
   }
 
-  /** Storage SDK */
-  get storage() {
-    return Drive.Storage.client(
-      constants.DRIVE_API_URL,
-      {
-        clientName: packageJson.name,
-        clientVersion: appService.version,
-      },
-      this.getApiSecurity(),
-    );
-  }
   /** Storage SDK V2 */
   get storageV2() {
     return Drive.Storage.client(

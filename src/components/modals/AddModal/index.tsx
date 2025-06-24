@@ -16,7 +16,7 @@ import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { DriveFileData, EncryptionVersion, FileEntry, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { SaveFormat } from 'expo-image-manipulator';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import uuid from 'react-native-uuid';
@@ -24,12 +24,21 @@ import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATE
 import { storageSelectors } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { encryptFilename, isValidFilename } from '../../../helpers';
+import { isValidFilename } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import { constants } from '../../../services/AppService';
 import asyncStorage from '../../../services/AsyncStorageService';
+import {
+  createUploadingFiles,
+  handleDuplicateFiles,
+  initializeUploads,
+  prepareUploadFiles,
+  showFileSizeAlert,
+  uploadSingleFile,
+  validateAndFilterFiles,
+} from '../../../services/drive/file/utils/uploadFileUtils';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -50,14 +59,13 @@ function AddModal(): JSX.Element {
   const dispatch = useAppDispatch();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
   const { showUploadModal } = useAppSelector((state) => state.ui);
-  const { folderContent } = useAppSelector((state) => state.drive);
   const { focusedFolder } = useDrive();
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
 
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
-    const name = decodeURI(file.uri).split('/').pop() || '';
+    const name = file.name ?? decodeURI(file.uri).split('/').pop();
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
     const fileUri = file.uri.replace(regex, '$2');
     const extension = file.type;
@@ -65,7 +73,7 @@ function AddModal(): JSX.Element {
     const fileURI = finalUri;
     const fileExtension = extension;
 
-    return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentId, progressCallback);
+    return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentUuid, progressCallback);
   }
 
   const onCloseCreateFolderModal = () => {
@@ -82,7 +90,7 @@ function AddModal(): JSX.Element {
     }
     setShowCreateFolderModal(false);
     await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-    await driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+    await driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
   };
 
   async function uploadAndroid(
@@ -109,11 +117,12 @@ function AddModal(): JSX.Element {
       }
     }
     const fileExtension = fileToUpload.type;
+
     const createdFileEntry = await uploadAndCreateFileEntry(
       destPath,
       name,
       fileExtension,
-      fileToUpload.parentId,
+      fileToUpload.parentUuid,
       progressCallback,
     );
 
@@ -143,7 +152,7 @@ function AddModal(): JSX.Element {
     filePath: string,
     fileName: string,
     fileExtension: string,
-    currentFolderId: number,
+    currentFolderId: string,
     progressCallback: ProgressCallback,
   ) {
     const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
@@ -174,24 +183,24 @@ function AddModal(): JSX.Element {
     );
 
     logger.info('File uploaded with fileId: ', fileId);
+    logger.info('File uploaded with name: ', fileName);
 
     const folderId = currentFolderId;
-    const plainName = drive.file.removeExtension(fileName);
-    logger.info('Encrypting filename...');
-    const name = encryptFilename(plainName, folderId.toString());
-    logger.info('Filename encrypted');
-    const fileEntry: FileEntry = {
-      type: fileExtension,
-      bucket,
-      size: fileSize,
-      folder_id: folderId,
-      name,
-      encrypt_version: EncryptionVersion.Aes03,
+    const plainName = fileName;
+
+    const fileEntryByUuid: FileEntryByUuid = {
       id: fileId,
+      type: fileExtension,
+      size: fileSize,
+      name: plainName,
       plain_name: plainName,
+      bucket,
+      folder_id: folderId,
+      encrypt_version: EncryptionVersion.Aes03,
     };
+
     let uploadedThumbnail: Thumbnail | null = null;
-    const generatedDriveItem = await uploadService.createFileEntry(fileEntry);
+    const generatedDriveItem = await uploadService.createFileEntry(fileEntryByUuid);
 
     // If thumbnail generation fails, don't block the upload, we can
     // try thumbnail generation later
@@ -218,17 +227,18 @@ function AddModal(): JSX.Element {
         );
 
         uploadedThumbnail = await uploadService.createThumbnailEntry({
-          file_id: generatedDriveItem.id,
-          max_width: generatedThumbnail.width,
-          max_height: generatedThumbnail.height,
+          fileUuid: generatedDriveItem.uuid,
+          maxWidth: generatedThumbnail.width,
+          maxHeight: generatedThumbnail.height,
           type: generatedThumbnail.type,
           size: generatedThumbnail.size,
-          bucket_id: bucket,
-          bucket_file: thumbnailFileId,
-          encrypt_version: EncryptionVersion.Aes03,
+          bucketId: bucket,
+          bucketFile: thumbnailFileId,
+          encryptVersion: EncryptionVersion.Aes03,
         });
       }
     } catch (error) {
+      logger.error('Error generating and uploading thumbnail: ', JSON.stringify(error));
       errorService.reportError(error);
     }
 
@@ -313,125 +323,30 @@ function AddModal(): JSX.Element {
     return uploadDocuments(documents);
   }
 
-  function toUploadingFile(
-    filesAtSameLevel: { name: string; type: string }[],
-    file: DocumentPickerResponse,
-  ): UploadingFile {
-    if (!focusedFolder) {
-      throw new Error('No current folder found');
-    }
-    if (!isValidFilename(file.name)) {
-      throw new Error('This file name is not valid');
-    }
-    const nameSplittedByDots = file.name.split('.');
-    return {
-      id: new Date().getTime(),
-      uri: file.uri,
-      name: drive.file.renameIfAlreadyExists(
-        filesAtSameLevel,
-        drive.file.removeExtension(file.name),
-        drive.file.getExtensionFromUri(file.name) || '',
-      )[2],
-      type: nameSplittedByDots[nameSplittedByDots.length - 1] || '',
-      parentId: focusedFolder.id,
-      createdAt: new Date().toString(),
-      updatedAt: new Date().toString(),
-      size: file.size,
-      progress: 0,
-      uploaded: false,
-    };
-  }
-
   async function uploadDocuments(documents: DocumentPickerResponse[]) {
-    const filesToUpload: DocumentPickerResponse[] = [];
-    const filesExcluded: DocumentPickerResponse[] = [];
-    const formattedFiles: UploadingFile[] = [];
-
     if (!focusedFolder) {
       throw new Error('No current folder found');
     }
-    if (!documents.every((file) => isValidFilename(file.name))) {
-      throw new Error('Some file names are not valid');
-    }
-    for (const file of documents) {
-      if (file.size <= UPLOAD_FILE_SIZE_LIMIT) {
-        filesToUpload.push(file);
-      } else {
-        filesExcluded.push(file);
-      }
-    }
 
-    if (filesExcluded.length > 0) {
-      const messageKey =
-        filesExcluded.length === 1 ? strings.messages.uploadFileLimit : strings.messages.uploadFilesLimit;
+    const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents);
+    showFileSizeAlert(filesExcluded);
 
-      const alertText = strings.formatString(messageKey, filesExcluded.length).toString();
+    const filesToProcess = await handleDuplicateFiles(filesToUpload, focusedFolder.uuid);
 
-      Alert.alert(strings.messages.limitPerFile, alertText);
+    if (filesToProcess.length === 0) {
+      dispatch(uiActions.setShowUploadFileModal(false));
+      return;
     }
 
-    // TODO: load files in current folder
-    const filesAtSameLevel =
-      folderContent
-        ?.filter((item) => item.fileId)
-        .map((file) => {
-          return { name: drive.file.removeExtension(file.name), type: file.type };
-        }) || [];
+    const preparedFiles = await prepareUploadFiles(filesToProcess, focusedFolder.uuid);
+    const formattedFiles = createUploadingFiles(preparedFiles, focusedFolder);
 
-    for (const fileToUpload of filesToUpload) {
-      let file: UploadingFile;
-
-      if (Platform.OS === 'android') {
-        file = toUploadingFile(filesAtSameLevel, fileToUpload);
-      } else {
-        file = {
-          id: new Date().getTime(),
-          uri: fileToUpload.uri,
-          name: drive.file.renameIfAlreadyExists(
-            filesAtSameLevel,
-            drive.file.removeExtension(fileToUpload.name),
-            drive.file.getExtensionFromUri(fileToUpload.name) || '',
-          )[2],
-          type: drive.file.getExtensionFromUri(fileToUpload.uri) || '',
-          parentId: focusedFolder.id,
-          createdAt: new Date().toString(),
-          updatedAt: new Date().toString(),
-          size: fileToUpload.size,
-          progress: 0,
-          uploaded: false,
-        };
-      }
-
-      trackUploadStart(file);
-      dispatch(driveActions.uploadFileStart(file.name));
-      dispatch(driveActions.addUploadingFile({ ...file }));
-
-      formattedFiles.push(file);
-      filesAtSameLevel.push({ name: file.name, type: file.type });
-    }
+    initializeUploads(formattedFiles, dispatch);
 
     for (const file of formattedFiles) {
-      try {
-        await uploadFile(file, 'document');
-        uploadSuccess(file);
-      } catch (e) {
-        const err = e as Error;
-        errorService.reportError(err as Error, {
-          extra: {
-            fileId: file.id,
-          },
-        });
-        trackUploadError(file, err);
-        dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
-        logger.error('File upload process failed: ', JSON.stringify(err));
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
-        });
-      } finally {
-        dispatch(driveActions.uploadFileFinished());
-      }
+      await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess);
     }
+
     dispatch(driveActions.clearUploadedFiles());
   }
 
@@ -464,7 +379,7 @@ function AddModal(): JSX.Element {
       // 3. Refresh the current folder
       if (focusedFolder) {
         await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-        driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+        driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
       }
     } catch (err) {
       const error = err as Error;
@@ -518,12 +433,16 @@ function AddModal(): JSX.Element {
               }
 
               dispatch(uiActions.setShowUploadFileModal(false));
+
               uploadDocuments(documents)
                 .then(() => {
                   dispatch(driveThunks.loadUsageThunk());
 
                   if (focusedFolder) {
-                    driveCtx.loadFolderContent(focusedFolder.id);
+                    driveCtx.loadFolderContent(focusedFolder.uuid, {
+                      pullFrom: ['network'],
+                      resetPagination: true,
+                    });
                   }
                 })
                 .catch((err) => {
@@ -554,16 +473,14 @@ function AddModal(): JSX.Element {
           dispatch(driveThunks.loadUsageThunk());
 
           if (focusedFolder) {
-            driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+            driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
           }
         })
         .catch((err) => {
           if (err.message === 'User canceled document picker') {
             return;
           }
-
-          logger.error('Error on hadleUploadFromCameraRoll function:', JSON.stringify(err));
-
+          logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
           notificationsService.show({
             type: NotificationType.Error,
             text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
@@ -598,8 +515,10 @@ function AddModal(): JSX.Element {
           const size = fileInfo.exists ? fileInfo?.size : 0;
           const file: UploadingFile = {
             id: new Date().getTime(),
+            uuid: uuid.v4().toString(),
             name,
             parentId: focusedFolder.id,
+            parentUuid: focusedFolder.uuid,
             createdAt: new Date().toString(),
             updatedAt: new Date().toString(),
             type: drive.file.getExtensionFromUri(assetToUpload.uri) as string,
@@ -626,7 +545,7 @@ function AddModal(): JSX.Element {
             dispatch(driveThunks.loadUsageThunk());
 
             if (focusedFolder) {
-              driveCtx.loadFolderContent(focusedFolder.id, { pullFrom: ['network'], resetPagination: true });
+              driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
             }
           }
         }
@@ -652,87 +571,118 @@ function AddModal(): JSX.Element {
         }}
       >
         <View style={tailwind('p-4')}>
-          <View style={tailwind('rounded-2xl bg-white overflow-hidden')}>
+          <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-gray-40')}
+              underlayColor={getColor('bg-gray-5')}
               onPress={() => {
                 handleUploadFiles();
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+              <View
+                style={[
+                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
+                  { backgroundColor: getColor('bg-surface') },
+                ]}
+              >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
                   <FileArrowUp color={getColor('text-gray-100')} size={24} />
                 </View>
-                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>{strings.buttons.uploadFiles}</AppText>
+                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
+                  {strings.buttons.uploadFiles}
+                </AppText>
               </View>
             </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-gray-10 mx-4')}></View>
+            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-gray-20')}
+              underlayColor={getColor('bg-gray-5')}
               onPress={() => {
                 handleUploadFromCameraRoll();
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+              <View
+                style={[
+                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
+                  { backgroundColor: getColor('bg-surface') },
+                ]}
+              >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
                   <ImageSquare color={getColor('text-gray-100')} size={24} />
                 </View>
-                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>
+                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
                   {strings.buttons.uploadFromCameraRoll}
                 </AppText>
               </View>
             </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-gray-10 mx-4')}></View>
+            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-gray-40')}
+              underlayColor={getColor('bg-gray-5')}
               onPress={() => {
                 handleTakePhotoAndUpload();
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+              <View
+                style={[
+                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
+                  { backgroundColor: getColor('bg-surface') },
+                ]}
+              >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
                   <Camera color={getColor('text-gray-100')} size={24} />
                 </View>
-                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>{strings.buttons.takeAPhotoAnUpload}</AppText>
+                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
+                  {strings.buttons.takeAPhotoAnUpload}
+                </AppText>
               </View>
             </TouchableHighlight>
 
-            <View style={tailwind('flex-grow h-px bg-gray-10 mx-4')}></View>
+            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
 
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-gray-40')}
+              underlayColor={getColor('bg-gray-5')}
               onPress={() => {
                 dispatch(uiActions.setShowUploadFileModal(false));
                 setShowCreateFolderModal(true);
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white px-2 items-center justify-between')}>
+              <View
+                style={[
+                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
+                  { backgroundColor: getColor('bg-surface') },
+                ]}
+              >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
                   <FolderSimplePlus color={getColor('text-gray-100')} size={24} />
                 </View>
-                <AppText style={tailwind('text-lg flex-1 text-gray-100')}>{strings.buttons.newFolder}</AppText>
+                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
+                  {strings.buttons.newFolder}
+                </AppText>
               </View>
             </TouchableHighlight>
           </View>
 
-          <View style={tailwind('mt-4 rounded-2xl overflow-hidden')}>
+          <View style={[tailwind('mt-4 rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
             <TouchableHighlight
               style={tailwind('flex-grow')}
-              underlayColor={getColor('text-gray-40')}
+              underlayColor={getColor('bg-gray-5')}
               onPress={() => {
                 dispatch(uiActions.setShowUploadFileModal(false));
               }}
             >
-              <View style={tailwind('flex-row flex-grow bg-white p-3.5 items-center justify-center')}>
-                <AppText medium style={tailwind('text-lg text-gray-100')}>
+              <View
+                style={[
+                  tailwind('flex-row flex-grow p-3.5 items-center justify-center'),
+                  { backgroundColor: getColor('bg-surface') },
+                ]}
+              >
+                <AppText medium style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
                   {strings.buttons.cancel}
                 </AppText>
               </View>
@@ -743,7 +693,7 @@ function AddModal(): JSX.Element {
       {focusedFolder ? (
         <CreateFolderModal
           isOpen={showCreateFolderModal}
-          currentFolderId={focusedFolder.id}
+          currentFolderUuid={focusedFolder.uuid}
           onClose={onCloseCreateFolderModal}
           onCancel={onCancelCreateFolderModal}
           onFolderCreated={onFolderCreated}

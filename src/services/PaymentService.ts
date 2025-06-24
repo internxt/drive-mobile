@@ -7,7 +7,8 @@ import {
   PaymentMethod,
   UserSubscription,
   UserType,
-} from '@internxt/sdk/dist/drive/payments/types';
+} from '@internxt/sdk/dist/drive/payments/types/types';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as Linking from 'expo-linking';
@@ -62,10 +63,10 @@ class PaymentService {
     }
   }
 
-  async getInvoices(subscriptionId: string): Promise<Invoice[] | null> {
+  async getInvoices(): Promise<Invoice[] | null> {
     try {
       return await this.sdk.payments.getInvoices({
-        subscriptionId,
+        userType: UserType.Individual,
       });
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
@@ -83,7 +84,7 @@ class PaymentService {
 
   async getUserSubscription(): Promise<UserSubscription> {
     try {
-      return this.sdk.payments.getUserSubscription();
+      return this.sdk.payments.getUserSubscription(UserType.Individual);
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
     }

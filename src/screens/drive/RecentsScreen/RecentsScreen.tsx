@@ -1,11 +1,12 @@
 import lodash from 'lodash';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import EmptyList from '../../../components/EmptyList';
+import useGetColor from '../../../hooks/useColor';
 
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
 import * as useCases from '@internxt-mobile/useCases/drive';
@@ -29,6 +30,7 @@ export function RecentsScreen({
   searchText,
 }: RecentsScreenProps): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
   const [refreshing, setRefreshing] = useState(false);
 
   const renderNoResults = () => (
@@ -85,9 +87,9 @@ export function RecentsScreen({
   };
 
   return (
-    <View style={tailwind('flex-1')}>
+    <View style={[tailwind('flex-1'), { backgroundColor: getColor('bg-surface') }]}>
       {getStatus() === UseCaseStatus.LOADING && !recentItems && (
-        <View>
+        <View style={{ backgroundColor: getColor('bg-surface') }}>
           {lodash.times(20, (n) => (
             <DriveItemSkinSkeleton key={n} />
           ))}
@@ -96,8 +98,17 @@ export function RecentsScreen({
 
       {(getStatus() === UseCaseStatus.SUCCESS || recentItems) && (
         <ScrollView
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-          contentContainerStyle={tailwind('flex-grow')}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={getColor('text-primary')}
+              colors={[getColor('text-primary')]}
+              progressBackgroundColor={getColor('bg-gray-5')}
+            />
+          }
+          contentContainerStyle={[tailwind('flex-grow'), { backgroundColor: getColor('bg-surface') }]}
+          style={{ backgroundColor: getColor('bg-surface') }}
         >
           {renderContent()}
         </ScrollView>

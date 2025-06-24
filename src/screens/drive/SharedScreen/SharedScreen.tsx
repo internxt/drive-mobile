@@ -16,12 +16,13 @@ import ScreenTitle from '../../../components/AppScreenTitle';
 import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import EmptyList from '../../../components/EmptyList';
+import useGetColor from '../../../hooks/useColor';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 
 type SharedItem = SharedFolders & SharedFiles;
 export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {
   const tailwind = useTailwind();
-
+  const getColor = useGetColor();
   const { loading: sharedLoading, executeUseCase: getSharedItems } = useUseCase(driveUseCases.getSharedItems);
 
   const [sharedItemsPage, setSharedItemsPage] = useState(1);
@@ -142,10 +143,9 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
             viewMode={DriveListViewMode.List}
             data={{
               ...sharedLink,
+              token: sharedLink.token === null ? undefined : sharedLink.token,
               name: sharedLink?.plainName,
               type: 'folderId' in sharedLink ? sharedLink.type : undefined,
-              /** SDK types are wrong, should fix */
-              // token: sharedLink.token,
               shareId: sharedLink.id.toString(),
               thumbnails: [],
               currentThumbnail: null,
@@ -166,7 +166,7 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
     <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
       <ScreenTitle text={strings.screens.shared.title} showBackButton={false} />
       <SearchInput value={searchText} onChangeText={setSearchText} placeholder={strings.inputs.searchInShared} />
-      <View style={tailwind('bg-white flex-1')}>
+      <View style={[tailwind('flex-1'), { backgroundColor: getColor('bg-surface') }]}>
         {getStatus() === UseCaseStatus.LOADING && !sharedItems?.length && (
           <View>
             {_.times(20, (n) => (
