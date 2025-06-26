@@ -946,6 +946,8 @@ PODS:
   - React-Mapbuffer (0.73.6):
     - glog
     - React-debug
+  - react-native-capture-protection (2.0.10):
+    - React-Core
   - react-native-create-thumbnail (2.0.0):
     - React-Core
   - react-native-document-picker (4.3.0):
@@ -1259,6 +1261,7 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector-modern`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
+  - react-native-capture-protection (from `../node_modules/react-native-capture-protection`)
   - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
@@ -1431,6 +1434,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   React-Mapbuffer:
     :path: "../node_modules/react-native/ReactCommon"
+  react-native-capture-protection:
+    :path: "../node_modules/react-native-capture-protection"
   react-native-create-thumbnail:
     :path: "../node_modules/react-native-create-thumbnail"
   react-native-document-picker:
@@ -1586,6 +1591,7 @@ SPEC CHECKSUMS:
   React-jsinspector: 85583ef014ce53d731a98c66a0e24496f7a83066
   React-logger: 3eb80a977f0d9669468ef641a5e1fabbc50a09ec
   React-Mapbuffer: 84ea43c6c6232049135b1550b8c60b2faac19fab
+  react-native-capture-protection: f2dd78383b616b9e1768eb577d190593f7232da2
   react-native-create-thumbnail: ab55d24aea01723cf386f18b0b542aabb1982f27
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
   react-native-image-picker: d3db110a3ded6e48c93aef7e8e51afdde8b16ed0
