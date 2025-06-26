@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import {
   Appearance,
   AppStateStatus,
-  ColorValue,
   KeyboardAvoidingView,
   NativeEventSubscription,
   Platform,
@@ -25,6 +24,7 @@ import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import PlansModal from './components/modals/PlansModal';
 import { DriveContextProvider } from './contexts/Drive';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
+import useGetColor from './hooks/useColor';
 import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
@@ -47,12 +47,40 @@ let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
-  const { color: whiteColor } = tailwind('text-white');
-
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
   const { performPeriodicSecurityCheck } = useSecurity();
+
+  useEffect(() => {
+    const initializeTheme = async () => {
+      const savedTheme = await asyncStorageService.getThemePreference();
+      const themeToApply = savedTheme || Appearance.getColorScheme() || 'light';
+
+      setCurrentTheme(themeToApply as 'light' | 'dark');
+      Appearance.setColorScheme(themeToApply);
+    };
+
+    initializeTheme();
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      asyncStorageService.getThemePreference().then((savedTheme) => {
+        if (!savedTheme && colorScheme) {
+          setCurrentTheme(colorScheme);
+        }
+      });
+    });
+
+    return () => {
+      subscription?.remove();
+      if (!screenLockEnabled) {
+        dispatch(appActions.setInitialScreenLocked(false));
+        dispatch(appActions.setScreenLocked(false));
+      }
+    };
+  }, []);
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -196,11 +224,6 @@ export default function App(): JSX.Element {
 
   // Initialize app
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setBackgroundColorAsync(whiteColor as ColorValue);
-      NavigationBar.setButtonStyleAsync('dark');
-    }
-
     authService.addLoginListener(onUserLoggedIn);
     authService.addLogoutListener(onUserLoggedOut);
 
@@ -213,6 +236,24 @@ export default function App(): JSX.Element {
       authService.removeLogoutListener(onUserLoggedOut);
     };
   }, []);
+
+  useEffect(() => {
+    const configureNavigationBar = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const backgroundColor = getColor('bg-surface');
+          const isDark = currentTheme === 'dark';
+
+          await NavigationBar.setBackgroundColorAsync(backgroundColor);
+          await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+        } catch (error) {
+          logger.error('Error configuring navigation bar:', error);
+        }
+      }
+    };
+
+    configureNavigationBar();
+  }, [getColor, currentTheme]);
 
   return (
     <SafeAreaProvider>

@@ -118,9 +118,15 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
       const newTheme = value ? 'dark' : 'light';
       setIsDarkMode(value);
 
-      Appearance.setColorScheme(newTheme);
-
       await asyncStorageService.saveThemePreference(newTheme);
+
+      if (Platform.OS === 'android') {
+        setTimeout(() => {
+          Appearance.setColorScheme(newTheme);
+        }, 100);
+      } else {
+        Appearance.setColorScheme(newTheme);
+      }
     } catch (error) {
       setIsDarkMode(!value);
       Appearance.setColorScheme(!value ? 'dark' : 'light');

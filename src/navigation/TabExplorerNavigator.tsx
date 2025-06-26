@@ -1,28 +1,25 @@
+import appService from '@internxt-mobile/services/AppService';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 import { useEffect } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
-
-import BottomTabNavigator from '../components/BottomTabNavigator';
-import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
-import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
-import EmptyScreen from '../screens/EmptyScreen';
-
-import appService from '@internxt-mobile/services/AppService';
-import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SecurityModal from 'src/components/modals/SecurityModal';
-
 import { authThunks } from 'src/store/slices/auth';
 import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
+import BottomTabNavigator from '../components/BottomTabNavigator';
 import AddModal from '../components/modals/AddModal';
+import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
+import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
 import SignOutModal from '../components/modals/SignOutModal';
 import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
+import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
