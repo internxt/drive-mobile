@@ -25,6 +25,7 @@ import PlansModal from './components/modals/PlansModal';
 import { DriveContextProvider } from './contexts/Drive';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import useGetColor from './hooks/useColor';
+import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
 import analyticsService from './services/AnalyticsService';
@@ -52,6 +53,7 @@ export default function App(): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const { performPeriodicSecurityCheck } = useSecurity();
 
   useEffect(() => {
     const initializeTheme = async () => {
@@ -81,6 +83,8 @@ export default function App(): JSX.Element {
   }, []);
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
+  const [loadError, setLoadError] = useState('');
+
   const {
     isLinkCopiedModalOpen,
     isDeleteAccountModalOpen,
@@ -90,7 +94,6 @@ export default function App(): JSX.Element {
     isPlansModalOpen,
   } = useAppSelector((state) => state.ui);
 
-  const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
     await dispatch(appThunks.initializeUserPreferencesThunk());
     await dispatch(authThunks.silentSignInThunk());
@@ -109,6 +112,8 @@ export default function App(): JSX.Element {
       dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.checkAndRefreshTokenThunk());
       dispatch(paymentsThunks.checkShouldDisplayBilling());
+
+      performPeriodicSecurityCheck();
     }
 
     if (state === 'inactive') {
@@ -189,6 +194,24 @@ export default function App(): JSX.Element {
       setIsAppInitialized(true);
     }
   };
+
+  useEffect(() => {
+    const initializeTheme = async () => {
+      const savedTheme = await asyncStorageService.getThemePreference();
+      if (savedTheme) {
+        Appearance.setColorScheme(savedTheme);
+      }
+    };
+
+    initializeTheme();
+
+    return () => {
+      if (!screenLockEnabled) {
+        dispatch(appActions.setInitialScreenLocked(false));
+        dispatch(appActions.setScreenLocked(false));
+      }
+    };
+  }, []);
 
   // Initialize app
   useEffect(() => {

@@ -79,6 +79,7 @@
     "expo-system-ui": "~2.9.4",
     "expo-updates": "~0.24.13",
     "intl": "^1.2.5",
+    "jail-monkey": "^2.8.3",
     "jwt-decode": "^3.1.2",
     "lodash": "^4.17.20",
     "luxon": "^3.0.3",
