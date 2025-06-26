@@ -150,9 +150,16 @@ export default function App(): JSX.Element {
     dispatch(appActions.setScreenLocked(false));
   };
 
+  const handleStorageMigration = async () => {
+    const { needsMigration } = await asyncStorageService.checkNeedsMigration();
+    if (needsMigration) {
+      await asyncStorageService.migrateToSecureStorage();
+    }
+  };
+
   useEffect(() => {
     const subscription = Linking.addEventListener('url', onDeeplinkChange);
-
+    handleStorageMigration();
     return () => {
       subscription.remove();
     };
