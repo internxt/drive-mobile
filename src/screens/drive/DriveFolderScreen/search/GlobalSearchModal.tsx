@@ -217,7 +217,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
       return (
         <View style={tailwind('flex-1 justify-center items-center')}>
           <ActivityIndicator size="large" color={getColor('text-primary')} />
-          <AppText style={[tailwind('mt-4 text-base'), { color: getColor('text-gray-60') }]}>
+          <AppText style={[tailwind('mt-4 text-base'), { color: getColor('text-gray-100') }]}>
             {strings.modals.GlobalSearchModal.searching}
           </AppText>
         </View>
@@ -226,7 +226,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
     if (error) {
       return (
         <View style={tailwind('flex-1 justify-center items-center px-8')}>
-          <AppText style={[tailwind('text-base text-center'), { color: getColor('text-red-60') }]}>
+          <AppText style={[tailwind('text-base text-center'), { color: getColor('text-red-100') }]}>
             {strings.modals.GlobalSearchModal.searchError}
           </AppText>
           <TouchableOpacity
@@ -248,7 +248,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
       return (
         <View style={tailwind('flex-1 justify-center items-center px-8')}>
           <MagnifyingGlass size={48} color={getColor('text-gray-40')} />
-          <AppText style={[tailwind('mt-4 text-base text-center'), { color: getColor('text-gray-60') }]}>
+          <AppText style={[tailwind('mt-4 text-base text-center'), { color: getColor('text-gray-100') }]}>
             {strings.modals.GlobalSearchModal.noResultsTitle}
           </AppText>
           <AppText style={[tailwind('mt-2 text-sm text-center'), { color: getColor('text-gray-40') }]}>
@@ -260,7 +260,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
     return (
       <View style={tailwind('flex-1 justify-center items-center px-8')}>
         <MagnifyingGlass size={48} color={getColor('text-gray-40')} />
-        <AppText style={[tailwind('mt-4 text-base text-center'), { color: getColor('text-gray-60') }]}>
+        <AppText style={[tailwind('mt-4 text-base text-center'), { color: getColor('text-gray-100') }]}>
           {strings.modals.GlobalSearchModal.searchPromptTitle}
         </AppText>
         <AppText style={[tailwind('mt-2 text-sm text-center'), { color: getColor('text-gray-40') }]}>
@@ -284,15 +284,20 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
             >
               <ArrowLeft size={24} color={getColor('text-gray-80')} />
             </TouchableOpacity>
-            <View style={tailwind('flex-1 flex-row items-center bg-gray-5 rounded-lg px-3 py-2')}>
-              <MagnifyingGlass size={20} color={getColor('text-gray-60')} />
+            <View
+              style={[
+                tailwind('flex-1 flex-row items-center bg-gray-5 rounded-lg px-3 py-2'),
+                { backgroundColor: getColor('bg-gray-5') },
+              ]}
+            >
+              <MagnifyingGlass size={20} color={getColor('text-gray-100')} />
               <TextInput
                 ref={setInputRef}
                 value={query}
                 onChangeText={updateQuery}
                 placeholder={strings.modals.GlobalSearchModal.searchPlaceholder}
                 placeholderTextColor={getColor('text-gray-40')}
-                style={[tailwind('flex-1 ml-2 text-base')]}
+                style={[tailwind('flex-1 ml-2 text-base'), { color: getColor('text-gray-100') }]}
                 autoCapitalize="none"
                 autoCorrect={false}
                 returnKeyType="search"
@@ -305,7 +310,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
                   hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
                   disabled={isNavigating}
                 >
-                  <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-60') }]}>
+                  <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-100') }]}>
                     {strings.modals.GlobalSearchModal.clear}
                   </AppText>
                 </TouchableOpacity>
@@ -331,7 +336,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
             >
               <View style={[tailwind('p-4 rounded-lg items-center'), { backgroundColor: getColor('bg-surface') }]}>
                 <ActivityIndicator size="large" color={getColor('text-primary')} />
-                <AppText style={[tailwind('mt-2 text-sm'), { color: getColor('text-gray-60') }]}>
+                <AppText style={[tailwind('mt-2 text-sm'), { color: getColor('text-gray-100') }]}>
                   {strings.modals.GlobalSearchModal.opening}
                 </AppText>
               </View>
