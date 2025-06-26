@@ -112,15 +112,21 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       if (requires2FA) {
         setFailed2FA(true);
       }
-      const castedError = errorService.castError(err);
+      let errorMessage;
+      try {
+        const castedError = errorService.castError(err);
+        errorMessage = castedError.message;
+      } catch (castingError) {
+        errorMessage = strings.errors.genericError;
+      }
 
       analytics.track(AnalyticsEventKey.UserSignInFailed, {
         email,
-        message: castedError.message,
+        message: errorMessage,
       });
 
       setIsLoading(false);
-      setErrors({ loginFailed: castedError.message });
+      setErrors({ loginFailed: errorMessage });
     }
   };
 

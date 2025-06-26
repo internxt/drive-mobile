@@ -1,3 +1,4 @@
+import strings from '../../assets/lang/strings';
 import AppError from '../types';
 import { BaseLogger } from './common/logger';
 
@@ -29,19 +30,24 @@ class ErrorService {
     //   id: globalContext.userId,
     // });
   }
-  public castError(err: unknown): AppError {
-    let castedError: AppError = new AppError('Unknown error');
 
-    if (typeof err === 'string') {
-      castedError = new AppError(err);
-    } else if (err instanceof Error) {
-      castedError.message = err.message;
-    } else {
+  public castError(err: unknown): AppError {
+    if (err && typeof err === 'object') {
       const map = err as Record<string, unknown>;
-      castedError = map.message ? new AppError(map.message as string, map.status as number) : castedError;
+
+      const isServerReturnedError =
+        typeof map.message === 'string' &&
+        map.message.trim().length > 0 &&
+        typeof map.status === 'number' &&
+        map.status >= 400 &&
+        map.status < 600;
+
+      if (isServerReturnedError) {
+        return new AppError(map.message as string, map.status as number);
+      }
     }
 
-    return castedError;
+    return new AppError(strings.errors.genericError);
   }
 
   public reportError = (error: Error | unknown, context: Partial<ErrorContext> = {}) => {
