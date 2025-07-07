@@ -294,7 +294,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   }, [driveSortedItems, searchValue]);
 
   async function handleRefresh() {
-    await driveCtx.loadFolderContent(folderUuid, { focusFolder: true, pullFrom: ['network'], resetPagination: true });
+    await driveCtx.loadFolderContent(folderUuid, {
+      focusFolder: true,
+      pullFrom: ['network'],
+      resetPagination: true,
+    });
   }
 
   return (

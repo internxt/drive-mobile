@@ -90,7 +90,10 @@ function AddModal(): JSX.Element {
     }
     setShowCreateFolderModal(false);
     await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-    await driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
+    await driveCtx.loadFolderContent(focusedFolder.uuid, {
+      pullFrom: ['network'],
+      resetPagination: true,
+    });
   };
 
   async function uploadAndroid(
@@ -379,7 +382,10 @@ function AddModal(): JSX.Element {
       // 3. Refresh the current folder
       if (focusedFolder) {
         await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-        driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
+        driveCtx.loadFolderContent(focusedFolder.uuid, {
+          pullFrom: ['network'],
+          resetPagination: true,
+        });
       }
     } catch (err) {
       const error = err as Error;
@@ -435,10 +441,11 @@ function AddModal(): JSX.Element {
               dispatch(uiActions.setShowUploadFileModal(false));
 
               uploadDocuments(documents)
-                .then(() => {
+                .then(async () => {
                   dispatch(driveThunks.loadUsageThunk());
 
                   if (focusedFolder) {
+                    await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
                     driveCtx.loadFolderContent(focusedFolder.uuid, {
                       pullFrom: ['network'],
                       resetPagination: true,
@@ -469,11 +476,15 @@ function AddModal(): JSX.Element {
         copyTo: 'cachesDirectory',
       })
         .then(processFilesFromPicker)
-        .then(() => {
+        .then(async () => {
           dispatch(driveThunks.loadUsageThunk());
 
           if (focusedFolder) {
-            driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
+            await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+            driveCtx.loadFolderContent(focusedFolder.uuid, {
+              pullFrom: ['network'],
+              resetPagination: true,
+            });
           }
         })
         .catch((err) => {
@@ -545,7 +556,11 @@ function AddModal(): JSX.Element {
             dispatch(driveThunks.loadUsageThunk());
 
             if (focusedFolder) {
-              driveCtx.loadFolderContent(focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
+              await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+              driveCtx.loadFolderContent(focusedFolder.uuid, {
+                pullFrom: ['network'],
+                resetPagination: true,
+              });
             }
           }
         }
