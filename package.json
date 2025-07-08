@@ -25,8 +25,7 @@
     "test:e2e:test:ios.debug": "detox test -c ios.debug",
     "test:e2e:test:ios.release": "detox test -c ios.release",
     "tailwind:dev": "concurrently \"tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer --watch\" \"tailwind-rn --watch  -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json\"",
-    "tailwind:build": "tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer && tailwind-rn -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json",
-    "postinstall": "patch-package"
+    "tailwind:build": "tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer && tailwind-rn -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json"
   },
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
