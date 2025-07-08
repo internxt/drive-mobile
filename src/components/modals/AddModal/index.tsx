@@ -12,8 +12,6 @@ import { useState } from 'react';
 import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 
-// import { launchImageLibrary } from 'react-native-image-picker';
-
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';

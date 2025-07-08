@@ -952,10 +952,6 @@ PODS:
     - React-Core
   - react-native-document-picker (4.3.0):
     - React-Core
-  - react-native-image-picker (7.1.2):
-    - glog
-    - RCT-Folly (= 2022.05.16.00)
-    - React-Core
   - react-native-pdf (6.7.6):
     - React-Core
   - react-native-pdf-thumbnail (1.3.1):
@@ -1264,7 +1260,6 @@ DEPENDENCIES:
   - react-native-capture-protection (from `../node_modules/react-native-capture-protection`)
   - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
-  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
@@ -1440,8 +1435,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-create-thumbnail"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
-  react-native-image-picker:
-    :path: "../node_modules/react-native-image-picker"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
   react-native-pdf-thumbnail:
@@ -1594,7 +1587,6 @@ SPEC CHECKSUMS:
   react-native-capture-protection: f2dd78383b616b9e1768eb577d190593f7232da2
   react-native-create-thumbnail: ab55d24aea01723cf386f18b0b542aabb1982f27
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
-  react-native-image-picker: d3db110a3ded6e48c93aef7e8e51afdde8b16ed0
   react-native-pdf: 70ec85fc764070ce9324f5aea504795e889e6ba0
   react-native-pdf-thumbnail: 390b1bc4b115b613ca61d6b14cbc712b3621b1df
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
