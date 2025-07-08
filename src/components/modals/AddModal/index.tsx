@@ -1,15 +1,18 @@
-import * as RNFS from '@dr.pogodin/react-native-fs';
 import * as FileSystem from 'expo-file-system';
 import {
+  ImagePickerAsset,
   launchCameraAsync,
+  launchImageLibraryAsync,
+  MediaTypeOptions,
   requestCameraPermissionsAsync,
-  requestMediaLibraryPermissionsAsync,
+  UIImagePickerPreferredAssetRepresentationMode,
 } from 'expo-image-picker';
+import * as MediaLibrary from 'expo-media-library';
 import { useState } from 'react';
 import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
 import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 
-import { launchImageLibrary } from 'react-native-image-picker';
+// import { launchImageLibrary } from 'react-native-image-picker';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
@@ -71,8 +74,7 @@ function AddModal(): JSX.Element {
     const extension = file.type;
     const finalUri = uploadService.getFinalUri(fileUri, fileType);
     const fileURI = finalUri;
-    const fileExtension = extension;
-
+    const fileExtension = extension?.toLowerCase();
     return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentUuid, progressCallback);
   }
 
@@ -333,7 +335,6 @@ function AddModal(): JSX.Element {
 
     const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents);
     showFileSizeAlert(filesExcluded);
-
     const filesToProcess = await handleDuplicateFiles(filesToUpload, focusedFolder.uuid);
 
     if (filesToProcess.length === 0) {
@@ -411,101 +412,147 @@ function AddModal(): JSX.Element {
    */
   async function handleUploadFromCameraRoll() {
     if (Platform.OS === 'ios') {
-      const { status } = await requestMediaLibraryPermissionsAsync(false);
+      const { status } = await MediaLibrary.requestPermissionsAsync();
 
       if (status === 'granted') {
-        launchImageLibrary(
-          { mediaType: 'mixed', selectionLimit: MAX_FILES_BULK_UPLOAD, assetRepresentationMode: 'current' },
-          async (response) => {
-            if (response.errorMessage) {
-              return Alert.alert(response.errorMessage);
-            }
-            if (response.assets) {
-              const documents: DocumentPickerResponse[] = [];
+        try {
+          const result = await launchImageLibraryAsync({
+            mediaTypes: MediaTypeOptions.All,
+            allowsMultipleSelection: true,
+            selectionLimit: MAX_FILES_BULK_UPLOAD,
+            allowsEditing: false,
+            preferredAssetRepresentationMode: UIImagePickerPreferredAssetRepresentationMode.Current,
+            base64: false,
+            exif: false,
+          });
 
-              for (const asset of response.assets) {
-                const decodedURI = decodeURIComponent(asset.uri as string);
-                const stat = await RNFS.stat(decodedURI);
+          if (!result.canceled && result.assets) {
+            const documents: DocumentPickerResponse[] = [];
+
+            for (const asset of result.assets) {
+              try {
+                const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.assetId || asset.uri);
+                const cleanUri = assetInfo.mediaType === 'video' ? asset.uri : assetInfo.localUri || asset.uri;
+                // asset info has the correct format (heic issue)
+                const originalFileName = assetInfo.filename || asset.fileName;
+
+                let fileSize = asset.fileSize;
+                if (!fileSize) {
+                  try {
+                    const fileInfo = await FileSystem.getInfoAsync(cleanUri);
+                    fileSize = fileInfo.exists ? fileInfo.size || 0 : 0;
+                  } catch (error) {
+                    logger.warn('The file size could not be obtained:', error);
+                    fileSize = 0;
+                  }
+                }
+
+                let mimeType = '';
+                const fileName = originalFileName?.toLowerCase() ?? '';
+                if (assetInfo.mediaType === 'video') {
+                  mimeType = fileName.includes('.mov') ? 'video/quicktime' : 'video/mp4';
+                } else {
+                  mimeType = fileName.includes('.heic') ? 'image/heic' : 'image/jpeg';
+                }
 
                 documents.push({
-                  fileCopyUri: asset.uri || '',
-                  name: decodeURIComponent(
-                    asset.fileName || asset.uri?.substring((asset.uri || '').lastIndexOf('/') + 1) || '',
-                  ),
-                  size: stat.size,
-                  type: asset.type || '',
-                  uri: asset.uri || '',
+                  fileCopyUri: cleanUri,
+                  name: decodeURIComponent(originalFileName ?? ''),
+                  size: fileSize,
+                  type: mimeType,
+                  uri: cleanUri,
+                });
+              } catch (error) {
+                logger.error('Error obtaining original asset info:', error);
+                const cleanUri = asset.uri;
+                const formatInfo = detectImageFormat(asset);
+                documents.push({
+                  fileCopyUri: cleanUri,
+                  name: asset.fileName ?? `media_${Date.now()}.${formatInfo.extension ?? 'jpg'}`,
+                  size: asset.fileSize ?? 0,
+                  type: asset.type?.toLowerCase() ?? 'image/jpeg',
+                  uri: cleanUri,
                 });
               }
-
-              dispatch(uiActions.setShowUploadFileModal(false));
-
-              uploadDocuments(documents)
-                .then(async () => {
-                  dispatch(driveThunks.loadUsageThunk());
-
-                  if (focusedFolder) {
-                    await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-                    driveCtx.loadFolderContent(focusedFolder.uuid, {
-                      pullFrom: ['network'],
-                      resetPagination: true,
-                    });
-                  }
-                })
-                .catch((err) => {
-                  if (err.message === 'User canceled document picker') {
-                    return;
-                  }
-
-                  logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
-                  notificationsService.show({
-                    type: NotificationType.Error,
-                    text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
-                  });
-                })
-                .finally(() => {
-                  dispatch(uiActions.setShowUploadFileModal(false));
-                });
             }
-          },
-        );
+
+            dispatch(uiActions.setShowUploadFileModal(false));
+
+            uploadDocuments(documents)
+              .then(async () => {
+                dispatch(driveThunks.loadUsageThunk());
+
+                if (focusedFolder) {
+                  await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+                  driveCtx.loadFolderContent(focusedFolder.uuid, {
+                    pullFrom: ['network'],
+                    resetPagination: true,
+                  });
+                }
+              })
+              .catch((err) => {
+                logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+                notificationsService.show({
+                  type: NotificationType.Error,
+                  text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                });
+              })
+              .finally(() => {
+                dispatch(uiActions.setShowUploadFileModal(false));
+              });
+          }
+        } catch (error) {
+          logger.error('Error accessing media library:', error);
+        }
       }
     } else {
-      DocumentPicker.pickMultiple({
-        type: [DocumentPicker.types.images],
-        copyTo: 'cachesDirectory',
-      })
-        .then(processFilesFromPicker)
-        .then(async () => {
-          dispatch(driveThunks.loadUsageThunk());
+      // Android
+      const result = await launchImageLibraryAsync({
+        mediaTypes: MediaTypeOptions.All,
+        allowsMultipleSelection: true,
+        selectionLimit: MAX_FILES_BULK_UPLOAD,
+        quality: 1,
+        allowsEditing: false,
+      });
 
-          if (focusedFolder) {
-            await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-            driveCtx.loadFolderContent(focusedFolder.uuid, {
-              pullFrom: ['network'],
-              resetPagination: true,
-            });
-          }
-        })
-        .catch((err) => {
-          if (err.message === 'User canceled document picker') {
-            return;
-          }
-          logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
-          notificationsService.show({
-            type: NotificationType.Error,
-            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+      if (!result.canceled && result.assets) {
+        const documents: DocumentPickerResponse[] = result.assets.map((asset) => ({
+          fileCopyUri: asset.uri,
+          name: asset.fileName ?? `media_${Date.now()}.jpg`,
+          size: asset.fileSize ?? 0,
+          type: asset.type ?? 'image/jpeg',
+          uri: asset.uri,
+        }));
+
+        dispatch(uiActions.setShowUploadFileModal(false));
+        await processFilesFromPicker(documents);
+
+        dispatch(driveThunks.loadUsageThunk());
+        if (focusedFolder) {
+          await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+          driveCtx.loadFolderContent(focusedFolder.uuid, {
+            pullFrom: ['network'],
+            resetPagination: true,
           });
-        })
-        .finally(() => {
-          dispatch(uiActions.setShowUploadFileModal(false));
-        });
+        }
+      }
     }
   }
 
-  /**
-   * Take a Photo and upload it
-   */
+  const detectImageFormat = (asset: ImagePickerAsset) => {
+    const fileName = asset.fileName || '';
+    const extension = fileName.split('.').pop()?.toLowerCase() || '';
+
+    const isHEIC = extension === 'heic' || extension === 'heif';
+
+    return {
+      extension,
+      isHEIC,
+      fileName: asset.fileName,
+      mimeType: asset.type,
+    };
+  };
+
   async function handleTakePhotoAndUpload() {
     const { status } = await requestCameraPermissionsAsync();
 
@@ -514,54 +561,62 @@ function AddModal(): JSX.Element {
         throw new Error('No current folder found');
       }
       try {
-        const result = await launchCameraAsync();
+        const result = await launchCameraAsync({
+          mediaTypes: MediaTypeOptions.All,
+          quality: 1,
+          allowsEditing: false,
+          preferredAssetRepresentationMode: UIImagePickerPreferredAssetRepresentationMode.Current,
+        });
+
         const assetToUpload = result.assets?.pop();
-        if (!assetToUpload) {
+        if (!assetToUpload || result.canceled) {
           return;
         }
 
-        if (!result.canceled) {
-          const name = drive.file.removeExtension(assetToUpload.uri.split('/').pop() as string);
-          const fileInfo = await FileSystem.getInfoAsync(assetToUpload.uri);
-          const size = fileInfo.exists ? fileInfo?.size : 0;
-          const file: UploadingFile = {
-            id: new Date().getTime(),
-            uuid: uuid.v4().toString(),
-            name,
-            parentId: focusedFolder.id,
-            parentUuid: focusedFolder.uuid,
-            createdAt: new Date().toString(),
-            updatedAt: new Date().toString(),
-            type: drive.file.getExtensionFromUri(assetToUpload.uri) as string,
-            size: size,
-            uri: assetToUpload.uri,
-            progress: 0,
-            uploaded: false,
-          };
+        const fileInfo = await FileSystem.getInfoAsync(assetToUpload.uri);
+        const formatInfo = detectImageFormat(assetToUpload);
+        const name = drive.file.removeExtension(assetToUpload.uri.split('/').pop() as string);
+        const size = fileInfo.exists ? fileInfo?.size : 0;
 
-          trackUploadStart(file);
-          dispatch(driveActions.uploadFileStart(file.name));
-          dispatch(driveActions.addUploadingFile(file));
-          dispatch(uiActions.setShowUploadFileModal(false));
+        const file: UploadingFile = {
+          id: new Date().getTime(),
+          uuid: uuid.v4().toString(),
+          name,
+          parentId: focusedFolder.id,
+          parentUuid: focusedFolder.uuid,
+          createdAt: new Date().toString(),
+          updatedAt: new Date().toString(),
+          type: formatInfo.isHEIC
+            ? 'heic'
+            : (drive.file.getExtensionFromUri(assetToUpload.uri) as string)?.toLowerCase(),
+          size: size,
+          uri: assetToUpload.uri,
+          progress: 0,
+          uploaded: false,
+        };
 
-          try {
-            await uploadFile(file, 'image');
-            await uploadSuccess(file);
-          } catch (err) {
-            trackUploadError(file, err as Error);
-            dispatch(driveActions.uploadFileFailed({ id: file.id }));
-            throw err;
-          } finally {
-            dispatch(driveActions.uploadFileFinished());
-            dispatch(driveThunks.loadUsageThunk());
+        trackUploadStart(file);
+        dispatch(driveActions.uploadFileStart(file.name));
+        dispatch(driveActions.addUploadingFile(file));
+        dispatch(uiActions.setShowUploadFileModal(false));
 
-            if (focusedFolder) {
-              await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-              driveCtx.loadFolderContent(focusedFolder.uuid, {
-                pullFrom: ['network'],
-                resetPagination: true,
-              });
-            }
+        try {
+          await uploadFile(file, 'image');
+          await uploadSuccess(file);
+        } catch (err) {
+          trackUploadError(file, err as Error);
+          dispatch(driveActions.uploadFileFailed({ id: file.id }));
+          throw err;
+        } finally {
+          dispatch(driveActions.uploadFileFinished());
+          dispatch(driveThunks.loadUsageThunk());
+
+          if (focusedFolder) {
+            await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+            driveCtx.loadFolderContent(focusedFolder.uuid, {
+              pullFrom: ['network'],
+              resetPagination: true,
+            });
           }
         }
       } catch (error) {
