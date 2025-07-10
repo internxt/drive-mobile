@@ -178,54 +178,49 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     files: DriveFileForTree[];
     folders: DriveFolderForTree[];
   }> => {
-    try {
-      const folderContent = await driveFolderService.getFolderContentByUuid(folderId);
+    const folderContent = await driveFolderService.getFolderContentByUuid(folderId);
 
-      return {
-        folders: folderContent.children.map((folder) => ({
-          uuid: folder.uuid,
-          plainName: folder.plainName || folder.plain_name || '',
-          id: folder.id,
-          bucket: folder.bucket || null,
-          createdAt: folder.createdAt,
-          deleted: false,
-          name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
-          parentId: folder.parentId || folder.parent_id || null,
-          parentUuid: folderId,
-          updatedAt: folder.updatedAt,
-          userId: folder.userId,
-          // @ts-expect-error - API is returning status, missing from SDK
-          status: folder.status,
-          isFolder: true,
-        })),
-        files: folderContent.files.map(
-          (file): DriveFileForTree => ({
-            uuid: file.uuid,
-            plainName: file.plainName || file.plain_name || '',
-            bucket: file.bucket,
-            createdAt: file.createdAt,
-            deleted: file.deleted || false,
-            deletedAt: file.deletedAt,
-            fileId: file.fileId,
-            folderId: file.folderId || file.folder_id,
-            folderUuid: folderId,
-            id: file.id,
-            name: file.plainName || file.plain_name || file.name,
-            size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
-            type: file.type,
-            updatedAt: file.updatedAt,
-            status: file.status,
-            thumbnails: file.thumbnails ?? [],
-            shares: file.shares,
-            sharings: file.sharings,
-            user: file.user,
-          }),
-        ),
-      };
-    } catch (error) {
-      console.error('Error fetching all folder content:', error);
-      throw error;
-    }
+    return {
+      folders: folderContent.children.map((folder) => ({
+        uuid: folder.uuid,
+        plainName: folder.plainName || folder.plain_name || '',
+        id: folder.id,
+        bucket: folder.bucket || null,
+        createdAt: folder.createdAt,
+        deleted: false,
+        name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
+        parentId: folder.parentId || folder.parent_id || null,
+        parentUuid: folderId,
+        updatedAt: folder.updatedAt,
+        userId: folder.userId,
+        // @ts-expect-error - API is returning status, missing from SDK
+        status: folder.status,
+        isFolder: true,
+      })),
+      files: folderContent.files.map(
+        (file): DriveFileForTree => ({
+          uuid: file.uuid,
+          plainName: file.plainName || file.plain_name || '',
+          bucket: file.bucket,
+          createdAt: file.createdAt,
+          deleted: file.deleted || false,
+          deletedAt: file.deletedAt,
+          fileId: file.fileId,
+          folderId: file.folderId || file.folder_id,
+          folderUuid: folderId,
+          id: file.id,
+          name: file.plainName || file.plain_name || file.name,
+          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
+          type: file.type,
+          updatedAt: file.updatedAt,
+          status: file.status,
+          thumbnails: file.thumbnails ?? [],
+          shares: file.shares,
+          sharings: file.sharings,
+          user: file.user,
+        }),
+      ),
+    };
   };
 
   const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
