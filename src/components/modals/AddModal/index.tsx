@@ -72,7 +72,7 @@ function AddModal(): JSX.Element {
     const extension = file.type;
     const finalUri = uploadService.getFinalUri(fileUri, fileType);
     const fileURI = finalUri;
-    const fileExtension = extension?.toLowerCase();
+    const fileExtension = extension;
     return uploadAndCreateFileEntry(fileURI, name, fileExtension, file.parentUuid, progressCallback);
   }
 
@@ -445,19 +445,11 @@ function AddModal(): JSX.Element {
                   }
                 }
 
-                let mimeType = '';
-                const fileName = originalFileName?.toLowerCase() ?? '';
-                if (assetInfo.mediaType === 'video') {
-                  mimeType = fileName.includes('.mov') ? 'video/quicktime' : 'video/mp4';
-                } else {
-                  mimeType = fileName.includes('.heic') ? 'image/heic' : 'image/jpeg';
-                }
-
                 documents.push({
                   fileCopyUri: cleanUri,
                   name: decodeURIComponent(originalFileName ?? ''),
                   size: fileSize,
-                  type: mimeType,
+                  type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
                   uri: cleanUri,
                 });
               } catch (error) {
@@ -468,7 +460,7 @@ function AddModal(): JSX.Element {
                   fileCopyUri: cleanUri,
                   name: asset.fileName ?? `media_${Date.now()}.${formatInfo.extension ?? 'jpg'}`,
                   size: asset.fileSize ?? 0,
-                  type: asset.type?.toLowerCase() ?? 'image/jpeg',
+                  type: asset.type ?? '',
                   uri: cleanUri,
                 });
               }
