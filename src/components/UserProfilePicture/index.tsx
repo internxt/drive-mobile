@@ -1,7 +1,8 @@
-import React from 'react';
-import { StyleProp, View, ViewStyle, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleProp, View, ViewStyle } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
+import useGetColor from '../../hooks/useColor';
 import { useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import AppText from '../AppText';
@@ -14,28 +15,50 @@ interface UserProfilePictureProps {
 
 const UserProfilePicture = (props: UserProfilePictureProps) => {
   const tailwind = useTailwind();
-  const hasAvatar = props.uri;
   const nameLetters = useAppSelector(authSelectors.nameLetters);
+  const getColor = useGetColor();
+  const [imageError, setImageError] = useState(false);
+  const hasValidAvatar = props.uri && !imageError;
+
+  useEffect(() => {
+    setImageError(false);
+  }, [props.uri]);
 
   return (
     <View
       style={[
-        tailwind('bg-gray-10 border border-black/5 rounded-full'),
-        { height: props.size, width: props.size },
+        tailwind('rounded-full overflow-hidden border '),
+        { borderColor: getColor('bg-gray-5'), backgroundColor: getColor('bg-gray-10') },
+        {
+          height: props.size,
+          width: props.size,
+        },
         props.style,
       ]}
     >
-      {hasAvatar ? (
+      {hasValidAvatar ? (
         <FastImage
           source={{ uri: props.uri as string }}
-          style={{ ...tailwind('rounded-full'), height: props.size, width: props.size }}
+          style={{
+            height: props.size,
+            width: props.size,
+            borderRadius: props.size / 2,
+          }}
+          resizeMode={FastImage.resizeMode.cover}
+          onError={() => {
+            setImageError(true);
+          }}
+          onLoad={() => {
+            setImageError(false);
+          }}
         />
       ) : (
         <View
           style={{
-            ...tailwind('items-center justify-center rounded-full bg-primary/10'),
+            ...tailwind('items-center justify-center bg-primary/10'),
             height: props.size,
             width: props.size,
+            borderRadius: props.size / 2,
           }}
         >
           <AppText

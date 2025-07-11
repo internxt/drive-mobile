@@ -8,6 +8,7 @@ import AppText from 'src/components/AppText';
 import AppTextInput from 'src/components/AppTextInput';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from '../../../helpers/services';
 import useGetColor from '../../../hooks/useColor';
 import errorService from '../../../services/ErrorService';
 import notificationsService from '../../../services/NotificationsService';
@@ -31,7 +32,7 @@ function RenameModal(): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const isFolder = focusedItem?.type ? false : true;
 
-  const onItemRenameSuccess = () => {
+  const onItemRenameSuccess = async () => {
     /**
      * Weird stuff over here
      *
@@ -48,7 +49,12 @@ function RenameModal(): JSX.Element {
      */
 
     if (driveCtx.focusedFolder) {
-      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
+      await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, {
+        pullFrom: ['network'],
+        resetPagination: true,
+        loadAllContent: true,
+      });
     }
 
     notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });

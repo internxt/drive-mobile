@@ -38,6 +38,7 @@ type LoadFolderContentOptions = {
   pullFrom?: 'network'[];
   resetPagination?: boolean;
   focusFolder?: boolean;
+  loadAllContent?: boolean;
 };
 
 export const DriveContext = React.createContext<DriveContextType | undefined>(undefined);
@@ -97,6 +98,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       }
     });
   }, []);
+
   useEffect(() => {
     if (!rootFolderId) return;
     setDriveFoldersTree({ [rootFolderId]: ROOT_FOLDER_NODE });
@@ -170,6 +172,57 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     };
   };
 
+  const fetchAllFolderContent = async (
+    folderId: string,
+  ): Promise<{
+    files: DriveFileForTree[];
+    folders: DriveFolderForTree[];
+  }> => {
+    const folderContent = await driveFolderService.getFolderContentByUuid(folderId);
+
+    return {
+      folders: folderContent.children.map((folder) => ({
+        uuid: folder.uuid,
+        plainName: folder.plainName || folder.plain_name || '',
+        id: folder.id,
+        bucket: folder.bucket || null,
+        createdAt: folder.createdAt,
+        deleted: false,
+        name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
+        parentId: folder.parentId || folder.parent_id || null,
+        parentUuid: folderId,
+        updatedAt: folder.updatedAt,
+        userId: folder.userId,
+        // @ts-expect-error - API is returning status, missing from SDK
+        status: folder.status,
+        isFolder: true,
+      })),
+      files: folderContent.files.map(
+        (file): DriveFileForTree => ({
+          uuid: file.uuid,
+          plainName: file.plainName || file.plain_name || '',
+          bucket: file.bucket,
+          createdAt: file.createdAt,
+          deleted: file.deleted || false,
+          deletedAt: file.deletedAt,
+          fileId: file.fileId,
+          folderId: file.folderId || file.folder_id,
+          folderUuid: folderId,
+          id: file.id,
+          name: file.plainName || file.plain_name || file.name,
+          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
+          type: file.type,
+          updatedAt: file.updatedAt,
+          status: file.status,
+          thumbnails: file.thumbnails ?? [],
+          shares: file.shares,
+          sharings: file.sharings,
+          user: file.user,
+        }),
+      ),
+    };
+  };
+
   const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
     const shouldResetPagination = options?.resetPagination;
     const driveFolderTreeNode: DriveFoldersTreeNode = driveFoldersTree[folderId] ?? ROOT_FOLDER_NODE;
@@ -179,14 +232,25 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       setCurrentFolder(driveFolderTreeNode);
     }
 
-    const nextFilesPage = options?.resetPagination
-      ? 1
-      : Math.ceil(driveFolderTreeNode.files.length / FILES_LIMIT_PER_PAGE) + 1;
-    const nextFoldersPage = options?.resetPagination
-      ? 1
-      : Math.ceil(driveFolderTreeNode.folders.length / FILES_LIMIT_PER_PAGE) + 1;
+    let files: DriveFileForTree[] = [];
+    let folders: DriveFolderForTree[] = [];
 
-    const { files, folders } = await fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
+    if (options?.loadAllContent) {
+      const allContent = await fetchAllFolderContent(folderId);
+      files = allContent.files;
+      folders = allContent.folders;
+    } else {
+      const nextFilesPage = options?.resetPagination
+        ? 1
+        : Math.ceil(driveFolderTreeNode.files.length / FILES_LIMIT_PER_PAGE) + 1;
+      const nextFoldersPage = options?.resetPagination
+        ? 1
+        : Math.ceil(driveFolderTreeNode.folders.length / FOLDERS_LIMIT_PER_PAGE) + 1;
+
+      const paginatedContent = await fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
+      files = paginatedContent.files;
+      folders = paginatedContent.folders;
+    }
 
     updateDriveFoldersTree({
       folderId,

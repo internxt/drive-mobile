@@ -211,7 +211,6 @@ export async function uploadSingleFile(
   uploadSuccess: (file: UploadingFile) => void,
 ) {
   try {
-    console.log('Uploading file: ', file);
     await uploadFile(file, 'document');
     uploadSuccess(file);
   } catch (e) {

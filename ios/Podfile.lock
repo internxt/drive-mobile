@@ -50,6 +50,8 @@ PODS:
     - React-NativeModulesApple
     - React-RCTAppDelegate
     - ReactCommon/turbomodule/core
+  - ExpoSecureStore (12.8.1):
+    - ExpoModulesCore
   - ExpoSharing (11.10.0):
     - ExpoModulesCore
   - ExpoSystemUI (2.9.4):
@@ -84,6 +86,8 @@ PODS:
   - glog (0.3.5)
   - IDZSwiftCommonCrypto (0.16.1)
   - internxt-mobile-sdk (0.2.41):
+    - React-Core
+  - jail-monkey (2.8.3):
     - React-Core
   - libwebp (1.3.2):
     - libwebp/demux (= 1.3.2)
@@ -942,13 +946,11 @@ PODS:
   - React-Mapbuffer (0.73.6):
     - glog
     - React-debug
+  - react-native-capture-protection (2.0.10):
+    - React-Core
   - react-native-create-thumbnail (2.0.0):
     - React-Core
   - react-native-document-picker (4.3.0):
-    - React-Core
-  - react-native-image-picker (7.1.2):
-    - glog
-    - RCT-Folly (= 2022.05.16.00)
     - React-Core
   - react-native-pdf (6.7.6):
     - React-Core
@@ -1220,6 +1222,7 @@ DEPENDENCIES:
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoLocalAuthentication (from `../node_modules/expo-local-authentication/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoSharing (from `../node_modules/expo-sharing/ios`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
@@ -1230,6 +1233,7 @@ DEPENDENCIES:
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - "internxt-mobile-sdk (from `../node_modules/@internxt/mobile-sdk`)"
+  - jail-monkey (from `../node_modules/jail-monkey`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
@@ -1253,9 +1257,9 @@ DEPENDENCIES:
   - React-jsinspector (from `../node_modules/react-native/ReactCommon/jsinspector-modern`)
   - React-logger (from `../node_modules/react-native/ReactCommon/logger`)
   - React-Mapbuffer (from `../node_modules/react-native/ReactCommon`)
+  - react-native-capture-protection (from `../node_modules/react-native-capture-protection`)
   - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
-  - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
@@ -1359,6 +1363,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-local-authentication/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoSecureStore:
+    :path: "../node_modules/expo-secure-store/ios"
   ExpoSharing:
     :path: "../node_modules/expo-sharing/ios"
   ExpoSystemUI:
@@ -1379,6 +1385,8 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/third-party-podspecs/glog.podspec"
   internxt-mobile-sdk:
     :path: "../node_modules/@internxt/mobile-sdk"
+  jail-monkey:
+    :path: "../node_modules/jail-monkey"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTRequired:
@@ -1421,12 +1429,12 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/logger"
   React-Mapbuffer:
     :path: "../node_modules/react-native/ReactCommon"
+  react-native-capture-protection:
+    :path: "../node_modules/react-native-capture-protection"
   react-native-create-thumbnail:
     :path: "../node_modules/react-native-create-thumbnail"
   react-native-document-picker:
     :path: "../node_modules/react-native-document-picker"
-  react-native-image-picker:
-    :path: "../node_modules/react-native-image-picker"
   react-native-pdf:
     :path: "../node_modules/react-native-pdf"
   react-native-pdf-thumbnail:
@@ -1538,6 +1546,7 @@ SPEC CHECKSUMS:
   ExpoLinearGradient: 4ad1449a2408e0435ac959076562b3921f2e32a1
   ExpoLocalAuthentication: c55ffb179683efed04cb144fc80ccf26891f0cb4
   ExpoModulesCore: 421e9c6bcb63baf153a5ec22b2b4319addfe331c
+  ExpoSecureStore: c84ae37d1c36f38524d289c67c3a2e3fc56f1108
   ExpoSharing: 752ad6ae2b693de9cd4e7fddb78297bdc658b815
   ExpoSystemUI: 735278045c1a28de0018a300bb5abb3f9090652b
   EXSplashScreen: fb4d80520d2348d57879e7a272415438bbcdffd3
@@ -1550,6 +1559,7 @@ SPEC CHECKSUMS:
   glog: c5d68082e772fa1c511173d6b30a9de2c05a69a2
   IDZSwiftCommonCrypto: aefd3487b88dc3d7a1de2553188c720ac3194940
   internxt-mobile-sdk: 821a26ae1521019b968b5c2bc716ca5498e8a7d1
+  jail-monkey: 066e0af74e67cbf432fbb4d214b046ef6dccf910
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
   MetricsReporter: 364b98791e868b10e9d512eb50af28d8c11e5cdb
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
@@ -1574,9 +1584,9 @@ SPEC CHECKSUMS:
   React-jsinspector: 85583ef014ce53d731a98c66a0e24496f7a83066
   React-logger: 3eb80a977f0d9669468ef641a5e1fabbc50a09ec
   React-Mapbuffer: 84ea43c6c6232049135b1550b8c60b2faac19fab
+  react-native-capture-protection: f2dd78383b616b9e1768eb577d190593f7232da2
   react-native-create-thumbnail: ab55d24aea01723cf386f18b0b542aabb1982f27
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
-  react-native-image-picker: d3db110a3ded6e48c93aef7e8e51afdde8b16ed0
   react-native-pdf: 70ec85fc764070ce9324f5aea504795e889e6ba0
   react-native-pdf-thumbnail: 390b1bc4b115b613ca61d6b14cbc712b3621b1df
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846

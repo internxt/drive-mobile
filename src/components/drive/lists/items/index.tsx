@@ -123,6 +123,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
                     style={tailwind('flex-grow h-1 ml-1.5')}
                     progressStyle={tailwind('h-1')}
                     totalValue={1}
+                    height={4}
                     currentValue={props.progress || 0}
                   />
                 </View>
