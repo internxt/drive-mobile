@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common';
 
+const DAY_IN_MINUTES = 1440; // 24 hours * 60 minutes
 export interface SecurityCheckResult {
   isSecure: boolean;
   risks: SecurityRisk[];
@@ -53,7 +54,7 @@ class SecurityService {
       enableLogging: true,
       blockOnCriticalRisk: true,
       allowDebugMode: __DEV__,
-      checkMinutesInterval: 30,
+      checkMinutesInterval: DAY_IN_MINUTES,
     };
   }
 
