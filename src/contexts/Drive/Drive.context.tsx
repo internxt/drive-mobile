@@ -32,6 +32,7 @@ export interface DriveContextType {
   toggleViewMode: () => void;
   loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
   focusedFolder: DriveFoldersTreeNode | null;
+  updateItemInTree: (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => void;
 }
 
 type LoadFolderContentOptions = {
@@ -321,6 +322,24 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     });
   };
 
+  const updateItemInTree = (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => {
+    setDriveFoldersTree((prevTree) => {
+      const folder = prevTree[folderId];
+      if (!folder) return prevTree;
+
+      return {
+        ...prevTree,
+        [folderId]: {
+          ...folder,
+          files: folder.files.map((file) => (file.id === itemId ? { ...file, ...updates } : file)),
+          folders: folder.folders.map((folderItem) =>
+            folderItem.id === itemId ? { ...folderItem, ...updates } : folderItem,
+          ),
+        },
+      };
+    });
+  };
+
   const handleToggleViewMode = () => {
     const newViewMode = viewMode === DriveListViewMode.List ? DriveListViewMode.Grid : DriveListViewMode.List;
     setViewMode(newViewMode);
@@ -337,6 +356,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         // Default current folder is the root folder
         focusedFolder: currentFolder,
         rootFolderId: rootFolderId ?? '',
+        updateItemInTree,
       }}
     >
       {children}
