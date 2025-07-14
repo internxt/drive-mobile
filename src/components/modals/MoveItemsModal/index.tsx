@@ -24,9 +24,9 @@ import DriveNavigableItem from '../../DriveNavigableItem';
 import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { useNavigation } from '@react-navigation/native';
-import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { logger } from '../../../services/common';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { RootScreenNavigationProp } from '../../../types/navigation';
@@ -116,17 +116,26 @@ function MoveItemsModal(): JSX.Element {
     if (originFolderContentResponse?.uuid === destinationFolderContentResponse?.uuid) return true;
     return false;
   };
+
   const confirmMoveItem = async () => {
     if (!originFolderContentResponse || !itemToMove || !originFolderId || !destinationFolderContentResponse?.uuid) {
       notificationsService.show({
         text1: strings.errors.moveError,
         type: NotificationType.Error,
       });
+      return;
+    }
 
+    if (!driveCtx.focusedFolder) {
+      notificationsService.show({
+        text1: strings.errors.moveError,
+        type: NotificationType.Error,
+      });
       return;
     }
 
     setIsMovingItem(true);
+
     const moveResult = await dispatch(
       driveThunks.moveItemThunk({
         isFolder,
@@ -142,16 +151,53 @@ function MoveItemsModal(): JSX.Element {
         itemMovedAction: () => {
           navigation.push('TabExplorer', { screen: 'Drive' });
         },
+        optimisticCallbacks: {
+          onOptimisticUpdate: () => {
+            const destinationFolderId = destinationFolderContentResponse.uuid;
+            driveCtx.removeItemFromTree(originFolderId, itemToMove.id);
+            const destinationFolder = driveCtx.driveFoldersTree[destinationFolderId];
+            if (destinationFolder) {
+              const itemForDestination = isFolder
+                ? {
+                    ...itemToMove,
+                    plainName: itemToMove.name,
+                    parentUuid: destinationFolderId,
+                    parentId: destinationFolderContentResponse.id,
+                    isFolder,
+                  }
+                : {
+                    ...itemToMove,
+                    plainName: itemToMove.name,
+                    folderId: destinationFolderContentResponse.id,
+                    folderUuid: destinationFolderId,
+                  };
+              // Added any because itemToMove is not typed correctly
+              driveCtx.addItemToTree(destinationFolderId, itemForDestination as any, isFolder);
+            }
+          },
+          onRollback: async () => {
+            try {
+              await driveCtx.loadFolderContent(originFolderId, {
+                pullFrom: ['network'],
+                resetPagination: true,
+                loadAllContent: true,
+              });
+            } catch (rollbackError) {
+              logger.error('Error during rollback:', rollbackError);
+            }
+          },
+        },
       }),
     );
+
     setIsMovingItem(false);
 
     if (moveResult.meta.requestStatus === 'fulfilled') {
       setConfirmModalOpen(false);
-
-      await cleanUp({ shouldRefreshFolder: true });
+      await cleanUp({ shouldRefreshFolder: false });
     }
   };
+
   const onFolderCreated = async () => {
     if (destinationFolderContentResponse?.uuid) {
       await loadDestinationFolderContent(destinationFolderContentResponse.uuid);
@@ -166,11 +212,11 @@ function MoveItemsModal(): JSX.Element {
   };
   const cleanUp = async (options?: { shouldRefreshFolder: boolean }) => {
     if (options?.shouldRefreshFolder) {
-      if (originFolderContentResponse?.id) {
-        await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-        await driveCtx.loadFolderContent(originFolderContentResponse.uuid, {
+      if (originFolderContentResponse?.id && driveCtx.focusedFolder) {
+        await driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, {
           resetPagination: true,
           pullFrom: ['network'],
+          loadAllContent: true,
         });
       }
     }

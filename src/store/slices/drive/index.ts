@@ -324,7 +324,6 @@ const createFolderThunk = createAsyncThunk<
 >('drive/createFolder', async ({ parentFolderUuid, newFolderName }) => {
   await drive.folder.createFolder(parentFolderUuid, newFolderName);
 });
-
 export interface MoveItemThunkPayload {
   isFolder: boolean;
   origin: {
@@ -337,36 +336,47 @@ export interface MoveItemThunkPayload {
   };
   destinationUuid: string;
   itemMovedAction: () => void;
+  optimisticCallbacks?: {
+    onOptimisticUpdate: () => void;
+    onRollback: () => void;
+  };
 }
 
 const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: RootState }>(
   'drive/moveItem',
-  async ({ isFolder, origin, destinationUuid, itemMovedAction }) => {
-    if (!isFolder) {
-      await drive.file.moveFile({
-        fileUuid: origin?.uuid,
-        destinationFolderUuid: destinationUuid,
+  async ({ isFolder, origin, destinationUuid, itemMovedAction, optimisticCallbacks }) => {
+    try {
+      optimisticCallbacks?.onOptimisticUpdate();
+
+      await drive.database.deleteItem({
+        id: origin.itemId as number,
       });
-    } else {
-      await drive.folder.moveFolder({
-        folderUuid: origin.uuid,
-        destinationFolderUuid: destinationUuid,
+
+      if (!isFolder) {
+        await drive.file.moveFile({
+          fileUuid: origin?.uuid,
+          destinationFolderUuid: destinationUuid,
+        });
+      } else {
+        await drive.folder.moveFolder({
+          folderUuid: origin.uuid,
+          destinationFolderUuid: destinationUuid,
+        });
+      }
+
+      const totalMovedItems = 1;
+      notificationsService.show({
+        text1: strings.formatString(strings.messages.itemsMoved, totalMovedItems).toString(),
+        action: {
+          text: strings.generic.view_folder,
+          onActionPress: itemMovedAction,
+        },
+        type: NotificationType.Success,
       });
+    } catch (error) {
+      optimisticCallbacks?.onRollback();
+      throw error;
     }
-
-    await drive.database.deleteItem({
-      id: origin.itemId as number,
-    });
-
-    const totalMovedItems = 1;
-    notificationsService.show({
-      text1: strings.formatString(strings.messages.itemsMoved, totalMovedItems).toString(),
-      action: {
-        text: strings.generic.view_folder,
-        onActionPress: itemMovedAction,
-      },
-      type: NotificationType.Success,
-    });
   },
 );
 
@@ -450,6 +460,7 @@ export const driveSlice = createSlice({
       state.folderContent = action.payload;
     },
     setFocusedItem(state, action: PayloadAction<DriveItemFocused | null>) {
+      console.log('Setting focused item:', action.payload);
       state.focusedItem = action.payload;
     },
     setFocusedShareItem(state, action: PayloadAction<FocusedShareItem | null>) {
