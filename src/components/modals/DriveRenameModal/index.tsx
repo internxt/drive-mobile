@@ -8,8 +8,8 @@ import AppText from 'src/components/AppText';
 import AppTextInput from 'src/components/AppTextInput';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from '../../../helpers/services';
 import useGetColor from '../../../hooks/useColor';
+import { logger } from '../../../services/common';
 import errorService from '../../../services/ErrorService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -32,75 +32,76 @@ function RenameModal(): JSX.Element {
   const [isLoading, setIsLoading] = useState(false);
   const isFolder = focusedItem?.type ? false : true;
 
-  const onItemRenameSuccess = async () => {
-    /**
-     * Weird stuff over here
-     *
-     * Looks like updateMetadata endpoint responds
-     * but the file is not renamed yet, so we will
-     * update the item in the DB and will update
-     * the DB with the next network request later
-     * hopefully the drive item will be renamed
-     * already
-     *
-     * NOTE: Drive server returns the updated
-     * item, however the SDK does not return it
-     * Should update the SDK to return it
-     */
+  const onRenameButtonPressed = async () => {
+    if (!focusedItem || !user || !driveCtx.focusedFolder) return;
 
-    if (driveCtx.focusedFolder) {
-      await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, {
-        pullFrom: ['network'],
-        resetPagination: true,
-        loadAllContent: true,
-      });
+    const originalName = focusedItem.name;
+    const trimmedNewName = newName.trim();
+
+    if (!trimmedNewName || trimmedNewName === originalName) {
+      dispatch(uiActions.setShowRenameModal(false));
+      return;
     }
 
-    notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
-    setNewName('');
-  };
+    try {
+      setIsLoading(true);
+      dispatch(
+        driveActions.setFocusedItem({
+          ...focusedItem,
+          name: trimmedNewName,
+        }),
+      );
+      driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.id, {
+        name: trimmedNewName,
+        plainName: trimmedNewName,
+      });
 
-  const onItemRenameFinally = () => {
-    dispatch(uiActions.setShowRenameModal(false));
-    dispatch(uiActions.setShowItemModal(false));
-    setIsLoading(false);
+      await drive.database.updateItemName(focusedItem.id, trimmedNewName);
+      if (isFolder && focusedItem.uuid) {
+        await drive.folder.updateMetaData(focusedItem.uuid, trimmedNewName);
+      } else if (focusedItem.uuid) {
+        await drive.file.updateMetaData(focusedItem.uuid, trimmedNewName);
+      }
+
+      notificationsService.show({
+        text1: strings.messages.renamedSuccessfully,
+        type: NotificationType.Success,
+      });
+
+      dispatch(uiActions.setShowRenameModal(false));
+      dispatch(uiActions.setShowItemModal(false));
+      setNewName('');
+    } catch (err) {
+      try {
+        driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.id, {
+          name: originalName,
+          plainName: originalName,
+        });
+        dispatch(
+          driveActions.setFocusedItem({
+            ...focusedItem,
+            name: originalName,
+          }),
+        );
+
+        await drive.database.updateItemName(focusedItem.id, originalName);
+      } catch (dbError) {
+        logger.error('Error reverting database update:', dbError);
+      }
+
+      const castedError = errorService.castError(err);
+      notificationsService.show({
+        text1: castedError.message,
+        type: NotificationType.Error,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const onCancelButtonPressed = () => {
     dispatch(driveActions.deselectAll());
     dispatch(uiActions.setShowRenameModal(false));
-  };
-
-  const onRenameButtonPressed = async () => {
-    try {
-      setIsLoading(true);
-
-      if (focusedItem && isFolder) {
-        // TODO: Move to a useCase
-        if (focusedItem?.uuid) await drive.folder.updateMetaData(focusedItem.uuid, newName);
-      } else if (focusedItem?.uuid && user) {
-        await drive.file.updateMetaData(focusedItem.uuid, newName);
-      }
-
-      // Update the item in the local DB
-      if (focusedItem) {
-        await drive.database.updateItemName(focusedItem?.id, newName);
-        dispatch(
-          driveActions.setFocusedItem({
-            ...focusedItem,
-            name: newName,
-          }),
-        );
-      }
-
-      onItemRenameSuccess();
-    } catch (err) {
-      const castedError = errorService.castError(err);
-      notificationsService.show({ text1: castedError.message, type: NotificationType.Error });
-    } finally {
-      onItemRenameFinally();
-    }
   };
 
   const onClosed = () => {
