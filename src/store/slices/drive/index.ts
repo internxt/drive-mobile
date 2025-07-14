@@ -346,8 +346,6 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
   'drive/moveItem',
   async ({ isFolder, origin, destinationUuid, itemMovedAction, optimisticCallbacks }) => {
     try {
-      optimisticCallbacks?.onOptimisticUpdate();
-
       await drive.database.deleteItem({
         id: origin.itemId as number,
       });
@@ -363,6 +361,8 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
           destinationFolderUuid: destinationUuid,
         });
       }
+
+      optimisticCallbacks?.onOptimisticUpdate();
 
       const totalMovedItems = 1;
       notificationsService.show({
