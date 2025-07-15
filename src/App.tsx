@@ -11,7 +11,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { CaptureProtection } from 'react-native-capture-protection';
+import { CaptureProtection, CaptureProtectionProvider } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -259,34 +259,36 @@ export default function App(): JSX.Element {
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
-          {isAppInitialized && fontsAreReady ? (
-            <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
-              <Portal.Host>
-                <LockScreen
-                  locked={screenLocked}
-                  lastScreenLock={lastScreenLock}
-                  onScreenUnlocked={handleUnlockScreen}
-                />
+          <CaptureProtectionProvider>
+            {isAppInitialized && fontsAreReady ? (
+              <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
+                <Portal.Host>
+                  <LockScreen
+                    locked={screenLocked}
+                    lastScreenLock={lastScreenLock}
+                    onScreenUnlocked={handleUnlockScreen}
+                  />
 
-                {initialScreenLocked && screenLocked ? null : <Navigation />}
-                <AppToast />
+                  {initialScreenLocked && screenLocked ? null : <Navigation />}
+                  <AppToast />
 
-                <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-                <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
-                <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
-                <ChangeProfilePictureModal
-                  isOpen={isChangeProfilePictureModalOpen}
-                  onClose={onChangeProfilePictureModalClosed}
-                />
-                <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-                <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-              </Portal.Host>
-            </DriveContextProvider>
-          ) : (
-            <View style={tailwind('items-center flex-1 justify-center')}>
-              {loadError ? <Text>{loadError}</Text> : null}
-            </View>
-          )}
+                  <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+                  <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+                  <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+                  <ChangeProfilePictureModal
+                    isOpen={isChangeProfilePictureModalOpen}
+                    onClose={onChangeProfilePictureModalClosed}
+                  />
+                  <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+                  <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+                </Portal.Host>
+              </DriveContextProvider>
+            ) : (
+              <View style={tailwind('items-center flex-1 justify-center')}>
+                {loadError ? <Text>{loadError}</Text> : null}
+              </View>
+            )}
+          </CaptureProtectionProvider>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
