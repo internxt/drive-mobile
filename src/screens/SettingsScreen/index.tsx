@@ -49,7 +49,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const scrollViewRef = useRef<ScrollView | null>(null);
 
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [screenProtectionEnabled, setScreenProtectionEnabled] = useState(protectionStatus?.screenshot ? false : true);
+  const [screenProtectionEnabled, setScreenProtectionEnabled] = useState(protectionStatus?.screenshot);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
