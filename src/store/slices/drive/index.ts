@@ -460,7 +460,6 @@ export const driveSlice = createSlice({
       state.folderContent = action.payload;
     },
     setFocusedItem(state, action: PayloadAction<DriveItemFocused | null>) {
-      console.log('Setting focused item:', action.payload);
       state.focusedItem = action.payload;
     },
     setFocusedShareItem(state, action: PayloadAction<FocusedShareItem | null>) {
