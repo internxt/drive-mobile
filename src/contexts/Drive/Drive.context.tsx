@@ -1,5 +1,5 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { DriveFileForTree, DriveFolderForTree, DriveListViewMode } from '@internxt-mobile/types/drive';
+import { DriveFileForTree, DriveFolderForTree, DriveItemData, DriveListViewMode } from '@internxt-mobile/types/drive';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -33,6 +33,8 @@ export interface DriveContextType {
   loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
   focusedFolder: DriveFoldersTreeNode | null;
   updateItemInTree: (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => void;
+  removeItemFromTree: (folderId: string, itemId: number) => void;
+  addItemToTree: (folderId: string, item: DriveItemData, isFolder: boolean) => void;
 }
 
 type LoadFolderContentOptions = {
@@ -340,6 +342,37 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     });
   };
 
+  const removeItemFromTree = (folderId: string, itemId: number) => {
+    setDriveFoldersTree((prevTree) => {
+      const folder = prevTree[folderId];
+      if (!folder) return prevTree;
+      return {
+        ...prevTree,
+        [folderId]: {
+          ...folder,
+          files: folder.files.filter((file) => file.id !== itemId),
+          folders: folder.folders.filter((folderItem) => folderItem.id !== itemId),
+        },
+      };
+    });
+  };
+
+  const addItemToTree = (folderId: string, item: DriveItemData, isFolder: boolean) => {
+    setDriveFoldersTree((prevTree) => {
+      const folder = prevTree[folderId];
+      if (!folder) return prevTree;
+
+      return {
+        ...prevTree,
+        [folderId]: {
+          ...folder,
+          files: !isFolder ? [...folder.files, item as DriveFileForTree] : folder.files,
+          folders: isFolder ? [...folder.folders, item as DriveFolderForTree] : folder.folders,
+        },
+      };
+    });
+  };
+
   const handleToggleViewMode = () => {
     const newViewMode = viewMode === DriveListViewMode.List ? DriveListViewMode.Grid : DriveListViewMode.List;
     setViewMode(newViewMode);
@@ -357,6 +390,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         focusedFolder: currentFolder,
         rootFolderId: rootFolderId ?? '',
         updateItemInTree,
+        removeItemFromTree,
+        addItemToTree,
       }}
     >
       {children}
