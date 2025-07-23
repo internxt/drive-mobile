@@ -70,7 +70,7 @@ class SecurityService {
   /**
    * Perform comprehensive security check
    */
-  public async performSecurityCheck(): Promise<SecurityCheckResult> {
+  public async performSecurityCheck(storeResult = true): Promise<SecurityCheckResult> {
     try {
       const details = await this.gatherSecurityDetails();
       const risks = this.analyzeSecurityRisks(details);
@@ -82,9 +82,10 @@ class SecurityService {
         details,
       };
 
-      await this.handleSecurityResult(result);
-      await asyncStorageService.saveLastSecurityCheck(new Date());
-
+      if (storeResult) {
+        await this.handleSecurityResult(result);
+        await asyncStorageService.saveLastSecurityCheck(new Date());
+      }
       return result;
     } catch (error) {
       logger.error('Security check failed:', error);
@@ -372,41 +373,16 @@ class SecurityService {
         return true;
       }
 
-      const currentResult = await this.performQuickSecurityCheck();
+      const currentResult = await this.performSecurityCheck(false);
       const currentHash = this.generateSecurityHash(currentResult);
       const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
 
       const securityStateChanged = dismissedHash && dismissedHash !== currentHash;
 
-      logger.info(
-        `Periodic check evaluation: timeInterval=${timeIntervalPassed}, securityChanged=${!!securityStateChanged}, currentHash=${currentHash}, dismissedHash=${dismissedHash}`,
-      );
-
       return !!securityStateChanged;
     } catch (error) {
       logger.error('Failed to check last security check from storage:', error);
       return true;
-    }
-  }
-
-  /**
-   * Perform a quick security check without saving to storage
-   * Used to compare current security state with previous dismissals
-   */
-  private async performQuickSecurityCheck(): Promise<SecurityCheckResult> {
-    try {
-      const details = await this.gatherSecurityDetails();
-      const risks = this.analyzeSecurityRisks(details);
-      const hasAnyRisk = this.determineSecurityStatus(risks);
-
-      return {
-        isSecure: !hasAnyRisk,
-        risks,
-        details,
-      };
-    } catch (error) {
-      logger.error('Quick security check failed:', error);
-      throw error;
     }
   }
 }
