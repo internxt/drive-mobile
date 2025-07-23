@@ -106,6 +106,7 @@ class AsyncStorageService {
         AsyncStorageKey.LastScreenLock,
         AsyncStorageKey.ThemePreference,
         AsyncStorageKey.LastSecurityCheck,
+        AsyncStorageKey.SecurityAlertDismissed,
       ];
 
       await AsyncStorage.multiRemove(nonSensitiveKeys);
@@ -135,7 +136,7 @@ class AsyncStorageService {
             logger.info(`No data found for ${key} in AsyncStorage`);
           }
         } catch (error) {
-          logger.error(`Error migra+ting ${key}:`, error);
+          logger.error(`Error migrating ${key}:`, error);
         }
       }
 

@@ -45,7 +45,13 @@ export const useSecurity = () => {
     }
   };
 
-  const showSecurityAlert = (securityResult: SecurityCheckResult) => {
+  const showSecurityAlert = async (securityResult: SecurityCheckResult) => {
+    const wasDismissed = await securityService.isSecurityAlertDismissed(securityResult);
+    if (wasDismissed) {
+      logger.info('Security alert was previously dismissed for this configuration');
+      return;
+    }
+
     const criticalRisks = securityResult.risks.filter((risk) => risk.severity === 'critical');
     const highRisks = securityResult.risks.filter((risk) => risk.severity === 'high');
 
@@ -56,10 +62,21 @@ export const useSecurity = () => {
         strings.security.alerts.criticalWarning.title,
         strings.formatString(strings.security.alerts.criticalWarning.message, riskMessages) as string,
         [
-          { text: strings.security.alerts.criticalWarning.continueAnyway, style: 'destructive' },
+          {
+            text: strings.security.alerts.criticalWarning.continueAnyway,
+            style: 'destructive',
+          },
           {
             text: strings.security.alerts.criticalWarning.moreInfo,
             onPress: () => showDetailedSecurityInfo(securityResult),
+          },
+          {
+            text: strings.security.alerts.dontDisplayAgain,
+            onPress: async () => {
+              await securityService.markSecurityAlertAsDismissed(securityResult);
+              logger.info('Critical security alert dismissed by user');
+            },
+            style: 'cancel',
           },
         ],
       );
@@ -70,10 +87,21 @@ export const useSecurity = () => {
         strings.security.alerts.highRiskNotice.title,
         strings.formatString(strings.security.alerts.highRiskNotice.message, riskMessages) as string,
         [
-          { text: strings.security.alerts.highRiskNotice.continue, style: 'default' },
+          {
+            text: strings.security.alerts.highRiskNotice.continue,
+            style: 'default',
+          },
           {
             text: strings.security.alerts.highRiskNotice.moreInfo,
             onPress: () => showDetailedSecurityInfo(securityResult),
+          },
+          {
+            text: strings.security.alerts.dontDisplayAgain,
+            onPress: async () => {
+              await securityService.markSecurityAlertAsDismissed(securityResult);
+              logger.info('Risk security alert dismissed by user');
+            },
+            style: 'cancel',
           },
         ],
       );
@@ -143,22 +171,16 @@ export const useSecurity = () => {
     ]);
   };
 
-  const performSecurityCheck = async () => {
-    try {
-      const result = await securityService.performSecurityCheck();
-
-      if (!result.isSecure) {
-        showSecurityAlert(result);
-      }
-    } catch (error) {
-      logger.error('Security check failed:', error);
-    }
-  };
-
   const performPeriodicSecurityCheck = async () => {
-    const shouldPerformCheck = await securityService.shouldPerformPeriodicCheck();
-    if (shouldPerformCheck) {
-      await performSecurityCheck();
+    try {
+      const result = await securityService.performPeriodicSecurityCheck();
+      if (result && !result.isSecure) {
+        await showSecurityAlert(result);
+      }
+      return result;
+    } catch (error) {
+      logger.error('Periodic security check failed:', error);
+      throw error;
     }
   };
 
@@ -179,7 +201,6 @@ export const useSecurity = () => {
   }, []);
 
   return {
-    performSecurityCheck,
     performPeriodicSecurityCheck,
   };
 };
