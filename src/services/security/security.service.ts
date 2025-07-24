@@ -97,7 +97,6 @@ class SecurityService {
    * Performs periodic security check if needed
    */
   public async performPeriodicSecurityCheck(): Promise<SecurityCheckResult | null> {
-    console.log('Performing periodic security check...');
     const shouldPerformCheck = await this.shouldPerformPeriodicCheck();
     if (shouldPerformCheck) {
       return await this.performSecurityCheck();
@@ -120,7 +119,7 @@ class SecurityService {
     try {
       const risksString = securityResult.risks
         .map((risk) => `${risk.type}-${risk.severity}`)
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .join('|');
       return btoa(risksString);
     } catch (error) {
