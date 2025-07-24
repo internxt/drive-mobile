@@ -1,10 +1,12 @@
 import JailMonkey from 'jail-monkey';
 import { Platform } from 'react-native';
 
+import { AsyncStorageKey } from '../../types';
 import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common';
 
 const DAY_IN_MINUTES = 1440; // 24 hours * 60 minutes
+
 export interface SecurityCheckResult {
   isSecure: boolean;
   risks: SecurityRisk[];
@@ -68,7 +70,7 @@ class SecurityService {
   /**
    * Perform comprehensive security check
    */
-  public async performSecurityCheck(): Promise<SecurityCheckResult> {
+  public async performSecurityCheck(storeResult = true): Promise<SecurityCheckResult> {
     try {
       const details = await this.gatherSecurityDetails();
       const risks = this.analyzeSecurityRisks(details);
@@ -80,14 +82,101 @@ class SecurityService {
         details,
       };
 
-      await this.handleSecurityResult(result);
-
-      await asyncStorageService.saveLastSecurityCheck(new Date());
-
+      if (storeResult) {
+        await this.handleSecurityResult(result);
+        await asyncStorageService.saveLastSecurityCheck(new Date());
+      }
       return result;
     } catch (error) {
       logger.error('Security check failed:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Performs periodic security check if needed
+   */
+  public async performPeriodicSecurityCheck(): Promise<SecurityCheckResult | null> {
+    const shouldPerformCheck = await this.shouldPerformPeriodicCheck();
+    if (shouldPerformCheck) {
+      return await this.performSecurityCheck();
+    }
+    return null;
+  }
+
+  /**
+   * Reset security alert preferences
+   */
+  public async resetSecurityAlertPreferences(): Promise<void> {
+    await asyncStorageService.deleteItem(AsyncStorageKey.SecurityAlertDismissed);
+    logger.info('Security alert preferences have been reset');
+  }
+
+  /**
+   * Generate hash for security result to track dismissed alerts
+   */
+  public generateSecurityHash(securityResult: SecurityCheckResult): string {
+    try {
+      const risksString = securityResult.risks
+        .map((risk) => `${risk.type}-${risk.severity}`)
+        .sort((a, b) => a.localeCompare(b))
+        .join('|');
+      return btoa(risksString);
+    } catch (error) {
+      logger.error('Error generating security hash:', error);
+      return Date.now().toString();
+    }
+  }
+
+  /**
+   * Check if security alert was dismissed for this configuration
+   */
+  public async isSecurityAlertDismissed(securityResult: SecurityCheckResult): Promise<boolean> {
+    try {
+      const currentHash = this.generateSecurityHash(securityResult);
+      const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
+
+      const wasDismissed = dismissedHash === currentHash;
+
+      return wasDismissed;
+    } catch (error) {
+      logger.error('Error checking dismissed security alert:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Mark security alert as dismissed for this configuration
+   */
+  public async markSecurityAlertAsDismissed(securityResult: SecurityCheckResult): Promise<void> {
+    try {
+      const currentHash = this.generateSecurityHash(securityResult);
+      await asyncStorageService.saveItem(AsyncStorageKey.SecurityAlertDismissed, currentHash);
+      logger.info(`Security alert marked as dismissed (hash: ${currentHash})`);
+    } catch (error) {
+      logger.error('Error saving dismissed security alert:', error);
+    }
+  }
+
+  /**
+   * Get security alert dismissal information
+   */
+  public async getSecurityAlertInfo(): Promise<{
+    hasDismissedHash: boolean;
+    dismissedHash: string | null;
+  }> {
+    try {
+      const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
+      return {
+        hasDismissedHash: !!dismissedHash,
+        dismissedHash,
+      };
+    } catch (error) {
+      logger.error('Error getting security alert info:', error);
+      return {
+        hasDismissedHash: false,
+        dismissedHash: null,
+      };
     }
   }
 
@@ -267,19 +356,38 @@ class SecurityService {
 
   /**
    * Check if periodic security check is needed
+   * Returns true if:
+   * - No previous check exists
+   * - Security configuration has changed (different hash from dismissed)
+   * - Time interval has passed AND no alert was previously dismissed
    */
   public async shouldPerformPeriodicCheck(): Promise<boolean> {
     try {
-      const lastCheck = await asyncStorageService.getLastSecurityCheck();
+      const existsLastCheck = await asyncStorageService.getLastSecurityCheck();
 
-      if (!lastCheck) {
+      if (!existsLastCheck) {
         return true;
       }
 
-      const timeSinceLastCheck = Date.now() - lastCheck.getTime();
-      const intervalMs = this.config.checkMinutesInterval * 60 * 1000;
+      const currentResult = await this.performSecurityCheck(false);
+      const currentHash = this.generateSecurityHash(currentResult);
+      const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
 
-      return timeSinceLastCheck >= intervalMs;
+      const hasDismissedAndChanged = dismissedHash && dismissedHash !== currentHash;
+      if (hasDismissedAndChanged) {
+        logger.info(`Security state changed: currentHash=${currentHash}, dismissedHash=${dismissedHash}`);
+        return true;
+      }
+
+      if (dismissedHash === currentHash) {
+        logger.info(`Alert dismissed for current configuration (hash: ${currentHash}), skipping periodic check`);
+        return false;
+      }
+
+      const timeSinceLastCheck = Date.now() - existsLastCheck.getTime();
+      const intervalMs = this.config.checkMinutesInterval * 60 * 1000;
+      const isTimeIntervalPassed = timeSinceLastCheck >= intervalMs;
+      return isTimeIntervalPassed;
     } catch (error) {
       logger.error('Failed to check last security check from storage:', error);
       return true;

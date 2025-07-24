@@ -730,6 +730,7 @@ const strings = new LocalizedStrings({
     },
     security: {
       alerts: {
+        dontDisplayAgain: 'Don’t show this again',
         criticalWarning: {
           title: '⚠️ Security Warning',
           message:
@@ -1508,6 +1509,7 @@ const strings = new LocalizedStrings({
     },
     security: {
       alerts: {
+        dontDisplayAgain: 'No mostrar de nuevo',
         criticalWarning: {
           title: '⚠️ Advertencia de Seguridad',
           message:
