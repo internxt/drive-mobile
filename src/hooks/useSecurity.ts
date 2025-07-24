@@ -52,54 +52,30 @@ export const useSecurity = () => {
       return;
     }
 
-    const criticalRisks = securityResult.risks.filter((risk) => risk.severity === 'critical');
-    const highRisks = securityResult.risks.filter((risk) => risk.severity === 'high');
+    const allRisks = securityResult.risks;
 
-    if (criticalRisks.length > 0) {
-      const riskMessages = criticalRisks.map((risk) => `• ${getRiskMessage(risk.type)}`).join('\n');
+    if (allRisks.length > 0) {
+      const riskMessages = allRisks.map((risk) => `• ${getRiskMessage(risk.type)}`).join('\n');
+
+      const hasCriticalRisks = allRisks.some((risk) => risk.severity === 'critical');
 
       Alert.alert(
-        strings.security.alerts.criticalWarning.title,
-        strings.formatString(strings.security.alerts.criticalWarning.message, riskMessages) as string,
+        strings.security.alerts.securityWarning.title,
+        strings.formatString(strings.security.alerts.securityWarning.message, riskMessages) as string,
         [
           {
-            text: strings.security.alerts.criticalWarning.continueAnyway,
-            style: 'destructive',
+            text: strings.security.alerts.securityWarning.continue,
+            style: hasCriticalRisks ? 'destructive' : 'default',
           },
           {
-            text: strings.security.alerts.criticalWarning.moreInfo,
+            text: strings.security.alerts.securityWarning.moreInfo,
             onPress: () => showDetailedSecurityInfo(securityResult),
           },
           {
             text: strings.security.alerts.dontDisplayAgain,
             onPress: async () => {
               await securityService.markSecurityAlertAsDismissed(securityResult);
-              logger.info('Critical security alert dismissed by user');
-            },
-            style: 'cancel',
-          },
-        ],
-      );
-    } else if (highRisks.length > 0) {
-      const riskMessages = highRisks.map((risk) => `• ${getRiskMessage(risk.type)}`).join('\n');
-
-      Alert.alert(
-        strings.security.alerts.highRiskNotice.title,
-        strings.formatString(strings.security.alerts.highRiskNotice.message, riskMessages) as string,
-        [
-          {
-            text: strings.security.alerts.highRiskNotice.continue,
-            style: 'default',
-          },
-          {
-            text: strings.security.alerts.highRiskNotice.moreInfo,
-            onPress: () => showDetailedSecurityInfo(securityResult),
-          },
-          {
-            text: strings.security.alerts.dontDisplayAgain,
-            onPress: async () => {
-              await securityService.markSecurityAlertAsDismissed(securityResult);
-              logger.info('Risk security alert dismissed by user');
+              logger.info('Security alert dismissed by user');
             },
             style: 'cancel',
           },

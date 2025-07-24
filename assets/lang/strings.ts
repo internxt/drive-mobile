@@ -731,14 +731,7 @@ const strings = new LocalizedStrings({
     security: {
       alerts: {
         dontDisplayAgain: 'Don’t show this again',
-        criticalWarning: {
-          title: '⚠️ Security Warning',
-          message:
-            'Critical security risks detected:\n\n{0}\n\nUsing this app on a compromised device may put your data at risk. Continue at your own discretion.',
-          continueAnyway: 'Continue Anyway',
-          moreInfo: 'More Info',
-        },
-        highRiskNotice: {
+        securityWarning: {
           title: '⚠️ Security Notice',
           message: 'Security concerns detected:\n\n{0}\n\nFor better security, consider addressing these issues.',
           continue: 'Continue',
@@ -1510,14 +1503,7 @@ const strings = new LocalizedStrings({
     security: {
       alerts: {
         dontDisplayAgain: 'No mostrar de nuevo',
-        criticalWarning: {
-          title: '⚠️ Advertencia de Seguridad',
-          message:
-            'Riesgos críticos de seguridad detectados:\n\n{0}\n\nUsar esta aplicación en un dispositivo comprometido puede poner en riesgo tus datos. Continúa bajo tu propia responsabilidad.',
-          continueAnyway: 'Continuar de Todas Formas',
-          moreInfo: 'Más Información',
-        },
-        highRiskNotice: {
+        securityWarning: {
           title: '⚠️ Aviso de Seguridad',
           message:
             'Problemas de seguridad detectados:\n\n{0}\n\nPara mayor seguridad, considera solucionar estos problemas.',
