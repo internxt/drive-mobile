@@ -46,12 +46,6 @@ export const useSecurity = () => {
   };
 
   const showSecurityAlert = async (securityResult: SecurityCheckResult) => {
-    const wasDismissed = await securityService.isSecurityAlertDismissed(securityResult);
-    if (wasDismissed) {
-      logger.info('Security alert was previously dismissed for this configuration');
-      return;
-    }
-
     const allRisks = securityResult.risks;
 
     if (allRisks.length > 0) {
@@ -74,7 +68,7 @@ export const useSecurity = () => {
           {
             text: strings.security.alerts.dontDisplayAgain,
             onPress: async () => {
-              await securityService.markSecurityAlertAsDismissed(securityResult);
+              await securityService.markSecurityAlertAsDismissed();
               logger.info('Security alert dismissed by user');
             },
             style: 'cancel',

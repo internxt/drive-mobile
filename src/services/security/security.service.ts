@@ -68,24 +68,39 @@ class SecurityService {
   }
 
   /**
-   * Perform comprehensive security check
+   * Perform security check for periodic checks
    */
-  public async performSecurityCheck(storeResult = true): Promise<SecurityCheckResult> {
+  public async performPeriodicSecurityCheck(): Promise<SecurityCheckResult | null> {
+    const securityCheckResult = await this.performSecurityCheckWithoutSaving();
+
+    const shouldShowAlert = await this.shouldShowAlert(securityCheckResult);
+
+    if (shouldShowAlert) {
+      await asyncStorageService.saveLastSecurityCheck(new Date());
+      const currentHash = this.generateSecurityHash(securityCheckResult);
+      await asyncStorageService.saveItem(AsyncStorageKey.LastSecurityHash, currentHash);
+
+      return securityCheckResult;
+    }
+
+    return null;
+  }
+
+  /**
+   * Perform security check without saving anything to storage
+   */
+  private async performSecurityCheckWithoutSaving(): Promise<SecurityCheckResult> {
     try {
       const details = await this.gatherSecurityDetails();
       const risks = this.analyzeSecurityRisks(details);
-      const hasAnyRisk = this.determineSecurityStatus(risks);
 
       const result: SecurityCheckResult = {
-        isSecure: !hasAnyRisk,
+        isSecure: risks.length === 0,
         risks,
         details,
       };
 
-      if (storeResult) {
-        await this.handleSecurityResult(result);
-        await asyncStorageService.saveLastSecurityCheck(new Date());
-      }
+      await this.handleSecurityResult(result);
       return result;
     } catch (error) {
       logger.error('Security check failed:', error);
@@ -94,22 +109,39 @@ class SecurityService {
   }
 
   /**
-   * Performs periodic security check if needed
+   * Decide if security alert should be shown
    */
-  public async performPeriodicSecurityCheck(): Promise<SecurityCheckResult | null> {
-    const shouldPerformCheck = await this.shouldPerformPeriodicCheck();
-    if (shouldPerformCheck) {
-      return await this.performSecurityCheck();
-    }
-    return null;
-  }
+  private async shouldShowAlert(securityResult: SecurityCheckResult): Promise<boolean> {
+    try {
+      const existsLastCheck = await asyncStorageService.getLastSecurityCheck();
 
-  /**
-   * Reset security alert preferences
-   */
-  public async resetSecurityAlertPreferences(): Promise<void> {
-    await asyncStorageService.deleteItem(AsyncStorageKey.SecurityAlertDismissed);
-    logger.info('Security alert preferences have been reset');
+      if (!existsLastCheck) {
+        logger.info('First security check, showing alert');
+        return true;
+      }
+
+      const currentHash = this.generateSecurityHash(securityResult);
+      const lastHash = await asyncStorageService.getItem(AsyncStorageKey.LastSecurityHash);
+
+      if (lastHash !== currentHash) {
+        logger.info(`Security configuration changed (${lastHash} → ${currentHash}), showing alert`);
+        return true;
+      }
+
+      const timeSinceLastCheck = Date.now() - existsLastCheck.getTime();
+      const intervalMs = this.config.checkMinutesInterval * 60 * 1000;
+      const isTimeIntervalPassed = timeSinceLastCheck >= intervalMs;
+
+      if (isTimeIntervalPassed) {
+        const wasDismissed = await this.isSecurityAlertDismissed();
+        return !wasDismissed;
+      }
+
+      return false;
+    } catch (error) {
+      logger.error('Failed to determine if alert should be shown:', error);
+      return true;
+    }
   }
 
   /**
@@ -131,14 +163,9 @@ class SecurityService {
   /**
    * Check if security alert was dismissed for this configuration
    */
-  public async isSecurityAlertDismissed(securityResult: SecurityCheckResult): Promise<boolean> {
+  public async isSecurityAlertDismissed(): Promise<boolean> {
     try {
-      const currentHash = this.generateSecurityHash(securityResult);
-      const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
-
-      const wasDismissed = dismissedHash === currentHash;
-
-      return wasDismissed;
+      return !!(await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed));
     } catch (error) {
       logger.error('Error checking dismissed security alert:', error);
       return false;
@@ -148,35 +175,11 @@ class SecurityService {
   /**
    * Mark security alert as dismissed for this configuration
    */
-  public async markSecurityAlertAsDismissed(securityResult: SecurityCheckResult): Promise<void> {
+  public async markSecurityAlertAsDismissed(): Promise<void> {
     try {
-      const currentHash = this.generateSecurityHash(securityResult);
-      await asyncStorageService.saveItem(AsyncStorageKey.SecurityAlertDismissed, currentHash);
-      logger.info(`Security alert marked as dismissed (hash: ${currentHash})`);
+      await asyncStorageService.saveItem(AsyncStorageKey.SecurityAlertDismissed, 'true');
     } catch (error) {
       logger.error('Error saving dismissed security alert:', error);
-    }
-  }
-
-  /**
-   * Get security alert dismissal information
-   */
-  public async getSecurityAlertInfo(): Promise<{
-    hasDismissedHash: boolean;
-    dismissedHash: string | null;
-  }> {
-    try {
-      const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
-      return {
-        hasDismissedHash: !!dismissedHash,
-        dismissedHash,
-      };
-    } catch (error) {
-      logger.error('Error getting security alert info:', error);
-      return {
-        hasDismissedHash: false,
-        dismissedHash: null,
-      };
     }
   }
 
@@ -330,18 +333,6 @@ class SecurityService {
   }
 
   /**
-   * Returns if exist any security risk
-   */
-  private determineSecurityStatus(risks: SecurityRisk[]): boolean {
-    const criticalRisks = risks.filter((risk) => risk.severity === 'critical');
-    const highRisks = risks.filter((risk) => risk.severity === 'high');
-    const mediumRisks = risks.filter((risk) => risk.severity === 'medium');
-    const lowRisks = risks.filter((risk) => risk.severity === 'low');
-
-    return criticalRisks.length > 0 || highRisks.length > 0 || mediumRisks.length > 0 || lowRisks.length > 0;
-  }
-
-  /**
    * Handle security check results
    */
   private async handleSecurityResult(result: SecurityCheckResult): Promise<void> {
@@ -351,46 +342,6 @@ class SecurityService {
       } else {
         logger.warn('Security check failed:', result.risks);
       }
-    }
-  }
-
-  /**
-   * Check if periodic security check is needed
-   * Returns true if:
-   * - No previous check exists
-   * - Security configuration has changed (different hash from dismissed)
-   * - Time interval has passed AND no alert was previously dismissed
-   */
-  public async shouldPerformPeriodicCheck(): Promise<boolean> {
-    try {
-      const existsLastCheck = await asyncStorageService.getLastSecurityCheck();
-
-      if (!existsLastCheck) {
-        return true;
-      }
-
-      const currentResult = await this.performSecurityCheck(false);
-      const currentHash = this.generateSecurityHash(currentResult);
-      const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
-
-      const hasDismissedAndChanged = dismissedHash && dismissedHash !== currentHash;
-      if (hasDismissedAndChanged) {
-        logger.info(`Security state changed: currentHash=${currentHash}, dismissedHash=${dismissedHash}`);
-        return true;
-      }
-
-      if (dismissedHash === currentHash) {
-        logger.info(`Alert dismissed for current configuration (hash: ${currentHash}), skipping periodic check`);
-        return false;
-      }
-
-      const timeSinceLastCheck = Date.now() - existsLastCheck.getTime();
-      const intervalMs = this.config.checkMinutesInterval * 60 * 1000;
-      const isTimeIntervalPassed = timeSinceLastCheck >= intervalMs;
-      return isTimeIntervalPassed;
-    } catch (error) {
-      logger.error('Failed to check last security check from storage:', error);
-      return true;
     }
   }
 }
