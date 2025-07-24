@@ -97,6 +97,7 @@ class SecurityService {
    * Performs periodic security check if needed
    */
   public async performPeriodicSecurityCheck(): Promise<SecurityCheckResult | null> {
+    console.log('Performing periodic security check...');
     const shouldPerformCheck = await this.shouldPerformPeriodicCheck();
     if (shouldPerformCheck) {
       return await this.performSecurityCheck();
@@ -355,21 +356,17 @@ class SecurityService {
   }
 
   /**
-   * Check if security check is needed
+   * Check if periodic security check is needed
+   * Returns true if:
+   * - No previous check exists
+   * - Security configuration has changed (different hash from dismissed)
+   * - Time interval has passed AND no alert was previously dismissed
    */
   public async shouldPerformPeriodicCheck(): Promise<boolean> {
     try {
-      const lastCheck = await asyncStorageService.getLastSecurityCheck();
+      const existsLastCheck = await asyncStorageService.getLastSecurityCheck();
 
-      if (!lastCheck) {
-        return true;
-      }
-
-      const timeSinceLastCheck = Date.now() - lastCheck.getTime();
-      const intervalMs = this.config.checkMinutesInterval * 60 * 1000;
-      const timeIntervalPassed = timeSinceLastCheck >= intervalMs;
-
-      if (timeIntervalPassed) {
+      if (!existsLastCheck) {
         return true;
       }
 
@@ -377,9 +374,21 @@ class SecurityService {
       const currentHash = this.generateSecurityHash(currentResult);
       const dismissedHash = await asyncStorageService.getItem(AsyncStorageKey.SecurityAlertDismissed);
 
-      const securityStateChanged = dismissedHash && dismissedHash !== currentHash;
+      const hasDismissedAndChanged = dismissedHash && dismissedHash !== currentHash;
+      if (hasDismissedAndChanged) {
+        logger.info(`Security state changed: currentHash=${currentHash}, dismissedHash=${dismissedHash}`);
+        return true;
+      }
 
-      return !!securityStateChanged;
+      if (dismissedHash === currentHash) {
+        logger.info(`Alert dismissed for current configuration (hash: ${currentHash}), skipping periodic check`);
+        return false;
+      }
+
+      const timeSinceLastCheck = Date.now() - existsLastCheck.getTime();
+      const intervalMs = this.config.checkMinutesInterval * 60 * 1000;
+      const isTimeIntervalPassed = timeSinceLastCheck >= intervalMs;
+      return isTimeIntervalPassed;
     } catch (error) {
       logger.error('Failed to check last security check from storage:', error);
       return true;
