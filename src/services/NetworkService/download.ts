@@ -10,7 +10,7 @@ import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 import { eachLimit } from 'async';
 
 import { decryptFile as nativeDecryptFile } from '@internxt/rn-crypto';
-import { FileId } from '@internxt/sdk/dist/photos';
+
 import { Platform } from 'react-native';
 import { NetworkCredentials } from '../../types';
 import fileSystemService from '../FileSystemService';
@@ -63,7 +63,7 @@ interface Shard {
 
 function getFileInfo(
   bucketId: string,
-  fileId: FileId,
+  fileId: string,
   networkApiUrl: string,
   options?: AxiosRequestConfig,
 ): Promise<FileInfo | undefined> {
@@ -77,7 +77,7 @@ function getFileInfo(
 
 function getFileMirrors(
   bucketId: string,
-  fileId: FileId,
+  fileId: string,
   networkApiUrl: string,
   options?: AxiosRequestConfig,
 ): Promise<Shard[]> {
@@ -152,7 +152,7 @@ async function decryptFile(
 
 export async function downloadFile(
   bucketId: string,
-  fileId: FileId,
+  fileId: string,
   credentials: NetworkCredentials,
   networkApiUrl: string,
   options: {
