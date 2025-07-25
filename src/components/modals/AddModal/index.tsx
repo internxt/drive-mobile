@@ -496,36 +496,35 @@ function AddModal(): JSX.Element {
         }
       }
     } else {
-      // Android
-      const result = await launchImageLibraryAsync({
-        mediaTypes: MediaTypeOptions.All,
-        allowsMultipleSelection: true,
-        selectionLimit: MAX_FILES_BULK_UPLOAD,
-        quality: 1,
-        allowsEditing: false,
-      });
+      DocumentPicker.pickMultiple({
+        type: [DocumentPicker.types.images],
+        copyTo: 'cachesDirectory',
+      })
+        .then(processFilesFromPicker)
+        .then(async () => {
+          dispatch(driveThunks.loadUsageThunk());
 
-      if (!result.canceled && result.assets) {
-        const documents: DocumentPickerResponse[] = result.assets.map((asset) => ({
-          fileCopyUri: asset.uri,
-          name: asset.fileName ?? `media_${Date.now()}.jpg`,
-          size: asset.fileSize ?? 0,
-          type: asset.type ?? 'image/jpeg',
-          uri: asset.uri,
-        }));
-
-        dispatch(uiActions.setShowUploadFileModal(false));
-        await processFilesFromPicker(documents);
-
-        dispatch(driveThunks.loadUsageThunk());
-        if (focusedFolder) {
-          await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-          driveCtx.loadFolderContent(focusedFolder.uuid, {
-            pullFrom: ['network'],
-            resetPagination: true,
+          if (focusedFolder) {
+            await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(1000);
+            driveCtx.loadFolderContent(focusedFolder.uuid, {
+              pullFrom: ['network'],
+              resetPagination: true,
+            });
+          }
+        })
+        .catch((err) => {
+          if (err.message === 'User canceled document picker') {
+            return;
+          }
+          logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+          notificationsService.show({
+            type: NotificationType.Error,
+            text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
           });
-        }
-      }
+        })
+        .finally(() => {
+          dispatch(uiActions.setShowUploadFileModal(false));
+        });
     }
   }
 
