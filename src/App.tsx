@@ -112,8 +112,6 @@ export default function App(): JSX.Element {
       dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.checkAndRefreshTokenThunk());
       dispatch(paymentsThunks.checkShouldDisplayBilling());
-
-      performPeriodicSecurityCheck();
     }
 
     if (state === 'inactive') {
@@ -122,6 +120,12 @@ export default function App(): JSX.Element {
 
     if (Platform.OS === 'android' && state === 'background') {
       dispatch(appThunks.lockScreenIfNeededThunk());
+    }
+  };
+
+  const handleGlobalAppStateChange = (state: AppStateStatus) => {
+    if (state === 'active') {
+      performPeriodicSecurityCheck();
     }
   };
 
@@ -254,6 +258,14 @@ export default function App(): JSX.Element {
 
     configureNavigationBar();
   }, [getColor, currentTheme]);
+
+  useEffect(() => {
+    const globalListener = appService.onAppStateChange(handleGlobalAppStateChange);
+
+    return () => {
+      globalListener?.remove();
+    };
+  }, [performPeriodicSecurityCheck]);
 
   return (
     <SafeAreaProvider>
