@@ -1,12 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Alert, Platform } from 'react-native';
 import strings from '../../assets/lang/strings';
 import { logger } from '../services/common';
 import { SecurityCheckResult, SecurityRiskType, securityService } from '../services/security/security.service';
 
 export const useSecurity = () => {
-  const hasInitialized = useRef(false);
-
   const getRiskMessage = (riskType: SecurityRiskType): string => {
     switch (riskType) {
       case SecurityRiskType.ROOTED_DEVICE:
@@ -156,12 +154,8 @@ export const useSecurity = () => {
 
   useEffect(() => {
     const initializeSecurity = async () => {
-      if (hasInitialized.current) return;
-
       try {
         await performPeriodicSecurityCheck();
-
-        hasInitialized.current = true;
       } catch (error) {
         logger.error('Security initialization failed:', error);
       }
