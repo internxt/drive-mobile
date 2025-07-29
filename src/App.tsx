@@ -1,3 +1,5 @@
+import Portal from '@burstware/react-native-portal';
+import * as Linking from 'expo-linking';
 import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect, useState } from 'react';
 import {
@@ -9,11 +11,9 @@ import {
   Text,
   View,
 } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-
-import Portal from '@burstware/react-native-portal';
-import * as Linking from 'expo-linking';
+import { CaptureProtection, CaptureProtectionProvider } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import AppToast from './components/AppToast';
 import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
@@ -25,6 +25,7 @@ import PlansModal from './components/modals/PlansModal';
 import { DriveContextProvider } from './contexts/Drive';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import useGetColor from './hooks/useColor';
+import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
 import analyticsService from './services/AnalyticsService';
@@ -52,6 +53,7 @@ export default function App(): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const { performPeriodicSecurityCheck } = useSecurity();
 
   useEffect(() => {
     const initializeTheme = async () => {
@@ -81,6 +83,8 @@ export default function App(): JSX.Element {
   }, []);
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
+  const [loadError, setLoadError] = useState('');
+
   const {
     isLinkCopiedModalOpen,
     isDeleteAccountModalOpen,
@@ -90,7 +94,6 @@ export default function App(): JSX.Element {
     isPlansModalOpen,
   } = useAppSelector((state) => state.ui);
 
-  const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
     await dispatch(appThunks.initializeUserPreferencesThunk());
     await dispatch(authThunks.silentSignInThunk());
@@ -120,6 +123,12 @@ export default function App(): JSX.Element {
     }
   };
 
+  const handleGlobalAppStateChange = (state: AppStateStatus) => {
+    if (state === 'active') {
+      performPeriodicSecurityCheck();
+    }
+  };
+
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
     // Refresh the auth tokens if the app comes to the foreground
@@ -145,9 +154,16 @@ export default function App(): JSX.Element {
     dispatch(appActions.setScreenLocked(false));
   };
 
+  const handleStorageMigration = async () => {
+    const { needsMigration } = await asyncStorageService.checkNeedsMigration();
+    if (needsMigration) {
+      await asyncStorageService.migrateToSecureStorage();
+    }
+  };
+
   useEffect(() => {
     const subscription = Linking.addEventListener('url', onDeeplinkChange);
-
+    handleStorageMigration();
     return () => {
       subscription.remove();
     };
@@ -190,6 +206,26 @@ export default function App(): JSX.Element {
     }
   };
 
+  useEffect(() => {
+    CaptureProtection.prevent();
+
+    const initializeTheme = async () => {
+      const savedTheme = await asyncStorageService.getThemePreference();
+      if (savedTheme) {
+        Appearance.setColorScheme(savedTheme);
+      }
+    };
+
+    initializeTheme();
+
+    return () => {
+      if (!screenLockEnabled) {
+        dispatch(appActions.setInitialScreenLocked(false));
+        dispatch(appActions.setScreenLocked(false));
+      }
+    };
+  }, []);
+
   // Initialize app
   useEffect(() => {
     authService.addLoginListener(onUserLoggedIn);
@@ -223,38 +259,48 @@ export default function App(): JSX.Element {
     configureNavigationBar();
   }, [getColor, currentTheme]);
 
+  useEffect(() => {
+    const globalListener = appService.onAppStateChange(handleGlobalAppStateChange);
+
+    return () => {
+      globalListener?.remove();
+    };
+  }, [performPeriodicSecurityCheck]);
+
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
-          {isAppInitialized && fontsAreReady ? (
-            <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
-              <Portal.Host>
-                <LockScreen
-                  locked={screenLocked}
-                  lastScreenLock={lastScreenLock}
-                  onScreenUnlocked={handleUnlockScreen}
-                />
+          <CaptureProtectionProvider>
+            {isAppInitialized && fontsAreReady ? (
+              <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
+                <Portal.Host>
+                  <LockScreen
+                    locked={screenLocked}
+                    lastScreenLock={lastScreenLock}
+                    onScreenUnlocked={handleUnlockScreen}
+                  />
 
-                {initialScreenLocked && screenLocked ? null : <Navigation />}
-                <AppToast />
+                  {initialScreenLocked && screenLocked ? null : <Navigation />}
+                  <AppToast />
 
-                <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-                <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
-                <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
-                <ChangeProfilePictureModal
-                  isOpen={isChangeProfilePictureModalOpen}
-                  onClose={onChangeProfilePictureModalClosed}
-                />
-                <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-                <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-              </Portal.Host>
-            </DriveContextProvider>
-          ) : (
-            <View style={tailwind('items-center flex-1 justify-center')}>
-              {loadError ? <Text>{loadError}</Text> : null}
-            </View>
-          )}
+                  <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+                  <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+                  <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+                  <ChangeProfilePictureModal
+                    isOpen={isChangeProfilePictureModalOpen}
+                    onClose={onChangeProfilePictureModalClosed}
+                  />
+                  <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+                  <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+                </Portal.Host>
+              </DriveContextProvider>
+            ) : (
+              <View style={tailwind('items-center flex-1 justify-center')}>
+                {loadError ? <Text>{loadError}</Text> : null}
+              </View>
+            )}
+          </CaptureProtectionProvider>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </SafeAreaProvider>

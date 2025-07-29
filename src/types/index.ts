@@ -96,6 +96,9 @@ export enum AsyncStorageKey {
   LastScreenLock = 'lastScreenLock',
   LastUpdatedAt = 'lastUpdatedAt',
   ThemePreference = 'themePreference',
+  LastSecurityCheck = 'lastSecurityCheck',
+  SecurityAlertDismissed = 'securityAlertDismissed',
+  LastSecurityHash = 'lastSecurityHash',
 }
 
 export type ProgressCallback = (progress: number) => void;
