@@ -1766,7 +1766,7 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.11.00":
+"@internxt/sdk@1.11.0":
   version "1.11.0"
   resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.11.0/eb547ca5a15d4e56a4e23db065482b3533e11b33#eb547ca5a15d4e56a4e23db065482b3533e11b33"
   integrity sha512-65v2zzpACKlBXBoQURVrfevyELNBB1NypNiOqhlR4havwnCLrLgX9ZMSoUKvBtq2O0Orfdfqy8AA2AJrq+xW3Q==
