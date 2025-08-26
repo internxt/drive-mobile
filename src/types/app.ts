@@ -23,6 +23,7 @@ export interface AppEnv {
   ANALYTICS_WRITE_KEY: string;
   NOTIFICATIONS_URL: string;
   NODE_ENV: string;
+  CLOUDFLARE_TOKEN: string;
 }
 
 export enum BiometricAccessType {
