@@ -1,7 +1,7 @@
-import asyncStorage from '../services/AsyncStorageService';
-import PackageJson from '../../package.json';
-import { AsyncStorageKey } from '../types';
 import appService from '@internxt-mobile/services/AppService';
+import PackageJson from '../../package.json';
+import asyncStorage from '../services/AsyncStorageService';
+import { AsyncStorageKey } from '../types';
 
 export async function getHeaders(authToken?: string): Promise<Headers> {
   let storedAuthToken;
@@ -16,6 +16,7 @@ export async function getHeaders(authToken?: string): Promise<Headers> {
 
   headers.append('Content-Type', 'application/json');
   headers.append('internxt-version', appService.version);
+  headers.append('x-internxt-desktop-header', appService.constants.CLOUDFLARE_TOKEN);
   headers.append('internxt-client', PackageJson.name);
 
   if (storedAuthToken) {

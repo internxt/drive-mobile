@@ -20,6 +20,8 @@ import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
 import { RootStackScreenProps } from '../../types/navigation';
 
+const MAX_ERROR_MESSAGE_LENGTH = 200;
+
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -116,6 +118,8 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       try {
         const castedError = errorService.castError(err);
         errorMessage = castedError.message;
+
+        if (errorMessage.length > MAX_ERROR_MESSAGE_LENGTH) errorMessage = strings.errors.genericError;
       } catch (castingError) {
         errorMessage = strings.errors.genericError;
       }

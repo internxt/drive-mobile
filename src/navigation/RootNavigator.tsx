@@ -8,7 +8,6 @@ import { uiActions } from 'src/store/slices/ui';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import analyticsService from '../services/AnalyticsService';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { driveActions } from '../store/slices/drive';
 import { RootStackParamList } from '../types/navigation';
@@ -33,7 +32,6 @@ function AppNavigator(): JSX.Element {
     if (isLoggedIn) {
       const comesFromCheckout = !!sessionId && event.url.includes('checkout');
       if (comesFromCheckout) {
-        await analyticsService.trackPayment(sessionId as string);
         await AsyncStorage.removeItem('tmpCheckoutSessionId');
         /**
          * We will update the UI in 5s since we don't have
