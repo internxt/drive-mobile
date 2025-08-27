@@ -1,14 +1,7 @@
-import {
-  CreateCheckoutSessionPayload,
-  DisplayPrice,
-  Invoice,
-  PaymentMethod,
-  UserSubscription,
-} from '@internxt/sdk/dist/drive/payments/types/types';
+import { DisplayPrice, Invoice, PaymentMethod, UserSubscription } from '@internxt/sdk/dist/drive/payments/types/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
-import { constants } from 'src/services/AppService';
 import authService from 'src/services/AuthService';
 import notificationsService from 'src/services/NotificationsService';
 import paymentService from 'src/services/PaymentService';
@@ -103,23 +96,6 @@ const checkShouldDisplayBilling = createAsyncThunk<boolean, void, { state: RootS
   },
 );
 
-const createSessionThunk = createAsyncThunk<void, string, { state: RootState }>(
-  'payments/createSession',
-  async (priceId, { getState }) => {
-    const { user } = getState().auth;
-    const redirectUrl = `${constants.WEB_CLIENT_URL}/redirect-to-app?path=checkout`;
-    const payload: CreateCheckoutSessionPayload = {
-      price_id: priceId,
-      customer_email: user?.email as string,
-      success_url: redirectUrl,
-      cancel_url: redirectUrl,
-    };
-    const response = await paymentService.createCheckoutSession(payload);
-
-    paymentService.redirectToCheckout(response.sessionId);
-  },
-);
-
 const cancelSubscriptionThunk = createAsyncThunk<void, void, { state: RootState }>(
   'payments/cancelSubscription',
   async () => {
@@ -193,7 +169,6 @@ export const paymentsThunks = {
   loadPricesThunk,
   loadUserSubscriptionThunk,
   loadInvoicesThunk,
-  createSessionThunk,
   cancelSubscriptionThunk,
   checkShouldDisplayBilling,
 };

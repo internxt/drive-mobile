@@ -212,7 +212,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     <>
       <AppScreen
         safeAreaTop
-        safeAreaBottom
         safeAreaColor={getColor('bg-surface')}
         backgroundColor={getColor('bg-gray-5')}
         style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}
@@ -227,13 +226,8 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
             </View>
           }
         />
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={{
-            paddingBottom: 80,
-          }}
-        >
-          <View style={[tailwind('px-4 pt-8 pb-10 mb-10 flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <ScrollView ref={scrollViewRef}>
+          <View style={[tailwind('px-4 pt-8  flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
             {/* ACCOUNT */}
             <SettingsGroup
               style={tailwind('mb-2')}

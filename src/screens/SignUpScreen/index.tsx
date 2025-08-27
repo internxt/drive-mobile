@@ -28,8 +28,9 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
     <AppScreen safeAreaBottom safeAreaTop style={{ backgroundColor: getColor('bg-surface') }}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        style={[tailwind('px-6'), { backgroundColor: getColor('bg-surface') }]}
-        contentContainerStyle={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}
+        style={[tailwind('px-6 flex-1'), { backgroundColor: getColor('bg-surface') }]}
+        contentContainerStyle={[tailwind('flex-grow'), { backgroundColor: getColor('bg-surface') }]}
+        showsVerticalScrollIndicator={false}
       >
         <View style={tailwind('h-12')} />
 
