@@ -10,9 +10,8 @@ import fileSystemService from 'src/services/FileSystemService';
 
 import paymentService from 'src/services/PaymentService';
 import storageService from 'src/services/StorageService';
-import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { useAppSelector } from 'src/store/hooks';
 import { paymentsSelectors } from 'src/store/slices/payments';
-import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 
@@ -20,13 +19,15 @@ import AppScreen from '../../components/AppScreen';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
+import { openUrl } from '../../helpers/utils';
 import useGetColor from '../../hooks/useColor';
+import { PRICING_URL } from '../../services/drive/constants';
 import { SettingsScreenProps } from '../../types/navigation';
 
 function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const dispatch = useAppDispatch();
+
   const [isCancelSubscriptionModalOpen, setIsCancelSubscriptionModalOpen] = useState(false);
   const { limit } = useAppSelector((state) => state.storage);
   const { subscription, defaultPaymentMethod, invoices } = useAppSelector((state) => state.payments);
@@ -40,7 +41,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
     navigation.goBack();
   };
   const onChangePlanPressed = () => {
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
 
   const onCancelSubscriptionModalClosed = () => {

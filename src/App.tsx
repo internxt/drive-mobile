@@ -21,7 +21,7 @@ import DeleteAccountModal from './components/modals/DeleteAccountModal';
 import EditNameModal from './components/modals/EditNameModal';
 import LanguageModal from './components/modals/LanguageModal';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
-import PlansModal from './components/modals/PlansModal';
+
 import { DriveContextProvider } from './contexts/Drive';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import useGetColor from './hooks/useColor';
@@ -292,7 +292,6 @@ export default function App(): JSX.Element {
                     onClose={onChangeProfilePictureModalClosed}
                   />
                   <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-                  <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
                 </Portal.Host>
               </DriveContextProvider>
             ) : (
