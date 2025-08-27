@@ -163,7 +163,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
     >
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[tailwind('h-full px-6'), { backgroundColor: getColor('bg-surface') }]}
+        contentContainerStyle={[tailwind('flex-grow px-6'), { backgroundColor: getColor('bg-surface') }]}
       >
         <View style={tailwind('h-12')} />
 

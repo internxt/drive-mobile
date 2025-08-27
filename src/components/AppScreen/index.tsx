@@ -40,11 +40,14 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
 
   return (
     <View
-      style={{
-        paddingBottom: props.hasBottomTabs ? 0 : 0,
-        backgroundColor,
-        ...propsStyle,
-      }}
+      style={[
+        tailwind('flex-1'),
+        {
+          paddingBottom: props.hasBottomTabs ? 0 : 0,
+          backgroundColor,
+        },
+        propsStyle,
+      ]}
     >
       <View
         style={{
@@ -62,7 +65,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
 
       {/* DISMISS KEYBOARD ON OUTSIDE TAP */}
       <TouchableWithoutFeedback onPress={onBackgroundPressed}>
-        <View style={tailwind('absolute h-full w-full')}></View>
+        <View style={tailwind('absolute h-full w-full')} />
       </TouchableWithoutFeedback>
 
       {props.children}

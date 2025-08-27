@@ -91,7 +91,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
+      <ScrollView>
         <View style={[tailwind('pt-8 pb-10 px-4 min-h-full'), { backgroundColor: getColor('bg-gray-5') }]}>
           {/* PLAN */}
           <SettingsGroup
