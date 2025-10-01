@@ -80,7 +80,7 @@ describe('getDisplayName', () => {
   });
 
   describe('Files with extension already in name', () => {
-    it('should not duplicate the extension if already present', () => {
+    it('should always append the type extension even if present in name', () => {
       const file: DriveItemDataProps = {
         id: 1,
         name: 'report.pdf',
@@ -91,10 +91,10 @@ describe('getDisplayName', () => {
         createdAt: '2025-01-01',
       } as unknown as DriveItemDataProps;
 
-      expect(getDisplayName(file)).toBe('report.pdf');
+      expect(getDisplayName(file)).toBe('report.pdf.pdf');
     });
 
-    it('should handle case-insensitive extension matching', () => {
+    it('should append extension regardless of case matching', () => {
       const file: DriveItemDataProps = {
         id: 1,
         name: 'Image.JPG',
@@ -105,10 +105,10 @@ describe('getDisplayName', () => {
         createdAt: '2025-01-01',
       } as unknown as DriveItemDataProps;
 
-      expect(getDisplayName(file)).toBe('Image.JPG');
+      expect(getDisplayName(file)).toBe('Image.JPG.jpg');
     });
 
-    it('should handle files with multiple dots in name', () => {
+    it('should always append type to files with multiple dots in name', () => {
       const file: DriveItemDataProps = {
         id: 1,
         name: 'backup.2024.01.15.tar',
@@ -119,10 +119,10 @@ describe('getDisplayName', () => {
         createdAt: '2025-01-01',
       } as unknown as DriveItemDataProps;
 
-      expect(getDisplayName(file)).toBe('backup.2024.01.15.tar');
+      expect(getDisplayName(file)).toBe('backup.2024.01.15.tar.tar');
     });
 
-    it('should not append extension if name ends with it in mixed case', () => {
+    it('should append type even when name ends with same extension', () => {
       const file: DriveItemDataProps = {
         id: 1,
         name: 'document.PDF',
@@ -133,7 +133,7 @@ describe('getDisplayName', () => {
         createdAt: '2025-01-01',
       } as unknown as DriveItemDataProps;
 
-      expect(getDisplayName(file)).toBe('document.PDF');
+      expect(getDisplayName(file)).toBe('document.PDF.pdf');
     });
   });
 
