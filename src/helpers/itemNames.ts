@@ -25,7 +25,7 @@ import { DriveItemDataProps } from '../types/drive';
  * getDisplayName({ name: 'unknown', isFolder: false }) // 'unknown'
  */
 export const getDisplayName = (item: DriveItemDataProps): string => {
-  if (item.isFolder || !item.type) return item.name;
+  if (item.isFolder || !item.type?.trim()) return item.name;
 
   return `${item.name}.${item.type}`;
 };

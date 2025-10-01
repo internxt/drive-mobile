@@ -209,6 +209,20 @@ describe('getDisplayName', () => {
       expect(getDisplayName(file)).toBe('document. pdf ');
     });
 
+    it('should handle type with only whitespace', () => {
+      const file: DriveItemDataProps = {
+        id: 1,
+        name: 'document',
+        type: '   ',
+        isFolder: false,
+        fileId: 'file-1',
+        updatedAt: '2025-01-01',
+        createdAt: '2025-01-01',
+      } as unknown as DriveItemDataProps;
+
+      expect(getDisplayName(file)).toBe('document');
+    });
+
     it('should handle files with dots but different extension', () => {
       const file: DriveItemDataProps = {
         id: 1,
