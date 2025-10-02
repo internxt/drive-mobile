@@ -91,11 +91,13 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     return <></>;
   }
   const filename = `${focusedItem.name || ''}${focusedItem.type ? `.${focusedItem.type}` : ''}`;
-  const currentProgress = downloadingFile.downloadProgress * 0.95 + downloadingFile.decryptProgress * 0.05;
+  const currentProgress =
+    (downloadingFile.downloadProgress ?? 0) * 0.95 + (downloadingFile.decryptProgress ?? 0) * 0.05;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
-  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
-  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
-  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+  const fileType = downloadingFile.data.type?.toLowerCase();
+  const hasImagePreview = fileType ? IMAGE_PREVIEW_TYPES.includes(fileType as FileExtension) : false;
+  const hasVideoPreview = fileType ? VIDEO_PREVIEW_TYPES.includes(fileType as FileExtension) : false;
+  const hasPdfPreview = fileType ? PDF_PREVIEW_TYPES.includes(fileType as FileExtension) : false;
 
   const getProgressMessage = () => {
     if (!downloadingFile) {
@@ -161,7 +163,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
                 style={tailwind('mt-5')}
                 title={strings.buttons.tryAgain}
                 type={'white'}
-                onPress={() => downloadingFile.retry && downloadingFile.retry()}
+                onPress={() => downloadingFile?.retry?.()}
               ></AppButton>
             )}
           </View>
@@ -246,10 +248,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         <DrivePreviewScreenHeader
           title={filename}
           subtitle={time.getFormattedDate(downloadingFile.data.updatedAt, time.formats.dateAtTimeLong)}
-          onCloseButtonPress={() => {
-            dispatch(driveThunks.cancelDownloadThunk());
-            props.navigation.goBack();
+          onCloseButtonPress={async () => {
+            await dispatch(driveThunks.cancelDownloadThunk());
             dispatch(driveActions.clearDownloadingFile());
+            props.navigation.goBack();
           }}
           onActionsButtonPress={handleActionsButtonPress}
         />
