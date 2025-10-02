@@ -27,9 +27,9 @@ import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePr
 import { DriveVideoPreview } from './DriveVideoPreview';
 import AnimatedLoadingDots from './LoadingDots';
 
-const IMAGE_PREVIEW_TYPES = [FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC];
-const VIDEO_PREVIEW_TYPES = [FileExtension.MP4, FileExtension.MOV, FileExtension.AVI];
-const PDF_PREVIEW_TYPES = [FileExtension.PDF];
+const IMAGE_PREVIEW_TYPES = new Set([FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC]);
+const VIDEO_PREVIEW_TYPES = new Set([FileExtension.MP4, FileExtension.MOV, FileExtension.AVI]);
+const PDF_PREVIEW_TYPES = new Set([FileExtension.PDF]);
 
 export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> = (props) => {
   const tailwind = useTailwind();
@@ -51,7 +51,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   useEffect(() => {
     if (
       downloadingFile?.downloadedFilePath &&
-      VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension) &&
+      VIDEO_PREVIEW_TYPES.has(downloadingFile.data.type as FileExtension) &&
       !generatedThumbnail
     ) {
       imageService
@@ -95,9 +95,9 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     (downloadingFile.downloadProgress ?? 0) * 0.95 + (downloadingFile.decryptProgress ?? 0) * 0.05;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
   const fileType = downloadingFile.data.type?.toLowerCase();
-  const hasImagePreview = fileType ? IMAGE_PREVIEW_TYPES.includes(fileType as FileExtension) : false;
-  const hasVideoPreview = fileType ? VIDEO_PREVIEW_TYPES.includes(fileType as FileExtension) : false;
-  const hasPdfPreview = fileType ? PDF_PREVIEW_TYPES.includes(fileType as FileExtension) : false;
+  const hasImagePreview = fileType ? IMAGE_PREVIEW_TYPES.has(fileType as FileExtension) : false;
+  const hasVideoPreview = fileType ? VIDEO_PREVIEW_TYPES.has(fileType as FileExtension) : false;
+  const hasPdfPreview = fileType ? PDF_PREVIEW_TYPES.has(fileType as FileExtension) : false;
 
   const getProgressMessage = () => {
     if (!downloadingFile) {
@@ -143,7 +143,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
           {!isDownloaded && !error ? (
             <AnimatedLoadingDots
               previousDotsText={getProgressMessage()}
-              progress={parseInt((currentProgress * 100).toFixed(0))}
+              progress={Number.parseInt((currentProgress * 100).toFixed(0))}
             />
           ) : null}
         </View>
