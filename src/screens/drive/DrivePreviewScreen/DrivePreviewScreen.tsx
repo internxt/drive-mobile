@@ -5,6 +5,7 @@ import { fs } from '@internxt-mobile/services/FileSystemService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { FileExtension } from '@internxt-mobile/types/drive';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
+import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import strings from 'assets/lang/strings';
 import { WarningCircle } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -16,6 +17,7 @@ import AppScreen from 'src/components/AppScreen';
 import AppText from 'src/components/AppText';
 import { DEFAULT_EASING } from 'src/components/modals/SharedLinkSettingsModal/animations';
 import { getFileTypeIcon } from 'src/helpers';
+import { useDrive } from 'src/hooks/drive';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
@@ -25,6 +27,7 @@ import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
 import { DriveVideoPreview } from './DriveVideoPreview';
+import { useThumbnailRegeneration } from './hooks/useThumbnailRegeneration';
 import AnimatedLoadingDots from './LoadingDots';
 
 const IMAGE_PREVIEW_TYPES = [FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC];
@@ -40,6 +43,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   // REDUX USAGE STARTS
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+  const driveCtx = useDrive();
   // REDUX USAGE ENDS
   const { downloadingFile } = useAppSelector((state) => state.drive);
   // Use this in order to listen for state changes
@@ -62,6 +66,32 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         .catch((err) => errorService.reportError(err));
     }
   }, [downloadingFile?.downloadedFilePath]);
+
+  const updateItemWithNewThumbnail = (thumbnail: Thumbnail) => {
+    if (!focusedItem?.folderUuid) return;
+
+    driveCtx.updateItemInTree(focusedItem.folderUuid, focusedItem.id, {
+      thumbnails: [thumbnail],
+    });
+    dispatch(
+      driveActions.setFocusedItem({
+        ...focusedItem,
+        thumbnails: [thumbnail],
+      }),
+    );
+  };
+
+  useThumbnailRegeneration(
+    {
+      downloadedFilePath: downloadingFile?.downloadedFilePath,
+      fileExtension: focusedItem?.type,
+      fileUuid: focusedItem?.uuid,
+      hasThumbnails: !!(focusedItem?.thumbnails && focusedItem.thumbnails.length > 0),
+    },
+    {
+      onSuccess: updateItemWithNewThumbnail,
+    },
+  );
 
   useEffect(() => {
     Animated.timing(topbarYPosition, {
