@@ -59,7 +59,6 @@ export const useScreenProtection = () => {
       setIsEnabled(true);
       await CaptureProtection.prevent();
       await asyncStorageService.saveScreenProtectionEnabled(true);
-      throw error;
     }
   };
 
