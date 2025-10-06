@@ -26,6 +26,9 @@ describe('useScreenProtection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
 
   describe('initialization', () => {
     it('should initialize with protection enabled when saved preference is true', async () => {
@@ -117,32 +120,10 @@ describe('useScreenProtection', () => {
       expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledWith(false);
     });
 
-    it('should revert to enabled and throw error on failure', async () => {
+    it('should revert to enabled on failure', async () => {
       const error = new Error('CaptureProtection error');
       (asyncStorageService.getScreenProtectionEnabled as jest.Mock).mockResolvedValue(false);
       (CaptureProtection.allow as jest.Mock).mockRejectedValue(error);
-
-      const { result } = renderHook(() => useScreenProtection());
-
-      await waitFor(() => {
-        expect(result.current.isInitialized).toBe(true);
-      });
-
-      await expect(
-        act(async () => {
-          await result.current.setScreenProtection(false);
-        }),
-      ).rejects.toThrow(error);
-
-      expect(result.current.isEnabled).toBe(true);
-      expect(CaptureProtection.prevent).toHaveBeenCalled();
-      expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledWith(true);
-      expect(logger.error).toHaveBeenCalledWith('Error setting screen protection:', error);
-    });
-
-    it('should save preference after successfully changing protection state', async () => {
-      (asyncStorageService.getScreenProtectionEnabled as jest.Mock).mockResolvedValue(true);
-      (asyncStorageService.saveScreenProtectionEnabled as jest.Mock).mockResolvedValue(undefined);
 
       const { result } = renderHook(() => useScreenProtection());
 
@@ -154,13 +135,37 @@ describe('useScreenProtection', () => {
         await result.current.setScreenProtection(false);
       });
 
-      expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledWith(false);
+      expect(result.current.isEnabled).toBe(true);
+      expect(CaptureProtection.prevent).toHaveBeenCalled();
+      expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledWith(true);
+      expect(logger.error).toHaveBeenCalledWith('Error setting screen protection:', error);
+    });
+
+    it('should save preference after successfully changing protection state', async () => {
+      (asyncStorageService.getScreenProtectionEnabled as jest.Mock).mockResolvedValue(false);
+      (asyncStorageService.saveScreenProtectionEnabled as jest.Mock).mockResolvedValue(undefined);
+      (CaptureProtection.prevent as jest.Mock).mockResolvedValue(undefined);
+      (CaptureProtection.allow as jest.Mock).mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => useScreenProtection());
+
+      await waitFor(() => {
+        expect(result.current.isInitialized).toBe(true);
+      });
 
       await act(async () => {
         await result.current.setScreenProtection(true);
       });
 
       expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledWith(true);
+      expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledTimes(1);
+
+      await act(async () => {
+        await result.current.setScreenProtection(false);
+      });
+
+      expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledWith(false);
+      expect(asyncStorageService.saveScreenProtectionEnabled).toHaveBeenCalledTimes(2);
     });
   });
 
