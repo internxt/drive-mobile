@@ -214,9 +214,9 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
                 <TouchableWithoutFeedback onPress={() => setShowPasswordText(!showPasswordText)}>
                   <View>
                     {showPasswordText ? (
-                      <EyeSlash color={getColor('text-gray-80')} size={24} />
-                    ) : (
                       <Eye color={getColor('text-gray-80')} size={24} />
+                    ) : (
+                      <EyeSlash color={getColor('text-gray-80')} size={24} />
                     )}
                   </View>
                 </TouchableWithoutFeedback>
