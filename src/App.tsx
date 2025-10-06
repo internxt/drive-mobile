@@ -11,7 +11,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { CaptureProtection, CaptureProtectionProvider } from 'react-native-capture-protection';
+import { CaptureProtectionProvider } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -25,6 +25,7 @@ import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import { DriveContextProvider } from './contexts/Drive';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import useGetColor from './hooks/useColor';
+import { useScreenProtection } from './hooks/useScreenProtection';
 import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
@@ -54,6 +55,8 @@ export default function App(): JSX.Element {
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
   const { performPeriodicSecurityCheck } = useSecurity();
+
+  useScreenProtection();
 
   useEffect(() => {
     const initializeTheme = async () => {
@@ -207,8 +210,6 @@ export default function App(): JSX.Element {
   };
 
   useEffect(() => {
-    CaptureProtection.prevent();
-
     const initializeTheme = async () => {
       const savedTheme = await asyncStorageService.getThemePreference();
       if (savedTheme) {
