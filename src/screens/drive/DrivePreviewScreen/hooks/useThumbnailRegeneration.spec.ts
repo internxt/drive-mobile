@@ -1,3 +1,19 @@
+jest.mock('@internxt-mobile/services/drive/file', () => ({
+  driveFileService: {
+    regenerateThumbnail: jest.fn(),
+  },
+}));
+
+jest.mock('@internxt-mobile/services/common', () => ({
+  logger: {
+    info: jest.fn(),
+  },
+}));
+
+jest.mock('@internxt-mobile/services/ErrorService', () => ({
+  reportError: jest.fn(),
+}));
+
 import { canGenerateThumbnail, shouldRegenerateThumbnail } from './useThumbnailRegeneration';
 
 describe('useThumbnailRegeneration', () => {
