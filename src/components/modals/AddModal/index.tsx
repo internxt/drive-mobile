@@ -184,7 +184,6 @@ function AddModal(): JSX.Element {
         notifyProgress: progressCallback,
       },
     );
-
     logger.info('File uploaded with fileId: ', fileId);
     logger.info('File uploaded with name: ', fileName);
 
@@ -192,14 +191,15 @@ function AddModal(): JSX.Element {
     const plainName = fileName;
 
     const fileEntryByUuid: FileEntryByUuid = {
-      id: fileId,
+      fileId: fileId,
       type: fileExtension,
       size: fileSize,
-      name: plainName,
-      plain_name: plainName,
+      plainName: plainName,
       bucket,
-      folder_id: folderId,
-      encrypt_version: EncryptionVersion.Aes03,
+      folderUuid: folderId,
+      encryptVersion: EncryptionVersion.Aes03,
+      modificationTime: fileStat.mtime ? new Date(fileStat.mtime).toISOString() : undefined,
+      creationTime: fileStat.ctime ? new Date(fileStat.ctime).toISOString() : undefined,
     };
 
     let uploadedThumbnail: Thumbnail | null = null;
@@ -456,9 +456,11 @@ function AddModal(): JSX.Element {
                 logger.error('Error obtaining original asset info:', error);
                 const cleanUri = asset.uri;
                 const formatInfo = detectImageFormat(asset);
+                const fallbackName = asset.fileName ?? `media_${Date.now()}.${formatInfo.extension ?? 'jpg'}`;
+
                 documents.push({
                   fileCopyUri: cleanUri,
-                  name: asset.fileName ?? `media_${Date.now()}.${formatInfo.extension ?? 'jpg'}`,
+                  name: fallbackName,
                   size: asset.fileSize ?? 0,
                   type: asset.type ?? '',
                   uri: cleanUri,
