@@ -6,7 +6,7 @@ jest.mock('../..', () => ({
   },
 }));
 
-import { isTemporaryAndroidFileName, parseExifDate } from './exifHelpers';
+import { isTemporaryFileName, parseExifDate } from './exifHelpers';
 
 describe('parseExifDate', () => {
   test('should parse valid EXIF date format', () => {
@@ -36,40 +36,40 @@ describe('parseExifDate', () => {
   });
 });
 
-describe('isTemporaryAndroidFileName', () => {
+describe('isTemporaryFileName', () => {
   test('should return true for numeric filenames', () => {
-    expect(isTemporaryAndroidFileName('12345.jpg')).toBe(true);
-    expect(isTemporaryAndroidFileName('987654321.png')).toBe(true);
-    expect(isTemporaryAndroidFileName('1234.mp4')).toBe(true);
+    expect(isTemporaryFileName('12345.jpg')).toBe(true);
+    expect(isTemporaryFileName('987654321.png')).toBe(true);
+    expect(isTemporaryFileName('1234.mp4')).toBe(true);
   });
 
   test('should return true for undefined or null', () => {
-    expect(isTemporaryAndroidFileName(undefined)).toBe(true);
-    expect(isTemporaryAndroidFileName(null)).toBe(true);
+    expect(isTemporaryFileName(undefined)).toBe(true);
+    expect(isTemporaryFileName(null)).toBe(true);
   });
 
   test('should return true for empty string', () => {
-    expect(isTemporaryAndroidFileName('')).toBe(true);
+    expect(isTemporaryFileName('')).toBe(true);
   });
 
   test('should return false for descriptive filenames', () => {
-    expect(isTemporaryAndroidFileName('IMG_20240512_143045.jpg')).toBe(false);
-    expect(isTemporaryAndroidFileName('photo_2024.png')).toBe(false);
-    expect(isTemporaryAndroidFileName('vacation.mp4')).toBe(false);
+    expect(isTemporaryFileName('IMG_20240512_143045.jpg')).toBe(false);
+    expect(isTemporaryFileName('photo_2024.png')).toBe(false);
+    expect(isTemporaryFileName('vacation.mp4')).toBe(false);
   });
 
   test('should return false for filenames with letters', () => {
-    expect(isTemporaryAndroidFileName('abc123.jpg')).toBe(false);
-    expect(isTemporaryAndroidFileName('12abc.png')).toBe(false);
+    expect(isTemporaryFileName('abc123.jpg')).toBe(false);
+    expect(isTemporaryFileName('12abc.png')).toBe(false);
   });
 
   test('should handle different file extensions', () => {
-    expect(isTemporaryAndroidFileName('12345.heic')).toBe(true);
-    expect(isTemporaryAndroidFileName('67890.mov')).toBe(true);
-    expect(isTemporaryAndroidFileName('11111.webp')).toBe(true);
+    expect(isTemporaryFileName('12345.heic')).toBe(true);
+    expect(isTemporaryFileName('67890.mov')).toBe(true);
+    expect(isTemporaryFileName('11111.webp')).toBe(true);
   });
 
   test('should return false for filenames without extension', () => {
-    expect(isTemporaryAndroidFileName('12345')).toBe(false);
+    expect(isTemporaryFileName('12345')).toBe(false);
   });
 });

@@ -19,17 +19,17 @@ export function parseExifDate(exifDate: string | undefined): string | undefined 
 }
 
 /**
- * Checks if filename is a temporary Android numeric name
+ * Checks if filename is a temporary numeric name
  * @param fileName - Original filename
- * @returns true if it's a temporary Android name
+ * @returns true if it's a temporary name
  */
-export function isTemporaryAndroidFileName(fileName: string | undefined | null): boolean {
+export function isTemporaryFileName(fileName: string | undefined | null): boolean {
   if (!fileName) return true;
   return /^\d+\.\w+$/i.test(fileName);
 }
 
 /**
- * Generates a descriptive filename for Android media files
+ * Generates a descriptive filename for media files
  * @param uri - File URI to extract extension
  * @param creationTime - ISO string of creation time
  * @param modificationTime - ISO string of modification time
@@ -37,7 +37,7 @@ export function isTemporaryAndroidFileName(fileName: string | undefined | null):
  * @note Invalid dates fallback to current timestamp. Errors during formatting
  *       fallback to timestamp-based names (IMG_<timestamp>.<ext>)
  */
-export function generateAndroidFileName(uri: string, creationTime?: string, modificationTime?: string): string {
+export function generateFileName(uri: string, creationTime?: string, modificationTime?: string): string {
   let timestamp: Date;
 
   try {

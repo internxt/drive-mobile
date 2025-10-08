@@ -17,8 +17,8 @@ import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 import drive from '@internxt-mobile/services/drive';
 import {
-  generateAndroidFileName,
-  isTemporaryAndroidFileName,
+  generateFileName,
+  isTemporaryFileName,
   parseExifDate,
 } from '@internxt-mobile/services/drive/file/utils/exifHelpers';
 import errorService from '@internxt-mobile/services/ErrorService';
@@ -538,8 +538,8 @@ function AddModal(): JSX.Element {
 
               const creationTime = parseExifDate(exif?.DateTimeOriginal);
               const modificationTime = parseExifDate(exif?.DateTime);
-              if (isTemporaryAndroidFileName(originalFileName)) {
-                originalFileName = generateAndroidFileName(cleanUri, creationTime, modificationTime);
+              if (isTemporaryFileName(originalFileName)) {
+                originalFileName = generateFileName(cleanUri, creationTime, modificationTime);
               }
 
               let fileSize = asset.fileSize ?? 0;
