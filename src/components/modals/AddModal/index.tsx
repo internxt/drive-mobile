@@ -16,6 +16,11 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 import drive from '@internxt-mobile/services/drive';
+import {
+  generateAndroidFileName,
+  isTemporaryAndroidFileName,
+  parseExifDate,
+} from '@internxt-mobile/services/drive/file/utils/exifHelpers';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { SaveFormat } from 'expo-image-manipulator';
@@ -446,7 +451,6 @@ function AddModal(): JSX.Element {
               try {
                 const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.assetId || asset.uri);
                 const cleanUri = assetInfo.mediaType === 'video' ? asset.uri : assetInfo.localUri || asset.uri;
-                // asset info has the correct format (heic issue)
                 const originalFileName = assetInfo.filename || asset.fileName;
 
                 let fileSize = asset.fileSize;
@@ -534,7 +538,15 @@ function AddModal(): JSX.Element {
           for (const asset of result.assets) {
             try {
               const cleanUri = asset.uri;
-              const originalFileName = asset.fileName || `media_${Date.now()}.jpg`;
+              let originalFileName = asset.fileName;
+              const exif = asset.exif || null;
+
+              const creationTime = parseExifDate(exif?.DateTimeOriginal);
+              const modificationTime = parseExifDate(exif?.DateTime);
+              if (isTemporaryAndroidFileName(originalFileName)) {
+                originalFileName = generateAndroidFileName(cleanUri, creationTime, modificationTime);
+              }
+
               let fileSize = asset.fileSize ?? 0;
               if (!fileSize) {
                 try {
@@ -545,31 +557,6 @@ function AddModal(): JSX.Element {
                   fileSize = 0;
                 }
               }
-              const exif = asset.exif || null;
-
-              // Extract this logic to function before PR
-              // Parse EXIF DateTimeOriginal (creation time) - formato: "YYYY:MM:DD HH:mm:ss"
-              let parsedCreationTime;
-              if (exif?.DateTimeOriginal) {
-                const fixedDate = exif.DateTimeOriginal.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
-                parsedCreationTime = new Date(fixedDate);
-              }
-
-              // Parse EXIF DateTime (modification time) - formato: "YYYY:MM:DD HH:mm:ss"
-              let parsedModificationTime;
-              if (exif?.DateTime) {
-                const fixedDate = exif.DateTime.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
-                parsedModificationTime = new Date(fixedDate);
-              }
-
-              console.log(
-                '[ANDROID-METADATA-DEBUG] Creation time (DateTimeOriginal):',
-                parsedCreationTime?.toISOString(),
-              );
-              console.log(
-                '[ANDROID-METADATA-DEBUG] Modification time (DateTime):',
-                parsedModificationTime?.toISOString(),
-              );
 
               documents.push({
                 fileCopyUri: cleanUri,
@@ -577,8 +564,8 @@ function AddModal(): JSX.Element {
                 size: fileSize,
                 type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
                 uri: cleanUri,
-                creationTime: parsedCreationTime ? parsedCreationTime.toISOString() : undefined,
-                modificationTime: parsedModificationTime ? parsedModificationTime.toISOString() : undefined,
+                creationTime,
+                modificationTime,
               });
             } catch (error) {
               logger.error('Error obtaining original asset info:', error);
