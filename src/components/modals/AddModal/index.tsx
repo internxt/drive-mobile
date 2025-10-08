@@ -469,8 +469,7 @@ function AddModal(): JSX.Element {
               } catch (error) {
                 logger.error('Error obtaining original asset info:', error);
                 const cleanUri = asset.uri;
-                const formatInfo = detectImageFormat(asset);
-                const fallbackName = asset.fileName ?? `media_${Date.now()}.${formatInfo.extension ?? 'jpg'}`;
+                const fallbackName = generateFileName(cleanUri);
 
                 documents.push({
                   fileCopyUri: cleanUri,
@@ -565,8 +564,7 @@ function AddModal(): JSX.Element {
             } catch (error) {
               logger.error('Error obtaining original asset info:', error);
               const cleanUri = asset.uri;
-              const formatInfo = detectImageFormat(asset);
-              const fallbackName = asset.fileName ?? `media_${Date.now()}.${formatInfo.extension ?? 'jpg'}`;
+              const fallbackName = generateFileName(cleanUri);
 
               documents.push({
                 fileCopyUri: cleanUri,
