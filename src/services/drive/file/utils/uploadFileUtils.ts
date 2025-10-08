@@ -4,7 +4,7 @@ import uuid from 'react-native-uuid';
 import strings from '../../../../../assets/lang/strings';
 import { isValidFilename } from '../../../../helpers';
 import { driveActions } from '../../../../store/slices/drive';
-import { UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../../types/drive';
+import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../../types/drive';
 import { checkDuplicatedFiles, File } from './checkDuplicatedFiles';
 import { FileToUpload, prepareFilesToUpload } from './prepareFilesToUpload';
 
@@ -13,7 +13,6 @@ import errorService from '../../../ErrorService';
 import { Dispatch } from 'react';
 import { DriveFoldersTreeNode } from '../../../../contexts/Drive';
 import { NotificationType } from '../../../../types';
-import { DocumentPickerFile } from '../../../../types/drive';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import notificationsService from '../../../NotificationsService';
