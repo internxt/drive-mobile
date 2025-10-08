@@ -4,7 +4,7 @@ import uuid from 'react-native-uuid';
 import strings from '../../../../../assets/lang/strings';
 import { isValidFilename } from '../../../../helpers';
 import { driveActions } from '../../../../store/slices/drive';
-import { UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../../types/drive';
+import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../../types/drive';
 import { checkDuplicatedFiles, File } from './checkDuplicatedFiles';
 import { FileToUpload, prepareFilesToUpload } from './prepareFilesToUpload';
 
@@ -20,12 +20,12 @@ import notificationsService from '../../../NotificationsService';
 /**
  * Validate file names and filter out files exceeding the upload size limit.
  *
- * @param {DocumentPickerResponse[]} documents - Array of selected documents.
- * @returns {{ filesToUpload: DocumentPickerResponse[], filesExcluded: DocumentPickerResponse[] }}
+ * @param {DocumentPickerFile[]} documents - Array of selected documents.
+ * @returns {{ filesToUpload: DocumentPickerFile[], filesExcluded: DocumentPickerFile[] }}
  */
-export function validateAndFilterFiles(documents: DocumentPickerResponse[]) {
-  const filesToUpload: DocumentPickerResponse[] = [];
-  const filesExcluded: DocumentPickerResponse[] = [];
+export function validateAndFilterFiles(documents: DocumentPickerFile[]) {
+  const filesToUpload: DocumentPickerFile[] = [];
+  const filesExcluded: DocumentPickerFile[] = [];
 
   if (!documents.every((file) => isValidFilename(file.name))) {
     throw new Error('Some file names are not valid');
@@ -45,9 +45,9 @@ export function validateAndFilterFiles(documents: DocumentPickerResponse[]) {
 /**
  * Show an alert when some files exceed the upload size limit.
  *
- * @param {DocumentPickerResponse[]} filesExcluded - Files that were excluded due to size.
+ * @param {DocumentPickerFile[]} filesExcluded - Files that were excluded due to size.
  */
-export function showFileSizeAlert(filesExcluded: DocumentPickerResponse[]) {
+export function showFileSizeAlert(filesExcluded: DocumentPickerFile[]) {
   if (filesExcluded.length === 0) return;
 
   const messageKey = filesExcluded.length === 1 ? strings.messages.uploadFileLimit : strings.messages.uploadFilesLimit;
@@ -58,30 +58,28 @@ export function showFileSizeAlert(filesExcluded: DocumentPickerResponse[]) {
 /**
  * Handle duplicate files by checking for existing files in the target folder and optionally prompting the user.
  *
- * @param {DocumentPickerResponse[]} files - Files to check for duplication.
+ * @param {DocumentPickerFile[]} files - Files to check for duplication.
  * @param {string} folderUuid - UUID of the destination folder.
- * @returns {Promise<DocumentPickerResponse[]>} - Files to proceed with after handling duplicates.
+ * @returns {Promise<DocumentPickerFile[]>} - Files to proceed with after handling duplicates.
  */
 export async function handleDuplicateFiles(
-  files: DocumentPickerResponse[],
+  files: DocumentPickerFile[],
   folderUuid: string,
-): Promise<DocumentPickerResponse[]> {
+): Promise<DocumentPickerFile[]> {
   const mappedFiles = files.map((file) => ({
-    name: file.name,
-    uri: file.uri,
-    size: file.size,
+    ...file,
     type: file.type ?? '',
   }));
 
   const { filesWithoutDuplicates, filesWithDuplicates } = await checkDuplicatedFiles(mappedFiles, folderUuid);
 
-  let filesToProcess = [...filesWithoutDuplicates] as DocumentPickerResponse[];
+  let filesToProcess = [...filesWithoutDuplicates] as DocumentPickerFile[];
 
   if (filesWithDuplicates.length > 0) {
     const shouldUploadDuplicates = await askUserAboutDuplicates(filesWithDuplicates);
 
     if (shouldUploadDuplicates) {
-      filesToProcess = [...filesToProcess, ...(filesWithDuplicates as DocumentPickerResponse[])];
+      filesToProcess = [...filesToProcess, ...(filesWithDuplicates as DocumentPickerFile[])];
     }
   }
 
@@ -163,6 +161,8 @@ export function createUploadingFiles(
       size: preparedFile.size,
       progress: 0,
       uploaded: false,
+      modificationTime: preparedFile.modificationTime,
+      creationTime: preparedFile.creationTime,
     };
 
     formattedFiles.push(fileToUpload);

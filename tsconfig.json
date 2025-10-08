@@ -9,7 +9,8 @@
       "@internxt-mobile/hooks/*": ["src/hooks/*"],
       "@internxt-mobile/services/*": ["src/services/*"],
       "@internxt-mobile/types/*": ["src/types/*"],
-      "@internxt-mobile/useCases/*": ["src/useCases/*"]
+      "@internxt-mobile/useCases/*": ["src/useCases/*"],
+      "@internxt-mobile/contexts/*": ["src/contexts/*"]
     }
   },
   "include": ["app.config.ts", "src", "__tests__", "../modile-sdk"]

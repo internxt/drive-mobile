@@ -1,5 +1,5 @@
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
-import { DocumentPickerResponse } from 'react-native-document-picker';
+import { DocumentPickerFile } from '../../../../types/drive';
 import { checkDuplicatedFiles } from './checkDuplicatedFiles';
 import { processDuplicateFiles } from './processDuplicateFiles';
 
@@ -9,6 +9,8 @@ export interface FileToUpload {
   size: number;
   type: string;
   parentUuid: string;
+  modificationTime?: string;
+  creationTime?: string;
 }
 
 const BATCH_SIZE = 200;
@@ -19,7 +21,7 @@ export const prepareFilesToUpload = async ({
   disableDuplicatedNamesCheck = false,
   disableExistenceCheck = false,
 }: {
-  files: DocumentPickerResponse[];
+  files: DocumentPickerFile[];
   parentFolderUuid: string;
   disableDuplicatedNamesCheck?: boolean;
   disableExistenceCheck?: boolean;
@@ -28,7 +30,7 @@ export const prepareFilesToUpload = async ({
   let zeroLengthFilesNumber = 0;
 
   const processFiles = async (
-    filesBatch: DocumentPickerResponse[],
+    filesBatch: DocumentPickerFile[],
     disableDuplicatedNamesCheckOverride: boolean,
     duplicatedFiles?: DriveFileData[],
   ) => {
@@ -44,7 +46,7 @@ export const prepareFilesToUpload = async ({
     zeroLengthFilesNumber += zeroLengthFiles;
   };
 
-  const processFilesBatch = async (filesBatch: DocumentPickerResponse[]) => {
+  const processFilesBatch = async (filesBatch: DocumentPickerFile[]) => {
     if (disableExistenceCheck) {
       await processFiles(filesBatch, true);
     } else {
@@ -53,6 +55,8 @@ export const prepareFilesToUpload = async ({
         uri: f.uri,
         size: f.size,
         type: f.type ?? '',
+        modificationTime: f.modificationTime,
+        creationTime: f.creationTime,
       }));
 
       const { duplicatedFilesResponse, filesWithoutDuplicates, filesWithDuplicates } = await checkDuplicatedFiles(
@@ -60,9 +64,9 @@ export const prepareFilesToUpload = async ({
         parentFolderUuid,
       );
 
-      await processFiles(filesWithoutDuplicates as DocumentPickerResponse[], true);
+      await processFiles(filesWithoutDuplicates as DocumentPickerFile[], true);
       await processFiles(
-        filesWithDuplicates as DocumentPickerResponse[],
+        filesWithDuplicates as DocumentPickerFile[],
         disableDuplicatedNamesCheck,
         duplicatedFilesResponse,
       );
