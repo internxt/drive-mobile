@@ -200,16 +200,11 @@ function AddModal(): JSX.Element {
 
     const folderId = currentFolderId;
     const plainName = fileName;
-    const modificationTimeISO = modificationTime
-      ? new Date(modificationTime).toISOString()
-      : fileStat.mtime
-      ? new Date(fileStat.mtime).toISOString()
-      : undefined;
-    const creationTimeISO = creationTime
-      ? new Date(creationTime).toISOString()
-      : fileStat.ctime
-      ? new Date(fileStat.ctime).toISOString()
-      : undefined;
+    const modTimestamp = modificationTime ?? fileStat.mtime;
+    const modificationTimeISO = modTimestamp ? new Date(modTimestamp).toISOString() : undefined;
+
+    const createTimestamp = creationTime ?? fileStat.ctime;
+    const creationTimeISO = createTimestamp ? new Date(createTimestamp).toISOString() : undefined;
 
     const fileEntryByUuid: FileEntryByUuid = {
       fileId: fileId,
