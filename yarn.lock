@@ -3095,11 +3095,6 @@
     redux-thunk "^2.4.2"
     reselect "^4.1.8"
 
-"@rudderstack/rudder-sdk-react-native@^1.5.1":
-  version "1.14.1"
-  resolved "https://registry.yarnpkg.com/@rudderstack/rudder-sdk-react-native/-/rudder-sdk-react-native-1.14.1.tgz#ff58c532ad9ec37f5f79cfbf103eb0b97e3ed16d"
-  integrity sha512-Jgao//Ff/UN6KalKGYzlgSApqf9apVuj4OLcsMeCYkHd3L/tqqMI0LiFVU3mX4Z5BV10+mC62ZWIlLSvRo6HHA==
-
 "@segment/loosely-validate-event@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@segment/loosely-validate-event/-/loosely-validate-event-2.0.0.tgz#87dfc979e5b4e7b82c5f1d8b722dfd5d77644681"
