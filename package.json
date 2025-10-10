@@ -43,7 +43,6 @@
     "@react-navigation/native-stack": "^6.0.8",
     "@realm/react": "^0.4.1",
     "@reduxjs/toolkit": "^1.6.2",
-    "@rudderstack/rudder-sdk-react-native": "^1.5.1",
     "@shopify/flash-list": "1.6.3",
     "@testing-library/react-hooks": "^8.0.1",
     "@types/luxon": "^3.0.1",

@@ -101,9 +101,6 @@ PODS:
   - libwebp/sharpyuv (1.3.2)
   - libwebp/webp (1.3.2):
     - libwebp/sharpyuv
-  - MetricsReporter (2.0.0):
-    - RSCrashReporter (= 1.0.1)
-    - RudderKit (= 1.4.0)
   - RCT-Folly (2022.05.16.00):
     - boost
     - DoubleConversion
@@ -1172,9 +1169,6 @@ PODS:
     - RCT-Folly (= 2022.05.16.00)
     - React-Core
     - ReactCommon/turbomodule/core
-  - RNRudderSdk (1.14.1):
-    - React
-    - Rudder (< 2.0.0, >= 1.26.3)
   - RNScreens (3.34.0):
     - glog
     - RCT-Folly (= 2022.05.16.00)
@@ -1184,10 +1178,6 @@ PODS:
     - React-Core
   - RNSVG (14.1.0):
     - React-Core
-  - RSCrashReporter (1.0.1)
-  - Rudder (1.29.1):
-    - MetricsReporter (= 2.0.0)
-  - RudderKit (1.4.0)
   - SDWebImage (5.11.1):
     - SDWebImage/Core (= 5.11.1)
   - SDWebImage/Core (5.11.1)
@@ -1299,7 +1289,6 @@ DEPENDENCIES:
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
   - RNReanimated (from `../node_modules/react-native-reanimated`)
-  - "RNRudderSdk (from `../node_modules/@rudderstack/rudder-sdk-react-native`)"
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNShare (from `../node_modules/react-native-share`)
   - RNSVG (from `../node_modules/react-native-svg`)
@@ -1310,11 +1299,7 @@ SPEC REPOS:
     - fmt
     - IDZSwiftCommonCrypto
     - libwebp
-    - MetricsReporter
     - ReachabilitySwift
-    - RSCrashReporter
-    - Rudder
-    - RudderKit
     - SDWebImage
     - SDWebImageWebPCoder
     - SocketRocket
@@ -1513,8 +1498,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-permissions"
   RNReanimated:
     :path: "../node_modules/react-native-reanimated"
-  RNRudderSdk:
-    :path: "../node_modules/@rudderstack/rudder-sdk-react-native"
   RNScreens:
     :path: "../node_modules/react-native-screens"
   RNShare:
@@ -1561,7 +1544,6 @@ SPEC CHECKSUMS:
   internxt-mobile-sdk: 821a26ae1521019b968b5c2bc716ca5498e8a7d1
   jail-monkey: 066e0af74e67cbf432fbb4d214b046ef6dccf910
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
-  MetricsReporter: 364b98791e868b10e9d512eb50af28d8c11e5cdb
   RCT-Folly: 7169b2b1c44399c76a47b5deaaba715eeeb476c0
   RCTRequired: ca1d7414aba0b27efcfa2ccd37637edb1ab77d96
   RCTTypeSafety: 678e344fb976ff98343ca61dc62e151f3a042292
@@ -1626,13 +1608,9 @@ SPEC CHECKSUMS:
   RNGestureHandler: 15c6ef51acba34c49ff03003806cf5dd6098f383
   RNPermissions: 4e3714e18afe7141d000beae3755e5b5fb2f5e05
   RNReanimated: f6b02d8f5eaa2830296411d4ec3b8ef5442dd13d
-  RNRudderSdk: b31488f3452592107ff3835120a13df4d00e394c
   RNScreens: 29418ceffb585b8f0ebd363de304288c3dce8323
   RNShare: a5dc3b9c53ddc73e155b8cd9a94c70c91913c43c
   RNSVG: ba3e7232f45e34b7b47e74472386cf4e1a676d0a
-  RSCrashReporter: 6b8376ac729b0289ebe0908553e5f56d8171f313
-  Rudder: 731095848aee39d27ff5d0e78233aa5ad8febb0b
-  RudderKit: f272f9872183946452ac94cd7bb2244a71e6ca8f
   SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
   SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
   SocketRocket: f32cd54efbe0f095c4d7594881e52619cfe80b17
