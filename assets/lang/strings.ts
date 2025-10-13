@@ -155,6 +155,7 @@ const strings = new LocalizedStrings({
         create_account_title: 'Create an Internxt account',
         acceptTermsAndConditions: 'Accept terms, conditions and privacy policy',
         alreadyHaveAccount: 'Already have an account?',
+        errorOpeningLink: 'Error opening signup link',
       },
       home: {
         title: 'Home',
@@ -931,6 +932,7 @@ const strings = new LocalizedStrings({
         create_account_title: 'Crear cuenta',
         acceptTermsAndConditions: 'Aceptar términos, condiciones y política de privacidad',
         alreadyHaveAccount: '¿Ya tienes una cuenta?',
+        errorOpeningLink: 'Error al abrir el link de registro',
       },
       home: {
         title: 'Inicio',
