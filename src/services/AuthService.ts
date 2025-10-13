@@ -399,8 +399,8 @@ class AuthService {
       headers: await getHeaders(currentAuthToken),
     });
     const body = await result.json();
-    console.log('refreshAuthToken result', body);
-    const { newToken, token, user, statusCode } = body;
+
+    const { newToken, token, user } = body;
 
     if (!result.ok) {
       throw new Error('Tokens no longer valid, should sign out');
