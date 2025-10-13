@@ -4,6 +4,7 @@ import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
 import jwtDecode from 'jwt-decode';
+import { validateMnemonic } from 'react-native-bip39';
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
@@ -112,6 +113,52 @@ class AuthService {
       token: refreshedTokens.token,
       newToken: refreshedTokens.newToken,
     };
+  }
+
+  public async handleWebLogin(params: { mnemonic: string; token: string; newToken: string; privateKey?: string }) {
+    console.log('Params received for web login:', params);
+    try {
+      // Decode base64 parameters
+      const mnemonic = Buffer.from(params.mnemonic, 'base64').toString('utf-8');
+      const token = Buffer.from(params.token, 'base64').toString('utf-8');
+      const newToken = Buffer.from(params.newToken, 'base64').toString('utf-8');
+      const privateKey = params.privateKey ? Buffer.from(params.privateKey, 'base64').toString('utf-8') : undefined;
+      console.log('Decoded mnemonic:', mnemonic);
+      console.log('Decoded token:', token);
+      console.log('Decoded newToken:', newToken);
+      console.log('Decoded privateKey:', privateKey ? 'Provided' : 'Not provided');
+
+      const isMnemonicValid = validateMnemonic(mnemonic);
+      if (!isMnemonicValid) {
+        throw new Error('Invalid mnemonic phrase');
+      }
+
+      const refreshedLoginData = await this.refreshAuthToken(newToken);
+
+      if (!refreshedLoginData?.token || !refreshedLoginData?.newToken) {
+        throw new Error('Unable to refresh auth tokens');
+      }
+
+      if (!refreshedLoginData.user) {
+        throw new Error('Failed to fetch user data');
+      }
+
+      const userData = refreshedLoginData.user;
+
+      const user = {
+        ...userData,
+        mnemonic,
+        privateKey: privateKey || userData.privateKey,
+      };
+
+      return {
+        user,
+        token: refreshedLoginData.token,
+        newToken: refreshedLoginData.newToken,
+      };
+    } catch (error) {
+      throw new Error(`Web login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   public async signout(): Promise<void> {
@@ -344,14 +391,16 @@ class AuthService {
    * @param currentAuthToken The current auth token, needs to be still valid
    * @returns A valid set of token and newToken
    */
-  public async refreshAuthToken(currentAuthToken: string): Promise<{ newToken: string; token: string } | undefined> {
+  public async refreshAuthToken(
+    currentAuthToken: string,
+  ): Promise<{ newToken: string; token: string; user: UserSettings } | undefined> {
     const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
       method: 'GET',
       headers: await getHeaders(currentAuthToken),
     });
-
     const body = await result.json();
-    const { newToken, token, statusCode } = body;
+    console.log('refreshAuthToken result', body);
+    const { newToken, token, user, statusCode } = body;
 
     if (!result.ok) {
       throw new Error('Tokens no longer valid, should sign out');
@@ -360,6 +409,7 @@ class AuthService {
     return {
       newToken,
       token,
+      user,
     };
   }
 
