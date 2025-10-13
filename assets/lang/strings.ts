@@ -125,6 +125,7 @@ const strings = new LocalizedStrings({
         no_register: "Don't have an Internxt account?",
         register: 'Get started',
         back: 'Back to login',
+        errorOpeningLink: 'Error opening login link',
       },
       WebLoginScreen: {
         processing: 'Completing sign in...',
@@ -899,6 +900,7 @@ const strings = new LocalizedStrings({
         no_register: '¿No tienes una cuenta de Internxt?',
         register: 'Regístrate',
         back: 'Iniciar sesión',
+        errorOpeningLink: 'Error al abrir el link de autenticación',
       },
       WebLoginScreen: {
         processing: 'Completando inicio de sesión...',

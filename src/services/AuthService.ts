@@ -116,17 +116,10 @@ class AuthService {
   }
 
   public async handleWebLogin(params: { mnemonic: string; token: string; newToken: string; privateKey?: string }) {
-    console.log('Params received for web login:', params);
     try {
-      // Decode base64 parameters
       const mnemonic = Buffer.from(params.mnemonic, 'base64').toString('utf-8');
-      const token = Buffer.from(params.token, 'base64').toString('utf-8');
       const newToken = Buffer.from(params.newToken, 'base64').toString('utf-8');
       const privateKey = params.privateKey ? Buffer.from(params.privateKey, 'base64').toString('utf-8') : undefined;
-      console.log('Decoded mnemonic:', mnemonic);
-      console.log('Decoded token:', token);
-      console.log('Decoded newToken:', newToken);
-      console.log('Decoded privateKey:', privateKey ? 'Provided' : 'Not provided');
 
       const isMnemonicValid = validateMnemonic(mnemonic);
       if (!isMnemonicValid) {

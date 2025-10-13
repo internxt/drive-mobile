@@ -4,6 +4,7 @@ import { Linking, View } from 'react-native';
 import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
 import { WarningCircle } from 'phosphor-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+
 import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
@@ -13,7 +14,10 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import useGetColor from '../../hooks/useColor';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import appService from '../../services/AppService';
+import { logger } from '../../services/common';
 import errorService from '../../services/ErrorService';
+import notificationsService from '../../services/NotificationsService';
+import { NotificationType } from '../../types';
 import { RootStackScreenProps } from '../../types/navigation';
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
@@ -33,9 +37,15 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         analytics.track(AnalyticsEventKey.UserSignIn, {
           method: 'browser',
         });
+      } else {
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.screens.SignInScreen.errorOpeningLink,
+        });
       }
     } catch (err) {
       const errorMessage = errorService.castError(err).message;
+      logger.error('Error opening web auth URL', err);
       setError(errorMessage);
     }
   };
@@ -51,9 +61,15 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         analytics.track(AnalyticsEventKey.UserSignUp, {
           method: 'browser',
         });
+      } else {
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.screens.SignUpScreen.errorOpeningLink,
+        });
       }
     } catch (err) {
       const errorMessage = errorService.castError(err).message;
+      logger.error('Error opening web sign up URL', err);
       setError(errorMessage);
     }
   };
