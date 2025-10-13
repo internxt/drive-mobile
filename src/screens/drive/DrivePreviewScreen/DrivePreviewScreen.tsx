@@ -30,9 +30,9 @@ import { DriveVideoPreview } from './DriveVideoPreview';
 import { useThumbnailRegeneration } from './hooks/useThumbnailRegeneration';
 import AnimatedLoadingDots from './LoadingDots';
 
-const IMAGE_PREVIEW_TYPES = [FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC];
-const VIDEO_PREVIEW_TYPES = [FileExtension.MP4, FileExtension.MOV, FileExtension.AVI];
-const PDF_PREVIEW_TYPES = [FileExtension.PDF];
+const IMAGE_PREVIEW_TYPES = new Set([FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC]);
+const VIDEO_PREVIEW_TYPES = new Set([FileExtension.MP4, FileExtension.MOV, FileExtension.AVI]);
+const PDF_PREVIEW_TYPES = new Set([FileExtension.PDF]);
 
 export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> = (props) => {
   const tailwind = useTailwind();
@@ -55,7 +55,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   useEffect(() => {
     if (
       downloadingFile?.downloadedFilePath &&
-      VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type as FileExtension) &&
+      VIDEO_PREVIEW_TYPES.has(downloadingFile.data.type as FileExtension) &&
       !generatedThumbnail
     ) {
       imageService
@@ -121,11 +121,13 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     return <></>;
   }
   const filename = `${focusedItem.name || ''}${focusedItem.type ? `.${focusedItem.type}` : ''}`;
-  const currentProgress = downloadingFile.downloadProgress * 0.95 + downloadingFile.decryptProgress * 0.05;
+  const currentProgress =
+    (downloadingFile.downloadProgress ?? 0) * 0.95 + (downloadingFile.decryptProgress ?? 0) * 0.05;
   const FileIcon = getFileTypeIcon(focusedItem.type || '');
-  const hasImagePreview = IMAGE_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
-  const hasVideoPreview = VIDEO_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
-  const hasPdfPreview = PDF_PREVIEW_TYPES.includes(downloadingFile.data.type?.toLowerCase() as FileExtension);
+  const fileType = downloadingFile.data.type?.toLowerCase();
+  const hasImagePreview = fileType ? IMAGE_PREVIEW_TYPES.has(fileType as FileExtension) : false;
+  const hasVideoPreview = fileType ? VIDEO_PREVIEW_TYPES.has(fileType as FileExtension) : false;
+  const hasPdfPreview = fileType ? PDF_PREVIEW_TYPES.has(fileType as FileExtension) : false;
 
   const getProgressMessage = () => {
     if (!downloadingFile) {
@@ -171,7 +173,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
           {!isDownloaded && !error ? (
             <AnimatedLoadingDots
               previousDotsText={getProgressMessage()}
-              progress={parseInt((currentProgress * 100).toFixed(0))}
+              progress={Number.parseInt((currentProgress * 100).toFixed(0))}
             />
           ) : null}
         </View>
@@ -191,7 +193,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
                 style={tailwind('mt-5')}
                 title={strings.buttons.tryAgain}
                 type={'white'}
-                onPress={() => downloadingFile.retry && downloadingFile.retry()}
+                onPress={() => downloadingFile?.retry?.()}
               ></AppButton>
             )}
           </View>
@@ -276,10 +278,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         <DrivePreviewScreenHeader
           title={filename}
           subtitle={time.getFormattedDate(downloadingFile.data.updatedAt, time.formats.dateAtTimeLong)}
-          onCloseButtonPress={() => {
-            dispatch(driveThunks.cancelDownloadThunk());
-            props.navigation.goBack();
+          onCloseButtonPress={async () => {
+            await dispatch(driveThunks.cancelDownloadThunk());
             dispatch(driveActions.clearDownloadingFile());
+            props.navigation.goBack();
           }}
           onActionsButtonPress={handleActionsButtonPress}
         />
