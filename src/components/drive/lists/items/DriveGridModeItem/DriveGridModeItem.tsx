@@ -42,6 +42,9 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   useEffect(() => {
     if (props.data.thumbnails && props.data.thumbnails.length && !downloadedThumbnail) {
       InteractionManager.runAfterInteractions(() => {
+        // TODO: NEED TO UPDATE SDK TYPES
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         driveFileService.getThumbnail(props.data.thumbnails[0]).then((downloadedThumbnail) => {
           setDownloadedThumbnail(downloadedThumbnail);
         });

@@ -98,6 +98,20 @@ class AsyncStorageService {
     return this.saveItem(AsyncStorageKey.LastSecurityCheck, date.toISOString());
   }
 
+  /**
+   * Gets the screen protection preference (prevents screenshots/screen recording)
+   * @returns {Promise<boolean>} true if protection is enabled, defaults to true for security if not set
+   */
+  async getScreenProtectionEnabled(): Promise<boolean> {
+    const screenProtectionEnabled = await this.getItem(AsyncStorageKey.ScreenProtectionEnabled);
+
+    return screenProtectionEnabled === null ? true : screenProtectionEnabled === 'true';
+  }
+
+  saveScreenProtectionEnabled(enabled: boolean): Promise<void> {
+    return this.saveItem(AsyncStorageKey.ScreenProtectionEnabled, enabled.toString());
+  }
+
   async clearStorage(): Promise<void> {
     try {
       const nonSensitiveKeys = [

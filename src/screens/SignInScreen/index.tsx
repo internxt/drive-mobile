@@ -81,6 +81,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
     setIsLoading(true);
     if (!validationService.validateEmail(email)) {
       setErrors({ email: strings.errors.validEmail });
+      setIsLoading(false);
       return;
     }
 

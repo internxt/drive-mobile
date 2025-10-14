@@ -8,6 +8,7 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
+import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 
 export type DriveFoldersTreeNode = {
   name: string;
@@ -32,7 +33,11 @@ export interface DriveContextType {
   toggleViewMode: () => void;
   loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
   focusedFolder: DriveFoldersTreeNode | null;
-  updateItemInTree: (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => void;
+  updateItemInTree: (
+    folderId: string,
+    itemId: number,
+    updates: { name?: string; plainName?: string; thumbnails?: Thumbnail[] },
+  ) => void;
   removeItemFromTree: (folderId: string, itemId: number) => void;
   addItemToTree: (folderId: string, item: DriveItemData, isFolder: boolean) => void;
 }
@@ -324,7 +329,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     });
   };
 
-  const updateItemInTree = (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => {
+  const updateItemInTree = (
+    folderId: string,
+    itemId: number,
+    updates: { name?: string; plainName?: string; thumbnails?: Thumbnail[] },
+  ) => {
     setDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
       if (!folder) return prevTree;

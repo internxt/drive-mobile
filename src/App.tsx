@@ -18,6 +18,7 @@ import { DriveContextProvider } from './contexts/Drive';
 import { ThemeProvider, useTheme } from './contexts/Theme';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import useGetColor from './hooks/useColor';
+import { useScreenProtection } from './hooks/useScreenProtection';
 import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
@@ -47,6 +48,8 @@ function AppContent(): JSX.Element {
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const { performPeriodicSecurityCheck } = useSecurity();
+
+  useScreenProtection();
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');

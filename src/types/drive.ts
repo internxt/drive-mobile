@@ -43,6 +43,7 @@ export type DriveItemFocused = {
   isFolder: boolean;
   bucket?: string;
   uuid?: string;
+  thumbnails?: Thumbnail[];
 } | null;
 
 export interface GetModifiedFiles {
