@@ -3,7 +3,7 @@ import * as Linking from 'expo-linking';
 import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect, useState } from 'react';
 import { AppStateStatus, KeyboardAvoidingView, NativeEventSubscription, Platform, Text, View } from 'react-native';
-import { CaptureProtection, CaptureProtectionProvider } from 'react-native-capture-protection';
+import { CaptureProtectionProvider } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -174,8 +174,6 @@ function AppContent(): JSX.Element {
   };
 
   useEffect(() => {
-    CaptureProtection.prevent();
-
     return () => {
       if (!screenLockEnabled) {
         dispatch(appActions.setInitialScreenLocked(false));
