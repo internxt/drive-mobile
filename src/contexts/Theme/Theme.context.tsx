@@ -151,7 +151,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       setTheme,
       isInitialized,
     }),
-    [themeState, isInitialized],
+    [themeState, isInitialized, setTheme],
   );
 
   return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
