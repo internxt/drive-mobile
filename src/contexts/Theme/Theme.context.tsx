@@ -1,6 +1,6 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { logger } from '@internxt-mobile/services/common';
-import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Appearance, NativeEventSubscription } from 'react-native';
 
 export type ThemeMode = 'light' | 'dark';
@@ -92,7 +92,7 @@ const setupThemeListener = (
 };
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setThemeState] = useState<ThemeMode>('light');
+  const [themeState, setThemeState] = useState<ThemeMode>('light');
   const [isInitialized, setIsInitialized] = useState(false);
 
   const isInitializingRef = useRef(true);
@@ -145,7 +145,16 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   };
 
-  return <ThemeContext.Provider value={{ theme, setTheme, isInitialized }}>{children}</ThemeContext.Provider>;
+  const contextValue = useMemo(
+    () => ({
+      theme: themeState,
+      setTheme,
+      isInitialized,
+    }),
+    [themeState, isInitialized],
+  );
+
+  return <ThemeContext.Provider value={contextValue}>{children}</ThemeContext.Provider>;
 };
 
 export const useTheme = (): ThemeContextType => {
