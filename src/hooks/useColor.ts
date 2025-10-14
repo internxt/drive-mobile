@@ -1,4 +1,4 @@
-import { useColorScheme } from 'react-native';
+import { useTheme } from '@internxt-mobile/contexts/Theme';
 import { useTailwind } from 'tailwind-rn';
 
 const lightThemeColors = {
@@ -177,8 +177,8 @@ type ColorMap = typeof lightThemeColors;
 
 const useGetColor = () => {
   const tailwind = useTailwind();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
   const getColor = (textColorClass: string): string => {
     const themeColors: ColorMap = isDark ? darkThemeColors : lightThemeColors;
