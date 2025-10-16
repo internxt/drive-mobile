@@ -1,6 +1,5 @@
 import { Environment } from '../@inxt-js';
 import { ActionState } from '../@inxt-js/api/actionState';
-import { FileInfo } from '../@inxt-js/api/fileinfo';
 import FileManager from '../@inxt-js/api/FileManager';
 import appService from '../services/AppService';
 
@@ -91,14 +90,6 @@ export class Network {
       },
       fn(),
     ];
-  }
-
-  getFileInfo(bucketId: string, fileId: string): Promise<FileInfo> {
-    return this.environment.getFileInfo(bucketId, fileId);
-  }
-
-  createFileToken(bucketId: string, fileId: string, operation: 'PULL' | 'PUSH'): Promise<string> {
-    return this.environment.createFileToken(bucketId, fileId, operation);
   }
 }
 

@@ -121,7 +121,7 @@ export const generateShareLink = async ({
   const plainCode = randomBytes(32).toString('hex');
 
   // 1. Get the file token
-  const itemToken = await network.createFileToken(bucket, fileId as string, 'PULL');
+  // const itemToken = await network.createFileToken(bucket, fileId as string, 'PULL');
 
   // 2. Create an encrypted code for the file
   const encryptedCode = aes.encrypt(plainCode, mnemonic);

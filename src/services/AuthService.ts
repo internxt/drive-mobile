@@ -4,7 +4,6 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
 import jwtDecode from 'jwt-decode';
 import { validateMnemonic } from 'react-native-bip39';
-import { decryptText, encryptText, passToHash } from '../helpers';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
@@ -106,14 +105,14 @@ class AuthService {
     await this.sdk.authV2.sendUserDeactivationEmail(token);
   }
 
-  public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
-    const plainSalt = await this.getSalt(email);
-    const newToken = SdkManager.getInstance().getApiSecurity().newToken;
+  // public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
+  //   const plainSalt = await this.getSalt(email);
+  //   const newToken = SdkManager.getInstance().getApiSecurity().newToken;
 
-    const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
+  //   const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
 
-    return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
-  }
+  //   return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
+  // }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
     const newToken = SdkManager.getInstance().getApiSecurity().newToken;
@@ -134,12 +133,13 @@ class AuthService {
   }
 
   public async disable2FA(encryptedSalt: string, password: string, code: string) {
-    const salt = decryptText(encryptedSalt);
-    const { hash } = passToHash({ password: password, salt });
-    const encryptedPassword = encryptText(hash);
+    // const salt = decryptText(encryptedSalt);
+    // const { hash } = passToHash({ password: password, salt });
+    // const encryptedPassword = encryptText(hash);
     const newToken = SdkManager.getInstance().getApiSecurity().newToken;
 
-    return this.sdk.authV2.disableTwoFactorAuth(encryptedPassword, code, newToken);
+    // encryptedPassword gonna be removed from this method in the SDK
+    // return this.sdk.authV2.disableTwoFactorAuth(encryptedPassword, code, newToken);
   }
 
   public addLoginListener(listener: () => void) {
@@ -259,22 +259,6 @@ class AuthService {
       token,
       user,
     };
-  }
-
-  /**
-   * Gets the salt from a given email
-   *
-   * @param email The email to obtain the salt from
-   * @returns The salt obtained and decrypted
-   */
-  private async getSalt(email: string) {
-    const securityDetails = await this.sdk.authV2.securityDetails(email);
-
-    if (!securityDetails) throw new Error('Security details not found');
-
-    const plainSalt = decryptText(securityDetails.encryptedSalt);
-
-    return plainSalt;
   }
 }
 
