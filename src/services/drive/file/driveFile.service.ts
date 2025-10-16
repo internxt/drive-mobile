@@ -6,7 +6,7 @@ import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { imageService, SdkManager } from '@internxt-mobile/services/common';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
-import { EncryptionVersion, MoveFileUuidPayload, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { EncryptionVersion, FileMeta, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SaveFormat } from 'expo-image-manipulator';
 import { Image } from 'react-native';
@@ -97,8 +97,14 @@ class DriveFileService {
     });
   }
 
-  public async moveFile(moveFilePayload: MoveFileUuidPayload) {
-    return this.sdk.storageV2.moveFileByUuid(moveFilePayload);
+  public async moveFile({
+    fileUuid,
+    destinationFolderUuid,
+  }: {
+    fileUuid: string;
+    destinationFolderUuid: string;
+  }): Promise<FileMeta> {
+    return this.sdk.storageV2.moveFileByUuid(fileUuid, { destinationFolder: destinationFolderUuid });
   }
 
   public getSortFunction({

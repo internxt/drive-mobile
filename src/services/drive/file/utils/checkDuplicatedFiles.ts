@@ -18,6 +18,8 @@ export interface File {
   uri: string;
   size: number;
   type?: string;
+  modificationTime?: string;
+  creationTime?: string;
 }
 
 export const checkDuplicatedFiles = async (files: File[], parentFolderUuid: string): Promise<DuplicatedFilesResult> => {

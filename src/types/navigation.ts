@@ -14,6 +14,12 @@ export type RootStackParamList = {
   Debug: undefined;
   SignUp: undefined;
   SignIn: undefined;
+  WebLogin: {
+    mnemonic?: string;
+    token?: string;
+    newToken?: string;
+    privateKey?: string;
+  } | undefined;
   DeactivatedAccount: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   ForgotPassword: undefined;

@@ -1,7 +1,6 @@
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { useRef } from 'react';
 import { View } from 'react-native';
-import analyticsService from '../services/AnalyticsService';
 
 import LinkingConfiguration from './LinkingConfiguration';
 import RootNavigator from './RootNavigator';
@@ -31,13 +30,8 @@ export default function Navigation() {
 
         routeNameRef.current = currentRoute && currentRoute.name;
       }}
-      onStateChange={(route) => {
-        const previousRouteName = routeNameRef.current;
+      onStateChange={() => {
         const currentRouteName = navigationRef.getCurrentRoute()?.name;
-
-        if (previousRouteName !== currentRouteName) {
-          route && analyticsService.trackStackScreen(route, navigationRef.getCurrentRoute()?.params);
-        }
 
         routeNameRef.current = currentRouteName;
       }}

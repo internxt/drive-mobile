@@ -22,7 +22,6 @@ import { useScreenProtection } from './hooks/useScreenProtection';
 import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
-import analyticsService from './services/AnalyticsService';
 import appService from './services/AppService';
 import asyncStorageService from './services/AsyncStorageService';
 import authService from './services/AuthService';
@@ -160,7 +159,7 @@ function AppContent(): JSX.Element {
       await fileSystemService.prepareFileSystem();
 
       // 4. Initialize all the services we need at start time
-      const initializeOperations = [authService.init(), analyticsService.setup(), appService.logAppInfo()];
+      const initializeOperations = [authService.init(), appService.logAppInfo()];
 
       await Promise.all(initializeOperations);
       // 5. Silent SignIn only if token is still valid

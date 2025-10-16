@@ -27,6 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
+          <string>internxt</string>
           <string>inxt</string>
           <string>com.internxt.snacks</string>
         </array>

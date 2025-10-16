@@ -1,5 +1,6 @@
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { DocumentPickerResponse } from 'react-native-document-picker';
+import { DocumentPickerFile } from '../../../../types/drive';
 import { getUniqueFilename } from './getUniqueFilename';
 import { FileToUpload } from './prepareFilesToUpload';
 
@@ -24,7 +25,7 @@ export const processDuplicateFiles = async ({
   const zeroLengthFiles = files.filter((file) => file.size === 0).length;
   const newFilesToUpload: FileToUpload[] = [...existingFilesToUpload];
 
-  const processFile = async (file: DocumentPickerResponse): Promise<void> => {
+  const processFile = async (file: DocumentPickerFile): Promise<void> => {
     if (file.size === 0) return;
 
     const { plainName, extension } = getFilenameAndExt(file.name);
@@ -40,6 +41,8 @@ export const processDuplicateFiles = async ({
       type: extension ?? file.type ?? '',
       uri: file.uri,
       parentUuid: parentFolderUuid,
+      modificationTime: file.modificationTime ?? undefined,
+      creationTime: file.creationTime ?? undefined,
     });
   };
 
