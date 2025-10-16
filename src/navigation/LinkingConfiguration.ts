@@ -8,7 +8,7 @@ import { LinkingOptions } from '@react-navigation/native';
 import { RootStackParamList } from '../types/navigation';
 
 const linking: LinkingOptions<RootStackParamList> = {
-  prefixes: ['inxt'],
+  prefixes: ['internxt://', 'inxt://'],
   config: {
     screens: {
       Debug: 'debug',
@@ -16,6 +16,7 @@ const linking: LinkingOptions<RootStackParamList> = {
       SignUp: 'sign-up',
       TabExplorer: 'tab-explorer',
       ForgotPassword: 'forgot-password',
+      WebLogin: 'login-success',
     },
   },
 };

@@ -31,6 +31,10 @@ class AppService {
   public get urls() {
     return {
       termsAndConditions: 'https://internxt.com/legal',
+      webAuth: {
+        login: `${this.constants.WEB_CLIENT_URL}/login?universalLink=true`,
+        signup: `${this.constants.WEB_CLIENT_URL}/new?universalLink=true`,
+      },
     };
   }
 
