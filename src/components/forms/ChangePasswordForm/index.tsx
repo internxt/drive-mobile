@@ -1,23 +1,22 @@
+import { yupResolver } from '@hookform/resolvers/yup';
+import { auth } from '@internxt/lib';
 import { Eye, EyeSlash } from 'phosphor-react-native';
-import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useMemo, useState } from 'react';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { TouchableWithoutFeedback, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
-import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
+import { useAppSelector } from '../../../store/hooks';
 import { BaseFormProps, ChangePasswordFormData } from '../../../types/ui';
 import AppTextInput from '../../AppTextInput';
 import StrengthMeter from '../../StrengthMeter';
-import { auth } from '@internxt/lib';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { authThunks } from 'src/store/slices/auth';
 
 const ChangePasswordForm = (props: BaseFormProps) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const dispatch = useAppDispatch();
+
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
@@ -89,17 +88,17 @@ const ChangePasswordForm = (props: BaseFormProps) => {
   };
   const onSubmitButtonPressed = handleSubmit((data) => {
     setIsLoading(true);
-    dispatch(authThunks.changePasswordThunk({ newPassword: data.newPassword }))
-      .unwrap()
-      .then(() => {
-        props.onFormSubmitSuccess?.();
-        setValue('newPassword', '');
-        setValue('confirmNewPassword', '');
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        setIsLoading(false);
-      });
+    // dispatch(authThunks.changePasswordThunk({ newPassword: data.newPassword }))
+    //   .unwrap()
+    //   .then(() => {
+    //     props.onFormSubmitSuccess?.();
+    //     setValue('newPassword', '');
+    //     setValue('confirmNewPassword', '');
+    //   })
+    //   .catch(() => undefined)
+    //   .finally(() => {
+    //     setIsLoading(false);
+    //   });
   });
 
   return (
