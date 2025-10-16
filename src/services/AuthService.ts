@@ -1,27 +1,18 @@
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
+import { TwoFactorAuthQR } from '@internxt/sdk';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
 import jwtDecode from 'jwt-decode';
 import { validateMnemonic } from 'react-native-bip39';
-import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
+import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import appService from './AppService';
 import asyncStorageService from './AsyncStorageService';
-import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
-
-interface RegisterParams {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  captcha: string;
-}
 
 enum AuthEventKey {
   Login = 'login',
@@ -64,56 +55,6 @@ class AuthService {
     }
   }
 
-  public async doLogin(email: string, password: string, tfaCode?: string) {
-    const loginResult = await this.sdk.authV2.loginWithoutKeys(
-      {
-        email,
-        password,
-        tfaCode,
-      },
-      {
-        encryptPasswordHash(password: Password, encryptedSalt: string): string {
-          const salt = decryptText(encryptedSalt);
-          const hashObj = passToHash({ password, salt });
-          return encryptText(hashObj.hash);
-        },
-        async generateKeys(): Promise<Keys> {
-          const keys = {
-            privateKeyEncrypted: '',
-            publicKey: '',
-            revocationCertificate: '',
-            ecc: {
-              privateKeyEncrypted: '',
-              publicKey: '',
-            },
-            kyber: {
-              publicKey: '',
-              privateKeyEncrypted: '',
-            },
-          };
-          return keys;
-        },
-      },
-    );
-
-    loginResult.user.mnemonic = decryptTextWithKey(loginResult.user.mnemonic, password);
-
-    if (loginResult.user.privateKey) {
-      const decryptedPrivateKey = keysService.decryptPrivateKey(loginResult.user.privateKey, password);
-      loginResult.user.privateKey = Buffer.from(decryptedPrivateKey).toString('base64');
-    }
-
-    // Get the refreshed tokens, they contain expiration, the ones returned
-    // on the login doesn't have expiration
-    const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
-
-    if (!refreshedTokens?.token || !refreshedTokens?.newToken) throw new Error('Unable to refresh auth tokens');
-    return {
-      ...loginResult,
-      token: refreshedTokens.token,
-      newToken: refreshedTokens.newToken,
-    };
-  }
 
   public async handleWebLogin(params: { mnemonic: string; token: string; newToken: string; privateKey?: string }) {
     try {
@@ -226,10 +167,6 @@ class AuthService {
     await this.sdk.authV2.sendUserDeactivationEmail(token);
   }
 
-  public async getNewBits(): Promise<{ mnemonic: string }> {
-    return this.sdk.usersV2WithoutToken.generateMnemonic();
-  }
-
   public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
     const plainSalt = await this.getSalt(email);
     const newToken = SdkManager.getInstance().getApiSecurity().newToken;
@@ -239,26 +176,6 @@ class AuthService {
     return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
   }
 
-  public async doRegister(params: RegisterParams) {
-    const hashObj = passToHash({ password: params.password });
-    const encPass = encryptText(hashObj.hash);
-    const encSalt = encryptText(hashObj.salt);
-    const bits = await this.getNewBits();
-    const mnemonic = bits.mnemonic;
-    const encMnemonic = encryptTextWithKey(mnemonic, params.password);
-
-    const payload = {
-      email: params.email.toLowerCase(),
-      name: params.firstName,
-      lastname: params.lastName,
-      password: encPass,
-      mnemonic: encMnemonic,
-      salt: encSalt,
-      captcha: params.captcha,
-    };
-
-    return this.sdk.authV2.registerWithoutKeys(payload);
-  }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
     const newToken = SdkManager.getInstance().getApiSecurity().newToken;

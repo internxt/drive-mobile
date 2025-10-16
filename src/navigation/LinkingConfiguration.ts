@@ -13,7 +13,6 @@ const linking: LinkingOptions<RootStackParamList> = {
     screens: {
       Debug: 'debug',
       SignIn: 'sign-in',
-      SignUp: 'sign-up',
       TabExplorer: 'tab-explorer',
       ForgotPassword: 'forgot-password',
       WebLogin: 'login-success',
