@@ -20,7 +20,6 @@ export interface AppEnv {
   SENTRY_URL: string;
   SENTRY_AUTH_TOKEN: string;
   DATAPLANE_URL: string;
-  ANALYTICS_WRITE_KEY: string;
   NOTIFICATIONS_URL: string;
   NODE_ENV: string;
   CLOUDFLARE_TOKEN: string;
