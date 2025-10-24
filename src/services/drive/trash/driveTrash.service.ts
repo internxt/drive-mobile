@@ -84,8 +84,16 @@ class DriveTrashService {
     return this.sdk.trash.clearTrash();
   }
 
-  public async moveToTrash(items: { id: number | string; type: 'folder' | 'file' }[]) {
+  public async moveToTrash(items: { id: number | string; type: 'folder' | 'file'; uuid?: string }[]) {
     const itemsToMove = items.map((item) => {
+      if (item.uuid !== undefined) {
+        return {
+          id: null,
+          uuid: item.uuid,
+          type: item.type,
+        };
+      }
+
       return {
         id: item.id,
         type: item.type,

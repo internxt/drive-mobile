@@ -1766,10 +1766,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.11.0":
-  version "1.11.0"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.11.0/eb547ca5a15d4e56a4e23db065482b3533e11b33#eb547ca5a15d4e56a4e23db065482b3533e11b33"
-  integrity sha512-65v2zzpACKlBXBoQURVrfevyELNBB1NypNiOqhlR4havwnCLrLgX9ZMSoUKvBtq2O0Orfdfqy8AA2AJrq+xW3Q==
+"@internxt/sdk@=1.11.6":
+  version "1.11.6"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.11.6/af41e231f6aa28df84977f96ef0049c295446907#af41e231f6aa28df84977f96ef0049c295446907"
+  integrity sha512-H/cd1e574Z1Adcb0jrQp+LIIUPXEkJZEExrxV2m3JgFMc6+VIlJTDzzTi5Bbz42ycSEF+vareY24Qfcn6ijlEA==
   dependencies:
     axios "1.11.0"
     uuid "11.1.0"
@@ -3094,11 +3094,6 @@
     redux "^4.2.1"
     redux-thunk "^2.4.2"
     reselect "^4.1.8"
-
-"@rudderstack/rudder-sdk-react-native@^1.5.1":
-  version "1.14.1"
-  resolved "https://registry.yarnpkg.com/@rudderstack/rudder-sdk-react-native/-/rudder-sdk-react-native-1.14.1.tgz#ff58c532ad9ec37f5f79cfbf103eb0b97e3ed16d"
-  integrity sha512-Jgao//Ff/UN6KalKGYzlgSApqf9apVuj4OLcsMeCYkHd3L/tqqMI0LiFVU3mX4Z5BV10+mC62ZWIlLSvRo6HHA==
 
 "@segment/loosely-validate-event@^2.0.0":
   version "2.0.0"
@@ -5878,9 +5873,9 @@ electron-to-chromium@^1.5.28:
   integrity sha512-HYTX8tKge/VNp6FGO+f/uVDmUkq+cEfcxYhKf15Akc4M5yxt5YmorwlAitKWjWhWQnKcDRBAQKXkhqqXMqcrjw==
 
 elliptic@^6.5.3, elliptic@^6.5.5:
-  version "6.5.7"
-  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.5.7.tgz#8ec4da2cb2939926a1b9a73619d768207e647c8b"
-  integrity sha512-ESVCtTwiA+XhY3wyh24QqRGBoP3rEdDUl3EDUUo9tft074fi19IrdpH7hLCMMP3CIj7jb3W96rn8lt/BqIlt5Q==
+  version "6.6.1"
+  resolved "https://registry.yarnpkg.com/elliptic/-/elliptic-6.6.1.tgz#3b8ffb02670bf69e382c7f65bf524c97c5405c06"
+  integrity sha512-RaddvvMatK2LJHqFJ+YA4WysVN5Ita9E35botqIYspQ4TkRAlCicdzKOjlyv/1Za5RyTNn7di//eEV0uTAfe3g==
   dependencies:
     bn.js "^4.11.9"
     brorand "^1.1.0"

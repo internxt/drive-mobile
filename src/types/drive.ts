@@ -1,3 +1,4 @@
+import { DocumentPickerResponse } from 'react-native-document-picker';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import {
   DriveFileData,
@@ -9,6 +10,15 @@ import {
 
 const GB = 1024 * 1024 * 1024;
 export const UPLOAD_FILE_SIZE_LIMIT = 5 * GB;
+
+/**
+ * Extended DocumentPickerResponse with file metadata timestamps.
+ * Used during file upload process to preserve original creation and modification times.
+ */
+export type DocumentPickerFile = DocumentPickerResponse & {
+  modificationTime?: string;
+  creationTime?: string;
+};
 
 export interface DriveNavigationStackItem {
   id: number;
@@ -43,6 +53,7 @@ export type DriveItemFocused = {
   isFolder: boolean;
   bucket?: string;
   uuid?: string;
+  thumbnails?: Thumbnail[];
 } | null;
 
 export interface GetModifiedFiles {
@@ -119,6 +130,8 @@ export interface UploadingFile {
   size: number;
   progress: number;
   uploaded: boolean;
+  modificationTime?: string;
+  creationTime?: string;
 }
 
 export interface DownloadingFile {

@@ -2,16 +2,8 @@ import Portal from '@burstware/react-native-portal';
 import * as Linking from 'expo-linking';
 import * as NavigationBar from 'expo-navigation-bar';
 import { useEffect, useState } from 'react';
-import {
-  Appearance,
-  AppStateStatus,
-  KeyboardAvoidingView,
-  NativeEventSubscription,
-  Platform,
-  Text,
-  View,
-} from 'react-native';
-import { CaptureProtection, CaptureProtectionProvider } from 'react-native-capture-protection';
+import { AppStateStatus, KeyboardAvoidingView, NativeEventSubscription, Platform, Text, View } from 'react-native';
+import { CaptureProtectionProvider } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -23,12 +15,13 @@ import LanguageModal from './components/modals/LanguageModal';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
 
 import { DriveContextProvider } from './contexts/Drive';
+import { ThemeProvider, useTheme } from './contexts/Theme';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import useGetColor from './hooks/useColor';
+import { useScreenProtection } from './hooks/useScreenProtection';
 import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
-import analyticsService from './services/AnalyticsService';
 import appService from './services/AppService';
 import asyncStorageService from './services/AsyncStorageService';
 import authService from './services/AuthService';
@@ -44,43 +37,18 @@ import { uiActions } from './store/slices/ui';
 
 let listener: NativeEventSubscription | null = null;
 
-export default function App(): JSX.Element {
+function AppContent(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const { theme } = useTheme();
 
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
-  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
   const { performPeriodicSecurityCheck } = useSecurity();
 
-  useEffect(() => {
-    const initializeTheme = async () => {
-      const savedTheme = await asyncStorageService.getThemePreference();
-      const themeToApply = savedTheme || Appearance.getColorScheme() || 'light';
-
-      setCurrentTheme(themeToApply as 'light' | 'dark');
-      Appearance.setColorScheme(themeToApply);
-    };
-
-    initializeTheme();
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      asyncStorageService.getThemePreference().then((savedTheme) => {
-        if (!savedTheme && colorScheme) {
-          setCurrentTheme(colorScheme);
-        }
-      });
-    });
-
-    return () => {
-      subscription?.remove();
-      if (!screenLockEnabled) {
-        dispatch(appActions.setInitialScreenLocked(false));
-        dispatch(appActions.setScreenLocked(false));
-      }
-    };
-  }, []);
+  useScreenProtection();
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -91,7 +59,6 @@ export default function App(): JSX.Element {
     isEditNameModalOpen,
     isChangeProfilePictureModalOpen,
     isLanguageModalOpen,
-    isPlansModalOpen,
   } = useAppSelector((state) => state.ui);
 
   const silentSignIn = async () => {
@@ -105,7 +72,6 @@ export default function App(): JSX.Element {
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
-  const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
 
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
@@ -193,7 +159,7 @@ export default function App(): JSX.Element {
       await fileSystemService.prepareFileSystem();
 
       // 4. Initialize all the services we need at start time
-      const initializeOperations = [authService.init(), analyticsService.setup(), appService.logAppInfo()];
+      const initializeOperations = [authService.init(), appService.logAppInfo()];
 
       await Promise.all(initializeOperations);
       // 5. Silent SignIn only if token is still valid
@@ -207,17 +173,6 @@ export default function App(): JSX.Element {
   };
 
   useEffect(() => {
-    CaptureProtection.prevent();
-
-    const initializeTheme = async () => {
-      const savedTheme = await asyncStorageService.getThemePreference();
-      if (savedTheme) {
-        Appearance.setColorScheme(savedTheme);
-      }
-    };
-
-    initializeTheme();
-
     return () => {
       if (!screenLockEnabled) {
         dispatch(appActions.setInitialScreenLocked(false));
@@ -246,7 +201,7 @@ export default function App(): JSX.Element {
       if (Platform.OS === 'android') {
         try {
           const backgroundColor = getColor('bg-surface');
-          const isDark = currentTheme === 'dark';
+          const isDark = theme === 'dark';
 
           await NavigationBar.setBackgroundColorAsync(backgroundColor);
           await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
@@ -257,7 +212,7 @@ export default function App(): JSX.Element {
     };
 
     configureNavigationBar();
-  }, [getColor, currentTheme]);
+  }, [getColor, theme]);
 
   useEffect(() => {
     const globalListener = appService.onAppStateChange(handleGlobalAppStateChange);
@@ -303,5 +258,13 @@ export default function App(): JSX.Element {
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </SafeAreaProvider>
+  );
+}
+
+export default function App(): JSX.Element {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
   );
 }

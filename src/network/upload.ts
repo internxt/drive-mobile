@@ -57,7 +57,6 @@ export async function uploadFile(
 
         return await uploadPromise;
       } catch (err) {
-        console.warn(`Upload attempt ${attempt} of ${MAX_TRIES} failed:`, err);
         logger.error(`Upload attempt ${attempt} of ${MAX_TRIES} failed:`, err);
 
         const lastTryFailed = attempt === MAX_TRIES;

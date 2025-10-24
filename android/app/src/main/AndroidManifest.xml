@@ -31,6 +31,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="internxt"/>
         <data android:scheme="inxt"/>
         <data android:scheme="com.internxt.cloud"/>
       </intent-filter>
@@ -40,6 +41,7 @@
       </intent-filter>
       <intent-filter data-generated="true">
         <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="internxt"/>
         <data android:scheme="inxt"/>
         <category android:name="android.intent.category.BROWSABLE"/>
         <category android:name="android.intent.category.DEFAULT"/>

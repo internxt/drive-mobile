@@ -3,14 +3,18 @@ import { DownloadedThumbnail, DriveListItem, GetModifiedFiles, SortDirection, So
 import { constants } from '../../AppService';
 
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { SdkManager } from '@internxt-mobile/services/common';
+import { imageService, SdkManager } from '@internxt-mobile/services/common';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
-import { MoveFileUuidPayload } from '@internxt/sdk/dist/drive/storage/types';
+import { EncryptionVersion, FileMeta, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import { SaveFormat } from 'expo-image-manipulator';
 import { Image } from 'react-native';
+import uuid from 'react-native-uuid';
 import { getEnvironmentConfig } from 'src/lib/network';
 import * as networkDownload from 'src/network/download';
+import network from '../../../network';
+import { uploadService } from '../../common/network/upload/upload.service';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import { driveFileCache } from './driveFileCache.service';
 
@@ -93,8 +97,14 @@ class DriveFileService {
     });
   }
 
-  public async moveFile(moveFilePayload: MoveFileUuidPayload) {
-    return this.sdk.storageV2.moveFileByUuid(moveFilePayload);
+  public async moveFile({
+    fileUuid,
+    destinationFolderUuid,
+  }: {
+    fileUuid: string;
+    destinationFolderUuid: string;
+  }): Promise<FileMeta> {
+    return this.sdk.storageV2.moveFileByUuid(fileUuid, { destinationFolder: destinationFolderUuid });
   }
 
   public getSortFunction({
@@ -194,9 +204,18 @@ class DriveFileService {
     return parsedModifiedFiles;
   }
 
-  public async getThumbnail(thumbnail: { bucket_id: string; bucket_file: string; type: string }) {
+  public async getThumbnail(thumbnail: {
+    bucket_id: string;
+    bucket_file: string;
+    bucketFile: string;
+    bucketId: string;
+    type: string;
+  }) {
     const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
-    const destination = `${DRIVE_THUMBNAILS_DIRECTORY}/${thumbnail.bucket_file}.${thumbnail.type}`;
+    // To handle that server not returns bucket_id and bucket_file when just generated the thumbnail
+    const bucketFile = thumbnail.bucket_file ? thumbnail.bucket_file.toString() : thumbnail.bucketFile.toString();
+    const bucketId = thumbnail.bucket_id ? thumbnail.bucket_id : thumbnail.bucketId;
+    const destination = `${DRIVE_THUMBNAILS_DIRECTORY}/${bucketFile}.${thumbnail.type}`;
 
     const measureThumbnail = (path: string) => {
       return new Promise<DownloadedThumbnail>((resolve, reject) => {
@@ -216,8 +235,8 @@ class DriveFileService {
     }
 
     await networkDownload.downloadThumbnail(
-      thumbnail.bucket_file.toString(),
-      thumbnail.bucket_id,
+      bucketFile,
+      bucketId,
       encryptionKey,
       {
         user: bridgeUser,
@@ -328,6 +347,61 @@ class DriveFileService {
 
   public async checkFileExistence(parentFolderUuid: string, filesList: { plainName: string; type: string }[]) {
     return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
+  }
+
+  /**
+   * Generates and uploads a thumbnail for a file
+   * @param fileUuid UUID of the file to create thumbnail for
+   * @param filePath Local path to the file
+   * @param fileExtension Extension of the file
+   * @returns The created thumbnail entry or null if generation fails
+   */
+  public async regenerateThumbnail(
+    fileUuid: string,
+    filePath: string,
+    fileExtension: string,
+  ): Promise<Thumbnail | null> {
+    try {
+      const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+        extension: fileExtension,
+        thumbnailFormat: SaveFormat.JPEG,
+        outputPath: fileSystemService.tmpFilePath(`${uuid.v4()}.${SaveFormat.JPEG}`),
+      });
+
+      if (!generatedThumbnail) {
+        return null;
+      }
+
+      const { bucket, bridgeUser, mnemonic, userId } = await asyncStorageService.getUser();
+      const thumbnailFileId = await network.uploadFile(
+        generatedThumbnail.path,
+        bucket,
+        mnemonic,
+        constants.BRIDGE_URL,
+        {
+          user: bridgeUser,
+          pass: userId,
+        },
+        {},
+      );
+
+      const uploadedThumbnail = await uploadService.createThumbnailEntry({
+        fileUuid: fileUuid,
+        maxWidth: generatedThumbnail.width,
+        maxHeight: generatedThumbnail.height,
+        type: generatedThumbnail.type,
+        size: generatedThumbnail.size,
+        bucketId: bucket,
+        bucketFile: thumbnailFileId,
+        encryptVersion: EncryptionVersion.Aes03,
+      });
+
+      await fs.unlinkIfExists(generatedThumbnail.path);
+
+      return uploadedThumbnail;
+    } catch (error) {
+      return null;
+    }
   }
 }
 
