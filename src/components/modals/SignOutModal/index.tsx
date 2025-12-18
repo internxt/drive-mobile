@@ -35,7 +35,7 @@ function SignOutModal(): JSX.Element {
   return (
     <CenterModal isOpen={isSignOutModalOpen} onClosed={onClosed} backdropPressToClose={false}>
       <View style={tailwind('w-full px-3 pt-7 pb-3')}>
-        <AppText style={tailwind('mx-4 text-center text-xl text-gray-100')} numberOfLines={1} semibold>
+        <AppText style={tailwind('mx-4 text-center text-xl')} numberOfLines={1} semibold>
           {strings.modals.SignOutModal.title}
         </AppText>
 
