@@ -9,7 +9,7 @@ import { DriveItemData, DriveItemDataProps, DriveItemFocused } from '../types/dr
  * @returns true if the item is a folder, false if it's a file
  */
 export const checkIsFolder = (
-  item: DriveItemData | DriveItemDataProps | DriveItemFocused | DriveItemData | DriveFileData | TrashItem,
+  item: DriveItemData | DriveItemDataProps | DriveItemFocused | DriveFileData | TrashItem,
 ): boolean => {
   if (!item) return false;
 
