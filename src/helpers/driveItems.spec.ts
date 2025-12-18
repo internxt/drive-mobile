@@ -4,25 +4,61 @@ import { checkIsFile, checkIsFolder, getFileSize, isEmptyFile } from './driveIte
 
 describe('Drive item classification', () => {
   describe('Identifying folders', () => {
-    it('when an item has folder type, then it is recognized as a folder', () => {
-      const folder: Partial<DriveItemData> = {
-        id: 1,
-        type: 'folder',
-        name: 'My Folder',
-      };
+    describe('Using isFolder field (preferred)', () => {
+      it('when an item has isFolder true, then it is recognized as a folder', () => {
+        const folder: Partial<DriveItemData> = {
+          id: 1,
+          type: 'jpg',
+          name: 'My Folder',
+          isFolder: true,
+        };
 
-      expect(checkIsFolder(folder as DriveItemData)).toBe(true);
+        expect(checkIsFolder(folder as DriveItemData)).toBe(true);
+      });
+
+      it('when an item has isFolder false, then it is not recognized as a folder', () => {
+        const file: Partial<DriveItemData> = {
+          id: 1,
+          type: 'folder',
+          name: 'My File',
+          isFolder: false,
+        };
+
+        expect(checkIsFolder(file as DriveItemData)).toBe(false);
+      });
+
+      it('when a file with folder extension has isFolder false, then it is correctly identified as file', () => {
+        const file: Partial<DriveItemData> = {
+          id: 1,
+          type: 'folder',
+          name: 'archive.folder',
+          isFolder: false,
+        };
+
+        expect(checkIsFolder(file as DriveItemData)).toBe(false);
+      });
     });
 
-    it('when an item has a parent folder reference, then it is recognized as a folder', () => {
-      const folder: Partial<DriveItemData> = {
-        id: 1,
-        type: 'folder',
-        name: 'My Folder',
-        parentUuid: 'parent-uuid-123',
-      };
+    describe('Fallback to parentUuid detection', () => {
+      it('when an item has a parent folder reference, then it is recognized as a folder', () => {
+        const folder: Partial<DriveItemData> = {
+          id: 1,
+          name: 'My Folder',
+          parentUuid: 'parent-uuid-123',
+        };
 
-      expect(checkIsFolder(folder as DriveItemData)).toBe(true);
+        expect(checkIsFolder(folder as DriveItemData)).toBe(true);
+      });
+
+      it('when an item has parentUuid without isFolder field, then it is recognized as a folder', () => {
+        const folder: Partial<DriveItemData> = {
+          id: 1,
+          name: 'My Folder',
+          parentUuid: 'parent-uuid-123',
+        };
+
+        expect(checkIsFolder(folder as DriveItemData)).toBe(true);
+      });
     });
 
     it('when an item is a regular file, then it is not recognized as a folder', () => {
@@ -57,24 +93,26 @@ describe('Drive item classification', () => {
     });
 
     describe('Trashed items', () => {
-      it('when a trashed item is a folder, then it is recognized as a folder', () => {
+      it('when a trashed item is a folder with parentUuid, then it is recognized as a folder', () => {
         const trashFolder = {
           id: 1,
           type: 'folder',
           name: 'Deleted Folder',
           parentUuid: 'parent-uuid',
+          isFolder: true,
         } as unknown;
 
         expect(checkIsFolder(trashFolder as TrashItem)).toBe(true);
       });
 
-      it('when a trashed item is a file, then it is not recognized as a folder', () => {
-        const trashFile: Partial<TrashItem> = {
+      it('when a trashed item is a file without parentUuid, then it is not recognized as a folder', () => {
+        const trashFile = {
           id: 1,
           type: 'pdf',
           name: 'document.pdf',
           folderUuid: 'folder-uuid',
-        };
+          isFolder: false,
+        } as unknown;
 
         expect(checkIsFolder(trashFile as TrashItem)).toBe(false);
       });
@@ -259,6 +297,7 @@ describe('Drive item classification', () => {
         type: 'folder',
         name: 'My Folder',
         parentUuid: 'parent-uuid-123',
+        isFolder: true,
       };
 
       expect(checkIsFile(folder as DriveItemData)).toBe(false);
@@ -328,6 +367,7 @@ describe('Drive item classification', () => {
         name: 'empty-file.bin',
         folderUuid: 'folder-uuid',
         size: 0,
+        isFolder: false,
       };
 
       const emptyFolder: Partial<DriveItemData> = {
@@ -336,6 +376,7 @@ describe('Drive item classification', () => {
         name: 'Empty Folder',
         parentUuid: 'parent-uuid',
         size: 0,
+        isFolder: true,
       };
 
       expect(checkIsFile(emptyFile as DriveItemData)).toBe(true);
@@ -361,6 +402,7 @@ describe('Drive item classification', () => {
         type: null,
         updatedAt: '2025-12-11T09:09:02.000Z',
         uuid: 'd4918a26-8ee8-46fd-9cf2-d49a662d84d7',
+        isFolder: false,
       } as unknown;
 
       expect(checkIsFile(realFile as DriveItemData)).toBe(true);
@@ -379,11 +421,32 @@ describe('Drive item classification', () => {
         type: 'folder',
         updatedAt: '2025-09-30T08:24:17.000Z',
         uuid: 'bc7307f2-7e69-4005-8546-f888b1270a12',
+        isFolder: true,
       };
 
       expect(checkIsFile(realFolder as DriveItemData)).toBe(false);
       expect(checkIsFolder(realFolder as DriveItemData)).toBe(true);
       expect(getFileSize(realFolder as DriveItemData)).toBe(0);
+    });
+
+    it('when processing a file with folder extension from backend, then isFolder field takes precedence', () => {
+      const fileWithFolderType = {
+        bucket: 'd871da4c5aacc64e106b0afb',
+        createdAt: '2025-12-11T09:09:01.673Z',
+        fileId: '693a8a2c7ccfc45e1feb5e30',
+        folderUuid: '2fdb127e-fdd6-4687-9051-53761920e5d2',
+        id: 1076106294,
+        name: 'archive.folder',
+        size: '2048',
+        type: 'folder',
+        updatedAt: '2025-12-11T09:09:02.000Z',
+        uuid: 'd4918a26-8ee8-46fd-9cf2-d49a662d84d7',
+        isFolder: false,
+      } as unknown;
+
+      expect(checkIsFile(fileWithFolderType as DriveItemData)).toBe(true);
+      expect(checkIsFolder(fileWithFolderType as DriveItemData)).toBe(false);
+      expect(getFileSize(fileWithFolderType as DriveItemData)).toBe(2048);
     });
   });
 });

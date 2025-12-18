@@ -9,6 +9,7 @@ import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
 import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { mapFileWithIsFolder, mapFolderWithIsFolder } from 'src/helpers/driveItemMappers';
 
 export type DriveFoldersTreeNode = {
   name: string;
@@ -139,8 +140,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     return {
       thereAreMoreFiles,
       thereAreMoreFolders,
-      folders: foldersInFolder.folders.map((folder) => {
-        const driveFolder = {
+      folders: foldersInFolder.folders.map((folder) =>
+        mapFolderWithIsFolder({
           ...folder,
           updatedAt: folder.updatedAt.toString(),
           createdAt: folder.createdAt.toString(),
@@ -152,13 +153,10 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           userId: folder.userId,
           // @ts-expect-error - API is returning status, missing from SDK
           status: folder.status,
-          isFolder: true,
-        };
-
-        return driveFolder;
-      }),
-      files: filesInFolder.files.map((file) => {
-        const driveFile = {
+        }),
+      ),
+      files: filesInFolder.files.map((file) =>
+        mapFileWithIsFolder({
           ...file,
           uuid: file.uuid,
           id: file.id,
@@ -173,11 +171,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
           folderId: file.folderId,
           thumbnails: file.thumbnails ?? [],
-          isFolder: false,
-        };
-
-        return driveFile;
-      }),
+        }),
+      ),
     };
   };
 
@@ -190,24 +185,25 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const folderContent = await driveFolderService.getFolderContentByUuid(folderId);
 
     return {
-      folders: folderContent.children.map((folder) => ({
-        uuid: folder.uuid,
-        plainName: folder.plainName || folder.plain_name || '',
-        id: folder.id,
-        bucket: folder.bucket || null,
-        createdAt: folder.createdAt,
-        deleted: false,
-        name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
-        parentId: folder.parentId || folder.parent_id || null,
-        parentUuid: folderId,
-        updatedAt: folder.updatedAt,
-        userId: folder.userId,
-        // @ts-expect-error - API is returning status, missing from SDK
-        status: folder.status,
-        isFolder: true,
-      })),
-      files: folderContent.files.map(
-        (file): DriveFileForTree => ({
+      folders: folderContent.children.map((folder) =>
+        mapFolderWithIsFolder({
+          uuid: folder.uuid,
+          plainName: folder.plainName || folder.plain_name || '',
+          id: folder.id,
+          bucket: folder.bucket || null,
+          createdAt: folder.createdAt,
+          deleted: false,
+          name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
+          parentId: folder.parentId || folder.parent_id || null,
+          parentUuid: folderId,
+          updatedAt: folder.updatedAt,
+          userId: folder.userId,
+          // @ts-expect-error - API is returning status, missing from SDK
+          status: folder.status,
+        }),
+      ),
+      files: folderContent.files.map((file) =>
+        mapFileWithIsFolder({
           uuid: file.uuid,
           plainName: file.plainName || file.plain_name || '',
           bucket: file.bucket,

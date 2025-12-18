@@ -171,6 +171,7 @@ function MoveItemsModal(): JSX.Element {
                     plainName: itemToMove.name,
                     folderId: destinationFolderContentResponse.id,
                     folderUuid: destinationFolderId,
+                    isFolder,
                   };
               // Added any because itemToMove is not typed correctly
               driveCtx.addItemToTree(destinationFolderId, itemForDestination as any, isFolder);

@@ -1,10 +1,10 @@
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
 import { items } from '@internxt/lib';
-import { checkIsFolder, isValidFilename } from 'src/helpers';
+import { checkIsFolder, isValidFilename, mapRecentFile } from 'src/helpers';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
@@ -112,10 +112,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
   dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
   const recents = await drive.recents.getRecents();
-  const recentsParsed = recents.map((recent) => ({
-    ...recent,
-    name: recent.plainName ?? recent.name,
-  }));
+  const recentsParsed = recents.map(mapRecentFile);
   dispatch(driveActions.setRecents(recentsParsed));
 });
 
@@ -442,7 +439,7 @@ export const driveSlice = createSlice({
         }
       }
     },
-    selectItem: (state, action: PayloadAction<DriveFolderData & DriveFileData>) => {
+    selectItem: (state, action: PayloadAction<DriveItemData>) => {
       const isAlreadySelected =
         state.selectedItems.filter((element) => {
           const elementIsFolder = !element.fileId;
@@ -452,7 +449,7 @@ export const driveSlice = createSlice({
 
       state.selectedItems = isAlreadySelected ? state.selectedItems : [...state.selectedItems, action.payload];
     },
-    deselectItem(state, action: PayloadAction<DriveFolderData & DriveFileData>) {
+    deselectItem(state, action: PayloadAction<DriveItemData>) {
       const itemsWithoutRemovedItem = state.selectedItems.filter((element) => {
         const elementIsFolder = !element.fileId;
 

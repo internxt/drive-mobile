@@ -4,3 +4,4 @@ export * from './crypt/crypt';
 export * from './filetypes';
 export * from './update';
 export * from './driveItems';
+export * from './driveItemMappers';
