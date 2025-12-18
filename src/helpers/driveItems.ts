@@ -13,10 +13,10 @@ export const checkIsFolder = (
 ): boolean => {
   if (!item) return false;
 
-  if ('isFolder' in item && typeof item.isFolder === 'boolean') {
-    return item.isFolder;
+  if ('isFolder' in item) {
+    return !!item.isFolder;
   }
-
+  // Only folders have parentUuid
   if ('parentUuid' in item && item.parentUuid) return true;
 
   return false;
