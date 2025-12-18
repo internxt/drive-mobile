@@ -61,6 +61,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         },
       } as DriveListItem;
     });
+
     const folders = folderFolders.map((folder) => {
       const driveListItem: DriveListItem = {
         status: DriveItemStatus.Idle,
@@ -129,8 +130,16 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const driveSortedItems = useMemo(
     () =>
       driveUploadingItems
-        .concat(folderContent.filter((item) => !item.data.fileId).sort(drive.file.getSortFunction(sortMode)))
-        .concat(folderContent.filter((item) => item.data.fileId).sort(drive.file.getSortFunction(sortMode))),
+        .concat(
+          folderContent
+            .filter((item) => item.data.isFolder)
+            .sort(drive.file.getSortFunction(sortMode)),
+        )
+        .concat(
+          folderContent
+            .filter((item) => !item.data.isFolder)
+            .sort(drive.file.getSortFunction(sortMode)),
+        ),
     [sortMode, driveUploadingItems, folderContent],
   );
 

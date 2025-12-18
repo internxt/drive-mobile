@@ -260,6 +260,21 @@ class DriveFileService {
   }
 
   /**
+   * Creates an empty file directly at the destination path
+   * Used for files with size 0 that don't need network download
+   *
+   * @param downloadPath The path where the empty file should be created
+   * @returns
+   */
+  async createEmptyDownloadedFile(downloadPath: string) {
+    await fs.createEmptyFile(downloadPath);
+
+    return {
+      downloadPath,
+    };
+  }
+
+  /**
    * Download and decrypt a file to a given filesystem path
    *
    * @param user The user details of the user who owns the file
@@ -337,8 +352,10 @@ class DriveFileService {
     const path = this.getDecryptedFilePath(filename, type);
     const exists = await fs.exists(path);
     if (!exists) return false;
+
     const stat = await fs.statRNFS(path);
-    return exists && stat.size !== 0;
+
+    return exists && stat.isFile();
   }
 
   getName(filename: string, type?: string) {

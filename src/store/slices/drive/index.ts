@@ -4,7 +4,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
 import { items } from '@internxt/lib';
-import { isValidFilename } from 'src/helpers';
+import { checkIsFolder, isValidFilename } from 'src/helpers';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
@@ -124,7 +124,7 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
 });
 
 const validateDownload = (size: number | undefined): number | null => {
-  if (!size) return null;
+  if (!size || size === 0) return null;
 
   const sizeInBytes = parseInt(size.toString());
   if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['10GB']) {
@@ -251,6 +251,7 @@ const downloadFileThunk = createAsyncThunk<
     const destinationPath = drive.file.getDecryptedFilePath(name, type);
     logger.info(`Download destination path: ${destinationPath} `);
     const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
+
     try {
       if (!isValidFilename(name)) {
         throw new Error('This file name is not valid');
@@ -263,7 +264,14 @@ const downloadFileThunk = createAsyncThunk<
         analytics.trackStart(fileInfo);
         downloadProgressCallback(0);
 
-        await download({ fileId, to: destinationPath });
+        const fileSizeNumber = Number(size);
+
+        if (fileSizeNumber === 0) {
+          logger.info('File has size 0, creating empty file directly');
+          await drive.file.createEmptyDownloadedFile(destinationPath);
+        } else {
+          await download({ fileId, to: destinationPath });
+        }
       }
 
       const uri = fileSystemService.pathToUri(destinationPath);
@@ -621,14 +629,18 @@ export const driveSelectors = {
         },
         id: f.id.toString(),
       })),
-      items: items.map<DriveListItem>((f) => ({
-        status: DriveItemStatus.Idle,
-        data: {
-          ...f,
-          isFolder: f.fileId ? false : true,
-        },
-        id: f.id.toString(),
-      })),
+      items: items.map<DriveListItem>((f) => {
+        const isFolder = checkIsFolder(f);
+
+        return {
+          status: DriveItemStatus.Idle,
+          data: {
+            ...f,
+            isFolder,
+          },
+          id: f.id.toString(),
+        };
+      }),
     };
   },
 };

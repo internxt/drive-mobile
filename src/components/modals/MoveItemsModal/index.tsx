@@ -25,6 +25,7 @@ import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from 'tailwind-rn';
+import { checkIsFile, checkIsFolder } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
 import notificationsService from '../../../services/NotificationsService';
@@ -82,7 +83,7 @@ function MoveItemsModal(): JSX.Element {
           status: DriveItemStatus.Idle,
           data: {
             bucket: child.bucket,
-            isFolder: 'fileId' in child ? false : true,
+            isFolder: checkIsFolder(child as any),
             thumbnails: (child as DriveFileData).thumbnails,
             currentThumbnail: null,
             createdAt: child.createdAt,
@@ -106,7 +107,7 @@ function MoveItemsModal(): JSX.Element {
     [sortMode, destinationFolderContentResponse],
   );
 
-  const isFolder = !!(itemToMove && !itemToMove.fileId);
+  const isFolder = checkIsFolder(itemToMove);
   const canGoBack = currentFolderIsRootFolder ? false : true;
   const onMoveButtonPressed = () => {
     setConfirmModalOpen(true);
@@ -380,7 +381,7 @@ function MoveItemsModal(): JSX.Element {
               return (
                 <DriveNavigableItem
                   key={item.data.id}
-                  disabled={!!item.data.fileId || item.data.id === itemToMove?.id}
+                  disabled={checkIsFile(item.data as any) || item.data.id === itemToMove?.id}
                   type={DriveListType.Drive}
                   status={DriveItemStatus.Idle}
                   viewMode={DriveListViewMode.List}

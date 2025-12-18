@@ -173,6 +173,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
           folderId: file.folderId,
           thumbnails: file.thumbnails ?? [],
+          isFolder: false,
         };
 
         return driveFile;

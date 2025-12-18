@@ -14,6 +14,7 @@ import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
 import NoResultsImage from 'assets/images/screens/no-results.svg';
 import { useTailwind } from 'tailwind-rn';
+import { checkIsFolder } from '../../../helpers';
 import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
 
 interface RecentsScreenProps {
@@ -77,7 +78,7 @@ export function RecentsScreen({
             viewMode={DriveListViewMode.List}
             data={{
               ...item,
-              isFolder: item.fileId ? false : true,
+              isFolder: checkIsFolder(item),
             }}
             progress={-1}
           />

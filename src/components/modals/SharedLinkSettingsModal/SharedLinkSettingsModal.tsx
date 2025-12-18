@@ -11,6 +11,7 @@ import AppText from 'src/components/AppText';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveActions } from 'src/store/slices/drive';
 import { useTailwind } from 'tailwind-rn';
+import { checkIsFolder } from '../../../helpers';
 import BottomModal from '../BottomModal';
 import { GeneratingLinkModal } from '../common/GeneratingLinkModal';
 import { animations } from './animations';
@@ -120,7 +121,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         return;
       }
 
-      const isFolder = item?.fileId ? false : true;
+      const isFolder = checkIsFolder(item);
 
       // A share link already exists, obtain it
       if (item?.token && item?.code) {
