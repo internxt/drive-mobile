@@ -251,10 +251,7 @@ function DriveItemInfoModal(): JSX.Element {
         if (isEmptyFile(item)) {
           await drive.file.createEmptyDownloadedFile(decryptedFilePath);
         } else {
-          if (!item.fileId) {
-            throw new Error('Item fileID not found for non-empty file');
-          }
-          await downloadItem(item.fileId, item.bucket as string, decryptedFilePath, fileSize);
+          await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
         }
         setExporting(false);
       }
@@ -298,10 +295,8 @@ function DriveItemInfoModal(): JSX.Element {
           await drive.file.createEmptyDownloadedFile(decryptedFilePath);
         } else {
           setExporting(true);
-          if (!item.fileId) {
-            throw new Error('Item fileID not found for non-empty file');
-          }
-          await downloadItem(item.fileId, item.bucket as string, decryptedFilePath, fileSize);
+
+          await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
           setExporting(false);
         }
       }
