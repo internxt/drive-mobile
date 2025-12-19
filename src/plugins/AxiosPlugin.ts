@@ -8,7 +8,7 @@ const axiosPlugin: AppPlugin = {
     axios.interceptors.response.use(undefined, (err) => {
       if (err.response) {
         if (err.response.status === 401) {
-          store.dispatch(authThunks.signOutThunk());
+          store.dispatch(authThunks.signOutThunk({ reason: 'unauthorized' }));
         }
       }
 

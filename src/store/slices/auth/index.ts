@@ -173,7 +173,7 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       logger.info('Auth tokens refresh failed: ', JSON.stringify(err));
       asyncStorageService.clearStorage();
       dispatch(authActions.setLoggedIn(false));
-      dispatch(authThunks.signOutThunk());
+      dispatch(authThunks.signOutThunk({ reason: 'token_expired' }));
     }
   },
 );
@@ -197,18 +197,20 @@ export const checkAndRefreshTokenThunk = createAsyncThunk<void, void, { state: R
   },
 );
 
-export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'auth/signOut',
-  async (_, { dispatch }) => {
-    authService.signout().catch(errorService.reportError);
-    drive.clear().catch(errorService.reportError);
-    dispatch(uiActions.resetState());
-    dispatch(authActions.resetState());
-    dispatch(driveActions.resetState());
-    dispatch(authActions.setLoggedIn(false));
-    authService.emitLogoutEvent();
-  },
-);
+export const signOutThunk = createAsyncThunk<
+  void,
+  { reason: 'manual' | 'unauthorized' | 'token_expired' } | void,
+  { state: RootState }
+>('auth/signOut', async (payload, { dispatch }) => {
+  const reason = payload?.reason;
+  authService.signout(reason).catch(errorService.reportError);
+  drive.clear().catch(errorService.reportError);
+  dispatch(uiActions.resetState());
+  dispatch(authActions.resetState());
+  dispatch(driveActions.resetState());
+  dispatch(authActions.setLoggedIn(false));
+  authService.emitLogoutEvent();
+});
 
 export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/refreshUser',

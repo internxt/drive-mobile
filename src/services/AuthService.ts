@@ -1,3 +1,4 @@
+import { logger } from '@internxt-mobile/services/common';
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
@@ -154,7 +155,9 @@ class AuthService {
     }
   }
 
-  public async signout(): Promise<void> {
+  public async signout(reason?: 'manual' | 'unauthorized' | 'token_expired'): Promise<void> {
+    const logoutReason = reason ?? 'manual';
+    logger.info(`User logged out - Reason: ${logoutReason}`);
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
     await internxtMobileSDKConfig.destroy();
