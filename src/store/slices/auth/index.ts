@@ -199,10 +199,10 @@ export const checkAndRefreshTokenThunk = createAsyncThunk<void, void, { state: R
 
 export const signOutThunk = createAsyncThunk<
   void,
-  { reason: 'manual' | 'unauthorized' | 'token_expired' } | void,
+  { reason: 'manual' | 'unauthorized' | 'token_expired' },
   { state: RootState }
 >('auth/signOut', async (payload, { dispatch }) => {
-  const reason = payload?.reason;
+  const reason = payload.reason;
   authService.signout(reason).catch(errorService.reportError);
   drive.clear().catch(errorService.reportError);
   dispatch(uiActions.resetState());

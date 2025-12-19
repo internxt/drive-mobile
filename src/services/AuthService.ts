@@ -155,9 +155,8 @@ class AuthService {
     }
   }
 
-  public async signout(reason?: 'manual' | 'unauthorized' | 'token_expired'): Promise<void> {
-    const logoutReason = reason ?? 'manual';
-    logger.info(`User logged out - Reason: ${logoutReason}`);
+  public async signout(reason: 'manual' | 'unauthorized' | 'token_expired'): Promise<void> {
+    logger.info(`User logged out - Reason: ${reason}`);
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
     await internxtMobileSDKConfig.destroy();
