@@ -56,6 +56,8 @@
     <string>Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service</string>
     <key>RCTRootViewBackgroundColor</key>
     <integer>4294967295</integer>
+    <key>UIDesignRequiresCompatibility</key>
+    <true/>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>

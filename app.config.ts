@@ -44,6 +44,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     associatedDomains: ['webcredentials:www.internxt.com'],
     buildNumber: env[stage].IOS_BUILD_NUMBER.toString(),
     infoPlist: {
+      UIDesignRequiresCompatibility: true,
       NSFaceIDUsageDescription: 'Protect the app access to secure the available files',
       NSCameraUsageDescription:
         'Allow $(PRODUCT_NAME) to access your camera to upload a newly captured photo to the storage service',
