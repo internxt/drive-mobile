@@ -1,4 +1,3 @@
-import { DocumentPickerResponse } from 'react-native-document-picker';
 import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import {
   DriveFileData,
@@ -7,6 +6,7 @@ import {
   FolderChild,
   Thumbnail,
 } from '@internxt/sdk/dist/drive/storage/types';
+import { DocumentPickerResponse } from 'react-native-document-picker';
 
 const GB = 1024 * 1024 * 1024;
 export const UPLOAD_FILE_SIZE_LIMIT = 5 * GB;
@@ -29,9 +29,9 @@ export interface DriveNavigationStackItem {
 }
 export type DriveNavigationStack = DriveNavigationStackItem[];
 
-export type DriveItemData = DriveFileData & DriveFolderData & { uuid?: string };
+export type DriveItemData = DriveFileData & DriveFolderData & { uuid?: string; isFolder: boolean };
 
-export type DriveFile = DriveFileData & { uuid?: string };
+export type DriveFile = DriveFileData & { uuid?: string; isFolder: boolean };
 
 export type getModifiedItemsStatus = 'EXISTS' | 'TRASHED' | 'REMOVED';
 
@@ -296,6 +296,7 @@ export type DriveFileForTree = Omit<
 > & {
   uuid: string;
   plainName: string;
+  isFolder: boolean;
 };
 
 export type DriveFolderForTree = Omit<
@@ -306,6 +307,7 @@ export type DriveFolderForTree = Omit<
   folderUuid?: string;
   plainName: string;
   status: DriveFileForTree['status'];
+  isFolder: boolean;
 };
 
 export interface DownloadedThumbnail {

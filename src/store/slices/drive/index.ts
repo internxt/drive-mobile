@@ -1,10 +1,10 @@
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
 import { items } from '@internxt/lib';
-import { isValidFilename } from 'src/helpers';
+import { checkIsFolder, isValidFilename, mapRecentFile } from 'src/helpers';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
@@ -112,10 +112,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
   dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
   const recents = await drive.recents.getRecents();
-  const recentsParsed = recents.map((recent) => ({
-    ...recent,
-    name: recent.plainName ?? recent.name,
-  }));
+  const recentsParsed = recents.map(mapRecentFile);
   dispatch(driveActions.setRecents(recentsParsed));
 });
 
@@ -124,7 +121,7 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
 });
 
 const validateDownload = (size: number | undefined): number | null => {
-  if (!size) return null;
+  if (!size || size === 0) return null;
 
   const sizeInBytes = parseInt(size.toString());
   if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['10GB']) {
@@ -251,6 +248,7 @@ const downloadFileThunk = createAsyncThunk<
     const destinationPath = drive.file.getDecryptedFilePath(name, type);
     logger.info(`Download destination path: ${destinationPath} `);
     const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
+
     try {
       if (!isValidFilename(name)) {
         throw new Error('This file name is not valid');
@@ -263,7 +261,14 @@ const downloadFileThunk = createAsyncThunk<
         analytics.trackStart(fileInfo);
         downloadProgressCallback(0);
 
-        await download({ fileId, to: destinationPath });
+        const fileSizeNumber = Number(size);
+
+        if (fileSizeNumber === 0) {
+          logger.info('File has size 0, creating empty file directly');
+          await drive.file.createEmptyDownloadedFile(destinationPath);
+        } else {
+          await download({ fileId, to: destinationPath });
+        }
       }
 
       const uri = fileSystemService.pathToUri(destinationPath);
@@ -434,7 +439,7 @@ export const driveSlice = createSlice({
         }
       }
     },
-    selectItem: (state, action: PayloadAction<DriveFolderData & DriveFileData>) => {
+    selectItem: (state, action: PayloadAction<DriveItemData>) => {
       const isAlreadySelected =
         state.selectedItems.filter((element) => {
           const elementIsFolder = !element.fileId;
@@ -444,7 +449,7 @@ export const driveSlice = createSlice({
 
       state.selectedItems = isAlreadySelected ? state.selectedItems : [...state.selectedItems, action.payload];
     },
-    deselectItem(state, action: PayloadAction<DriveFolderData & DriveFileData>) {
+    deselectItem(state, action: PayloadAction<DriveItemData>) {
       const itemsWithoutRemovedItem = state.selectedItems.filter((element) => {
         const elementIsFolder = !element.fileId;
 
@@ -621,14 +626,18 @@ export const driveSelectors = {
         },
         id: f.id.toString(),
       })),
-      items: items.map<DriveListItem>((f) => ({
-        status: DriveItemStatus.Idle,
-        data: {
-          ...f,
-          isFolder: f.fileId ? false : true,
-        },
-        id: f.id.toString(),
-      })),
+      items: items.map<DriveListItem>((f) => {
+        const isFolder = checkIsFolder(f);
+
+        return {
+          status: DriveItemStatus.Idle,
+          data: {
+            ...f,
+            isFolder,
+          },
+          id: f.id.toString(),
+        };
+      }),
     };
   },
 };
