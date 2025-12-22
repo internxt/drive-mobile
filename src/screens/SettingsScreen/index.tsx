@@ -11,7 +11,8 @@ import {
   Trash,
 } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Platform, ScrollView, Switch, View } from 'react-native';
+import { Linking, Platform, ScrollView, View } from 'react-native';
+import AppSwitch from '../../components/AppSwitch';
 
 import { storageSelectors } from 'src/store/slices/storage';
 import { Language } from 'src/types';
@@ -288,7 +289,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                         </AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
-                        <Switch
+                        <AppSwitch
                           trackColor={{
                             false: getColor('text-gray-20'),
                             true: getColor('text-primary'),
@@ -317,7 +318,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                         </AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
-                        <Switch
+                        <AppSwitch
                           trackColor={{
                             false: getColor('text-gray-20'),
                             true: getColor('text-primary'),
