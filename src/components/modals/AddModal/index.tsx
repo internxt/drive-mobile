@@ -333,6 +333,8 @@ function AddModal(): JSX.Element {
 
     dispatch(driveActions.uploadingFileEnd(file.id));
     dispatch(driveActions.setUri(undefined));
+
+    drive.events.emit({ event: DriveEventKey.UploadCompleted });
   }
 
   function processFilesFromPicker(documents: DocumentPickerFile[]): Promise<void> {

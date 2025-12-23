@@ -1766,12 +1766,12 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@=1.11.6":
-  version "1.11.6"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.11.6/af41e231f6aa28df84977f96ef0049c295446907#af41e231f6aa28df84977f96ef0049c295446907"
-  integrity sha512-H/cd1e574Z1Adcb0jrQp+LIIUPXEkJZEExrxV2m3JgFMc6+VIlJTDzzTi5Bbz42ycSEF+vareY24Qfcn6ijlEA==
+"@internxt/sdk@=1.11.23":
+  version "1.11.23"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.11.23/ef6d833704349bd648e715f5274e9b60fba60c43#ef6d833704349bd648e715f5274e9b60fba60c43"
+  integrity sha512-b+YyUqLWSyRS1Yj8X7WlrAFMWlLhrKtb0do5VRL9bHxWHzlVoGiT9NPcBuajCwQ4hPv8dghnNUFT+gDqZjpHZA==
   dependencies:
-    axios "1.11.0"
+    axios "1.13.2"
     uuid "11.1.0"
 
 "@isaacs/cliui@^8.0.2":
@@ -4097,10 +4097,10 @@ aws4@^1.8.0:
   resolved "https://registry.yarnpkg.com/aws4/-/aws4-1.13.2.tgz#0aa167216965ac9474ccfa83892cfb6b3e1e52ef"
   integrity sha512-lHe62zvbTB5eEABUVi/AwVh0ZKY9rMMDhmm+eeyuuUQbQ3+J+fONVQOZyj+DdrvD4BY33uYniyRJ4UJIaSKAfw==
 
-axios@1.11.0:
-  version "1.11.0"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.11.0.tgz#c2ec219e35e414c025b2095e8b8280278478fdb6"
-  integrity sha512-1Lx3WLFQWm3ooKDYZD1eXmoGO9fxYQjrycfHFC8P0sCfQVXyROp0p9PFWBehewBOdCwHc+f/b8I0fMto5eSfwA==
+axios@1.13.2:
+  version "1.13.2"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.13.2.tgz#9ada120b7b5ab24509553ec3e40123521117f687"
+  integrity sha512-VPk9ebNqPcy5lRGuSlKx752IlDatOjT9paPlm8A7yOuW2Fbvp4X3JznJtT4f0GzGLLiWE9W8onz51SqLYwzGaA==
   dependencies:
     follow-redirects "^1.15.6"
     form-data "^4.0.4"

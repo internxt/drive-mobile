@@ -20,14 +20,10 @@ export const processDuplicateFiles = async ({
   duplicatedFiles,
 }: ProcessDuplicateFilesParams): Promise<{
   newFilesToUpload: FileToUpload[];
-  zeroLengthFiles: number;
 }> => {
-  const zeroLengthFiles = files.filter((file) => file.size === 0).length;
   const newFilesToUpload: FileToUpload[] = [...existingFilesToUpload];
 
   const processFile = async (file: DocumentPickerFile): Promise<void> => {
-    if (file.size === 0) return;
-
     const { plainName, extension } = getFilenameAndExt(file.name);
     let finalFilename = plainName;
 
@@ -46,9 +42,9 @@ export const processDuplicateFiles = async ({
     });
   };
 
-  await Promise.all(files.filter((file) => file.size > 0).map(processFile));
+  await Promise.all(files.map(processFile));
 
-  return { newFilesToUpload, zeroLengthFiles };
+  return { newFilesToUpload };
 };
 
 const getFilenameAndExt = (filename: string): { plainName: string; extension: string } => {
