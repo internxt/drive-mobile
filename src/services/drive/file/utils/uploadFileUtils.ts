@@ -18,7 +18,7 @@ import { getEnvironmentConfig } from '../../../../lib/network';
 import { NotificationType } from '../../../../types';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
-import { SdkManager } from '../../../common/sdk';
+import { uploadService } from '../../../common/network/upload/upload.service';
 import notificationsService from '../../../NotificationsService';
 import { BucketNotFoundError } from './upload.errors';
 
@@ -208,37 +208,25 @@ export function isFileEmpty(file: { size: number }): boolean {
   return file.size === 0;
 }
 
-interface CreateFileEntryParams {
-  bucketId: string;
-  fileId?: string;
-  file: {
-    name: string;
-    size: number;
-    type: string;
-    parentUuid: string;
-  };
-}
-
 /**
  * Create a file entry without uploading content (for empty files)
  */
-export async function createFileEntry({ bucketId, fileId, file }: CreateFileEntryParams): Promise<DriveFileData> {
-  const date = new Date();
-  const sdk = SdkManager.getInstance();
+export async function createEmptyFileEntry(bucketId: string, file: UploadingFile): Promise<DriveFileData> {
+  const modificationTimeISO = file.modificationTime ? new Date(file.modificationTime).toISOString() : undefined;
+  const creationTimeISO = file.creationTime ? new Date(file.creationTime).toISOString() : undefined;
 
-  const fileEntry: Partial<FileEntryByUuid> = {
-    fileId: fileId,
+  const fileEntry: FileEntryByUuid = {
     type: file.type,
     size: file.size,
     plainName: file.name,
     bucket: bucketId,
     folderUuid: file.parentUuid,
     encryptVersion: EncryptionVersion.Aes03,
-    modificationTime: date.toISOString(),
-    date: date.toISOString(),
+    modificationTime: modificationTimeISO,
+    creationTime: creationTimeISO,
   };
 
-  return sdk.storageV2.createFileEntryByUuid(fileEntry as FileEntryByUuid);
+  return uploadService.createFileEntry(fileEntry);
 }
 
 /**
@@ -262,16 +250,8 @@ export async function uploadSingleFile(
       if (!bucketId) {
         throw new BucketNotFoundError();
       }
-
-      await createFileEntry({
-        bucketId,
-        file: {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          parentUuid: file.parentUuid,
-        },
-      });
+      console.log('Creating file entry for empty file:', file);
+      await createEmptyFileEntry(bucketId, file);
     } else {
       await uploadFile(file, 'document');
     }
