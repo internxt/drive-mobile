@@ -151,7 +151,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           uuid: folder.uuid,
           id: folder.id,
           userId: folder.userId,
-          // @ts-expect-error - API is returning status, missing from SDK
           status: folder.status,
         }),
       ),
@@ -167,9 +166,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           createdAt: file.createdAt.toString(),
           updatedAt: file.updatedAt.toString(),
           deletedAt: null,
+          deleted: false,
           status: file.status,
-          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
+          size: Number(file.size),
           folderId: file.folderId,
+          // @ts-expect-error - API is returning status, missing from SDK
           thumbnails: file.thumbnails ?? [],
         }),
       ),

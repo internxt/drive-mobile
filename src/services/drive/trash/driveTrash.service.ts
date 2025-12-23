@@ -1,5 +1,5 @@
 import { SdkManager } from '@internxt-mobile/services/common';
-import { AddItemsToTrashPayload, FetchTrashContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchTrashContentResponse } from '@internxt/sdk/dist/drive/storage/types';
 import { DeleteItemsPermanentlyPayload } from '@internxt/sdk/dist/drive/trash/types';
 import { mapTrashFile, mapTrashFolder } from '../../../helpers/driveItemMappers';
 import { driveFileService } from '../file';
@@ -81,22 +81,14 @@ class DriveTrashService {
     return this.sdk.trash.clearTrash();
   }
 
-  public async moveToTrash(items: { id: number | string; type: 'folder' | 'file'; uuid?: string }[]) {
+  public async moveToTrash(items: { id: number | string; type: 'folder' | 'file'; uuid: string }[]) {
     const itemsToMove = items.map((item) => {
-      if (item.uuid !== undefined) {
-        return {
-          id: null,
-          uuid: item.uuid,
-          type: item.type,
-        };
-      }
-
       return {
-        id: item.id,
+        uuid: item.uuid,
         type: item.type,
       };
     });
-    return this.sdk.trash.addItemsToTrash({ items: itemsToMove } as AddItemsToTrashPayload);
+    return this.sdk.trash.addItemsToTrash({ items: itemsToMove });
   }
 }
 

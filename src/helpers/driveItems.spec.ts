@@ -339,6 +339,7 @@ describe('Drive item classification', () => {
           size: 2048,
           updatedAt: '2025-12-18T00:00:00Z',
           isFolder: false,
+          uuid: 'file-uuid',
         };
 
         expect(checkIsFile(focusedFile)).toBe(true);
@@ -352,6 +353,7 @@ describe('Drive item classification', () => {
           parentUuid: 'parent-uuid',
           updatedAt: '2025-12-18T00:00:00Z',
           isFolder: true,
+          uuid: 'folder-uuid',
         };
 
         expect(checkIsFile(focusedFolder)).toBe(false);

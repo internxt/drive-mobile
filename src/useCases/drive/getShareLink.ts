@@ -106,7 +106,7 @@ export const generateShareLink = async ({
   plainPassword,
 }: {
   itemId: string;
-  fileId?: string;
+  fileId?: string | null;
   plainPassword?: string;
   displayCopyNotification?: boolean;
   type: 'file' | 'folder';

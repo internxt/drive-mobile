@@ -250,7 +250,7 @@ export async function uploadSingleFile(
       if (!bucketId) {
         throw new BucketNotFoundError();
       }
-      console.log('Creating file entry for empty file:', file);
+
       await createEmptyFileEntry(bucketId, file);
     } else {
       await uploadFile(file, 'document');
