@@ -186,9 +186,6 @@ function DriveItemInfoModal(): JSX.Element {
         return decryptedFilePath;
       }
 
-      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-      setExporting(true);
-
       let downloadPath: string;
 
       if (isEmptyFile(item)) {
@@ -198,10 +195,11 @@ function DriveItemInfoModal(): JSX.Element {
         if (!item.fileId) {
           throw new Error('Item fileID not found for non-empty file');
         }
+        setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
+        setExporting(true);
         downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath, fileSize);
+        setExporting(false);
       }
-
-      setExporting(false);
       await fs.shareFile({
         title: item.name,
         fileUri: downloadPath,
@@ -247,13 +245,13 @@ function DriveItemInfoModal(): JSX.Element {
 
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
-        setExporting(true);
         if (isEmptyFile(item)) {
           await drive.file.createEmptyDownloadedFile(decryptedFilePath);
         } else {
+          setExporting(true);
           await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
+          setExporting(false);
         }
-        setExporting(false);
       }
 
       // 3. Copy the decrypted file (is a tmp, so this will dissapear, that's why we copy it)
@@ -307,6 +305,8 @@ function DriveItemInfoModal(): JSX.Element {
         fileUri: decryptedFilePath,
         saveToiOSFiles: true,
       });
+
+      notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
       notifications.error(strings.errors.generic.message);
       logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
