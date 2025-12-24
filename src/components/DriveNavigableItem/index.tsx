@@ -7,7 +7,7 @@ import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../helpers';
 import { getDisplayName } from '../../helpers/itemNames';
 import useGetColor from '../../hooks/useColor';
 import globalStyle from '../../styles/global';
-import { DriveNavigableItemProps } from '../../types/drive';
+import { DriveNavigableItemProps } from '../../types/drive/ui';
 import AppText from '../AppText';
 
 const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disabled, ...props }) => {

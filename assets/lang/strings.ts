@@ -2,7 +2,7 @@
 import LocalizedStrings from 'react-native-localization';
 import { NotificationType } from '../../src/types';
 import { BiometricAccessType } from '../../src/types/app';
-import { SortType } from '../../src/types/drive';
+import { SortType } from '../../src/types/drive/ui';
 
 const strings = new LocalizedStrings({
   en: {

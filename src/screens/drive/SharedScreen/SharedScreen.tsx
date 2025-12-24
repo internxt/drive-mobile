@@ -1,8 +1,9 @@
 import { UseCaseStatus, useUseCase } from '@internxt-mobile/hooks/common';
 import errorService from '@internxt-mobile/services/ErrorService';
+import { SharedFiles, SharedFolders } from '@internxt-mobile/types/drive/shared';
+import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { TabExplorerScreenProps } from '@internxt-mobile/types/navigation';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import EmptySharesImage from 'assets/images/screens/empty-shares.svg';
 import NoResultsImage from 'assets/images/screens/no-results.svg';
 import _ from 'lodash';
@@ -17,7 +18,7 @@ import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import EmptyList from '../../../components/EmptyList';
 import useGetColor from '../../../hooks/useColor';
-import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
+import { DriveItemStatus } from '../../../types/drive/item';
 
 type SharedItem = SharedFolders & SharedFiles;
 export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {

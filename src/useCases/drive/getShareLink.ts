@@ -3,7 +3,7 @@ import AuthService from '@internxt-mobile/services/AuthService';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import notificationsService from '@internxt-mobile/services/NotificationsService';
-import { DriveEventKey } from '@internxt-mobile/types/drive';
+import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 import { NotificationType } from '@internxt-mobile/types/index';
 import { aes } from '@internxt/lib';
 import strings from 'assets/lang/strings';

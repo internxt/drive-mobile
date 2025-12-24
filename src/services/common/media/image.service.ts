@@ -1,7 +1,7 @@
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
-import { FileExtension } from '@internxt-mobile/types/drive';
+import { FileExtension } from '@internxt-mobile/types/drive/file';
 
 import * as RNFS from '@dr.pogodin/react-native-fs';
 

@@ -9,7 +9,9 @@ import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import useGetColor from '../../../../../hooks/useColor';
-import { DownloadedThumbnail, DriveItemProps, DriveItemStatus } from '../../../../../types/drive';
+import { DownloadedThumbnail } from '../../../../../types/drive/file';
+import { DriveItemStatus } from '../../../../../types/drive/item';
+import { DriveItemProps } from '../../../../../types/drive/ui';
 import AppText from '../../../../AppText';
 
 function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {

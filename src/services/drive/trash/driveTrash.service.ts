@@ -1,6 +1,5 @@
 import { SdkManager } from '@internxt-mobile/services/common';
-import { FetchTrashContentResponse } from '@internxt/sdk/dist/drive/storage/types';
-import { DeleteItemsPermanentlyPayload } from '@internxt/sdk/dist/drive/trash/types';
+import { FetchTrashContentResponse, DeleteItemsPermanentlyPayload } from '@internxt-mobile/types/drive/folder';
 import { mapTrashFile, mapTrashFolder } from '../../../helpers/driveItemMappers';
 import { driveFileService } from '../file';
 import { driveFolderService } from '../folder';

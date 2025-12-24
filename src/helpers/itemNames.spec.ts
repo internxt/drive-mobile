@@ -1,4 +1,4 @@
-import { DriveItemDataProps } from '../types/drive';
+import { DriveItemData } from '../types/drive/item';
 import { getDisplayName } from './itemNames';
 
 describe('getDisplayName', () => {
@@ -10,31 +10,31 @@ describe('getDisplayName', () => {
         isFolder: true,
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(folder)).toBe('Documents');
     });
 
     it('should handle folder names with special characters', () => {
-      const folder: DriveItemDataProps = {
+      const folder: DriveItemData = {
         id: 1,
         name: 'My Folder (2024)',
         isFolder: true,
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(folder)).toBe('My Folder (2024)');
-    }) as unknown as DriveItemDataProps;
+    }) as unknown as DriveItemData;
 
     it('should handle folder names with dots', () => {
-      const folder: DriveItemDataProps = {
+      const folder: DriveItemData = {
         id: 1,
         name: 'backup.2024',
         isFolder: true,
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(folder)).toBe('backup.2024');
     });
@@ -42,7 +42,7 @@ describe('getDisplayName', () => {
 
   describe('Files without extension in name', () => {
     it('should append the extension to the file name', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'report',
         type: 'pdf',
@@ -50,7 +50,7 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('report.pdf');
     });
@@ -64,7 +64,7 @@ describe('getDisplayName', () => {
       ];
 
       cases.forEach(({ name, type, expected }) => {
-        const file: DriveItemDataProps = {
+        const file: DriveItemData = {
           id: 1,
           name,
           type,
@@ -72,7 +72,7 @@ describe('getDisplayName', () => {
           fileId: 'file-1',
           updatedAt: '2025-01-01',
           createdAt: '2025-01-01',
-        } as unknown as DriveItemDataProps;
+        } as unknown as DriveItemData;
 
         expect(getDisplayName(file)).toBe(expected);
       });
@@ -81,7 +81,7 @@ describe('getDisplayName', () => {
 
   describe('Files with extension already in name', () => {
     it('should always append the type extension even if present in name', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'report.pdf',
         type: 'pdf',
@@ -89,13 +89,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('report.pdf.pdf');
     });
 
     it('should append extension regardless of case matching', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'Image.JPG',
         type: 'jpg',
@@ -103,13 +103,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('Image.JPG.jpg');
     });
 
     it('should always append type to files with multiple dots in name', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'backup.2024.01.15.tar',
         type: 'tar',
@@ -117,13 +117,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('backup.2024.01.15.tar.tar');
     });
 
     it('should append type even when name ends with same extension', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'document.PDF',
         type: 'pdf',
@@ -131,7 +131,7 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('document.PDF.pdf');
     });
@@ -139,20 +139,20 @@ describe('getDisplayName', () => {
 
   describe('Files without type', () => {
     it('should return the name as-is when type is undefined', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'unknown',
         isFolder: false,
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('unknown');
     });
 
     it('should return the name as-is when type is null', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'noextension',
         type: undefined,
@@ -160,13 +160,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('noextension');
     });
 
     it('should preserve existing extension in name when type is undefined', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'file.txt',
         type: undefined,
@@ -174,7 +174,7 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('file.txt');
     });
@@ -182,7 +182,7 @@ describe('getDisplayName', () => {
 
   describe('Edge cases', () => {
     it('should handle empty type string', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'file',
         type: '',
@@ -190,13 +190,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('file');
     });
 
     it('should handle type with leading/trailing whitespace', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'document',
         type: ' pdf ',
@@ -204,13 +204,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('document. pdf ');
     });
 
     it('should handle type with only whitespace', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'document',
         type: '   ',
@@ -218,13 +218,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('document');
     });
 
     it('should handle files with dots but different extension', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'archive.tar',
         type: 'gz',
@@ -232,13 +232,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('archive.tar.gz');
     });
 
     it('should handle numeric extensions', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'file',
         type: '001',
@@ -246,13 +246,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('file.001');
     });
 
     it('should handle special characters in extension', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'document',
         type: 'pdf~',
@@ -260,14 +260,14 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('document.pdf~');
     });
 
     it('should handle very long extensions', () => {
       const longExtension = 'verylongextensionname';
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'file',
         type: longExtension,
@@ -275,7 +275,7 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe(`file.${longExtension}`);
     });
@@ -290,7 +290,7 @@ describe('getDisplayName', () => {
       ];
 
       scenarios.forEach(({ name, type, expected }) => {
-        const file: DriveItemDataProps = {
+        const file: DriveItemData = {
           id: 1,
           name,
           type,
@@ -298,14 +298,14 @@ describe('getDisplayName', () => {
           fileId: 'file-1',
           updatedAt: '2025-01-01',
           createdAt: '2025-01-01',
-        } as unknown as DriveItemDataProps;
+        } as unknown as DriveItemData;
 
         expect(getDisplayName(file)).toBe(expected);
       });
     });
 
     it('should handle compressed archives with double extensions', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'backup.tar',
         type: 'gz',
@@ -313,13 +313,13 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('backup.tar.gz');
     });
 
     it('should handle versioned files', () => {
-      const file: DriveItemDataProps = {
+      const file: DriveItemData = {
         id: 1,
         name: 'document.v2',
         type: 'pdf',
@@ -327,7 +327,7 @@ describe('getDisplayName', () => {
         fileId: 'file-1',
         updatedAt: '2025-01-01',
         createdAt: '2025-01-01',
-      } as unknown as DriveItemDataProps;
+      } as unknown as DriveItemData;
 
       expect(getDisplayName(file)).toBe('document.v2.pdf');
     });

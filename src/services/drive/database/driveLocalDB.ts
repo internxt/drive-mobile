@@ -1,36 +1,11 @@
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
-import {
-  DRIVE_DB_NAME,
-  DriveItemData,
-  InsertSqliteDriveItemRowData,
-  SqliteDriveFolderRecord,
-  SqliteDriveItemRow,
-} from '../../../types/drive';
+import { DriveFolderData } from '@internxt-mobile/types/drive/folder';
+import { SqliteFolderRecord } from '../../../types/drive/folder';
+import { DriveItemData, InsertSqliteDriveItemRowData, SqliteDriveItemRow } from '../../../types/drive/item';
+import { DRIVE_DB_NAME } from '../../../types/drive/operations';
 import sqliteService from '../../SqliteService';
 import { driveLogger, DriveLogger } from '../logger';
 import driveItemTable from './tables/drive_item';
 import folderRecordTable from './tables/folder_record';
-
-export interface DriveRowItem {
-  id: number;
-  uuid?: string;
-  bucket?: string;
-  color: string | null;
-  name: string;
-  encrypt_version: string;
-  parentId: number | null;
-  parentUuid?: string;
-  fileId?: string | null;
-  folderUuid?: string;
-  icon: string | null;
-  size?: number;
-  type?: string;
-  userId?: number;
-  createdAt?: string;
-  updatedAt?: string;
-  folderId?: number;
-  icon_id: number | null;
-}
 
 class DriveLocalDB {
   private readonly logger: DriveLogger;
@@ -69,10 +44,10 @@ class DriveLocalDB {
     return this.mapDriveItemRowToModel(rows.item(0));
   }
 
-  public async getFolderRecord(folderId: number): Promise<SqliteDriveFolderRecord | null> {
+  public async getFolderRecord(folderId: number): Promise<SqliteFolderRecord | null> {
     const [{ rows }] = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.getById, [folderId]);
 
-    return rows.raw().length > 0 ? (rows.raw()[0] as SqliteDriveFolderRecord) : null;
+    return rows.raw().length > 0 ? (rows.raw()[0] as SqliteFolderRecord) : null;
   }
 
   public async saveFolderContent(
@@ -101,7 +76,7 @@ class DriveLocalDB {
 
     this.saveItems(items);
   }
-  public async saveItems(items: DriveRowItem[]) {
+  public async saveItems(items: DriveItemData[]) {
     // TODO: Should move this to some kind of UPSERT but SQlite is really tricky for that
     for (const item of items) {
       await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [item.id]);
@@ -113,10 +88,10 @@ class DriveLocalDB {
             id: item.id,
             uuid: item.uuid ?? '',
             bucket: item.bucket,
-            color: item.color,
-            encrypt_version: item.encrypt_version,
-            icon: item.icon,
-            icon_id: item.icon_id ?? null,
+            // color: item.color,
+            // encrypt_version: item.encrypt_version,
+            // icon: item.icon,
+            // icon_id: item.icon_id ?? null,
             is_folder: item.parentId !== undefined,
             created_at: item.createdAt ?? '',
             updated_at: item.updatedAt ?? '',
@@ -174,7 +149,7 @@ class DriveLocalDB {
   }
 
   private mapDriveItemRowToModel(row: SqliteDriveItemRow): DriveItemData {
-    let result: DriveFolderData | DriveFileData;
+    let result;
 
     if (row.is_folder) {
       const folder: DriveFolderData = {
@@ -200,7 +175,7 @@ class DriveLocalDB {
       };
       result = folder;
     } else {
-      const file: DriveFileData = {
+      const file = {
         id: row.id,
         bucket: row.bucket as string,
         createdAt: row.created_at,
@@ -224,6 +199,7 @@ class DriveLocalDB {
         // TODO: add to database
         folderUuid: row.folder_uuid ?? row.parent_uuid ?? '',
         uuid: row.uuid ?? '',
+        isFolder: false,
       };
       result = file;
     }

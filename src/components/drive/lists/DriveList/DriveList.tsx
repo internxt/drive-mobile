@@ -2,6 +2,7 @@ import _ from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, useWindowDimensions, View, ViewStyle } from 'react-native';
 
+import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { useTailwind } from 'tailwind-rn';
 import EmptyDriveImage from '../../../../../assets/images/screens/empty-drive.svg';
@@ -9,7 +10,7 @@ import EmptyFolderImage from '../../../../../assets/images/screens/empty-folder.
 import NoResultsImage from '../../../../../assets/images/screens/no-results.svg';
 import strings from '../../../../../assets/lang/strings';
 import useGetColor from '../../../../hooks/useColor';
-import { DriveListItem, DriveListType, DriveListViewMode } from '../../../../types/drive';
+import { DriveListItem } from '../../../../types/drive/item';
 import DriveItemSkinSkeleton from '../../../DriveItemSkinSkeleton';
 import EmptyList from '../../../EmptyList';
 import { DriveGridModeItem } from '../items/DriveGridModeItem';

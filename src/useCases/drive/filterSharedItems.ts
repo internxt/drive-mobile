@@ -1,4 +1,4 @@
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { SharedFiles, SharedFolders } from '@internxt-mobile/types/drive/shared';
 
 export const filterSharedLinks = (sharedLinks: (SharedFiles & SharedFolders)[] | null, query?: string) => {
   if (!sharedLinks || !query) return [];

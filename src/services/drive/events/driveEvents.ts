@@ -3,7 +3,7 @@ import * as RNFS from '@dr.pogodin/react-native-fs';
 import EventEmitter from 'events';
 
 import { Abortable } from '../../../types';
-import { DriveEventKey } from '../../../types/drive';
+import { DriveEventKey } from '../../../types/drive/events';
 import { driveLogger, DriveLogger } from '../logger';
 
 class DriveEventEmitter {

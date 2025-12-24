@@ -1,6 +1,6 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { TrashItem } from '../services/drive/trash';
-import { DriveItemData, DriveItemDataProps, DriveItemFocused } from '../types/drive';
+import { DriveItemData, FocusedItem as DriveItemFocused } from '../types/drive/item';
 
 /**
  * Checks if a Drive item is a folder
@@ -8,9 +8,7 @@ import { DriveItemData, DriveItemDataProps, DriveItemFocused } from '../types/dr
  * @param item - Drive item to check
  * @returns true if the item is a folder, false if it's a file
  */
-export const checkIsFolder = (
-  item: DriveItemData | DriveItemDataProps | DriveItemFocused | DriveFileData | TrashItem,
-): boolean => {
+export const checkIsFolder = (item: DriveItemData | DriveItemFocused | DriveFileData | TrashItem): boolean => {
   if (!item) return false;
 
   if ('isFolder' in item) {

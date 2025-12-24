@@ -1,4 +1,4 @@
-import { DriveListViewMode } from '@internxt-mobile/types/drive';
+import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import _ from 'lodash';
 import React from 'react';
 import { View } from 'react-native';

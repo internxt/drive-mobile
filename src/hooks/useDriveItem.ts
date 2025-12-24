@@ -1,7 +1,6 @@
 import { useState } from 'react';
 
 import drive from '@internxt-mobile/services/drive';
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import strings from '../../assets/lang/strings';
 import notificationsService from '../services/NotificationsService';
@@ -9,13 +8,16 @@ import { useAppDispatch } from '../store/hooks';
 import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
 import { NotificationType } from '../types';
-import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
+import { DriveItemData, DriveItemStatus } from '../types/drive/item';
+import { SharedFiles, SharedFolders } from '../types/drive/shared';
+
+type SharedItem = SharedFiles & SharedFolders;
 
 interface UseDriveItemProps {
-  data: DriveItemDataProps;
+  data: DriveItemData;
   status: DriveItemStatus;
   isSharedLinkItem?: boolean;
-  shareLink?: SharedFiles & SharedFolders;
+  shareLink?: SharedItem;
 }
 
 /**

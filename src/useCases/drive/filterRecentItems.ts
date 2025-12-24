@@ -1,4 +1,4 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 
 export const filterRecentItems = (recents: DriveFileData[] | null, query?: string) => {
   if (!recents || !query) return [];

@@ -1,12 +1,14 @@
 import { getHeaders } from '../../../helpers/headers';
-import { DownloadedThumbnail, DriveListItem, GetModifiedFiles, SortDirection, SortType } from '../../../types/drive';
+import { DownloadedThumbnail, ModifiedFile as GetModifiedFiles } from '../../../types/drive/file';
+import { DriveListItem } from '../../../types/drive/item';
+import { SortDirection, SortType } from '../../../types/drive/ui';
 import { constants } from '../../AppService';
 
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { imageService, SdkManager } from '@internxt-mobile/services/common';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
+import { EncryptionVersion, FileMeta, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
-import { EncryptionVersion, FileMeta, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SaveFormat } from 'expo-image-manipulator';
 import { Image } from 'react-native';
@@ -18,8 +20,8 @@ import { uploadService } from '../../common/network/upload/upload.service';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import { driveFileCache } from './driveFileCache.service';
 
-export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
-export type DriveFileDownloadOptions = {
+type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
+type DriveFileDownloadOptions = {
   downloadPath: string;
   downloadProgressCallback?: (progress: number, bytesReceived: number, totalBytes: number) => void;
   decryptionProgressCallback?: (progress: number) => void;
@@ -27,6 +29,7 @@ export type DriveFileDownloadOptions = {
   disableCache?: boolean;
   signal?: AbortSignal;
 };
+
 class DriveFileService {
   constructor(private sdk: SdkManager) {}
   public getNameFromUri(uri: string): string {

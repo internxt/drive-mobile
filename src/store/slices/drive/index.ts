@@ -1,4 +1,4 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common';
@@ -16,16 +16,18 @@ import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import {
-  DownloadingFile,
-  DriveEventKey,
   DriveItemData,
-  DriveItemFocused,
+  FocusedItem as DriveItemFocused,
   DriveItemStatus,
   DriveListItem,
   DriveNavigationStack,
   DriveNavigationStackItem,
+} from '../../../types/drive/item';
+import {
+  DownloadingFile,
   UploadingFile,
-} from '../../../types/drive';
+} from '../../../types/drive/operations';
+import { DriveEventKey } from '../../../types/drive/events';
 import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
 
 export enum ThunkOperationStatus {

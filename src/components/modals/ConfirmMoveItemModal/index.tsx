@@ -5,7 +5,7 @@ import { ArrowDown } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
-import { DriveItemData, DriveItemFocused } from '../../../types/drive';
+import { DriveItemData, FocusedItem as DriveItemFocused } from '../../../types/drive/item';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import CenterModal from '../CenterModal';
