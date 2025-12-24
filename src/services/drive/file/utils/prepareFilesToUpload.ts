@@ -1,17 +1,7 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
-import { DocumentPickerFile } from '../../../../types/drive';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
+import { DocumentPickerFile, FileToUpload } from '../../../../types/drive/operations';
 import { checkDuplicatedFiles } from './checkDuplicatedFiles';
 import { processDuplicateFiles } from './processDuplicateFiles';
-
-export interface FileToUpload {
-  name: string;
-  uri: string;
-  size: number;
-  type: string;
-  parentUuid: string;
-  modificationTime?: string;
-  creationTime?: string;
-}
 
 const BATCH_SIZE = 200;
 

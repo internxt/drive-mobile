@@ -1,8 +1,7 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { DocumentPickerResponse } from 'react-native-document-picker';
-import { DocumentPickerFile } from '../../../../types/drive';
+import { DocumentPickerFile, FileToUpload } from '../../../../types/drive/operations';
 import { getUniqueFilename } from './getUniqueFilename';
-import { FileToUpload } from './prepareFilesToUpload';
 
 interface ProcessDuplicateFilesParams {
   files: DocumentPickerResponse[];

@@ -1,7 +1,8 @@
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { SearchResult } from '@internxt/sdk/dist/drive/storage/types';
+import { SearchResult } from '@internxt-mobile/types/drive/folder';
+import { DriveListType } from '@internxt-mobile/types/drive/ui';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -20,7 +21,7 @@ import DriveList from 'src/components/drive/lists/DriveList/DriveList';
 import useGetColor from 'src/hooks/useColor';
 import { useAppDispatch } from 'src/store/hooks';
 import { driveActions, driveThunks } from 'src/store/slices/drive';
-import { DriveItemStatus, DriveListItem, DriveListType } from 'src/types/drive';
+import { DriveItemStatus, DriveListItem } from 'src/types/drive/item';
 import { DriveScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import { logger } from '../../../../services/common';

@@ -4,13 +4,18 @@ import uuid from 'react-native-uuid';
 import strings from '../../../../../assets/lang/strings';
 import { isValidFilename } from '../../../../helpers';
 import { driveActions } from '../../../../store/slices/drive';
-import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../../types/drive';
+import {
+  DocumentPickerFile,
+  FileToUpload,
+  UPLOAD_FILE_SIZE_LIMIT,
+  UploadingFile,
+} from '../../../../types/drive/operations';
 import { checkDuplicatedFiles, File } from './checkDuplicatedFiles';
-import { FileToUpload, prepareFilesToUpload } from './prepareFilesToUpload';
+import { prepareFilesToUpload } from './prepareFilesToUpload';
 
 import errorService from '../../../ErrorService';
 
-import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
 import { Dispatch } from 'react';
 import { Action } from 'redux';
 import { DriveFoldersTreeNode } from '../../../../contexts/Drive';

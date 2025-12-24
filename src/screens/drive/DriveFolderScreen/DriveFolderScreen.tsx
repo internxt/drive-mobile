@@ -17,7 +17,9 @@ import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { NotificationType } from '../../../types';
-import { DriveItemStatus, DriveListItem, DriveListType, SortDirection, SortType } from '../../../types/drive';
+import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
+import { SortDirection, SortType } from '../../../types/drive/ui';
+import { DriveListType } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
@@ -130,16 +132,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const driveSortedItems = useMemo(
     () =>
       driveUploadingItems
-        .concat(
-          folderContent
-            .filter((item) => item.data.isFolder)
-            .sort(drive.file.getSortFunction(sortMode)),
-        )
-        .concat(
-          folderContent
-            .filter((item) => !item.data.isFolder)
-            .sort(drive.file.getSortFunction(sortMode)),
-        ),
+        .concat(folderContent.filter((item) => item.data.isFolder).sort(drive.file.getSortFunction(sortMode)))
+        .concat(folderContent.filter((item) => !item.data.isFolder).sort(drive.file.getSortFunction(sortMode))),
     [sortMode, driveUploadingItems, folderContent],
   );
 

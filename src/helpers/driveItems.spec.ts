@@ -1,5 +1,5 @@
 import { TrashItem } from '../services/drive/trash/driveTrash.service';
-import { DriveItemData, DriveItemFocused } from '../types/drive';
+import { DriveItemData, FocusedItem as DriveItemFocused } from '../types/drive/item';
 import { checkIsFile, checkIsFolder, getFileSize, isEmptyFile } from './driveItems';
 
 describe('Drive item classification', () => {
