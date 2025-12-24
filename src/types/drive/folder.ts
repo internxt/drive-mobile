@@ -1,18 +1,11 @@
-import {
+import type { DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+export type {
   DriveFolderData,
   FetchFolderContentResponse,
   FetchTrashContentResponse,
   SearchResult,
 } from '@internxt/sdk/dist/drive/storage/types';
-import { DeleteItemsPermanentlyPayload } from '@internxt/sdk/dist/drive/trash/types';
-
-export type {
-  DeleteItemsPermanentlyPayload,
-  DriveFolderData,
-  FetchFolderContentResponse,
-  FetchTrashContentResponse,
-  SearchResult,
-};
+export type { DeleteItemsPermanentlyPayload } from '@internxt/sdk/dist/drive/trash/types';
 
 /**
  * Base type for a Drive folder

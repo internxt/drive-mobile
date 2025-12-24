@@ -1,14 +1,6 @@
-import {
-  DriveFileData,
-  EncryptionVersion,
-  FileEntryByUuid,
-  FileMeta,
-  Thumbnail,
-} from '@internxt/sdk/dist/drive/storage/types';
-
-export type { DriveFileData, FileEntryByUuid, FileMeta, Thumbnail };
-
-export { EncryptionVersion };
+import type { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+export { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
+export type { DriveFileData, FileEntryByUuid, FileMeta, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 
 /**
  * Base type for a Drive file

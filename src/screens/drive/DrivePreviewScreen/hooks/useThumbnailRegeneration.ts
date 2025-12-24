@@ -1,8 +1,7 @@
 import { logger } from '@internxt-mobile/services/common';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { FileExtension } from '@internxt-mobile/types/drive/file';
-import { Thumbnail } from '@internxt-mobile/types/drive/file';
+import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { useEffect, useRef, useState } from 'react';
 
 const IMAGE_PREVIEW_TYPES = new Set([FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC]);

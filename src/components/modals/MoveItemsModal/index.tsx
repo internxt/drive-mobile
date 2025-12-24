@@ -11,8 +11,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import { DriveItemData, DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { SortDirection, SortType } from '../../../types/drive/ui';
-import { DriveListType, DriveListViewMode } from '../../../types/drive/ui';
+import { DriveListType, DriveListViewMode, SortDirection, SortType } from '../../../types/drive/ui';
 import AppSeparator from '../../AppSeparator';
 import DriveNavigableItem from '../../DriveNavigableItem';
 
