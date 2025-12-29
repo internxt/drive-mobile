@@ -42,10 +42,12 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       isOpen={props.isOpen}
       onClosed={props.onClosed}
       position="top"
-      style={[
-        { ...tailwind('bg-transparent'), paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top },
-        props.modalStyle,
-      ]}
+      style={
+        [
+          { ...tailwind('bg-transparent'), paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top },
+          props.modalStyle,
+        ] as any
+      }
       backButtonClose={props.backButtonClose !== undefined ? props.backButtonClose : true}
       backdropPressToClose={props.backdropPressToClose}
       animationDuration={props.animationDuration || 250}

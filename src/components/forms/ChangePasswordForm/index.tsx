@@ -22,7 +22,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
   const { user } = useAppSelector((state) => state.auth);
-  const schema: yup.SchemaOf<ChangePasswordFormData> = yup
+  const schema: yup.ObjectSchema<ChangePasswordFormData> = yup
     .object()
     .shape({
       newPassword: yup

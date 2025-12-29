@@ -13,7 +13,7 @@ import { Eye, EyeSlash } from 'phosphor-react-native';
 import useGetColor from 'src/hooks/useColor';
 import { authActions } from 'src/store/slices/auth';
 
-const schema: yup.SchemaOf<AuthenticationFormData> = yup
+const schema: yup.ObjectSchema<AuthenticationFormData> = yup
   .object()
   .shape({
     password: yup.string().required(strings.errors.requiredField),
