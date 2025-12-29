@@ -23,7 +23,7 @@ import appService from '@internxt-mobile/services/AppService';
 import StrengthMeter from 'src/components/StrengthMeter';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 
-const schema: yup.SchemaOf<SignUpFormData> = yup
+const schema: yup.ObjectSchema<SignUpFormData> = yup
   .object()
   .shape({
     email: yup
