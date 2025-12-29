@@ -7,6 +7,7 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { DriveEventKey, DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive';
 import { NotificationType, UseCaseResult } from '@internxt-mobile/types/index';
 import strings from 'assets/lang/strings';
+import { checkIsFolder } from '../../helpers';
 
 type GetDriveTrashItemsOptions = {
   page: number;
@@ -36,7 +37,7 @@ export const getDriveTrashItems = async ({
     ]);
 
     const trashItems = trashFolders.items.concat(trashFiles.items).map<DriveListItem>((trashItem) => {
-      const isFolder = !trashItem.fileId ? true : false;
+      const isFolder = checkIsFolder(trashItem);
 
       return {
         status: DriveItemStatus.Idle,

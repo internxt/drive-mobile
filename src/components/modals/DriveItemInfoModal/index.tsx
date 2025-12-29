@@ -28,7 +28,7 @@ import AppText from 'src/components/AppText';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
+import { checkIsFolder, FolderIcon, getFileSize, getFileTypeIcon, isEmptyFile } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -56,7 +56,7 @@ function DriveItemInfoModal(): JSX.Element {
     return <></>;
   }
 
-  const isFolder = !item.fileId;
+  const isFolder = checkIsFolder(item);
 
   const handleRenameItem = () => {
     dispatch(uiActions.setShowItemModal(false));
@@ -165,7 +165,8 @@ function DriveItemInfoModal(): JSX.Element {
 
   const handleExportFile = async () => {
     try {
-      if (!item.fileId) {
+      const fileSize = getFileSize(item);
+      if (!item.fileId && fileSize !== 0) {
         throw new Error('Item fileID not found');
       }
       const canDownloadFile = isFileDownloadable();
@@ -185,15 +186,20 @@ function DriveItemInfoModal(): JSX.Element {
         return decryptedFilePath;
       }
 
-      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-      setExporting(true);
-      const downloadPath = await downloadItem(
-        item.fileId,
-        item.bucket as string,
-        decryptedFilePath,
-        parseInt(item.size?.toString() ?? '0'),
-      );
-      setExporting(false);
+      let downloadPath: string;
+
+      if (isEmptyFile(item)) {
+        await drive.file.createEmptyDownloadedFile(decryptedFilePath);
+        downloadPath = decryptedFilePath;
+      } else {
+        if (!item.fileId) {
+          throw new Error('Item fileID not found for non-empty file');
+        }
+        setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
+        setExporting(true);
+        downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath, fileSize);
+        setExporting(false);
+      }
       await fs.shareFile({
         title: item.name,
         fileUri: downloadPath,
@@ -204,18 +210,24 @@ function DriveItemInfoModal(): JSX.Element {
       errorService.reportError(error);
     } finally {
       setExporting(false);
+      dispatch(uiActions.setShowItemModal(false));
     }
   };
+
   const handleAbortDownload = () => {
     setExporting(false);
+    dispatch(uiActions.setShowItemModal(false));
+
     if (!downloadAbortableRef.current) return;
 
     downloadAbortableRef.current('User requested abort');
   };
+
   const handleAndroidDownloadFile = async () => {
     try {
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-      if (!item.fileId) {
+      const fileSize = getFileSize(item);
+      if (!item.fileId && fileSize !== 0) {
         throw new Error('Item fileID not found');
       }
       const canDownloadFile = isFileDownloadable();
@@ -233,14 +245,13 @@ function DriveItemInfoModal(): JSX.Element {
 
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
-        setExporting(true);
-        await downloadItem(
-          item.fileId,
-          item.bucket as string,
-          decryptedFilePath,
-          parseInt(item.size?.toString() ?? '0'),
-        );
-        setExporting(false);
+        if (isEmptyFile(item)) {
+          await drive.file.createEmptyDownloadedFile(decryptedFilePath);
+        } else {
+          setExporting(true);
+          await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
+          setExporting(false);
+        }
       }
 
       // 3. Copy the decrypted file (is a tmp, so this will dissapear, that's why we copy it)
@@ -259,7 +270,8 @@ function DriveItemInfoModal(): JSX.Element {
   const handleiOSSaveToFiles = async () => {
     try {
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-      if (!item.fileId) {
+      const fileSize = getFileSize(item);
+      if (!item.fileId && fileSize !== 0) {
         throw new Error('Item fileID not found');
       }
       const canDownloadFile = isFileDownloadable();
@@ -277,14 +289,14 @@ function DriveItemInfoModal(): JSX.Element {
 
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
-        setExporting(true);
-        await downloadItem(
-          item.fileId,
-          item.bucket as string,
-          decryptedFilePath,
-          parseInt(item.size?.toString() ?? '0'),
-        );
-        setExporting(false);
+        if (isEmptyFile(item)) {
+          await drive.file.createEmptyDownloadedFile(decryptedFilePath);
+        } else {
+          setExporting(true);
+
+          await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
+          setExporting(false);
+        }
       }
 
       // 3. Share to iOS files app
@@ -293,6 +305,8 @@ function DriveItemInfoModal(): JSX.Element {
         fileUri: decryptedFilePath,
         saveToiOSFiles: true,
       });
+
+      notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
       notifications.error(strings.errors.generic.message);
       logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
@@ -364,7 +378,7 @@ function DriveItemInfoModal(): JSX.Element {
     }
 
     if (
-      item?.size &&
+      (item?.size || item?.size === 0) &&
       downloadProgress?.bytesReceived &&
       downloadProgress?.bytesReceived >= parseInt(item?.size?.toString())
     ) {

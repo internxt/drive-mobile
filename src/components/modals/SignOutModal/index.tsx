@@ -1,17 +1,16 @@
-import React from 'react';
 import { View } from 'react-native';
 
+import { useNavigation } from '@react-navigation/native';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { authSelectors, authThunks } from '../../../store/slices/auth';
 import { uiActions } from '../../../store/slices/ui';
-import CenterModal from '../CenterModal';
+import { RootScreenNavigationProp } from '../../../types/navigation';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
-import { authSelectors, authThunks } from '../../../store/slices/auth';
-import { useNavigation } from '@react-navigation/native';
-import { RootScreenNavigationProp } from '../../../types/navigation';
-import { useTailwind } from 'tailwind-rn';
 import UserProfilePicture from '../../UserProfilePicture';
+import CenterModal from '../CenterModal';
 
 function SignOutModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -27,7 +26,7 @@ function SignOutModal(): JSX.Element {
     onClosed();
   };
   const onSignOutButtonPressed = () => {
-    dispatch(authThunks.signOutThunk());
+    dispatch(authThunks.signOutThunk({ reason: 'manual' }));
     navigation.replace('SignIn');
     onClosed();
   };
@@ -35,7 +34,7 @@ function SignOutModal(): JSX.Element {
   return (
     <CenterModal isOpen={isSignOutModalOpen} onClosed={onClosed} backdropPressToClose={false}>
       <View style={tailwind('w-full px-3 pt-7 pb-3')}>
-        <AppText style={tailwind('mx-4 text-center text-xl text-gray-100')} numberOfLines={1} semibold>
+        <AppText style={tailwind('mx-4 text-center text-xl')} numberOfLines={1} semibold>
           {strings.modals.SignOutModal.title}
         </AppText>
 

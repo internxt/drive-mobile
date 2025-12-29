@@ -1,10 +1,11 @@
 {
   "name": "drive-mobile",
-  "version": "v1.8.3",
+  "version": "v1.8.4",
   "private": true,
   "license": "GNU",
   "scripts": {
     "prepare": "husky install",
+    "postinstall": "patch-package",
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -166,8 +167,10 @@
     "jest": "^29.3.1",
     "jest-expo": "~50.0.4",
     "metro-react-native-babel-transformer": "^0.77.0",
+    "patch-package": "^8.0.1",
     "path": "^0.12.7",
     "postcss": "^8.2.15",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.3.2",
     "react-native-svg-transformer": "^0.14.3",
     "react-test-renderer": "^18.2.0",
@@ -179,5 +182,8 @@
   },
   "engines": {
     "node": ">=16.16.0"
+  },
+  "resolutions": {
+    "pbkdf2": "^3.1.3"
   }
 }

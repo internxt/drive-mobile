@@ -3,6 +3,7 @@ import { ListShareLinksItem, SharedFiles, SharedFolders } from '@internxt/sdk/di
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
 import { UseCaseResult } from '../../types';
 import errorService from '../../services/ErrorService';
+import { mapSharedFile, mapSharedFolder } from '../../helpers/driveItemMappers';
 
 const ITEMS_PER_PAGE = 50;
 
@@ -42,10 +43,10 @@ export const getSharedItems = async ({
       shouldGetFiles ? drive.share.getSharedFiles({ page, perPage: ITEMS_PER_PAGE }) : null,
     ]);
 
-    const sharedFoldersList = sharedFolders?.folders ?? [];
-    const sharedFilesList = sharedFiles?.files ?? [];
+    const sharedFoldersList = (sharedFolders?.folders ?? []).map(mapSharedFolder);
+    const sharedFilesList = (sharedFiles?.files ?? []).map(mapSharedFile);
 
-    const sharedItems = [...sharedFoldersList, ...sharedFilesList] as (SharedFiles & SharedFolders)[];
+    const sharedItems = [...sharedFoldersList, ...sharedFilesList] as (SharedFiles & SharedFolders & { isFolder: boolean })[];
 
     return {
       success: true,
