@@ -12,7 +12,6 @@ declare global {
 
 export type RootStackParamList = {
   Debug: undefined;
-  SignUp: undefined;
   SignIn: undefined;
   WebLogin: {
     mnemonic?: string;

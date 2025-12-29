@@ -1,28 +1,17 @@
 import { logger } from '@internxt-mobile/services/common';
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
-import { StorageTypes } from '@internxt/sdk/dist/drive';
+import { TwoFactorAuthQR } from '@internxt/sdk';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
 import jwtDecode from 'jwt-decode';
 import { validateMnemonic } from 'react-native-bip39';
-import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
-import AesUtils from '../helpers/aesUtils';
+import { decryptText, encryptText, passToHash } from '../helpers';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import appService from './AppService';
 import asyncStorageService from './AsyncStorageService';
-import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
-
-interface RegisterParams {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  captcha: string;
-}
 
 enum AuthEventKey {
   Login = 'login',
@@ -63,57 +52,6 @@ class AuthService {
     } catch {
       // Pass
     }
-  }
-
-  public async doLogin(email: string, password: string, tfaCode?: string) {
-    const loginResult = await this.sdk.authV2.loginWithoutKeys(
-      {
-        email,
-        password,
-        tfaCode,
-      },
-      {
-        encryptPasswordHash(password: Password, encryptedSalt: string): string {
-          const salt = decryptText(encryptedSalt);
-          const hashObj = passToHash({ password, salt });
-          return encryptText(hashObj.hash);
-        },
-        async generateKeys(): Promise<Keys> {
-          const keys = {
-            privateKeyEncrypted: '',
-            publicKey: '',
-            revocationCertificate: '',
-            ecc: {
-              privateKeyEncrypted: '',
-              publicKey: '',
-            },
-            kyber: {
-              publicKey: '',
-              privateKeyEncrypted: '',
-            },
-          };
-          return keys;
-        },
-      },
-    );
-
-    loginResult.user.mnemonic = decryptTextWithKey(loginResult.user.mnemonic, password);
-
-    if (loginResult.user.privateKey) {
-      const decryptedPrivateKey = keysService.decryptPrivateKey(loginResult.user.privateKey, password);
-      loginResult.user.privateKey = Buffer.from(decryptedPrivateKey).toString('base64');
-    }
-
-    // Get the refreshed tokens, they contain expiration, the ones returned
-    // on the login doesn't have expiration
-    const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
-
-    if (!refreshedTokens?.token || !refreshedTokens?.newToken) throw new Error('Unable to refresh auth tokens');
-    return {
-      ...loginResult,
-      token: refreshedTokens.token,
-      newToken: refreshedTokens.newToken,
-    };
   }
 
   public async handleWebLogin(params: { mnemonic: string; token: string; newToken: string; privateKey?: string }) {
@@ -162,74 +100,12 @@ class AuthService {
     await internxtMobileSDKConfig.destroy();
   }
 
-  public async doChangePassword(params: {
-    password: string;
-    newPassword: string;
-  }): Promise<{ token: string; newToken: string }> {
-    const { credentials } = await this.getAuthCredentials();
-    const user = await asyncStorageService.getUser();
-
-    if (!credentials) throw new Error('User credentials not found');
-    const salt = await this.getSalt(credentials.user.email);
-
-    if (!salt) {
-      throw new Error('Internal server error. Please try later.');
-    }
-    const hashedCurrentPassword = passToHash({ password: params.password, salt }).hash;
-    const encCurrentPass = encryptText(hashedCurrentPassword);
-
-    const hashedNewPassword = passToHash({ password: params.newPassword });
-    const encNewPass = encryptText(hashedNewPassword.hash);
-    const encryptedNewSalt = encryptText(hashedNewPassword.salt);
-
-    const encryptedMnemonic = encryptTextWithKey(credentials.user.mnemonic, params.newPassword);
-    let privateKeyFinalValue;
-    if (credentials.user.privateKey) {
-      const privateKey = Buffer.from(credentials.user.privateKey, 'base64').toString();
-      const privateKeyEncrypted = AesUtils.encrypt(privateKey, params.newPassword);
-      privateKeyFinalValue = privateKeyEncrypted;
-    } else {
-      /**
-       * We are not generating the public/private key in mobile
-       * so could be possible that the user doesn't has one associated
-       * in that case, we send this value
-       */
-      privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
-    }
-
-    const keys = user.keys;
-    const kyberKeys = keys.kyber;
-    const eccKeys = keys.ecc;
-
-    const changePasswordResult = await this.sdk.usersV2.changePassword({
-      currentEncryptedPassword: encCurrentPass,
-      newEncryptedSalt: encryptedNewSalt,
-      encryptedMnemonic,
-      newEncryptedPassword: encNewPass,
-      encryptedPrivateKey: privateKeyFinalValue,
-      keys: {
-        encryptedPrivateKey: eccKeys.privateKey,
-        encryptedPrivateKyberKey: kyberKeys.privateKey,
-      },
-      encryptVersion: StorageTypes.EncryptionVersion.Aes03,
-    });
-
-    return {
-      token: changePasswordResult.token,
-      newToken: changePasswordResult.newToken,
-    };
-  }
-
   public reset(email: string): Promise<void> {
     return this.sdk.authV2.sendChangePasswordEmail(email);
   }
 
   public async deleteAccount(token: string): Promise<void> {
     await this.sdk.authV2.sendUserDeactivationEmail(token);
-  }
-
-  public async getNewBits(): Promise<{ mnemonic: string }> {
-    return this.sdk.usersV2WithoutToken.generateMnemonic();
   }
 
   public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
@@ -239,27 +115,6 @@ class AuthService {
     const { hash: hashedPassword } = passToHash({ password, salt: plainSalt });
 
     return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
-  }
-
-  public async doRegister(params: RegisterParams) {
-    const hashObj = passToHash({ password: params.password });
-    const encPass = encryptText(hashObj.hash);
-    const encSalt = encryptText(hashObj.salt);
-    const bits = await this.getNewBits();
-    const mnemonic = bits.mnemonic;
-    const encMnemonic = encryptTextWithKey(mnemonic, params.password);
-
-    const payload = {
-      email: params.email.toLowerCase(),
-      name: params.firstName,
-      lastname: params.lastName,
-      password: encPass,
-      mnemonic: encMnemonic,
-      salt: encSalt,
-      captcha: params.captcha,
-    };
-
-    return this.sdk.authV2.registerWithoutKeys(payload);
   }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {

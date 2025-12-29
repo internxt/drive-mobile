@@ -7,7 +7,6 @@ import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import SignInScreen from '../screens/SignInScreen';
-import SignUpScreen from '../screens/SignUpScreen';
 import WebLoginScreen from '../screens/WebLoginScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { driveActions } from '../store/slices/drive';
@@ -72,13 +71,6 @@ function AppNavigator(): JSX.Element {
   return (
     <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false, gestureEnabled: true }}>
       <Stack.Screen name="Debug" component={DebugScreen} />
-      <Stack.Screen
-        name="SignUp"
-        component={SignUpScreen}
-        options={{
-          animation: 'fade_from_bottom',
-        }}
-      />
       <Stack.Screen name="SignIn" component={SignInScreen} />
       <Stack.Screen name="WebLogin" component={WebLoginScreen} />
       <Stack.Screen name="DeactivatedAccount" component={DeactivatedAccountScreen} />

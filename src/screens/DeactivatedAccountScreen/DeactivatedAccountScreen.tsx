@@ -8,9 +8,10 @@ import { useTailwind } from 'tailwind-rn';
 import { CheckCircle } from 'phosphor-react-native';
 import AppText from 'src/components/AppText';
 import strings from 'assets/lang/strings';
-import { Dimensions, View } from 'react-native';
+import { Dimensions, Linking, View } from 'react-native';
 import AppVersionWidget from 'src/components/AppVersionWidget';
 import { LinearGradient } from 'expo-linear-gradient';
+import appService from 'src/services/AppService';
 
 export function DeactivatedAccountScreen({ navigation }: RootStackScreenProps<'DeactivatedAccount'>): JSX.Element {
   const tailwind = useTailwind();
@@ -18,8 +19,12 @@ export function DeactivatedAccountScreen({ navigation }: RootStackScreenProps<'D
   const handleGoToSignIn = () => {
     navigation.replace('SignIn');
   };
-  const handleGoToSignUp = () => {
-    navigation.replace('SignUp');
+  const handleGoToSignUp = async () => {
+    const webAuthUrl = appService.urls.webAuth.signup;
+    const canOpen = await Linking.canOpenURL(webAuthUrl);
+    if (canOpen) {
+      await Linking.openURL(webAuthUrl);
+    }
   };
   const dimensions = Dimensions.get('screen');
   return (
