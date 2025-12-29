@@ -182,7 +182,7 @@ export const clearTrash = async (): Promise<UseCaseResult<null>> => {
  * Moves items to trash
  */
 export const moveItemsToTrash = async (
-  items: { id: string; type: 'file' | 'folder'; dbItemId: number; uuid?: string }[],
+  items: { id: string; type: 'file' | 'folder'; dbItemId: number; uuid: string }[],
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {

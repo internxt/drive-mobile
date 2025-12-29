@@ -61,7 +61,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     dispatch(
       driveActions.setFocusedItem({
         ...props.data,
-        uuid: props.data.uuid ?? undefined,
+        uuid: props.data.uuid,
         folderUuid: props.data.folderUuid ?? undefined,
         bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,

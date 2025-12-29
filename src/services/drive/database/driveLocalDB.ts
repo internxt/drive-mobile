@@ -20,7 +20,7 @@ export interface DriveRowItem {
   encrypt_version: string;
   parentId: number | null;
   parentUuid?: string;
-  fileId?: string;
+  fileId?: string | null;
   folderUuid?: string;
   icon: string | null;
   size?: number;

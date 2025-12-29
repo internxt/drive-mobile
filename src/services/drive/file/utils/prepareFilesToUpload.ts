@@ -25,16 +25,15 @@ export const prepareFilesToUpload = async ({
   parentFolderUuid: string;
   disableDuplicatedNamesCheck?: boolean;
   disableExistenceCheck?: boolean;
-}): Promise<{ filesToUpload: FileToUpload[]; zeroLengthFilesNumber: number }> => {
+}): Promise<{ filesToUpload: FileToUpload[] }> => {
   let filesToUpload: FileToUpload[] = [];
-  let zeroLengthFilesNumber = 0;
 
   const processFiles = async (
     filesBatch: DocumentPickerFile[],
     disableDuplicatedNamesCheckOverride: boolean,
     duplicatedFiles?: DriveFileData[],
   ) => {
-    const { zeroLengthFiles, newFilesToUpload } = await processDuplicateFiles({
+    const { newFilesToUpload } = await processDuplicateFiles({
       files: filesBatch,
       existingFilesToUpload: filesToUpload,
       parentFolderUuid,
@@ -43,7 +42,6 @@ export const prepareFilesToUpload = async ({
     });
 
     filesToUpload = newFilesToUpload;
-    zeroLengthFilesNumber += zeroLengthFiles;
   };
 
   const processFilesBatch = async (filesBatch: DocumentPickerFile[]) => {
@@ -79,5 +77,5 @@ export const prepareFilesToUpload = async ({
     await processFilesBatch(batch);
   }
 
-  return { filesToUpload, zeroLengthFilesNumber };
+  return { filesToUpload };
 };

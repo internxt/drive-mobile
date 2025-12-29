@@ -29,7 +29,7 @@ export interface DriveNavigationStackItem {
 }
 export type DriveNavigationStack = DriveNavigationStackItem[];
 
-export type DriveItemData = DriveFileData & DriveFolderData & { uuid?: string; isFolder: boolean };
+export type DriveItemData = DriveFileData & DriveFolderData & { uuid: string; isFolder: boolean };
 
 export type DriveFile = DriveFileData & { uuid?: string; isFolder: boolean };
 
@@ -41,7 +41,7 @@ export type DriveItemFocused = {
   parentId?: number;
   parentUuid?: string;
   folderUuid?: string;
-  fileId?: string;
+  fileId?: string | null;
   type?: string;
   size?: string | number;
   updatedAt: string;
@@ -52,7 +52,7 @@ export type DriveItemFocused = {
   isFromFolderActions?: boolean;
   isFolder: boolean;
   bucket?: string;
-  uuid?: string;
+  uuid: string;
   thumbnails?: Thumbnail[];
 } | null;
 
@@ -162,7 +162,7 @@ export type DriveItemDataProps = Pick<
   isFolder: boolean;
   folderId?: number;
   folderUuid?: string | null;
-  fileId?: string;
+  fileId?: string | null;
   parentId?: number | null;
   parentUuid?: string;
   code?: string;
@@ -171,7 +171,7 @@ export type DriveItemDataProps = Pick<
   type?: string;
   shareId?: string;
   thumbnail?: DownloadedThumbnail;
-  uuid?: string;
+  uuid: string;
   bucket?: string | null;
 };
 

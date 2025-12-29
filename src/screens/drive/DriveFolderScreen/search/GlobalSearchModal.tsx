@@ -131,6 +131,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           isFolder: false,
           currentThumbnail: null,
           id: fileMeta.id,
+          // @ts-expect-error thumbnails missinig in type in SDK
           thumbnails: fileMeta.thumbnails ?? [],
           parentId: fileMeta.folderId,
         },
@@ -148,13 +149,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           updatedAt: driveFileData.data.updatedAt,
           isFolder: driveFileData.data.isFolder,
           bucket: driveFileData.data.bucket,
+          fileId: driveFileData.data.fileId ?? undefined,
         }),
       );
       const thunk = dispatch(
         driveThunks.downloadFileThunk({
           ...driveFileData,
           bucketId: driveFileData.data.bucket as string,
-          size: driveFileData.data.size as number,
+          size: driveFileData.data.size as unknown as number,
           parentId: driveFileData.data.parentId as number,
           name: driveFileData.data.name ?? '',
           type: driveFileData.data.type as string,
