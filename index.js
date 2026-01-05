@@ -1,4 +1,5 @@
 // Better and recommended replacement as rn-nodeify
+import 'react-native-url-polyfill/auto';
 import 'node-libs-react-native/globals';
 import 'expo-asset';
 import 'intl';
