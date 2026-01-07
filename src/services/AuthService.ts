@@ -4,7 +4,7 @@ import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import EventEmitter from 'events';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import { validateMnemonic } from 'react-native-bip39';
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';

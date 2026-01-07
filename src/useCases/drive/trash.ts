@@ -4,7 +4,8 @@ import { driveEvents } from '@internxt-mobile/services/drive/events';
 import { FetchDriveTrashItemsResponse } from '@internxt-mobile/services/drive/trash';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
-import { DriveEventKey, DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive';
+import { DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive/item';
+import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 import { NotificationType, UseCaseResult } from '@internxt-mobile/types/index';
 import strings from 'assets/lang/strings';
 import { checkIsFolder } from '../../helpers';
@@ -182,7 +183,7 @@ export const clearTrash = async (): Promise<UseCaseResult<null>> => {
  * Moves items to trash
  */
 export const moveItemsToTrash = async (
-  items: { id: string; type: 'file' | 'folder'; dbItemId: number; uuid?: string }[],
+  items: { id: string; type: 'file' | 'folder'; dbItemId: number; uuid: string }[],
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {

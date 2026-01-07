@@ -101,7 +101,7 @@ function DriveItemInfoModal(): JSX.Element {
         {
           dbItemId: dbItem?.id || item.id,
           id: isFolder ? item.id.toString() : (item.fileId as string),
-          uuid: item?.uuid,
+          uuid: item.uuid,
           type: isFolder ? 'folder' : 'file',
         },
       ],

@@ -1,5 +1,5 @@
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { SharedFiles, SharedFolders } from '@internxt-mobile/types/drive/shared';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { TrashItem } from '../services/drive/trash';
 import {
   mapFileWithIsFolder,

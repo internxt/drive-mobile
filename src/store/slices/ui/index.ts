@@ -1,5 +1,5 @@
+import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { DriveListViewMode } from '../../../types/drive';
 
 export interface UIState {
   searchActive: boolean;

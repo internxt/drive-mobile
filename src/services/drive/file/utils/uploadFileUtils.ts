@@ -4,18 +4,28 @@ import uuid from 'react-native-uuid';
 import strings from '../../../../../assets/lang/strings';
 import { isValidFilename } from '../../../../helpers';
 import { driveActions } from '../../../../store/slices/drive';
-import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../../types/drive';
+import {
+  DocumentPickerFile,
+  FileToUpload,
+  UPLOAD_FILE_SIZE_LIMIT,
+  UploadingFile,
+} from '../../../../types/drive/operations';
 import { checkDuplicatedFiles, File } from './checkDuplicatedFiles';
-import { FileToUpload, prepareFilesToUpload } from './prepareFilesToUpload';
+import { prepareFilesToUpload } from './prepareFilesToUpload';
 
 import errorService from '../../../ErrorService';
 
+import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
 import { Dispatch } from 'react';
+import { Action } from 'redux';
 import { DriveFoldersTreeNode } from '../../../../contexts/Drive';
+import { getEnvironmentConfig } from '../../../../lib/network';
 import { NotificationType } from '../../../../types';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
+import { uploadService } from '../../../common/network/upload/upload.service';
 import notificationsService from '../../../NotificationsService';
+import { BucketNotFoundError } from './upload.errors';
 
 /**
  * Validate file names and filter out files exceeding the upload size limit.
@@ -197,6 +207,34 @@ async function trackUploadError(file: UploadingFile, err: Error) {
 }
 
 /**
+ * Utility to check if a file is empty (0 bytes)
+ */
+export function isFileEmpty(file: { size: number }): boolean {
+  return file.size === 0;
+}
+
+/**
+ * Create a file entry without uploading content (for empty files)
+ */
+export async function createEmptyFileEntry(bucketId: string, file: UploadingFile): Promise<DriveFileData> {
+  const modificationTimeISO = file.modificationTime ? new Date(file.modificationTime).toISOString() : undefined;
+  const creationTimeISO = file.creationTime ? new Date(file.creationTime).toISOString() : undefined;
+
+  const fileEntry: FileEntryByUuid = {
+    type: file.type,
+    size: file.size,
+    plainName: file.name,
+    bucket: bucketId,
+    folderUuid: file.parentUuid,
+    encryptVersion: EncryptionVersion.Aes03,
+    modificationTime: modificationTimeISO,
+    creationTime: creationTimeISO,
+  };
+
+  return uploadService.createFileEntry(fileEntry);
+}
+
+/**
  * Upload a single file, handle errors, and update Redux state accordingly.
  *
  * @param {UploadingFile} file - The file to upload.
@@ -206,12 +244,22 @@ async function trackUploadError(file: UploadingFile, err: Error) {
  */
 export async function uploadSingleFile(
   file: UploadingFile,
-  dispatch: Dispatch<any>,
+  dispatch: Dispatch<Action>,
   uploadFile: (uploadingFile: UploadingFile, fileType: 'document' | 'image') => Promise<void>,
   uploadSuccess: (file: UploadingFile) => void,
 ) {
   try {
-    await uploadFile(file, 'document');
+    if (isFileEmpty(file)) {
+      const { bucketId } = await getEnvironmentConfig();
+
+      if (!bucketId) {
+        throw new BucketNotFoundError();
+      }
+
+      await createEmptyFileEntry(bucketId, file);
+    } else {
+      await uploadFile(file, 'document');
+    }
     uploadSuccess(file);
   } catch (e) {
     const err = e as Error;

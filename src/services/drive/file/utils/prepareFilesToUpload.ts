@@ -1,17 +1,7 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
-import { DocumentPickerFile } from '../../../../types/drive';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
+import { DocumentPickerFile, FileToUpload } from '../../../../types/drive/operations';
 import { checkDuplicatedFiles } from './checkDuplicatedFiles';
 import { processDuplicateFiles } from './processDuplicateFiles';
-
-export interface FileToUpload {
-  name: string;
-  uri: string;
-  size: number;
-  type: string;
-  parentUuid: string;
-  modificationTime?: string;
-  creationTime?: string;
-}
 
 const BATCH_SIZE = 200;
 
@@ -25,16 +15,15 @@ export const prepareFilesToUpload = async ({
   parentFolderUuid: string;
   disableDuplicatedNamesCheck?: boolean;
   disableExistenceCheck?: boolean;
-}): Promise<{ filesToUpload: FileToUpload[]; zeroLengthFilesNumber: number }> => {
+}): Promise<{ filesToUpload: FileToUpload[] }> => {
   let filesToUpload: FileToUpload[] = [];
-  let zeroLengthFilesNumber = 0;
 
   const processFiles = async (
     filesBatch: DocumentPickerFile[],
     disableDuplicatedNamesCheckOverride: boolean,
     duplicatedFiles?: DriveFileData[],
   ) => {
-    const { zeroLengthFiles, newFilesToUpload } = await processDuplicateFiles({
+    const { newFilesToUpload } = await processDuplicateFiles({
       files: filesBatch,
       existingFilesToUpload: filesToUpload,
       parentFolderUuid,
@@ -43,7 +32,6 @@ export const prepareFilesToUpload = async ({
     });
 
     filesToUpload = newFilesToUpload;
-    zeroLengthFilesNumber += zeroLengthFiles;
   };
 
   const processFilesBatch = async (filesBatch: DocumentPickerFile[]) => {
@@ -79,5 +67,5 @@ export const prepareFilesToUpload = async ({
     await processFilesBatch(batch);
   }
 
-  return { filesToUpload, zeroLengthFilesNumber };
+  return { filesToUpload };
 };

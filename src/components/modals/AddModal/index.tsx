@@ -22,7 +22,7 @@ import {
   parseExifDate,
 } from '@internxt-mobile/services/drive/file/utils/exifHelpers';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { SaveFormat } from 'expo-image-manipulator';
 import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
 import uuid from 'react-native-uuid';
@@ -51,7 +51,8 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import { NotificationType, ProgressCallback } from '../../../types';
-import { DocumentPickerFile, DriveEventKey, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../types/drive';
+import { DocumentPickerFile, UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive/operations';
+import { DriveEventKey } from '../../../types/drive/events';
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
@@ -333,6 +334,8 @@ function AddModal(): JSX.Element {
 
     dispatch(driveActions.uploadingFileEnd(file.id));
     dispatch(driveActions.setUri(undefined));
+
+    drive.events.emit({ event: DriveEventKey.UploadCompleted });
   }
 
   function processFilesFromPicker(documents: DocumentPickerFile[]): Promise<void> {

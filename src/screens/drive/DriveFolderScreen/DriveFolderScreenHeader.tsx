@@ -1,4 +1,4 @@
-import { DriveListViewMode, SortDirection } from '@internxt-mobile/types/drive';
+import { DriveListViewMode, SortDirection } from '@internxt-mobile/types/drive/ui';
 import { BackButton } from '@internxt-mobile/ui-kit';
 import strings from 'assets/lang/strings';
 import { ArrowDown, ArrowUp, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';

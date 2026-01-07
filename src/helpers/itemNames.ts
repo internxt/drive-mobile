@@ -1,4 +1,4 @@
-import { DriveItemDataProps } from '../types/drive';
+import { DriveItemData } from '../types/drive/item';
 
 /**
  * Generates a display name for a drive item (file or folder).
@@ -24,7 +24,7 @@ import { DriveItemDataProps } from '../types/drive';
  * // File without type
  * getDisplayName({ name: 'unknown', isFolder: false }) // 'unknown'
  */
-export const getDisplayName = (item: DriveItemDataProps): string => {
+export const getDisplayName = (item: DriveItemData): string => {
   if (item.isFolder || !item.type?.trim()) return item.name;
 
   return `${item.name}.${item.type}`;

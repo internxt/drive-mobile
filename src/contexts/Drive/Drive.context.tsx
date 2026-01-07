@@ -1,5 +1,8 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { DriveFileForTree, DriveFolderForTree, DriveItemData, DriveListViewMode } from '@internxt-mobile/types/drive';
+import { DriveFileForTree, Thumbnail } from '@internxt-mobile/types/drive/file';
+import { DriveFolderForTree } from '@internxt-mobile/types/drive/folder';
+import { DriveItemData } from '@internxt-mobile/types/drive/item';
+import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -8,7 +11,6 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
-import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { mapFileWithIsFolder, mapFolderWithIsFolder } from 'src/helpers/driveItemMappers';
 
 export type DriveFoldersTreeNode = {
@@ -151,7 +153,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           uuid: folder.uuid,
           id: folder.id,
           userId: folder.userId,
-          // @ts-expect-error - API is returning status, missing from SDK
           status: folder.status,
         }),
       ),
@@ -167,9 +168,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           createdAt: file.createdAt.toString(),
           updatedAt: file.updatedAt.toString(),
           deletedAt: null,
+          deleted: false,
           status: file.status,
-          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
+          size: Number(file.size),
           folderId: file.folderId,
+          // @ts-expect-error - API is returning thumbnails, missing from SDK
           thumbnails: file.thumbnails ?? [],
         }),
       ),
