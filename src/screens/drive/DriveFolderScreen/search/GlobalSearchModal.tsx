@@ -132,7 +132,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           isFolder: false,
           currentThumbnail: null,
           id: fileMeta.id,
-          // @ts-expect-error thumbnails missinig in type in SDK
+          // @ts-expect-error thumbnails missing in type in SDK
           thumbnails: fileMeta.thumbnails ?? [],
           parentId: fileMeta.folderId,
         },

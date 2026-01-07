@@ -172,7 +172,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           status: file.status,
           size: Number(file.size),
           folderId: file.folderId,
-          // @ts-expect-error - API is returning status, missing from SDK
+          // @ts-expect-error - API is returning thumbnails, missing from SDK
           thumbnails: file.thumbnails ?? [],
         }),
       ),
