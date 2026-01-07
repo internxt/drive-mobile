@@ -1,6 +1,7 @@
 import drive from '@internxt-mobile/services/drive';
-import { ListShareLinksItem, SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
-import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
+import { DriveFolderData } from '@internxt-mobile/types/drive/folder';
+import { ListShareLinksItem, SharedFiles, SharedFolders } from '@internxt-mobile/types/drive/shared';
 import { UseCaseResult } from '../../types';
 import errorService from '../../services/ErrorService';
 import { mapSharedFile, mapSharedFolder } from '../../helpers/driveItemMappers';

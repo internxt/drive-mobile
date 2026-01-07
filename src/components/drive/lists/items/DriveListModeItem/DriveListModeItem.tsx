@@ -9,9 +9,11 @@ import ProgressBar from '../../../../AppProgressBar';
 import AppText from '../../../../AppText';
 
 import { time } from '@internxt-mobile/services/common/time';
+import { DriveListType } from '@internxt-mobile/types/drive/ui';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../../hooks/useColor';
-import { DriveItemProps, DriveItemStatus, DriveListType } from '../../../../../types/drive';
+import { DriveItemStatus } from '../../../../../types/drive/item';
+import { DriveItemProps } from '../../../../../types/drive/ui';
 
 export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();

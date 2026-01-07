@@ -1,5 +1,5 @@
 import drive from '@internxt-mobile/services/drive';
-import { DriveEventKey } from '@internxt-mobile/types/drive';
+import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 export const onDriveItemUploaded = (callback: () => void) => {
   drive.events.addListener({
     event: DriveEventKey.UploadCompleted,

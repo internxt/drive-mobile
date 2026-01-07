@@ -1,8 +1,8 @@
 import appService from '@internxt-mobile/services/AppService';
 import AuthService from '@internxt-mobile/services/AuthService';
 import { SdkManager } from '@internxt-mobile/services/common';
+import { CreateSharingPayload, ListAllSharedFoldersResponse } from '@internxt-mobile/types/drive/shared';
 import { aes } from '@internxt/lib';
-import { CreateSharingPayload, ListAllSharedFoldersResponse } from '@internxt/sdk/dist/drive/share/types';
 import Share from 'react-native-share';
 class DriveShareService {
   constructor(private sdk: SdkManager) {}

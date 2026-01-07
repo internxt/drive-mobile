@@ -1,5 +1,8 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { DriveFileForTree, DriveFolderForTree, DriveItemData, DriveListViewMode } from '@internxt-mobile/types/drive';
+import { DriveFileForTree, Thumbnail } from '@internxt-mobile/types/drive/file';
+import { DriveFolderForTree } from '@internxt-mobile/types/drive/folder';
+import { DriveItemData } from '@internxt-mobile/types/drive/item';
+import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -8,7 +11,6 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
-import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { mapFileWithIsFolder, mapFolderWithIsFolder } from 'src/helpers/driveItemMappers';
 
 export type DriveFoldersTreeNode = {
