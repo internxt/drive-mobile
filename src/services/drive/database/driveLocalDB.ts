@@ -24,30 +24,38 @@ class DriveLocalDB {
   }
 
   public async getDriveItems(parentId: number): Promise<DriveItemData[]> {
-    return sqliteService
-      .executeSql(DRIVE_DB_NAME, driveItemTable.statements.get({ parentId }))
-      .then(async ([{ rows }]) => {
-        const results: DriveItemData[] = [];
+    const rows = await sqliteService.getAllAsync<SqliteDriveItemRow>(
+      DRIVE_DB_NAME,
+      driveItemTable.statements.get({ parentId }),
+    );
+    const results: DriveItemData[] = [];
 
-        for (const row of rows.raw() as SqliteDriveItemRow[]) {
-          results.push(this.mapDriveItemRowToModel(row));
-        }
+    for (const row of rows) {
+      results.push(this.mapDriveItemRowToModel(row));
+    }
 
-        return results;
-      });
+    return results;
   }
 
   public async getDriveItem(id: number): Promise<DriveItemData | null> {
-    const [{ rows }] = await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.getOne, [id]);
+    const row = await sqliteService.getFirstAsync<SqliteDriveItemRow>(
+      DRIVE_DB_NAME,
+      driveItemTable.statements.getOne,
+      [id],
+    );
 
-    if (!rows.item(0)) return null;
-    return this.mapDriveItemRowToModel(rows.item(0));
+    if (!row) return null;
+    return this.mapDriveItemRowToModel(row);
   }
 
   public async getFolderRecord(folderId: number): Promise<SqliteFolderRecord | null> {
-    const [{ rows }] = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.getById, [folderId]);
+    const row = await sqliteService.getFirstAsync<SqliteFolderRecord>(
+      DRIVE_DB_NAME,
+      folderRecordTable.statements.getById,
+      [folderId],
+    );
 
-    return rows.raw().length > 0 ? (rows.raw()[0] as SqliteFolderRecord) : null;
+    return row;
   }
 
   public async saveFolderContent(
@@ -74,7 +82,7 @@ class DriveLocalDB {
       new Date().toString(),
     ]);
 
-    this.saveItems(items);
+    await this.saveItems(items);
   }
   public async saveItems(items: DriveItemData[]) {
     // TODO: Should move this to some kind of UPSERT but SQlite is really tricky for that
@@ -106,7 +114,7 @@ class DriveLocalDB {
           } as InsertSqliteDriveItemRowData;
         });
         const bulkInsertQuery = driveItemTable.statements.bulkInsert(rows);
-        tx.executeSql(bulkInsertQuery);
+        await tx.executeSql(bulkInsertQuery);
       }
     });
   }
@@ -131,12 +139,12 @@ class DriveLocalDB {
   }
 
   public async updateFolderName(folderId: number, newName: string) {
-    const [{ rows }] = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.updateItem, [
+    const result = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.updateItem, [
       newName,
       folderId,
     ]);
 
-    return rows.raw;
+    return result;
   }
 
   public async resetDatabase(): Promise<void> {

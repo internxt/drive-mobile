@@ -6,10 +6,10 @@ import { internxtFS } from '@internxt/mobile-sdk';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
 import prettysize from 'prettysize';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
-import RNFetchBlob from 'rn-fetch-blob';
 
 export enum AcceptedEncodings {
   Utf8 = 'utf8',
@@ -120,7 +120,7 @@ class FileSystemService {
   }
 
   public writeFileStream(uri: string): Promise<FileWriter> {
-    return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
+    return ReactNativeBlobUtil.fs.writeStream(uri, 'base64').then((writeStream) => {
       return {
         write: (content: string) => writeStream.write(content),
         close: () => writeStream.close(),
@@ -143,7 +143,7 @@ class FileSystemService {
   }
 
   public createFile(path: string, content: string, encoding: AcceptedEncodings): Promise<void> {
-    return RNFetchBlob.fs.createFile(path, content, encoding);
+    return ReactNativeBlobUtil.fs.createFile(path, content, encoding);
   }
 
   public createEmptyFile(path: string): Promise<void> {
@@ -332,7 +332,8 @@ class FileSystemService {
     if (Platform.OS === 'android' && !(await this.exists(this.getTemporaryDir()))) {
       await this.mkdir(this.getTemporaryDir());
     }
-    await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
+
+    await this.unlinkIfExists(ReactNativeBlobUtil.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
     await this.clearTempDir();
   }
 

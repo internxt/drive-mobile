@@ -3,7 +3,7 @@ import moment from 'moment';
 import { CaretRight, DownloadSimple } from 'phosphor-react-native';
 import { useState } from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
-import RNFetchBlob, { RNFetchBlobConfig } from 'rn-fetch-blob';
+import ReactNativeBlobUtil, { ReactNativeBlobUtilConfig } from 'react-native-blob-util';
 import CancelSubscriptionModal from 'src/components/modals/CancelSubscriptionModal';
 import { titlerize } from 'src/helpers/strings';
 import fileSystemService from 'src/services/FileSystemService';
@@ -57,9 +57,9 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
   const downloadInvoice = (url: string) => {
     const date = new Date();
     const file_ext = '.pdf';
-    const { config, fs } = RNFetchBlob;
+    const { config, fs } = ReactNativeBlobUtil;
     const RootDir = fs.dirs.DownloadDir;
-    const options: RNFetchBlobConfig = {
+    const options: ReactNativeBlobUtilConfig = {
       fileCache: true,
       appendExt: 'pdf',
       addAndroidDownloads: {

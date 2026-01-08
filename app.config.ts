@@ -20,7 +20,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   slug: 'drive-mobile',
   version: packageVersion,
   orientation: 'portrait',
-  newArchEnabled: false, // Temporarily disabled due to incompatible libraries: rn-fetch-blob, realm, react-native-pdf, react-native-sqlite-storage
+  newArchEnabled: false, // Temporarily disabled due to: react-native-pdf (consider migrating to WebView)
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
