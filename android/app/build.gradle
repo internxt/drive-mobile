@@ -91,7 +91,7 @@ android {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 112
+        versionCode 116
         versionName "1.8.4"
     }
 

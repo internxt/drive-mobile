@@ -3113,11 +3113,6 @@
     "@types/react" "*"
     react-native "*"
 
-"@types/react-native-sqlite-storage@^5.0.1":
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/@types/react-native-sqlite-storage/-/react-native-sqlite-storage-5.0.2.tgz#eefcc9ea6ff73043bb2945023fa8ee721683b61b"
-  integrity sha512-L3dbsBnvk5OmsaMFSJZHQaAJzCJ6oav3Muvs6e7FBTaj3zPIO0ju+ftfZEh3Kh7YtIl+nfiZKF+BIo9VufjL9A==
-
 "@types/react-native-video@^5.0.14":
   version "5.0.21"
   resolved "https://registry.yarnpkg.com/@types/react-native-video/-/react-native-video-5.0.21.tgz#3d7be0002907ff44e54a478712cfcd0768ce6edb"
@@ -9255,7 +9250,7 @@ mkdirp@^1.0.3, mkdirp@^1.0.4:
   resolved "https://registry.yarnpkg.com/mkdirp/-/mkdirp-1.0.4.tgz#3eb5ed62622756d79a5f0e2a221dfebad75c2f7e"
   integrity sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==
 
-moment@^2.19.3, moment@^2.29.2:
+moment@^2.19.3:
   version "2.30.1"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
   integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==

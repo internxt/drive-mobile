@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { DateTime } from 'luxon';
 
 import { CaretRight, DownloadSimple } from 'phosphor-react-native';
 import { useState } from 'react';
@@ -77,7 +77,8 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
   };
 
   const newChargeDate =
-    'nextPayment' in subscription && moment(subscription.nextPayment * 1000).locale(strings.getLanguage());
+    'nextPayment' in subscription &&
+    DateTime.fromMillis(subscription.nextPayment * 1000).setLocale(strings.getLanguage());
 
   return (
     <AppScreen
@@ -118,7 +119,10 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                       )}
                       {subscription.type === 'subscription' && newChargeDate && (
                         <AppText style={[tailwind('mt-4 text-center text-sm'), { color: getColor('text-gray-40') }]}>
-                          {strings.formatString(strings.screens.PlanScreen.newChargeOn, newChargeDate.format('LL'))}
+                          {strings.formatString(
+                            strings.screens.PlanScreen.newChargeOn,
+                            newChargeDate.toLocaleString(DateTime.DATE_FULL),
+                          )}
                         </AppText>
                       )}
                     </View>
@@ -233,12 +237,14 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                             const onDownloadPdfPressed = () => {
                               downloadInvoice(invoice.pdf);
                             };
-                            const time = moment(invoice.created * 1000).locale(strings.getLanguage());
+                            const time = DateTime.fromMillis(invoice.created * 1000).setLocale(
+                              strings.getLanguage(),
+                            );
                             return (
                               <View key={invoice.id} style={tailwind('px-4')}>
                                 <View style={tailwind('flex-row items-center')}>
                                   <AppText style={[{ flex: 2 }, { color: getColor('text-gray-100') }]}>
-                                    {titlerize(time.format('dddd DD, MMM yyyy'))}
+                                    {titlerize(time.toFormat('EEEE dd, MMM yyyy'))}
                                   </AppText>
                                   <View style={{ flex: 1, ...tailwind('flex-row items-center') }}>
                                     <AppText style={[tailwind('flex-grow'), { color: getColor('text-gray-40') }]}>
