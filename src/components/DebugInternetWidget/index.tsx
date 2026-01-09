@@ -12,7 +12,7 @@ interface DebugInternetWidgetProps {
 const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const [speed, setSpeed] = useState(0);
+  const [speed] = useState(0);
   const bySpeedFeatures = [
     { min: 20, color: getColor('text-green') },
     { min: 10, color: getColor('text-yellow-dark') },

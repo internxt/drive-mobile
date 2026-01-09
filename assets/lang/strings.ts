@@ -1578,9 +1578,9 @@ const strings = {
   getLanguage: () => currentLanguage,
   getInterfaceLanguage: () => 'en',
   formatString: (template: string, ...args: (string | number)[]) => {
-    return template.replace(/{(\d+)}/g, (match, index) => {
-      const argIndex = parseInt(index, 10);
-      return typeof args[argIndex] !== 'undefined' ? String(args[argIndex]) : match;
+    return template.replaceAll(/{(\d+)}/g, (match, index) => {
+      const argIndex = Number.parseInt(index, 10);
+      return args[argIndex] !== undefined ? String(args[argIndex]) : match;
     });
   },
   getString: (path: string, fallback?: string) => {
