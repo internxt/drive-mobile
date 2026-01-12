@@ -342,12 +342,12 @@ function AddModal(): JSX.Element {
 
       const errorMessage =
         stuckFiles.length === 1
-          ? `${stuckFiles[0].name} upload was interrupted`
-          : `${stuckFiles.length} file uploads were interrupted`;
+          ? strings.formatString(strings.errors.uploadInterrupted, stuckFiles[0].name)
+          : strings.formatString(strings.errors.uploadsInterrupted, stuckFiles.length);
 
       notificationsService.show({
         type: NotificationType.Warning,
-        text1: errorMessage,
+        text1: errorMessage as string,
       });
     }
   };
