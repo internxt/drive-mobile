@@ -16,14 +16,6 @@ import asyncStorageService from './AsyncStorageService';
 import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
 
-interface RegisterParams {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  captcha: string;
-}
-
 enum AuthEventKey {
   Login = 'login',
   Logout = 'logout',
@@ -220,16 +212,8 @@ class AuthService {
     };
   }
 
-  public reset(email: string): Promise<void> {
-    return this.sdk.authV2.sendChangePasswordEmail(email);
-  }
-
   public async deleteAccount(token: string): Promise<void> {
     await this.sdk.authV2.sendUserDeactivationEmail(token);
-  }
-
-  public async getNewBits(): Promise<{ mnemonic: string }> {
-    return this.sdk.usersV2WithoutToken.generateMnemonic();
   }
 
   public async areCredentialsCorrect({ email, password }: { email: string; password: string }) {
@@ -241,26 +225,6 @@ class AuthService {
     return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
   }
 
-  public async doRegister(params: RegisterParams) {
-    const hashObj = passToHash({ password: params.password });
-    const encPass = encryptText(hashObj.hash);
-    const encSalt = encryptText(hashObj.salt);
-    const bits = await this.getNewBits();
-    const mnemonic = bits.mnemonic;
-    const encMnemonic = encryptTextWithKey(mnemonic, params.password);
-
-    const payload = {
-      email: params.email.toLowerCase(),
-      name: params.firstName,
-      lastname: params.lastName,
-      password: encPass,
-      mnemonic: encMnemonic,
-      salt: encSalt,
-      captcha: params.captcha,
-    };
-
-    return this.sdk.authV2.registerWithoutKeys(payload);
-  }
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
     const newToken = SdkManager.getInstance().getApiSecurity().newToken;
