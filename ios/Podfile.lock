@@ -49,6 +49,8 @@ PODS:
     - ReactCommon/turbomodule/core
   - ExpoSystemUI (2.0.1):
     - ExpoModulesCore
+  - EXSharing (11.2.2):
+    - ExpoModulesCore
   - EXSplashScreen (0.17.5):
     - ExpoModulesCore
     - React-Core
@@ -73,15 +75,15 @@ PODS:
   - fmt (6.2.1)
   - glog (0.3.5)
   - IDZSwiftCommonCrypto (0.13.0)
-  - libwebp (1.2.3):
-    - libwebp/demux (= 1.2.3)
-    - libwebp/mux (= 1.2.3)
-    - libwebp/webp (= 1.2.3)
-  - libwebp/demux (1.2.3):
+  - libwebp (1.2.4):
+    - libwebp/demux (= 1.2.4)
+    - libwebp/mux (= 1.2.4)
+    - libwebp/webp (= 1.2.4)
+  - libwebp/demux (1.2.4):
     - libwebp/webp
-  - libwebp/mux (1.2.3):
+  - libwebp/mux (1.2.4):
     - libwebp/demux
-  - libwebp/webp (1.2.3)
+  - libwebp/webp (1.2.4)
   - Permission-AppTrackingTransparency (3.6.1):
     - RNPermissions
   - Permission-Camera (3.6.1):
@@ -309,6 +311,8 @@ PODS:
     - React-Core
   - react-native-image-picker (4.10.1):
     - React-Core
+  - react-native-pdf (6.6.2):
+    - React-Core
   - react-native-pdf-thumbnail (1.2.0):
     - React-Core
   - react-native-randombytes (3.6.1):
@@ -398,6 +402,8 @@ PODS:
     - React-perflogger (= 0.70.5)
   - ReactNativeLocalization (2.3.1):
     - React-Core
+  - RealmJS (11.3.1):
+    - React
   - rn-crypto (0.1.11):
     - IDZSwiftCommonCrypto (~> 0.13)
     - React-Core
@@ -494,6 +500,7 @@ DEPENDENCIES:
   - ExpoLinearGradient (from `../node_modules/expo-linear-gradient/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSystemUI (from `../node_modules/expo-system-ui/ios`)
+  - EXSharing (from `../node_modules/expo-sharing/ios`)
   - EXSplashScreen (from `../node_modules/expo-splash-screen/ios`)
   - EXStructuredHeaders (from `../node_modules/expo-structured-headers/ios`)
   - EXUpdates (from `../node_modules/expo-updates/ios`)
@@ -525,6 +532,7 @@ DEPENDENCIES:
   - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
   - react-native-document-picker (from `../node_modules/react-native-document-picker`)
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
+  - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
   - react-native-restart (from `../node_modules/react-native-restart`)
@@ -545,6 +553,7 @@ DEPENDENCIES:
   - React-runtimeexecutor (from `../node_modules/react-native/ReactCommon/runtimeexecutor`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - ReactNativeLocalization (from `../node_modules/react-native-localization`)
+  - RealmJS (from `../node_modules/realm`)
   - "rn-crypto (from `../node_modules/@internxt/rn-crypto`)"
   - rn-fetch-blob (from `../node_modules/rn-fetch-blob`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
@@ -622,6 +631,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-modules-core"
   ExpoSystemUI:
     :path: "../node_modules/expo-system-ui/ios"
+  EXSharing:
+    :path: "../node_modules/expo-sharing/ios"
   EXSplashScreen:
     :path: "../node_modules/expo-splash-screen/ios"
   EXStructuredHeaders:
@@ -682,6 +693,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-document-picker"
   react-native-image-picker:
     :path: "../node_modules/react-native-image-picker"
+  react-native-pdf:
+    :path: "../node_modules/react-native-pdf"
   react-native-pdf-thumbnail:
     :path: "../node_modules/react-native-pdf-thumbnail"
   react-native-randombytes:
@@ -722,6 +735,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativeLocalization:
     :path: "../node_modules/react-native-localization"
+  RealmJS:
+    :path: "../node_modules/realm"
   rn-crypto:
     :path: "../node_modules/@internxt/rn-crypto"
   rn-fetch-blob:
@@ -781,6 +796,7 @@ SPEC CHECKSUMS:
   ExpoLinearGradient: b40c2133ad57ae105b1b12a319e314463c817f6b
   ExpoModulesCore: b5d21c8880afda6fb6ee95469f9ac2ec9b98e995
   ExpoSystemUI: c844dec5e49e677bcd6bfe15cc305b02127b1124
+  EXSharing: 09839ace249f61bfa13c50c6a28256c31d260355
   EXSplashScreen: 3e989924f61a8dd07ee4ea584c6ba14be9b51949
   EXStructuredHeaders: 5d86829469399370a9fc7cb1e4391b09de87681d
   EXUpdates: e687436502147e80ef13cf6eedd17e3039ef47d6
@@ -790,7 +806,7 @@ SPEC CHECKSUMS:
   fmt: ff9d55029c625d3757ed641535fd4a75fedc7ce9
   glog: 04b94705f318337d7ead9e6d17c019bd9b1f6b1b
   IDZSwiftCommonCrypto: 00dd37cdfbd149312a7e5a582cf9909f8b129f44
-  libwebp: 60305b2e989864154bd9be3d772730f08fc6a59c
+  libwebp: f62cb61d0a484ba548448a4bd52aabf150ff6eef
   Permission-AppTrackingTransparency: 9eedbc3b5a2907b8cb2c971461754616eac1661d
   Permission-Camera: bf6791b17c7f614b6826019fcfdcc286d3a107f6
   Permission-FaceID: e70223280292a1a5e4b8ad943b70cd9229a7d2c3
@@ -814,6 +830,7 @@ SPEC CHECKSUMS:
   react-native-create-thumbnail: 94e68f6cc050a870f830352d1a924c1e8d38b52f
   react-native-document-picker: 20f652c2402d3ddc81f396d8167c3bd978add4a2
   react-native-image-picker: f2ab1215d17bcfe27b0eb6417cc236fd1f4775e7
+  react-native-pdf: 33c622cbdf776a649929e8b9d1ce2d313347c4fa
   react-native-pdf-thumbnail: 047cbe5ef02eb0fef97bfc9a0e8c6b01927da0c1
   react-native-randombytes: 421f1c7d48c0af8dbcd471b0324393ebf8fe7846
   react-native-restart: 45c8dca02491980f2958595333cbccd6877cb57e
@@ -834,6 +851,7 @@ SPEC CHECKSUMS:
   React-runtimeexecutor: 7401c4a40f8728fd89df4a56104541b760876117
   ReactCommon: c9246996e73bf75a2c6c3ff15f1e16707cdc2da9
   ReactNativeLocalization: 076497d7ca70341c751cd3b3e7c86187332a182d
+  RealmJS: 43fc7bfb83229c8a2755cb34f71f769c97b7b581
   rn-crypto: e0218d27daee689e219eb3f513bc1fe00c1f2388
   rn-fetch-blob: f525a73a78df9ed5d35e67ea65e79d53c15255bc
   RNCAsyncStorage: 8616bd5a58af409453ea4e1b246521bb76578d60

@@ -6,10 +6,11 @@ import RNFetchBlob from 'rn-fetch-blob';
 import notificationsService from '../../NotificationsService';
 import { NotificationType } from '../../../types';
 import { createThumbnail } from 'react-native-create-thumbnail';
-import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
 import { FileExtension } from '@internxt-mobile/types/drive';
+import RNFS from 'react-native-fs';
 export type GeneratedThumbnail = {
   size: number;
   type: string;
@@ -17,7 +18,7 @@ export type GeneratedThumbnail = {
   height: number;
   path: string;
 };
-
+export const PROFILE_PICTURE_CACHE_KEY = 'PROFILE_PICTURE';
 const MAX_THUMBNAIL_WIDTH = 512;
 export type ThumbnailGenerateConfig = {
   outputPath: string;
@@ -117,6 +118,51 @@ class ImageService {
   public async pathToBase64(uri: string): Promise<string> {
     return await RNFetchBlob.fs.readFile(uri, 'base64');
   }
+
+  /**
+   * Cache an image from an URL and stores it using a cacheKey, can be
+   * retrieved using getCachedImage() method
+   *
+   * @param imageUri
+   * @param cacheKey Key to identify the cached image and retrieve it
+   */
+  public cacheImage = async (imageUri: string, cacheKey: string) => {
+    const path = fs.getDocumentsDir() + `/cached_${cacheKey}`;
+    await fs.unlinkIfExists(path);
+
+    const download = RNFS.downloadFile({
+      fromUrl: imageUri,
+      toFile: path,
+    });
+
+    const result = await download.promise;
+
+    return result.bytesWritten !== 0 ? true : false;
+  };
+
+  public deleteCachedImage = async (cacheKey: string) => {
+    const path = fs.getCacheDir() + `/cached_${cacheKey}`;
+
+    await fs.unlinkIfExists(path);
+  };
+
+  /**
+   * Retrieves the path to a cached image by a key
+   * @param cacheKey Cache key to retrieve the image from
+   * @returns The path to the filesystem
+   */
+  public getCachedImage = async (cacheKey: string) => {
+    const path = fs.getDocumentsDir() + `/cached_${cacheKey}`;
+
+    const exists = await fs.exists(path);
+
+    if (!exists) return null;
+
+    const finalPath = fs.tmpFilePath();
+    // Move to a TMP dir with a different name to trigger cache busting
+    await fs.copyFile(path, finalPath);
+    return fs.pathToUri(finalPath);
+  };
 
   /**
    * Generates a thumbnail for a file, if the extension cannot be handled, returns null

@@ -18,12 +18,14 @@ export const downloadFullSizePhotosItem = async ({
       name: photosItem.name,
       size: PhotoSizeType.Full,
       type: photosItem.format,
+      takenAt: photosItem.takenAt,
     });
-    if (await fileSystemService.exists(destination)) {
+    if (await fileSystemService.fileExistsAndIsNotEmpty(destination)) {
       return destination;
     }
     return photos.network.download(photosItem.photoFileId as string, {
       destination,
+      bucketId: photosItem.bucketId || undefined,
       decryptionProgressCallback: () => undefined,
       downloadProgressCallback: onProgressUpdate,
     });

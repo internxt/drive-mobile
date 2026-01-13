@@ -6,7 +6,7 @@ import appService from '../services/AppService';
 
 import asyncStorage from '../services/AsyncStorageService';
 
-type ProgressCallback = (progress: number, uploadedBytes: number | null, totalBytes: number | null) => void;
+type ProgressCallback = (progress: number, uploadedBytes: number, totalBytes: number) => void;
 
 interface IDownloadParams {
   fileManager: FileManager;
@@ -64,6 +64,9 @@ export class Network {
       return new Promise<void>((resolve, reject) => {
         actionState = this.environment.downloadFile(bucketId, fileId, {
           ...params,
+          progressCallback: (progress, bytesReceived, totalBytes) => {
+            params.progressCallback(progress, bytesReceived || 0, totalBytes || 0);
+          },
           finishedCallback: (err: Error | null) => {
             if (err) {
               return reject(err);

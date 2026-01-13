@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { PermissionsAndroid, Platform, TouchableOpacity, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../helpers';
@@ -28,14 +28,28 @@ import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { DriveItemData } from '@internxt-mobile/types/drive';
+import Portal from '@burstware/react-native-portal';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import errorService from '@internxt-mobile/services/ErrorService';
+import drive from '@internxt-mobile/services/drive';
+import AuthService from '@internxt-mobile/services/AuthService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
+import { Abortable } from '@internxt-mobile/types/index';
+import CenterModal from '../CenterModal';
+import AppProgressBar from 'src/components/AppProgressBar';
+import { getPermissionsAsync } from 'expo-media-library';
+
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
+  const [downloadProgress, setDownloadProgress] = useState({ progress: 0, totalBytes: 0, bytesReceived: 0 });
   const { focusedItem: item } = useAppSelector((state) => state.drive);
   const { showItemModal } = useAppSelector((state) => state.ui);
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const downloadAbortableRef = useRef<Abortable>();
   if (!item) {
     return <></>;
   }
@@ -98,12 +112,137 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
+  const downloadItem = async (fileId: string, decryptedFilePath: string) => {
+    const { credentials } = await AuthService.getAuthCredentials();
+
+    const { downloadPath } = await drive.file.downloadFile(credentials.user, fileId, {
+      downloadPath: decryptedFilePath,
+      downloadProgressCallback(progress, bytesReceived, totalBytes) {
+        setDownloadProgress({
+          progress,
+          bytesReceived,
+          totalBytes,
+        });
+      },
+      onAbortableReady(abortable) {
+        downloadAbortableRef.current = abortable;
+      },
+    });
+
+    return downloadPath;
+  };
   const handleExportFile = async () => {
-    throw new Error('Should implement');
+    try {
+      if (!item.fileId) {
+        throw new Error('Item fileID not found');
+      }
+
+      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
+      const exists = await drive.file.existsDecrypted(item.name, item.type);
+      if (exists) {
+        await fs.shareFile({
+          title: item.name,
+          fileUri: decryptedFilePath,
+        });
+
+        return decryptedFilePath;
+      }
+
+      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
+      setExporting(true);
+      const downloadPath = await downloadItem(item.fileId, decryptedFilePath);
+      setExporting(false);
+      await fs.shareFile({
+        title: item.name,
+        fileUri: downloadPath,
+      });
+    } catch (error) {
+      notifications.error(strings.errors.generic.message);
+      errorService.reportError(error);
+    } finally {
+      setExporting(false);
+    }
+  };
+  const handleAbortDownload = () => {
+    setExporting(false);
+    if (!downloadAbortableRef.current) return;
+
+    downloadAbortableRef.current('User requested abort');
+  };
+  const handleAndroidDownloadFile = async () => {
+    try {
+      const externalStorageWritePerm = await PermissionsAndroid.check('android.permission.WRITE_EXTERNAL_STORAGE');
+
+      if (!externalStorageWritePerm) {
+        dispatch(uiActions.setShowItemModal(false));
+
+        notifications.error(strings.errors.enableWriteExternalStoragePermissions);
+        return;
+      }
+      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
+      if (!item.fileId) {
+        throw new Error('Item fileID not found');
+      }
+
+      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
+
+      // 1. Check if file exists already
+      const existsDecrypted = await drive.file.existsDecrypted(item.name, item.type);
+
+      dispatch(uiActions.setShowItemModal(false));
+
+      // 2. If the file doesn't exists, download it
+      if (!existsDecrypted) {
+        setExporting(true);
+        await downloadItem(item.fileId, decryptedFilePath);
+        setExporting(false);
+      }
+
+      // 3. Copy the decrypted file (is a tmp, so this will dissapear, that's why we copy it)
+      await fs.moveToAndroidDownloads(decryptedFilePath);
+
+      notifications.success(strings.messages.driveDownloadSuccess);
+    } catch (error) {
+      notifications.error(strings.errors.generic.message);
+      errorService.reportError(error);
+    } finally {
+      setExporting(false);
+    }
   };
 
-  const handleDownloadFile = () => {
-    throw new Error('Should implement');
+  const handleiOSSaveToFiles = async () => {
+    try {
+      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
+      if (!item.fileId) {
+        throw new Error('Item fileID not found');
+      }
+
+      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
+
+      // 1. Check if file exists already
+      const existsDecrypted = await drive.file.existsDecrypted(item.name, item.type);
+
+      dispatch(uiActions.setShowItemModal(false));
+
+      // 2. If the file doesn't exists, download it
+      if (!existsDecrypted) {
+        setExporting(true);
+        await downloadItem(item.fileId, decryptedFilePath);
+        setExporting(false);
+      }
+
+      // 3. Share to iOS files app
+      await fs.shareFile({
+        title: item.name,
+        fileUri: decryptedFilePath,
+        saveToiOSFiles: true,
+      });
+    } catch (error) {
+      notifications.error(strings.errors.generic.message);
+      errorService.reportError(error);
+    } finally {
+      setExporting(false);
+    }
   };
   const options = [
     {
@@ -123,16 +262,23 @@ function DriveItemInfoModal(): JSX.Element {
       onPress: handleMoveItem,
     },
     {
-      visible: false,
+      visible: item.fileId ? true : false,
       icon: <ArrowSquareOut size={20} color={getColor('text-gray-100')} />,
       label: strings.components.file_and_folder_options.exportFile,
       onPress: handleExportFile,
+      disabled: exporting,
     },
     {
-      visible: false,
+      visible: Platform.OS === 'ios',
+      icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
+      label: strings.components.file_and_folder_options.saveToFiles,
+      onPress: handleiOSSaveToFiles,
+    },
+    {
+      visible: Platform.OS === 'android',
       icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
       label: strings.components.file_and_folder_options.downloadFile,
-      onPress: handleDownloadFile,
+      onPress: handleAndroidDownloadFile,
     },
     {
       icon: <Link size={20} color={getColor('text-gray-100')} />,
@@ -152,6 +298,15 @@ function DriveItemInfoModal(): JSX.Element {
   const getUpdatedAt = () => {
     // eslint-disable-next-line quotes
     return time.getFormattedDate(item.updatedAt, "dd LLL yyyy 'at' HH:mm");
+  };
+
+  const getDownloadProgressMessage = () => {
+    if (!downloadProgress.totalBytes) {
+      return strings.generic.calculating + '...';
+    }
+    const bytesReceivedStr = prettysize(downloadProgress.bytesReceived);
+    const totalBytesStr = prettysize(downloadProgress.totalBytes);
+    return `${bytesReceivedStr} ${strings.modals.downloadingFile.of} ${totalBytesStr}`;
   };
   const header = (
     <View style={tailwind('flex-row')}>
@@ -178,7 +333,7 @@ function DriveItemInfoModal(): JSX.Element {
   );
 
   return (
-    <>
+    <Portal>
       <BottomModal isOpen={showItemModal} onClosed={() => dispatch(uiActions.setShowItemModal(false))} header={header}>
         <View style={tailwind('flex-grow')}>
           <View style={tailwind('border-t border-gray-5 overflow-hidden')}>
@@ -187,6 +342,7 @@ function DriveItemInfoModal(): JSX.Element {
               .map((opt, index) => {
                 return (
                   <BottomModalOption
+                    disabled={opt.disabled}
                     key={index}
                     leftSlot={opt.icon}
                     rightSlot={
@@ -208,7 +364,32 @@ function DriveItemInfoModal(): JSX.Element {
         isOpen={sharedLinkSettingsModalOpen}
         onClose={() => setSharedLinkSettingsModalOpen(false)}
       />
-    </>
+      <CenterModal
+        isOpen={exporting}
+        onClosed={() => {
+          /** NOOP */
+        }}
+      >
+        <>
+          <View style={tailwind('mt-6 mb-4 mx-6')}>
+            <AppText medium style={tailwind('text-lg text-center text-gray-100')}>
+              {strings.modals.downloadingFile.title}
+            </AppText>
+
+            <AppText style={tailwind('text-center text-gray-50 mt-1')}>{getDownloadProgressMessage()}</AppText>
+          </View>
+          <View style={tailwind('mx-6 mb-6')}>
+            <AppProgressBar totalValue={1} height={4} currentValue={downloadProgress.progress} />
+          </View>
+          <TouchableOpacity
+            onPress={handleAbortDownload}
+            style={tailwind('h-14 flex items-center justify-center border-t border-gray-10')}
+          >
+            <AppText medium>{strings.buttons.cancel}</AppText>
+          </TouchableOpacity>
+        </>
+      </CenterModal>
+    </Portal>
   );
 }
 

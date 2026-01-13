@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
+import { View, Alert, Platform, PermissionsAndroid, TouchableHighlight } from 'react-native';
 import {
   launchCameraAsync,
   requestCameraPermissionsAsync,
@@ -157,40 +157,46 @@ function AddModal(): JSX.Element {
       id: fileId,
       plain_name: plainName,
     };
-
-    const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
-      extension: fileExtension,
-      thumbnailFormat: SaveFormat.JPEG,
-      // Android needs an extension to generate the thumbnails, otherwise it crashes
-      // jpg is the one that we use for thumbanil generations
-      outputPath: fileSystemService.tmpFilePath(`${uuid.v4()}.${SaveFormat.JPEG}`),
-    });
-
-    const generatedDriveItem = await uploadService.createFileEntry(fileEntry);
     let uploadedThumbnail: Thumbnail | null = null;
-    if (generatedThumbnail) {
-      const thumbnailFileId = await network.uploadFile(
-        generatedThumbnail.path,
-        bucket,
-        mnemonic,
-        constants.BRIDGE_URL,
-        {
-          user: bridgeUser,
-          pass: userId,
-        },
-        {},
-      );
+    const generatedDriveItem = await uploadService.createFileEntry(fileEntry);
 
-      uploadedThumbnail = await uploadService.createThumbnailEntry({
-        file_id: generatedDriveItem.id,
-        max_width: generatedThumbnail.width,
-        max_height: generatedThumbnail.height,
-        type: generatedThumbnail.type,
-        size: generatedThumbnail.size,
-        bucket_id: bucket,
-        bucket_file: thumbnailFileId,
-        encrypt_version: EncryptionVersion.Aes03,
+    // If thumbnail generation fails, don't block the upload, we can
+    // try thumbnail generation later
+    try {
+      const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+        extension: fileExtension,
+        thumbnailFormat: SaveFormat.JPEG,
+        // Android needs an extension to generate the thumbnails, otherwise it crashes
+        // jpg is the one that we use for thumbanil generations
+        outputPath: fileSystemService.tmpFilePath(`${uuid.v4()}.${SaveFormat.JPEG}`),
       });
+
+      if (generatedThumbnail) {
+        const thumbnailFileId = await network.uploadFile(
+          generatedThumbnail.path,
+          bucket,
+          mnemonic,
+          constants.BRIDGE_URL,
+          {
+            user: bridgeUser,
+            pass: userId,
+          },
+          {},
+        );
+
+        uploadedThumbnail = await uploadService.createThumbnailEntry({
+          file_id: generatedDriveItem.id,
+          max_width: generatedThumbnail.width,
+          max_height: generatedThumbnail.height,
+          type: generatedThumbnail.type,
+          size: generatedThumbnail.size,
+          bucket_id: bucket,
+          bucket_file: thumbnailFileId,
+          encrypt_version: EncryptionVersion.Aes03,
+        });
+      }
+    } catch (error) {
+      errorService.reportError(error);
     }
 
     drive.events.emit({ event: DriveEventKey.UploadCompleted });
@@ -581,7 +587,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFiles}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFiles}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <FileArrowUp color={getColor('text-neutral-500')} size={20} />
                 </View>
@@ -598,7 +604,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFromCameraRoll}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.uploadFromCameraRoll}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <ImageSquare color={getColor('text-neutral-500')} size={20} />
                 </View>
@@ -615,7 +621,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.takeAPhotoAnUpload}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.takeAPhotoAnUpload}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <Camera color={getColor('text-neutral-500')} size={20} />
                 </View>
@@ -633,7 +639,7 @@ function AddModal(): JSX.Element {
               }}
             >
               <View style={tailwind('flex-row flex-grow bg-white h-12 pl-4 items-center justify-between')}>
-                <Text style={tailwind('text-lg text-neutral-500')}>{strings.buttons.newFolder}</Text>
+                <AppText style={tailwind('text-lg text-neutral-500')}>{strings.buttons.newFolder}</AppText>
                 <View style={tailwind('p-3.5 items-center justify-center')}>
                   <FolderSimplePlus color={getColor('text-neutral-500')} size={20} />
                 </View>

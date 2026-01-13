@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Linking, View, ScrollView, Animated } from 'react-native';
-import { Bug, CaretRight, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
+import { Linking, View, ScrollView, Platform } from 'react-native';
+import { Bug, CaretRight, FileText, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
 
 import strings from '../../../assets/lang/strings';
 import AppVersionWidget from '../../components/AppVersionWidget';
@@ -24,10 +24,15 @@ import BottomModal from 'src/components/modals/BottomModal';
 import { PhotosPermissions } from '../PhotosPermissionsScreen';
 import Portal from '@burstware/react-native-portal';
 import { PermissionStatus } from 'expo-media-library';
+import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
 
 function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+  const [gettingLogs, setGettingLogs] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -36,8 +41,31 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
   const photosCtx = useContext(PhotosContext);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
+  const [profileAvatar, setProfileAvatar] = useState<string>();
   const [enablePhotosSyncScrollPoint, setEnablePhotosSyncScrollPoint] = useState(0);
   const userFullName = useAppSelector(authSelectors.userFullName);
+  useEffect(() => {
+    if (!user?.avatar) {
+      return setProfileAvatar(undefined);
+    }
+
+    imageService
+      .getCachedImage(PROFILE_PICTURE_CACHE_KEY)
+      .then((cachedImage) => {
+        if (!user.avatar) return;
+        if (cachedImage) {
+          setProfileAvatar(fs.pathToUri(cachedImage));
+        } else if (user?.avatar) {
+          setProfileAvatar(user?.avatar);
+        }
+      })
+      .catch((err) => {
+        errorService.reportError(err);
+        if (user?.avatar) {
+          setProfileAvatar(user.avatar);
+        }
+      });
+  }, [user?.avatar]);
 
   useEffect(() => {
     if (route?.params?.focusEnablePhotosSync && enablePhotosSyncScrollPoint) {
@@ -91,6 +119,34 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
     setPhotosPermissionsModalOpen(false);
   };
 
+  const onShareLogsPressed = async () => {
+    try {
+      setGettingLogs(true);
+      const exists = await fs.fileExistsAndIsNotEmpty(fs.getRuntimeLogsPath());
+      if (!exists) {
+        notifications.error(strings.errors.runtimeLogsMissing);
+        return;
+      }
+      if (Platform.OS === 'ios') {
+        await fs.shareFile({
+          title: 'Internxt Runtime logs',
+          fileUri: fs.getRuntimeLogsPath(),
+          saveToiOSFiles: true,
+        });
+      }
+
+      if (Platform.OS === 'android') {
+        await fs.moveToAndroidDownloads(fs.getRuntimeLogsPath());
+      }
+
+      notifications.success(strings.messages.logFileMovedToDownloads);
+    } catch (error) {
+      notifications.error(strings.errors.generic.title);
+    } finally {
+      setGettingLogs(false);
+    }
+  };
+
   return (
     <>
       <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('bg-gray-5 flex-1')}>
@@ -115,7 +171,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                   key: 'account',
                   template: (
                     <View style={tailwind('flex-row items-center p-4')}>
-                      <UserProfilePicture uri={user?.avatar} size={56} />
+                      <UserProfilePicture uri={profileAvatar} size={56} />
 
                       <View style={tailwind('flex-grow flex-1 ml-3')}>
                         <AppText numberOfLines={1} medium style={tailwind('text-xl text-gray-80')}>
@@ -167,9 +223,11 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                         </AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
-                        <AppText style={tailwind('text-gray-40 mr-2.5')}>
-                          {strings.formatString(strings.generic.usagePercent, usagePercent)}
-                        </AppText>
+                        {Number(usagePercent) ? (
+                          <AppText style={tailwind('text-gray-40 mr-2.5')}>
+                            {strings.formatString(strings.generic.usagePercent, usagePercent)}
+                          </AppText>
+                        ) : null}
                         <CaretRight color={getColor('text-neutral-60')} size={20} />
                       </View>
                     </View>
@@ -304,6 +362,24 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     </View>
                   ),
                   onPress: onMoreInfoPressed,
+                },
+                {
+                  key: 'share-logs',
+                  loading: gettingLogs,
+                  template: (
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <FileText size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
+                      <View style={tailwind('flex-grow justify-center')}>
+                        <AppText style={[tailwind('text-lg text-gray-80')]}>
+                          {strings.screens.SettingsScreen.saveLogs}
+                        </AppText>
+                      </View>
+                      <View style={tailwind('justify-center')}>
+                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                      </View>
+                    </View>
+                  ),
+                  onPress: onShareLogsPressed,
                 },
               ]}
             />

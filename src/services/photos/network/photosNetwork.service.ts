@@ -2,11 +2,10 @@ import { constants } from '@internxt-mobile/services/AppService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { FileSystemRef } from '@internxt-mobile/types/index';
 import { PhotoFileSystemRef, PhotosItemBacked } from '@internxt-mobile/types/photos';
-import { CreatePhotoData, Photo } from '@internxt/sdk/dist/photos';
+import { CreatePhotoData, Photo, PhotosSortBy } from '@internxt/sdk/dist/photos';
 import { getEnvironmentConfig } from 'src/lib/network';
 import network from 'src/network';
 import { REMOTE_PHOTOS_PER_PAGE } from '../constants';
-import { photosLocalDB } from '../database';
 import { photosUser } from '../user';
 
 export class PhotosNetworkService {
@@ -15,19 +14,34 @@ export class PhotosNetworkService {
     this.sdk = sdk;
   }
 
-  public async getPhotos(page = 1): Promise<{ results: Photo[]; count: number }> {
+  public async getPhotos(fromDate?: Date): Promise<{ results: Photo[] }> {
     const limit = REMOTE_PHOTOS_PER_PAGE;
-    const skip = limit * (page - 1);
-    const { results, count } = await this.sdk.photos.photos.getPhotos({}, skip, limit);
+    const skip = 0;
+    const { results } = await this.sdk.photos.photos.getPhotos(fromDate ? { updatedAt: fromDate } : {}, skip, limit);
 
-    return { results, count };
+    return { results };
+  }
+
+  public async getPhotosSorted(fromDate: Date): Promise<{ results: Photo[] }> {
+    const limit = REMOTE_PHOTOS_PER_PAGE;
+    const skip = 0;
+    const { results } = await this.sdk.photos.photos.getPhotosSorted(
+      {
+        updatedAt: fromDate,
+      },
+      { sortBy: PhotosSortBy.UpdatedAt, sortType: 'ASC' },
+      skip,
+      limit,
+      false,
+    );
+
+    return { results };
   }
 
   public async deletePhotos(photos: PhotosItemBacked[]): Promise<void> {
     await Promise.all(
       photos.map(async (photo) => {
         await this.sdk.photos.photos.deletePhotoById(photo.photoId);
-        await photosLocalDB.deleteSyncedPhotosItem(photo.photoId);
       }),
     );
   }

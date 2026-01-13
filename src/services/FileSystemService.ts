@@ -7,6 +7,7 @@ import prettysize from 'prettysize';
 import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
+import { shareAsync } from 'expo-sharing';
 enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
@@ -21,14 +22,12 @@ export interface FileWriter {
 const ANDROID_URI_PREFIX = 'file://';
 
 export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
+
 class FileSystemService {
-  public async prepareTmpDir() {
-    if (Platform.OS === 'android' && !(await this.exists(this.getTemporaryDir()))) {
-      await this.mkdir(this.getTemporaryDir());
-    }
-    await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
-    await this.clearTempDir();
+  public async prepareFileSystem() {
+    await this.prepareTmpDir();
   }
+
   public pathToUri(path: string): string {
     if (path.startsWith(ANDROID_URI_PREFIX)) return path;
     return Platform.OS === 'android' ? ANDROID_URI_PREFIX + path : path;
@@ -40,6 +39,14 @@ class FileSystemService {
 
   public getDocumentsDir(): string {
     return RNFS.DocumentDirectoryPath;
+  }
+
+  public getRuntimeLogsPath(): string {
+    return RNFS.DocumentDirectoryPath + '/' + this.getRuntimeLogsFileName();
+  }
+
+  public getRuntimeLogsFileName(): string {
+    return 'internxt_mobile_runtime_logs.txt';
   }
 
   public getDownloadsDir(): string {
@@ -73,9 +80,9 @@ class FileSystemService {
   public tmpFilePath(filename?: string) {
     return this.getTemporaryDir() + (filename || uuid.v4());
   }
-  public async clearTempDir(): Promise<void> {
+  public async clearTempDir(): Promise<number> {
     const items = await RNFS.readDir(this.getTemporaryDir());
-
+    let size = 0;
     items.forEach(async (item) => {
       // Some library is writing this file
       // in the tmp directory, on startup
@@ -86,7 +93,10 @@ class FileSystemService {
         return;
       }
       await this.unlink(item.path);
+      size += item.size;
     });
+
+    return size;
   }
 
   public getCacheDir(): string {
@@ -158,6 +168,31 @@ class FileSystemService {
     return FileViewer.open(fileInfo.uri, options);
   }
 
+  public async moveToAndroidDownloads(source: string) {
+    /** This is only for Android */
+    if (Platform.OS === 'ios') return;
+    // Only needed for Android, iOS doesn't have this directory
+    if (await this.exists(this.getInternxtAndroidDownloadsDir())) {
+      await this.mkdir(this.getInternxtAndroidDownloadsDir());
+    }
+
+    const filename = source.split('/').pop() as string;
+
+    await this.unlinkIfExists(this.getPathForAndroidDownload(filename));
+
+    this.moveFile(source, this.getPathForAndroidDownload(filename));
+  }
+
+  public async fileExistsAndIsNotEmpty(uri: string): Promise<boolean> {
+    try {
+      const stat = await this.statRNFS(uri);
+
+      return stat.isFile() && stat.size !== 0;
+    } catch {
+      return false;
+    }
+  }
+
   public async mkdir(uri: string) {
     await RNFS.mkdir(uri);
   }
@@ -169,8 +204,47 @@ class FileSystemService {
     return blob;
   }
 
-  public async shareFile({ title, fileUri }: { title: string; fileUri: string }) {
-    return Share.open({ title, url: fileUri, failOnCancel: false });
+  public getInternxtAndroidDownloadsDir() {
+    return this.getDownloadsDir() + '/Internxt Downloads/';
+  }
+
+  public getPathForAndroidDownload(filename: string) {
+    return this.getInternxtAndroidDownloadsDir() + filename;
+  }
+  public async shareFile({
+    title,
+    fileUri,
+    saveToiOSFiles,
+  }: {
+    title: string;
+    fileUri: string;
+
+    saveToiOSFiles?: boolean;
+  }): Promise<{ success: boolean; error?: unknown }> {
+    try {
+      if (saveToiOSFiles) {
+        await Share.open({
+          title,
+          url: fileUri,
+          failOnCancel: false,
+          showAppsToView: true,
+          saveToFiles: saveToiOSFiles,
+        });
+
+        return {
+          success: true,
+        };
+      } else {
+        await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
+          dialogTitle: title,
+        });
+        return {
+          success: true,
+        };
+      }
+    } catch (error) {
+      return { success: false, error };
+    }
   }
 
   public async readDir(directory: string) {
@@ -250,6 +324,14 @@ class FileSystemService {
     };
 
     return dirs;
+  }
+
+  private async prepareTmpDir() {
+    if (Platform.OS === 'android' && !(await this.exists(this.getTemporaryDir()))) {
+      await this.mkdir(this.getTemporaryDir());
+    }
+    await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
+    await this.clearTempDir();
   }
 }
 

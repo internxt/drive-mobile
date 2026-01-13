@@ -22,7 +22,7 @@ import drive from '@internxt-mobile/services/drive';
 
 export interface DownloadFileParams {
   toPath: string;
-  downloadProgressCallback: (progress: number) => void;
+  downloadProgressCallback: (progress: number, bytesReceived: number, totalBytes: number) => void;
   decryptionProgressCallback: (progress: number) => void;
   onEncryptedFileDownloaded?: ({ path, name }: EncryptedFileDownloadedParams) => Promise<void>;
   signal?: AbortSignal;
@@ -84,7 +84,6 @@ export class NetworkFacade {
     const plainFilePath = filePath;
 
     const encryptedFilePath = fileSystemService.tmpFilePath(`${uuid.v4()}.enc`);
-
     const encryptFileFunction = Platform.OS === 'android' ? androidEncryptFileFromFs : iosEncryptFileFromFs;
     const stat = await RNFS.stat(plainFilePath);
     const fileSize = stat.size;
@@ -183,7 +182,7 @@ export class NetworkFacade {
 
     const encryptedFileName = `${fileId}.enc`;
     let encryptedFileIsCached = false;
-
+    let totalBytes = 0;
     const downloadPromise = downloadFile(
       fileId,
       bucketId,
@@ -206,6 +205,8 @@ export class NetworkFacade {
           encryptedFileURI = path;
         } else {
           encryptedFileURI = fileSystemService.tmpFilePath(encryptedFileName);
+          // Create an empty file so RNFS can write to it directly
+          await fileSystemService.createEmptyFile(encryptedFileURI);
 
           downloadJob = RNFS.downloadFile({
             fromUrl: downloadables[0].url,
@@ -215,10 +216,17 @@ export class NetworkFacade {
             progressDivider: 5,
             progressInterval: 150,
             begin: () => {
-              params.downloadProgressCallback(0);
+              params.downloadProgressCallback(0, 0, 0);
             },
             progress: (res) => {
-              params.downloadProgressCallback(res.bytesWritten / res.contentLength);
+              if (res.contentLength) {
+                totalBytes = res.contentLength;
+              }
+              params.downloadProgressCallback(
+                res.bytesWritten / res.contentLength,
+                res.bytesWritten,
+                res.contentLength,
+              );
             },
           });
 
@@ -240,7 +248,12 @@ export class NetworkFacade {
           }
         }
 
-        params.downloadProgressCallback(1);
+        params.downloadProgressCallback(1, totalBytes, totalBytes);
+
+        // The encrypted file should exists at this path and has size, otherwise something went wrong
+        const encryptedFileExists = await fileSystemService.fileExistsAndIsNotEmpty(encryptedFileURI);
+
+        if (!encryptedFileExists) throw new Error('An error ocurred while downloading the file');
 
         await decryptFileFromFs(
           encryptedFileURI,

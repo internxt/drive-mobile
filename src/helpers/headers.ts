@@ -1,6 +1,7 @@
 import asyncStorage from '../services/AsyncStorageService';
 import PackageJson from '../../package.json';
 import { AsyncStorageKey } from '../types';
+import appService from '@internxt-mobile/services/AppService';
 
 export async function getHeaders(authToken?: string): Promise<Headers> {
   let storedAuthToken;
@@ -14,7 +15,7 @@ export async function getHeaders(authToken?: string): Promise<Headers> {
   const headers = new Headers();
 
   headers.append('Content-Type', 'application/json');
-  headers.append('internxt-version', PackageJson.version);
+  headers.append('internxt-version', appService.version);
   headers.append('internxt-client', PackageJson.name);
 
   if (storedAuthToken) {

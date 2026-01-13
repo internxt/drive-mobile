@@ -3,6 +3,7 @@ import LocalizedStrings from 'react-native-localization';
 import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
 import { NotificationType } from '../../src/types';
 import { SortType } from '../../src/types/drive';
+import { BiometricAccessType } from '../../src/types/app';
 
 const strings = new LocalizedStrings({
   en: {
@@ -11,6 +12,9 @@ const strings = new LocalizedStrings({
       es: 'Spanish',
     },
     generic: {
+      current: 'Current',
+      new: 'New',
+      calculating: 'Calculating',
       atTime: 'at',
       loading: 'Loading',
       downloading: 'Downloading...',
@@ -18,7 +22,7 @@ const strings = new LocalizedStrings({
       preparing: 'Preparing...',
       updated: 'Updated',
       year: 'Year',
-      month: 'Mes',
+      month: 'Month',
       monthly: 'Monthly',
       pricePerMonth: '{0} € per month',
       yearly: 'Yearly',
@@ -45,6 +49,21 @@ const strings = new LocalizedStrings({
       subscription: 'Subscription',
     },
     screens: {
+      LockScreen: {
+        title: 'Internxt Locked',
+        message: {
+          [BiometricAccessType.FaceId]: 'Unlock with Face ID to open Internxt',
+          [BiometricAccessType.TouchId]: 'Unlock with your Touch ID to open Internxt',
+          [BiometricAccessType.FingerPrint]: 'Unlock with your fingerprint to open Internxt',
+          [BiometricAccessType.Pin]: 'Unlock with your pin to open Internxt',
+        },
+        button: {
+          [BiometricAccessType.FaceId]: 'Use Face ID',
+          [BiometricAccessType.TouchId]: 'Use Touch ID',
+          [BiometricAccessType.FingerPrint]: 'Use FingerPrint',
+          [BiometricAccessType.Pin]: 'Use Pin',
+        },
+      },
       PlanScreen: {
         subscriptionTitle: 'Subscription',
         lifetimeTitle: 'Lifetime',
@@ -65,6 +84,10 @@ const strings = new LocalizedStrings({
           title: 'Trash is empty',
           hint: 'Deleted files and folders will appear here',
         },
+      },
+      PreviewScreen: {
+        noPreviewAvailable: 'No preview available for this file',
+        openWith: 'Open with...',
       },
       DebugScreen: {
         title: 'Debug',
@@ -173,8 +196,8 @@ const strings = new LocalizedStrings({
           message: 'Try uploading a file or creating a folder',
         },
         emptyFolder: {
-          title: 'This folder is empty',
-          message: 'Try uploading a file or creating a folder',
+          title: 'Folder is empty',
+          message: 'Tap the + button to upload a file or create something new',
         },
         searchInThisFolder: 'Search in this folder',
         encrypting: 'Encrypting',
@@ -282,6 +305,7 @@ const strings = new LocalizedStrings({
             message: 'All your gallery photos and videos will be backed up on Internxt Photos',
           },
         },
+        saveLogs: 'Save logs',
         information: 'Information',
         termsAndConditions: 'Terms and conditions',
         support: 'Support',
@@ -308,6 +332,22 @@ const strings = new LocalizedStrings({
       },
       SecurityScreen: {
         title: 'Security',
+        screenLock: {
+          title: 'Screen Lock',
+          subtitle: {
+            [BiometricAccessType.FaceId]: 'Require Face ID',
+            [BiometricAccessType.TouchId]: 'Require Touch ID',
+            [BiometricAccessType.FingerPrint]: 'Require Fingerprint',
+            [BiometricAccessType.Pin]: 'Require PIN',
+          },
+          message: {
+            [BiometricAccessType.FaceId]: 'When enabled, you will need to use Face ID to unlock Internxt.',
+            [BiometricAccessType.TouchId]: 'When enabled, you will need to use Touch ID to unlock Internxt.',
+            [BiometricAccessType.FingerPrint]:
+              'When enabled, you will need to use your fingerprint to unlock Internxt.',
+            [BiometricAccessType.Pin]: 'When enabled, you will need to use your pin to unlock Internxt.',
+          },
+        },
         changePassword: {
           title: 'Change password',
           text: 'Remember that if you forget the password, you will lose access to all your files. We recommend using a password manager.',
@@ -450,6 +490,7 @@ const strings = new LocalizedStrings({
         delete: 'Move to trash',
         linkReady: 'Link created',
         exportFile: 'Export file',
+        saveToFiles: 'Save to Files',
         shareLink: 'Share link',
         downloadFile: 'Download file',
         view: 'View',
@@ -500,15 +541,28 @@ const strings = new LocalizedStrings({
           },
         },
       },
+      downloadingFile: {
+        title: 'Downloading file...',
+        of: 'of',
+      },
       Plans: {
-        title: 'Unlimited privacy',
-        advice: 'Upgrade now to get more storage for all your memories and work documents',
+        selectBillingPeriod: 'Select billing period',
+        yourCurrentPlan: 'Your current plan is',
+        changePlan: {
+          title: 'Change plan',
+          message: 'Please confirm changes',
+        },
+        title: 'Upgrade storage',
+        advice: 'Upgrade now to get more storage for all your memories, documents and backups',
         howMuchStorage: 'How much storage you want?',
         moneyBack: '30 Days money-back guarantee',
         cancelAtAnyMoment: 'Cancel at any moment',
         subscriptionRenew:
           'Subscriptions automatically renew unless you cancel your subscription at least 24 hours before the current period ends. To manage your subscription please go to “Account” > “Subscription”. Thank you for reading the fine print and considering subscribing to Internxt.',
-        freeUpSpace: 'You have {0} in use, free up space to be able to downgrade to the {1} plan.',
+        freeUpSpace: {
+          title: 'You are over {0}',
+          message: 'By downgrading you understand that sync will stop and you won’t be able to add more files',
+        },
       },
       EnableTwoFactor: {
         title: 'Enable 2FA',
@@ -633,6 +687,10 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      logFileMovedToDownloads: 'Logs file saved',
+      planPeriodDisclaimer: "You'll be charged now and for each payment period until further change.",
+      driveDownloadSuccess: 'File downloaded correctly',
+      gettingCloudPhotos: 'Getting photos from the cloud',
       passwordMediumStrength: 'Password is weak',
       passwordHardStrength: 'Password is strong',
       image_not_uploaded_yet: 'This photo is not synced yet',
@@ -664,10 +722,17 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Trash is empty',
     },
     errors: {
+      runtimeLogsMissing: 'The logs file is missing or empty',
+      enableWriteExternalStoragePermissions: 'You need to grand external storage write permission',
       generic: {
         title: 'There has been an error',
         message: '{0}. Please contact us.',
       },
+      driveFolderContent: {
+        title: "Can't load content",
+        message: 'There are internet connection problems, check your network connection',
+      },
+      openWithFailed: 'An error has ocurred while trying to open the file',
       deactivationAccount: 'Error deactivating account. Please contact us.',
       emailAlreadyInUse: 'Email already in use',
       failed2FA: 'Wrong 2-factor auth code',
@@ -720,13 +785,16 @@ const strings = new LocalizedStrings({
       es: 'Español',
     },
     generic: {
+      current: 'Actual',
+      new: 'Nuevo',
+      calculating: 'Calculando',
       atTime: 'a las',
       loading: 'Cargando',
       security: 'Seguridad',
       preparing: 'Preparando...',
       downloading: 'Descargando...',
       updated: 'Actualizado',
-      year: 'Year',
+      year: 'Año',
       month: 'Mes',
       monthly: 'Mensual',
       pricePerMonth: '{0} € por mes',
@@ -754,6 +822,21 @@ const strings = new LocalizedStrings({
       subscription: 'Subscripción',
     },
     screens: {
+      LockScreen: {
+        title: 'Internxt bloqueado',
+        message: {
+          [BiometricAccessType.FaceId]: 'Desbloquea con Face ID para abrir Internxt',
+          [BiometricAccessType.TouchId]: 'Desbloquea con Touch ID para abrir Internxt',
+          [BiometricAccessType.FingerPrint]: 'Desbloquea con tu huella para abrir Internxt',
+          [BiometricAccessType.Pin]: 'Desbloquea con tu pin para abrir Internxt',
+        },
+        button: {
+          [BiometricAccessType.FaceId]: 'Usar Face ID',
+          [BiometricAccessType.TouchId]: 'Usar Touch ID',
+          [BiometricAccessType.FingerPrint]: 'Usar tu huella',
+          [BiometricAccessType.Pin]: 'Usar tu pin',
+        },
+      },
       PlanScreen: {
         subscriptionTitle: 'Suscripción',
         lifetimeTitle: 'Lifetime',
@@ -767,6 +850,10 @@ const strings = new LocalizedStrings({
           plan: 'Plan',
         },
         newChargeOn: 'Nuevo cargo el {0}',
+      },
+      PreviewScreen: {
+        noPreviewAvailable: 'Preview no disponible para este archivo',
+        openWith: 'Abrir con...',
       },
       TrashScreen: {
         title: 'Papelera',
@@ -979,7 +1066,7 @@ const strings = new LocalizedStrings({
         storage: 'Almacenamiento',
         language: 'Idioma',
         drive: 'Drive',
-        trash: 'Trash',
+        trash: 'Papelera',
         account: {
           title: 'Cuenta',
           advice: 'Perfil, facturación y seguridad',
@@ -993,6 +1080,7 @@ const strings = new LocalizedStrings({
             message: 'Haz una copia de seguridad de tu galería en Internxt Photos',
           },
         },
+        saveLogs: 'Guardar logs',
         support: 'Soporte',
         information: 'Información',
         more: 'Más información',
@@ -1013,11 +1101,25 @@ const strings = new LocalizedStrings({
           title: 'Seguridad',
           advice: 'Cambia tu contraseña, configura la autenticación en dos pasos o guarda tu clave de recuperación.',
         },
+
         deleteAccount: 'Borrar cuenta',
         warningUnableToDeleteAccount: 'No puedes borrar tu cuenta con una suscripción activa, debes cancelarla antes.',
       },
       SecurityScreen: {
         title: 'Seguridad',
+        screenLock: {
+          title: 'Bloqueo de la app',
+          subtitle: {
+            [BiometricAccessType.FaceId]: 'Usar Face ID',
+            [BiometricAccessType.FingerPrint]: 'Usar huella',
+            [BiometricAccessType.Pin]: 'Usar pin',
+          },
+          message: {
+            [BiometricAccessType.FaceId]: 'Usa el Face ID para desbloquear la app de Internxt.',
+            [BiometricAccessType.FingerPrint]: 'Usa tu huella para desbloquear la app de Internxt.',
+            [BiometricAccessType.Pin]: 'Usa tu pin para desbloquear la app de Internxt.',
+          },
+        },
         changePassword: {
           title: 'Cambiar contraseña',
           text: 'Recuerda que si olvidas la contraseña, perderás el acceso a todos tus archivos. Te recomendamos que utilices un gestor de contraseñas',
@@ -1157,6 +1259,7 @@ const strings = new LocalizedStrings({
         move: 'Mover',
         share: 'Compartir',
         delete: 'Mover a la papelera',
+        saveToFiles: 'Guardar en Archivos',
         getLink: 'Obtener link compartido',
         linkReady: 'Link creado',
         exportFile: 'Exportar archivo',
@@ -1187,6 +1290,10 @@ const strings = new LocalizedStrings({
         title: '¿Borrar permanentemente?',
         message: 'Esta acción no se puede deshacer.',
       },
+      downloadingFile: {
+        title: 'Descargando archivo...',
+        of: 'de',
+      },
       clearTrash: {
         title: '¿Vaciar papelera de Drive?',
         message: 'Todos los items en la papelera de Drive serán eliminados, esta acción no se puede deshacer.',
@@ -1212,14 +1319,24 @@ const strings = new LocalizedStrings({
         },
       },
       Plans: {
-        title: 'Privacidad sin límites',
+        changePlan: {
+          title: 'Cambiar plan',
+          message: 'Por favor confirma tus cambios',
+        },
+        selectBillingPeriod: 'Elige tu período de facturación',
+        yourCurrentPlan: 'Tu plan actual es',
+        title: 'Comprar espacio',
         advice: 'Mejora tu plan ahora para obtener más almacenamiento para todos tus recuerdos y documentos de trabajo',
         howMuchStorage: '¿Cuánto almacenamiento quieres?',
         moneyBack: 'Garantía de devolución de dinero de 30 días',
         cancelAtAnyMoment: 'Cancela en cualquier momento',
         subscriptionRenew:
           'Las suscripciones se renuevan automáticamente a menos que cancele su suscripción al menos 24 horas antes de que finalice el período actual. Para administrar su suscripción, vaya a "Cuenta" > "Suscripción". Gracias por leer la letra pequeña y considerar suscribirte a Internxt.',
-        freeUpSpace: 'Estás usando {0}, libera espacio para bajar al plan de {1}.',
+
+        freeUpSpace: {
+          title: 'Tienes más de {0}',
+          message: 'Al reducir el espacio, entiendes que la sincronización se detendrá y no podrás subir más archivos.',
+        },
       },
       EnableTwoFactor: {
         title: 'Habilitar 2FA',
@@ -1345,6 +1462,10 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      logFileMovedToDownloads: 'Archivo de logs guardado',
+      planPeriodDisclaimer: 'Se te cobrará ahora y en cada periodo de facturación automáticamente.',
+      driveDownloadSuccess: 'Archivo descargado correctamente',
+      gettingCloudPhotos: 'Obteniendo tus fotos de la nube',
       passwordMediumStrength: 'La contraseña es débil',
       passwordHardStrength: 'La contraseña es fuerte',
       image_not_uploaded_yet: 'Imagen no sincronizada aún',
@@ -1376,10 +1497,17 @@ const strings = new LocalizedStrings({
       trashEmpty: 'Papelera vaciada',
     },
     errors: {
+      runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
+      enableWriteExternalStoragePermissions: 'Debes permitir el acceso al almacenamiento externo',
       generic: {
         title: 'Ha habido un error',
         message: '{0}. Por favor, contacta con nosotros.',
       },
+      driveFolderContent: {
+        title: 'No se puede cargar el contenido',
+        message: 'Parece que hay problemas de conexión, revisa la conexión a internet',
+      },
+      openWithFailed: 'Ha ocurrido un error abriendo el archivo',
       deactivationAccount: 'Error desactivando la cuenta. Por favor contacta con nosotros.',
       emailAlreadyInUse: 'Ya existe una cuenta con este email',
       failed2FA: 'Código 2FA incorrecto',

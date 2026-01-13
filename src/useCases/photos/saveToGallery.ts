@@ -4,7 +4,6 @@ import photos from '@internxt-mobile/services/photos';
 import { PhotosAnalyticsEventKey } from '@internxt-mobile/services/photos/analytics';
 import { photosUtils } from '@internxt-mobile/services/photos/utils';
 import { PhotosItem } from '@internxt-mobile/types/photos';
-import { PhotosItemType } from '@internxt/sdk/dist/photos';
 import strings from 'assets/lang/strings';
 import { saveToLibraryAsync } from 'expo-media-library';
 export const saveToGallery = async ({ photosItem }: { photosItem: PhotosItem }) => {

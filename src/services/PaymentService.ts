@@ -1,4 +1,3 @@
-import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import { constants } from './AppService';
 import {
   CreateCheckoutSessionPayload,
@@ -62,7 +61,10 @@ class PaymentService {
   }
 
   public async getPrices(): Promise<DisplayPrice[]> {
-    return this.sdk.payments.getPrices();
+    const prices = await this.sdk.payments.getPrices();
+
+    // Exclude lifetime prices for now
+    return prices.filter((price) => price.interval !== 'lifetime');
   }
 
   public async updateSubscriptionPrice(priceId: string): Promise<UserSubscription> {

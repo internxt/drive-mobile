@@ -24,6 +24,7 @@ import { PermissionStatus } from 'expo-media-library';
 import AuthService from '@internxt-mobile/services/AuthService';
 import { photosLogger } from '@internxt-mobile/services/photos/logger';
 import { TrashScreen } from 'src/screens/common/TrashScreen';
+import { DrivePreviewScreen } from 'src/screens/drive/DrivePreviewScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -113,6 +114,11 @@ function AppNavigator(): JSX.Element {
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
       <Stack.Screen name="PhotosPreview" component={PhotosPreviewScreen} />
       <Stack.Screen name="Trash" component={TrashScreen} />
+      <Stack.Screen
+        name="DrivePreview"
+        component={DrivePreviewScreen}
+        options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
+      />
     </Stack.Navigator>
   );
 }

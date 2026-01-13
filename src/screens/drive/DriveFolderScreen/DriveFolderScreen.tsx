@@ -15,8 +15,9 @@ import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { useHardwareBackPress } from '@internxt-mobile/hooks/common';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { uiActions } from 'src/store/slices/ui';
-import AppText from 'src/components/AppText';
 import { View } from 'react-native';
+import { DriveFolderError } from './DriveFolderError';
+import { DriveFolderEmpty } from './DriveFolderEmpty';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
@@ -67,7 +68,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
    * TODO: WARNING REDUX USAGE OVER HERE, SHOULD REMOVE
    */
   const handleOnFilePress = (driveFile: DriveListItem) => {
-    dispatch(uiActions.setIsDriveDownloadModalOpen(true));
     const thunk = dispatch(
       driveThunks.downloadFileThunk({
         ...driveFile,
@@ -78,6 +78,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         fileId: driveFile.data.fileId as string,
         updatedAt: new Date(driveFile.data.updatedAt).toISOString(),
         id: driveFile.data.id,
+        openFileViewer: false,
       }),
     );
     const downloadAbort = () => {
@@ -85,10 +86,23 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     };
 
     drive.events.setDownloadAbort(downloadAbort);
+
+    navigation.navigate('DrivePreview');
   };
   const handleDriveItemPress = (driveItem: DriveListItem) => {
     const isFolder = driveItem.data.type ? false : true;
     if (!isFolder) {
+      dispatch(
+        driveActions.setFocusedItem({
+          ...driveItem.data,
+          id: driveItem.data.id,
+          shareId: driveItem.data.shareId,
+          parentId: driveItem.data.parentId as number,
+          size: driveItem.data.size,
+          updatedAt: driveItem.data.updatedAt,
+          isFolder: driveItem.data.isFolder,
+        }),
+      );
       handleOnFilePress(driveItem);
     } else if (driveItem.data.folderId) {
       // Prepare the folder content, the Context will pick
@@ -217,9 +231,26 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
           />
         </View>
         {folderHasError ? (
-          <AppText>Error loading folder content</AppText>
+          <View style={tailwind('flex-1 flex justify-center px-8')}>
+            <DriveFolderError
+              error={{
+                title: strings.errors.driveFolderContent.title,
+                message: strings.errors.driveFolderContent.message,
+              }}
+              tryAgainLabel={strings.buttons.tryAgain}
+              onTryAgain={handleRefresh}
+            />
+          </View>
         ) : (
           <DriveList
+            renderEmpty={() => (
+              <View style={tailwind('flex-1 flex justify-center px-8')}>
+                <DriveFolderEmpty
+                  title={strings.screens.drive.emptyFolder.title}
+                  message={strings.screens.drive.emptyFolder.message}
+                />
+              </View>
+            )}
             isLoading={driveCtx.driveFoldersTree[folderId] ? false : true}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}

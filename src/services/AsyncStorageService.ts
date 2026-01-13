@@ -15,6 +15,40 @@ class AsyncStorageService {
     return AsyncStorage.removeItem(key).catch(() => undefined);
   }
 
+  async getLastPhotoPulledDate() {
+    const lastPhotoPulledDateStr = await this.getItem(AsyncStorageKey.LastPhotoPulledDate);
+
+    if (!lastPhotoPulledDateStr) return null;
+
+    return new Date(lastPhotoPulledDateStr);
+  }
+
+  async getScreenLockIsEnabled() {
+    const screenLockIsEnabledStr = await this.getItem(AsyncStorageKey.ScreenLockIsEnabled);
+
+    return screenLockIsEnabledStr === 'true';
+  }
+
+  saveScreenLockIsEnabled(screenLockIsEnabled: boolean) {
+    return this.saveItem(AsyncStorageKey.ScreenLockIsEnabled, screenLockIsEnabled ? 'true' : 'false');
+  }
+
+  saveLastScreenUnlock(lastScreenUnlock: Date) {
+    return this.saveItem(AsyncStorageKey.LastScreenLock, lastScreenUnlock.toISOString());
+  }
+
+  async getLastScreenUnlock() {
+    const lastScreenUnlock = await this.getItem(AsyncStorageKey.LastScreenLock);
+
+    if (!lastScreenUnlock) return null;
+    return new Date(lastScreenUnlock);
+  }
+
+  async saveLastPhotoPulledDate(date: Date) {
+    if (!(date instanceof Date)) throw new Error('Invalid date received');
+    await this.saveItem(AsyncStorageKey.LastPhotoPulledDate, date.toISOString());
+  }
+
   getUser(): Promise<UserSettings> {
     return AsyncStorage.getItem(AsyncStorageKey.User).then((value) => {
       return value ? JSON.parse(value) : null;
@@ -38,8 +72,9 @@ class AsyncStorageService {
       AsyncStorageKey.User,
       AsyncStorageKey.Token,
       AsyncStorageKey.PhotosToken,
-      AsyncStorageKey.LastPhotosPagePulled,
-      AsyncStorageKey.PhotosSyncEnabled,
+      AsyncStorageKey.LastPhotoPulledDate,
+      AsyncStorageKey.ScreenLockIsEnabled,
+      AsyncStorageKey.LastScreenLock,
     ]);
 
     // eslint-disable-next-line no-console

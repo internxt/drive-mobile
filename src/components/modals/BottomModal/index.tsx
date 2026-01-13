@@ -15,6 +15,7 @@ export interface BottomModalProps {
   header?: JSX.Element;
   children?: JSX.Element | JSX.Element[];
   style?: StyleProp<ViewStyle>;
+  modalStyle?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
   headerStyle?: StyleProp<ViewStyle>;
   safeAreaColor?: string;
@@ -23,6 +24,8 @@ export interface BottomModalProps {
   backdropPressToClose?: boolean;
   backButtonClose?: boolean;
   ignoreSafeAreaBottom?: boolean;
+  ignoreSafeAreaTop?: boolean;
+  animationDuration?: number;
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
@@ -36,10 +39,13 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       isOpen={props.isOpen}
       onClosed={props.onClosed}
       position="bottom"
-      style={{ ...tailwind('bg-transparent'), paddingTop: safeAreaInsets.top }}
+      style={[
+        { ...tailwind('bg-transparent'), paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top },
+        props.modalStyle,
+      ]}
       backButtonClose={props.backButtonClose !== undefined ? props.backButtonClose : true}
       backdropPressToClose={props.backdropPressToClose}
-      animationDuration={250}
+      animationDuration={props.animationDuration || 250}
       easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>

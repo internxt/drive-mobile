@@ -13,9 +13,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as NavigationBar from 'expo-navigation-bar';
 
 import analyticsService from './services/AnalyticsService';
-import { forceCheckUpdates, shouldForceUpdate, useLoadFonts } from './helpers';
+import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
 import { authThunks } from './store/slices/auth';
-import { appThunks } from './store/slices/app';
+import { appActions, appThunks } from './store/slices/app';
 import appService from './services/AppService';
 import InviteFriendsModal from './components/modals/InviteFriendsModal';
 import NewsletterModal from './components/modals/NewsletterModal';
@@ -37,13 +37,17 @@ import fileSystemService from './services/FileSystemService';
 import { PhotosContextProvider } from './contexts/Photos';
 import errorService from './services/ErrorService';
 import { DriveContextProvider } from './contexts/Drive/Drive.context';
-
+import { LockScreen } from './screens/common/LockScreen';
+import { logger } from './services/common';
+import { time } from './services/common/time';
 let listener: NativeEventSubscription | null = null;
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
-  const { isReady: fontsAreReady, error } = useLoadFonts();
+  const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
+  const { screenLocked, lastScreenLock, initialScreenLocked } = useAppSelector((state) => state.app);
+
   const { color: whiteColor } = tailwind('text-white');
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const {
@@ -56,10 +60,12 @@ export default function App(): JSX.Element {
     isLanguageModalOpen,
     isPlansModalOpen,
   } = useAppSelector((state) => state.ui);
+
   const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
-    dispatch(authThunks.silentSignInThunk());
-    dispatch(authThunks.refreshTokensThunk());
+    await dispatch(appThunks.initializeUserPreferencesThunk());
+    await dispatch(authThunks.silentSignInThunk());
+    await dispatch(authThunks.refreshTokensThunk());
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
@@ -70,11 +76,21 @@ export default function App(): JSX.Element {
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
-  function handleAppStateChange(state: AppStateStatus) {
+  const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
+      dispatch(appActions.setLastScreenLock(Date.now()));
       dispatch(authThunks.refreshTokensThunk());
     }
-  }
+
+    if (state === 'inactive') {
+      dispatch(appThunks.lockScreenIfNeededThunk());
+    }
+
+    if (Platform.OS === 'android' && state === 'background') {
+      dispatch(appThunks.lockScreenIfNeededThunk());
+    }
+  };
+
   const onUserLoggedIn = () => {
     dispatch(appThunks.initializeThunk());
     // Refresh the auth tokens if the app comes to the foreground
@@ -95,6 +111,11 @@ export default function App(): JSX.Element {
     //dispatch(appThunks.initializeThunk());
   };
 
+  const handleUnlockScreen = () => {
+    dispatch(appActions.setInitialScreenLocked(false));
+    dispatch(appActions.setScreenLocked(false));
+  };
+
   useEffect(() => {
     const subscription = Linking.addEventListener('url', onDeeplinkChange);
 
@@ -111,15 +132,26 @@ export default function App(): JSX.Element {
 
   const initializeApp = async () => {
     try {
-      // 1. Prepare the TMP dir
-      await fileSystemService.prepareTmpDir();
+      logger.info(`--- Starting new app session at ${time.getFormattedDate(new Date(), 'dd/LL/yyyy - HH:mm')} ---`);
 
-      // 2. Initialize all the services we need at start time
-      const initializeOperations = [authService.init(), analyticsService.setup()];
+      // 1. Get remote updates
+      await getRemoteUpdateIfAvailable();
+
+      // 2. Check for updates every time the app becomes active, doesn't trigger when setted
+      appService.onAppStateChange(async (state) => {
+        if (state === 'active') {
+          await getRemoteUpdateIfAvailable();
+        }
+      });
+
+      // 3. Prepare the filesystem
+      await fileSystemService.prepareFileSystem();
+
+      // 4. Initialize all the services we need at start time
+      const initializeOperations = [authService.init(), analyticsService.setup(), appService.logAppInfo()];
 
       await Promise.all(initializeOperations);
-
-      // 3. Silent SignIn only if token is still valid
+      // 5. Silent SignIn only if token is still valid
       await silentSignIn();
     } catch (err) {
       setLoadError((err as Error).message);
@@ -143,14 +175,6 @@ export default function App(): JSX.Element {
       initializeApp();
     }
 
-    shouldForceUpdate()
-      .then((shouldForce) => {
-        if (shouldForce && appService.constants.NODE_ENV === 'production') {
-          forceCheckUpdates();
-        }
-      })
-      .catch(() => undefined);
-
     return () => {
       authService.removeLoginListener(onUserLoggedIn);
       authService.removeLogoutListener(onUserLoggedOut);
@@ -166,7 +190,12 @@ export default function App(): JSX.Element {
               <DriveContextProvider rootFolderId={user?.root_folder_id}>
                 <PhotosContextProvider>
                   <Portal.Host>
-                    <Navigation />
+                    <LockScreen
+                      locked={screenLocked}
+                      lastScreenLock={lastScreenLock}
+                      onScreenUnlocked={handleUnlockScreen}
+                    />
+                    {initialScreenLocked ? null : <Navigation />}
                     <AppToast />
 
                     <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />

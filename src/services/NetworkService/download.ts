@@ -98,7 +98,7 @@ async function decryptFile(
   fileDecryptionKey: Buffer,
   iv: Buffer,
   options?: {
-    progress: (progress: number) => void;
+    progress: (progress: number, bytesReceived: number, totalBytes: number) => void;
   },
 ): Promise<FileDecryptedURI> {
   const decipher = createDecipheriv('aes-256-ctr', fileDecryptionKey.slice(0, 32), iv);
@@ -111,7 +111,7 @@ async function decryptFile(
 
   let start = 0;
 
-  options?.progress(0);
+  options?.progress(0, 0, 0);
 
   if (Platform.OS === 'android') {
     return new Promise((resolve, reject) => {
@@ -119,7 +119,7 @@ async function decryptFile(
         if (err) {
           return reject(err);
         }
-        options?.progress(1);
+        options?.progress(1, fileSize, fileSize);
         resolve(toPath);
       });
     });
@@ -133,7 +133,7 @@ async function decryptFile(
       })
       .then(() => {
         start += twoMb;
-        options?.progress(Math.min(start / fileSize, 1));
+        options?.progress(Math.min(start / fileSize, 1), start, fileSize);
         cb(null);
       })
       .catch((err) => {
@@ -155,7 +155,7 @@ export async function downloadFile(
   networkApiUrl: string,
   options: {
     toPath: string;
-    downloadProgressCallback: (progress: number) => void;
+    downloadProgressCallback: (progress: number, bytesReceived: number, totalBytes: number) => void;
     decryptionProgressCallback: (progress: number) => void;
     signal?: AbortSignal;
   },
@@ -215,7 +215,7 @@ export async function downloadFile(
   if (options.signal?.aborted) {
     throw new Error('Download process aborted after get the farmer url');
   }
-
+  let totalBytes = 0;
   // 3. Download file
   const downloadResult = RNFS.downloadFile({
     fromUrl: mirror.url,
@@ -224,7 +224,10 @@ export async function downloadFile(
     cacheable: false,
     begin: () => undefined,
     progress: (res) => {
-      options.downloadProgressCallback(res.bytesWritten / res.contentLength);
+      if (res.contentLength) {
+        totalBytes = res.contentLength;
+      }
+      options.downloadProgressCallback(res.bytesWritten / res.contentLength, res.bytesWritten, res.contentLength);
     },
   });
   const promise = (async () => {
@@ -237,7 +240,7 @@ export async function downloadFile(
       throw new Error('Hash mismatch');
     }
 
-    options.downloadProgressCallback(1);
+    options.downloadProgressCallback(1, totalBytes, totalBytes);
 
     // 4. Decrypt file
     const fileDecryptionKey = await GenerateFileKey(

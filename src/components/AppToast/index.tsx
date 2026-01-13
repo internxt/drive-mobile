@@ -8,7 +8,8 @@ import strings from '../../../assets/lang/strings';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
-
+import Portal from '@burstware/react-native-portal';
+import styles from '../../styles/global';
 const AppToast = (): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -22,8 +23,11 @@ const AppToast = (): JSX.Element => {
       marginBottom: safeAreaInsets.bottom,
     },
     contentContainerStyle: tailwind('p-0'),
-    text1Style: tailwind('text-base text-neutral-700 font-normal m-0 pr-3.5'),
-    text2Style: tailwind('text-xs text-neutral-100'),
+    text1Style: {
+      ...tailwind('text-base text-neutral-700 font-normal m-0 pr-3.5'),
+      fontFamily: styles.fontWeight.regular.fontFamily,
+    },
+    text2Style: { ...tailwind('text-xs text-neutral-100'), fontFamily: styles.fontWeight.regular.fontFamily },
   };
   const iconDefaultProps = {
     size: 20,
@@ -109,7 +113,11 @@ const AppToast = (): JSX.Element => {
     ),
   };
 
-  return <Toast config={config} />;
+  return (
+    <Portal>
+      <Toast config={config} />
+    </Portal>
+  );
 };
 
 export default AppToast;

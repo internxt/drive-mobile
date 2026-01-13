@@ -17,7 +17,6 @@ export interface UIState {
   isLinkCopiedModalOpen: boolean;
   isNewsletterModalOpen: boolean;
   isInviteFriendsModalOpen: boolean;
-  isDriveDownloadModalOpen: boolean;
   isSignOutModalOpen: boolean;
   isDeleteAccountModalOpen: boolean;
   isEditNameModalOpen: boolean;
@@ -47,7 +46,6 @@ const initialState: UIState = {
   isLinkCopiedModalOpen: false,
   isNewsletterModalOpen: false,
   isInviteFriendsModalOpen: false,
-  isDriveDownloadModalOpen: false,
   isSignOutModalOpen: false,
   isDeleteAccountModalOpen: false,
   isEditNameModalOpen: false,
@@ -107,9 +105,6 @@ export const uiSlice = createSlice({
     },
     setIsReferralsBannerOpen: (state, action: PayloadAction<boolean>) => {
       state.isReferralsBannerOpen = action.payload;
-    },
-    setIsDriveDownloadModalOpen: (state, action: PayloadAction<boolean>) => {
-      state.isDriveDownloadModalOpen = action.payload;
     },
     setIsSignOutModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isSignOutModalOpen = action.payload;

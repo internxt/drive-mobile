@@ -1,7 +1,7 @@
-import { ExpoConfig } from '@expo/config-types';
+import { ExpoConfig } from 'expo/config';
 import env from './env';
 import packageJson from './package.json';
-
+import { AppEnv } from '@internxt-mobile/types/app';
 export enum AppStage {
   Development = 'development',
   Test = 'test',
@@ -9,64 +9,41 @@ export enum AppStage {
   Production = 'production',
 }
 
-export interface AppEnv {
-  NODE_ENV: AppStage;
-  DEBUG: boolean;
-  APP_BUILD_NUMBER: number;
-  SHOW_BILLING: boolean;
-  CRYPTO_SECRET: string;
-  WEB_CLIENT_URL: string;
-  DRIVE_API_URL: string;
-  DRIVE_NEW_API_URL: string;
-  PAYMENTS_API_URL: string;
-  BRIDGE_URL: string;
-  PHOTOS_API_URL: string;
-  SHARE_LINKS_URL: string;
-  PHOTOS_NETWORK_API_URL: string;
-  CRYPTO_SECRET2: string;
-  MAGIC_IV: string;
-  MAGIC_SALT: string;
-  RECAPTCHA_V3: string;
-  SENTRY_DSN: string;
-  SENTRY_ORGANIZATION: string;
-  SENTRY_PROJECT: string;
-  SENTRY_URL: string;
-  SENTRY_AUTH_TOKEN: string;
-  RELEASE_ID: string;
-  DATAPLANE_URL: string;
-  ANALYTICS_WRITE_KEY: string;
-  NOTIFICATIONS_URL: string;
-}
-
 const stage = AppStage.Production; // <- CHANGE STAGE
 
-const RELEASE_ID = `${packageJson.version} (${env[stage].APP_BUILD_NUMBER}) - ${stage}`;
+const packageVersion = packageJson.version.replace('v', '');
+const RELEASE_ID = `${packageVersion} (${env[stage].APP_BUILD_NUMBER}) - ${stage}`;
 
-const appConfig: ExpoConfig & { extra: AppEnv } = {
+const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID: string } } = {
   name: 'Internxt',
   scheme: 'inxt',
-  entryPoint: './index.js',
   slug: 'drive-mobile',
-  version: packageJson.version,
+  version: packageVersion,
   orientation: 'portrait',
-  jsEngine: 'jsc',
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
     backgroundColor: '#091e42',
   },
+
   updates: {
-    url: 'https://exp.host/@internxt/drive-mobile',
+    url: 'https://u.expo.dev/680f4feb-6315-4a50-93ec-36dcd0b831d2',
     fallbackToCacheTimeout: 0,
   },
+
   assetBundlePatterns: ['**/*'],
+  runtimeVersion: packageVersion,
   ios: {
+    jsEngine: 'jsc',
     icon: './assets/icon-ios.png',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
     usesIcloudStorage: true,
     backgroundColor: '#FFFFFF',
+    associatedDomains: ['webcredentials:www.internxt.com'],
+    buildNumber: env[stage].IOS_BUILD_NUMBER.toString(),
     infoPlist: {
+      NSFaceIDUsageDescription: 'Protect the app access to secure the available files',
       NSCameraUsageDescription:
         'Allow $(PRODUCT_NAME) to access your camera to upload a newly captured photo to the storage service',
       NSPhotoLibraryAddUsageDescription: 'Allow $(PRODUCT_NAME) to save/download photos from the storage service',
@@ -75,7 +52,8 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
     },
   },
   android: {
-    versionCode: 56,
+    jsEngine: 'hermes',
+    versionCode: env[stage].ANDROID_VERSION_CODE,
     icon: './assets/icon-android.png',
     adaptiveIcon: {
       foregroundImage: './assets/icon-android.png',
@@ -124,7 +102,14 @@ const appConfig: ExpoConfig & { extra: AppEnv } = {
       },
     ],
   },
-  extra: { NODE_ENV: stage, RELEASE_ID, ...env[stage] },
+  extra: {
+    eas: {
+      projectId: '680f4feb-6315-4a50-93ec-36dcd0b831d2',
+    },
+    NODE_ENV: stage,
+    RELEASE_ID,
+    ...env[stage],
+  },
 };
 
 export default appConfig;

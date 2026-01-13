@@ -2,27 +2,25 @@ import { RunnableService } from '../../../../helpers/services';
 import {
   DevicePhotoRemoteCheck,
   DevicePhotosOperationPriority,
+  DevicePhotosSyncCheckerStatus,
   DevicePhotoSyncCheckOperation,
   PhotosItem,
+  PhotosNetworkManagerStatus,
   PhotosSyncManagerStatus,
   SyncStage,
 } from '../../../../types/photos';
-
 import { PhotosNetworkManager } from '../../network/PhotosNetworkManager';
-import { DevicePhotosScannerService, DevicePhotosScannerStatus } from '../devicePhotosScanner/devicePhotosScanner';
+import {
+  devicePhotosScanner,
+  DevicePhotosScannerService,
+  DevicePhotosScannerStatus,
+} from '../devicePhotosScanner/devicePhotosScanner';
 import { DevicePhotosSyncCheckerService } from '../devicePhotosSyncChecker/devicePhotosSyncChecker';
 import { Photo } from '@internxt/sdk/dist/photos';
 import errorService from 'src/services/ErrorService';
-import { AbortedOperationError, AsyncStorageKey } from 'src/types';
-import { photosLocalDB } from '../../database';
-import { photosLogger } from '../../logger';
-import { photosNetwork } from '../../network/photosNetwork.service';
-import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { ENABLE_PHOTOS_SYNC_MANAGER_LOGS, SAVE_LAST_PHOTOS_PAGE_PULLED } from '../../constants';
-import fileSystemService from '@internxt-mobile/services/FileSystemService';
-import { photosUtils } from '../../utils';
-import { photosPreview } from '../../preview';
-import async from 'async';
+import { AbortedOperationError } from 'src/types';
+import { PhotosRealmDB, photosRealmDB } from '../../database';
+import { BaseLogger } from '@internxt-mobile/services/common';
 
 export type OnDevicePhotoSyncCompletedCallback = (error: Error | null, photo: Photo | null) => void;
 export type OnStatusChangeCallback = (status: PhotosSyncManagerStatus) => void;
@@ -32,68 +30,54 @@ export type OnPhotosCheckedRemotelyCallback = (photos: DevicePhotoRemoteCheck[])
 export type PhotosSyncManagerConfig = {
   checkIfExistsPhotosAmount: number;
 };
-export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatus> {
+export class PhotosLocalSyncManager implements RunnableService<PhotosSyncManagerStatus> {
   public totalPhotosInDevice: number | null = null;
   public status: PhotosSyncManagerStatus = PhotosSyncManagerStatus.IDLE;
   private devicePhotosScanner: DevicePhotosScannerService;
   private devicePhotosSyncChecker: DevicePhotosSyncCheckerService;
   private photosNetworkManager: PhotosNetworkManager;
+  private realmDB: PhotosRealmDB;
+
   private config: { enableLog: boolean };
 
-  public pendingItemsToSync = 0;
+  // The photos that are in the DB and are synced
+  public totalPhotosThatAreAlreadySynced = 0;
+  // The photos that are in the device, and not in the DB
+  public totalPhotosThatNeedsSync = 0;
+  // The photos that are synced since the PhotosLocalSyncManager STARTED
   public totalPhotosSynced = 0;
+  // The photos that failed to sync
   public totalPhotosFailed = 0;
 
-  public gettingRemotePhotos = false;
-
-  private onRemotePhotosSyncedCallback: (photosItemSynced: PhotosItem) => void = () => undefined;
   private onDevicePhotoSyncCompletedCallback: OnDevicePhotoSyncCompletedCallback = () => undefined;
   private onStatusChangeCallback: OnStatusChangeCallback = () => undefined;
   private onTotalPhotosInDeviceCalculatedCallback: OnTotalPhotosCalculatedCallback = () => undefined;
 
-  private previewsQueue = async.queue<Photo, Photo, Error>(async (task, next) => {
-    // Check if we have the preview locally,
-    // if not download and save it
-    const photosItem = photosUtils.getPhotosItem(task);
-    this.log('Saving photos item in DB');
-    await photosLocalDB.savePhotosItem(task);
-    const existsInDevice = this.devicePhotosScanner.getPhotoInDevice(photosItem.name, photosItem.takenAt)
-      ? true
-      : false;
+  private logger: BaseLogger;
+  private initializeValues() {
+    this.totalPhotosSynced = 0;
+    this.totalPhotosFailed = 0;
 
-    if (existsInDevice) {
-      this.log('Photo exists in device, skipping preview download');
-      next(null, task);
-      return;
-    }
+    this.totalPhotosThatNeedsSync = 0;
+    this.totalPhotosThatAreAlreadySynced = 0;
+  }
 
-    const existsPreviewFile = await fileSystemService.exists(photosItem.localPreviewPath);
-
-    try {
-      if (!existsPreviewFile) {
-        this.log('Missing preview, downloading it');
-        await photosPreview.getPreview(photosItem);
-      }
-
-      this.onRemotePhotosSyncedCallback(photosItem);
-      this.log('Preview downloaded');
-
-      return next(null, task);
-    } catch (err) {
-      this.log(`Preview download failed ${(err as Error).message}`);
-
-      next(err as Error);
-    }
-  }, 1);
   constructor(
     photosNetworkManager: PhotosNetworkManager,
     devicePhotosSyncChecker: DevicePhotosSyncCheckerService,
-    config = { enableLog: ENABLE_PHOTOS_SYNC_MANAGER_LOGS },
+    config = { enableLog: true },
+    devicePhotosScanner: DevicePhotosScannerService,
+    realmDB: PhotosRealmDB,
   ) {
-    this.devicePhotosScanner = new DevicePhotosScannerService();
+    this.devicePhotosScanner = devicePhotosScanner;
     this.devicePhotosSyncChecker = devicePhotosSyncChecker;
     this.photosNetworkManager = photosNetworkManager;
+    this.realmDB = realmDB;
     this.config = config;
+    this.logger = new BaseLogger({
+      disabled: !config.enableLog,
+      tag: 'PHOTOS_LOCAL_SYNC',
+    });
     this.setupCallbacks();
   }
 
@@ -101,37 +85,11 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     return this.devicePhotosScanner.getDevicePhotosItems(cursor, photosPerPage);
   }
 
-  getPendingTasks() {
-    return this.photosNetworkManager.getPendingTasks();
+  getSyncedPhotosCount() {
+    return this.totalPhotosSynced + this.totalPhotosThatAreAlreadySynced;
   }
-
-  async getRemotePhotos(page?: number) {
-    try {
-      this.gettingRemotePhotos = true;
-      const lastPhotosPagePulled = SAVE_LAST_PHOTOS_PAGE_PULLED
-        ? await asyncStorageService.getItem(AsyncStorageKey.LastPhotosPagePulled)
-        : 1;
-
-      const pageToPull = page ? page : lastPhotosPagePulled ? parseInt(lastPhotosPagePulled as string) : 1;
-      this.log(`Getting remote photos page ${pageToPull}`);
-      const { results } = await photosNetwork.getPhotos(pageToPull);
-
-      this.previewsQueue.push(results);
-
-      if (!this.isAborted && SAVE_LAST_PHOTOS_PAGE_PULLED) {
-        await asyncStorageService.saveItem(AsyncStorageKey.LastPhotosPagePulled, pageToPull.toString());
-      }
-
-      if (results.length) {
-        await this.getRemotePhotos(pageToPull + 1);
-      } else {
-        this.log('No more pages found');
-        this.gettingRemotePhotos = false;
-      }
-    } catch (e) {
-      this.log(`Get remote photos failed ${(e as Error).message}`);
-      this.gettingRemotePhotos = false;
-    }
+  getPhotosThatNeedsSyncCount() {
+    return this.totalPhotosThatNeedsSync - this.totalPhotosSynced;
   }
 
   /**
@@ -142,17 +100,15 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
    * - PhotosNetworkManager
    */
   public run(): void {
+    this.initializeValues();
     this.log('Sync manager starting');
-    this.getRemotePhotos();
     this.startSync();
   }
 
   private async startSync() {
-    this.devicePhotosScanner.run();
-    this.photosNetworkManager.run();
-    const synced = await photosLocalDB.getSyncedPhotos();
-    this.totalPhotosSynced = synced.length;
     this.updateStatus(PhotosSyncManagerStatus.RUNNING);
+
+    this.devicePhotosScanner.run();
   }
 
   /**
@@ -194,9 +150,12 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     this.devicePhotosScanner.destroy();
     this.photosNetworkManager.destroy();
     this.updateStatus(PhotosSyncManagerStatus.ABORTED);
+    this.onDevicePhotoSyncCompletedCallback = () => undefined;
+    this.onStatusChangeCallback = () => undefined;
+    this.onTotalPhotosInDeviceCalculatedCallback = () => undefined;
     this.totalPhotosSynced = 0;
     this.totalPhotosInDevice = 0;
-    this.pendingItemsToSync = 0;
+    this.updateStatus(PhotosSyncManagerStatus.IDLE);
   }
 
   public get isAborted() {
@@ -217,10 +176,6 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
 
   public onPhotoSyncCompleted(callback: OnDevicePhotoSyncCompletedCallback) {
     this.onDevicePhotoSyncCompletedCallback = callback;
-  }
-
-  public onRemotePhotosSynced(callback: (photosItemSynced: PhotosItem) => void) {
-    this.onRemotePhotosSyncedCallback = callback;
   }
 
   public onStatusChange(callback: OnStatusChangeCallback) {
@@ -249,28 +204,29 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     // NOT the not synchronized photos
     this.devicePhotosScanner.onTotalPhotosCalculated((total) => {
       this.log(`Received photos from device scanner, total: ${total} photos`);
-      this.pendingItemsToSync = total;
       this.totalPhotosInDevice = total;
       this.onTotalPhotosInDeviceCalculatedCallback(total);
-      this.checkIfFinishSync();
     });
 
     this.devicePhotosScanner.onStatusChange((status) => {
-      switch (status) {
-        case DevicePhotosScannerStatus.COMPLETED:
-          break;
+      if (status === DevicePhotosScannerStatus.NO_PHOTOS_IN_DEVICE) {
+        this.updateStatus(PhotosSyncManagerStatus.NO_PHOTOS_TO_SYNC);
+        this.checkIfFinishSync();
       }
-      this.checkIfFinishSync();
     });
 
     // Listen for DevicePhotosSyncChecker status changes
-    this.devicePhotosSyncChecker.onStatusChange(() => {
-      this.checkIfFinishSync();
+    this.devicePhotosSyncChecker.onStatusChange((status) => {
+      if (status === DevicePhotosSyncCheckerStatus.COMPLETED) {
+        this.checkIfFinishSync();
+      }
     });
 
     // Listen for PhotosNetworkManager status changes
-    this.photosNetworkManager.onStatusChange(() => {
-      this.checkIfFinishSync();
+    this.photosNetworkManager.onStatusChange((status) => {
+      if (status === PhotosNetworkManagerStatus.COMPLETED) {
+        this.checkIfFinishSync();
+      }
     });
   }
 
@@ -279,13 +235,29 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
    * because all the managed services are done with their work or
    * are just IDLE
    */
-  private checkIfFinishSync() {
-    if (this.status === PhotosSyncManagerStatus.COMPLETED) return;
-    const shouldFinish = this.devicePhotosSyncChecker.hasFinished && this.photosNetworkManager.hasFinished;
-
-    if (shouldFinish) {
+  private checkIfFinishSync(enableLog = false) {
+    const finish = () => {
       this.log('Sync manager should finish now');
       this.finishSync();
+    };
+    // If the devicePhotosScanner finished, and theres no photos, finish
+    if (this.devicePhotosScanner.hasFinished && !this.totalPhotosInDevice) {
+      finish();
+    }
+    if (this.status === PhotosSyncManagerStatus.COMPLETED) return;
+    const shouldFinish =
+      this.devicePhotosSyncChecker.hasFinished &&
+      this.photosNetworkManager.hasFinished &&
+      this.devicePhotosScanner.hasFinished;
+
+    if (enableLog) {
+      this.logger.info(`[DevicePhotosSyncChecker] status is ${this.devicePhotosSyncChecker.status}`);
+      this.logger.info(`[PhotosNetworkManager] status is ${this.photosNetworkManager.status}`);
+      this.logger.info(`[DevicePhotosScanner] status is ${this.devicePhotosScanner.status}`);
+    }
+
+    if (shouldFinish) {
+      finish();
     }
   }
 
@@ -294,6 +266,7 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
    */
   private finishSync() {
     this.updateStatus(PhotosSyncManagerStatus.COMPLETED);
+    this.log('--- Sync is finished ---');
   }
 
   /**
@@ -326,10 +299,17 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
         retries: 0,
         onOperationCompleted: async (err, photo) => {
           if (err) {
+            if (err instanceof AbortedOperationError) {
+              // This is used to stop the tasks, is not an error at all
+              // since is thrown on purpose, so just log it, but don't bubble it
+
+              this.logger.info('Upload task was aborted');
+            }
             this.totalPhotosFailed++;
             this.onDevicePhotoSyncCompletedCallback(err, null);
           }
           if (photo) {
+            this.totalPhotosSynced = this.totalPhotosSynced + 1;
             this.savePhotoInSync(photo);
           }
         },
@@ -337,14 +317,14 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
     }
   };
 
-  private async savePhotoInSync(photo: Photo, countPhoto = true) {
+  private async savePhotoInSync(photo: Photo) {
     try {
       if (this.isAborted) {
         throw new AbortedOperationError();
       }
 
-      await photosLocalDB.savePhotosItem(photo);
-      this.devicePhotoSyncSuccess(photo, countPhoto);
+      await this.realmDB.savePhotosItem(photo);
+      this.devicePhotoSyncSuccess(photo);
     } catch (err) {
       this.devicePhotoSyncFailed(err as Error);
     }
@@ -365,21 +345,32 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
           }
 
           if (resolvedOperation) {
+            if (
+              resolvedOperation.syncStage === SyncStage.NEEDS_REMOTE_CHECK &&
+              this.photosNetworkManager.status === PhotosNetworkManagerStatus.IDLE
+            ) {
+              this.photosNetworkManager.run();
+            }
+
+            if (resolvedOperation.syncStage === SyncStage.IN_SYNC) {
+              this.totalPhotosThatAreAlreadySynced = this.totalPhotosThatAreAlreadySynced + 1;
+            }
+
+            if (resolvedOperation.syncStage === SyncStage.NEEDS_REMOTE_CHECK) {
+              this.totalPhotosThatNeedsSync = this.totalPhotosThatNeedsSync + 1;
+            }
+
             await this.onDevicePhotoSyncCheckResolved(resolvedOperation);
           }
         },
       }),
     );
+
+    this.devicePhotosSyncChecker.run();
   }
 
-  private devicePhotoSyncSuccess(photo?: Photo, countPhoto = false) {
-    if (countPhoto) {
-      this.totalPhotosSynced++;
-      this.pendingItemsToSync--;
-    }
-
+  private devicePhotoSyncSuccess(photo?: Photo) {
     this.onDevicePhotoSyncCompletedCallback(null, photo || null);
-    this.checkIfFinishSync();
   }
 
   private devicePhotoSyncFailed(error: Error) {
@@ -387,12 +378,14 @@ export class PhotosSyncManager implements RunnableService<PhotosSyncManagerStatu
   }
 
   private log(message: string) {
-    if (!this.config.enableLog) return;
-    photosLogger.info(message);
+    this.logger.info(message);
   }
 }
 
-export const photosSync = new PhotosSyncManager(
+export const photosLocalSync = new PhotosLocalSyncManager(
   new PhotosNetworkManager(),
-  new DevicePhotosSyncCheckerService(photosLocalDB),
+  new DevicePhotosSyncCheckerService(photosRealmDB),
+  { enableLog: true },
+  devicePhotosScanner,
+  photosRealmDB,
 );
