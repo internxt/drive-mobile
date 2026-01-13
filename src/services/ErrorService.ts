@@ -1,6 +1,6 @@
+import strings from '../../assets/lang/strings';
 import AppError from '../types';
-import { BaseLogger } from './common';
-import sentryService from './SentryService';
+import { BaseLogger } from './common/logger';
 
 export interface GlobalErrorContext {
   email: string;
@@ -25,36 +25,45 @@ export interface ErrorContext extends GlobalErrorContext {
 class ErrorService {
   private logger = new SentryLogger();
   public setGlobalErrorContext(globalContext: Partial<GlobalErrorContext>) {
-    sentryService.native.setUser({
-      email: globalContext.email,
-      id: globalContext.userId,
-    });
+    // sentryService.native.setUser({
+    //   email: globalContext.email,
+    //   id: globalContext.userId,
+    // });
   }
-  public castError(err: unknown): AppError {
-    let castedError: AppError = new AppError('Unknown error');
 
-    if (typeof err === 'string') {
-      castedError = new AppError(err);
-    } else if (err instanceof Error) {
-      castedError.message = err.message;
-    } else {
+  public castError(err: unknown): AppError {
+    if (err && typeof err === 'object') {
       const map = err as Record<string, unknown>;
-      castedError = map.message ? new AppError(map.message as string, map.status as number) : castedError;
+
+      const isServerReturnedError =
+        typeof map.message === 'string' &&
+        map.message.trim().length > 0 &&
+        typeof map.status === 'number' &&
+        map.status >= 400 &&
+        map.status < 600;
+
+      if (isServerReturnedError) {
+        return new AppError(map.message as string, map.status as number);
+      }
     }
 
-    return castedError;
+    return new AppError(strings.errors.genericError);
   }
 
-  public reportError(error: Error | unknown, context: Partial<ErrorContext> = {}) {
+  public reportError = (error: Error | unknown, context: Partial<ErrorContext> = {}) => {
     this.log(context.level || 'error', error);
     if (!__DEV__) {
-      sentryService.native.captureException(error, {
-        level: context.level || 'error',
-        tags: context.tags,
-        extra: context.extra,
-      });
+      // sentryService.native.captureException(error, {
+      //   level: context.level || 'error',
+      //   tags: context.tags,
+      //   extra: context.extra,
+      // });
+
+      // We are going to add the error to the logger too, with the context
+      const loggerMessage = (error as Error).message ? (error as Error).message : JSON.stringify(error);
+      this.logger.error(`${loggerMessage} - Context: ${JSON.stringify(context, null, 2)}`);
     }
-  }
+  };
 
   private log(level: SeverityLevel, message: unknown) {
     if (level === 'info') {

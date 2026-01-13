@@ -18,7 +18,7 @@ const CopyableText = (props: CopyableTextProps) => {
 
   return (
     <TouchableOpacity onPress={onPress}>
-      <View style={tailwind('items-center rounded-md flex-row bg-gray-5')}>
+      <View style={[tailwind('items-center rounded-md flex-row'), { backgroundColor: getColor('bg-gray-5') }]}>
         <AppText numberOfLines={1} style={tailwind('flex-1 ml-4')}>
           {props.children}
         </AppText>

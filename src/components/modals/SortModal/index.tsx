@@ -1,15 +1,15 @@
 import React from 'react';
-import { TouchableHighlight, View } from 'react-native';
+import { useColorScheme, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 
-import BottomModal from '../BottomModal';
-import AppText from '../../AppText';
-import { SortDirection, SortType } from '../../../types/drive';
-import { BaseModalProps } from '../../../types/ui';
+import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { SortDirection, SortType } from '../../../types/drive';
+import { BaseModalProps } from '../../../types/ui';
+import AppText from '../../AppText';
+import BottomModal from '../BottomModal';
 
 export type SortMode = {
   direction: SortDirection;
@@ -22,19 +22,33 @@ export interface SortModalProps extends BaseModalProps {
 }
 const SortModal: React.FC<SortModalProps> = (props) => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+
   const onClosed = () => {
     props.onClose();
   };
+
   const header = (
     <View>
-      <AppText numberOfLines={1} ellipsizeMode="middle" semibold style={tailwind('text-lg text-neutral-500')}>
+      <AppText
+        numberOfLines={1}
+        ellipsizeMode="middle"
+        semibold
+        style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}
+      >
         {strings.screens.drive.sortBy}
       </AppText>
     </View>
   );
 
   return (
-    <BottomModal isOpen={props.isOpen} onClosed={onClosed} header={header} containerStyle={tailwind('p-4')}>
+    <BottomModal
+      isOpen={props.isOpen}
+      onClosed={onClosed}
+      header={header}
+      containerStyle={tailwind('p-4')}
+      style={{ backgroundColor: getColor('bg-surface') }}
+    >
       <SortModalItem
         isSelected={props.sortMode.direction === SortDirection.Asc && props.sortMode.type === SortType.Name}
         direction={SortDirection.Asc}
@@ -96,6 +110,9 @@ function SortModalItem(props: {
   onSortModeChange: (change: SortMode) => void;
 }) {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const onPress = () => {
     props.onSortModeChange({ type: props.type, direction: props.direction });
   };
@@ -103,10 +120,18 @@ function SortModalItem(props: {
   return (
     <TouchableOpacity activeOpacity={0.65} style={tailwind('rounded-lg')} onPress={onPress}>
       <View
-        style={[tailwind('items-center flex-row rounded-lg px-4 py-2.5'), props.isSelected && tailwind('bg-blue-10')]}
+        style={[
+          tailwind('items-center flex-row rounded-lg px-4 py-2.5'),
+          props.isSelected && (isDark ? { backgroundColor: getColor('bg-gray-10') } : tailwind('bg-primary/10')),
+        ]}
       >
         <AppText
-          style={[tailwind('text-lg text-neutral-500 mr-2'), props.isSelected && tailwind('text-blue-60')]}
+          style={[
+            tailwind('text-lg mr-2'),
+            {
+              color: props.isSelected ? getColor('text-primary') : getColor('text-gray-100'),
+            },
+          ]}
           semibold
         >
           {props.text}
@@ -114,8 +139,10 @@ function SortModalItem(props: {
         <AppText
           style={[
             { textAlignVertical: 'center' },
-            tailwind('text-neutral-500 opacity-50'),
-            props.isSelected && tailwind('text-blue-60'),
+            tailwind('opacity-50'),
+            {
+              color: props.isSelected ? getColor('text-primary') : getColor('text-gray-100'),
+            },
           ]}
         >
           {props.advice}

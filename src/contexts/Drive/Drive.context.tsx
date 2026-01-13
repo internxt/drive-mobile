@@ -1,54 +1,99 @@
-import { FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
-import React, { useEffect, useState } from 'react';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import {
-  DriveItemData,
-  DriveListViewMode,
-  FetchFolderContentResponseWithThumbnails,
-} from '@internxt-mobile/types/drive';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { DriveFileForTree, DriveFolderForTree, DriveItemData, DriveListViewMode } from '@internxt-mobile/types/drive';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
-import drive from '@internxt-mobile/services/drive';
-import _ from 'lodash';
-import errorService from '@internxt-mobile/services/ErrorService';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
-import { BaseLogger } from '@internxt-mobile/services/common';
+import React, { useEffect, useRef, useState } from 'react';
 
-type DriveFoldersTree = {
-  [folderId: number]:
-    | {
-        content?: FetchFolderContentResponseWithThumbnails;
-        error?: Error;
-      }
-    | undefined;
+import appService from '@internxt-mobile/services/AppService';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { AppStateStatus, NativeEventSubscription } from 'react-native';
+
+import { driveFolderService } from '@internxt-mobile/services/drive/folder';
+
+export type DriveFoldersTreeNode = {
+  name: string;
+  parentId: string; //uuid of the parent folder
+  id: number;
+  uuid: string; //uuid of current folder
+  updatedAt: string;
+  createdAt: string;
+  loading: boolean;
+  files: DriveFileForTree[];
+  folders: DriveFolderForTree[];
+  error?: Error;
 };
+type DriveFoldersTree = {
+  [folderId: string]: DriveFoldersTreeNode;
+};
+
 export interface DriveContextType {
   driveFoldersTree: DriveFoldersTree;
   viewMode: DriveListViewMode;
-  rootFolderId: number;
+  rootFolderId: string;
   toggleViewMode: () => void;
-  loadFolderContent: (folderId: number, options?: LoadFolderContentOptions) => Promise<void>;
-  currentFolder: FetchFolderContentResponse | null;
+  loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
+  focusedFolder: DriveFoldersTreeNode | null;
+  updateItemInTree: (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => void;
+  removeItemFromTree: (folderId: string, itemId: number) => void;
+  addItemToTree: (folderId: string, item: DriveItemData, isFolder: boolean) => void;
 }
 
 type LoadFolderContentOptions = {
-  pullFrom?: ('cache' | 'network')[];
+  pullFrom?: 'network'[];
+  resetPagination?: boolean;
   focusFolder?: boolean;
+  loadAllContent?: boolean;
 };
 
 export const DriveContext = React.createContext<DriveContextType | undefined>(undefined);
 
 interface DriveContextProviderProps {
-  rootFolderId?: number;
+  rootFolderId: string;
+  children: React.ReactNode;
 }
 
-const logger = new BaseLogger({
-  tag: 'DRIVE_CONTEXT',
-});
+const FILES_LIMIT_PER_PAGE = 50;
+const FOLDERS_LIMIT_PER_PAGE = 50;
+
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {
+  const ROOT_FOLDER_NODE: DriveFoldersTreeNode = {
+    name: 'Drive',
+    parentId: '',
+    id: -1,
+    uuid: rootFolderId as string,
+    updatedAt: '',
+    createdAt: '',
+    loading: true,
+    files: [],
+    folders: [],
+  };
+
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
-  const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({});
-  const [currentFolder, setCurrentFolder] = useState<FetchFolderContentResponseWithThumbnails | null>(null);
+  const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({
+    [rootFolderId]: ROOT_FOLDER_NODE,
+  });
+
+  const [currentFolder, setCurrentFolder] = useState<DriveFoldersTreeNode | null>(null);
+  const currentFolderId = useRef<string | null>(null);
+  const onAppStateChangeListener = useRef<NativeEventSubscription | null>(null);
+
+  const handleAppStateChange = (state: AppStateStatus) => {
+    if (state === 'active' && currentFolderId.current) {
+      loadFolderContent(currentFolderId.current, { pullFrom: ['network'], resetPagination: true }).catch((error) => {
+        errorService.reportError(error);
+      });
+    }
+  };
+
+  useEffect(() => {
+    onAppStateChangeListener.current = appService.onAppStateChange(handleAppStateChange);
+
+    return () => {
+      if (!onAppStateChangeListener.current) return;
+      onAppStateChangeListener.current.remove();
+      onAppStateChangeListener.current = null;
+    };
+  }, []);
+
   useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.PreferredDriveViewMode).then((preferredDriveViewMode) => {
       if (preferredDriveViewMode && preferredDriveViewMode !== viewMode) {
@@ -56,121 +101,282 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       }
     });
   }, []);
+
   useEffect(() => {
     if (!rootFolderId) return;
-    fetchFolderContent(rootFolderId)
-      .then((folderContent) => {
-        updateDriveFoldersTree({
-          folderId: rootFolderId,
-          folderContent: folderContent.data,
-          error: folderContent.error,
-          shouldSetAsFocused: true,
-        });
-      })
-      .catch((err) => {
+    setDriveFoldersTree({ [rootFolderId]: ROOT_FOLDER_NODE });
+    loadFolderContent(rootFolderId, { pullFrom: ['network'], resetPagination: true, focusFolder: true }).catch(
+      (err) => {
         errorService.reportError(err);
-      });
+      },
+    );
   }, [rootFolderId]);
 
-  const fetchFolderContent = async (folderId: number) => {
-    return driveUseCases.getFolderContent({ folderId });
+  const fetchFolderContent = async (
+    folderId: string,
+    currentFilesPage: number,
+    currentFoldersPage: number,
+  ): Promise<{
+    thereAreMoreFiles: boolean;
+    thereAreMoreFolders: boolean;
+    files: DriveFileForTree[];
+    folders: DriveFolderForTree[];
+  }> => {
+    const filesOffset = (currentFilesPage - 1) * FILES_LIMIT_PER_PAGE;
+    const filesInFolder = await driveFolderService.getFolderFiles(folderId, filesOffset, FILES_LIMIT_PER_PAGE);
+
+    const thereAreMoreFiles = filesInFolder.files.length === FILES_LIMIT_PER_PAGE;
+
+    const foldersOffset = (currentFoldersPage - 1) * FOLDERS_LIMIT_PER_PAGE;
+    const foldersInFolder = await driveFolderService.getFolderFolders(folderId, foldersOffset, FOLDERS_LIMIT_PER_PAGE);
+    const thereAreMoreFolders = foldersInFolder.folders.length === FOLDERS_LIMIT_PER_PAGE;
+
+    return {
+      thereAreMoreFiles,
+      thereAreMoreFolders,
+      folders: foldersInFolder.folders.map((folder) => {
+        const driveFolder = {
+          ...folder,
+          updatedAt: folder.updatedAt.toString(),
+          createdAt: folder.createdAt.toString(),
+          plainName: folder.plainName,
+          parentId: folder.parentId,
+          name: folder.name,
+          uuid: folder.uuid,
+          id: folder.id,
+          userId: folder.userId,
+          // @ts-expect-error - API is returning status, missing from SDK
+          status: folder.status,
+          isFolder: true,
+        };
+
+        return driveFolder;
+      }),
+      files: filesInFolder.files.map((file) => {
+        const driveFile = {
+          ...file,
+          uuid: file.uuid,
+          id: file.id,
+          fileId: file.fileId,
+          plainName: file.plainName,
+          type: file.type,
+          bucket: file.bucket,
+          createdAt: file.createdAt.toString(),
+          updatedAt: file.updatedAt.toString(),
+          deletedAt: null,
+          status: file.status,
+          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
+          folderId: file.folderId,
+          thumbnails: file.thumbnails ?? [],
+        };
+
+        return driveFile;
+      }),
+    };
   };
 
-  /**
-   * load the folder content so
-   * the next folder will be loaded quickly
-   *
-   * This is the priority order:
-   *
-   * 1. Memory
-   * 2. Database
-   * 3. Network
-   *
-   */
-  const loadFolderContent = async (folderId: number, options?: LoadFolderContentOptions) => {
-    const shouldPullFromCache = options?.pullFrom ? options?.pullFrom.includes('cache') : true;
-    const shouldPullFromNetwork = options?.pullFrom ? options?.pullFrom.includes('network') : true;
-    // 1. Check if we have the folder content in the DB
-    if (shouldPullFromCache) {
-      const folderContentFromDB = await driveLocalDB.getFolderContent(folderId);
-      if (folderContentFromDB) {
-        logger.info(`FOLDER-${folderId} - FROM CACHE`);
-        updateDriveFoldersTree({
-          folderId,
-          folderContent: folderContentFromDB,
-          shouldSetAsFocused: options?.focusFolder,
-        });
-      }
-    }
-    // 2. Get fresh data from server and update silently
-    if (shouldPullFromNetwork) {
-      const folderContent = await fetchFolderContent(folderId);
-      if (folderContent) {
-        logger.info(`FOLDER-${folderId} - FROM NETWORK`);
-        updateDriveFoldersTree({
-          folderId,
-          folderContent: folderContent.data,
-          error: folderContent.error,
-          shouldSetAsFocused: options?.focusFolder,
-        });
-      }
+  const fetchAllFolderContent = async (
+    folderId: string,
+  ): Promise<{
+    files: DriveFileForTree[];
+    folders: DriveFolderForTree[];
+  }> => {
+    const folderContent = await driveFolderService.getFolderContentByUuid(folderId);
 
-      // 3. Cache the data storing it in the local db
-      if (folderContent.data) {
-        logger.info(`FOLDER-${folderId} - CACHED`);
-        cacheDriveItems(folderContent.data).catch((error) => {
-          errorService.reportError(error);
-        });
-      }
+    return {
+      folders: folderContent.children.map((folder) => ({
+        uuid: folder.uuid,
+        plainName: folder.plainName || folder.plain_name || '',
+        id: folder.id,
+        bucket: folder.bucket || null,
+        createdAt: folder.createdAt,
+        deleted: false,
+        name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
+        parentId: folder.parentId || folder.parent_id || null,
+        parentUuid: folderId,
+        updatedAt: folder.updatedAt,
+        userId: folder.userId,
+        // @ts-expect-error - API is returning status, missing from SDK
+        status: folder.status,
+        isFolder: true,
+      })),
+      files: folderContent.files.map(
+        (file): DriveFileForTree => ({
+          uuid: file.uuid,
+          plainName: file.plainName || file.plain_name || '',
+          bucket: file.bucket,
+          createdAt: file.createdAt,
+          deleted: file.deleted || false,
+          deletedAt: file.deletedAt,
+          fileId: file.fileId,
+          folderId: file.folderId || file.folder_id,
+          folderUuid: folderId,
+          id: file.id,
+          name: file.plainName || file.plain_name || file.name,
+          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
+          type: file.type,
+          updatedAt: file.updatedAt,
+          status: file.status,
+          thumbnails: file.thumbnails ?? [],
+          shares: file.shares,
+          sharings: file.sharings,
+          user: file.user,
+        }),
+      ),
+    };
+  };
+
+  const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
+    const shouldResetPagination = options?.resetPagination;
+    const driveFolderTreeNode: DriveFoldersTreeNode = driveFoldersTree[folderId] ?? ROOT_FOLDER_NODE;
+    if (!driveFolderTreeNode) throw new Error('Cannot load this folder');
+
+    if (options?.focusFolder && driveFolderTreeNode) {
+      setCurrentFolder(driveFolderTreeNode);
     }
+
+    let files: DriveFileForTree[] = [];
+    let folders: DriveFolderForTree[] = [];
+
+    if (options?.loadAllContent) {
+      const allContent = await fetchAllFolderContent(folderId);
+      files = allContent.files;
+      folders = allContent.folders;
+    } else {
+      const nextFilesPage = options?.resetPagination
+        ? 1
+        : Math.ceil(driveFolderTreeNode.files.length / FILES_LIMIT_PER_PAGE) + 1;
+      const nextFoldersPage = options?.resetPagination
+        ? 1
+        : Math.ceil(driveFolderTreeNode.folders.length / FOLDERS_LIMIT_PER_PAGE) + 1;
+
+      const paginatedContent = await fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
+      files = paginatedContent.files;
+      folders = paginatedContent.folders;
+    }
+
+    updateDriveFoldersTree({
+      folderId,
+      parentId: driveFolderTreeNode.parentId,
+      newFiles: files,
+      newFolders: folders,
+      error: undefined,
+      resetPagination: shouldResetPagination ?? false,
+    });
   };
 
   const updateDriveFoldersTree = ({
-    folderContent,
+    newFiles,
+    newFolders,
     error,
     folderId,
-    shouldSetAsFocused,
+    parentId,
+    resetPagination,
   }: {
-    folderId: number;
-    folderContent?: FetchFolderContentResponse;
+    parentId: string;
+    folderId: string;
+    newFiles: DriveFileForTree[];
+    resetPagination: boolean;
+    newFolders: DriveFolderForTree[];
     error?: Error;
-    shouldSetAsFocused?: boolean;
   }) => {
-    setDriveFoldersTree({
-      ...driveFoldersTree,
-      [folderId]: { content: folderContent, error },
+    const driveFolderTreeNode = driveFoldersTree[folderId];
+
+    const allFiles = resetPagination ? newFiles : [...(driveFolderTreeNode?.files ?? []), ...newFiles];
+
+    const allFolders = resetPagination ? newFolders : [...(driveFolderTreeNode?.folders ?? []), ...newFolders];
+
+    const newTreeNodes = {
+      [folderId]: {
+        name: driveFolderTreeNode?.name || 'Drive',
+        parentId: parentId,
+        uuid: folderId,
+        files: allFiles,
+        folders: allFolders,
+        loading: false,
+        error,
+      } as DriveFoldersTreeNode,
+    };
+
+    allFolders.forEach((folder) => {
+      const existingNode = driveFoldersTree[folder.uuid];
+      if (!existingNode) {
+        newTreeNodes[folder.uuid] = {
+          uuid: folder.uuid,
+          name: folder.plainName ?? '',
+          parentId: folder.parentUuid,
+          id: folder.id,
+          updatedAt: folder.updatedAt,
+          createdAt: folder.createdAt,
+          loading: true,
+          files: [],
+          folders: [],
+          // @ts-expect-error - leave old implementation in order to not break anything
+          currentFoldersPage: 2,
+          error: undefined,
+        };
+      }
     });
 
-    if (shouldSetAsFocused && folderContent) {
-      setCurrentFolder(folderContent);
-    }
+    setDriveFoldersTree({
+      ...driveFoldersTree,
+      ...newTreeNodes,
+    });
+  };
+
+  const updateItemInTree = (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => {
+    setDriveFoldersTree((prevTree) => {
+      const folder = prevTree[folderId];
+      if (!folder) return prevTree;
+
+      return {
+        ...prevTree,
+        [folderId]: {
+          ...folder,
+          files: folder.files.map((file) => (file.id === itemId ? { ...file, ...updates } : file)),
+          folders: folder.folders.map((folderItem) =>
+            folderItem.id === itemId ? { ...folderItem, ...updates } : folderItem,
+          ),
+        },
+      };
+    });
+  };
+
+  const removeItemFromTree = (folderId: string, itemId: number) => {
+    setDriveFoldersTree((prevTree) => {
+      const folder = prevTree[folderId];
+      if (!folder) return prevTree;
+      return {
+        ...prevTree,
+        [folderId]: {
+          ...folder,
+          files: folder.files.filter((file) => file.id !== itemId),
+          folders: folder.folders.filter((folderItem) => folderItem.id !== itemId),
+        },
+      };
+    });
+  };
+
+  const addItemToTree = (folderId: string, item: DriveItemData, isFolder: boolean) => {
+    setDriveFoldersTree((prevTree) => {
+      const folder = prevTree[folderId];
+      if (!folder) return prevTree;
+
+      return {
+        ...prevTree,
+        [folderId]: {
+          ...folder,
+          files: !isFolder ? [...folder.files, item as DriveFileForTree] : folder.files,
+          folders: isFolder ? [...folder.folders, item as DriveFolderForTree] : folder.folders,
+        },
+      };
+    });
   };
 
   const handleToggleViewMode = () => {
     const newViewMode = viewMode === DriveListViewMode.List ? DriveListViewMode.Grid : DriveListViewMode.List;
     setViewMode(newViewMode);
     asyncStorageService.saveItem(AsyncStorageKey.PreferredDriveViewMode, newViewMode);
-  };
-
-  /**
-   * Stores a cached copy of the given
-   * Drive items in the localDB
-   */
-  const cacheDriveItems = async (folderContentResponse: FetchFolderContentResponse) => {
-    const mapItems = _.concat(
-      folderContentResponse.children as unknown as DriveItemData[],
-      folderContentResponse.files as DriveItemData[],
-    );
-
-    await drive.database.saveFolderContent(
-      {
-        id: folderContentResponse.id,
-        parentId: folderContentResponse.parentId,
-        name: folderContentResponse.name,
-        updatedAt: folderContentResponse.updatedAt,
-      },
-      mapItems,
-    );
   };
 
   return (
@@ -181,8 +387,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         viewMode,
         loadFolderContent,
         // Default current folder is the root folder
-        currentFolder: currentFolder,
-        rootFolderId: rootFolderId || -1,
+        focusedFolder: currentFolder,
+        rootFolderId: rootFolderId ?? '',
+        updateItemInTree,
+        removeItemFromTree,
+        addItemToTree,
       }}
     >
       {children}

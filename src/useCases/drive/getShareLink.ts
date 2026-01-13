@@ -15,23 +15,23 @@ import { Network } from 'src/lib/network';
  * Gets an already generated share link
  */
 export const getExistingShareLink = async ({
-  token,
+  uuid,
   code,
   copyLinkToClipboard,
   type,
 }: {
-  token?: string;
+  uuid?: string;
   code?: string;
   copyLinkToClipboard?: boolean;
   type: 'file' | 'folder';
 }) => {
   try {
-    if (!token || !code) {
-      throw new Error('Token or code missing, cannot generate share link');
+    if (!uuid || !code) {
+      throw new Error('Id or code missing, cannot generate share link');
     }
     const link = await drive.share.getShareLinkFromCodeAndToken({
       type,
-      token,
+      uuid,
       code,
     });
 
@@ -111,84 +111,41 @@ export const generateShareLink = async ({
   displayCopyNotification?: boolean;
   type: 'file' | 'folder';
 }) => {
-  try {
-    const { credentials } = await AuthService.getAuthCredentials();
+  const { credentials } = await AuthService.getAuthCredentials();
 
-    if (!credentials?.user) throw new Error('User credentials not found');
+  if (!credentials?.user) throw new Error('User credentials not found');
 
-    const { bucket, mnemonic, email, userId } = credentials.user;
-    const network = new Network(email, userId, mnemonic);
-    // Random code for the file
-    const plainCode = randomBytes(32).toString('hex');
+  const { bucket, mnemonic, email, userId } = credentials.user;
+  const network = new Network(email, userId, mnemonic);
+  // Random code for the file
+  const plainCode = randomBytes(32).toString('hex');
 
-    // 1. Get the file token
-    const itemToken = await network.createFileToken(bucket, fileId as string, 'PULL');
+  // 1. Get the file token
+  const itemToken = await network.createFileToken(bucket, fileId as string, 'PULL');
 
-    // 2. Create an encrypted code for the file
-    const encryptedCode = aes.encrypt(plainCode, mnemonic);
+  // 2. Create an encrypted code for the file
+  const encryptedCode = aes.encrypt(plainCode, mnemonic);
 
-    // 3. Encrypt the mnemonic
-    const encryptedMnemonic = aes.encrypt(mnemonic, plainCode);
+  // 3. Encrypt the mnemonic
+  const encryptedMnemonic = aes.encrypt(mnemonic, plainCode);
 
-    // 4. Generate the share link
-    const link = await drive.share.generateShareLink(plainCode, mnemonic, {
-      itemId,
-      type,
-      encryptedMnemonic,
+  // 4. Generate the share link
+  const link = await drive.share.generateShareLink(
+    {
+      encryptionAlgorithm: 'inxt-v2',
+      encryptionKey: encryptedMnemonic,
+      itemType: type,
       encryptedCode,
-      timesValid: -1,
-      bucket,
-      itemToken,
-      plainPassword,
-    });
+      itemId,
+    },
+    mnemonic,
+  );
 
-    if (displayCopyNotification && link) {
-      copyShareLink({ link, type });
-    }
-    sharedLinksUpdated();
-    return {
-      link,
-    };
-  } catch (error) {
-    notificationsService.error(strings.errors.generateShareLinkError);
-    errorService.reportError({
-      error,
-    });
+  if (displayCopyNotification && link) {
+    copyShareLink({ link, type });
   }
-};
-
-/**
- * Updates a share link for a given Drive item
- */
-export const updateShareLink = async ({
-  shareId,
-  plainPassword,
-}: {
-  shareId: string;
-  plainPassword: string | null;
-  type: 'file' | 'folder';
-}) => {
-  try {
-    const { credentials } = await AuthService.getAuthCredentials();
-
-    if (!credentials?.user) throw new Error('User credentials not found');
-
-    const { mnemonic } = credentials.user;
-
-    const link = await drive.share.updateShareLink({
-      mnemonic,
-      plainPassword,
-      shareId,
-    });
-
-    sharedLinksUpdated();
-    return {
-      link,
-    };
-  } catch (error) {
-    notificationsService.error(strings.errors.generateShareLinkError);
-    errorService.reportError({
-      error,
-    });
-  }
+  sharedLinksUpdated();
+  return {
+    link,
+  };
 };

@@ -9,6 +9,7 @@ import AppText from 'src/components/AppText';
 import BottomModalOption from 'src/components/BottomModalOption';
 import BottomModal from 'src/components/modals/BottomModal';
 import { FolderIcon, getFileTypeIcon } from 'src/helpers';
+import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
 
 export interface TrashOptionsModalProps {
@@ -21,6 +22,7 @@ export interface TrashOptionsModalProps {
 
 export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
 
   const isFolder = props.item?.data.type ? false : true;
   const getUpdatedAt = () => {
@@ -33,18 +35,19 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
 
   const options = [
     {
-      icon: <ClockCounterClockwise size={20} color={tailwind('text-gray-100').color as string} />,
-      textStyle: tailwind('text-gray-100'),
+      icon: <ClockCounterClockwise size={20} color={getColor('text-gray-80')} />,
+      textStyle: { color: getColor('text-gray-100') },
       label: strings.components.file_and_folder_options.restore,
       onPress: () => props.item && props.onRestoreDriveItem(props.item),
     },
     {
-      icon: <Trash size={20} color={tailwind('text-red-60').color as string} />,
-      textStyle: tailwind('text-red-60'),
+      icon: <Trash size={20} color={getColor('text-red')} />,
+      textStyle: { color: getColor('text-red') },
       label: strings.components.file_and_folder_options.deletePermanently,
       onPress: () => props.item && props.onDeleteDriveItem(props.item),
     },
   ];
+
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
@@ -52,22 +55,39 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
       </View>
 
       <View style={tailwind('flex-shrink w-full')}>
-        <AppText medium ellipsizeMode="middle" style={tailwind('text-base text-gray-100')}>
+        <AppText medium ellipsizeMode="middle" style={[tailwind('text-base'), { color: getColor('text-gray-100') }]}>
           {props.item?.data.name}
           {props.item?.data.type ? '.' + props.item?.data.type : ''}
         </AppText>
         <View style={tailwind('flex flex-row items-center')}>
-          <AppText style={tailwind('text-xs text-gray-60')}>
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
             {!isFolder && <>{prettysize(props.item?.data.size || 0)}</>}
           </AppText>
-          {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
-          <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+          {!isFolder && (
+            <View
+              style={[
+                tailwind('rounded-full mx-1.5'),
+                {
+                  width: 3,
+                  height: 3,
+                  backgroundColor: getColor('bg-gray-60'),
+                },
+              ]}
+            />
+          )}
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
         </View>
       </View>
     </View>
   );
+
   return (
-    <BottomModal header={header} isOpen={props.isOpen} onClosed={props.onClose}>
+    <BottomModal
+      header={header}
+      isOpen={props.isOpen}
+      onClosed={props.onClose}
+      style={{ backgroundColor: getColor('bg-surface') }}
+    >
       <View>
         {options.map((opt, index) => {
           return (
@@ -76,7 +96,7 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
               leftSlot={opt.icon}
               rightSlot={
                 <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                  <AppText style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</AppText>
+                  <AppText style={[tailwind('text-lg'), opt.textStyle]}>{opt.label}</AppText>
                 </View>
               }
               hideBorderBottom={index === options.length - 1}

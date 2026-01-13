@@ -1,16 +1,17 @@
-import React from 'react';
 import prettysize from 'prettysize';
-import { View, TouchableWithoutFeedback, TouchableHighlight } from 'react-native';
+import { TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
 import Modal from 'react-native-modalbox';
 
+import AppText from 'src/components/AppText';
+import { useTailwind } from 'tailwind-rn';
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import strings from '../../../../assets/lang/strings';
-import { INFINITE_PLAN } from '../../../types';
-import { uiActions } from '../../../store/slices/ui';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { useTailwind } from 'tailwind-rn';
+import { openUrl } from '../../../helpers/utils';
 import useGetColor from '../../../hooks/useColor';
-import AppText from 'src/components/AppText';
+import { PRICING_URL } from '../../../services/drive/constants';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { uiActions } from '../../../store/slices/ui';
+import { INFINITE_PLAN } from '../../../types';
 
 function RunOutOfStorageModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -34,9 +35,10 @@ function RunOutOfStorageModal(): JSX.Element {
   const getUsageString = () => {
     return prettysize(totalUsage);
   };
+
   const onUpgradeNowButtonPressed = () => {
     dispatch(uiActions.setShowRunOutSpaceModal(false));
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
 
   return (
@@ -64,11 +66,11 @@ function RunOutOfStorageModal(): JSX.Element {
 
         <View>
           <View style={tailwind('flex-row bg-white px-5 py-3 rounded-t-xl justify-center')}>
-            <View style={tailwind('h-1 w-20 bg-neutral-30 rounded-full')} />
+            <View style={tailwind('h-1 w-20 bg-gray-20 rounded-full')} />
           </View>
 
           <View style={tailwind('bg-white justify-center px-5 pt-3 pb-8')}>
-            <AppText style={tailwind('text-center text-lg text-neutral-500')} medium>
+            <AppText style={tailwind('text-center text-lg text-gray-100')} medium>
               {strings.modals.OutOfSpaceModal.title}
             </AppText>
 
@@ -77,21 +79,21 @@ function RunOutOfStorageModal(): JSX.Element {
                 <RunOutImage width={80} height={80} />
               </View>
 
-              <AppText style={tailwind('text-sm text-neutral-100 mt-3')} medium>
+              <AppText style={tailwind('text-sm text-gray-50 mt-3')} medium>
                 {strings.screens.StorageScreen.space.used.used} {getUsageString()}{' '}
                 {strings.screens.StorageScreen.space.used.of} {getLimitString()}
               </AppText>
             </View>
 
             <View style={tailwind('flex-grow mb-6')}>
-              <AppText style={tailwind('text-sm text-center text-neutral-100')}>
+              <AppText style={tailwind('text-sm text-center text-gray-50')}>
                 {strings.modals.OutOfSpaceModal.advice}
               </AppText>
             </View>
 
             <TouchableHighlight
-              underlayColor={getColor('text-blue-70')}
-              style={tailwind('bg-blue-60 rounded-lg py-2 mx-6 items-center justify-center')}
+              underlayColor={getColor('text-primary-dark')}
+              style={tailwind('bg-primary rounded-lg py-2 mx-6 items-center justify-center')}
               onPress={onUpgradeNowButtonPressed}
             >
               <AppText style={tailwind('text-lg text-white')} medium>

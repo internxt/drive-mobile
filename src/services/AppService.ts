@@ -1,11 +1,11 @@
 import { AppEnv } from '@internxt-mobile/types/app';
 import Constants from 'expo-constants';
-import { AppState, AppStateStatus } from 'react-native';
+import prettysize from 'prettysize';
+import { AppState, AppStateStatus, Platform } from 'react-native';
+import deviceInfo from 'react-native-device-info';
 import EnvTest from '../../env/.env.test.json';
 import packageJson from '../../package.json';
-import { logger } from './common';
-import deviceInfo from 'react-native-device-info';
-import prettysize from 'prettysize';
+import { logger } from './common/logger';
 export type AppStatus = AppStateStatus;
 export type AppStateListener = (status: AppStatus) => void;
 class AppService {
@@ -23,7 +23,7 @@ class AppService {
       return EnvTest as AppEnv;
     }
     if (Constants.expoConfig?.extra) return Constants.expoConfig.extra;
-    if (Constants.manifest?.extra) return Constants.manifest.extra as AppEnv;
+    if (Constants.manifest2?.extra) return Constants.manifest2.extra as AppEnv;
 
     return Constants.manifest2?.extra as AppEnv;
   }
@@ -53,6 +53,14 @@ class AppService {
 
   public get isDevMode() {
     return __DEV__;
+  }
+
+  public get isAndroid() {
+    return Platform.OS === 'android';
+  }
+
+  public get isIOS() {
+    return Platform.OS === 'ios';
   }
 }
 

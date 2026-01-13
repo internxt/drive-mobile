@@ -1,27 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 
-import strings from '../../../../assets/lang/strings';
-import FileIcon from '../../../../assets/icons/file-icon.svg';
-import BottomModal from '../BottomModal';
-import { BaseModalProps } from '../../../types/ui';
-import { useTailwind } from 'tailwind-rn';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
+import StorageUsageBar from 'src/components/StorageUsageBar';
+import storageService from 'src/services/StorageService';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { paymentsSelectors, paymentsThunks } from 'src/store/slices/payments';
-import StorageUsageBar from 'src/components/StorageUsageBar';
 import { storageSelectors } from 'src/store/slices/storage';
-import storageService from 'src/services/StorageService';
+import { useTailwind } from 'tailwind-rn';
+import FileIcon from '../../../../assets/icons/file-icon.svg';
+import strings from '../../../../assets/lang/strings';
+import { BaseModalProps } from '../../../types/ui';
+import BottomModal from '../BottomModal';
 import { ConfirmationStep } from './ConfirmationStep';
-import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { getLineHeight } from 'src/styles/global';
-import prettysize from 'prettysize';
-import { notifications } from '@internxt-mobile/services/NotificationsService';
 import errorService from '@internxt-mobile/services/ErrorService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
+import prettysize from 'prettysize';
+import { getLineHeight } from 'src/styles/global';
 
 export type SubscriptionInterval = 'month' | 'year';
+
+const formatAmount = (amount: number | undefined) => ((amount ?? 0) * 0.01).toFixed(2);
+
 const PlansModal = (props: BaseModalProps) => {
   const [selectedStorageBytes, setSelectedStorageBytes] = useState<number>();
   const [selectedInterval, setSelectedInterval] = useState<SubscriptionInterval>();
@@ -165,7 +168,7 @@ const PlansModal = (props: BaseModalProps) => {
               tailwind('flex-1 p-3 border border-gray-10 rounded-xl'),
               !isTheLast && tailwind('mr-2'),
               /* isDisabled && tailwind('border-gray-5'), */
-              isSelected && (hasStorageOverlflow ? tailwind('border-red-') : tailwind('border-primary')),
+              isSelected && (hasStorageOverlflow ? tailwind('border-red') : tailwind('border-primary')),
               isDisabled ? tailwind('bg-gray-5') : {},
             ]}
           >
@@ -174,7 +177,7 @@ const PlansModal = (props: BaseModalProps) => {
               style={[
                 tailwind('text-center text-gray-100 text-xl'),
                 isDisabled && tailwind('text-gray-40'),
-                isSelected && (hasStorageOverlflow ? tailwind('text-red-') : tailwind('text-primary')),
+                isSelected && (hasStorageOverlflow ? tailwind('text-red') : tailwind('text-primary')),
               ]}
               medium={isSelected}
             >
@@ -184,12 +187,13 @@ const PlansModal = (props: BaseModalProps) => {
         </TouchableWithoutFeedback>
       );
     });
+
   const renderButtons = (selectedBytes: number) => {
     const displayPrices = getDisplayPriceWithIntervals(selectedBytes);
     const monthlyPrice = displayPrices.find((display) => display.interval === 'month');
     const yearlyPrice = displayPrices.find((display) => display.interval === 'year');
-    const monthlyAmount = (monthlyPrice?.amount || 0) * 0.01;
-    const yearlyAmount = (yearlyPrice?.amount || 0) * 0.01;
+    const monthlyAmount = formatAmount(monthlyPrice?.amount);
+    const yearlyAmount = formatAmount(yearlyPrice?.amount);
 
     return (
       <>
@@ -278,20 +282,20 @@ const PlansModal = (props: BaseModalProps) => {
 
         {hasStorageOverlflow ? (
           <Animated.View entering={FadeInDown}>
-            <View style={tailwind('mt-3 p-4 rounded-lg bg-red-/5 border border-red-light ')}>
+            <View style={tailwind('mt-3 p-4 rounded-lg bg-red/5 border border-red/15 ')}>
               <View style={tailwind('mb-4')}>
                 <StorageUsageBar limitBytes={limit} usageBytes={usage} selectedStorageBytes={selectedStorageBytes} />
               </View>
               <View style={tailwind('flex flex-row items-end')}>
-                <AppText semibold style={tailwind('text-sm text-red-')}>
+                <AppText semibold style={tailwind('text-sm text-red')}>
                   {strings.formatString(
                     strings.modals.Plans.freeUpSpace.title,
                     storageService.toString(selectedStorageBytes),
                   )}
                 </AppText>
-                <AppText style={tailwind('text-sm text-red- ml-1')}>({storageService.toString(usage)})</AppText>
+                <AppText style={tailwind('text-sm text-red ml-1')}>({storageService.toString(usage)})</AppText>
               </View>
-              <AppText style={[tailwind('text-sm text-red- mt-0.5'), { lineHeight: getLineHeight(14, 1.2) }]}>
+              <AppText style={[tailwind('text-sm text-red mt-0.5'), { lineHeight: getLineHeight(14, 1.2) }]}>
                 {strings.modals.Plans.freeUpSpace.message}
               </AppText>
             </View>

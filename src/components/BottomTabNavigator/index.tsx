@@ -1,21 +1,20 @@
-import React from 'react';
-import { View, TouchableWithoutFeedback, Text } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+import { Text, TouchableWithoutFeedback, View } from 'react-native';
 
-import globalStyle from '../../styles/global';
+import { FolderSimple, Gear, House, PlusCircle, Users } from 'phosphor-react-native';
+import { storageThunks } from 'src/store/slices/storage';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
+import useGetColor from '../../hooks/useColor';
 import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
-import { FolderSimple, Gear, House, ImageSquare, PlusCircle } from 'phosphor-react-native';
-import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../hooks/useColor';
-import { storageThunks } from 'src/store/slices/storage';
+import globalStyle from '../../styles/global';
 
 const tabs = {
   Home: { label: strings.tabs.Home, icon: House },
   Drive: { label: strings.tabs.Drive, icon: FolderSimple },
   Add: { label: strings.tabs.Add, icon: PlusCircle },
-  Photos: { label: strings.tabs.Photos, icon: ImageSquare },
+  Shared: { label: strings.tabs.Shared, icon: Users },
   Settings: { label: strings.tabs.Settings, icon: Gear },
 };
 
@@ -23,6 +22,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+
   const items = props.state.routes
     .filter((route) => Object.keys(tabs).includes(route.name))
     .map((route, index) => {
@@ -31,6 +31,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
       const isFocused = props.state.index === index;
       const isAddRoute = route.name === 'Add';
       const isSettingsRoute = route.name === 'Settings';
+
       const onPress = () => {
         if (isSettingsRoute) {
           dispatch(storageThunks.loadStorageUsageThunk());
@@ -48,14 +49,17 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
           props.navigation.navigate(route.name);
         }
       };
+
       const onLongPress = () => {
         props.navigation.emit({ type: 'tabLongPress', target: route.key });
       };
+
       const iconColor = isAddRoute
         ? getColor('text-white')
         : isFocused
-        ? getColor('text-blue-60')
-        : getColor('text-neutral-80');
+        ? getColor('text-primary')
+        : getColor('text-gray-50');
+
       const Icon = tabs[route.name as keyof typeof tabs].icon;
 
       return (
@@ -70,7 +74,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         >
           <View style={tailwind('h-14 items-center justify-center flex-1')}>
             {isAddRoute ? (
-              <Icon weight="fill" color={getColor('text-blue-60')} size={40} />
+              <Icon weight="fill" color={getColor('text-primary')} size={40} />
             ) : (
               <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
             )}
@@ -79,7 +83,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
               <Text
                 style={[
                   tailwind('text-supporting-2'),
-                  isFocused ? tailwind('text-blue-60') : tailwind('text-neutral-80'),
+                  { color: isFocused ? getColor('text-primary') : getColor('text-gray-50') },
                   isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
                 ]}
               >
@@ -92,7 +96,16 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     });
 
   return (
-    <View style={[tailwind('bg-white flex-row px-2 justify-around items-center border-t border-neutral-20')]}>
+    <View
+      style={[
+        tailwind('flex-row px-2 justify-around items-center'),
+        {
+          backgroundColor: getColor('bg-surface'),
+          borderTopWidth: 1,
+          borderTopColor: getColor('border-gray-10'),
+        },
+      ]}
+    >
       {items}
     </View>
   );

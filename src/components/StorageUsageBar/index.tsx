@@ -29,7 +29,7 @@ const StorageUsageBar = (props: StorageUsageBarProps) => {
   return (
     <View
       style={[
-        tailwind('bg-white h-4 border flex flex-row border-red-light mt-6'),
+        tailwind('bg-white h-4 border flex flex-row border-red/15 mt-6'),
         {
           borderRadius: 4,
         },
@@ -41,7 +41,7 @@ const StorageUsageBar = (props: StorageUsageBarProps) => {
       {/* Selected storage limit */}
       <View
         style={[
-          tailwind('h-full bg-red-light'),
+          tailwind('h-full bg-red/15'),
           {
             borderTopLeftRadius: 3,
             borderBottomLeftRadius: 3,
@@ -66,7 +66,7 @@ const StorageUsageBar = (props: StorageUsageBarProps) => {
       </View>
       <View
         style={[
-          tailwind('h-full bg-red-'),
+          tailwind('h-full bg-red'),
           {
             borderTopRightRadius: 4,
             borderBottomRightRadius: 4,

@@ -1,14 +1,17 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import { Platform } from 'react-native';
-import RNFS from 'react-native-fs';
-import RNFetchBlob, { RNFetchBlobStat } from 'rn-fetch-blob';
-import FileViewer from 'react-native-file-viewer';
+
+import { StatResultT } from '@dr.pogodin/react-native-fs/lib/typescript/src/NativeReactNativeFs';
+import { internxtFS } from '@internxt/mobile-sdk';
 import * as FileSystem from 'expo-file-system';
+import { shareAsync } from 'expo-sharing';
 import prettysize from 'prettysize';
-import { PHOTOS_PREVIEWS_DIRECTORY, PHOTOS_FULL_SIZE_DIRECTORY } from './photos/constants';
+import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
-import { shareAsync } from 'expo-sharing';
-enum AcceptedEncodings {
+import RNFetchBlob from 'rn-fetch-blob';
+
+export enum AcceptedEncodings {
   Utf8 = 'utf8',
   Ascii = 'ascii',
   Base64 = 'base64',
@@ -21,11 +24,24 @@ export interface FileWriter {
 
 const ANDROID_URI_PREFIX = 'file://';
 
-export type UsageStatsResult = Record<string, { items: RNFS.ReadDirItem[]; prettySize: string }>;
+export type UsageStatsResult = Record<string, { items: RNFS.ReadDirResItemT[]; prettySize: string }>;
 
 class FileSystemService {
+  private timestamp = Date.now();
   public async prepareFileSystem() {
     await this.prepareTmpDir();
+  }
+  public async deleteFile(files: string[]): Promise<void> {
+    try {
+      await Promise.all(
+        files.map(async (file) => {
+          await this.unlinkIfExists(file);
+        }),
+      );
+    } catch (error) {
+      console.error('Error in bulk file deletion:', error);
+      throw error;
+    }
   }
 
   public pathToUri(path: string): string {
@@ -46,10 +62,10 @@ class FileSystemService {
   }
 
   public getRuntimeLogsFileName(): string {
-    return 'internxt_mobile_runtime_logs.txt';
+    return `internxt_mobile_runtime_logs_${this.timestamp}.txt`;
   }
 
-  public getDownloadsDir(): string {
+  public getDownloadsDir(): string | undefined {
     // MainBundlePath is only available on iOS
     return Platform.OS === 'ios' ? RNFS.MainBundlePath : RNFS.DownloadDirectoryPath;
   }
@@ -78,7 +94,7 @@ class FileSystemService {
   }
 
   public tmpFilePath(filename?: string) {
-    return this.getTemporaryDir() + (filename || uuid.v4());
+    return (this.getTemporaryDir() + (filename || uuid.v4())).normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   }
   public async clearTempDir(): Promise<number> {
     const items = await RNFS.readDir(this.getTemporaryDir());
@@ -101,6 +117,15 @@ class FileSystemService {
 
   public getCacheDir(): string {
     return RNFS.CachesDirectoryPath;
+  }
+
+  public writeFileStream(uri: string): Promise<FileWriter> {
+    return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
+      return {
+        write: (content: string) => writeStream.write(content),
+        close: () => writeStream.close(),
+      };
+    });
   }
 
   public readFileStream(): void {
@@ -138,15 +163,6 @@ class FileSystemService {
     }
   }
 
-  public writeFileStream(uri: string): Promise<FileWriter> {
-    return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
-      return {
-        write: (content: string) => writeStream.write(content),
-        close: () => writeStream.close(),
-      };
-    });
-  }
-
   public writeFile(): void {
     throw new Error('Not implemented yet');
   }
@@ -154,8 +170,8 @@ class FileSystemService {
   public statRNFS(uri: string) {
     return RNFS.stat(uri);
   }
-  public stat(uri: string): Promise<RNFetchBlobStat> {
-    return RNFetchBlob.fs.stat(uri);
+  public stat(uri: string): Promise<StatResultT> {
+    return RNFS.stat(uri);
   }
 
   public async showFileViewer(uri: string, options?: string | Record<string, unknown>): Promise<void> {
@@ -171,16 +187,8 @@ class FileSystemService {
   public async moveToAndroidDownloads(source: string) {
     /** This is only for Android */
     if (Platform.OS === 'ios') return;
-    // Only needed for Android, iOS doesn't have this directory
-    if (await this.exists(this.getInternxtAndroidDownloadsDir())) {
-      await this.mkdir(this.getInternxtAndroidDownloadsDir());
-    }
 
-    const filename = source.split('/').pop() as string;
-
-    await this.unlinkIfExists(this.getPathForAndroidDownload(filename));
-
-    this.moveFile(source, this.getPathForAndroidDownload(filename));
+    await internxtFS.saveFileToDownloads(source);
   }
 
   public async fileExistsAndIsNotEmpty(uri: string): Promise<boolean> {
@@ -235,9 +243,19 @@ class FileSystemService {
           success: true,
         };
       } else {
-        await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
-          dialogTitle: title,
-        });
+        if (Platform.OS == 'ios') {
+          await Share.open({
+            title,
+            url: fileUri,
+            failOnCancel: false,
+            showAppsToView: true,
+          });
+        } else {
+          await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
+            dialogTitle: title,
+          });
+        }
+
         return {
           success: true,
         };
@@ -276,8 +294,6 @@ class FileSystemService {
     const cacheDir = await readDirOrNot(this.getCacheDir());
     const tmpDir = await readDirOrNot(this.getTemporaryDir());
     const documentsDir = await readDirOrNot(this.getDocumentsDir());
-    const photosPreviewsDir = await readDirOrNot(PHOTOS_PREVIEWS_DIRECTORY);
-    const photosFullSizeDir = await readDirOrNot(PHOTOS_FULL_SIZE_DIRECTORY);
     const cacheSize = cacheDir.reduce<number>((prev, current) => {
       return current.size + prev;
     }, 0);
@@ -289,13 +305,6 @@ class FileSystemService {
       return current.size + prev;
     }, 0);
 
-    const photosPreviewsSize = photosPreviewsDir.reduce<number>((prev, current) => {
-      return current.size + prev;
-    }, 0);
-
-    const photosFullSizeSize = photosFullSizeDir.reduce<number>((prev, current) => {
-      return current.size + prev;
-    }, 0);
     const dirs: UsageStatsResult = {
       cache: {
         items: cacheDir,
@@ -309,17 +318,10 @@ class FileSystemService {
         items: documentsDir,
         prettySize: prettysize(documentsSize),
       },
-      photos_previews: {
-        items: photosPreviewsDir,
-        prettySize: prettysize(photosPreviewsSize),
-      },
-      photos_full_size: {
-        items: photosFullSizeDir,
-        prettySize: prettysize(photosFullSizeSize),
-      },
+
       total: {
-        items: documentsDir.concat(cacheDir).concat(tmpDir).concat(photosPreviewsDir).concat(photosFullSizeDir),
-        prettySize: prettysize(cacheSize + tmpSize + documentsSize + photosPreviewsSize + photosFullSizeSize),
+        items: documentsDir.concat(cacheDir).concat(tmpDir),
+        prettySize: prettysize(cacheSize + tmpSize + documentsSize),
       },
     };
 
@@ -332,6 +334,19 @@ class FileSystemService {
     }
     await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
     await this.clearTempDir();
+  }
+
+  public async checkAvailableStorage(requiredSpace: number): Promise<boolean> {
+    try {
+      const fsInfo = await RNFS.getFSInfo();
+      const freeSpace = fsInfo.freeSpace;
+
+      const spaceWithBuffer = requiredSpace * 1.3;
+
+      return freeSpace >= spaceWithBuffer;
+    } catch (error) {
+      throw new Error('Could not check available storage');
+    }
   }
 }
 

@@ -1,16 +1,15 @@
-import Share from 'react-native-share';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 
-import strings from '../../../../assets/lang/strings';
-import RNFetchBlob from 'rn-fetch-blob';
-import notificationsService from '../../NotificationsService';
-import { NotificationType } from '../../../types';
-import { createThumbnail } from 'react-native-create-thumbnail';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
+import { FileExtension } from '@internxt-mobile/types/drive';
+
+import * as RNFS from '@dr.pogodin/react-native-fs';
+
+import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
-import { FileExtension } from '@internxt-mobile/types/drive';
-import RNFS from 'react-native-fs';
+import RNFetchBlob from 'rn-fetch-blob';
+
 export type GeneratedThumbnail = {
   size: number;
   type: string;
@@ -26,6 +25,7 @@ export type ThumbnailGenerateConfig = {
   width?: number;
   height?: number;
 };
+
 class ImageService {
   private get thumbnailGenerators(): Record<
     FileExtension,
@@ -95,26 +95,6 @@ class ImageService {
     };
   }
 
-  public async share(uri: string) {
-    try {
-      const result = await Share.open({
-        title: strings.modals.SharePhoto.nativeMesage,
-        url: uri,
-      });
-
-      if (result.success) {
-        notificationsService.show({
-          type: NotificationType.Success,
-          text1: strings.messages.photoShared,
-        });
-      } else if (result.dismissedAction) {
-        // dismissed
-      }
-    } catch (err) {
-      // notificationsService.show({ type: ToastType.Error, text1: strings.errors.photoShared });
-    }
-  }
-
   public async pathToBase64(uri: string): Promise<string> {
     return await RNFetchBlob.fs.readFile(uri, 'base64');
   }
@@ -181,6 +161,7 @@ class ImageService {
     }
     return this.resizeThumbnail(await generator(filePath, config));
   }
+
   /**
    * Generates a thumbnail for a video file
    */

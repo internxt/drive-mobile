@@ -1,5 +1,5 @@
+import { ReadDirResItemT } from '@dr.pogodin/react-native-fs';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
-import { ReadDirItem } from 'react-native-fs';
 import { FileCacheManagerConfigError, FileDoesntExistsError } from './errors';
 import { FileCacheManager, FileCacheManagerConfig } from './fileCacheManager';
 
@@ -132,7 +132,7 @@ describe('File Cache Manager', () => {
 
     it('Should remove files in the directory by the oldest mtime if not enough space', async () => {
       // Total 90MB
-      const itemsInDir: ReadDirItem[] = [
+      const itemsInDir: ReadDirResItemT[] = [
         {
           name: 'file_1.png',
           ctime: new Date('2022/12/01'),

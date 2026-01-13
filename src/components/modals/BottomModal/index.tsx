@@ -1,13 +1,11 @@
-import React from 'react';
-import { Easing, StyleProp, TouchableWithoutFeedback, View, ViewStyle } from 'react-native';
+import { Easing, Platform, StyleProp, TouchableWithoutFeedback, useColorScheme, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modalbox';
 
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { X } from 'phosphor-react-native';
+import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 
 export interface BottomModalProps {
   isOpen: boolean;
@@ -31,14 +29,19 @@ export interface BottomModalProps {
 const BottomModal = (props: BottomModalProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   const safeAreaInsets = useSafeAreaInsets();
-  const safeAreaColor = props.safeAreaColor || getColor('text-white');
+  const safeAreaColor = props.safeAreaColor || getColor('bg-surface');
+
+  const statusBarStyle = isDark ? 'light' : 'dark';
+  const isTranslucent = Platform.OS === 'android';
 
   return (
     <Modal
       isOpen={props.isOpen}
       onClosed={props.onClosed}
-      position="bottom"
+      position="top"
       style={[
         { ...tailwind('bg-transparent'), paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top },
         props.modalStyle,
@@ -49,33 +52,26 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       easing={Easing.ease}
     >
       <View style={tailwind('h-full')}>
-        <StatusBar translucent />
+        <StatusBar style={statusBarStyle} translucent={isTranslucent} />
 
         <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>
           <View style={tailwind('flex-grow')}>
             <View style={tailwind('flex-grow')} />
             <TouchableWithoutFeedback>
-              <View style={[tailwind('bg-white rounded-t-xl'), props.style]}>
+              <View style={[tailwind('rounded-t-xl'), { backgroundColor: getColor('bg-surface') }, props.style]}>
                 {props.topDecoration && (
                   <View style={tailwind('py-4 items-center')}>
-                    <View style={tailwind('rounded-full h-1 w-14 bg-gray-10')} />
+                    <View style={[tailwind('rounded-full h-1 w-14'), { backgroundColor: getColor('bg-gray-10') }]} />
                   </View>
                 )}
                 {props.header && (
                   <View
                     style={[
-                      tailwind(
-                        'flex-row bg-gray-5 px-5 py-4 items-center justify-between overflow-hidden rounded-t-xl',
-                      ),
+                      tailwind('flex-row px-5 py-6 items-center justify-between overflow-hidden rounded-t-xl'),
                       props.headerStyle,
                     ]}
                   >
                     <View style={tailwind('flex-1')}>{props.header}</View>
-                    <TouchableWithoutFeedback onPress={props.onClosed}>
-                      <View style={tailwind('bg-neutral-20 rounded-full h-8 w-8 justify-center items-center ml-5')}>
-                        <X weight="bold" color={getColor('text-neutral-60')} size={20} />
-                      </View>
-                    </TouchableWithoutFeedback>
                   </View>
                 )}
 

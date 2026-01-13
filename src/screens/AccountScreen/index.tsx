@@ -1,6 +1,13 @@
+import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { fs } from '@internxt-mobile/services/FileSystemService';
 import { CaretRight, CheckCircle, Warning } from 'phosphor-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
+import storageService from 'src/services/StorageService';
+import { paymentsSelectors } from 'src/store/slices/payments';
 import { useTailwind } from 'tailwind-rn';
+import { useCountdown } from 'usehooks-ts';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
@@ -8,21 +15,17 @@ import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import SettingsGroup from '../../components/SettingsGroup';
 import UserProfilePicture from '../../components/UserProfilePicture';
+import { openUrl } from '../../helpers/utils';
 import useGetColor from '../../hooks/useColor';
+import { PRICING_URL } from '../../services/drive/constants';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors, authThunks } from '../../store/slices/auth';
 import { uiActions } from '../../store/slices/ui';
 import { SettingsScreenProps } from '../../types/navigation';
-import { useCountdown } from 'usehooks-ts';
-import { useEffect, useMemo, useState } from 'react';
-import storageService from 'src/services/StorageService';
-import { paymentsSelectors } from 'src/store/slices/payments';
-import { constants } from 'src/services/AppService';
-import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
-import { fs } from '@internxt-mobile/services/FileSystemService';
-import errorService from '@internxt-mobile/services/ErrorService';
 
 function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Element {
+  const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
+
   const [verificationEmailTime, { startCountdown, resetCountdown }] = useCountdown({
     countStart: 90,
     intervalMs: 1000,
@@ -80,8 +83,9 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
     }
   };
   const onBillingPressed = () => {
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
+
   const onManageSubscriptionPressed = () => {
     navigation.navigate('Plan');
   };
@@ -106,13 +110,11 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
       template: (
         <View style={[tailwind('flex-row items-center px-4 py-3')]}>
           <View style={tailwind('flex-grow justify-center')}>
-            <AppText style={[tailwind('text-lg text-gray-80')]}>
-              {strings.screens.AccountScreen.accountDetails.name}
-            </AppText>
+            <AppText style={[tailwind('text-lg')]}>{strings.screens.AccountScreen.accountDetails.name}</AppText>
           </View>
           <View style={tailwind('flex-row items-center')}>
-            <AppText style={tailwind('text-gray-40 mr-2.5')}>{userFullName}</AppText>
-            <CaretRight color={getColor('text-neutral-60')} size={20} />
+            <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>{userFullName}</AppText>
+            <CaretRight color={getColor('text-gray-40')} size={20} />
           </View>
         </View>
       ),
@@ -123,16 +125,14 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
       template: (
         <View style={[tailwind('flex-row items-center px-4 py-3')]}>
           <View style={tailwind('flex-grow justify-center')}>
-            <AppText style={[tailwind('text-lg text-gray-80')]}>
-              {strings.screens.AccountScreen.accountDetails.email}
-            </AppText>
+            <AppText style={[tailwind('text-lg')]}>{strings.screens.AccountScreen.accountDetails.email}</AppText>
           </View>
           <View style={tailwind('flex-row items-center')}>
-            <AppText style={tailwind('text-gray-40 mr-2.5')}>{user?.email}</AppText>
+            <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>{user?.email}</AppText>
             {user?.emailVerified ? (
-              <CheckCircle weight="fill" color={getColor('text-green-')} size={20} />
+              <CheckCircle weight="fill" color={getColor('text-green')} size={20} />
             ) : (
-              <Warning weight="fill" color={getColor('text-yellow-')} size={20} />
+              <Warning weight="fill" color={getColor('text-yellow')} size={20} />
             )}
           </View>
         </View>
@@ -147,15 +147,17 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
         <View style={[tailwind('flex-row items-center px-4 py-3')]}>
           <View style={tailwind('flex-row flex-grow items-center justify-between')}>
             {isVerificationEmailEnabled ? (
-              <AppText style={[tailwind('text-lg text-primary')]}>
+              <AppText style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
                 {strings.screens.AccountScreen.accountDetails.resendEmail}
               </AppText>
             ) : (
               <>
-                <AppText style={[tailwind('text-lg text-gray-50')]}>
+                <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-50') }]}>
                   {strings.screens.AccountScreen.accountDetails.resendEmail}
                 </AppText>
-                <AppText style={[tailwind('text-lg text-gray-20')]}>{formattedVerificationEmailTime}</AppText>
+                <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-20') }]}>
+                  {formattedVerificationEmailTime}
+                </AppText>
               </>
             )}
           </View>
@@ -171,15 +173,20 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
   }, [verificationEmailTime]);
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+    <AppScreen safeAreaTop safeAreaBottom style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
       <AppScreenTitle
         text={strings.screens.AccountScreen.title}
-        containerStyle={tailwind('bg-white')}
+        containerStyle={{ backgroundColor: getColor('bg-surface') }}
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={tailwind('pb-10 px-4')}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{
+          paddingBottom: 80,
+        }}
+      >
+        <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>
             <TouchableWithoutFeedback onPress={onProfilePicturePressed}>
@@ -191,18 +198,17 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                     overflow: 'hidden',
                   }}
                 >
-                  <View style={tailwind('bg-black/60 pt-1 pb-1.5')}>
-                    <AppText style={tailwind('text-xs text-white text-center')}>
+                  <View style={[tailwind('pt-1 pb-1.5'), { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
+                    <AppText style={[tailwind('text-xs text-center'), { color: getColor('text-white') }]}>
                       {strings.buttons.edit.toUpperCase()}
                     </AppText>
                   </View>
                 </View>
               </View>
             </TouchableWithoutFeedback>
-            <AppText style={tailwind('text-2xl text-gray-80')}>{userFullName}</AppText>
-            <AppText style={tailwind('text-lg text-gray-40')}>{user?.email}</AppText>
+            <AppText style={[tailwind('text-2xl'), { color: getColor('text-gray-80') }]}>{userFullName}</AppText>
+            <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-40') }]}>{user?.email}</AppText>
           </View>
-
           {/* PLAN */}
           <SettingsGroup
             title={'Plan'}
@@ -212,15 +218,19 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                 template: (
                   <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
                     <View>
-                      <AppText style={tailwind('text-primary text-2xl')}>{storageService.toString(limit)}</AppText>
-                      <AppText style={tailwind('text-sm text-gray-80')}>
+                      <AppText style={[tailwind('text-2xl'), { color: getColor('text-primary') }]}>
+                        {storageService.toString(limit)}
+                      </AppText>
+                      <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-80') }]}>
                         {strings.subscriptions[subscription.type]}
                       </AppText>
                     </View>
-                    {constants.SHOW_BILLING ? (
+                    {showBilling ? (
                       hasPaidPlan ? (
                         <View style={tailwind('flex-row items-center')}>
-                          <AppText style={tailwind('text-gray-40 mr-2.5')}>{strings.buttons.manage}</AppText>
+                          <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>
+                            {strings.buttons.manage}
+                          </AppText>
                           <CaretRight color={getColor('text-gray-40')} size={20} />
                         </View>
                       ) : (
@@ -234,14 +244,12 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                     ) : null}
                   </View>
                 ),
-                onPress: hasPaidPlan && constants.SHOW_BILLING ? onManageSubscriptionPressed : undefined,
+                onPress: hasPaidPlan && showBilling ? onManageSubscriptionPressed : undefined,
               },
             ]}
           />
-
           {/* ACCOUNT DETAILS */}
           <SettingsGroup title={strings.screens.AccountScreen.accountDetails.title} items={accountDetailsItems} />
-
           {/* SECURITY */}
           <SettingsGroup
             title={strings.screens.AccountScreen.security.title}
@@ -251,9 +259,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                 template: (
                   <View style={[tailwind('flex-row items-center px-4 py-3')]}>
                     <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg text-gray-80')]}>
-                        {strings.screens.AccountScreen.security.title}
-                      </AppText>
+                      <AppText style={[tailwind('text-lg')]}>{strings.screens.AccountScreen.security.title}</AppText>
                     </View>
                     <View style={tailwind('justify-center')}>
                       <CaretRight color={getColor('text-gray-40')} size={20} />
@@ -265,7 +271,6 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
             ]}
             advice={strings.screens.AccountScreen.security.advice}
           />
-
           {/* DELETE ACCOUNT */}
           <SettingsGroup
             items={[
@@ -273,7 +278,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                 key: 'delete-account',
                 template: (
                   <View style={tailwind('px-4 py-3')}>
-                    <AppText style={tailwind('text-center text-lg text-red-')}>
+                    <AppText style={[tailwind('text-center text-lg'), { color: getColor('text-red') }]}>
                       {strings.screens.AccountScreen.deleteAccount}
                     </AppText>
                   </View>

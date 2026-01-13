@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": ".",
+    "jsx": "react-jsx",
     "paths": {
       "@internxt-mobile/ui-kit": ["src/components/ui-kit/index.ts"],
       "@internxt-mobile/hooks/*": ["src/hooks/*"],
@@ -11,5 +12,5 @@
       "@internxt-mobile/useCases/*": ["src/useCases/*"]
     }
   },
-  "include": ["app.config.ts", "src", "__tests__"]
+  "include": ["app.config.ts", "src", "__tests__", "../modile-sdk"]
 }

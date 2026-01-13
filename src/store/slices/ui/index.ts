@@ -3,7 +3,6 @@ import { DriveListViewMode } from '../../../types/drive';
 
 export interface UIState {
   searchActive: boolean;
-  isReferralsBannerOpen: boolean;
   fileViewMode: DriveListViewMode;
   showItemModal: boolean;
   showAddItemModal: boolean;
@@ -15,8 +14,6 @@ export interface UIState {
   showRenameModal: boolean;
   showRunOutOfSpaceModal: boolean;
   isLinkCopiedModalOpen: boolean;
-  isNewsletterModalOpen: boolean;
-  isInviteFriendsModalOpen: boolean;
   isSignOutModalOpen: boolean;
   isDeleteAccountModalOpen: boolean;
   isEditNameModalOpen: boolean;
@@ -32,7 +29,6 @@ export interface UIState {
 
 const initialState: UIState = {
   searchActive: false,
-  isReferralsBannerOpen: false,
   fileViewMode: DriveListViewMode.List,
   showItemModal: false,
   showAddItemModal: false,
@@ -44,8 +40,6 @@ const initialState: UIState = {
   showRenameModal: false,
   showRunOutOfSpaceModal: false,
   isLinkCopiedModalOpen: false,
-  isNewsletterModalOpen: false,
-  isInviteFriendsModalOpen: false,
   isSignOutModalOpen: false,
   isDeleteAccountModalOpen: false,
   isEditNameModalOpen: false,
@@ -96,15 +90,6 @@ export const uiSlice = createSlice({
     },
     setIsLinkCopiedModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isLinkCopiedModalOpen = action.payload;
-    },
-    setIsNewsletterModalOpen: (state, action: PayloadAction<boolean>) => {
-      state.isNewsletterModalOpen = action.payload;
-    },
-    setIsInviteFriendsModalOpen: (state, action: PayloadAction<boolean>) => {
-      state.isInviteFriendsModalOpen = action.payload;
-    },
-    setIsReferralsBannerOpen: (state, action: PayloadAction<boolean>) => {
-      state.isReferralsBannerOpen = action.payload;
     },
     setIsSignOutModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isSignOutModalOpen = action.payload;

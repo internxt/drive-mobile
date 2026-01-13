@@ -1,28 +1,31 @@
-import React, { useEffect, useRef } from 'react';
-import { useState } from 'react';
-import { View, TouchableWithoutFeedback, Animated, TextInput, ScrollView } from 'react-native';
 import { Eye, EyeSlash, WarningCircle } from 'phosphor-react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, TextInput, View } from 'react-native';
 
+import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import validationService from '@internxt-mobile/services/ValidationService';
+import { ScrollView, TouchableWithoutFeedback } from 'react-native-gesture-handler';
+import AppText from 'src/components/AppText';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
-import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
+import AppButton from '../../components/AppButton';
+import AppScreen from '../../components/AppScreen';
+import AppTextInput from '../../components/AppTextInput';
 import AppVersionWidget from '../../components/AppVersionWidget';
+import useGetColor from '../../hooks/useColor';
+import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import authService from '../../services/AuthService';
-import { RootStackScreenProps } from '../../types/navigation';
+import errorService from '../../services/ErrorService';
 import { useAppDispatch } from '../../store/hooks';
 import { authThunks } from '../../store/slices/auth';
-import errorService from '../../services/ErrorService';
-import AppScreen from '../../components/AppScreen';
-import AppButton from '../../components/AppButton';
-import { useTailwind } from 'tailwind-rn';
-import AppTextInput from '../../components/AppTextInput';
-import useGetColor from '../../hooks/useColor';
-import AppText from 'src/components/AppText';
-import validationService from '@internxt-mobile/services/ValidationService';
-import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import { RootStackScreenProps } from '../../types/navigation';
+
+const MAX_ERROR_MESSAGE_LENGTH = 200;
 
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+
   const dispatch = useAppDispatch();
   const { keyboardShown } = useKeyboard();
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -36,6 +39,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const animatedHeight = useRef(new Animated.Value(0));
   const passwordInputRef = useRef<TextInput>(null);
   const [failed2FA, setFailed2FA] = useState(false);
+
   useEffect(() => {
     if (!twoFactorCode.length) {
       setFailed2FA(false);
@@ -66,6 +70,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   const focusPassword = () => {
     passwordInputRef.current?.focus();
   };
+
   const onSignInButtonPressed = async () => {
     setIsSubmitted(true);
     if (!email || !password) {
@@ -109,18 +114,26 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       if (requires2FA) {
         setFailed2FA(true);
       }
-      const castedError = errorService.castError(err);
+      let errorMessage;
+      try {
+        const castedError = errorService.castError(err);
+        errorMessage = castedError.message;
+
+        if (errorMessage.length > MAX_ERROR_MESSAGE_LENGTH) errorMessage = strings.errors.genericError;
+      } catch (castingError) {
+        errorMessage = strings.errors.genericError;
+      }
 
       analytics.track(AnalyticsEventKey.UserSignInFailed, {
         email,
-        message: castedError.message,
+        message: errorMessage,
       });
 
       setIsLoading(false);
-
-      setErrors({ loginFailed: strings.errors.missingAuthCredentials });
+      setErrors({ loginFailed: errorMessage });
     }
   };
+
   const onGoToSignUpButtonPressed = () => {
     setErrors({});
     navigation.navigate('SignUp');
@@ -133,22 +146,30 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
         : errors['email'] || errors['password'] || errors['loginFailed'];
       return (
         <View style={tailwind('flex flex-row items-center mt-0.5')}>
-          <WarningCircle weight="fill" color={tailwind('text-red-').color as string} size={13} />
-          <AppText style={tailwind('text-sm text-red- ml-1')}>{errorMessage}</AppText>
+          <WarningCircle weight="fill" color={getColor('text-red')} size={13} />
+          <AppText style={[tailwind('text-sm ml-1'), { color: getColor('text-red') }]}>{errorMessage}</AppText>
         </View>
       );
     }
   };
 
   const hasErrors = (errors['loginFailed'] || errors['email'] || errors['password']) && isSubmitted;
+
   return (
-    <AppScreen safeAreaTop safeAreaBottom style={tailwind('h-full px-6')}>
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={tailwind('h-full')}>
+    <AppScreen
+      safeAreaTop
+      safeAreaBottom
+      style={[tailwind('h-full px-6'), { backgroundColor: getColor('bg-surface') }]}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={[tailwind('h-full px-6'), { backgroundColor: getColor('bg-surface') }]}
+      >
         <View style={tailwind('h-12')} />
 
         <View>
           <View style={tailwind('mb-5')}>
-            <AppText medium style={tailwind('text-2xl text-gray-100')}>
+            <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
               {strings.screens.SignInScreen.title}
             </AppText>
           </View>
@@ -211,6 +232,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               keyboardType="decimal-pad"
               status={failed2FA ? ['error', renderErrorMessage()] : undefined}
               onChangeText={setTwoFactorCode}
+              disableCustomAndroidCursor
             />
           </Animated.View>
 
@@ -226,15 +248,34 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
             <TouchableWithoutFeedback onPress={() => navigation.navigate('ForgotPassword')}>
               <View style={tailwind('w-64 text-sm')}>
-                <AppText medium style={tailwind('text-center text-primary')}>
+                <AppText medium style={[tailwind('text-center'), { color: getColor('text-primary') }]}>
                   {strings.screens.SignInScreen.forgot}
                 </AppText>
               </View>
             </TouchableWithoutFeedback>
-            <View style={tailwind('border-b border-gray-10 my-6 w-full')}></View>
-            <AppText style={tailwind('text-sm bg-transparent mb-4')}>
+
+            <View
+              style={[
+                tailwind('my-6 w-full'),
+                {
+                  borderBottomWidth: 1,
+                  borderBottomColor: getColor('border-gray-10'),
+                },
+              ]}
+            />
+
+            <AppText
+              style={[
+                tailwind('text-sm mb-4'),
+                {
+                  backgroundColor: 'transparent',
+                  color: getColor('text-gray-80'),
+                },
+              ]}
+            >
               {strings.screens.SignInScreen.no_register}{' '}
             </AppText>
+
             <AppButton
               style={tailwind('w-full py-0 h-11')}
               type="white"

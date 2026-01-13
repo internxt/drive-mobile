@@ -1,4 +1,4 @@
-import { constants } from './AppService';
+import { SdkManager } from '@internxt-mobile/services/common';
 import {
   CreateCheckoutSessionPayload,
   CreatePaymentSessionPayload,
@@ -6,10 +6,14 @@ import {
   Invoice,
   PaymentMethod,
   UserSubscription,
-} from '@internxt/sdk/dist/drive/payments/types';
+  UserType,
+} from '@internxt/sdk/dist/drive/payments/types/types';
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
 import * as Linking from 'expo-linking';
-import { SdkManager } from '@internxt-mobile/services/common';
+import { DefaultPaymentMethod } from '../store/slices/payments';
+import appService, { constants } from './AppService';
 
 class PaymentService {
   private sdk: SdkManager;
@@ -25,7 +29,32 @@ class PaymentService {
     return this.sdk.payments.getSetupIntent();
   }
 
-  async getDefaultPaymentMethod(): Promise<PaymentMethod | null> {
+  async billingEnabled(): Promise<boolean> {
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    if (!token) throw new Error('No token, cannot check if should display billing');
+    const result = await axios.get<{ display: boolean; oses: { android: string; ios: string } }>(
+      `${constants.PAYMENTS_API_URL}/display-billing`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    );
+
+    // If is Android and version matches, obey the display flag
+    if (appService.isAndroid && result.data.oses.android === appService.version) {
+      return result.data.display || false;
+    }
+
+    // If is iOS and version matches, obey the display flag
+    if (appService.isIOS && result.data.oses.ios === appService.version) {
+      return result.data.display || false;
+    }
+
+    return true;
+  }
+
+  async getDefaultPaymentMethod(): Promise<DefaultPaymentMethod | null> {
     try {
       return await this.sdk.payments.getDefaultPaymentMethod();
     } catch (error) {
@@ -36,7 +65,9 @@ class PaymentService {
 
   async getInvoices(): Promise<Invoice[] | null> {
     try {
-      return await this.sdk.payments.getInvoices({});
+      return await this.sdk.payments.getInvoices({
+        userType: UserType.Individual,
+      });
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
       return null;
@@ -53,7 +84,7 @@ class PaymentService {
 
   async getUserSubscription(): Promise<UserSubscription> {
     try {
-      return this.sdk.payments.getUserSubscription();
+      return this.sdk.payments.getUserSubscription(UserType.Individual);
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
     }
@@ -68,7 +99,8 @@ class PaymentService {
   }
 
   public async updateSubscriptionPrice(priceId: string): Promise<UserSubscription> {
-    return this.sdk.payments.updateSubscriptionPrice(priceId);
+    const updated = await this.sdk.payments.updateSubscriptionPrice({ priceId, userType: UserType.Individual });
+    return updated.userSubscription;
   }
 
   public async cancelSubscription(): Promise<void> {
@@ -122,7 +154,7 @@ class PaymentService {
 
   private catchUserNotFoundError(error: Error) {
     // The SDK throws this as an error when server sends a 404
-    if (error && error.message !== '{"message":"User not found"}') {
+    if (error && error.message !== 'User not found') {
       throw error;
     }
   }

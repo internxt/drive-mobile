@@ -1,49 +1,95 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { Linking, View, ScrollView, Platform } from 'react-native';
-import { Bug, CaretRight, FileText, FolderSimple, Info, Question, Translate, Trash } from 'phosphor-react-native';
+import {
+  Bug,
+  CaretRight,
+  FileText,
+  FolderSimple,
+  Info,
+  Moon,
+  Question,
+  Shield,
+  Translate,
+  Trash,
+} from 'phosphor-react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Appearance, Linking, Platform, ScrollView, Switch, View } from 'react-native';
 
+import { storageSelectors } from 'src/store/slices/storage';
+import { Language } from 'src/types';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
+import AppScreen from '../../components/AppScreen';
+import AppScreenTitle from '../../components/AppScreenTitle';
+import AppText from '../../components/AppText';
 import AppVersionWidget from '../../components/AppVersionWidget';
+import SettingsGroup from '../../components/SettingsGroup';
+import UserProfilePicture from '../../components/UserProfilePicture';
+import useGetColor from '../../hooks/useColor';
+import appService from '../../services/AppService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
-import AppScreen from '../../components/AppScreen';
-import appService, { constants } from '../../services/AppService';
-import AppText from '../../components/AppText';
-import { SettingsScreenProps } from '../../types/navigation';
-import AppScreenTitle from '../../components/AppScreenTitle';
-import { useTailwind } from 'tailwind-rn';
-import SettingsGroup from '../../components/SettingsGroup';
-import useGetColor from '../../hooks/useColor';
 import { uiActions } from '../../store/slices/ui';
-import UserProfilePicture from '../../components/UserProfilePicture';
-import { Language } from 'src/types';
-import { storageSelectors } from 'src/store/slices/storage';
-import AppSwitch from 'src/components/AppSwitch';
-import { PhotosContext } from 'src/contexts/Photos';
-import BottomModal from 'src/components/modals/BottomModal';
-import { PhotosPermissions } from '../PhotosPermissionsScreen';
-import Portal from '@burstware/react-native-portal';
-import { PermissionStatus } from 'expo-media-library';
-import { imageService, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
-import { fs } from '@internxt-mobile/services/FileSystemService';
-import errorService from '@internxt-mobile/services/ErrorService';
-import { notifications } from '@internxt-mobile/services/NotificationsService';
+import { SettingsScreenProps } from '../../types/navigation';
 
-function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
-  const [photosPermissionsModalOpen, setPhotosPermissionsModalOpen] = useState(false);
-  const [highlightedSection, setHighlightedSection] = useState<string | null>(null);
+import { imageService, logger, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobile/services/common';
+import errorService from '@internxt-mobile/services/ErrorService';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
+import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
+
+import { CaptureProtection, useCaptureProtection } from 'react-native-capture-protection';
+import { paymentsSelectors } from 'src/store/slices/payments';
+import asyncStorageService from '../../services/AsyncStorageService';
+
+function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [gettingLogs, setGettingLogs] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  const { protectionStatus } = useCaptureProtection();
   const scrollViewRef = useRef<ScrollView | null>(null);
 
-  const photosCtx = useContext(PhotosContext);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [screenProtectionEnabled, setScreenProtectionEnabled] = useState(protectionStatus?.screenshot);
+  const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const [profileAvatar, setProfileAvatar] = useState<string>();
-  const [enablePhotosSyncScrollPoint, setEnablePhotosSyncScrollPoint] = useState(0);
   const userFullName = useAppSelector(authSelectors.userFullName);
+
+  useEffect(() => {
+    const loadThemePreference = async () => {
+      try {
+        const savedTheme = await asyncStorageService.getThemePreference();
+
+        if (savedTheme) {
+          setIsDarkMode(savedTheme === 'dark');
+
+          Appearance.setColorScheme(savedTheme);
+        } else {
+          const systemTheme = Appearance.getColorScheme() || 'light';
+          setIsDarkMode(systemTheme === 'dark');
+        }
+      } catch (error) {
+        const systemTheme = Appearance.getColorScheme() || 'light';
+        setIsDarkMode(systemTheme === 'dark');
+      }
+    };
+
+    loadThemePreference();
+  }, []);
+
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme: newColorScheme }) => {
+      asyncStorageService.getThemePreference().then((savedTheme) => {
+        if (!savedTheme && newColorScheme) {
+          setIsDarkMode(newColorScheme === 'dark');
+        }
+      });
+    });
+
+    return () => subscription?.remove();
+  }, []);
+
   useEffect(() => {
     if (!user?.avatar) {
       return setProfileAvatar(undefined);
@@ -67,23 +113,41 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
       });
   }, [user?.avatar]);
 
-  useEffect(() => {
-    if (route?.params?.focusEnablePhotosSync && enablePhotosSyncScrollPoint) {
-      highlightEnablePhotosSyncSection();
-    }
-  }, [route?.params?.focusEnablePhotosSync]);
+  const handleDarkModeToggle = async (value: boolean) => {
+    try {
+      const newTheme = value ? 'dark' : 'light';
+      setIsDarkMode(value);
 
-  const highlightEnablePhotosSyncSection = () => {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ x: 0, y: enablePhotosSyncScrollPoint, animated: true });
-      setTimeout(() => {
-        setHighlightedSection('photos-sync');
+      await asyncStorageService.saveThemePreference(newTheme);
+
+      if (Platform.OS === 'android') {
         setTimeout(() => {
-          setHighlightedSection(null);
-        }, 500);
-      }, 200);
-    }, 500);
+          Appearance.setColorScheme(newTheme);
+        }, 100);
+      } else {
+        Appearance.setColorScheme(newTheme);
+      }
+    } catch (error) {
+      setIsDarkMode(!value);
+      Appearance.setColorScheme(!value ? 'dark' : 'light');
+    }
   };
+
+  const handleScreenProtection = async (value: boolean) => {
+    try {
+      setScreenProtectionEnabled(value);
+
+      if (value) {
+        await CaptureProtection.prevent();
+      } else {
+        await CaptureProtection.allow();
+      }
+    } catch (error) {
+      setScreenProtectionEnabled(true);
+      await CaptureProtection.prevent();
+    }
+  };
+
   const onAccountPressed = () => {
     navigation.navigate('Account');
   };
@@ -114,19 +178,15 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
     navigation.push('Debug');
   };
 
-  const handlePermissionsGranted = async () => {
-    await photosCtx.enableSync(true);
-    setPhotosPermissionsModalOpen(false);
-  };
-
   const onShareLogsPressed = async () => {
     try {
       setGettingLogs(true);
       const exists = await fs.fileExistsAndIsNotEmpty(fs.getRuntimeLogsPath());
-      if (!exists) {
-        notifications.error(strings.errors.runtimeLogsMissing);
-        return;
+
+      if (Platform.OS === 'android') {
+        await internxtMobileSDKUtils.saveNativeLogs();
       }
+
       if (Platform.OS === 'ios') {
         await fs.shareFile({
           title: 'Internxt Runtime logs',
@@ -135,12 +195,13 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
         });
       }
 
-      if (Platform.OS === 'android') {
+      if (Platform.OS === 'android' && exists) {
         await fs.moveToAndroidDownloads(fs.getRuntimeLogsPath());
       }
 
       notifications.success(strings.messages.logFileMovedToDownloads);
     } catch (error) {
+      logger.error(`Failed to save logs: ${error}`);
       notifications.error(strings.errors.generic.title);
     } finally {
       setGettingLogs(false);
@@ -149,10 +210,16 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
 
   return (
     <>
-      <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('bg-gray-5 flex-1')}>
+      <AppScreen
+        safeAreaTop
+        safeAreaBottom
+        safeAreaColor={getColor('bg-surface')}
+        backgroundColor={getColor('bg-gray-5')}
+        style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}
+      >
         <AppScreenTitle
           text={strings.screens.SettingsScreen.title}
-          containerStyle={tailwind('bg-white')}
+          containerStyle={{ backgroundColor: getColor('bg-surface') }}
           showBackButton={false}
           rightSlot={
             <View style={tailwind('flex-grow items-end justify-center')}>
@@ -160,8 +227,13 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
             </View>
           }
         />
-        <ScrollView ref={scrollViewRef}>
-          <View style={tailwind('px-4 pt-8 pb-10 flex-1')}>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={{
+            paddingBottom: 80,
+          }}
+        >
+          <View style={[tailwind('px-4 pt-8 pb-10 mb-10 flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
             {/* ACCOUNT */}
             <SettingsGroup
               style={tailwind('mb-2')}
@@ -174,18 +246,18 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                       <UserProfilePicture uri={profileAvatar} size={56} />
 
                       <View style={tailwind('flex-grow flex-1 ml-3')}>
-                        <AppText numberOfLines={1} medium style={tailwind('text-xl text-gray-80')}>
+                        <AppText numberOfLines={1} medium style={tailwind('text-xl')}>
                           {userFullName}
                         </AppText>
-                        <AppText numberOfLines={1} style={tailwind('text-gray-40')}>
-                          {constants.SHOW_BILLING
+                        <AppText numberOfLines={1} style={{ color: getColor('text-gray-40') }}>
+                          {showBilling
                             ? strings.screens.SettingsScreen.account.advice
                             : strings.screens.SettingsScreen.account.adviceNoBilling}
                         </AppText>
                       </View>
 
                       <View style={tailwind('items-end')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -193,6 +265,7 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                 },
               ]}
             />
+
             {/* SIGN OUT */}
             <SettingsGroup
               items={[
@@ -200,7 +273,9 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                   key: 'sign-out',
                   template: (
                     <View style={tailwind('px-4 py-3')}>
-                      <AppText style={tailwind('text-center text-lg text-red-')}>{strings.buttons.signOut}</AppText>
+                      <AppText style={[tailwind('text-center text-lg'), { color: getColor('text-red') }]}>
+                        {strings.buttons.signOut}
+                      </AppText>
                     </View>
                   ),
                   onPress: onSignOutPressed,
@@ -218,17 +293,15 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     <View style={[tailwind('flex-row items-center px-4 py-3')]}>
                       <FolderSimple size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-gray-80')]}>
-                          {strings.screens.SettingsScreen.storage}
-                        </AppText>
+                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.storage}</AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
                         {Number(usagePercent) ? (
-                          <AppText style={tailwind('text-gray-40 mr-2.5')}>
+                          <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>
                             {strings.formatString(strings.generic.usagePercent, usagePercent)}
                           </AppText>
                         ) : null}
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -240,14 +313,12 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
                       <Trash size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-gray-80')]}>
-                          {strings.screens.SettingsScreen.trash}
-                        </AppText>
+                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.trash}</AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
                         {/* Disabled until we can get the Trash size */}
                         {/* <AppText style={tailwind('text-gray-40 mr-2.5')}>{prettysize(0)}</AppText> */}
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -259,72 +330,77 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
                       <Translate size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-gray-80')]}>
-                          {strings.screens.SettingsScreen.language}
-                        </AppText>
+                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.language}</AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
-                        <AppText style={tailwind('text-gray-40 mr-2.5')}>
+                        <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>
                           {strings.languages[strings.getLanguage() as Language]}
                         </AppText>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
                   onPress: onLanguagePressed,
                 },
-              ]}
-            />
-            {/* PHOTOS GALLERY */}
-
-            <SettingsGroup
-              onLayout={(event) => {
-                setEnablePhotosSyncScrollPoint(event.nativeEvent.layout.y);
-              }}
-              title={strings.screens.SettingsScreen.photos.title}
-              items={[
                 {
-                  key: 'enable-photos-sync',
+                  key: 'dark-mode',
                   template: (
-                    <View
-                      style={[
-                        tailwind(
-                          `flex-row px-4 py-3 items-center border ${
-                            highlightedSection === 'photos-sync' ? 'border-primary' : 'border-transparent'
-                          } rounded-xl`,
-                        ),
-                      ]}
-                    >
-                      <View style={tailwind('flex-1 pr-4')}>
-                        <AppText style={tailwind('text-lg text-gray-80')}>
-                          {strings.screens.SettingsScreen.photos.enablePhotosBackup.title}
-                        </AppText>
-                        <AppText style={tailwind('text-xs text-gray-40')}>
-                          {strings.screens.SettingsScreen.photos.enablePhotosBackup.message}
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <Moon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
+                      <View style={tailwind('flex-grow justify-center')}>
+                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.darkMode}</AppText>
+                        <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}>
+                          {strings.screens.SettingsScreen.darkModeDescription}
                         </AppText>
                       </View>
-                      <View style={tailwind('')}>
-                        <AppSwitch
-                          value={photosCtx.syncEnabled}
-                          onChange={async (event) => {
-                            const { canEnable, permissionsStatus } = await photosCtx.enableSync(
-                              event.nativeEvent.value,
-                            );
-                            if (!canEnable) {
-                              if (permissionsStatus === PermissionStatus.UNDETERMINED) {
-                                navigation.navigate('Photos');
-                              } else {
-                                setPhotosPermissionsModalOpen(true);
-                              }
-                            }
+                      <View style={tailwind('flex-row items-center')}>
+                        <Switch
+                          trackColor={{
+                            false: getColor('text-gray-20'),
+                            true: getColor('text-primary'),
                           }}
+                          thumbColor={isDarkMode ? getColor('text-white') : getColor('text-gray-40')}
+                          ios_backgroundColor={getColor('text-gray-20')}
+                          onValueChange={handleDarkModeToggle}
+                          value={isDarkMode}
                         />
                       </View>
                     </View>
                   ),
+                  onPress: undefined,
+                },
+                {
+                  key: 'screen-protection',
+                  template: (
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <Shield size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
+                      <View style={tailwind('flex-grow justify-center')}>
+                        <AppText style={[tailwind('text-lg')]}>
+                          {strings.screens.SettingsScreen.screenProtection}
+                        </AppText>
+                        <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}>
+                          {strings.screens.SettingsScreen.screenProtectionDescription}
+                        </AppText>
+                      </View>
+                      <View style={tailwind('flex-row items-center')}>
+                        <Switch
+                          trackColor={{
+                            false: getColor('text-gray-20'),
+                            true: getColor('text-primary'),
+                          }}
+                          thumbColor={isDarkMode ? getColor('text-white') : getColor('text-gray-40')}
+                          ios_backgroundColor={getColor('text-gray-20')}
+                          onValueChange={handleScreenProtection}
+                          value={screenProtectionEnabled}
+                        />
+                      </View>
+                    </View>
+                  ),
+                  onPress: undefined,
                 },
               ]}
             />
+
             {/* INFORMATION */}
             <SettingsGroup
               title={strings.screens.SettingsScreen.information}
@@ -335,12 +411,10 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     <View style={[tailwind('flex-row items-center px-4 py-3')]}>
                       <Question size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-gray-80')]}>
-                          {strings.screens.SettingsScreen.support}
-                        </AppText>
+                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.support}</AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -352,12 +426,10 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     <View style={[tailwind('flex-row items-center px-4 py-3')]}>
                       <Info size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-gray-80')]}>
-                          {strings.screens.SettingsScreen.more}
-                        </AppText>
+                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.more}</AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -370,12 +442,10 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                     <View style={[tailwind('flex-row items-center px-4 py-3')]}>
                       <FileText size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-gray-80')]}>
-                          {strings.screens.SettingsScreen.saveLogs}
-                        </AppText>
+                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.saveLogs}</AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -392,12 +462,12 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                   template: (
                     <View style={[tailwind('flex-row px-4 py-3')]}>
                       <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg text-gray-80')]}>
+                        <AppText style={[tailwind('text-lg')]}>
                           {strings.screens.SettingsScreen.termsAndConditions}
                         </AppText>
                       </View>
                       <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-neutral-60')} size={20} />
+                        <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
                   ),
@@ -417,12 +487,10 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
                       <View style={[tailwind('flex-row items-center px-4 py-3')]}>
                         <Bug size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
                         <View style={tailwind('flex-grow justify-center')}>
-                          <AppText style={[tailwind('text-lg text-gray-80')]}>
-                            {strings.screens.DebugScreen.title}
-                          </AppText>
+                          <AppText style={[tailwind('text-lg')]}>{strings.screens.DebugScreen.title}</AppText>
                         </View>
                         <View style={tailwind('justify-center')}>
-                          <CaretRight color={getColor('text-neutral-60')} size={20} />
+                          <CaretRight color={getColor('text-gray-40')} size={20} />
                         </View>
                       </View>
                     ),
@@ -434,18 +502,6 @@ function SettingsScreen({ navigation, route }: SettingsScreenProps<'SettingsHome
           </View>
         </ScrollView>
       </AppScreen>
-      <Portal>
-        <BottomModal
-          headerStyle={tailwind('bg-white')}
-          header={<View></View>}
-          isOpen={photosPermissionsModalOpen}
-          onClosed={() => setPhotosPermissionsModalOpen(false)}
-        >
-          <View style={tailwind('mt-6')}>
-            <PhotosPermissions onPermissionsGranted={handlePermissionsGranted} />
-          </View>
-        </BottomModal>
-      </Portal>
     </>
   );
 }

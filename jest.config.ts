@@ -12,8 +12,6 @@ const untranspiledModulePatterns = [
   '@react-navigation/.*',
   '@unimodules/.*',
   'unimodules',
-  '@sentry/.*',
-  'sentry-expo',
   'native-base',
   'react-native-svg',
   'rn-fetch-blob',
@@ -29,6 +27,9 @@ const config: Config.InitialOptions = {
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
+  moduleNameMapper: {
+    '^uuid$': require.resolve('uuid'),
+  },
 };
 
 export default config;

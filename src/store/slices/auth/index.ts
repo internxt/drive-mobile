@@ -1,23 +1,20 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import asyncStorageService from '../../../services/AsyncStorageService';
+import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
+import drive from '@internxt-mobile/services/drive';
+import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
+import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import errorService from 'src/services/ErrorService';
 import { RootState } from '../..';
+import strings from '../../../../assets/lang/strings';
+import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
-import userService from '../../../services/UserService';
+import notificationsService from '../../../services/NotificationsService';
+import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
 import { uiActions } from '../ui';
-import notificationsService from '../../../services/NotificationsService';
-import strings from '../../../../assets/lang/strings';
-import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
-import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import { SecurityDetails, TwoFactorAuthQR } from '@internxt/sdk';
-import errorService from 'src/services/ErrorService';
-import { imageService, logger, PROFILE_PICTURE_CACHE_KEY, SdkManager } from '@internxt-mobile/services/common';
-import UserService from '../../../services/UserService';
-import photos from '@internxt-mobile/services/photos';
-import drive from '@internxt-mobile/services/drive';
-
 export interface AuthState {
   loggedIn: boolean | null;
   token: string;
@@ -44,8 +41,7 @@ export const initializeThunk = createAsyncThunk<void, void, { state: RootState }
     if (credentials) {
       SdkManager.init({
         token: credentials.accessToken,
-        photosToken: credentials.photosToken,
-        mnemonic: credentials.user.mnemonic,
+        newToken: credentials.photosToken,
       });
       errorService.setGlobalErrorContext({
         email: credentials.user.email,
@@ -80,9 +76,9 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
 
       SdkManager.init({
         token: credentials.accessToken,
-        photosToken: credentials.photosToken,
-        mnemonic: credentials.user.mnemonic,
+        newToken: credentials.photosToken,
       });
+
       dispatch(
         authActions.setSignInData({
           token: credentials.accessToken,
@@ -91,14 +87,6 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         }),
       );
 
-      /**
-       * TODO centralize this somewhere else
-       * this is not the right place
-       */
-      photos.analytics.setUser({
-        email: credentials.user.email,
-        uuid: credentials.user.uuid,
-      });
       authService.emitLoginEvent();
     } catch (error) {
       dispatch(authActions.setLoggedIn(false));
@@ -111,26 +99,16 @@ export const signInThunk = createAsyncThunk<
   { user: UserSettings; token: string; newToken: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
-  let userToSave = payload.user;
+  const userToSave = payload.user;
   SdkManager.init({
     token: payload.token,
-    photosToken: payload.newToken,
-    mnemonic: payload.user.mnemonic,
+    newToken: payload.newToken,
   });
-  if (!payload.user.root_folder_id) {
-    const initializedUser = await UserService.initializeUser(payload.user.email, payload.user.mnemonic);
-
-    userToSave = {
-      ...userToSave,
-      ...initializedUser,
-    };
-  }
 
   // Set the new SDK tokens
   SdkManager.setApiSecurity({
     token: payload.token,
-    photosToken: payload.newToken,
-    mnemonic: payload.user.mnemonic,
+    newToken: payload.newToken,
   });
 
   await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
@@ -146,14 +124,6 @@ export const signInThunk = createAsyncThunk<
     }),
   );
 
-  /**
-   * TODO centralize this somewhere else
-   * this is not the right place
-   */
-  photos.analytics.setUser({
-    email: userToSave.email,
-    uuid: userToSave.uuid,
-  });
   authService.emitLoginEvent();
   return {
     user: userToSave,
@@ -188,8 +158,7 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       // Pass the new tokens to the SdkManager
       SdkManager.init({
         token: credentials.accessToken,
-        photosToken: credentials.photosToken,
-        mnemonic: credentials.user.mnemonic,
+        newToken: credentials.photosToken,
       });
 
       // Set the new SignIn data
@@ -201,8 +170,29 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
         }),
       );
     } catch (err) {
+      logger.info('Auth tokens refresh failed: ', JSON.stringify(err));
+      asyncStorageService.clearStorage();
       dispatch(authActions.setLoggedIn(false));
       dispatch(authThunks.signOutThunk());
+    }
+  },
+);
+
+export const checkAndRefreshTokenThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'auth/checkAndRefreshToken',
+  async (_, { dispatch }) => {
+    try {
+      const token = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
+      const tokenNeedsRefresh = token && authService.tokenNeedsRefresh(token);
+
+      if (tokenNeedsRefresh) {
+        logger.info('Token expires soon, refreshing...');
+        await dispatch(refreshTokensThunk());
+      } else {
+        logger.info('Token still valid, no refresh needed');
+      }
+    } catch (err) {
+      logger.info('Could not check token expiration:', err);
     }
   },
 );
@@ -210,9 +200,8 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/signOut',
   async (_, { dispatch }) => {
-    await authService.signout();
-    await photos.clear();
-    await drive.clear();
+    authService.signout().catch(errorService.reportError);
+    drive.clear().catch(errorService.reportError);
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveActions.resetState());
@@ -223,8 +212,11 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
 
 export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/refreshUser',
-  async (payload: void, { dispatch }) => {
-    const { user, token } = await userService.refreshUser();
+  async (payload: void, { dispatch, getState }) => {
+    const { user: currentUserData } = getState().auth;
+
+    const res = await userService.refreshUser(currentUserData?.uuid as string);
+    const { user, oldToken: token } = res;
     const { avatar, emailVerified, name, lastname } = user;
 
     if (avatar) {
@@ -258,10 +250,10 @@ export const deleteAccountThunk = createAsyncThunk<void, void, { state: RootStat
   'auth/deleteAccount',
   async (payload, { getState }) => {
     const { user } = getState().auth;
+    const token = SdkManager.getInstance().getApiSecurity().newToken;
+    user && (await authService.deleteAccount(token));
 
-    user && (await authService.deleteAccount(user.email));
-
-    asyncStorageService.saveItem(AsyncStorageKey.IsDeletingAccount, 'DELETING');
+    await asyncStorageService.saveItem(AsyncStorageKey.IsDeletingAccount, 'DELETING');
   },
 );
 
@@ -339,11 +331,30 @@ export const changePasswordThunk = createAsyncThunk<void, { newPassword: string 
   async ({ newPassword }, { dispatch, getState }) => {
     const { sessionPassword } = getState().auth;
     if (!sessionPassword) throw new Error('No session password found');
-    await authService.doChangePassword({
+    const { token, newToken } = await authService.doChangePassword({
       password: sessionPassword,
       newPassword: newPassword,
     });
 
+    if (!token || !newToken) throw new Error('No tokens found, this is fatal');
+
+    await asyncStorageService.saveItem(AsyncStorageKey.Token, token);
+    await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, newToken);
+    const user = getState().auth.user;
+    if (!user) throw new Error('No user found, this is fatal');
+
+    SdkManager.setApiSecurity({
+      token,
+      newToken,
+    });
+
+    dispatch(
+      authActions.setSignInData({
+        token: token,
+        photosToken: newToken,
+        user,
+      }),
+    );
     dispatch(authActions.setSessionPassword(newPassword));
   },
 );
@@ -529,6 +540,7 @@ export const authThunks = {
   sendVerificationEmailThunk,
   changePasswordThunk,
   refreshTokensThunk,
+  checkAndRefreshTokenThunk,
 };
 
 export default authSlice.reducer;

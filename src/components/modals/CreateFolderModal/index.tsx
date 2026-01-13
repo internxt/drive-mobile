@@ -1,27 +1,28 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
 
-import strings from '../../../../assets/lang/strings';
-import CenterModal from '../CenterModal';
-import AppButton from '../../AppButton';
-import AppTextInput from '../../AppTextInput';
 import drive from '@internxt-mobile/services/drive';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
+import useGetColor from '../../../hooks/useColor';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
-import { useTailwind } from 'tailwind-rn';
+import AppButton from '../../AppButton';
 import AppText from '../../AppText';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import AppTextInput from '../../AppTextInput';
+import CenterModal from '../CenterModal';
 
 interface CreateFolderModalProps extends BaseModalProps {
   onFolderCreated: () => void;
   onCancel: () => void;
-  currentFolderId: number;
+  currentFolderUuid: string;
 }
+
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const tailwind = useTailwind();
-  const driveCtx = useDrive();
+  const getColor = useGetColor();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,17 +30,27 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
     if (isLoading) return;
     props.onCancel();
   };
+
   const onClosed = () => {
     setFolderName(strings.screens.create_folder.defaultName);
   };
+
   const onCreateFolderButtonPressed = () => {
     setIsLoading(true);
 
     drive.folder
-      .createFolder(props.currentFolderId, folderName)
+      .createFolder(props.currentFolderUuid, folderName)
       .then((newFolder) => {
-        driveLocalDB.saveFolderContent(newFolder, []).then(() => {
-          driveCtx.loadFolderContent(props.currentFolderId);
+        const folderData = {
+          id: newFolder.id,
+          uuid: newFolder.uuid,
+          parentId: newFolder.parentId,
+          parentUuid: newFolder.parentUuid,
+          name: newFolder.name,
+          updatedAt: newFolder.updatedAt.toString(),
+        };
+
+        driveLocalDB.saveFolderContent(folderData, []).then(() => {
           notificationsService.show({ type: NotificationType.Success, text1: strings.messages.folderCreated });
         });
 
@@ -55,8 +66,8 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
 
   return (
     <CenterModal isOpen={props.isOpen} onClosed={onClosed}>
-      <View style={tailwind('p-4')}>
-        <AppText style={tailwind('text-xl mb-6')} medium>
+      <View style={[tailwind('p-4 rounded-xl'), { backgroundColor: getColor('bg-surface') }]}>
+        <AppText style={[tailwind('text-xl mb-6'), { color: getColor('text-gray-100') }]} medium>
           {strings.modals.CreateFolder.title}
         </AppText>
 

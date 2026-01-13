@@ -1,13 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
 
+import { ArrowDown } from 'phosphor-react-native';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
+import useGetColor from '../../../hooks/useColor';
+import { DriveItemData, DriveItemFocused } from '../../../types/drive';
+import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import CenterModal from '../CenterModal';
-import { DriveItemData, DriveItemFocused } from '../../../types/drive';
-import { ArrowDown } from 'phosphor-react-native';
-import AppButton from '../../AppButton';
-import { useTailwind } from 'tailwind-rn';
 
 interface ConfirmMoveItemModalProps {
   isOpen: boolean;
@@ -20,8 +21,10 @@ interface ConfirmMoveItemModalProps {
   onClose: () => void;
   onConfirm: () => void;
 }
+
 const ConfirmMoveItemModal: React.FC<ConfirmMoveItemModalProps> = (props) => {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
 
   return (
     <CenterModal
@@ -30,24 +33,24 @@ const ConfirmMoveItemModal: React.FC<ConfirmMoveItemModalProps> = (props) => {
         props.onClose();
       }}
     >
-      <View style={tailwind('p-5')}>
-        <AppText style={tailwind('text-sm text-gray-60')}>
+      <View style={[tailwind('p-5 rounded-lg '), { backgroundColor: getColor('bg-gray-5') }]}>
+        <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-60') }]}>
           {strings.formatString(strings.modals.ConfirmMoveItemModal.title, props.items.length)}
         </AppText>
         <View style={tailwind('flex flex-col')}>
           <View>
-            <AppText semibold style={tailwind('text-xl text-gray-80')}>
+            <AppText semibold style={[tailwind('text-xl'), { color: getColor('text-gray-100') }]}>
               {props.move.origin?.name}
             </AppText>
           </View>
           <View style={tailwind('my-2')}>
-            <ArrowDown weight="bold" style={tailwind('text-gray-80')} size={16} />
+            <ArrowDown weight="bold" color={getColor('text-gray-80')} size={16} />
           </View>
           <View>
-            <AppText semibold style={tailwind('text-xl text-gray-80')}>
+            <AppText semibold style={[tailwind('text-xl'), { color: getColor('text-gray-100') }]}>
               {props.move.destination?.name}
             </AppText>
-            <AppText style={tailwind('text-gray-60 text-sm mt-0')}>
+            <AppText style={[tailwind('text-sm mt-0'), { color: getColor('text-gray-60') }]}>
               {strings.modals.ConfirmMoveItemModal.destination}
             </AppText>
           </View>

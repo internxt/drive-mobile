@@ -5,7 +5,7 @@ import { useTailwind } from 'tailwind-rn';
 const AppSeparator = (props: ViewProps): JSX.Element => {
   const tailwind = useTailwind();
 
-  return <View {...props} style={[tailwind('border-t border-neutral-30'), { height: 1 }, props.style]} />;
+  return <View {...props} style={[tailwind('border-t border-gray-5'), { height: 1 }, props.style]} />;
 };
 
 export default AppSeparator;

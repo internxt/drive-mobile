@@ -1,10 +1,9 @@
-import React from 'react';
-import { View, TouchableOpacity, StyleProp, TextStyle } from 'react-native';
+import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
 
 import { CaretLeft } from 'phosphor-react-native';
-import AppText from '../AppText';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import AppText from '../AppText';
 
 interface AppScreenTitleProps {
   text: string;
@@ -37,20 +36,28 @@ const AppScreenTitle = ({
     <View
       style={[
         tailwind('flex-row justify-center items-center px-4'),
-        { paddingTop: 22, paddingBottom: 14 },
+        {
+          paddingTop: 22,
+          paddingBottom: 14,
+          backgroundColor: getColor('bg-surface'),
+        },
         containerStyle,
       ]}
     >
       {showBackButton && (
         <TouchableOpacity style={tailwind('flex-1')} disabled={!onBackButtonPressed} onPress={onBackButtonPressed}>
           <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
-            <CaretLeft weight="bold" color={getColor('text-blue-60')} size={24} />
+            <CaretLeft weight="bold" color={getColor('text-primary')} size={24} />
           </View>
         </TouchableOpacity>
       )}
 
       <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
-        <AppText numberOfLines={1} medium style={[tailwind('text-neutral-700 text-2xl'), textStyle]}>
+        <AppText
+          numberOfLines={1}
+          medium
+          style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }, textStyle]}
+        >
           {text}
         </AppText>
 

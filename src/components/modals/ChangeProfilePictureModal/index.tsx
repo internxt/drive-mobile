@@ -1,27 +1,27 @@
-import { Camera, ImageSquare, Trash } from 'phosphor-react-native';
-import { useEffect, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import errorService from '@internxt-mobile/services/ErrorService';
 import {
   ImagePickerOptions,
   ImagePickerResult,
-  launchImageLibraryAsync,
   launchCameraAsync,
+  launchImageLibraryAsync,
   MediaTypeOptions,
   requestCameraPermissionsAsync,
   requestMediaLibraryPermissionsAsync,
 } from 'expo-image-picker';
+import { Camera, ImageSquare, Trash } from 'phosphor-react-native';
+import { useEffect, useState } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
+import { imageService } from '../../../services/common/media/image.service';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { authThunks } from '../../../store/slices/auth';
 import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import UserProfilePicture from '../../UserProfilePicture';
 import BottomModal from '../BottomModal';
-import { imageService } from '../../../services/common/media/image.service';
-import { authThunks } from '../../../store/slices/auth';
-import errorService from '@internxt-mobile/services/ErrorService';
 
 const ChangeProfilePictureModal = (props: BaseModalProps) => {
   const dispatch = useAppDispatch();
@@ -120,8 +120,13 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
       <TouchableOpacity key={action.key} style={tailwind('flex-1')} onPress={action.onPress} disabled={action.disabled}>
         <View
           style={[
-            tailwind('border border-gray-5 rounded-xl bg-gray-5 items-center py-3 mr-1'),
-            action.disabled && tailwind('bg-gray-5/50'),
+            tailwind('rounded-xl items-center py-3 mr-1'),
+            {
+              backgroundColor: action.disabled ? getColor('bg-gray-10') : getColor('bg-gray-5'),
+              borderColor: getColor('border-gray-10'),
+              borderWidth: 1,
+              opacity: action.disabled ? 0.5 : 1,
+            },
           ]}
         >
           <action.iconComponent
@@ -129,7 +134,13 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
             size={40}
             color={action.disabled ? getColor('text-gray-40') : getColor('text-gray-80')}
           />
-          <AppText style={[tailwind('text-xs'), action.disabled && tailwind('text-gray-40')]} medium>
+          <AppText
+            style={[
+              tailwind('text-xs'),
+              { color: action.disabled ? getColor('text-gray-40') : getColor('text-gray-100') },
+            ]}
+            medium
+          >
             {action.label}
           </AppText>
         </View>

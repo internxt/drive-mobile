@@ -1,59 +1,92 @@
-import React, { useEffect, useState } from 'react';
-import {
-  View,
-  Text,
-  KeyboardAvoidingView,
-  Platform,
-  ColorValue,
-  AppStateStatus,
-  NativeEventSubscription,
-} from 'react-native';
 import Portal from '@burstware/react-native-portal';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import * as NavigationBar from 'expo-navigation-bar';
-
-import analyticsService from './services/AnalyticsService';
-import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
-import { authThunks } from './store/slices/auth';
-import { appActions, appThunks } from './store/slices/app';
-import appService from './services/AppService';
-import InviteFriendsModal from './components/modals/InviteFriendsModal';
-import NewsletterModal from './components/modals/NewsletterModal';
-import { useAppDispatch, useAppSelector } from './store/hooks';
-import { uiActions } from './store/slices/ui';
-import AppToast from './components/AppToast';
-import LinkCopiedModal from './components/modals/LinkCopiedModal';
-import Navigation from './navigation';
-import { useTailwind } from 'tailwind-rn';
-import DeleteAccountModal from './components/modals/DeleteAccountModal';
-import authService from './services/AuthService';
-import EditNameModal from './components/modals/EditNameModal';
-import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
-import LanguageModal from './components/modals/LanguageModal';
-import PlansModal from './components/modals/PlansModal';
 import * as Linking from 'expo-linking';
+import * as NavigationBar from 'expo-navigation-bar';
+import { useEffect, useState } from 'react';
+import {
+  Appearance,
+  AppStateStatus,
+  KeyboardAvoidingView,
+  NativeEventSubscription,
+  Platform,
+  Text,
+  View,
+} from 'react-native';
+import { CaptureProtection, CaptureProtectionProvider } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import fileSystemService from './services/FileSystemService';
-import { PhotosContextProvider } from './contexts/Photos';
-import errorService from './services/ErrorService';
-import { DriveContextProvider } from './contexts/Drive/Drive.context';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { useTailwind } from 'tailwind-rn';
+import AppToast from './components/AppToast';
+import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
+import DeleteAccountModal from './components/modals/DeleteAccountModal';
+import EditNameModal from './components/modals/EditNameModal';
+import LanguageModal from './components/modals/LanguageModal';
+import LinkCopiedModal from './components/modals/LinkCopiedModal';
+import PlansModal from './components/modals/PlansModal';
+import { DriveContextProvider } from './contexts/Drive';
+import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
+import useGetColor from './hooks/useColor';
+import { useSecurity } from './hooks/useSecurity';
+import Navigation from './navigation';
 import { LockScreen } from './screens/common/LockScreen';
+import analyticsService from './services/AnalyticsService';
+import appService from './services/AppService';
+import asyncStorageService from './services/AsyncStorageService';
+import authService from './services/AuthService';
 import { logger } from './services/common';
 import { time } from './services/common/time';
+import errorService from './services/ErrorService';
+import fileSystemService from './services/FileSystemService';
+import { useAppDispatch, useAppSelector } from './store/hooks';
+import { appActions, appThunks } from './store/slices/app';
+import { authThunks } from './store/slices/auth';
+import { paymentsThunks } from './store/slices/payments';
+import { uiActions } from './store/slices/ui';
+
 let listener: NativeEventSubscription | null = null;
+
 export default function App(): JSX.Element {
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+
   const { isReady: fontsAreReady } = useLoadFonts();
   const { user } = useAppSelector((state) => state.auth);
-  const { screenLocked, lastScreenLock, initialScreenLocked } = useAppSelector((state) => state.app);
+  const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
+  const [currentTheme, setCurrentTheme] = useState<'light' | 'dark'>('light');
+  const { performPeriodicSecurityCheck } = useSecurity();
 
-  const { color: whiteColor } = tailwind('text-white');
+  useEffect(() => {
+    const initializeTheme = async () => {
+      const savedTheme = await asyncStorageService.getThemePreference();
+      const themeToApply = savedTheme || Appearance.getColorScheme() || 'light';
+
+      setCurrentTheme(themeToApply as 'light' | 'dark');
+      Appearance.setColorScheme(themeToApply);
+    };
+
+    initializeTheme();
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      asyncStorageService.getThemePreference().then((savedTheme) => {
+        if (!savedTheme && colorScheme) {
+          setCurrentTheme(colorScheme);
+        }
+      });
+    });
+
+    return () => {
+      subscription?.remove();
+      if (!screenLockEnabled) {
+        dispatch(appActions.setInitialScreenLocked(false));
+        dispatch(appActions.setScreenLocked(false));
+      }
+    };
+  }, []);
+
   const [isAppInitialized, setIsAppInitialized] = useState(false);
+  const [loadError, setLoadError] = useState('');
+
   const {
     isLinkCopiedModalOpen,
-    isInviteFriendsModalOpen,
-    isNewsletterModalOpen,
     isDeleteAccountModalOpen,
     isEditNameModalOpen,
     isChangeProfilePictureModalOpen,
@@ -61,7 +94,6 @@ export default function App(): JSX.Element {
     isPlansModalOpen,
   } = useAppSelector((state) => state.ui);
 
-  const [loadError, setLoadError] = useState('');
   const silentSignIn = async () => {
     await dispatch(appThunks.initializeUserPreferencesThunk());
     await dispatch(authThunks.silentSignInThunk());
@@ -69,17 +101,17 @@ export default function App(): JSX.Element {
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
-  const onInviteFriendsModalClosed = () => dispatch(uiActions.setIsInviteFriendsModalOpen(false));
-  const onNewsletterModalClosed = () => dispatch(uiActions.setIsNewsletterModalOpen(false));
   const onDeleteAccountModalClosed = () => dispatch(uiActions.setIsDeleteAccountModalOpen(false));
   const onEditNameModalClosed = () => dispatch(uiActions.setIsEditNameModalOpen(false));
   const onChangeProfilePictureModalClosed = () => dispatch(uiActions.setIsChangeProfilePictureModalOpen(false));
   const onLanguageModalClosed = () => dispatch(uiActions.setIsLanguageModalOpen(false));
   const onPlansModalClosed = () => dispatch(uiActions.setIsPlansModalOpen(false));
+
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active') {
       dispatch(appActions.setLastScreenLock(Date.now()));
-      dispatch(authThunks.refreshTokensThunk());
+      dispatch(authThunks.checkAndRefreshTokenThunk());
+      dispatch(paymentsThunks.checkShouldDisplayBilling());
     }
 
     if (state === 'inactive') {
@@ -88,6 +120,12 @@ export default function App(): JSX.Element {
 
     if (Platform.OS === 'android' && state === 'background') {
       dispatch(appThunks.lockScreenIfNeededThunk());
+    }
+  };
+
+  const handleGlobalAppStateChange = (state: AppStateStatus) => {
+    if (state === 'active') {
+      performPeriodicSecurityCheck();
     }
   };
 
@@ -116,9 +154,16 @@ export default function App(): JSX.Element {
     dispatch(appActions.setScreenLocked(false));
   };
 
+  const handleStorageMigration = async () => {
+    const { needsMigration } = await asyncStorageService.checkNeedsMigration();
+    if (needsMigration) {
+      await asyncStorageService.migrateToSecureStorage();
+    }
+  };
+
   useEffect(() => {
     const subscription = Linking.addEventListener('url', onDeeplinkChange);
-
+    handleStorageMigration();
     return () => {
       subscription.remove();
     };
@@ -161,13 +206,28 @@ export default function App(): JSX.Element {
     }
   };
 
+  useEffect(() => {
+    CaptureProtection.prevent();
+
+    const initializeTheme = async () => {
+      const savedTheme = await asyncStorageService.getThemePreference();
+      if (savedTheme) {
+        Appearance.setColorScheme(savedTheme);
+      }
+    };
+
+    initializeTheme();
+
+    return () => {
+      if (!screenLockEnabled) {
+        dispatch(appActions.setInitialScreenLocked(false));
+        dispatch(appActions.setScreenLocked(false));
+      }
+    };
+  }, []);
+
   // Initialize app
   useEffect(() => {
-    if (Platform.OS === 'android') {
-      NavigationBar.setBackgroundColorAsync(whiteColor as ColorValue);
-      NavigationBar.setButtonStyleAsync('dark');
-    }
-
     authService.addLoginListener(onUserLoggedIn);
     authService.addLogoutListener(onUserLoggedOut);
 
@@ -181,43 +241,66 @@ export default function App(): JSX.Element {
     };
   }, []);
 
+  useEffect(() => {
+    const configureNavigationBar = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const backgroundColor = getColor('bg-surface');
+          const isDark = currentTheme === 'dark';
+
+          await NavigationBar.setBackgroundColorAsync(backgroundColor);
+          await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+        } catch (error) {
+          logger.error('Error configuring navigation bar:', error);
+        }
+      }
+    };
+
+    configureNavigationBar();
+  }, [getColor, currentTheme]);
+
+  useEffect(() => {
+    const globalListener = appService.onAppStateChange(handleGlobalAppStateChange);
+
+    return () => {
+      globalListener?.remove();
+    };
+  }, [performPeriodicSecurityCheck]);
+
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
-          <View style={tailwind('flex-1')}>
+          <CaptureProtectionProvider>
             {isAppInitialized && fontsAreReady ? (
-              <DriveContextProvider rootFolderId={user?.root_folder_id}>
-                <PhotosContextProvider>
-                  <Portal.Host>
-                    <LockScreen
-                      locked={screenLocked}
-                      lastScreenLock={lastScreenLock}
-                      onScreenUnlocked={handleUnlockScreen}
-                    />
-                    {initialScreenLocked ? null : <Navigation />}
-                    <AppToast />
+              <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
+                <Portal.Host>
+                  <LockScreen
+                    locked={screenLocked}
+                    lastScreenLock={lastScreenLock}
+                    onScreenUnlocked={handleUnlockScreen}
+                  />
 
-                    <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
-                    <InviteFriendsModal isOpen={isInviteFriendsModalOpen} onClose={onInviteFriendsModalClosed} />
-                    <NewsletterModal isOpen={isNewsletterModalOpen} onClose={onNewsletterModalClosed} />
-                    <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
-                    <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
-                    <ChangeProfilePictureModal
-                      isOpen={isChangeProfilePictureModalOpen}
-                      onClose={onChangeProfilePictureModalClosed}
-                    />
-                    <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-                    <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
-                  </Portal.Host>
-                </PhotosContextProvider>
+                  {initialScreenLocked && screenLocked ? null : <Navigation />}
+                  <AppToast />
+
+                  <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
+                  <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
+                  <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
+                  <ChangeProfilePictureModal
+                    isOpen={isChangeProfilePictureModalOpen}
+                    onClose={onChangeProfilePictureModalClosed}
+                  />
+                  <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+                  <PlansModal isOpen={isPlansModalOpen} onClose={onPlansModalClosed} />
+                </Portal.Host>
               </DriveContextProvider>
             ) : (
               <View style={tailwind('items-center flex-1 justify-center')}>
                 {loadError ? <Text>{loadError}</Text> : null}
               </View>
             )}
-          </View>
+          </CaptureProtectionProvider>
         </KeyboardAvoidingView>
       </GestureHandlerRootView>
     </SafeAreaProvider>

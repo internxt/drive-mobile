@@ -46,15 +46,15 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
   };
   const renderCancelSubscription = () => (
     <>
-      <AppText style={tailwind('text-center text-lg mb-5')} medium>
+      <AppText lineHeight={1.2} style={tailwind('text-center text-lg mb-5')} medium>
         {strings.formatString(strings.modals.CancelSubscription.steps['cancel-subscription'].advice, userFullName)}
       </AppText>
 
       {isDowngrading && (
         <View style={tailwind('mb-9')}>
-          <View style={tailwind('p-3 rounded-lg bg-red-/5 flex-row')}>
-            <Warning weight="fill" color={getColor('text-red-')} size={20} style={tailwind('mt-0.5 mr-3')} />
-            <AppText style={tailwind('text-sm flex-1 text-red-')}>
+          <View style={tailwind('p-3 rounded-lg bg-red/5 flex-row')}>
+            <Warning weight="fill" color={getColor('text-red')} size={20} style={tailwind('mt-0.5 mr-3')} />
+            <AppText lineHeight={1.2} style={tailwind('text-sm flex-1 text-red')}>
               {strings.formatString(
                 strings.modals.CancelSubscription.steps['cancel-subscription'].storageDowngradeWarning,
                 storageService.toString(usage),
@@ -62,13 +62,20 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
               )}
             </AppText>
           </View>
-          <StorageUsageBar style={tailwind('mt-5')} />
+          <View style={tailwind('mt-5')}>
+            <StorageUsageBar
+              style={tailwind('mt-5')}
+              usageBytes={usage}
+              limitBytes={limit}
+              selectedStorageBytes={FREE_STORAGE}
+            />
+          </View>
         </View>
       )}
 
       <View style={tailwind('rounded-xl bg-gray-5/50 p-4 mb-10')}>
         <View style={tailwind('flex-row justify-center items-center')}>
-          <AppText style={tailwind('text-4xl text-red-')}>{storageService.toString(FREE_STORAGE)}</AppText>
+          <AppText style={tailwind('text-4xl text-red')}>{storageService.toString(FREE_STORAGE)}</AppText>
           <ArrowLeft style={tailwind('mx-3')} />
           <AppText style={tailwind('text-4xl line-through')}>{storageService.toString(limit)}</AppText>
         </View>

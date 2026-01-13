@@ -1,43 +1,44 @@
 import prettysize from 'prettysize';
-import React, { useRef, useState } from 'react';
-import { PermissionsAndroid, Platform, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Platform, TouchableOpacity, View } from 'react-native';
 
-import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
-import globalStyle from '../../../styles/global';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { uiActions } from '../../../store/slices/ui';
-import { driveActions } from '../../../store/slices/drive';
-import BottomModalOption from '../../BottomModalOption';
-import BottomModal from '../BottomModal';
+import Portal from '@burstware/react-native-portal';
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import AuthService from '@internxt-mobile/services/AuthService';
+import errorService from '@internxt-mobile/services/ErrorService';
+import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
+import notificationsService, { notifications } from '@internxt-mobile/services/NotificationsService';
+import { logger } from '@internxt-mobile/services/common';
+import { time } from '@internxt-mobile/services/common/time';
+import drive from '@internxt-mobile/services/drive';
+import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { Abortable } from '@internxt-mobile/types/index';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import {
-  Link,
-  Trash,
   ArrowsOutCardinal,
-  Eye,
   ArrowSquareOut,
   DownloadSimple,
+  Eye,
+  Link,
   PencilSimple,
+  Trash,
 } from 'phosphor-react-native';
-import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../../hooks/useColor';
-import { time } from '@internxt-mobile/services/common/time';
-import AppText from 'src/components/AppText';
-import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
-import { DriveItemData } from '@internxt-mobile/types/drive';
-import Portal from '@burstware/react-native-portal';
-import { fs } from '@internxt-mobile/services/FileSystemService';
-import errorService from '@internxt-mobile/services/ErrorService';
-import drive from '@internxt-mobile/services/drive';
-import AuthService from '@internxt-mobile/services/AuthService';
-import { notifications } from '@internxt-mobile/services/NotificationsService';
-import { Abortable } from '@internxt-mobile/types/index';
-import CenterModal from '../CenterModal';
 import AppProgressBar from 'src/components/AppProgressBar';
-import { getPermissionsAsync } from 'expo-media-library';
+import AppText from 'src/components/AppText';
+import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
+import { FolderIcon, getFileTypeIcon } from '../../../helpers';
+import useGetColor from '../../../hooks/useColor';
+import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { driveActions } from '../../../store/slices/drive';
+import { uiActions } from '../../../store/slices/ui';
+import globalStyle from '../../../styles/global';
+import BottomModalOption from '../../BottomModalOption';
+import BottomModal from '../BottomModal';
+import CenterModal from '../CenterModal';
+import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 
 function DriveItemInfoModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -46,6 +47,7 @@ function DriveItemInfoModal(): JSX.Element {
   const driveCtx = useDrive();
   const [downloadProgress, setDownloadProgress] = useState({ progress: 0, totalBytes: 0, bytesReceived: 0 });
   const { focusedItem: item } = useAppSelector((state) => state.drive);
+
   const { showItemModal } = useAppSelector((state) => state.ui);
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -67,20 +69,28 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(driveActions.setItemToMove(item));
   };
 
-  const handleUndoMoveToTrash = async (dbItem: DriveItemData) => {
+  const isFileDownloadable = (): boolean => {
+    if (parseInt(item.size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['10GB']) {
+      notificationsService.info(strings.messages.downloadLimit);
+      return false;
+    }
+    return true;
+  };
+
+  const handleUndoMoveToTrash = async () => {
     const { success } = await driveUseCases.restoreDriveItems(
       [
         {
-          fileId: item.fileId,
-          folderId: isFolder ? item.folderId : undefined,
-          destinationFolderId: item.parentId || (item.folderId as number),
+          fileId: isFolder ? undefined : item.uuid,
+          folderId: isFolder ? item.uuid : undefined,
+          destinationFolderId: item.parentUuid ?? item.folderUuid ?? '',
         },
       ],
       { displayNotification: false },
     );
-    if (success && driveCtx.currentFolder) {
-      await driveLocalDB.saveItems([dbItem]);
-      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+    if (success && driveCtx.focusedFolder?.id) {
+      await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
   };
   const handleTrashItem = async () => {
@@ -95,11 +105,15 @@ function DriveItemInfoModal(): JSX.Element {
         },
       ],
 
-      () => dbItem && handleUndoMoveToTrash(dbItem),
+      () => handleUndoMoveToTrash(),
     );
 
-    if (success && driveCtx.currentFolder) {
-      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+    if (success && dbItem?.id) {
+      await driveLocalDB.deleteItem({ id: dbItem.id });
+    }
+    if (driveCtx.focusedFolder?.uuid) {
+      await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+      driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
   };
 
@@ -112,29 +126,51 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
-  const downloadItem = async (fileId: string, decryptedFilePath: string) => {
+  const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string, fileSize: number) => {
     const { credentials } = await AuthService.getAuthCredentials();
+    try {
+      const hasEnoughSpace = await fileSystemService.checkAvailableStorage(fileSize);
+      if (!hasEnoughSpace) {
+        notifications.error(strings.errors.notEnoughSpaceOnDevice);
+        throw new Error(strings.errors.notEnoughSpaceOnDevice);
+      }
+    } catch (error) {
+      logger.error('Error on downloadItem function:', JSON.stringify(error));
+      errorService.reportError(error);
+    }
 
-    const { downloadPath } = await drive.file.downloadFile(credentials.user, fileId, {
-      downloadPath: decryptedFilePath,
-      downloadProgressCallback(progress, bytesReceived, totalBytes) {
-        setDownloadProgress({
-          progress,
-          bytesReceived,
-          totalBytes,
-        });
+    const { downloadPath } = await drive.file.downloadFile(
+      credentials.user,
+      bucketId,
+      fileId,
+      {
+        downloadPath: decryptedFilePath,
+        downloadProgressCallback(progress, bytesReceived, totalBytes) {
+          setDownloadProgress({
+            progress,
+            bytesReceived,
+            totalBytes,
+          });
+        },
+        onAbortableReady(abortable) {
+          downloadAbortableRef.current = abortable;
+        },
       },
-      onAbortableReady(abortable) {
-        downloadAbortableRef.current = abortable;
-      },
-    });
+      fileSize,
+    );
 
     return downloadPath;
   };
+
   const handleExportFile = async () => {
     try {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
+      }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
       }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
@@ -150,7 +186,12 @@ function DriveItemInfoModal(): JSX.Element {
 
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       setExporting(true);
-      const downloadPath = await downloadItem(item.fileId, decryptedFilePath);
+      const downloadPath = await downloadItem(
+        item.fileId,
+        item.bucket as string,
+        decryptedFilePath,
+        parseInt(item.size?.toString() ?? '0'),
+      );
       setExporting(false);
       await fs.shareFile({
         title: item.name,
@@ -158,6 +199,7 @@ function DriveItemInfoModal(): JSX.Element {
       });
     } catch (error) {
       notifications.error(strings.errors.generic.message);
+      logger.error('Error on handleExportFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
       setExporting(false);
@@ -171,17 +213,14 @@ function DriveItemInfoModal(): JSX.Element {
   };
   const handleAndroidDownloadFile = async () => {
     try {
-      const externalStorageWritePerm = await PermissionsAndroid.check('android.permission.WRITE_EXTERNAL_STORAGE');
-
-      if (!externalStorageWritePerm) {
-        dispatch(uiActions.setShowItemModal(false));
-
-        notifications.error(strings.errors.enableWriteExternalStoragePermissions);
-        return;
-      }
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       if (!item.fileId) {
         throw new Error('Item fileID not found');
+      }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
       }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
@@ -194,7 +233,12 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, decryptedFilePath);
+        await downloadItem(
+          item.fileId,
+          item.bucket as string,
+          decryptedFilePath,
+          parseInt(item.size?.toString() ?? '0'),
+        );
         setExporting(false);
       }
 
@@ -204,6 +248,7 @@ function DriveItemInfoModal(): JSX.Element {
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
       notifications.error(strings.errors.generic.message);
+      logger.error('Error on handleAndroidDownloadFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
       setExporting(false);
@@ -216,6 +261,11 @@ function DriveItemInfoModal(): JSX.Element {
       if (!item.fileId) {
         throw new Error('Item fileID not found');
       }
+      const canDownloadFile = isFileDownloadable();
+      if (!canDownloadFile) {
+        dispatch(uiActions.setShowItemModal(false));
+        return;
+      }
 
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
 
@@ -227,7 +277,12 @@ function DriveItemInfoModal(): JSX.Element {
       // 2. If the file doesn't exists, download it
       if (!existsDecrypted) {
         setExporting(true);
-        await downloadItem(item.fileId, decryptedFilePath);
+        await downloadItem(
+          item.fileId,
+          item.bucket as string,
+          decryptedFilePath,
+          parseInt(item.size?.toString() ?? '0'),
+        );
         setExporting(false);
       }
 
@@ -239,55 +294,57 @@ function DriveItemInfoModal(): JSX.Element {
       });
     } catch (error) {
       notifications.error(strings.errors.generic.message);
+      logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
       setExporting(false);
     }
   };
+
   const options = [
     {
       visible: false,
-      icon: <Eye size={20} color={getColor('text-gray-100')} />,
+      icon: <Eye size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.open,
       onPress: handleOpenItem,
     },
     {
-      icon: <PencilSimple size={20} color={getColor('text-gray-100')} />,
+      icon: <PencilSimple size={20} color={getColor('text-gray-80')} />,
       label: strings.buttons.rename,
       onPress: handleRenameItem,
     },
     {
-      icon: <ArrowsOutCardinal size={20} color={getColor('text-gray-100')} />,
+      icon: <ArrowsOutCardinal size={20} color={getColor('text-gray-80')} />,
       label: strings.buttons.move,
       onPress: handleMoveItem,
     },
     {
-      visible: item.fileId ? true : false,
-      icon: <ArrowSquareOut size={20} color={getColor('text-gray-100')} />,
+      visible: !isFolder,
+      icon: <ArrowSquareOut size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.exportFile,
       onPress: handleExportFile,
       disabled: exporting,
     },
     {
-      visible: Platform.OS === 'ios',
-      icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
+      visible: Platform.OS === 'ios' && !isFolder,
+      icon: <DownloadSimple size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.saveToFiles,
       onPress: handleiOSSaveToFiles,
     },
     {
-      visible: Platform.OS === 'android',
-      icon: <DownloadSimple size={20} color={getColor('text-gray-100')} />,
+      visible: Platform.OS === 'android' && !isFolder,
+      icon: <DownloadSimple size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.downloadFile,
       onPress: handleAndroidDownloadFile,
     },
     {
-      icon: <Link size={20} color={getColor('text-gray-100')} />,
+      icon: <Link size={20} color={getColor('text-gray-80')} />,
       label: strings.components.file_and_folder_options.getLink,
       onPress: handleGenerateShareLink,
     },
     {
-      icon: <Trash size={20} color={getColor('text-red-60')} />,
-      textStyle: tailwind('text-red-60'),
+      icon: <Trash size={20} color={getColor('text-red')} />,
+      textStyle: { color: getColor('text-red') },
       label: strings.components.file_and_folder_options.delete,
       onPress: handleTrashItem,
     },
@@ -304,10 +361,20 @@ function DriveItemInfoModal(): JSX.Element {
     if (!downloadProgress.totalBytes) {
       return strings.generic.calculating + '...';
     }
+
+    if (
+      item?.size &&
+      downloadProgress?.bytesReceived &&
+      downloadProgress?.bytesReceived >= parseInt(item?.size?.toString())
+    ) {
+      return strings.generic.decrypting + '...';
+    }
+
     const bytesReceivedStr = prettysize(downloadProgress.bytesReceived);
     const totalBytesStr = prettysize(downloadProgress.totalBytes);
     return `${bytesReceivedStr} ${strings.modals.downloadingFile.of} ${totalBytesStr}`;
   };
+
   const header = (
     <View style={tailwind('flex-row')}>
       <View style={tailwind('mr-3')}>
@@ -318,15 +385,28 @@ function DriveItemInfoModal(): JSX.Element {
         <AppText
           numberOfLines={1}
           ellipsizeMode="middle"
-          style={[tailwind('text-base text-gray-100'), globalStyle.fontWeight.medium]}
+          style={[tailwind('text-base'), { color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}
         >
           {item?.name}
           {item?.type ? '.' + item.type : ''}
         </AppText>
         <View style={tailwind('flex flex-row items-center')}>
-          <AppText style={tailwind('text-xs text-gray-60')}>{!isFolder && <>{prettysize(item?.size || 0)}</>}</AppText>
-          {!isFolder && <View style={[tailwind('bg-gray-60 rounded-full mx-1.5'), { width: 3, height: 3 }]} />}
-          <AppText style={tailwind('text-xs text-gray-60')}>{getUpdatedAt()}</AppText>
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+            {!isFolder && <>{prettysize(item?.size || 0)}</>}
+          </AppText>
+          {!isFolder && (
+            <View
+              style={[
+                tailwind('rounded-full mx-1.5'),
+                {
+                  width: 3,
+                  height: 3,
+                  backgroundColor: getColor('bg-gray-60'),
+                },
+              ]}
+            />
+          )}
+          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
         </View>
       </View>
     </View>
@@ -334,9 +414,15 @@ function DriveItemInfoModal(): JSX.Element {
 
   return (
     <Portal>
-      <BottomModal isOpen={showItemModal} onClosed={() => dispatch(uiActions.setShowItemModal(false))} header={header}>
-        <View style={tailwind('flex-grow')}>
-          <View style={tailwind('border-t border-gray-5 overflow-hidden')}>
+      <BottomModal
+        safeAreaColor={getColor('bg-surface')}
+        style={{ backgroundColor: getColor('bg-gray-5') }}
+        isOpen={showItemModal}
+        onClosed={() => dispatch(uiActions.setShowItemModal(false))}
+        header={header}
+      >
+        <View style={tailwind('p-4')}>
+          <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
             {options
               .filter((opt) => opt.visible !== false)
               .map((opt, index) => {
@@ -347,7 +433,9 @@ function DriveItemInfoModal(): JSX.Element {
                     leftSlot={opt.icon}
                     rightSlot={
                       <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                        <AppText style={[tailwind('text-lg text-neutral-500'), opt.textStyle]}>{opt.label}</AppText>
+                        <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-100') }, opt.textStyle]}>
+                          {opt.label}
+                        </AppText>
                       </View>
                     }
                     hideBorderBottom={index === options.length - 1}
@@ -372,20 +460,27 @@ function DriveItemInfoModal(): JSX.Element {
       >
         <>
           <View style={tailwind('mt-6 mb-4 mx-6')}>
-            <AppText medium style={tailwind('text-lg text-center text-gray-100')}>
+            <AppText medium style={[tailwind('text-lg text-center'), { color: getColor('text-gray-100') }]}>
               {strings.modals.downloadingFile.title}
             </AppText>
 
-            <AppText style={tailwind('text-center text-gray-50 mt-1')}>{getDownloadProgressMessage()}</AppText>
+            <AppText style={[tailwind('text-center mt-1'), { color: getColor('text-gray-50') }]}>
+              {getDownloadProgressMessage()}
+            </AppText>
           </View>
           <View style={tailwind('mx-6 mb-6')}>
             <AppProgressBar totalValue={1} height={4} currentValue={downloadProgress.progress} />
           </View>
           <TouchableOpacity
             onPress={handleAbortDownload}
-            style={tailwind('h-14 flex items-center justify-center border-t border-gray-10')}
+            style={[
+              tailwind('h-14 flex items-center justify-center border-t'),
+              { borderTopColor: getColor('border-gray-10') },
+            ]}
           >
-            <AppText medium>{strings.buttons.cancel}</AppText>
+            <AppText medium style={{ color: getColor('text-gray-100') }}>
+              {strings.buttons.cancel}
+            </AppText>
           </TouchableOpacity>
         </>
       </CenterModal>

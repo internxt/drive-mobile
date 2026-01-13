@@ -1,5 +1,6 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import { logger as RNLogger, consoleTransport, fileAsyncTransport } from 'react-native-logs';
-import RNFS from 'react-native-fs';
+
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import { InteractionManager } from 'react-native';
 
@@ -29,20 +30,20 @@ export class BaseLogger {
     this.options = options;
   }
 
-  public info(arg: unknown): void {
+  public info(...args: unknown[]): void {
     if (this.options.disabled) return;
-    this.logger.info(arg instanceof Error ? arg.message : arg);
+    this.logger.info(args.join(' '));
   }
 
-  public warn(arg: unknown): void {
+  public warn(...args: unknown[]): void {
     if (this.options.disabled) return;
-    this.logger.warn(arg instanceof Error ? arg.message : arg);
+    this.logger.warn(args.join(' '));
   }
 
-  public error(arg: unknown): void {
+  public error(...args: unknown[]): void {
     if (this.options.disabled) return;
 
-    this.logger.error(arg instanceof Error ? arg.message : arg);
+    this.logger.error(args.join(' '));
   }
 }
 

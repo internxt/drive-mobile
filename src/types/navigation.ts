@@ -1,6 +1,6 @@
-import { NativeStackScreenProps, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -15,9 +15,8 @@ export type RootStackParamList = {
   SignUp: undefined;
   SignIn: undefined;
   DeactivatedAccount: undefined;
-  TabExplorer: NavigatorScreenParams<TabExplorerStackParamList> & { showReferralsBanner?: boolean };
+  TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   ForgotPassword: undefined;
-  PhotosPreview: { photoName: string; photoTakenAt: number; previewPath: string };
   Trash: undefined;
   DrivePreview: undefined;
 };
@@ -36,12 +35,18 @@ export type TabExplorerStackParamList = {
   Home: undefined;
   Drive: { sharedFolderId: number } | undefined;
   Add: undefined;
-  Photos: undefined;
+  Shared: undefined;
   Settings: undefined;
 };
 
 export type DriveStackParamList = {
-  DriveFolder: { isRootFolder?: boolean; folderId: number; folderName: string; parentFolderName?: string };
+  DriveFolder: {
+    isRootFolder?: boolean;
+    folderUuid: string;
+    folderName: string;
+    parentFolderName?: string;
+    parentUuid: string;
+  };
 };
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
@@ -59,23 +64,8 @@ export type TabExplorerScreenNavigationProp<Screen extends keyof TabExplorerStac
   NativeStackNavigationProp<RootStackParamList>
 >;
 
-export type PhotosStackParamList = {
-  PhotosPermissions: undefined;
-  PhotosGallery: undefined;
-};
-
-export type PhotosScreenProps<Screen extends keyof PhotosStackParamList> = CompositeScreenProps<
-  NativeStackScreenProps<PhotosStackParamList, Screen>,
-  TabExplorerScreenProps<keyof TabExplorerStackParamList>
->;
-
-export type PhotosScreenNavigationProp<Screen extends keyof PhotosStackParamList> = CompositeNavigationProp<
-  NativeStackNavigationProp<PhotosStackParamList, Screen>,
-  TabExplorerScreenNavigationProp<keyof TabExplorerStackParamList>
->;
-
 export type SettingsStackParamList = {
-  SettingsHome: { focusEnablePhotosSync?: number };
+  SettingsHome: undefined;
   Account: undefined;
   Storage: undefined;
   Plan: undefined;

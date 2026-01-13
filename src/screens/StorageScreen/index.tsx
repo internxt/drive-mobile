@@ -1,36 +1,37 @@
-import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import GestureRecognizer from 'react-native-swipe-gestures';
 
-import strings from '../../../assets/lang/strings';
-import AppProgressBar from '../../components/AppProgressBar';
-import AppScreenTitle from '../../components/AppScreenTitle';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { INFINITE_PLAN } from '../../types';
-import ReferralsWidget from '../../components/ReferralsWidget';
-import AppScreen from '../../components/AppScreen';
-import { SettingsScreenProps } from '../../types/navigation';
-import appService from '../../services/AppService';
-import { useTailwind } from 'tailwind-rn';
-import AppText from '../../components/AppText';
-import useGetColor from '../../hooks/useColor';
-import { uiActions } from 'src/store/slices/ui';
+import AppButton from 'src/components/AppButton';
 import SettingsGroup from 'src/components/SettingsGroup';
 import storageService from 'src/services/StorageService';
-import { storageSelectors } from 'src/store/slices/storage';
-import AppButton from 'src/components/AppButton';
 import { paymentsSelectors } from 'src/store/slices/payments';
+import { storageSelectors } from 'src/store/slices/storage';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../assets/lang/strings';
+import AppProgressBar from '../../components/AppProgressBar';
+import AppScreen from '../../components/AppScreen';
+import AppScreenTitle from '../../components/AppScreenTitle';
+import AppText from '../../components/AppText';
+import { openUrl } from '../../helpers/utils';
+import useGetColor from '../../hooks/useColor';
+import { PRICING_URL } from '../../services/drive/constants';
+import { useAppSelector } from '../../store/hooks';
+import { INFINITE_PLAN } from '../../types';
+import { SettingsScreenProps } from '../../types/navigation';
 
 function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Element {
   const [currentStatusStep, setCurrentStatusStep] = useState(0);
   const { limit } = useAppSelector((state) => state.storage);
+
   const hasPaidPlan = useAppSelector(paymentsSelectors.hasPaidPlan);
+  const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const usage = useAppSelector(storageSelectors.usage);
   const availableStorage = useAppSelector(storageSelectors.availableStorage);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const dispatch = useAppDispatch();
+
   const getLimitString = () => {
     if (limit === 0) {
       return '...';
@@ -42,10 +43,13 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
 
     return storageService.toString(limit);
   };
+
   const onBackButtonPressed = () => navigation.goBack();
+
   const onUpgradePressed = () => {
-    dispatch(uiActions.setIsPlansModalOpen(true));
+    openUrl(PRICING_URL);
   };
+
   const statusSteps = [
     () => (
       <>
@@ -66,7 +70,9 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
       </>
     ),
   ];
+
   const renderStatusStep = statusSteps[currentStatusStep];
+
   const onStatusSwipeLeft = () => {
     setCurrentStatusStep(currentStatusStep - 1 < 0 ? statusSteps.length - 1 : currentStatusStep - 1);
   };
@@ -76,16 +82,16 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('bg-surface')} style={tailwind('flex-1 bg-gray-5')}>
       <AppScreenTitle
         text={strings.screens.StorageScreen.title}
-        containerStyle={tailwind('bg-white')}
+        containerStyle={{ backgroundColor: getColor('bg-surface') }}
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
 
-      <ScrollView style={tailwind('flex-1')}>
-        <View style={tailwind('pb-10 px-4 bg-gray-5')}>
+      <ScrollView style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
           {/* STATUS */}
           <GestureRecognizer
             onSwipeLeft={onStatusSwipeLeft}
@@ -134,7 +140,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
                       </View>
                     </View>
 
-                    {appService.constants.SHOW_BILLING &&
+                    {showBilling &&
                       (hasPaidPlan ? (
                         <AppButton
                           style={tailwind('mt-3')}
@@ -155,8 +161,6 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
               },
             ]}
           />
-
-          <ReferralsWidget />
         </View>
       </ScrollView>
     </AppScreen>

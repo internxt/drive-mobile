@@ -1,9 +1,8 @@
 /* eslint-disable quotes */
 import LocalizedStrings from 'react-native-localization';
-import { ReferralTypes } from '@internxt/sdk/dist/drive/referrals';
 import { NotificationType } from '../../src/types';
-import { SortType } from '../../src/types/drive';
 import { BiometricAccessType } from '../../src/types/app';
+import { SortType } from '../../src/types/drive';
 
 const strings = new LocalizedStrings({
   en: {
@@ -15,9 +14,10 @@ const strings = new LocalizedStrings({
       current: 'Current',
       new: 'New',
       calculating: 'Calculating',
+      decrypting: 'Decrypting',
       atTime: 'at',
       loading: 'Loading',
-      downloading: 'Downloading...',
+      downloading: 'Downloading',
       security: 'Security',
       preparing: 'Preparing...',
       updated: 'Updated',
@@ -40,7 +40,7 @@ const strings = new LocalizedStrings({
       Home: 'Home',
       Drive: 'Drive',
       Add: 'Add',
-      Photos: 'Photos',
+      Shared: 'Shared',
       Settings: 'Settings',
     },
     subscriptions: {
@@ -102,13 +102,7 @@ const strings = new LocalizedStrings({
           title: 'File download',
           advice: 'Test the performance of file download.',
         },
-        photos: {
-          title: 'Photos',
-          advice: 'Manage Internxt Photos internal state',
-          resetPhotosData: 'Reset Photos device data',
-          resetSuccess: 'Photos data reseted',
-          resetError: 'Error during photos data reset',
-        },
+
         notifications: {
           title: 'Notifications',
           advice: 'Test all notification types.',
@@ -199,7 +193,8 @@ const strings = new LocalizedStrings({
           title: 'Folder is empty',
           message: 'Tap the + button to upload a file or create something new',
         },
-        searchInThisFolder: 'Search in this folder',
+        searchInThisFolder: 'Search items in this folder',
+        searchInAllFolders: 'Search all my files',
         encrypting: 'Encrypting',
         decrypting: 'Decrypting',
         downloadingPercent: 'Downloading... {0}%',
@@ -213,10 +208,10 @@ const strings = new LocalizedStrings({
         },
       },
       shared: {
-        title: 'Shared links',
+        title: 'Shared',
         empty: {
-          title: 'No shared links',
-          message: 'Your shared links will show up here',
+          title: 'No shared items',
+          message: 'Your shared items will show up here',
         },
       },
       StorageScreen: {
@@ -234,57 +229,12 @@ const strings = new LocalizedStrings({
             unused: 'Unused space',
           },
         },
-        referrals: {
-          title: 'Unlock storage for free',
-          youHaveUnlocked: 'You have unlocked',
-          items: {
-            [ReferralTypes.ReferralKey.CreateAccount]: 'Create an account',
-            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Upload a file',
-            [ReferralTypes.ReferralKey.ShareFile]: 'Share a file via link',
-            [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Subscribe to newsletter',
-            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Install desktop app',
-            [ReferralTypes.ReferralKey.InviteFriends]: 'Invite {0}/{1} friends',
-            [ReferralTypes.ReferralKey.Invite2Friends]: 'Invite 2 friends',
-            [ReferralTypes.ReferralKey.CompleteSurvey]: 'Complete survey',
-          },
-        },
       },
       create_folder: {
         input: 'Enter folder name',
         title: 'New folder',
         defaultName: 'New folder',
         confirm: 'Create',
-      },
-      photosPermissions: {
-        title: 'Sync all your photos with all your devices',
-        features: {
-          0: 'Keep your photos safe and private in your cloud, only you can access them.',
-          1: 'Access all your photos from all of your devices, even from the web browser.',
-          2: 'Backup your photos.',
-        },
-        iosAdvice: 'On the following screen, change Photos access from None to All Photos.',
-        androidAdvice:
-          'Go to Settings > Apps > Internxt Drive. Select app permissions and allow access to ’Storage’ and ‘Camera’.',
-        access: 'The Photos app needs access to your photos to let you view, sync and share photos from this device.',
-      },
-      gallery: {
-        items_left: 'items left',
-        title: 'Gallery',
-        nPhotosSelected: '{0} selected',
-        empty: 'No photos to show',
-        loading: 'Loading photos...',
-        syncing: 'Backing up',
-        syncingTasks: 'Syncing {0} of {1}',
-        pausing: 'Pausing sync...',
-        paused: 'Sync paused',
-        photosDisabled: 'Internxt Photos is disabled. Your photos and videos are not beign backed up.',
-        photosDisabledBold: 'Tap to enable gallery backup.',
-        groupBy: {
-          years: 'Years',
-          months: 'Months',
-          days: 'Days',
-          all: 'All',
-        },
       },
       SettingsScreen: {
         title: 'Settings',
@@ -298,13 +248,7 @@ const strings = new LocalizedStrings({
           adviceNoBilling: 'Profile and security',
         },
         general: 'General',
-        photos: {
-          title: 'Internxt Photos',
-          enablePhotosBackup: {
-            title: 'Backup your gallery',
-            message: 'All your gallery photos and videos will be backed up on Internxt Photos',
-          },
-        },
+
         saveLogs: 'Save logs',
         information: 'Information',
         termsAndConditions: 'Terms and conditions',
@@ -313,6 +257,10 @@ const strings = new LocalizedStrings({
         legal: 'Legal',
         debug: 'Debug',
         signOut: 'Log out',
+        darkMode: 'Dark mode',
+        darkModeDescription: 'Change the app theme',
+        screenProtection: 'Screen protection',
+        screenProtectionDescription: 'Enable screen protection',
       },
       AccountScreen: {
         title: 'Account',
@@ -354,7 +302,7 @@ const strings = new LocalizedStrings({
         },
         twoFactor: {
           title: 'Two factor authentication (2FA)',
-          text: 'Two-factor authentication provides an extra layer of security by requiring an extra verification when you log in. In adittion to your password, you’ll also need a generated code.',
+          text: 'Two-factor authentication provides an extra layer of security by requiring an extra verification when you log in. In addition to your password, you’ll also need a generated code.',
           enable: 'Enable 2FA',
           disable: 'Disable 2FA',
         },
@@ -366,6 +314,7 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      fixPhoto: 'Repair photo',
       goBackToSignIn: 'Go back to login',
 
       export_file: 'Export file',
@@ -402,7 +351,6 @@ const strings = new LocalizedStrings({
       download: 'Download',
       moveToThrash: 'Move to trash',
       copyLink: 'Copy link',
-      startSyncingPhotos: 'Start syncing my photos',
       syncNow: 'Sync now',
       tryAgain: 'Try again',
       subscribe: 'Subscribe',
@@ -451,7 +399,7 @@ const strings = new LocalizedStrings({
       firstName: 'First name',
       lastName: 'Last name',
       searchInRecents: 'Search in recents',
-      searchInShared: 'Search in shared links',
+      searchInShared: 'Search in shared items',
       twoFactorAuth: 'Two Factor Authentication',
     },
     placeholders: {
@@ -499,11 +447,29 @@ const strings = new LocalizedStrings({
         deletePermanently: 'Delete permanently',
         restore: 'Restore',
       },
-      ReferralsBanner: {
-        message: 'Get up to 10GB for free',
-      },
     },
     modals: {
+      GlobalSearchModal: {
+        searchPlaceholder: 'Search all my files',
+        searching: 'Searching...',
+        noResultsTitle: 'No results found',
+        noResultsMessage: 'Try a different search',
+        searchPromptTitle: 'Search files and folders',
+        searchPromptMessage: 'Type to start your search',
+        clear: 'Clear',
+        opening: 'Opening...',
+        searchError: 'Search error. Try again.',
+        tryAgainButton: 'Try again',
+      },
+      duplicatedFiles: {
+        duplicateFilesTitle: 'Duplicate Files Found',
+        duplicateFilesMessage: 'The following files already exist: %s\n\nDo you want to upload them with a new name?',
+        duplicateFilesAction: 'Upload with new name',
+      },
+      rename: {
+        title: 'Rename',
+        label: 'Name',
+      },
       deleteShareLink: {
         title: 'Delete link',
       },
@@ -579,6 +545,7 @@ const strings = new LocalizedStrings({
       },
       Language: {
         title: 'Select language',
+        info: 'Restart the application to see the language change.',
       },
       ChangeProfilePicture: {
         title: 'Edit photo',
@@ -614,7 +581,6 @@ const strings = new LocalizedStrings({
           youWillLose: 'You will lose forever all your',
           files: 'Files',
           backups: 'Backups',
-          photos: 'Photos',
         },
         confirmationEmail:
           'We’ve sent you a email confirmation, click the link in the message to permanently delete your account.',
@@ -647,20 +613,7 @@ const strings = new LocalizedStrings({
         subtitle: 'Our fantastic devs are working on it, so stay tuned!',
         got_it: 'Got it!',
       },
-      deletePhotosModal: {
-        title: 'Delete photo',
-        message: 'This action cannot be undone.',
-      },
-      photos_preview_info_modal: {
-        options: {
-          name: 'Name',
-          uploaded: 'Uploaded',
-          modified: 'Modified',
-          size: 'Size',
-          dimensions: 'Dimensions',
-          format: 'Format',
-        },
-      },
+
       SharePhoto: {
         nativeMesage: 'Take a look to this photo!',
         linkOpenLimit: 'Link open limit',
@@ -674,10 +627,7 @@ const strings = new LocalizedStrings({
       InviteFriendsModal: {
         title: 'Invite a friend',
       },
-      NewsletterModal: {
-        title: 'Subscribe to newsletter',
-        message: "Get a summary of what we've recently working on, releases, and much more.",
-      },
+
       SignOutModal: {
         title: 'Log out from this account?',
       },
@@ -687,10 +637,13 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      maxBulkUploadReached: {
+        title: 'Upload limit reached',
+        message: 'You can only upload {0} files at a time',
+      },
       logFileMovedToDownloads: 'Logs file saved',
       planPeriodDisclaimer: "You'll be charged now and for each payment period until further change.",
       driveDownloadSuccess: 'File downloaded correctly',
-      gettingCloudPhotos: 'Getting photos from the cloud',
       passwordMediumStrength: 'Password is weak',
       passwordHardStrength: 'Password is strong',
       image_not_uploaded_yet: 'This photo is not synced yet',
@@ -709,9 +662,6 @@ const strings = new LocalizedStrings({
       itemsMovedToTrash: 'Items moved to trash',
       itemRestored: 'Item restored',
       itemsRestored: 'Items restored',
-      photoShared: 'You have shared a photo!',
-      photosSyncPending: 'Pending synchronization',
-      photosSyncCompleted: 'Your gallery is up to date',
       renamedSuccessfully: 'Renamed successfully',
       linkCopied: 'Link copied',
       passwordChanged: 'Password changed',
@@ -720,6 +670,11 @@ const strings = new LocalizedStrings({
       confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
+      downloadLimit: 'The download limit in mobile app is 10GB.',
+      uploadFileLimit: '{0} file will not be uploaded.\nMax upload size per file is 5GB',
+      uploadFilesLimit: '{0} files will not be uploaded.\nMax upload size per file is 5GB',
+      uploadFileLimitName: '{0} will not be uploaded.\nMax upload size per file is 5GB',
+      limitPerFile: 'Max upload size per file reached',
     },
     errors: {
       runtimeLogsMissing: 'The logs file is missing or empty',
@@ -748,15 +703,7 @@ const strings = new LocalizedStrings({
       unknown: 'Unknown error',
       uploadFile: 'File upload error: {0}',
       storageLimitReached: 'You have reached your storage limit',
-      photosInitialize: 'Error initializing Photos: {0}',
-      photoShared: 'An error has ocurred during photo sharing',
-      photosSync: 'Error during photos sync: {0}',
-      photosLoad: 'Error loading photos: {0}',
-      photosDelete: 'Error deleting photo/s: {0}',
-      photosFullSizeLoad: 'Error loading full size photo: {0}',
-      fetchReferrals: 'Error fetching referrals: {0}',
       inviteAFriend: 'Error sending invitation: {0}',
-      subscribeToNewsletter: 'Error subscribing to newsletter: {0}',
       loadProducts: 'Cannot load products: {0}',
       passwordsDontMatch: "Passwords don't match",
       requiredField: 'This is a required field',
@@ -777,6 +724,53 @@ const strings = new LocalizedStrings({
       changePassword: 'Error changing password',
       loadPrices: 'Error loading prices',
       cancelSubscription: 'Error cancelling subscription',
+      notEnoughSpaceOnDevice: 'Not enough storage space available for download',
+      fileAlreadyDownloading: 'File is already downloading, stopping download',
+      genericError: 'An unexpected error occurred. Please try again.',
+    },
+    security: {
+      alerts: {
+        dontDisplayAgain: 'Don’t show this again',
+        securityWarning: {
+          title: '⚠️ Security Notice',
+          message: 'Security concerns detected:\n\n{0}\n\nFor better security, consider addressing these issues.',
+          continue: 'Continue',
+          moreInfo: 'More Info',
+        },
+        detailedInfo: {
+          title: 'Security Details',
+          technicalDetails: 'Technical Details:',
+          recommendations: 'Recommendations:',
+          deviceRooted: 'Device Rooted/Jailbroken: {0}',
+          hookDetection: 'Hook Detection: {0}',
+          mockLocation: 'Mock Location: {0}',
+          debugMode: 'Debug Mode: {0}',
+          adbEnabled: 'ADB Enabled: {0}',
+          externalStorage: 'External Storage: {0}',
+          developmentSettings: 'Development Settings: {0}',
+          jailbreakReason: 'Jailbreak Reason: {0}',
+          yes: 'Yes',
+          no: 'No',
+          ok: 'OK',
+        },
+      },
+      risks: {
+        rootedDevice: 'Device is rooted/jailbroken',
+        hookDetected: 'Hooking frameworks detected',
+        mockLocation: 'Device can mock GPS location',
+        debugMode: 'Application is running in debug mode',
+        externalStorage: 'Application is running from external storage',
+        adbEnabled: 'Android Debug Bridge is enabled',
+        developmentSettings: 'Developer settings are enabled',
+        unknown: 'Unknown security risk',
+      },
+      recommendations: {
+        useSecureDevice: 'Use this app only on non-rooted/non-jailbroken devices for maximum security',
+        closeDebuggingTools: 'Close any security testing or debugging tools before using this app',
+        disableMockLocation: 'Disable location mocking in developer settings',
+        disableAdb: 'Disable USB debugging for better security',
+        turnOffDeveloperOptions: 'Turn off developer options when not needed',
+      },
     },
   },
   es: {
@@ -788,11 +782,12 @@ const strings = new LocalizedStrings({
       current: 'Actual',
       new: 'Nuevo',
       calculating: 'Calculando',
+      decrypting: 'Desencriptando',
       atTime: 'a las',
       loading: 'Cargando',
       security: 'Seguridad',
       preparing: 'Preparando...',
-      downloading: 'Descargando...',
+      downloading: 'Descargando',
       updated: 'Actualizado',
       year: 'Año',
       month: 'Mes',
@@ -813,7 +808,7 @@ const strings = new LocalizedStrings({
       Home: 'Inicio',
       Drive: 'Drive',
       Add: 'Añadir',
-      Photos: 'Photos',
+      Shared: 'Compartido',
       Settings: 'Ajustes',
     },
     subscriptions: {
@@ -875,13 +870,7 @@ const strings = new LocalizedStrings({
           title: 'Descarga de archivos',
           advice: 'Prueba el rendimiento de la descarga de archivos.',
         },
-        photos: {
-          title: 'Photos',
-          advice: 'Gestiona el estado interno de Internxt Photos',
-          resetPhotosData: 'Resetea los datos de Photos',
-          resetSuccess: 'Datos de Photos reseteados',
-          resetError: 'Ha ocurrido un error reseteando los datos de Photos',
-        },
+
         notifications: {
           title: 'Notificaciones',
           advice: 'Prueba todos los tipos de notificaciones.',
@@ -974,6 +963,7 @@ const strings = new LocalizedStrings({
           message: 'Prueba a subir un archivo o crear una carpeta',
         },
         searchInThisFolder: 'Buscar en esta carpeta',
+        searchInAllFolders: 'Buscar en todos mis archivos',
         encrypting: 'Encriptando',
         decrypting: 'Desencriptando',
         downloadingPercent: 'Descargando... {0}%',
@@ -987,10 +977,10 @@ const strings = new LocalizedStrings({
         },
       },
       shared: {
-        title: 'Links compartidos',
+        title: 'Compartido',
         empty: {
-          title: 'No hay links compartidos',
-          message: 'Tus links compartidos se mostrarán aquí',
+          title: 'No hay items compartidos',
+          message: 'Tus items compartidos se mostrarán aquí',
         },
       },
       StorageScreen: {
@@ -1008,20 +998,6 @@ const strings = new LocalizedStrings({
             unused: 'Espacio sin usar',
           },
         },
-        referrals: {
-          title: 'Desbloquea almacenamiento gratis',
-          youHaveUnlocked: 'Has desbloqueado',
-          items: {
-            [ReferralTypes.ReferralKey.CreateAccount]: 'Crear cuenta',
-            [ReferralTypes.ReferralKey.InstallMobileApp]: 'Subir archivo',
-            [ReferralTypes.ReferralKey.ShareFile]: 'Compartir link archivo',
-            [ReferralTypes.ReferralKey.SubscribeToNewsletter]: 'Suscribirse a newletter',
-            [ReferralTypes.ReferralKey.InstallDesktopApp]: 'Instala la app de escritorio',
-            [ReferralTypes.ReferralKey.InviteFriends]: 'Invitar {0}/{1} amigos',
-            [ReferralTypes.ReferralKey.Invite2Friends]: 'Invitar a 2 amigos',
-            [ReferralTypes.ReferralKey.CompleteSurvey]: 'Completar encuesta',
-          },
-        },
       },
       create_folder: {
         input: 'Nombre de la carpeta',
@@ -1029,38 +1005,7 @@ const strings = new LocalizedStrings({
         defaultName: 'Nueva carpeta',
         confirm: 'Crear',
       },
-      photosPermissions: {
-        title: 'Sincroniza tus fotos con todos tus dispositivos',
-        features: {
-          0: 'Mantenga sus fotos seguras y privadas en su nube, solo usted puede acceder a ellas.',
-          1: 'Accede a todas tus fotos desde todos tus dispositivos, incluso desde el navegador web.',
-          2: 'Haz una copia de seguridad de tus fotos.',
-        },
-        iosAdvice: 'En la siguiente pantalla, cambie el acceso a Fotos de Ninguno a Todas las fotos.',
-        androidAdvice:
-          'Ve a Configuración > Aplicaciones > Internxt Drive. En permisos de la aplicación permita el acceso a "Almacenamiento" y "Cámara".',
-        access:
-          'Se necesita acceder a tus fotos para que puedas ver, sincronizar y compartir fotos desde este dispositivo.',
-      },
-      gallery: {
-        items_left: 'items pendientes',
-        title: 'Galería',
-        nPhotosSelected: '{0} seleccionadas',
-        empty: 'No hay fotos para mostrar',
-        loading: 'Cargando fotos...',
-        syncing: 'Guardando copia',
-        syncingTasks: 'Sincronizando {0} de {1}',
-        pausing: 'Pausando sincronización...',
-        paused: 'Sincronización pausada',
-        photosDisabled: 'Internxt Photos esta deshabilitado. Tus fotos y vídeos no se están respaldando.',
-        photosDisabledBold: 'Pulsa aquí para activarlo.',
-        groupBy: {
-          years: 'Años',
-          months: 'Meses',
-          days: 'Días',
-          all: 'Todo',
-        },
-      },
+
       SettingsScreen: {
         title: 'Ajustes',
         storage: 'Almacenamiento',
@@ -1073,13 +1018,6 @@ const strings = new LocalizedStrings({
           adviceNoBilling: 'Perfil y seguridad',
         },
         general: 'General',
-        photos: {
-          title: 'Internxt Photos',
-          enablePhotosBackup: {
-            title: 'Copia de seguridad',
-            message: 'Haz una copia de seguridad de tu galería en Internxt Photos',
-          },
-        },
         saveLogs: 'Guardar logs',
         support: 'Soporte',
         information: 'Información',
@@ -1088,6 +1026,10 @@ const strings = new LocalizedStrings({
         legal: 'Legal',
         debug: 'Debug',
         signOut: 'Cerrar sesión',
+        darkMode: 'Modo oscuro',
+        darkModeDescription: 'Cambiar apariencia de la aplicación',
+        screenProtection: 'Protección de pantalla',
+        screenProtectionDescription: 'Activar protección de pantalla',
       },
       AccountScreen: {
         title: 'Cuenta',
@@ -1138,6 +1080,7 @@ const strings = new LocalizedStrings({
       },
     },
     buttons: {
+      fixPhoto: 'Reparar foto',
       goBackToSignIn: 'Volver al login',
       duplicate: 'Duplicar',
       export_file: 'Exportar archivo',
@@ -1175,7 +1118,6 @@ const strings = new LocalizedStrings({
       download: 'Descargar',
       moveToThrash: 'Mover a la papelera',
       copyLink: 'Copiar link',
-      startSyncingPhotos: 'Sincronizar mis fotos',
       syncNow: 'Sincronizar ahora',
       tryAgain: 'Intentar de nuevo',
       subscribe: 'Suscribirse',
@@ -1223,7 +1165,7 @@ const strings = new LocalizedStrings({
       firstName: 'Nombre',
       lastName: 'Primer apellido',
       searchInRecents: 'Buscar en recientes',
-      searchInShared: 'Buscar en links compartidos',
+      searchInShared: 'Buscar en items compartidos',
       twoFactorAuth: 'Autenticación de dos factores',
     },
     placeholders: {
@@ -1271,11 +1213,29 @@ const strings = new LocalizedStrings({
         deletePermanently: 'Borrar permanentemente',
         restore: 'Restaurar',
       },
-      ReferralsBanner: {
-        message: 'Obtén hasta 10GB gratis',
-      },
     },
     modals: {
+      GlobalSearchModal: {
+        searchPlaceholder: 'Buscar en todos mis archivos',
+        searching: 'Buscando...',
+        noResultsTitle: 'No se encontraron resultados',
+        noResultsMessage: 'Intenta con una búsqueda diferente',
+        searchPromptTitle: 'Buscar archivos y carpetas',
+        searchPromptMessage: 'Escribe para comenzar tu búsqueda',
+        clear: 'Limpiar',
+        opening: 'Abriendo...',
+        searchError: 'Error al buscar. Inténtalo de nuevo.',
+        tryAgainButton: 'Intentar de nuevo',
+      },
+      duplicatedFiles: {
+        duplicateFilesTitle: 'Archivos duplicados encontrados',
+        duplicateFilesMessage: 'Los siguientes archivos ya existen: %s\n\n¿Quieres subirlos con un nuevo nombre?',
+        duplicateFilesAction: 'Subir con nuevo nombre',
+      },
+      rename: {
+        title: 'Renombrar',
+        label: 'Nombre',
+      },
       deleteShareLink: {
         title: 'Borrar link',
       },
@@ -1353,6 +1313,7 @@ const strings = new LocalizedStrings({
       },
       Language: {
         title: 'Selecciona idioma',
+        info: 'Reinicie la aplicación para ver el cambio de idioma.',
       },
       ChangeProfilePicture: {
         title: 'Editar foto',
@@ -1388,7 +1349,6 @@ const strings = new LocalizedStrings({
           youWillLose: 'Perderás para siempre todos tus',
           files: 'Archivos',
           backups: 'Backups',
-          photos: 'Fotos',
         },
         confirmationEmail:
           'Te hemos enviado un correo electrónico de confirmación, haz clic en el enlace del mensaje para eliminar definitivamente tu cuenta.',
@@ -1422,20 +1382,7 @@ const strings = new LocalizedStrings({
         subtitle: 'Nuestros fantásticos programadores están trabajando en ello, así que mantente al tanto!',
         got_it: 'Entendido!',
       },
-      deletePhotosModal: {
-        title: 'Borrar foto',
-        message: 'Esta acción no puede deshacerse.',
-      },
-      photos_preview_info_modal: {
-        options: {
-          name: 'Nombre',
-          uploaded: 'Subida',
-          modified: 'Modificado',
-          size: 'Tamaño',
-          dimensions: 'Dimensiones',
-          format: 'Formato',
-        },
-      },
+
       SharePhoto: {
         nativeMesage: '¡Echa un vistazo a esta foto!',
         linkOpenLimit: 'Límite de veces abierto',
@@ -1449,10 +1396,7 @@ const strings = new LocalizedStrings({
       InviteFriendsModal: {
         title: 'Invite a un amigo',
       },
-      NewsletterModal: {
-        title: 'Suscríbete al newsletter',
-        message: 'Recibe un resumen de lo que hemos estado trabajando recientemente, lanzamientos y mucho más.',
-      },
+
       SignOutModal: {
         title: '¿Salir de esta cuenta?',
       },
@@ -1462,10 +1406,13 @@ const strings = new LocalizedStrings({
       },
     },
     messages: {
+      maxBulkUploadReached: {
+        title: 'Límite de subida de archivos alcanzado',
+        message: 'Solo puedes subir {0} archivos a la vez.',
+      },
       logFileMovedToDownloads: 'Archivo de logs guardado',
       planPeriodDisclaimer: 'Se te cobrará ahora y en cada periodo de facturación automáticamente.',
       driveDownloadSuccess: 'Archivo descargado correctamente',
-      gettingCloudPhotos: 'Obteniendo tus fotos de la nube',
       passwordMediumStrength: 'La contraseña es débil',
       passwordHardStrength: 'La contraseña es fuerte',
       image_not_uploaded_yet: 'Imagen no sincronizada aún',
@@ -1495,6 +1442,11 @@ const strings = new LocalizedStrings({
       confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
+      downloadLimit: 'El límite de descarga en la app movil son 10GB',
+      uploadFileLimit: '{0} archivo no se ha subido.\nEl tamaño máximo por archivo es de 5 GB',
+      uploadFilesLimit: '{0} archivos no se han subido.\nEl tamaño máximo por archivo es de 5 GB',
+      uploadFileLimitName: '{0} no se ha subido.\nEl tamaño máximo es de 5 GB',
+      limitPerFile: 'Tamaño máximo por archivo alcanzado',
     },
     errors: {
       runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
@@ -1523,15 +1475,7 @@ const strings = new LocalizedStrings({
       unknown: 'Error desconocido',
       uploadFile: 'Error al subir archivo: {0}',
       storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
-      photosInitialize: 'Error al iniciar Photos: {0}',
-      photoShared: 'Ha habido un error al compartir la foto',
-      photosSync: 'Error sincronizando fotos: {0}',
-      photosLoad: 'Error cargando fotos: {0}',
-      photosDelete: 'Error eliminando foto/s: {0}',
-      photosFullSizeLoad: 'Error cargando foto a tamaño completo: {0}',
-      fetchReferrals: 'Error cargando referidos: {0}',
       inviteAFriend: 'Error enviando invitación: {0}',
-      subscribeToNewsletter: 'Error al suscribirse al newsletter: {0}',
       loadProducts: 'Error al cargar productos: {0}',
       passwordsDontMatch: 'Las contraseñas no coinciden',
       requiredField: 'Este campo es obligatorio',
@@ -1552,6 +1496,54 @@ const strings = new LocalizedStrings({
       changePassword: 'Error cambiando contraseña',
       loadPrices: 'Error cargando precios',
       cancelSubscription: 'Error cancelando suscripción',
+      notEnoughSpaceOnDevice: 'No hay suficiente espacio de almacenamiento disponible para la descarga',
+      fileAlreadyDownloading: 'El archivo ya se está descargando, deteniendo la descarga',
+      genericError: 'Se ha producido un error inesperado. Por favor, inténtelo de nuevo.',
+    },
+    security: {
+      alerts: {
+        dontDisplayAgain: 'No mostrar de nuevo',
+        securityWarning: {
+          title: '⚠️ Aviso de Seguridad',
+          message:
+            'Problemas de seguridad detectados:\n\n{0}\n\nPara mayor seguridad, considera solucionar estos problemas.',
+          continue: 'Continuar',
+          moreInfo: 'Más Información',
+        },
+        detailedInfo: {
+          title: 'Detalles de Seguridad',
+          technicalDetails: 'Detalles Técnicos:',
+          recommendations: 'Recomendaciones:',
+          deviceRooted: 'Dispositivo Rooteado/Jailbroken: {0}',
+          hookDetection: 'Aplicaciones sospechosas: {0}',
+          mockLocation: 'Ubicación Falsa: {0}',
+          debugMode: 'Modo Debug: {0}',
+          adbEnabled: 'ADB Habilitado: {0}',
+          externalStorage: 'Almacenamiento Externo: {0}',
+          developmentSettings: 'Opciones de Desarrollador: {0}',
+          jailbreakReason: 'Razón del Jailbreak: {0}',
+          yes: 'Sí',
+          no: 'No',
+          ok: 'OK',
+        },
+      },
+      risks: {
+        rootedDevice: 'El dispositivo está rooteado/jailbroken',
+        hookDetected: 'Frameworks de hooking detectados',
+        mockLocation: 'El dispositivo puede falsificar la ubicación GPS',
+        debugMode: 'La aplicación está ejecutándose en modo debug',
+        externalStorage: 'La aplicación está ejecutándose desde almacenamiento externo',
+        adbEnabled: 'Android Debug Bridge está habilitado',
+        developmentSettings: 'Las opciones de desarrollador están habilitadas',
+        unknown: 'Riesgo de seguridad desconocido',
+      },
+      recommendations: {
+        useSecureDevice: 'Usa esta aplicación solo en dispositivos no rooteados/no jailbroken para máxima seguridad',
+        closeDebuggingTools: 'Cierra cualquier herramienta de testing de seguridad o debugging antes de usar esta app',
+        disableMockLocation: 'Desactiva la simulación de ubicación en las opciones de desarrollador',
+        disableAdb: 'Desactiva la depuración USB para mayor seguridad',
+        turnOffDeveloperOptions: 'Desactiva las opciones de desarrollador cuando no las necesites',
+      },
     },
   },
 });

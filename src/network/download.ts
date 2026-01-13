@@ -1,13 +1,13 @@
-import RNFS from 'react-native-fs';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 
-import { getNetwork } from './NetworkFacade';
+import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
+import FileManager from '../@inxt-js/api/FileManager';
+import { constants } from '../services/AppService';
 import { downloadFile as downloadFileV1, LegacyDownloadRequiredError } from '../services/NetworkService/download';
 import { downloadFile as downloadFileV1Legacy } from '../services/NetworkService/downloadLegacy';
-import { constants } from '../services/AppService';
-import { NetworkCredentials } from './requests';
-import { FileVersionOneError } from '@internxt/sdk/dist/network/download';
 import { Abortable } from '../types';
-import FileManager from '../@inxt-js/api/FileManager';
+import { getNetwork } from './NetworkFacade';
+import { NetworkCredentials } from './requests';
 
 export type EncryptedFileDownloadedParams = {
   path: string;
@@ -22,6 +22,34 @@ export interface DownloadFileParams {
 }
 
 export async function downloadFile(
+  fileId: string,
+  bucketId: string,
+  mnemonic: string,
+  creds: NetworkCredentials,
+  params: DownloadFileParams,
+  fileSize: number,
+  onAbortableReady: (abortable: Abortable) => void,
+): Promise<void> {
+  const network = getNetwork(constants.BRIDGE_URL, creds);
+
+  const [downloadPromise, abortable] = network.downloadMultipart(fileId, bucketId, mnemonic, params, fileSize);
+
+  onAbortableReady(abortable);
+
+  try {
+    await downloadPromise;
+  } catch (err) {
+    const requiresV1Download = err instanceof FileVersionOneError;
+
+    if (!requiresV1Download) {
+      throw err;
+    }
+
+    return downloadV1(fileId, bucketId, mnemonic, creds, params, onAbortableReady);
+  }
+}
+
+export async function downloadThumbnail(
   fileId: string,
   bucketId: string,
   mnemonic: string,

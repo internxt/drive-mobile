@@ -1,36 +1,40 @@
-import React from 'react';
-import { View, ScrollView } from 'react-native';
+import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import { ScrollView, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
+import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
 import AppText from '../../components/AppText';
-import { RootStackScreenProps } from '../../types/navigation';
-import { useTailwind } from 'tailwind-rn';
-import AppButton from '../../components/AppButton';
+import AppVersionWidget from '../../components/AppVersionWidget';
 import SignUpForm from '../../components/forms/SignUpForm';
-import AppVersionWidget from 'src/components/AppVersionWidget';
-import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import useGetColor from '../../hooks/useColor';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Element {
   const tailwind = useTailwind();
+  const getColor = useGetColor();
+
   const { keyboardShown } = useKeyboard();
+
   const onGoToSignInButtonPressed = () => {
     navigation.canGoBack() ? navigation.goBack() : navigation.replace('SignIn');
   };
+
   const onFormSubmitSuccess = () => {
-    navigation.replace('TabExplorer', { screen: 'Home', showReferralsBanner: true });
+    navigation.replace('TabExplorer', { screen: 'Home' });
   };
 
   return (
-    <AppScreen safeAreaBottom safeAreaTop>
+    <AppScreen safeAreaBottom safeAreaTop style={{ backgroundColor: getColor('bg-surface') }}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        style={tailwind('px-6')}
-        contentContainerStyle={tailwind('h-full')}
+        style={[tailwind('px-6'), { backgroundColor: getColor('bg-surface') }]}
+        contentContainerStyle={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}
       >
         <View style={tailwind('h-12')} />
 
         <View style={tailwind('mb-5')}>
-          <AppText medium style={tailwind('text-2xl text-gray-100')}>
+          <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
             {strings.screens.SignUpScreen.title}
           </AppText>
         </View>
@@ -49,16 +53,35 @@ function SignUpScreen({ navigation }: RootStackScreenProps<'SignUp'>): JSX.Eleme
           )}
         />
 
-        <View style={tailwind('border-b border-gray-10 my-6 w-full')}></View>
-        <AppText style={tailwind('text-sm bg-transparent mb-4 text-center')}>
+        <View
+          style={[
+            tailwind('my-6 w-full'),
+            {
+              borderBottomWidth: 1,
+              borderBottomColor: getColor('border-gray-10'),
+            },
+          ]}
+        />
+
+        <AppText
+          style={[
+            tailwind('text-sm mb-4 text-center'),
+            {
+              backgroundColor: 'transparent',
+              color: getColor('text-gray-80'),
+            },
+          ]}
+        >
           {strings.screens.SignUpScreen.alreadyHaveAccount}
         </AppText>
+
         <AppButton
           style={tailwind('w-full py-0 h-11')}
           type="white"
           onPress={onGoToSignInButtonPressed}
           title={strings.buttons.sign_in}
         />
+
         {keyboardShown ? null : <AppVersionWidget displayLogo style={tailwind('mb-5 mt-auto')} />}
       </ScrollView>
     </AppScreen>

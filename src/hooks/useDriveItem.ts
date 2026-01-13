@@ -1,18 +1,21 @@
 import { useState } from 'react';
 
+import drive from '@internxt-mobile/services/drive';
+import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import strings from '../../assets/lang/strings';
+import notificationsService from '../services/NotificationsService';
 import { useAppDispatch } from '../store/hooks';
 import { driveActions, driveThunks } from '../store/slices/drive';
 import { uiActions } from '../store/slices/ui';
+import { NotificationType } from '../types';
 import { DriveItemDataProps, DriveItemStatus } from '../types/drive';
-import drive from '@internxt-mobile/services/drive';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { ShareLink } from '@internxt/sdk/dist/drive/share/types';
 
 interface UseDriveItemProps {
   data: DriveItemDataProps;
   status: DriveItemStatus;
   isSharedLinkItem?: boolean;
-  shareLink?: ShareLink;
+  shareLink?: SharedFiles & SharedFolders;
 }
 
 /**
@@ -44,10 +47,23 @@ const useDriveItem = (props: UseDriveItemProps) => {
       return;
     }
 
+    if (isDownloading) {
+      dispatch(driveThunks.cancelDownloadThunk());
+
+      notificationsService.show({
+        type: NotificationType.Info,
+        text1: strings.errors.fileAlreadyDownloading,
+      });
+      return;
+    }
+
     setIsDisabled(true);
     dispatch(
       driveActions.setFocusedItem({
         ...props.data,
+        uuid: props.data.uuid ?? undefined,
+        folderUuid: props.data.folderUuid ?? undefined,
+        bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
         parentId: props.data.parentId as number,
         size: props.data.size,
@@ -58,6 +74,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     const thunk = dispatch(
       driveThunks.downloadFileThunk({
         ...props.data,
+        bucketId: props.data.bucket as string,
         size: props.data.size as number,
         parentId: props.data.parentId as number,
         name: props.data.name,
@@ -90,6 +107,8 @@ const useDriveItem = (props: UseDriveItemProps) => {
     dispatch(
       driveActions.setFocusedItem({
         ...props.data,
+        folderUuid: props.data.folderUuid ?? undefined,
+        bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
         parentId: props.data.parentId as number,
         size: props.data.size,
@@ -101,9 +120,10 @@ const useDriveItem = (props: UseDriveItemProps) => {
     if (props.isSharedLinkItem && props.shareLink) {
       dispatch(
         driveActions.setFocusedShareItem({
-          id: props.shareLink.id,
-          hashedPassword: props.shareLink.hashed_password || undefined,
-          views: props.shareLink.views,
+          id: props.shareLink.id.toString(),
+          //TODO: THIS NOT WORK WITH PUBLIC LINKS
+          // hashedPassword: props.shareLink.hashed_password || undefined,
+          views: 0,
         }),
       );
       dispatch(uiActions.setIsSharedLinkOptionsModalOpen(true));

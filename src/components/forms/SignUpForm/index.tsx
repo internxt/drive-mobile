@@ -96,8 +96,8 @@ const SignUpForm = (props: BaseFormProps) => {
       return [
         'error' as 'error' | 'success' | 'warning' | 'idle',
         <View style={tailwind('flex flex-row items-center mt-0.5')}>
-          <WarningCircle weight="fill" color={tailwind('text-red-').color as string} size={13} />
-          <AppText style={tailwind('text-sm text-red- ml-1')}>{errors?.email?.message || createAccountError}</AppText>
+          <WarningCircle weight="fill" color={tailwind('text-red').color as string} size={13} />
+          <AppText style={tailwind('text-sm text-red ml-1')}>{errors?.email?.message || createAccountError}</AppText>
         </View>,
       ];
     }
@@ -126,8 +126,8 @@ const SignUpForm = (props: BaseFormProps) => {
     if (!emailError && isSubmitted && !getValues().password) {
       return (
         <View style={tailwind('flex flex-row items-center mt-0.5')}>
-          <WarningCircle weight="fill" color={tailwind('text-red-').color as string} size={13} />
-          <AppText style={tailwind('text-sm text-red- ml-1')}>{strings.errors.requiredField}</AppText>
+          <WarningCircle weight="fill" color={tailwind('text-red').color as string} size={13} />
+          <AppText style={tailwind('text-sm text-red ml-1')}>{strings.errors.requiredField}</AppText>
         </View>
       );
     }

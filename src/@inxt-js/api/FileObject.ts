@@ -1,23 +1,23 @@
-import { createDecipheriv } from 'react-native-crypto';
 import { doUntil, eachLimit, retry } from 'async';
+import { createDecipheriv } from 'react-native-crypto';
 
 import { GenerateFileKey, ripemd160, sha256 } from '../lib/crypto';
 
-import { ShardObject } from './ShardObject';
-import { FileInfo, GetFileInfo, GetFileMirrors, GetFileMirror, ReplacePointer } from './fileinfo';
 import { EnvironmentConfig } from '..';
-import { Shard } from './shard';
-import { ExchangeReport } from './reports';
 import { Download } from '../lib/events';
+import { ShardObject } from './ShardObject';
+import { FileInfo, GetFileInfo, GetFileMirror, GetFileMirrors, ReplacePointer } from './fileinfo';
+import { ExchangeReport } from './reports';
+import { Shard } from './shard';
 
-import { logger } from '../lib/utils/logger';
-import { DEFAULT_INXT_MIRRORS, DOWNLOAD_CANCELLED } from './constants';
-import { EventEmitter } from '../lib/utils/eventEmitter';
-import { Bridge, InxtApiI } from '../services/api';
+import errorService from '../../services/ErrorService';
 import { Logger } from '../lib/download';
 import { wrap } from '../lib/utils/error';
-import errorService from '../../services/ErrorService';
+import { EventEmitter } from '../lib/utils/eventEmitter';
+import { logger } from '../lib/utils/logger';
+import { Bridge, InxtApiI } from '../services/api';
 import FileManager from './FileManager';
+import { DEFAULT_INXT_MIRRORS, DOWNLOAD_CANCELLED } from './constants';
 
 export class FileObject extends EventEmitter {
   shards: ShardObject[] = [];
@@ -114,6 +114,8 @@ export class FileObject extends EventEmitter {
               attempts++;
             });
         },
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         (result: Shard | null, next: any) => {
           validPointer =
             result && result.farmer && result.farmer.nodeID && result.farmer.port && result.farmer.address
@@ -123,6 +125,8 @@ export class FileObject extends EventEmitter {
           return next(null, validPointer || attempts >= DEFAULT_INXT_MIRRORS);
         },
       )
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         .then((result: any) => {
           logger.info('Pointer replaced for shard %s', shard.index);
 
@@ -178,8 +182,10 @@ export class FileObject extends EventEmitter {
             }
 
             const shardHash = ripemd160(sha256(downloadedShard));
+            const calculatedHashHex = shardHash.toString('hex');
+            const expectedHashHex = shard.hash;
 
-            if (Buffer.compare(shardHash, Buffer.from(shard.hash, 'hex')) !== 0) {
+            if (calculatedHashHex !== expectedHashHex) {
               logger.debug('Expected hash ' + shard.hash + ', but hash is ' + shardHash.toString('hex'));
 
               return nextTry(new Error('Shard failed integrity check'), null);

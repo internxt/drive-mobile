@@ -4,7 +4,7 @@ import {
   Invoice,
   PaymentMethod,
   UserSubscription,
-} from '@internxt/sdk/dist/drive/payments/types';
+} from '@internxt/sdk/dist/drive/payments/types/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
@@ -15,18 +15,30 @@ import paymentService from 'src/services/PaymentService';
 import { RootState } from 'src/store';
 import { NotificationType } from 'src/types';
 
+export type Paypal = {
+  paypal?: {
+    country: string;
+    payer_email: string;
+    payer_id: string;
+  };
+};
+
+export type DefaultPaymentMethod = PaymentMethod & Paypal;
+
 export interface PaymentsState {
   isLoading: boolean;
+  showBilling: boolean;
   prices: DisplayPrice[];
   subscription: UserSubscription;
   sessionId: string;
   invoices: Invoice[] | null;
-  defaultPaymentMethod: PaymentMethod | null;
+  defaultPaymentMethod: DefaultPaymentMethod | null;
 }
 
 const initialState: PaymentsState = {
   isLoading: false,
   prices: [],
+  showBilling: false,
   subscription: {
     type: 'free',
   },
@@ -46,6 +58,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
         dispatch(loadUserSubscriptionThunk());
         dispatch(loadInvoicesThunk());
         dispatch(loadDefaultPaymentMethodThunk());
+        dispatch(checkShouldDisplayBilling());
       }
     } catch (err) {
       // Pass
@@ -80,6 +93,13 @@ const loadDefaultPaymentMethodThunk = createAsyncThunk<PaymentMethod | null, voi
   'payments/loadDefaultPaymentMethod',
   async () => {
     return paymentService.getDefaultPaymentMethod();
+  },
+);
+
+const checkShouldDisplayBilling = createAsyncThunk<boolean, void, { state: RootState }>(
+  'payments/checkShouldDisplayBilling',
+  async () => {
+    return paymentService.billingEnabled();
   },
 );
 
@@ -144,6 +164,14 @@ export const paymentsSlice = createSlice({
       state.defaultPaymentMethod = action.payload;
     });
 
+    builder.addCase(checkShouldDisplayBilling.fulfilled, (state, action) => {
+      state.showBilling = action.payload;
+    });
+
+    builder.addCase(checkShouldDisplayBilling.rejected, (state) => {
+      state.showBilling = false;
+    });
+
     builder.addCase(cancelSubscriptionThunk.rejected, () => {
       notificationsService.show({ type: NotificationType.Error, text1: strings.errors.cancelSubscription });
     });
@@ -157,6 +185,7 @@ export const paymentsSelectors = {
   hasPaidPlan: (state: RootState) => state.payments.subscription.type !== 'free',
   hasSubscription: (state: RootState) => state.payments.subscription.type === 'subscription',
   hasLifetime: (state: RootState) => state.payments.subscription.type === 'lifetime',
+  shouldShowBilling: (state: RootState) => state.payments.showBilling,
 };
 
 export const paymentsThunks = {
@@ -166,6 +195,7 @@ export const paymentsThunks = {
   loadInvoicesThunk,
   createSessionThunk,
   cancelSubscriptionThunk,
+  checkShouldDisplayBilling,
 };
 
 export default paymentsSlice.reducer;

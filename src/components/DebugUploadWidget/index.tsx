@@ -16,7 +16,7 @@ const DebugUploadWidget = (props: DebugUploadWidgetProps): JSX.Element => {
   return (
     <View style={[tailwind('px-5'), props.style]}>
       <AppText style={tailwind('text-xl')}>{strings.screens.DebugScreen.upload.title}</AppText>
-      <AppText style={tailwind('text-neutral-200 text-base')}>{strings.screens.DebugScreen.upload.advice}</AppText>
+      <AppText style={tailwind('text-gray-50 text-base')}>{strings.screens.DebugScreen.upload.advice}</AppText>
 
       <View style={tailwind('h-3')}></View>
 

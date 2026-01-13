@@ -47,10 +47,10 @@ export const extensions: Record<string, React.FC<SvgProps>> = {
 };
 
 export function getFileTypeIcon(ext: string): React.FC<SvgProps> {
-  const exists = ~Object.keys(extensions).indexOf(ext);
+  const exists = ~Object.keys(extensions).indexOf(ext?.toLowerCase());
 
   if (exists) {
-    return extensions[ext];
+    return extensions[ext?.toLowerCase()];
   }
 
   return defaultIcon;

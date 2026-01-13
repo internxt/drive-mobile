@@ -1,27 +1,18 @@
-import { createHash } from 'crypto';
-import axios from 'axios';
-
-import {
-  DownloadedThumbnail,
-  DriveFileMetadataPayload,
-  DriveItemData,
-  DriveListItem,
-  SortDirection,
-  SortType,
-} from '../../../types/drive';
 import { getHeaders } from '../../../helpers/headers';
+import { DownloadedThumbnail, DriveListItem, GetModifiedFiles, SortDirection, SortType } from '../../../types/drive';
 import { constants } from '../../AppService';
 
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { SdkManager } from '@internxt-mobile/services/common';
-import { MoveFileResponse, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
-import { getEnvironmentConfig } from 'src/lib/network';
-import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
-import network from 'src/network';
-import { Image } from 'react-native';
+import { Abortable, AsyncStorageKey } from '@internxt-mobile/types/index';
+import { MoveFileUuidPayload } from '@internxt/sdk/dist/drive/storage/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import { Image } from 'react-native';
+import { getEnvironmentConfig } from 'src/lib/network';
+import * as networkDownload from 'src/network/download';
+import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import { driveFileCache } from './driveFileCache.service';
-import { Abortable } from '@internxt-mobile/types/index';
 
 export type ArraySortFunction = (a: DriveListItem, b: DriveListItem) => number;
 export type DriveFileDownloadOptions = {
@@ -95,54 +86,15 @@ class DriveFileService {
     return `${filename} (${i})`;
   }
 
-  public async updateMetaData(
-    fileId: string,
-    metadata: DriveFileMetadataPayload,
-    bucketId: string,
-    relativePath: string,
-  ): Promise<void> {
-    this.sdk.storage.updateFile({
-      fileId,
-      bucketId,
-      destinationPath: relativePath,
-      metadata: {
-        itemName: metadata.itemName,
-      },
+  public async updateMetaData(fileUuid: string, name: string): Promise<void> {
+    this.sdk.storageV2.updateFileNameWithUUID({
+      fileUuid,
+      name,
     });
   }
 
-  public async moveFile(moveFilePayload: { fileId: string; destination: number }): Promise<MoveFileResponse> {
-    const headers = await getHeaders();
-    const data = JSON.stringify(moveFilePayload);
-
-    const res = await fetch(`${constants.DRIVE_API_URL}/storage/move/file`, {
-      method: 'POST',
-      headers,
-      body: data,
-    });
-
-    return res.json();
-  }
-
-  public async deleteItems(items: DriveItemData[]): Promise<void> {
-    const fetchArray: Promise<Response>[] = [];
-
-    for (const item of items) {
-      const isFolder = !item.fileId;
-      const headers = await getHeaders();
-      const url = isFolder
-        ? `${constants.DRIVE_API_URL}/storage/folder/${item.id}`
-        : `${constants.DRIVE_API_URL}/storage/bucket/${item.bucket}/file/${item.fileId}`;
-
-      const fetchObj = fetch(url, {
-        method: 'DELETE',
-        headers,
-      });
-
-      fetchArray.push(fetchObj);
-    }
-
-    return Promise.all(fetchArray).then(() => undefined);
+  public async moveFile(moveFilePayload: MoveFileUuidPayload) {
+    return this.sdk.storageV2.moveFileByUuid(moveFilePayload);
   }
 
   public getSortFunction({
@@ -159,14 +111,14 @@ class DriveFileService {
         sortFunction =
           direction === SortDirection.Asc
             ? (a: DriveListItem, b: DriveListItem) => {
-                const aName = Buffer.from(a.data.name.trim().toLowerCase()).toString('hex');
-                const bName = Buffer.from(b.data.name.trim().toLowerCase()).toString('hex');
+                const aName = a.data.name ? Buffer.from(a.data.name.trim().toLowerCase()).toString('hex') : '';
+                const bName = b.data.name ? Buffer.from(b.data.name.trim().toLowerCase()).toString('hex') : '';
 
                 return aName < bName ? -1 : aName > bName ? 1 : 0;
               }
             : (a: DriveListItem, b: DriveListItem) => {
-                const aName = Buffer.from(a.data.name.trim().toLowerCase()).toString('hex');
-                const bName = Buffer.from(b.data.name.trim().toLowerCase()).toString('hex');
+                const aName = Buffer.from(a.data.name?.trim().toLowerCase()).toString('hex');
+                const bName = Buffer.from(b.data.name?.trim().toLowerCase()).toString('hex');
 
                 return aName < bName ? 1 : aName > bName ? -1 : 0;
               };
@@ -213,27 +165,36 @@ class DriveFileService {
     return sortFunction;
   }
 
-  public async renameFileInNetwork(fileId: string, bucketId: string, relativePath: string): Promise<void> {
-    const hashedRelativePath = createHash('ripemd160').update(relativePath).digest('hex');
-    const headers = await getHeaders();
-    const headersMap: Record<string, string> = {};
+  public async getModifiedFiles({
+    limit = 50,
+    offset = 0,
+    updatedAt,
+    status,
+  }: {
+    limit?: number;
+    offset?: number;
+    updatedAt?: string;
+    status: 'ALL' | 'TRASHED' | 'REMOVED';
+  }): Promise<GetModifiedFiles[] | undefined> {
+    const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
+    const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
+    const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);
 
-    headers.forEach((value: string, key: string) => {
-      headersMap[key] = value;
+    if (!newToken) return;
+
+    const headers = await getHeaders(newToken);
+
+    const modifiedItems = await fetch(`${constants.DRIVE_NEW_API_URL}/files?${query}`, {
+      method: 'GET',
+      headers,
     });
 
-    await axios.post<{ message: string }>(
-      `${constants.DRIVE_API_URL}/storage/rename-file-in-network`,
-      {
-        fileId,
-        bucketId,
-        relativePath: hashedRelativePath,
-      },
-      { headers: headersMap },
-    );
+    const parsedModifiedFiles = await modifiedItems.json();
+
+    return parsedModifiedFiles;
   }
 
-  public async getThumbnail(thumbnail: Thumbnail) {
+  public async getThumbnail(thumbnail: { bucket_id: string; bucket_file: string; type: string }) {
     const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
     const destination = `${DRIVE_THUMBNAILS_DIRECTORY}/${thumbnail.bucket_file}.${thumbnail.type}`;
 
@@ -253,7 +214,8 @@ class DriveFileService {
     if (await fileSystemService.exists(destination)) {
       return measureThumbnail(fileSystemService.pathToUri(destination));
     }
-    await network.downloadFile(
+
+    await networkDownload.downloadThumbnail(
       thumbnail.bucket_file.toString(),
       thumbnail.bucket_id,
       encryptionKey,
@@ -288,6 +250,7 @@ class DriveFileService {
    */
   async downloadFile(
     user: UserSettings,
+    bucketId: string,
     fileId: string,
     {
       downloadPath,
@@ -297,14 +260,15 @@ class DriveFileService {
       disableCache,
       signal,
     }: DriveFileDownloadOptions,
+    fileSize: number,
   ) {
     const noop = () => {
       /** NOOP */
     };
 
-    await network.downloadFile(
+    await networkDownload.downloadFile(
       fileId,
-      user.bucket,
+      bucketId,
       user.mnemonic,
       {
         pass: user.userId,
@@ -321,6 +285,7 @@ class DriveFileService {
         },
         signal,
       },
+      fileSize,
       (abortable) => {
         if (onAbortableReady) {
           onAbortableReady(abortable);
@@ -359,6 +324,10 @@ class DriveFileService {
 
   getName(filename: string, type?: string) {
     return filename + (type ? `.${type}` : '');
+  }
+
+  public async checkFileExistence(parentFolderUuid: string, filesList: { plainName: string; type: string }[]) {
+    return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
   }
 }
 

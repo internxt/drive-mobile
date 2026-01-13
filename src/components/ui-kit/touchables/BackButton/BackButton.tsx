@@ -15,7 +15,7 @@ export const BackButton: React.FC<BackButtonProps> = (props) => {
   const color = tailwind('text-primary').color as string;
   const iconSize = 26;
   return (
-    <View style={tailwind('flex-1')}>
+    <View style={tailwind('flex-1 mr-2')}>
       <TouchableOpacity
         onPress={props.onPress}
         hitSlop={INCREASED_TOUCH_AREA}

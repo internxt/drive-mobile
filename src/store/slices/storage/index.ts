@@ -1,20 +1,17 @@
-import photos from '@internxt-mobile/services/photos';
+import analyticsService, { AnalyticsEventKey } from '@internxt-mobile/services/AnalyticsService';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import storageService from 'src/services/StorageService';
 import { RootState } from '../..';
 import asyncStorage from '../../../services/AsyncStorageService';
 import { driveThunks } from '../drive';
 
-export interface ReferralsState {
+export interface StorageState {
   limit: number;
-  // Store this here, photos doesn't use Redux anymore
-  photosUsage: number;
   totalUsage: number;
 }
 
-const initialState: ReferralsState = {
+const initialState: StorageState = {
   limit: 0,
-  photosUsage: 0,
   totalUsage: 0,
 };
 
@@ -38,11 +35,29 @@ const loadStorageUsageThunk = createAsyncThunk<void, void, { state: RootState }>
   'storage/loadUsage',
   async (_, { dispatch, getState }) => {
     await dispatch(driveThunks.loadUsageThunk()).unwrap();
-    const photosUsage = await photos.usage.getUsage();
 
     const driveUsage = getState().drive.usage;
-    dispatch(storageSlice.actions.setTotalUsage(driveUsage + photosUsage));
-    dispatch(storageSlice.actions.setPhotosUsage(photosUsage));
+    const limit = getState().storage.limit;
+    const totalUsage = driveUsage;
+
+    if (limit) {
+      const usagePercent = (totalUsage / limit) * 100;
+      const eventPayload = {
+        limit: limit,
+        usage: totalUsage && typeof totalUsage === 'number' ? totalUsage : 0,
+        usage_percent: usagePercent && typeof usagePercent === 'number' ? usagePercent : 0,
+        drive_usage: driveUsage && typeof driveUsage === 'number' ? driveUsage : 0,
+      };
+      const userUuid = getState().auth.user?.uuid;
+
+      if (userUuid) {
+        await analyticsService.identify(userUuid, eventPayload);
+      }
+
+      await analyticsService.track(AnalyticsEventKey.Usage, eventPayload);
+    }
+
+    dispatch(storageSlice.actions.setTotalUsage(driveUsage));
   },
 );
 
@@ -50,9 +65,6 @@ export const storageSlice = createSlice({
   name: 'storage',
   initialState,
   reducers: {
-    setPhotosUsage(state, action: PayloadAction<number>) {
-      state.photosUsage = action.payload;
-    },
     setTotalUsage(state, action: PayloadAction<number>) {
       state.totalUsage = action.payload;
     },
@@ -65,12 +77,11 @@ export const storageSlice = createSlice({
 });
 
 export const storageSelectors = {
-  usage: (state: RootState) => state.drive.usage + state.storage.photosUsage,
+  usage: (state: RootState) => state.drive.usage,
   availableStorage: (state: RootState) => {
-    return state.storage.limit - state.storage.photosUsage - state.drive.usage;
+    return state.storage.limit - state.drive.usage;
   },
-  usagePercent: (state: RootState) =>
-    Math.round(((state.drive.usage + state.storage.photosUsage) / state.storage.limit) * 100),
+  usagePercent: (state: RootState) => Math.round((state.drive.usage / state.storage.limit) * 100),
 };
 
 export const storageActions = storageSlice.actions;

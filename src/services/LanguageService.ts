@@ -1,14 +1,18 @@
 import strings from 'assets/lang/strings';
-import { AsyncStorageKey, Language } from 'src/types';
-import asyncStorageService from './AsyncStorageService';
-import RNRestart from 'react-native-restart';
 
+import { Settings } from 'luxon';
+import { AsyncStorageKey, Language, NotificationType } from 'src/types';
+import asyncStorageService from './AsyncStorageService';
+import notificationsService from './NotificationsService';
 class LanguageService {
   constructor() {
     this.initialize();
   }
   private async initialize() {
     const language = await asyncStorageService.getItem(AsyncStorageKey.Language);
+
+    Settings.defaultLocale = language ?? strings.getLanguage();
+
     language && strings.setLanguage(language);
   }
 
@@ -16,7 +20,9 @@ class LanguageService {
     await asyncStorageService.saveItem(AsyncStorageKey.Language, language);
     strings.setLanguage(language);
 
-    RNRestart.Restart();
+    Settings.defaultLocale = language ?? strings.getLanguage();
+    notificationsService.show({ text1: strings.modals.Language.info, type: NotificationType.Info });
+    // TODO: ADD WAY TO RESTART THE LANGUAGE IN RUNTIME WHEN IT CHANGES
   }
 }
 

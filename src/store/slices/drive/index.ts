@@ -1,30 +1,32 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { DriveFileData, DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
-
-import { NotificationType } from '../../../types';
-import { RootState } from '../..';
-import strings from '../../../../assets/lang/strings';
-import notificationsService from '../../../services/NotificationsService';
-import {
-  DriveItemData,
-  DriveItemStatus,
-  DriveListItem,
-  UploadingFile,
-  DownloadingFile,
-  DriveEventKey,
-  DriveNavigationStack,
-  DriveNavigationStackItem,
-  DriveItemFocused,
-} from '../../../types/drive';
-import fileSystemService from '../../../services/FileSystemService';
-import { items } from '@internxt/lib';
+import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
+import { items } from '@internxt/lib';
+import { isValidFilename } from 'src/helpers';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
 import { ErrorCodes } from 'src/types/errors';
-import { isValidFilename } from 'src/helpers';
+import { RootState } from '../..';
+import strings from '../../../../assets/lang/strings';
+import analyticsService from '../../../services/AnalyticsService';
+import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
+import fileSystemService from '../../../services/FileSystemService';
+import notificationsService from '../../../services/NotificationsService';
+import { NotificationType } from '../../../types';
+import {
+  DownloadingFile,
+  DriveEventKey,
+  DriveItemData,
+  DriveItemFocused,
+  DriveItemStatus,
+  DriveListItem,
+  DriveNavigationStack,
+  DriveNavigationStackItem,
+  UploadingFile,
+} from '../../../types/drive';
+import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
 
 export enum ThunkOperationStatus {
   SUCCESS = 'SUCCESS',
@@ -32,6 +34,8 @@ export enum ThunkOperationStatus {
   LOADING = 'LOADING',
   IDLE = 'IDLE',
 }
+
+const DOWNLOAD_ERROR_CODES = { MAX_SIZE_TO_DOWNLOAD_REACHED: 1 };
 
 export interface FocusedShareItem {
   id: string;
@@ -108,19 +112,33 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
   dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
   const recents = await drive.recents.getRecents();
-
-  dispatch(driveActions.setRecents(recents));
+  const recentsParsed = recents.map((recent) => ({
+    ...recent,
+    name: recent.plainName ?? recent.name,
+  }));
+  dispatch(driveActions.setRecents(recentsParsed));
 });
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
   drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
+const validateDownload = (size: number | undefined): number | null => {
+  if (!size) return null;
+
+  const sizeInBytes = parseInt(size.toString());
+  if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['10GB']) {
+    return DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED;
+  }
+  return null;
+};
+
 const downloadFileThunk = createAsyncThunk<
   void,
   {
     id: number;
     size: number;
+    bucketId: string;
     parentId: number;
     name: string;
     type: string;
@@ -132,18 +150,38 @@ const downloadFileThunk = createAsyncThunk<
 >(
   'drive/downloadFile',
   async (
-    { id, size, parentId, name, type, fileId, openFileViewer, updatedAt },
+    { id, size, parentId, name, type, fileId, openFileViewer, updatedAt, bucketId },
     { signal, getState, dispatch, rejectWithValue },
   ) => {
+    logger.info('Starting file download...');
     const { user } = getState().auth;
+    // BEFORE DOWNLOAD VALIDATIONS
+    const currentDownload = getState().drive.downloadingFile;
+
+    if (currentDownload && currentDownload.data.fileId === fileId) {
+      await dispatch(cancelDownloadThunk());
+    }
+
+    const validationError = validateDownload(size);
+    if (validationError) {
+      dispatch(
+        driveActions.updateDownloadingFile({
+          error: strings.messages.downloadLimit,
+        }),
+      );
+      return rejectWithValue(validationError);
+    }
+
     dispatch(
       driveActions.updateDownloadingFile({
         retry: async () => {
+          dispatch(driveActions.clearDownloadingFile());
           dispatch(
             driveThunks.downloadFileThunk({
               id,
               size,
               parentId,
+              bucketId,
               name,
               type,
               fileId,
@@ -154,23 +192,31 @@ const downloadFileThunk = createAsyncThunk<
         },
       }),
     );
+
+    // PROGRESS CALLBACKS
     const downloadProgressCallback = (progress: number) => {
-      dispatch(
-        driveActions.updateDownloadingFile({
-          downloadProgress: progress,
-        }),
-      );
-    };
-    const decryptionProgressCallback = (progress: number) => {
       if (signal.aborted) {
         return;
       }
 
       dispatch(
         driveActions.updateDownloadingFile({
-          decryptProgress: Math.max(getState().drive.downloadingFile?.downloadProgress || 0, progress),
+          downloadProgress: progress,
         }),
       );
+    };
+
+    const decryptionProgressCallback = (progress: number) => {
+      if (signal.aborted) return;
+
+      const currentState = getState().drive.downloadingFile;
+      if (currentState && currentState.data.fileId === fileId) {
+        dispatch(
+          driveActions.updateDownloadingFile({
+            decryptProgress: Math.max(currentState.downloadProgress || 0, progress),
+          }),
+        );
+      }
     };
 
     const download = (params: { fileId: string; to: string }) => {
@@ -178,42 +224,32 @@ const downloadFileThunk = createAsyncThunk<
         return;
       }
 
-      return drive.file.downloadFile(user, params.fileId, {
-        downloadPath: params.to,
-        decryptionProgressCallback,
-        downloadProgressCallback,
-        signal,
-        onAbortableReady: drive.events.setLegacyAbortable,
-      });
+      return drive.file.downloadFile(
+        user,
+        bucketId,
+        params.fileId,
+        {
+          downloadPath: params.to,
+          decryptionProgressCallback,
+          downloadProgressCallback,
+          signal: signal,
+          onAbortableReady: drive.events.setLegacyAbortable,
+        },
+        size,
+      );
     };
 
-    const trackDownloadStart = () => {
-      return analytics.track(DriveAnalyticsEvent.FileDownloadStarted, {
-        file_id: id,
-        size: size,
-        type: type,
-        parent_folder_id: parentId,
-      });
-    };
-    const trackDownloadSuccess = () => {
-      return analytics.track(DriveAnalyticsEvent.FileDownloadCompleted, {
-        file_id: id,
-        size: size,
-        type: type,
-        parent_folder_id: parentId,
-      });
-    };
+    const analytics = new DownloadAnalytics(analyticsService);
 
-    const trackDownloadError = () => {
-      return analytics.track(DriveAnalyticsEvent.FileDownloadError, {
-        file_id: id,
-        size: size,
-        type: type,
-        parent_folder_id: parentId,
-      });
+    const fileInfo: FileInfo = {
+      id: id,
+      size: size,
+      type: type,
+      parentId: parentId,
     };
 
     const destinationPath = drive.file.getDecryptedFilePath(name, type);
+    logger.info(`Download destination path: ${destinationPath} `);
     const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
     try {
       if (!isValidFilename(name)) {
@@ -224,8 +260,9 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       if (!fileAlreadyExists) {
-        trackDownloadStart();
+        analytics.trackStart(fileInfo);
         downloadProgressCallback(0);
+
         await download({ fileId, to: destinationPath });
       }
 
@@ -235,20 +272,22 @@ const downloadFileThunk = createAsyncThunk<
         await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
       }
 
-      trackDownloadSuccess();
+      analytics.trackSuccess(fileInfo);
     } catch (err) {
-      dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
+      logger.error('Error in downloadFileThunk ', JSON.stringify(err));
       /**
        * In case something fails, we remove the file in case it exists, that way
        * we don't use wrong encrypted cached files
        */
-
       if (fileAlreadyExists) {
         await fileSystemService.unlink(destinationPath);
       }
 
       if (!signal.aborted) {
-        trackDownloadError();
+        dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
+
+        analytics.trackError(fileInfo);
+
         drive.events.emit({ event: DriveEventKey.DownloadError }, new Error(strings.errors.downloadError));
         if ((err as Error).message === ErrorCodes.MISSING_SHARDS_ERROR) {
           errorService.reportError(new Error('MISSING_SHARDS_ERROR: File  is missing shards'), {
@@ -270,6 +309,7 @@ const downloadFileThunk = createAsyncThunk<
       }
     } finally {
       if (signal.aborted) {
+        dispatch(driveActions.clearDownloadingFile());
         drive.events.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
       drive.events.emit({ event: DriveEventKey.DownloadFinally });
@@ -279,54 +319,64 @@ const downloadFileThunk = createAsyncThunk<
 
 const createFolderThunk = createAsyncThunk<
   void,
-  { parentFolderId: number; newFolderName: string },
+  { parentFolderUuid: string; newFolderName: string },
   { state: RootState }
->('drive/createFolder', async ({ parentFolderId, newFolderName }) => {
-  await drive.folder.createFolder(parentFolderId, newFolderName);
+>('drive/createFolder', async ({ parentFolderUuid, newFolderName }) => {
+  await drive.folder.createFolder(parentFolderUuid, newFolderName);
 });
-
 export interface MoveItemThunkPayload {
   isFolder: boolean;
   origin: {
     name: string;
     itemId: number | string;
-    parentId: number;
-    id: number;
+    parentUuid: string;
+    uuid: string;
     updatedAt: string;
     createdAt: string;
   };
-  destination: number;
+  destinationUuid: string;
   itemMovedAction: () => void;
+  optimisticCallbacks?: {
+    onOptimisticUpdate: () => void;
+    onRollback: () => void;
+  };
 }
 
 const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: RootState }>(
   'drive/moveItem',
-  async ({ isFolder, origin, destination, itemMovedAction }) => {
-    if (!isFolder) {
-      await drive.file.moveFile({
-        fileId: origin?.itemId as string,
-        destination: destination,
+  async ({ isFolder, origin, destinationUuid, itemMovedAction, optimisticCallbacks }) => {
+    try {
+      await drive.database.deleteItem({
+        id: origin.itemId as number,
       });
-    } else {
-      await drive.folder.moveFolder({
-        folderId: origin.itemId as number,
-        destinationFolderId: destination,
+
+      if (!isFolder) {
+        await drive.file.moveFile({
+          fileUuid: origin?.uuid,
+          destinationFolderUuid: destinationUuid,
+        });
+      } else {
+        await drive.folder.moveFolder({
+          folderUuid: origin.uuid,
+          destinationFolderUuid: destinationUuid,
+        });
+      }
+
+      optimisticCallbacks?.onOptimisticUpdate();
+
+      const totalMovedItems = 1;
+      notificationsService.show({
+        text1: strings.formatString(strings.messages.itemsMoved, totalMovedItems).toString(),
+        action: {
+          text: strings.generic.view_folder,
+          onActionPress: itemMovedAction,
+        },
+        type: NotificationType.Success,
       });
+    } catch (error) {
+      optimisticCallbacks?.onRollback();
+      throw error;
     }
-
-    await drive.database.deleteItem({
-      id: origin.itemId as number,
-    });
-
-    const totalMovedItems = 1;
-    notificationsService.show({
-      text1: strings.formatString(strings.messages.itemsMoved, totalMovedItems).toString(),
-      action: {
-        text: strings.generic.view_folder,
-        onActionPress: itemMovedAction,
-      },
-      type: NotificationType.Success,
-    });
   },
 );
 
@@ -356,13 +406,19 @@ export const driveSlice = createSlice({
       state.uploadingFiles = [...state.uploadingFiles, action.payload];
     },
     uploadingFileEnd(state, action: PayloadAction<number>) {
-      state.uploadingFiles = state.uploadingFiles.filter((file) => file.id !== action.payload);
+      state.uploadingFiles = state.uploadingFiles.filter((file) => {
+        return file.id !== action.payload;
+      });
+    },
+    clearUploadedFiles(state) {
+      state.uploadingFiles = [];
     },
     uploadFileFinished(state) {
       state.isLoading = false;
       state.isUploading = false;
       state.isUploadingFileName = null;
     },
+
     uploadFileFailed(state, action: PayloadAction<{ errorMessage?: string; id?: number }>) {
       state.isLoading = false;
       state.isUploading = false;
@@ -430,7 +486,9 @@ export const driveSlice = createSlice({
     updateDownloadingFile(state, action: PayloadAction<Partial<DownloadingFile>>) {
       state.downloadingFile && Object.assign(state.downloadingFile, action.payload);
     },
-
+    clearDownloadingFile(state) {
+      state.downloadingFile = undefined;
+    },
     setRecentsStatus(state, action: PayloadAction<ThunkOperationStatus>) {
       state.recentsStatus = action.payload;
     },
@@ -471,7 +529,12 @@ export const driveSlice = createSlice({
         };
       })
       .addCase(downloadFileThunk.fulfilled, () => undefined)
-      .addCase(downloadFileThunk.rejected, () => undefined);
+      .addCase(downloadFileThunk.rejected, (_, action) => {
+        const errorCode = action.payload;
+        if (errorCode === DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED) {
+          notificationsService.info(strings.messages.downloadLimit);
+        }
+      });
 
     builder
       .addCase(createFolderThunk.pending, (state) => {
@@ -522,11 +585,13 @@ export const driveSelectors = {
   navigationStackPeek: (state: RootState) => {
     return state.drive.navigationStack.length > 0
       ? state.drive.navigationStack[0]
-      : { id: state.auth.user?.root_folder_id || -1, name: '', parentId: null, updatedAt: Date.now().toString() };
+      : { id: state.auth.user?.rootFolderId ?? null, name: '', parentId: null, updatedAt: Date.now().toString() };
   },
   driveItems(state: RootState): { uploading: DriveListItem[]; items: DriveListItem[] } {
     const { folderContent, uploadingFiles, searchString, currentFolderId } = state.drive;
+    const bucket = state.auth.user?.bucket;
 
+    if (!bucket) throw new Error('Bucket not found');
     let items = folderContent;
 
     if (searchString) {
@@ -545,6 +610,7 @@ export const driveSelectors = {
         status: DriveItemStatus.Uploading,
         progress: f.progress,
         data: {
+          bucket: bucket,
           folderId: currentFolderId,
           // TODO: Organize Drive item types
           thumbnails: [],

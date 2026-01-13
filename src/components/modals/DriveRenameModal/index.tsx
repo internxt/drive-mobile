@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
-import { View, TextInput, Platform } from 'react-native';
+import { useState } from 'react';
+import { View } from 'react-native';
 
+import Portal from '@burstware/react-native-portal';
+import { useDrive } from '@internxt-mobile/hooks/drive';
+import drive from '@internxt-mobile/services/drive';
+import AppText from 'src/components/AppText';
+import AppTextInput from 'src/components/AppTextInput';
+import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
+import useGetColor from '../../../hooks/useColor';
+import { logger } from '../../../services/common';
+import errorService from '../../../services/ErrorService';
+import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
-import errorService from '../../../services/ErrorService';
-import AppButton from '../../AppButton';
-import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
+import AppButton from '../../AppButton';
 import CenterModal from '../CenterModal';
-import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../../hooks/useColor';
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import drive from '@internxt-mobile/services/drive';
-import uuid from 'react-native-uuid';
-import Portal from '@burstware/react-native-portal';
+
 function RenameModal(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -29,130 +31,121 @@ function RenameModal(): JSX.Element {
   const [newName, setNewName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const isFolder = focusedItem?.type ? false : true;
-  const onItemRenameSuccess = () => {
-    /**
-     * Weird stuff over here
-     *
-     * Looks like updateMetadata endpoint responds
-     * but the file is not renamed yet, so we will
-     * update the item in the DB and will update
-     * the DB with the next network request later
-     * hopefully the drive item will be renamed
-     * already
-     *
-     * NOTE: Drive server returns the updated
-     * item, however the SDK does not return it
-     * Should update the SDK to return it
-     */
 
-    if (driveCtx.currentFolder) {
-      driveCtx.loadFolderContent(driveCtx.currentFolder.id, { pullFrom: ['cache'] });
+  const onRenameButtonPressed = async () => {
+    if (!focusedItem || !user || !driveCtx.focusedFolder) return;
+
+    const originalName = focusedItem.name;
+    const trimmedNewName = newName.trim();
+
+    if (!trimmedNewName || trimmedNewName === originalName) {
+      dispatch(uiActions.setShowRenameModal(false));
+      return;
     }
 
-    notificationsService.show({ text1: strings.messages.renamedSuccessfully, type: NotificationType.Success });
-    setNewName('');
+    try {
+      setIsLoading(true);
+      dispatch(
+        driveActions.setFocusedItem({
+          ...focusedItem,
+          name: trimmedNewName,
+        }),
+      );
+      driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.id, {
+        name: trimmedNewName,
+        plainName: trimmedNewName,
+      });
+
+      await drive.database.updateItemName(focusedItem.id, trimmedNewName);
+      if (isFolder && focusedItem.uuid) {
+        await drive.folder.updateMetaData(focusedItem.uuid, trimmedNewName);
+      } else if (focusedItem.uuid) {
+        await drive.file.updateMetaData(focusedItem.uuid, trimmedNewName);
+      }
+
+      notificationsService.show({
+        text1: strings.messages.renamedSuccessfully,
+        type: NotificationType.Success,
+      });
+
+      dispatch(uiActions.setShowRenameModal(false));
+      dispatch(uiActions.setShowItemModal(false));
+      setNewName('');
+    } catch (err) {
+      try {
+        driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.id, {
+          name: originalName,
+          plainName: originalName,
+        });
+        dispatch(
+          driveActions.setFocusedItem({
+            ...focusedItem,
+            name: originalName,
+          }),
+        );
+
+        await drive.database.updateItemName(focusedItem.id, originalName);
+      } catch (dbError) {
+        logger.error('Error reverting database update:', dbError);
+      }
+
+      const castedError = errorService.castError(err);
+      notificationsService.show({
+        text1: castedError.message,
+        type: NotificationType.Error,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
-  const onItemRenameFinally = () => {
-    dispatch(uiActions.setShowRenameModal(false));
-    dispatch(uiActions.setShowItemModal(false));
-    setIsLoading(false);
-  };
+
   const onCancelButtonPressed = () => {
     dispatch(driveActions.deselectAll());
     dispatch(uiActions.setShowRenameModal(false));
   };
-  const onRenameButtonPressed = async () => {
-    try {
-      setIsLoading(true);
 
-      if (focusedItem && isFolder) {
-        // TODO: Move to a useCase
-        await drive.folder.updateMetaData(focusedItem.id, {
-          itemName: newName,
-        });
-      } else if (focusedItem?.fileId && user) {
-        await drive.file.updateMetaData(
-          focusedItem.fileId,
-          {
-            itemName: newName,
-          },
-          user.bucket,
-          // Picked from drive-web
-          uuid.v4().toString(),
-        );
-      }
-
-      // Update the item in the local DB
-      if (focusedItem) {
-        await drive.database.updateItemName(focusedItem?.id, newName);
-        dispatch(
-          driveActions.setFocusedItem({
-            ...focusedItem,
-            name: newName,
-          }),
-        );
-      }
-
-      onItemRenameSuccess();
-    } catch (err) {
-      const castedError = errorService.castError(err);
-      notificationsService.show({ text1: castedError.message, type: NotificationType.Error });
-    } finally {
-      onItemRenameFinally();
-    }
-  };
-  const IconFile = getFileTypeIcon(focusedItem?.type || '');
-  const IconFolder = FolderIcon;
   const onClosed = () => {
     dispatch(uiActions.setShowRenameModal(false));
     setNewName('');
   };
+
   const onOpened = () => {
     setNewName(focusedItem?.name || '');
   };
 
   return (
     <Portal>
-      <CenterModal isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
-        <View style={tailwind('mx-8 flex-grow p-4')}>
-          <View style={tailwind('flex-grow justify-center px-8')}>
-            <View style={tailwind('pt-4 pb-8')}>
-              <View style={tailwind('items-center pb-3')}>
-                {isFolder ? <IconFolder width={80} height={80} /> : <IconFile width={80} height={80} />}
-              </View>
-
-              <View
-                style={[
-                  tailwind('px-4 items-center justify-center flex-shrink flex-grow bg-neutral-10'),
-                  tailwind('border border-neutral-30 rounded-lg'),
-                  Platform.OS !== 'android' ? tailwind('pb-3') : tailwind(''),
-                ]}
-              >
-                <TextInput
-                  style={tailwind('text-lg text-center text-neutral-600')}
-                  value={newName}
-                  onChangeText={setNewName}
-                  placeholderTextColor={getColor('text-neutral-500')}
-                  autoComplete="off"
-                  key="name"
-                  autoCorrect={false}
-                />
-              </View>
-            </View>
+      <CenterModal backdropPressToClose={false} isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
+        <View style={tailwind('flex-grow px-4 py-4')}>
+          <AppText medium style={[tailwind('mb-4 text-xl'), { color: getColor('text-gray-100') }]}>
+            {strings.modals.rename.title}
+          </AppText>
+          <View style={tailwind('flex-grow justify-center mb-5')}>
+            <AppTextInput
+              label={strings.modals.rename.label}
+              value={newName}
+              autoFocus
+              onChangeText={setNewName}
+              placeholderTextColor={getColor('text-gray-50')}
+              autoComplete="off"
+              key="name"
+              autoCorrect={false}
+            />
           </View>
 
           <View style={tailwind('flex-row justify-between')}>
             <AppButton
               title={strings.buttons.cancel}
-              type={'cancel'}
+              type="white"
               onPress={onCancelButtonPressed}
               disabled={isLoading}
               style={tailwind('flex-1')}
             />
 
-            <View style={tailwind('px-1')}></View>
+            <View style={tailwind('w-3')}></View>
 
             <AppButton
+              loading={isLoading}
               title={strings.buttons.rename}
               type={'accept'}
               onPress={onRenameButtonPressed}

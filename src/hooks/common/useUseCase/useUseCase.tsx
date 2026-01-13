@@ -1,7 +1,7 @@
 import { DisplayableError } from '@internxt-mobile/services/common';
 import notificationsService from '@internxt-mobile/services/NotificationsService';
-import { NotificationType } from '../../../types';
 import { useEffect, useState } from 'react';
+import { NotificationType } from '../../../types';
 
 export type UseCaseResult<TData, TError = unknown> = {
   data: TData | null;

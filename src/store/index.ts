@@ -1,15 +1,12 @@
 import { configureStore } from '@reduxjs/toolkit';
 
+import { rtkQueryErrorMiddleware } from './middlewares/rtkQueryErrorMiddleware';
 import appReducer from './slices/app';
 import authReducer from './slices/auth';
 import driveReducer from './slices/drive';
-import uiReducer from './slices/ui';
 import paymentsReducer from './slices/payments';
-import referralsReducer from './slices/referrals';
-import usersReducer from './slices/users';
-import newsletterReducer from './slices/newsletter';
 import storageReducer from './slices/storage';
-import { rtkQueryErrorMiddleware } from './middlewares/rtkQueryErrorMiddleware';
+import uiReducer from './slices/ui';
 
 export const store = configureStore({
   reducer: {
@@ -18,9 +15,6 @@ export const store = configureStore({
     drive: driveReducer,
     ui: uiReducer,
     payments: paymentsReducer,
-    referrals: referralsReducer,
-    users: usersReducer,
-    newsletter: newsletterReducer,
     storage: storageReducer,
   },
   middleware: (getDefaultMiddleware) =>

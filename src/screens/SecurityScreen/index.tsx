@@ -1,6 +1,17 @@
+import Portal from '@burstware/react-native-portal';
+import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { biometrics } from '@internxt-mobile/services/common';
 import { CaretRight } from 'phosphor-react-native';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
+import AppSwitch from 'src/components/AppSwitch';
+import DisableTwoFactorModal from 'src/components/modals/DisableTwoFactorModal';
+import EnableTwoFactorModal from 'src/components/modals/EnableTwoFactorModal';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { appActions } from 'src/store/slices/app';
+import { authSelectors } from 'src/store/slices/auth';
+import { uiActions } from 'src/store/slices/ui';
+import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppScreen from '../../components/AppScreen';
@@ -8,19 +19,8 @@ import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
 import ChangePasswordModal from '../../components/modals/ChangePasswordModal';
 import SettingsGroup from '../../components/SettingsGroup';
-import Portal from '@burstware/react-native-portal';
 import useGetColor from '../../hooks/useColor';
 import { SettingsScreenProps } from '../../types/navigation';
-import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { uiActions } from 'src/store/slices/ui';
-import EnableTwoFactorModal from 'src/components/modals/EnableTwoFactorModal';
-import DisableTwoFactorModal from 'src/components/modals/DisableTwoFactorModal';
-import { authSelectors } from 'src/store/slices/auth';
-import { getLineHeight } from 'src/styles/global';
-import AppSwitch from 'src/components/AppSwitch';
-import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { appActions } from 'src/store/slices/app';
-import { biometrics } from '@internxt-mobile/services/common';
 
 const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
@@ -32,20 +32,26 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const getColor = useGetColor();
+
   const onBackButtonPressed = () => {
     navigation.goBack();
   };
+
   const onChangePasswordPressed = () => {
     setIsChangePasswordModalOpen(true);
   };
+
   const onChangePasswordModalClosed = () => {
     setIsChangePasswordModalOpen(false);
   };
+
   const onEnableTwoFactorModalClosed = () => dispatch(uiActions.setIsEnableTwoFactorModalOpen(false));
   const onDisableTwoFactorModalClosed = () => dispatch(uiActions.setIsDisableTwoFactorModalOpen(false));
+
   const onEnableTwoFactorPressed = () => {
     dispatch(uiActions.setIsEnableTwoFactorModalOpen(true));
   };
+
   const onDisableTwoFactorPressed = () => {
     dispatch(uiActions.setIsDisableTwoFactorModalOpen(true));
   };
@@ -82,15 +88,20 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
         <DisableTwoFactorModal isOpen={isDisableTwoFactorModalOpen} onClose={onDisableTwoFactorModalClosed} />
       </Portal>
 
-      <AppScreen safeAreaTop safeAreaColor={getColor('text-white')} style={tailwind('flex-1 bg-gray-5')}>
+      <AppScreen
+        safeAreaTop
+        safeAreaBottom
+        safeAreaColor={getColor('bg-surface')}
+        style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}
+      >
         <AppScreenTitle
           text={strings.screens.SecurityScreen.title}
-          containerStyle={tailwind('bg-white')}
+          containerStyle={{ backgroundColor: getColor('bg-surface') }}
           centerText
           onBackButtonPressed={onBackButtonPressed}
         />
-        <ScrollView contentContainerStyle={tailwind('pb-10')}>
-          <View style={tailwind('px-4 pt-8')}>
+        <ScrollView style={{ height: '100%' }} contentContainerStyle={tailwind('pb-10')}>
+          <View style={[tailwind('px-4 pt-8'), { backgroundColor: getColor('bg-gray-5') }]}>
             {/* SCREEN LOCK */}
             {deviceHasBiometricAccess && biometricAccessType ? (
               <SettingsGroup
@@ -101,10 +112,18 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                     template: (
                       <View style={tailwind('p-4 flex flex-row')}>
                         <View style={tailwind('flex-1')}>
-                          <AppText style={tailwind('text-gray-80 text-lg')}>
+                          <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
                             {strings.screens.SecurityScreen.screenLock.subtitle[biometricAccessType]}
                           </AppText>
-                          <AppText style={[tailwind('text-gray-40 text-xs'), { lineHeight: getLineHeight(12, 1.2) }]}>
+                          <AppText
+                            style={[
+                              tailwind('text-xs'),
+                              {
+                                color: getColor('text-gray-60'),
+                                lineHeight: getLineHeight(12, 1.2),
+                              },
+                            ]}
+                          >
                             {strings.screens.SecurityScreen.screenLock.message[biometricAccessType]}
                           </AppText>
                         </View>
@@ -118,7 +137,8 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
               />
             ) : null}
             {/* CHANGE PASSWORD */}
-            <SettingsGroup
+            {/* TEMPORARILY HIDDEN */}
+            {/* <SettingsGroup
               title={strings.screens.SecurityScreen.changePassword.title}
               items={[
                 {
@@ -142,7 +162,7 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                   onPress: onChangePasswordPressed,
                 },
               ]}
-            />
+            /> */}
 
             {/* TWO FACTOR */}
             <SettingsGroup
@@ -152,7 +172,9 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                   key: 'two-factor-text',
                   template: (
                     <View style={tailwind('p-4')}>
-                      <AppText>{strings.screens.SecurityScreen.twoFactor.text}</AppText>
+                      <AppText style={{ color: getColor('text-gray-100') }}>
+                        {strings.screens.SecurityScreen.twoFactor.text}
+                      </AppText>
                     </View>
                   ),
                 },
@@ -162,14 +184,14 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                     <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
                       {is2FAEnabled ? (
                         <>
-                          <AppText style={tailwind('text-red- text-lg')}>
+                          <AppText style={[tailwind('text-lg'), { color: getColor('text-red') }]}>
                             {strings.screens.SecurityScreen.twoFactor.disable}
                           </AppText>
-                          <CaretRight size={20} color={getColor('text-red-')} />
+                          <CaretRight size={20} color={getColor('text-red')} />
                         </>
                       ) : (
                         <>
-                          <AppText style={tailwind('text-lg text-primary')}>
+                          <AppText style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
                             {strings.screens.SecurityScreen.twoFactor.enable}
                           </AppText>
                           <CaretRight size={20} color={getColor('text-primary')} />
