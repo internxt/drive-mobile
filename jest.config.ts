@@ -16,7 +16,6 @@ const untranspiledModulePatterns = [
   'react-native-svg',
   'rn-fetch-blob',
   '@internxt/rn-crypto',
-  '@rudderstack',
   'realm',
 ];
 

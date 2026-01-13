@@ -1,5 +1,5 @@
 import storageService from '@internxt-mobile/services/StorageService';
-import { SearchResult } from '@internxt/sdk/dist/drive/storage/types';
+import { SearchResult } from '@internxt-mobile/types/drive/folder';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const DEFAULT_ITEMS_PER_PAGE = 10;

@@ -19,7 +19,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.8.2</string>
+    <string>1.8.4</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -27,6 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
+          <string>internxt</string>
           <string>inxt</string>
           <string>com.internxt.snacks</string>
         </array>
@@ -55,6 +56,8 @@
     <string>Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service</string>
     <key>RCTRootViewBackgroundColor</key>
     <integer>4294967295</integer>
+    <key>UIDesignRequiresCompatibility</key>
+    <true/>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>

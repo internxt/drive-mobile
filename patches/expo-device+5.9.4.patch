@@ -1,0 +1,21 @@
+diff --git a/node_modules/expo-device/ios/UIDevice.swift b/node_modules/expo-device/ios/UIDevice.swift
+index 7d58ee8..9c2969e 100644
+--- a/node_modules/expo-device/ios/UIDevice.swift
++++ b/node_modules/expo-device/ios/UIDevice.swift
+@@ -184,9 +184,13 @@ public extension UIDevice {
+   // swiftlint:enable closure_body_length
+ 
+   // Credit: https://github.com/developerinsider/isJailBroken/blob/master/IsJailBroken/Extension/UIDevice%2BJailBroken.swift
+-  var isSimulator: Bool {
+-    return TARGET_OS_SIMULATOR != 0
+-  }
++    var isSimulator: Bool {
++        #if targetEnvironment(simulator)
++        return true
++        #else
++        return false
++        #endif
++    }
+ 
+   var isJailbroken: Bool {
+     if UIDevice.current.isSimulator {

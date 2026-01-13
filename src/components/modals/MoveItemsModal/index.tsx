@@ -1,5 +1,6 @@
 import drive from '@internxt-mobile/services/drive';
-import { DriveFileData, DriveFolderData, FetchFolderContentResponse } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
+import { DriveFolderData, FetchFolderContentResponse } from '@internxt-mobile/types/drive/folder';
 import _ from 'lodash';
 import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
@@ -9,15 +10,8 @@ import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
-import {
-  DriveItemDataProps,
-  DriveItemStatus,
-  DriveListItem,
-  DriveListType,
-  DriveListViewMode,
-  SortDirection,
-  SortType,
-} from '../../../types/drive';
+import { DriveItemData, DriveItemStatus, DriveListItem } from '../../../types/drive/item';
+import { DriveListType, DriveListViewMode, SortDirection, SortType } from '../../../types/drive/ui';
 import AppSeparator from '../../AppSeparator';
 import DriveNavigableItem from '../../DriveNavigableItem';
 
@@ -25,6 +19,7 @@ import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from 'tailwind-rn';
+import { checkIsFile, checkIsFolder } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
 import notificationsService from '../../../services/NotificationsService';
@@ -82,7 +77,7 @@ function MoveItemsModal(): JSX.Element {
           status: DriveItemStatus.Idle,
           data: {
             bucket: child.bucket,
-            isFolder: 'fileId' in child ? false : true,
+            isFolder: checkIsFolder(child as any),
             thumbnails: (child as DriveFileData).thumbnails,
             currentThumbnail: null,
             createdAt: child.createdAt,
@@ -106,7 +101,7 @@ function MoveItemsModal(): JSX.Element {
     [sortMode, destinationFolderContentResponse],
   );
 
-  const isFolder = !!(itemToMove && !itemToMove.fileId);
+  const isFolder = checkIsFolder(itemToMove);
   const canGoBack = currentFolderIsRootFolder ? false : true;
   const onMoveButtonPressed = () => {
     setConfirmModalOpen(true);
@@ -170,6 +165,7 @@ function MoveItemsModal(): JSX.Element {
                     plainName: itemToMove.name,
                     folderId: destinationFolderContentResponse.id,
                     folderUuid: destinationFolderId,
+                    isFolder,
                   };
               // Added any because itemToMove is not typed correctly
               driveCtx.addItemToTree(destinationFolderId, itemForDestination as any, isFolder);
@@ -260,7 +256,7 @@ function MoveItemsModal(): JSX.Element {
       notificationsService.show({ type: NotificationType.Error, text1: 'Cannot load origin folder' });
     }
   };
-  const onNavigationButtonPressed = async (item: DriveItemDataProps) => {
+  const onNavigationButtonPressed = async (item: DriveItemData) => {
     if (!item.uuid) return;
     await loadDestinationFolderContent(item?.uuid);
   };
@@ -380,7 +376,7 @@ function MoveItemsModal(): JSX.Element {
               return (
                 <DriveNavigableItem
                   key={item.data.id}
-                  disabled={!!item.data.fileId || item.data.id === itemToMove?.id}
+                  disabled={checkIsFile(item.data as any) || item.data.id === itemToMove?.id}
                   type={DriveListType.Drive}
                   status={DriveItemStatus.Idle}
                   viewMode={DriveListViewMode.List}

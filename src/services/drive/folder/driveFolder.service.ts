@@ -1,10 +1,8 @@
-import { MoveFolderUuidPayload } from '@internxt/sdk/dist/drive/storage/types';
-
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import { getHeaders } from '../../../helpers/headers';
-import { GetModifiedFolders } from '../../../types/drive';
+import { ModifiedFolder } from '../../../types/drive/folder';
 import { constants } from '../../AppService';
 
 class DriveFolderService {
@@ -34,8 +32,14 @@ class DriveFolderService {
     return sdkResult ? sdkResult[0] : Promise.reject('createFolder Sdk method did not return a valid result');
   }
 
-  public async moveFolder(payload: MoveFolderUuidPayload) {
-    return this.sdk.storageV2.moveFolderByUuid(payload);
+  public async moveFolder({
+    destinationFolderUuid,
+    folderUuid,
+  }: {
+    folderUuid: string;
+    destinationFolderUuid: string;
+  }) {
+    return this.sdk.storageV2.moveFolderByUuid(folderUuid, { destinationFolder: destinationFolderUuid });
   }
 
   public async updateMetaData(folderUuid: string, newName: string): Promise<void> {
@@ -60,7 +64,7 @@ class DriveFolderService {
     offset?: number;
     updatedAt: string;
     status: 'ALL' | 'TRASHED' | 'REMOVED';
-  }): Promise<GetModifiedFolders[] | undefined> {
+  }): Promise<ModifiedFolder[] | undefined> {
     const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
     const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
     const newToken = await asyncStorageService.getItem(AsyncStorageKey.PhotosToken);

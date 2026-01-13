@@ -9,7 +9,9 @@ import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import useGetColor from '../../../../../hooks/useColor';
-import { DownloadedThumbnail, DriveItemProps, DriveItemStatus } from '../../../../../types/drive';
+import { DownloadedThumbnail } from '../../../../../types/drive/file';
+import { DriveItemStatus } from '../../../../../types/drive/item';
+import { DriveItemProps } from '../../../../../types/drive/ui';
 import AppText from '../../../../AppText';
 
 function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
@@ -42,6 +44,9 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   useEffect(() => {
     if (props.data.thumbnails && props.data.thumbnails.length && !downloadedThumbnail) {
       InteractionManager.runAfterInteractions(() => {
+        // TODO: NEED TO UPDATE SDK TYPES
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         driveFileService.getThumbnail(props.data.thumbnails[0]).then((downloadedThumbnail) => {
           setDownloadedThumbnail(downloadedThumbnail);
         });

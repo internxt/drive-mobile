@@ -9,11 +9,11 @@ import AppTextInput from '../../AppTextInput';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { authThunks } from '../../../store/slices/auth';
 
-const schema: yup.SchemaOf<EditNameFormData> = yup
+const schema: yup.ObjectSchema<EditNameFormData> = yup
   .object()
   .shape({
     name: yup.string().required(strings.errors.requiredField),
-    lastName: yup.string(),
+    lastName: yup.string().required(),
   })
   .required();
 

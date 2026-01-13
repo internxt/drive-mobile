@@ -1,6 +1,5 @@
 import { SdkManager } from '@internxt-mobile/services/common';
 import {
-  CreateCheckoutSessionPayload,
   CreatePaymentSessionPayload,
   DisplayPrice,
   Invoice,
@@ -105,10 +104,6 @@ class PaymentService {
 
   public async cancelSubscription(): Promise<void> {
     return this.sdk.payments.cancelSubscription();
-  }
-
-  public async createCheckoutSession(payload: CreateCheckoutSessionPayload): Promise<{ sessionId: string }> {
-    return this.sdk.payments.createCheckoutSession(payload);
   }
 
   public getCardImage(brand: PaymentMethod['card']['brand']) {

@@ -1,19 +1,21 @@
-import { items } from '@internxt/lib';
 import { CaretRight } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import React from 'react';
 import { TouchableHighlight, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
-import { FolderIcon, getFileTypeIcon } from '../../helpers';
+import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../helpers';
+import { getDisplayName } from '../../helpers/itemNames';
 import useGetColor from '../../hooks/useColor';
 import globalStyle from '../../styles/global';
-import { DriveNavigableItemProps } from '../../types/drive';
+import { DriveNavigableItemProps } from '../../types/drive/ui';
 import AppText from '../AppText';
 
 const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disabled, ...props }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const isFolder = !props.data.fileId;
+
+  const isFolder = checkIsFolder(props.data);
+
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
 
@@ -54,7 +56,7 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
               numberOfLines={1}
               ellipsizeMode={'middle'}
             >
-              {items.getItemDisplayName(props.data)}
+              {getDisplayName(props.data)}
             </AppText>
 
             <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-50') }]}>

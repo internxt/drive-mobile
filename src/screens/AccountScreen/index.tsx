@@ -173,19 +173,14 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
   }, [verificationEmailTime]);
 
   return (
-    <AppScreen safeAreaTop safeAreaBottom style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+    <AppScreen safeAreaTop style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
       <AppScreenTitle
         text={strings.screens.AccountScreen.title}
         containerStyle={{ backgroundColor: getColor('bg-surface') }}
         centerText
         onBackButtonPressed={onBackButtonPressed}
       />
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingBottom: 80,
-        }}
-      >
+      <ScrollView showsVerticalScrollIndicator={false}>
         <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
           {/* PROFILE PICTURE */}
           <View style={tailwind('items-center my-8 px-4')}>

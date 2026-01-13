@@ -16,7 +16,7 @@ const RELEASE_ID = `${packageVersion} (${env[stage].APP_BUILD_NUMBER}) - ${stage
 
 const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID: string } } = {
   name: 'Internxt',
-  scheme: 'inxt',
+  scheme: 'internxt',
   slug: 'drive-mobile',
   version: packageVersion,
   orientation: 'portrait',
@@ -44,12 +44,18 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     associatedDomains: ['webcredentials:www.internxt.com'],
     buildNumber: env[stage].IOS_BUILD_NUMBER.toString(),
     infoPlist: {
+      UIDesignRequiresCompatibility: true,
       NSFaceIDUsageDescription: 'Protect the app access to secure the available files',
       NSCameraUsageDescription:
         'Allow $(PRODUCT_NAME) to access your camera to upload a newly captured photo to the storage service',
       NSPhotoLibraryAddUsageDescription: 'Allow $(PRODUCT_NAME) to save/download photos from the storage service',
       NSPhotoLibraryUsageDescription:
         'Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service',
+      CFBundleURLTypes: [
+        {
+          CFBundleURLSchemes: ['internxt', 'inxt'],
+        },
+      ],
     },
   },
   android: {
@@ -74,6 +80,9 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
         action: 'VIEW',
         category: ['BROWSABLE', 'DEFAULT'],
         data: [
+          {
+            scheme: 'internxt',
+          },
           {
             scheme: 'inxt',
           },

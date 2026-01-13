@@ -9,12 +9,14 @@ import EmptyList from '../../../components/EmptyList';
 import useGetColor from '../../../hooks/useColor';
 
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
+import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import * as useCases from '@internxt-mobile/useCases/drive';
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
 import NoResultsImage from 'assets/images/screens/no-results.svg';
 import { useTailwind } from 'tailwind-rn';
-import { DriveItemStatus, DriveListType, DriveListViewMode } from '../../../types/drive';
+import { checkIsFolder } from '../../../helpers';
+import { DriveItemStatus } from '../../../types/drive/item';
 
 interface RecentsScreenProps {
   searchText?: string;
@@ -77,7 +79,7 @@ export function RecentsScreen({
             viewMode={DriveListViewMode.List}
             data={{
               ...item,
-              isFolder: item.fileId ? false : true,
+              isFolder: checkIsFolder(item),
             }}
             progress={-1}
           />

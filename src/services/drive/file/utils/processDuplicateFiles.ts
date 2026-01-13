@@ -1,7 +1,7 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { DocumentPickerResponse } from 'react-native-document-picker';
+import { DocumentPickerFile, FileToUpload } from '../../../../types/drive/operations';
 import { getUniqueFilename } from './getUniqueFilename';
-import { FileToUpload } from './prepareFilesToUpload';
 
 interface ProcessDuplicateFilesParams {
   files: DocumentPickerResponse[];
@@ -19,14 +19,10 @@ export const processDuplicateFiles = async ({
   duplicatedFiles,
 }: ProcessDuplicateFilesParams): Promise<{
   newFilesToUpload: FileToUpload[];
-  zeroLengthFiles: number;
 }> => {
-  const zeroLengthFiles = files.filter((file) => file.size === 0).length;
   const newFilesToUpload: FileToUpload[] = [...existingFilesToUpload];
 
-  const processFile = async (file: DocumentPickerResponse): Promise<void> => {
-    if (file.size === 0) return;
-
+  const processFile = async (file: DocumentPickerFile): Promise<void> => {
     const { plainName, extension } = getFilenameAndExt(file.name);
     let finalFilename = plainName;
 
@@ -40,12 +36,14 @@ export const processDuplicateFiles = async ({
       type: extension ?? file.type ?? '',
       uri: file.uri,
       parentUuid: parentFolderUuid,
+      modificationTime: file.modificationTime ?? undefined,
+      creationTime: file.creationTime ?? undefined,
     });
   };
 
-  await Promise.all(files.filter((file) => file.size > 0).map(processFile));
+  await Promise.all(files.map(processFile));
 
-  return { newFilesToUpload, zeroLengthFiles };
+  return { newFilesToUpload };
 };
 
 const getFilenameAndExt = (filename: string): { plainName: string; extension: string } => {

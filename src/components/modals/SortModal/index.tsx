@@ -6,7 +6,7 @@ import strings from '../../../../assets/lang/strings';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-import { SortDirection, SortType } from '../../../types/drive';
+import { SortDirection, SortType } from '../../../types/drive/ui';
 import { BaseModalProps } from '../../../types/ui';
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';

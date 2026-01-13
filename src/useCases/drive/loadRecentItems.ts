@@ -1,6 +1,6 @@
 import { DisplayableError } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from 'assets/lang/strings';
 
 export const loadRecentItems = async (): Promise<DriveFileData[]> => {

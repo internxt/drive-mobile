@@ -8,6 +8,7 @@ import { uiActions } from 'src/store/slices/ui';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import SignInScreen from '../screens/SignInScreen';
 import SignUpScreen from '../screens/SignUpScreen';
+import WebLoginScreen from '../screens/WebLoginScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { driveActions } from '../store/slices/drive';
 import { RootStackParamList } from '../types/navigation';
@@ -79,6 +80,7 @@ function AppNavigator(): JSX.Element {
         }}
       />
       <Stack.Screen name="SignIn" component={SignInScreen} />
+      <Stack.Screen name="WebLogin" component={WebLoginScreen} />
       <Stack.Screen name="DeactivatedAccount" component={DeactivatedAccountScreen} />
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />

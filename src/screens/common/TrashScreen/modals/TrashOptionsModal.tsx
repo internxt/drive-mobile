@@ -1,5 +1,5 @@
 import { time } from '@internxt-mobile/services/common/time';
-import { DriveListItem } from '@internxt-mobile/types/drive';
+import { DriveListItem } from '@internxt-mobile/types/drive/item';
 import strings from 'assets/lang/strings';
 import { ClockCounterClockwise, Trash } from 'phosphor-react-native';
 import prettysize from 'prettysize';

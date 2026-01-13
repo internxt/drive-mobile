@@ -11,7 +11,8 @@ import {
   Trash,
 } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Appearance, Linking, Platform, ScrollView, Switch, View } from 'react-native';
+import { Linking, Platform, ScrollView, View } from 'react-native';
+import AppSwitch from '../../components/AppSwitch';
 
 import { storageSelectors } from 'src/store/slices/storage';
 import { Language } from 'src/types';
@@ -24,6 +25,7 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import SettingsGroup from '../../components/SettingsGroup';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import useGetColor from '../../hooks/useColor';
+import { useScreenProtection } from '../../hooks/useScreenProtection';
 import appService from '../../services/AppService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
@@ -36,59 +38,24 @@ import { fs } from '@internxt-mobile/services/FileSystemService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
 
-import { CaptureProtection, useCaptureProtection } from 'react-native-capture-protection';
+import { useTheme } from '@internxt-mobile/contexts/Theme';
 import { paymentsSelectors } from 'src/store/slices/payments';
-import asyncStorageService from '../../services/AsyncStorageService';
 
 function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [gettingLogs, setGettingLogs] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
-  const { protectionStatus } = useCaptureProtection();
   const scrollViewRef = useRef<ScrollView | null>(null);
+  const { theme, setTheme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [screenProtectionEnabled, setScreenProtectionEnabled] = useState(protectionStatus?.screenshot);
+  const { isEnabled: isScreenProtectionEnabled, setScreenProtection } = useScreenProtection();
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const [profileAvatar, setProfileAvatar] = useState<string>();
   const userFullName = useAppSelector(authSelectors.userFullName);
-
-  useEffect(() => {
-    const loadThemePreference = async () => {
-      try {
-        const savedTheme = await asyncStorageService.getThemePreference();
-
-        if (savedTheme) {
-          setIsDarkMode(savedTheme === 'dark');
-
-          Appearance.setColorScheme(savedTheme);
-        } else {
-          const systemTheme = Appearance.getColorScheme() || 'light';
-          setIsDarkMode(systemTheme === 'dark');
-        }
-      } catch (error) {
-        const systemTheme = Appearance.getColorScheme() || 'light';
-        setIsDarkMode(systemTheme === 'dark');
-      }
-    };
-
-    loadThemePreference();
-  }, []);
-
-  useEffect(() => {
-    const subscription = Appearance.addChangeListener(({ colorScheme: newColorScheme }) => {
-      asyncStorageService.getThemePreference().then((savedTheme) => {
-        if (!savedTheme && newColorScheme) {
-          setIsDarkMode(newColorScheme === 'dark');
-        }
-      });
-    });
-
-    return () => subscription?.remove();
-  }, []);
 
   useEffect(() => {
     if (!user?.avatar) {
@@ -114,38 +81,12 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   }, [user?.avatar]);
 
   const handleDarkModeToggle = async (value: boolean) => {
-    try {
-      const newTheme = value ? 'dark' : 'light';
-      setIsDarkMode(value);
-
-      await asyncStorageService.saveThemePreference(newTheme);
-
-      if (Platform.OS === 'android') {
-        setTimeout(() => {
-          Appearance.setColorScheme(newTheme);
-        }, 100);
-      } else {
-        Appearance.setColorScheme(newTheme);
-      }
-    } catch (error) {
-      setIsDarkMode(!value);
-      Appearance.setColorScheme(!value ? 'dark' : 'light');
-    }
+    const newTheme = value ? 'dark' : 'light';
+    await setTheme(newTheme);
   };
 
   const handleScreenProtection = async (value: boolean) => {
-    try {
-      setScreenProtectionEnabled(value);
-
-      if (value) {
-        await CaptureProtection.prevent();
-      } else {
-        await CaptureProtection.allow();
-      }
-    } catch (error) {
-      setScreenProtectionEnabled(true);
-      await CaptureProtection.prevent();
-    }
+    await setScreenProtection(value);
   };
 
   const onAccountPressed = () => {
@@ -212,7 +153,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     <>
       <AppScreen
         safeAreaTop
-        safeAreaBottom
         safeAreaColor={getColor('bg-surface')}
         backgroundColor={getColor('bg-gray-5')}
         style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}
@@ -227,13 +167,8 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
             </View>
           }
         />
-        <ScrollView
-          ref={scrollViewRef}
-          contentContainerStyle={{
-            paddingBottom: 80,
-          }}
-        >
-          <View style={[tailwind('px-4 pt-8 pb-10 mb-10 flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <ScrollView ref={scrollViewRef}>
+          <View style={[tailwind('px-4 pt-8  flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
             {/* ACCOUNT */}
             <SettingsGroup
               style={tailwind('mb-2')}
@@ -354,7 +289,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                         </AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
-                        <Switch
+                        <AppSwitch
                           trackColor={{
                             false: getColor('text-gray-20'),
                             true: getColor('text-primary'),
@@ -383,7 +318,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                         </AppText>
                       </View>
                       <View style={tailwind('flex-row items-center')}>
-                        <Switch
+                        <AppSwitch
                           trackColor={{
                             false: getColor('text-gray-20'),
                             true: getColor('text-primary'),
@@ -391,7 +326,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                           thumbColor={isDarkMode ? getColor('text-white') : getColor('text-gray-40')}
                           ios_backgroundColor={getColor('text-gray-20')}
                           onValueChange={handleScreenProtection}
-                          value={screenProtectionEnabled}
+                          value={isScreenProtectionEnabled}
                         />
                       </View>
                     </View>

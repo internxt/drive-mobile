@@ -1,6 +1,6 @@
-import { DriveListViewMode } from '@internxt-mobile/types/drive';
+import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import React, { useState } from 'react';
-import { View, Animated, Easing } from 'react-native';
+import { Animated, Easing, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 const DriveItemSkinSkeleton: React.FC<{ viewMode?: DriveListViewMode }> = ({ viewMode }) => {

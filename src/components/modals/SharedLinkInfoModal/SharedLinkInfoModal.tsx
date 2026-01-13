@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
-import { FolderIcon, getFileTypeIcon } from '../../../helpers';
+import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../../helpers';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { uiActions } from '../../../store/slices/ui';
 import globalStyle from '../../../styles/global';
@@ -44,7 +44,7 @@ export function SharedLinkInfoModal(): JSX.Element {
     return <></>;
   }
 
-  const isFolder = !item.fileId;
+  const isFolder = checkIsFolder(item);
 
   const handleCopyLink = async () => {
     const existingLink = await driveUseCases.generateShareLink({

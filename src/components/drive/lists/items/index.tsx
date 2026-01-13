@@ -11,10 +11,11 @@ import ProgressBar from '../../../AppProgressBar';
 import AppText from '../../../AppText';
 
 import { time } from '@internxt-mobile/services/common/time';
+import { DriveListType } from '@internxt-mobile/types/drive/ui';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../hooks/useColor';
 import useDriveItem from '../../../../hooks/useDriveItem';
-import { DriveItemProps, DriveListType } from '../../../../types/drive';
+import { DriveItemProps } from '../../../../types/drive/ui';
 
 function DriveItemTable(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();

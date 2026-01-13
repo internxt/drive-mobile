@@ -54,7 +54,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       } catch {
         const isDeletingAccount = await asyncStorageService.getItem(AsyncStorageKey.IsDeletingAccount);
         if (isDeletingAccount) {
-          dispatch(authThunks.signOutThunk());
+          dispatch(authThunks.signOutThunk({ reason: 'manual' }));
           props.navigation.replace('DeactivatedAccount');
         }
       }

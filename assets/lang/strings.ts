@@ -2,7 +2,7 @@
 import LocalizedStrings from 'react-native-localization';
 import { NotificationType } from '../../src/types';
 import { BiometricAccessType } from '../../src/types/app';
-import { SortType } from '../../src/types/drive';
+import { SortType } from '../../src/types/drive/ui';
 
 const strings = new LocalizedStrings({
   en: {
@@ -122,9 +122,16 @@ const strings = new LocalizedStrings({
       SignInScreen: {
         title: 'Login',
         forgot: 'Forgot your password?',
-        no_register: 'Don’t have an Internxt account?',
+        no_register: "Don't have an Internxt account?",
         register: 'Get started',
         back: 'Back to login',
+        errorOpeningLink: 'Error opening login link',
+      },
+      WebLoginScreen: {
+        processing: 'Completing sign in...',
+        success: 'Sign in successful!',
+        authenticationFailed: 'Authentication failed',
+        missingParameters: 'Missing required authentication parameters',
       },
       SignUpScreen: {
         title: 'Create account',
@@ -148,6 +155,7 @@ const strings = new LocalizedStrings({
         create_account_title: 'Create an Internxt account',
         acceptTermsAndConditions: 'Accept terms, conditions and privacy policy',
         alreadyHaveAccount: 'Already have an account?',
+        errorOpeningLink: 'Error opening signup link',
       },
       home: {
         title: 'Home',
@@ -893,6 +901,13 @@ const strings = new LocalizedStrings({
         no_register: '¿No tienes una cuenta de Internxt?',
         register: 'Regístrate',
         back: 'Iniciar sesión',
+        errorOpeningLink: 'Error al abrir el link de autenticación',
+      },
+      WebLoginScreen: {
+        processing: 'Completando inicio de sesión...',
+        success: '¡Sesión iniciada con éxito!',
+        authenticationFailed: 'Autenticación fallida',
+        missingParameters: 'Faltan parámetros de autenticación requeridos',
       },
       SignUpScreen: {
         title: 'Crear cuenta',
@@ -917,6 +932,7 @@ const strings = new LocalizedStrings({
         create_account_title: 'Crear cuenta',
         acceptTermsAndConditions: 'Aceptar términos, condiciones y política de privacidad',
         alreadyHaveAccount: '¿Ya tienes una cuenta?',
+        errorOpeningLink: 'Error al abrir el link de registro',
       },
       home: {
         title: 'Inicio',

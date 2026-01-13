@@ -4,28 +4,38 @@ import uuid from 'react-native-uuid';
 import strings from '../../../../../assets/lang/strings';
 import { isValidFilename } from '../../../../helpers';
 import { driveActions } from '../../../../store/slices/drive';
-import { UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../../types/drive';
+import {
+  DocumentPickerFile,
+  FileToUpload,
+  UPLOAD_FILE_SIZE_LIMIT,
+  UploadingFile,
+} from '../../../../types/drive/operations';
 import { checkDuplicatedFiles, File } from './checkDuplicatedFiles';
-import { FileToUpload, prepareFilesToUpload } from './prepareFilesToUpload';
+import { prepareFilesToUpload } from './prepareFilesToUpload';
 
 import errorService from '../../../ErrorService';
 
+import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
 import { Dispatch } from 'react';
+import { Action } from 'redux';
 import { DriveFoldersTreeNode } from '../../../../contexts/Drive';
+import { getEnvironmentConfig } from '../../../../lib/network';
 import { NotificationType } from '../../../../types';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
+import { uploadService } from '../../../common/network/upload/upload.service';
 import notificationsService from '../../../NotificationsService';
+import { BucketNotFoundError } from './upload.errors';
 
 /**
  * Validate file names and filter out files exceeding the upload size limit.
  *
- * @param {DocumentPickerResponse[]} documents - Array of selected documents.
- * @returns {{ filesToUpload: DocumentPickerResponse[], filesExcluded: DocumentPickerResponse[] }}
+ * @param {DocumentPickerFile[]} documents - Array of selected documents.
+ * @returns {{ filesToUpload: DocumentPickerFile[], filesExcluded: DocumentPickerFile[] }}
  */
-export function validateAndFilterFiles(documents: DocumentPickerResponse[]) {
-  const filesToUpload: DocumentPickerResponse[] = [];
-  const filesExcluded: DocumentPickerResponse[] = [];
+export function validateAndFilterFiles(documents: DocumentPickerFile[]) {
+  const filesToUpload: DocumentPickerFile[] = [];
+  const filesExcluded: DocumentPickerFile[] = [];
 
   if (!documents.every((file) => isValidFilename(file.name))) {
     throw new Error('Some file names are not valid');
@@ -45,9 +55,9 @@ export function validateAndFilterFiles(documents: DocumentPickerResponse[]) {
 /**
  * Show an alert when some files exceed the upload size limit.
  *
- * @param {DocumentPickerResponse[]} filesExcluded - Files that were excluded due to size.
+ * @param {DocumentPickerFile[]} filesExcluded - Files that were excluded due to size.
  */
-export function showFileSizeAlert(filesExcluded: DocumentPickerResponse[]) {
+export function showFileSizeAlert(filesExcluded: DocumentPickerFile[]) {
   if (filesExcluded.length === 0) return;
 
   const messageKey = filesExcluded.length === 1 ? strings.messages.uploadFileLimit : strings.messages.uploadFilesLimit;
@@ -58,30 +68,28 @@ export function showFileSizeAlert(filesExcluded: DocumentPickerResponse[]) {
 /**
  * Handle duplicate files by checking for existing files in the target folder and optionally prompting the user.
  *
- * @param {DocumentPickerResponse[]} files - Files to check for duplication.
+ * @param {DocumentPickerFile[]} files - Files to check for duplication.
  * @param {string} folderUuid - UUID of the destination folder.
- * @returns {Promise<DocumentPickerResponse[]>} - Files to proceed with after handling duplicates.
+ * @returns {Promise<DocumentPickerFile[]>} - Files to proceed with after handling duplicates.
  */
 export async function handleDuplicateFiles(
-  files: DocumentPickerResponse[],
+  files: DocumentPickerFile[],
   folderUuid: string,
-): Promise<DocumentPickerResponse[]> {
+): Promise<DocumentPickerFile[]> {
   const mappedFiles = files.map((file) => ({
-    name: file.name,
-    uri: file.uri,
-    size: file.size,
+    ...file,
     type: file.type ?? '',
   }));
 
   const { filesWithoutDuplicates, filesWithDuplicates } = await checkDuplicatedFiles(mappedFiles, folderUuid);
 
-  let filesToProcess = [...filesWithoutDuplicates] as DocumentPickerResponse[];
+  let filesToProcess = [...filesWithoutDuplicates] as DocumentPickerFile[];
 
   if (filesWithDuplicates.length > 0) {
     const shouldUploadDuplicates = await askUserAboutDuplicates(filesWithDuplicates);
 
     if (shouldUploadDuplicates) {
-      filesToProcess = [...filesToProcess, ...(filesWithDuplicates as DocumentPickerResponse[])];
+      filesToProcess = [...filesToProcess, ...(filesWithDuplicates as DocumentPickerFile[])];
     }
   }
 
@@ -163,6 +171,8 @@ export function createUploadingFiles(
       size: preparedFile.size,
       progress: 0,
       uploaded: false,
+      modificationTime: preparedFile.modificationTime,
+      creationTime: preparedFile.creationTime,
     };
 
     formattedFiles.push(fileToUpload);
@@ -197,6 +207,34 @@ async function trackUploadError(file: UploadingFile, err: Error) {
 }
 
 /**
+ * Utility to check if a file is empty (0 bytes)
+ */
+export function isFileEmpty(file: { size: number }): boolean {
+  return file.size === 0;
+}
+
+/**
+ * Create a file entry without uploading content (for empty files)
+ */
+export async function createEmptyFileEntry(bucketId: string, file: UploadingFile): Promise<DriveFileData> {
+  const modificationTimeISO = file.modificationTime ? new Date(file.modificationTime).toISOString() : undefined;
+  const creationTimeISO = file.creationTime ? new Date(file.creationTime).toISOString() : undefined;
+
+  const fileEntry: FileEntryByUuid = {
+    type: file.type,
+    size: file.size,
+    plainName: file.name,
+    bucket: bucketId,
+    folderUuid: file.parentUuid,
+    encryptVersion: EncryptionVersion.Aes03,
+    modificationTime: modificationTimeISO,
+    creationTime: creationTimeISO,
+  };
+
+  return uploadService.createFileEntry(fileEntry);
+}
+
+/**
  * Upload a single file, handle errors, and update Redux state accordingly.
  *
  * @param {UploadingFile} file - The file to upload.
@@ -206,12 +244,22 @@ async function trackUploadError(file: UploadingFile, err: Error) {
  */
 export async function uploadSingleFile(
   file: UploadingFile,
-  dispatch: Dispatch<any>,
+  dispatch: Dispatch<Action>,
   uploadFile: (uploadingFile: UploadingFile, fileType: 'document' | 'image') => Promise<void>,
   uploadSuccess: (file: UploadingFile) => void,
 ) {
   try {
-    await uploadFile(file, 'document');
+    if (isFileEmpty(file)) {
+      const { bucketId } = await getEnvironmentConfig();
+
+      if (!bucketId) {
+        throw new BucketNotFoundError();
+      }
+
+      await createEmptyFileEntry(bucketId, file);
+    } else {
+      await uploadFile(file, 'document');
+    }
     uploadSuccess(file);
   } catch (e) {
     const err = e as Error;

@@ -18,6 +18,7 @@ module.exports = function (api) {
             '@internxt-mobile/services': './src/services',
             '@internxt-mobile/types': './src/types',
             '@internxt-mobile/useCases': './src/useCases',
+            '@internxt-mobile/contexts': './src/contexts',
           },
         },
       ],

@@ -1,4 +1,4 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { driveFileService } from '../driveFile.service';
 
 export interface DuplicatedFilesResult {
@@ -18,6 +18,8 @@ export interface File {
   uri: string;
   size: number;
   type?: string;
+  modificationTime?: string;
+  creationTime?: string;
 }
 
 export const checkDuplicatedFiles = async (files: File[], parentFolderUuid: string): Promise<DuplicatedFilesResult> => {

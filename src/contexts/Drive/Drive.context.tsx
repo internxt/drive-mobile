@@ -1,5 +1,8 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { DriveFileForTree, DriveFolderForTree, DriveItemData, DriveListViewMode } from '@internxt-mobile/types/drive';
+import { DriveFileForTree, Thumbnail } from '@internxt-mobile/types/drive/file';
+import { DriveFolderForTree } from '@internxt-mobile/types/drive/folder';
+import { DriveItemData } from '@internxt-mobile/types/drive/item';
+import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -8,6 +11,7 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
+import { mapFileWithIsFolder, mapFolderWithIsFolder } from 'src/helpers/driveItemMappers';
 
 export type DriveFoldersTreeNode = {
   name: string;
@@ -32,7 +36,11 @@ export interface DriveContextType {
   toggleViewMode: () => void;
   loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
   focusedFolder: DriveFoldersTreeNode | null;
-  updateItemInTree: (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => void;
+  updateItemInTree: (
+    folderId: string,
+    itemId: number,
+    updates: { name?: string; plainName?: string; thumbnails?: Thumbnail[] },
+  ) => void;
   removeItemFromTree: (folderId: string, itemId: number) => void;
   addItemToTree: (folderId: string, item: DriveItemData, isFolder: boolean) => void;
 }
@@ -134,8 +142,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     return {
       thereAreMoreFiles,
       thereAreMoreFolders,
-      folders: foldersInFolder.folders.map((folder) => {
-        const driveFolder = {
+      folders: foldersInFolder.folders.map((folder) =>
+        mapFolderWithIsFolder({
           ...folder,
           updatedAt: folder.updatedAt.toString(),
           createdAt: folder.createdAt.toString(),
@@ -145,15 +153,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           uuid: folder.uuid,
           id: folder.id,
           userId: folder.userId,
-          // @ts-expect-error - API is returning status, missing from SDK
           status: folder.status,
-          isFolder: true,
-        };
-
-        return driveFolder;
-      }),
-      files: filesInFolder.files.map((file) => {
-        const driveFile = {
+        }),
+      ),
+      files: filesInFolder.files.map((file) =>
+        mapFileWithIsFolder({
           ...file,
           uuid: file.uuid,
           id: file.id,
@@ -164,14 +168,14 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           createdAt: file.createdAt.toString(),
           updatedAt: file.updatedAt.toString(),
           deletedAt: null,
+          deleted: false,
           status: file.status,
-          size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
+          size: Number(file.size),
           folderId: file.folderId,
+          // @ts-expect-error - API is returning thumbnails, missing from SDK
           thumbnails: file.thumbnails ?? [],
-        };
-
-        return driveFile;
-      }),
+        }),
+      ),
     };
   };
 
@@ -184,24 +188,25 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     const folderContent = await driveFolderService.getFolderContentByUuid(folderId);
 
     return {
-      folders: folderContent.children.map((folder) => ({
-        uuid: folder.uuid,
-        plainName: folder.plainName || folder.plain_name || '',
-        id: folder.id,
-        bucket: folder.bucket || null,
-        createdAt: folder.createdAt,
-        deleted: false,
-        name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
-        parentId: folder.parentId || folder.parent_id || null,
-        parentUuid: folderId,
-        updatedAt: folder.updatedAt,
-        userId: folder.userId,
-        // @ts-expect-error - API is returning status, missing from SDK
-        status: folder.status,
-        isFolder: true,
-      })),
-      files: folderContent.files.map(
-        (file): DriveFileForTree => ({
+      folders: folderContent.children.map((folder) =>
+        mapFolderWithIsFolder({
+          uuid: folder.uuid,
+          plainName: folder.plainName || folder.plain_name || '',
+          id: folder.id,
+          bucket: folder.bucket || null,
+          createdAt: folder.createdAt,
+          deleted: false,
+          name: folder.plainName ?? folder.plain_name ?? (folder.name || ''),
+          parentId: folder.parentId || folder.parent_id || null,
+          parentUuid: folderId,
+          updatedAt: folder.updatedAt,
+          userId: folder.userId,
+          // @ts-expect-error - API is returning status, missing from SDK
+          status: folder.status,
+        }),
+      ),
+      files: folderContent.files.map((file) =>
+        mapFileWithIsFolder({
           uuid: file.uuid,
           plainName: file.plainName || file.plain_name || '',
           bucket: file.bucket,
@@ -324,7 +329,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     });
   };
 
-  const updateItemInTree = (folderId: string, itemId: number, updates: { name?: string; plainName?: string }) => {
+  const updateItemInTree = (
+    folderId: string,
+    itemId: number,
+    updates: { name?: string; plainName?: string; thumbnails?: Thumbnail[] },
+  ) => {
     setDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
       if (!folder) return prevTree;

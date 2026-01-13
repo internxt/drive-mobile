@@ -190,7 +190,8 @@ export class FileObjectUpload extends EventEmitter {
     const fileIterator = fileManager.iterator(determineShardSize(this.fileMeta.size));
 
     for (let i = 0; i < nShards; i++) {
-      shardBuffer = Buffer.from(await fileIterator.next());
+      const chunk = await fileIterator.next();
+      shardBuffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 
       cipher.write(shardBuffer);
 

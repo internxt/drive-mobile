@@ -1,4 +1,4 @@
-import { InsertSqliteDriveItemRowData } from '../../../../types/drive';
+import { InsertSqliteDriveItemRowData } from '../../../../types/drive/item';
 
 const TABLE_NAME = 'drive_item';
 
