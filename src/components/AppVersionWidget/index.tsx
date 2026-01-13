@@ -1,4 +1,4 @@
-import { checkForUpdateAsync, useUpdates } from 'expo-updates';
+import { checkForUpdateAsync } from 'expo-updates';
 import { useEffect } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -14,19 +14,11 @@ interface AppVersionWidgetProps {
 function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
   const tailwind = useTailwind();
 
-  const { isUpdateAvailable, isUpdatePending } = useUpdates();
-
   useEffect(() => {
     if (appService.constants.NODE_ENV === 'production') {
       checkForUpdateAsync().catch(() => undefined);
     }
   }, []);
-
-  useEffect(() => {
-    if (isUpdateAvailable || isUpdatePending) {
-      // Handle update availability if needed
-    }
-  }, [isUpdateAvailable, isUpdatePending]);
 
   return (
     <View style={props.style}>

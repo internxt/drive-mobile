@@ -34,20 +34,6 @@ const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
     return color;
   };
 
-  // useEffect(() => {
-  //   const measure = async () => {
-  //     try {
-  //       const result: NetworkBandwidthTestResults = await measureConnectionSpeed();
-  //       setSpeed(result.speed);
-  //     } catch (err) {
-  //       const castedError = errorService.castError(err);
-  //       notificationsService.show({ text1: castedError.message, type: NotificationType.Error });
-  //     }
-  //   };
-
-  //   measure();
-  // });
-
   return (
     <View style={[tailwind('flex-row justify-center'), props.style]}>
       <AppText style={tailwind('text-gray-100')}>{`${strings.screens.DebugScreen.internet.speed}: `}</AppText>
