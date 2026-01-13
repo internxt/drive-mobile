@@ -5,10 +5,10 @@ import { FileExtension } from '@internxt-mobile/types/drive/file';
 
 import * as RNFS from '@dr.pogodin/react-native-fs';
 
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 
 export type GeneratedThumbnail = {
   size: number;
@@ -107,7 +107,7 @@ class ImageService {
    * @param cacheKey Key to identify the cached image and retrieve it
    */
   public cacheImage = async (imageUri: string, cacheKey: string) => {
-    const path = fs.getDocumentsDir() + `/cached_${cacheKey}`;
+    const path = fs.getCacheDir() + `/cached_${cacheKey}`;
     await fs.unlinkIfExists(path);
 
     const download = RNFS.downloadFile({
@@ -132,7 +132,7 @@ class ImageService {
    * @returns The path to the filesystem
    */
   public getCachedImage = async (cacheKey: string) => {
-    const path = fs.getDocumentsDir() + `/cached_${cacheKey}`;
+    const path = fs.getCacheDir() + `/cached_${cacheKey}`;
 
     const exists = await fs.exists(path);
 
