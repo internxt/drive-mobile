@@ -14,11 +14,6 @@ export interface BaseFormProps {
   }) => JSX.Element;
 }
 
-export interface SignUpFormData {
-  email: string;
-  password: string;
-}
-
 export interface ChangePasswordFormData {
   newPassword: string;
   confirmNewPassword: string;
