@@ -20,7 +20,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   slug: 'drive-mobile',
   version: packageVersion,
   orientation: 'portrait',
-  newArchEnabled: true,
+  newArchEnabled: false,
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
@@ -40,6 +40,11 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     icon: './assets/icon-ios.png',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
+    appleTeamId: 'JR4S3SY396',
+    entitlements: {
+      'com.apple.security.application-groups': ['group.com.internxt.snacks'],
+      'keychain-access-groups': ['$(AppIdentifierPrefix)group.com.internxt.snacks'],
+    },
     usesIcloudStorage: true,
     backgroundColor: '#FFFFFF',
     associatedDomains: ['webcredentials:www.internxt.com'],
@@ -109,7 +114,12 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   },
   plugins: [
     'expo-font',
-    'expo-secure-store',
+    [
+      'expo-secure-store',
+      {
+        faceIDPermission: 'Allow $(PRODUCT_NAME) to access your FaceID',
+      },
+    ],
     [
       'expo-splash-screen',
       {
@@ -118,6 +128,62 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
           image: './assets/images/splash.png',
           resizeMode: 'contain',
         },
+      },
+    ],
+    [
+      'expo-share-extension',
+      {
+        devUrl: 'http://localhost:8081/index.share.bundle?platform=ios&dev=true&minify=false',
+        // Entry point para el share extension
+        entryPoint: './index.share.js',
+        // App Groups (ya existe en el proyecto)
+        appGroups: ['group.com.internxt.snacks'],
+        // Reglas de activación - array de configuraciones
+        activationRules: [
+          {
+            type: 'file',
+            max: 25,
+          },
+          {
+            type: 'image',
+            max: 25,
+          },
+          {
+            type: 'video',
+            max: 25,
+          },
+          {
+            type: 'text',
+          },
+          {
+            type: 'url',
+            max: 1,
+          },
+        ],
+        // Excluir paquetes que causan problemas en share extensions
+        excludedPackages: [
+          'expo-splash-screen',
+          'expo-dev-client',
+          'expo-updates',
+          'expo-router',
+          'react-native-reanimated',
+          'react-native-screens',
+          'react-native-safe-area-context',
+          'react-native-gesture-handler',
+          'react-native-video',
+          'react-native-webview',
+          'react-native-fast-image',
+          'react-native-svg',
+          '@shopify/flash-list',
+        ],
+        // Configuración de UI
+        backgroundColor: {
+          red: 9,
+          green: 30,
+          blue: 66,
+          alpha: 1,
+        },
+        height: 600,
       },
     ],
   ],

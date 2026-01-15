@@ -5,6 +5,14 @@ import { UserData, UserKeysHandler } from './UserKeysHandler';
 
 const CRITICAL_USER_FIELDS = ['mnemonic', 'privateKey', 'publicKey', 'keys', 'revocationKey', 'revocateKey'];
 
+/**
+ * CHECK IF JR4S3SY396 IS NECESSARY IN THE KEYCHAIN SERVICE,
+ * TESTED WITHOUT AND NOT WORKING IN SHARE EXTENSION.
+ */
+const SECURE_STORE_OPTIONS: SecureStore.SecureStoreOptions = {
+  keychainService: 'JR4S3SY396.group.com.internxt.snacks',
+};
+
 class SecureStorageService {
   private readonly MAX_CHUNK_SIZE = 1800;
   private readonly keysHandler: UserKeysHandler;
@@ -83,6 +91,7 @@ class SecureStorageService {
     }
     return existingItems;
   }
+
   // HANDLE USER DATA FUNCTIONS
 
   private async setUserData(key: string, value: string): Promise<void> {
@@ -180,7 +189,7 @@ class SecureStorageService {
     const valueBytes = this.getStringByteSize(value);
 
     if (valueBytes <= this.MAX_CHUNK_SIZE) {
-      await SecureStore.setItemAsync(key, value);
+      await SecureStore.setItemAsync(key, value, SECURE_STORE_OPTIONS);
       logger.info(`Saved ${key} (${valueBytes}b)`);
     } else {
       await this.storeValueInChunks(key, value, valueBytes);
@@ -193,10 +202,10 @@ class SecureStorageService {
       chunks.push(value.slice(i, i + this.MAX_CHUNK_SIZE));
     }
 
-    await SecureStore.setItemAsync(`${key}_chunks`, chunks.length.toString());
+    await SecureStore.setItemAsync(`${key}_chunks`, chunks.length.toString(), SECURE_STORE_OPTIONS);
 
     for (let i = 0; i < chunks.length; i++) {
-      await SecureStore.setItemAsync(`${key}_chunk_${i}`, chunks[i]);
+      await SecureStore.setItemAsync(`${key}_chunk_${i}`, chunks[i], SECURE_STORE_OPTIONS);
     }
 
     logger.info(`Saved ${key} in ${chunks.length} chunks (${valueBytes}b total)`);
@@ -204,7 +213,7 @@ class SecureStorageService {
 
   private async getLargeValue(key: string): Promise<string | null> {
     try {
-      const singleValue = await SecureStore.getItemAsync(key);
+      const singleValue = await SecureStore.getItemAsync(key, SECURE_STORE_OPTIONS);
       if (singleValue) {
         return singleValue;
       }
@@ -217,7 +226,7 @@ class SecureStorageService {
   }
 
   private async reconstructFromChunks(key: string): Promise<string | null> {
-    const chunksCountStr = await SecureStore.getItemAsync(`${key}_chunks`);
+    const chunksCountStr = await SecureStore.getItemAsync(`${key}_chunks`, SECURE_STORE_OPTIONS);
     if (!chunksCountStr) {
       return null;
     }
@@ -226,7 +235,7 @@ class SecureStorageService {
     const chunks: string[] = [];
 
     for (let i = 0; i < chunksCount; i++) {
-      const chunk = await SecureStore.getItemAsync(`${key}_chunk_${i}`);
+      const chunk = await SecureStore.getItemAsync(`${key}_chunk_${i}`, SECURE_STORE_OPTIONS);
       if (chunk) {
         chunks.push(chunk);
       } else {
@@ -240,15 +249,15 @@ class SecureStorageService {
 
   private async removeLargeValue(key: string): Promise<void> {
     try {
-      await SecureStore.deleteItemAsync(key);
+      await SecureStore.deleteItemAsync(key, SECURE_STORE_OPTIONS);
 
-      const chunksCountStr = await SecureStore.getItemAsync(`${key}_chunks`);
+      const chunksCountStr = await SecureStore.getItemAsync(`${key}_chunks`, SECURE_STORE_OPTIONS);
       if (chunksCountStr) {
         const chunksCount = parseInt(chunksCountStr, 10);
-        await SecureStore.deleteItemAsync(`${key}_chunks`);
+        await SecureStore.deleteItemAsync(`${key}_chunks`, SECURE_STORE_OPTIONS);
 
         for (let i = 0; i < chunksCount; i++) {
-          await SecureStore.deleteItemAsync(`${key}_chunk_${i}`);
+          await SecureStore.deleteItemAsync(`${key}_chunk_${i}`, SECURE_STORE_OPTIONS);
         }
       }
     } catch (error) {
@@ -258,18 +267,18 @@ class SecureStorageService {
 
   // CHECK DATA FUNCTIONS
   private async userDataExists(key: string): Promise<boolean> {
-    const dataExists = await SecureStore.getItemAsync(`${key}_data`);
+    const dataExists = await SecureStore.getItemAsync(`${key}_data`, SECURE_STORE_OPTIONS);
     if (dataExists) return true;
 
-    const chunksExists = await SecureStore.getItemAsync(`${key}_data_chunks`);
+    const chunksExists = await SecureStore.getItemAsync(`${key}_data_chunks`, SECURE_STORE_OPTIONS);
     return chunksExists !== null;
   }
 
   private async valueExists(key: string): Promise<boolean> {
-    const singleValue = await SecureStore.getItemAsync(key);
+    const singleValue = await SecureStore.getItemAsync(key, SECURE_STORE_OPTIONS);
     if (singleValue) return true;
 
-    const chunksExists = await SecureStore.getItemAsync(`${key}_chunks`);
+    const chunksExists = await SecureStore.getItemAsync(`${key}_chunks`, SECURE_STORE_OPTIONS);
     return chunksExists !== null;
   }
 

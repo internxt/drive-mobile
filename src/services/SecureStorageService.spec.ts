@@ -55,7 +55,9 @@ describe('SecureStorageService', () => {
 
       await secureStorageService.setItem('testKey', 'testValue');
 
-      expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith('testKey', 'testValue');
+      expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith('testKey', 'testValue', {
+        keychainService: 'JR4S3SY396.group.com.internxt.snacks',
+      });
     });
 
     it('Should retrieve a regular item from SecureStore', async () => {
@@ -64,7 +66,9 @@ describe('SecureStorageService', () => {
       const result = await secureStorageService.getItem('testKey');
 
       expect(result).toBe('testValue');
-      expect(mockedSecureStore.getItemAsync).toHaveBeenCalledWith('testKey');
+      expect(mockedSecureStore.getItemAsync).toHaveBeenCalledWith('testKey', {
+        keychainService: 'JR4S3SY396.group.com.internxt.snacks',
+      });
     });
 
     it('Should remove a regular item from SecureStore', async () => {
@@ -72,7 +76,9 @@ describe('SecureStorageService', () => {
 
       await secureStorageService.removeItem('testKey');
 
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('testKey');
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('testKey', {
+        keychainService: 'JR4S3SY396.group.com.internxt.snacks',
+      });
     });
   });
 
@@ -85,37 +91,45 @@ describe('SecureStorageService', () => {
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_mnemonic`,
         JSON.stringify(mockUserData.mnemonic),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_privateKey`,
         JSON.stringify(mockUserData.privateKey),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_publicKey`,
         JSON.stringify(mockUserData.publicKey),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
 
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_ecc_privateKey`,
         mockUserData.keys.ecc.privateKey,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_ecc_publicKey`,
         mockUserData.keys.ecc.publicKey,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
 
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_kyber_privateKey_chunks`,
         '2',
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_kyber_privateKey_chunk_0`,
         expect.any(String),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
 
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_data`,
         expect.stringContaining('"email":"test@example.com"'),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
     });
 
@@ -153,6 +167,7 @@ describe('SecureStorageService', () => {
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_data_chunks`,
         expect.any(String),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
     });
   });
@@ -242,14 +257,17 @@ describe('SecureStorageService', () => {
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_kyber_privateKey_chunks`,
         '2',
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_kyber_privateKey_chunk_0`,
         expect.any(String),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_kyber_privateKey_chunk_1`,
         expect.any(String),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
     });
 
@@ -294,10 +312,12 @@ describe('SecureStorageService', () => {
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_ecc_privateKey`,
         userDataWithSmallKeys.keys.ecc.privateKey,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).not.toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_keys_ecc_privateKey_chunks`,
         expect.any(String),
+        expect.any(Object),
       );
     });
 
@@ -336,10 +356,12 @@ describe('SecureStorageService', () => {
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_data_chunks`,
         expect.any(String),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
       expect(mockedSecureStore.setItemAsync).toHaveBeenCalledWith(
         `${AsyncStorageKey.User}_data_chunk_0`,
         expect.any(String),
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
       );
     });
 
@@ -419,11 +441,26 @@ describe('SecureStorageService', () => {
 
       await secureStorageService.removeItem(AsyncStorageKey.User);
 
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(`${AsyncStorageKey.User}_mnemonic`);
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(`${AsyncStorageKey.User}_privateKey`);
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(`${AsyncStorageKey.User}_keys_ecc_privateKey`);
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(`${AsyncStorageKey.User}_keys_kyber_privateKey`);
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(`${AsyncStorageKey.User}_data`);
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(
+        `${AsyncStorageKey.User}_mnemonic`,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
+      );
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(
+        `${AsyncStorageKey.User}_privateKey`,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
+      );
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(
+        `${AsyncStorageKey.User}_keys_ecc_privateKey`,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
+      );
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(
+        `${AsyncStorageKey.User}_keys_kyber_privateKey`,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
+      );
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith(
+        `${AsyncStorageKey.User}_data`,
+        { keychainService: 'JR4S3SY396.group.com.internxt.snacks' },
+      );
     });
 
     it('Should remove multiple items', async () => {
@@ -432,8 +469,12 @@ describe('SecureStorageService', () => {
 
       await secureStorageService.removeMultipleItems(['key1', 'key2']);
 
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('key1');
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('key2');
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('key1', {
+        keychainService: 'JR4S3SY396.group.com.internxt.snacks',
+      });
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('key2', {
+        keychainService: 'JR4S3SY396.group.com.internxt.snacks',
+      });
     });
   });
 
@@ -470,7 +511,9 @@ describe('SecureStorageService', () => {
 
       await secureStorageService.removeItem('testKey');
 
-      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('testKey');
+      expect(mockedSecureStore.deleteItemAsync).toHaveBeenCalledWith('testKey', {
+        keychainService: 'JR4S3SY396.group.com.internxt.snacks',
+      });
     });
 
     it('Should handle JSON parsing errors when retrieving user data', async () => {

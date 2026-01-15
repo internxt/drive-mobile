@@ -1,6 +1,7 @@
 {
   "name": "drive-mobile",
   "version": "v1.8.4",
+  "main": "index.js",
   "private": true,
   "license": "GNU",
   "scripts": {
@@ -68,12 +69,12 @@
     "expo-media-library": "~17.0.6",
     "expo-navigation-bar": "~4.0.9",
     "expo-secure-store": "~14.0.1",
+    "expo-share-extension": "^3.0.0",
     "expo-sharing": "~13.0.1",
     "expo-splash-screen": "~0.29.24",
     "expo-sqlite": "~15.1.4",
     "expo-status-bar": "~2.0.1",
     "expo-system-ui": "~4.0.9",
-    "expo-updates": "~0.27.4",
     "intl": "^1.2.5",
     "jail-monkey": "^2.8.3",
     "jwt-decode": "^4.0.0",

@@ -1,0 +1,53 @@
+diff --git a/node_modules/expo-share-extension/plugin/swift/ShareExtensionViewController.swift b/node_modules/expo-share-extension/plugin/swift/ShareExtensionViewController.swift
+index 557e30f..69402f7 100644
+--- a/node_modules/expo-share-extension/plugin/swift/ShareExtensionViewController.swift
++++ b/node_modules/expo-share-extension/plugin/swift/ShareExtensionViewController.swift
+@@ -15,27 +15,31 @@ import FirebaseAuth
+ // MARK: - Objective-C Bridge
+ @objc class RCTShareExtensionBridge: NSObject {
+   @objc static func createRootViewFactory() -> RCTRootViewFactory {
+-    let configuration = RCTRootViewFactoryConfiguration(
+-      bundleURLBlock: {
++    // Create bundle URL block
++    let bundleURLBlock: RCTBundleURLBlock = {
+ #if DEBUG
+-        let settings = RCTBundleURLProvider.sharedSettings()
+-        settings.enableDev = true
+-        settings.enableMinification = false
+-        if let bundleURL = settings.jsBundleURL(forBundleRoot: ".expo/.virtual-metro-entry") {
+-          if var components = URLComponents(url: bundleURL, resolvingAgainstBaseURL: false) {
+-            components.queryItems = (components.queryItems ?? []) + [URLQueryItem(name: "shareExtension", value: "true")]
+-            return components.url ?? bundleURL
+-          }
+-          return bundleURL
+-        }
+-        fatalError("Could not create bundle URL")
+-#else
+-        guard let bundleURL = Bundle.main.url(forResource: "main", withExtension: "jsbundle") else {
+-          fatalError("Could not load bundle URL")
++      let settings = RCTBundleURLProvider.sharedSettings()
++      settings.enableDev = true
++      settings.enableMinification = false
++      if let bundleURL = settings.jsBundleURL(forBundleRoot: ".expo/.virtual-metro-entry") {
++        if var components = URLComponents(url: bundleURL, resolvingAgainstBaseURL: false) {
++          components.queryItems = (components.queryItems ?? []) + [URLQueryItem(name: "shareExtension", value: "true")]
++          return components.url ?? bundleURL
+         }
+         return bundleURL
++      }
++      fatalError("Could not create bundle URL")
++#else
++      guard let bundleURL = Bundle.main.url(forResource: "main", withExtension: "jsbundle") else {
++        fatalError("Could not load bundle URL")
++      }
++      return bundleURL
+ #endif
+-      },
++    }
++
++    // Create configuration with correct initializer signature
++    let configuration = RCTRootViewFactoryConfiguration(
++      bundleURLBlock: bundleURLBlock,
+       newArchEnabled: false,
+       turboModuleEnabled: true,
+       bridgelessEnabled: false
