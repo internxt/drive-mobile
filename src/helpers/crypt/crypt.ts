@@ -82,14 +82,33 @@ export function probabilisticDecryption(cipherText: string): string | null {
   }
 }
 
+/**
+ * Validates if a filename is safe for cross-platform use.
+ * Only blocks strictly dangerous characters that would cause issues on any OS.
+ *
+ * Blocked:
+ * - Path separators: / \
+ * - Windows problematic: < > : " | ? *
+ * - Control characters: \x00-\x1F
+ * - Special navigation: . and ..
+ * - Empty or too long filenames
+ */
 export function isValidFilename(filename: string) {
-  const EXCLUDED = ['..'];
-  if (EXCLUDED.includes(filename)) {
+  const isEmpty = !filename || filename.trim().length === 0;
+  const isNavigationPath = filename === '.' || filename === '..';
+  const isTooLong = filename?.length > 255;
+
+  // eslint-disable-next-line no-control-regex
+  const DANGEROUS_CHARS_PATTERN = /[<>:"/\\|?*\u0000-\u001F]/g;
+  const hasDangerousChars = filename && DANGEROUS_CHARS_PATTERN.test(filename);
+
+  if (isEmpty || isNavigationPath || isTooLong || hasDangerousChars) {
     return false;
   }
-  // eslint-disable-next-line no-control-regex
-  return !/[<>:"/\\|?*\u0000-\u001F]/g.test(filename);
+
+  return true;
 }
+
 export function encryptFilename(filename: string, folderId: string): string {
   const { CRYPTO_SECRET2: CRYPTO_KEY } = constants;
 
