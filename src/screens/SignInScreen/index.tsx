@@ -117,7 +117,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   return (
     <AppScreen
       safeAreaTop
-      safeAreaBottom
+      safeAreaBottom={false}
       style={[tailwind('h-full px-6'), { backgroundColor: isDark ? 'transparent' : getColor('bg-surface') }]}
     >
       {isDark && (
@@ -177,7 +177,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
               {strings.screens.SignInScreen.termsAndConditions}
             </AppText>
           </TouchableOpacity>
-          <TouchableOpacity onPress={onNeedHelpPressed} style={tailwind('pb-2')}>
+          <TouchableOpacity onPress={onNeedHelpPressed} style={tailwind('pb-6')}>
             <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
               {strings.screens.SignInScreen.needHelp}
             </AppText>
