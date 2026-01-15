@@ -20,6 +20,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   slug: 'drive-mobile',
   version: packageVersion,
   orientation: 'portrait',
+  newArchEnabled: true,
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',
@@ -35,7 +36,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   assetBundlePatterns: ['**/*'],
   runtimeVersion: packageVersion,
   ios: {
-    jsEngine: 'jsc',
+    jsEngine: 'hermes',
     icon: './assets/icon-ios.png',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
@@ -106,7 +107,20 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     RELEASE_ID,
     ...env[stage],
   },
-  plugins: ['expo-font', 'expo-secure-store'],
+  plugins: [
+    'expo-font',
+    'expo-secure-store',
+    [
+      'expo-splash-screen',
+      {
+        android: {
+          backgroundColor: '#091e42',
+          image: './assets/images/splash.png',
+          resizeMode: 'contain',
+        },
+      },
+    ],
+  ],
 };
 
 export default appConfig;

@@ -1,10 +1,9 @@
 /* eslint-disable quotes */
-import LocalizedStrings from 'react-native-localization';
 import { NotificationType } from '../../src/types';
 import { BiometricAccessType } from '../../src/types/app';
 import { SortType } from '../../src/types/drive/ui';
 
-const strings = new LocalizedStrings({
+const translations = {
   en: {
     languages: {
       en: 'English',
@@ -1562,6 +1561,43 @@ const strings = new LocalizedStrings({
       },
     },
   },
-});
+};
+
+let currentLanguage = 'en';
+
+const strings = {
+  ...translations.en,
+  setLanguage: (lang: string) => {
+    currentLanguage = lang;
+    if (lang === 'es') {
+      Object.assign(strings, translations.es);
+    } else {
+      Object.assign(strings, translations.en);
+    }
+  },
+  getLanguage: () => currentLanguage,
+  getInterfaceLanguage: () => 'en',
+  formatString: (template: string, ...args: (string | number)[]) => {
+    return template.replaceAll(/{(\d+)}/g, (match, index) => {
+      const argIndex = Number.parseInt(index, 10);
+      return args[argIndex] !== undefined ? String(args[argIndex]) : match;
+    });
+  },
+  getString: (path: string, fallback?: string) => {
+    const keys = path.split('.');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let result: any = currentLanguage === 'es' ? translations.es : translations.en;
+
+    for (const key of keys) {
+      if (result && typeof result === 'object' && key in result) {
+        result = result[key];
+      } else {
+        return fallback || path;
+      }
+    }
+
+    return typeof result === 'string' ? result : fallback || path;
+  },
+};
 
 export default strings;

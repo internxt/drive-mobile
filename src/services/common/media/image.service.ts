@@ -8,7 +8,7 @@ import * as RNFS from '@dr.pogodin/react-native-fs';
 import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 import uuid from 'react-native-uuid';
-import RNFetchBlob from 'rn-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
 export type GeneratedThumbnail = {
   size: number;
@@ -96,7 +96,7 @@ class ImageService {
   }
 
   public async pathToBase64(uri: string): Promise<string> {
-    return await RNFetchBlob.fs.readFile(uri, 'base64');
+    return await ReactNativeBlobUtil.fs.readFile(uri, 'base64');
   }
 
   /**

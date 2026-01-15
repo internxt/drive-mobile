@@ -1,5 +1,5 @@
-import * as Updates from 'expo-updates';
-import React, { useEffect, useState } from 'react';
+import { checkForUpdateAsync } from 'expo-updates';
+import { useEffect } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import InternxtLogo from '../../../assets/logo.svg';
@@ -13,17 +13,11 @@ interface AppVersionWidgetProps {
 
 function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
   const tailwind = useTailwind();
-  const [, setDebugText] = useState('');
 
   useEffect(() => {
-    appService.constants.NODE_ENV === 'production' &&
-      Updates.checkForUpdateAsync()
-        .then(() => undefined)
-        .catch(() => undefined);
-
-    Updates.addListener((updateInfo) => {
-      setDebugText(JSON.stringify(updateInfo));
-    });
+    if (appService.constants.NODE_ENV === 'production') {
+      checkForUpdateAsync().catch(() => undefined);
+    }
   }, []);
 
   return (
