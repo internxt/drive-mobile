@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Linking, View } from 'react-native';
+import { Dimensions, Linking, TouchableOpacity, View } from 'react-native';
 
-import { useKeyboard } from '@internxt-mobile/hooks/useKeyboard';
+import { LinearGradient } from 'expo-linear-gradient';
 import { WarningCircle } from 'phosphor-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
@@ -11,6 +11,7 @@ import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
 import AppVersionWidget from '../../components/AppVersionWidget';
+import { useTheme } from '../../contexts/Theme/Theme.context';
 import useGetColor from '../../hooks/useColor';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import appService from '../../services/AppService';
@@ -23,9 +24,11 @@ import { RootStackScreenProps } from '../../types/navigation';
 function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
-  const { keyboardShown } = useKeyboard();
   const [error, setError] = useState<string>('');
+  const dimensions = Dimensions.get('screen');
 
   const onSignInWithBrowserPressed = async () => {
     try {
@@ -74,6 +77,30 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
     }
   };
 
+  const onTermsAndConditionsPressed = async () => {
+    try {
+      const termsUrl = appService.urls.termsAndConditions;
+      const canOpen = await Linking.canOpenURL(termsUrl);
+      if (canOpen) {
+        await Linking.openURL(termsUrl);
+      }
+    } catch (err) {
+      logger.error('Error opening terms and conditions URL', err);
+    }
+  };
+
+  const onNeedHelpPressed = async () => {
+    try {
+      const helpUrl = appService.urls.help;
+      const canOpen = await Linking.canOpenURL(helpUrl);
+      if (canOpen) {
+        await Linking.openURL(helpUrl);
+      }
+    } catch (err) {
+      logger.error('Error opening help URL', err);
+    }
+  };
+
   const renderErrorMessage = () => {
     if (!error) {
       return null;
@@ -90,17 +117,29 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
   return (
     <AppScreen
       safeAreaTop
-      safeAreaBottom
-      style={[tailwind('h-full px-6'), { backgroundColor: getColor('bg-surface') }]}
+      safeAreaBottom={false}
+      style={[tailwind('h-full px-6'), { backgroundColor: isDark ? 'transparent' : getColor('bg-surface') }]}
     >
+      {isDark ? (
+        <LinearGradient
+          colors={['#1C1C1C', '#031632']}
+          locations={[0, 1]}
+          style={[tailwind('w-full h-full absolute'), { height: dimensions.height, width: dimensions.width }]}
+        />
+      ) : (
+        <LinearGradient
+          colors={['rgba(249, 249, 252, 0)', '#f9f9fc']}
+          locations={[0, 1]}
+          style={[tailwind('w-full h-full absolute'), { height: dimensions.height, width: dimensions.width }]}
+        />
+      )}
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[tailwind('flex-grow px-6'), { backgroundColor: getColor('bg-surface') }]}
+        contentContainerStyle={[tailwind('flex-grow px-6'), { backgroundColor: 'transparent' }]}
       >
-        <View style={tailwind('h-12')} />
-
-        <View>
-          <View style={tailwind('mb-5')}>
+        <AppVersionWidget displayLogo style={tailwind('mb-5')} />
+        <View style={tailwind('flex-grow justify-center')}>
+          <View style={tailwind('flex mb-5')}>
             <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
               {strings.screens.SignInScreen.title}
             </AppText>
@@ -108,14 +147,17 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
           <View style={tailwind('items-center')}>
             <AppButton
-              style={tailwind('w-full py-0 mb-4 h-11')}
-              type="white"
+              style={tailwind('w-full py-0 h-11')}
+              type="accept"
               onPress={onSignInWithBrowserPressed}
               title={strings.buttons.sign_in}
             />
+            <View
+              style={[tailwind('w-full border-b my-6'), { borderBottomColor: isDark ? '#474747' : '#E5E5EB' }]}
+            ></View>
             <AppText
               style={[
-                tailwind('text-sm mb-4 text-center'),
+                tailwind('text-sm mb-3 text-center'),
                 {
                   backgroundColor: 'transparent',
                   color: getColor('text-gray-80'),
@@ -127,14 +169,26 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
             <AppButton
               style={tailwind('w-full py-0 h-11')}
-              type="white"
+              type="secondary"
               onPress={onSignUpWithBrowserPressed}
               title={strings.buttons.sing_up}
             />
           </View>
           {renderErrorMessage()}
         </View>
-        {keyboardShown ? null : <AppVersionWidget displayLogo style={tailwind('mb-5 mt-auto')} />}
+
+        <View style={tailwind('mt-auto pb-4 items-center')}>
+          <TouchableOpacity onPress={onTermsAndConditionsPressed} style={tailwind('py-2')}>
+            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+              {strings.screens.SignInScreen.termsAndConditions}
+            </AppText>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={onNeedHelpPressed} style={tailwind('pb-6')}>
+            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+              {strings.screens.SignInScreen.needHelp}
+            </AppText>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </AppScreen>
   );
