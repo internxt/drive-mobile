@@ -120,9 +120,15 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
       safeAreaBottom={false}
       style={[tailwind('h-full px-6'), { backgroundColor: isDark ? 'transparent' : getColor('bg-surface') }]}
     >
-      {isDark && (
+      {isDark ? (
         <LinearGradient
           colors={['#1C1C1C', '#031632']}
+          locations={[0, 1]}
+          style={[tailwind('w-full h-full absolute'), { height: dimensions.height, width: dimensions.width }]}
+        />
+      ) : (
+        <LinearGradient
+          colors={['rgba(249, 249, 252, 0)', '#f9f9fc']}
           locations={[0, 1]}
           style={[tailwind('w-full h-full absolute'), { height: dimensions.height, width: dimensions.width }]}
         />
