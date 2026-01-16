@@ -79,7 +79,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
   const onTermsAndConditionsPressed = async () => {
     try {
-      const termsUrl = 'https://internxt.com/legal';
+      const termsUrl = appService.urls.termsAndConditions;
       const canOpen = await Linking.canOpenURL(termsUrl);
       if (canOpen) {
         await Linking.openURL(termsUrl);
@@ -91,7 +91,7 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
   const onNeedHelpPressed = async () => {
     try {
-      const helpUrl = 'https://help.internxt.com';
+      const helpUrl = appService.urls.help;
       const canOpen = await Linking.canOpenURL(helpUrl);
       if (canOpen) {
         await Linking.openURL(helpUrl);
