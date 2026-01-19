@@ -5,11 +5,12 @@ import { ALGORITHMS, Network } from '@internxt/sdk/dist/network';
 import { downloadFile } from '@internxt/sdk/dist/network/download';
 import { BinaryData, Crypto } from '@internxt/sdk/dist/network/types';
 import { uploadFile, uploadMultipartFile } from '@internxt/sdk/dist/network/upload';
+import * as bip39 from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { Platform } from 'react-native';
-import { validateMnemonic } from 'react-native-bip39';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import { randomBytes } from 'react-native-crypto';
 import uuid from 'react-native-uuid';
-import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import drive from '@internxt-mobile/services/drive';
 import pLimit, { LimitFunction } from 'p-limit';
@@ -76,7 +77,7 @@ export class NetworkFacade {
   constructor(private network: Network) {
     this.cryptoLib = {
       algorithm: ALGORITHMS.AES256CTR,
-      validateMnemonic,
+      validateMnemonic: (mnemonic) => bip39.validateMnemonic(mnemonic, wordlist),
       generateFileKey: (mnemonic, bucketId, index) => {
         return generateFileKey(mnemonic, bucketId, index as Buffer);
       },

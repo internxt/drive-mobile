@@ -16,6 +16,9 @@ const untranspiledModulePatterns = [
   'react-native-svg',
   'react-native-blob-util',
   '@internxt/rn-crypto',
+  '@scure/bip39',
+  '@scure/base',
+  '@noble/hashes',
 ];
 
 const config: Config.InitialOptions = {

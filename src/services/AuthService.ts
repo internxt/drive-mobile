@@ -3,9 +3,10 @@ import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import * as bip39 from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 import EventEmitter from 'events';
 import { jwtDecode } from 'jwt-decode';
-import { validateMnemonic } from 'react-native-bip39';
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
@@ -114,7 +115,7 @@ class AuthService {
       const newToken = Buffer.from(params.newToken, 'base64').toString('utf-8');
       const privateKey = params.privateKey ? Buffer.from(params.privateKey, 'base64').toString('utf-8') : undefined;
 
-      const isMnemonicValid = validateMnemonic(mnemonic);
+      const isMnemonicValid = bip39.validateMnemonic(mnemonic, wordlist);
       if (!isMnemonicValid) {
         throw new Error('Invalid mnemonic phrase');
       }
@@ -224,7 +225,6 @@ class AuthService {
 
     return this.sdk.authV2.areCredentialsCorrect(hashedPassword, newToken) ?? false;
   }
-
 
   public generateNew2FA(): Promise<TwoFactorAuthQR> {
     const newToken = SdkManager.getInstance().getApiSecurity().newToken;
