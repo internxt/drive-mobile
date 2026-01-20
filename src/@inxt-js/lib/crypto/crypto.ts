@@ -1,10 +1,10 @@
 import * as crypto from 'react-native-crypto';
 
-import { BUCKET_META_MAGIC, GCM_DIGEST_SIZE, SHA256_DIGEST_SIZE } from './constants';
-import { pbkdf2, createHash } from '@internxt/rn-crypto';
-import unorm from 'unorm';
+import { createHash, pbkdf2 } from '@internxt/rn-crypto';
 import { HMAC } from '@internxt/rn-crypto/src/types/crypto';
 import { isValidFilename } from 'src/helpers';
+import unorm from 'unorm';
+import { BUCKET_META_MAGIC, GCM_DIGEST_SIZE, SHA256_DIGEST_SIZE } from './constants';
 export function sha256(input: Buffer): Buffer {
   return crypto.createHash('sha256').update(input).digest();
 }
@@ -97,9 +97,6 @@ export async function DecryptFileName(
 
   const decryptedFilename = decryptMeta(encryptedName, key);
 
-  if (decryptedFilename && !isValidFilename(decryptedFilename)) {
-    throw new Error('This filename is not valid');
-  }
   return decryptedFilename;
 }
 
