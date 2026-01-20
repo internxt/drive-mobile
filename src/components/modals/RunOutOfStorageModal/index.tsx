@@ -1,6 +1,6 @@
 import prettysize from 'prettysize';
 import { TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native';
-import Modal from 'react-native-modalbox';
+import Modal from 'react-native-modal';
 
 import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
@@ -41,20 +41,30 @@ function RunOutOfStorageModal(): JSX.Element {
     openUrl(PRICING_URL);
   };
 
+  const handleClose = () => {
+    dispatch(uiActions.setShowDeleteModal(false));
+    dispatch(uiActions.setShowRunOutSpaceModal(false));
+  };
+
   return (
     <Modal
-      position="bottom"
-      style={tailwind('bg-transparent')}
-      isOpen={showRunOutOfSpaceModal}
-      onClosed={() => {
-        dispatch(uiActions.setShowDeleteModal(false));
-        dispatch(uiActions.setShowRunOutSpaceModal(false));
-      }}
-      backButtonClose={true}
-      backdropPressToClose={true}
-      animationDuration={250}
+      isVisible={showRunOutOfSpaceModal}
+      onModalHide={handleClose}
+      onBackdropPress={handleClose}
+      onBackButtonPress={handleClose}
+      style={{ margin: 0, justifyContent: 'flex-end' }}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      animationInTiming={250}
+      animationOutTiming={250}
+      backdropTransitionInTiming={250}
+      backdropTransitionOutTiming={0}
+      useNativeDriver
+      useNativeDriverForBackdrop
+      hideModalContentWhileAnimating
+      coverScreen={false}
     >
-      <View style={tailwind('h-full')}>
+      <View style={tailwind('bg-transparent')}>
         <TouchableWithoutFeedback
           style={tailwind('flex-grow')}
           onPress={() => {

@@ -64,8 +64,8 @@ describe('File Cache Manager', () => {
         // 100MB
         size: 1024 * 1024 * 100,
         name: 'hi.png',
-        ctime: Date.now(),
-        mtime: Date.now(),
+        ctime: new Date(),
+        mtime: new Date(),
         mode: 0,
         path: '/non_cached/hi.png',
         originalFilepath: '/non_cached/hi.png',
@@ -90,8 +90,8 @@ describe('File Cache Manager', () => {
         // 10MB
         size: 1024 * 1024 * 10,
         name: 'hi.png',
-        ctime: Date.now(),
-        mtime: Date.now(),
+        ctime: new Date(),
+        mtime: new Date(),
         mode: 0,
         path: '/non_cached/hi.png',
         originalFilepath: '/non_cached/hi.png',
@@ -116,8 +116,8 @@ describe('File Cache Manager', () => {
         // 10MB
         size: 1024 * 1024 * 10,
         name: 'hi.png',
-        ctime: Date.now(),
-        mtime: Date.now(),
+        ctime: new Date(),
+        mtime: new Date(),
         mode: 0,
         path: '/non_cached/hi.png',
         originalFilepath: '/non_cached/hi.png',
@@ -188,8 +188,8 @@ describe('File Cache Manager', () => {
         // 50MB
         size: 1024 * 1024 * 50,
         name: 'hi.png',
-        ctime: Date.now(),
-        mtime: Date.now(),
+        ctime: new Date(),
+        mtime: new Date(),
         mode: 0,
         path: '/non_cached/hi.png',
         originalFilepath: '/non_cached/hi.png',
