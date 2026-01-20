@@ -41,8 +41,8 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
     <Modal
       isVisible={props.isOpen}
       onModalHide={props.onClosed}
-      onBackdropPress={props.backdropPressToClose !== false ? props.onClosed : undefined}
-      onBackButtonPress={props.backButtonClose !== false ? props.onClosed : undefined}
+      onBackdropPress={(props.backdropPressToClose ?? true) ? props.onClosed : undefined}
+      onBackButtonPress={(props.backButtonClose ?? true) ? props.onClosed : undefined}
       style={[{ margin: 0, justifyContent: 'flex-start' }, props.modalStyle]}
       animationIn="slideInUp"
       animationOut="slideOutDown"

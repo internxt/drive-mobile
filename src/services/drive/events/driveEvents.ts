@@ -61,11 +61,11 @@ export class DriveEventEmitter {
     this.jobId = jobId;
   };
 
-  private getEventKey = ({ id, event }: { id?: string; event: DriveEventKey }) => {
+  private readonly getEventKey = ({ id, event }: { id?: string; event: DriveEventKey }) => {
     return id ? `${event}-${id}` : event;
   };
 
-  private onDownloadCanceled = () => {
+  private readonly onDownloadCanceled = () => {
     this.logger.info(`Cancel download - jobId=${this.jobId}`);
 
     try {
@@ -84,7 +84,7 @@ export class DriveEventEmitter {
     }
   };
 
-  private reset = () => {
+  private readonly reset = () => {
     this.downloadAbort = undefined;
     this.jobId = undefined;
     this.legacyAbortable = undefined;

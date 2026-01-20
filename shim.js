@@ -1,12 +1,12 @@
 // Regenerator runtime for async/await in Hermes
 import 'regenerator-runtime/runtime';
 
-if (typeof __dirname === 'undefined') global.__dirname = '/';
-if (typeof __filename === 'undefined') global.__filename = '';
+if (globalThis.__dirname === undefined) globalThis.__dirname = '/';
+if (globalThis.__filename === undefined) globalThis.__filename = '';
 
-if (typeof process === 'undefined' || typeof process.version === 'undefined') {
+if (globalThis.process === undefined || globalThis.process.version === undefined) {
   const processPolyfill = require('process/browser');
-  global.process = processPolyfill;
+  globalThis.process = processPolyfill;
 }
 
 // Expo 53+ includes a process polyfill, but it's missing some properties we need
@@ -19,6 +19,6 @@ const isDev = typeof __DEV__ === 'boolean' && __DEV__;
 process.env.NODE_ENV = isDev ? 'development' : 'production';
 
 // Expo 53+ update: Ensure process.nextTick is defined
-if (typeof process.nextTick === 'undefined') {
+if (process.nextTick === undefined) {
   process.nextTick = setImmediate;
 }

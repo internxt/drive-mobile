@@ -149,7 +149,7 @@ describe('bip39 mnemonic validation', () => {
       });
 
       it('is sorted alphabetically', () => {
-        const sortedWordlist = [...wordlist].sort();
+        const sortedWordlist = [...wordlist].sort((a, b) => a.localeCompare(b));
 
         expect(wordlist).toEqual(sortedWordlist);
       });

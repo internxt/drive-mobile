@@ -23,7 +23,7 @@ import utilities from './src/styles/tailwind.json';
 enableScreens(false);
 
 // Polyfill for btoa and atob
-if (typeof globalThis.btoa === 'undefined') {
+if (globalThis.btoa === undefined) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
   const { encode, decode } = require('base-64');
   globalThis.btoa = encode;
