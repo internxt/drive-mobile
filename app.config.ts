@@ -108,8 +108,11 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     ...env[stage],
   },
   plugins: [
+    'expo-asset',
     'expo-font',
+    'expo-localization',
     'expo-secure-store',
+    'expo-sqlite',
     [
       'expo-splash-screen',
       {

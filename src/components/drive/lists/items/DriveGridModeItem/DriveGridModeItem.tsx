@@ -146,9 +146,11 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
             >
               {items.getItemDisplayName(props.data)}
             </AppText>
-            <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-50') }, { lineHeight: 14 }]}>
-              {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
-            </AppText>
+            {props.data.createdAt ? (
+              <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-50') }, { lineHeight: 14 }]}>
+                {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
+              </AppText>
+            ) : null}
             {props.data.size ? (
               <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-50') }]}>
                 {prettysize(props.data.size)}

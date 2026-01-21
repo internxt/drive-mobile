@@ -15,6 +15,7 @@ import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
+import { DriveEventKey } from '../../../types/drive/events';
 import {
   DriveItemData,
   FocusedItem as DriveItemFocused,
@@ -23,11 +24,7 @@ import {
   DriveNavigationStack,
   DriveNavigationStackItem,
 } from '../../../types/drive/item';
-import {
-  DownloadingFile,
-  UploadingFile,
-} from '../../../types/drive/operations';
-import { DriveEventKey } from '../../../types/drive/events';
+import { DownloadingFile, UploadingFile } from '../../../types/drive/operations';
 import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
 
 export enum ThunkOperationStatus {

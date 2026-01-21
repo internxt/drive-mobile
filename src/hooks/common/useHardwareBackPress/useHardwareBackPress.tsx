@@ -7,10 +7,10 @@ export const useHardwareBackPress = (handleBackAction: () => void) => {
       handleBackAction();
       return true;
     }
-    BackHandler.addEventListener('hardwareBackPress', handler);
+    const subscription = BackHandler.addEventListener('hardwareBackPress', handler);
 
     return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handler);
+      subscription.remove();
     };
   }, []);
 };

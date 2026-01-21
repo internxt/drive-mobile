@@ -1,29 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import EventEmitter from 'events';
-
 import { Abortable } from '../../../types';
 import { DriveEventKey } from '../../../types/drive/events';
 import { driveLogger, DriveLogger } from '../logger';
 
-class DriveEventEmitter {
+export class DriveEventEmitter {
   private readonly logger: DriveLogger;
-  private readonly eventEmitter: EventEmitter;
+  private readonly eventEmiter = new EventEmitter();
   private downloadAbort?: Abortable;
-  private _jobId?: number;
+  private jobId?: number;
   private legacyAbortable?: Abortable;
 
-  constructor(logService: DriveLogger) {
-    this.logger = logService;
-    this.eventEmitter = new EventEmitter();
-    this.eventEmitter.addListener(DriveEventKey.CancelDownload, () => this.onDownloadCanceled());
+  constructor(logger: DriveLogger) {
+    this.logger = logger;
+
+    this.eventEmiter.addListener(DriveEventKey.CancelDownload, this.onDownloadCanceled);
   }
 
-  public emit({ id, event }: { id?: string; event: DriveEventKey }, ...args: any[]) {
-    return this.eventEmitter.emit(this.getEventKey({ id, event }), args);
-  }
+  public emit = ({ id, event }: { id?: string; event: DriveEventKey }, ...args: any[]) => {
+    return this.eventEmiter.emit(this.getEventKey({ id, event }), ...args);
+  };
 
-  public addListener({
+  public addListener = ({
     id,
     event,
     listener,
@@ -31,11 +29,11 @@ class DriveEventEmitter {
     id?: string;
     event: DriveEventKey;
     listener: (...args: any[]) => void;
-  }) {
-    this.eventEmitter.addListener(this.getEventKey({ id, event }), listener);
-  }
+  }) => {
+    this.eventEmiter.addListener(this.getEventKey({ id, event }), listener);
+  };
 
-  public removeListener({
+  public removeListener = ({
     id,
     event,
     listener,
@@ -43,52 +41,54 @@ class DriveEventEmitter {
     id?: string;
     event: DriveEventKey;
     listener: (...args: any[]) => void;
-  }) {
-    this.eventEmitter.removeListener(this.getEventKey({ id, event }), listener);
-  }
+  }) => {
+    this.eventEmiter.removeListener(this.getEventKey({ id, event }), listener);
+  };
 
-  public removeAllListeners({ id, event }: { id?: string; event: DriveEventKey }) {
-    this.eventEmitter.removeAllListeners(this.getEventKey({ id, event }));
-  }
+  public removeAllListeners = ({ id, event }: { id?: string; event: DriveEventKey }) => {
+    this.eventEmiter.removeAllListeners(this.getEventKey({ id, event }));
+  };
 
-  public setDownloadAbort(abortable: Abortable) {
+  public setDownloadAbort = (abortable: Abortable) => {
     this.downloadAbort = abortable;
-  }
+  };
 
-  public setLegacyAbortable(legacyAbortable: Abortable) {
-    this.legacyAbortable = legacyAbortable;
-  }
+  public setLegacyAbortable = (abortable: Abortable) => {
+    this.legacyAbortable = abortable;
+  };
 
-  public setJobId(jobId: number) {
-    this._jobId = jobId;
-  }
+  public setJobId = (jobId: number) => {
+    this.jobId = jobId;
+  };
 
-  public get jobId() {
-    return this._jobId;
-  }
-
-  private getEventKey({ id, event }: { id?: string; event: DriveEventKey }) {
+  private readonly getEventKey = ({ id, event }: { id?: string; event: DriveEventKey }) => {
     return id ? `${event}-${id}` : event;
-  }
+  };
 
-  private onDownloadCanceled() {
-    this.logger.info('onDownloadCanceled - downloadAbort: ' + this.downloadAbort);
-    this.logger.info('onDownloadCanceled - legacyAbortable: ' + this.legacyAbortable);
-    this.logger.info('onDownloadCanceled - jobId: ' + this.jobId);
+  private readonly onDownloadCanceled = () => {
+    this.logger.info(`Cancel download - jobId=${this.jobId}`);
 
-    this.downloadAbort?.();
-    this.legacyAbortable?.();
-    this.jobId !== undefined && RNFS.stopDownload(this.jobId);
+    try {
+      this.downloadAbort?.();
+      this.legacyAbortable?.();
 
-    if (this.jobId !== undefined) {
-      this.emit({ event: DriveEventKey.CancelDownloadEnd });
+      if (this.jobId !== undefined) {
+        RNFS.stopDownload(this.jobId);
+        this.emit({ event: DriveEventKey.CancelDownloadEnd });
+      }
+    } catch (e) {
+      this.logger.error('Cancel download failed', e);
+    } finally {
       this.emit({ event: DriveEventKey.DownloadFinally });
+      this.reset();
     }
+  };
 
+  private readonly reset = () => {
     this.downloadAbort = undefined;
-    this._jobId = undefined;
+    this.jobId = undefined;
     this.legacyAbortable = undefined;
-  }
+  };
 }
 
 export const driveEvents = new DriveEventEmitter(driveLogger);

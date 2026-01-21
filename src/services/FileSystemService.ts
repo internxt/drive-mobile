@@ -1,7 +1,6 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import { type StatResultT } from '@dr.pogodin/react-native-fs';
 import { Platform } from 'react-native';
-
-import { StatResultT } from '@dr.pogodin/react-native-fs/lib/typescript/src/NativeReactNativeFs';
 import { internxtFS } from '@internxt/mobile-sdk';
 import * as FileSystem from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
