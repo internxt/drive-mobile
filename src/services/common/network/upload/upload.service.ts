@@ -1,4 +1,4 @@
-import { getEnvironmentConfig } from '../../../../lib/network';
+import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import network from '../../../../network';
 
 import {
@@ -7,6 +7,7 @@ import {
   FileEntryByUuid,
   Thumbnail,
 } from '@internxt/sdk/dist/drive/storage/types';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SdkManager } from '../../sdk';
 
 export interface FileMeta {
@@ -27,12 +28,23 @@ export type FileType = 'document' | 'image';
 
 class UploadService {
   constructor(private sdk: SdkManager) {}
+
+  /**
+   * Upload a file to the Internxt network
+   *
+   * @param file - File metadata including uri, path, etc.
+   * @param apiUrl - API URL for the upload
+   * @param progressCallback - Callback for upload progress updates
+   * @param user - User settings
+   * @returns Promise resolving to the uploaded file ID
+   */
   public async uploadFile(
     file: FileMeta,
     apiUrl: string,
     progressCallback: (progress: number) => void,
+    user: UserSettings,
   ): Promise<string> {
-    const { bridgeUser, bridgePass, encryptionKey, bucketId } = await getEnvironmentConfig();
+    const { bridgeUser, bridgePass, encryptionKey, bucketId } = getEnvironmentConfigFromUser(user);
     const params = { fileUri: file.uri, filepath: file.path, progressCallback };
 
     return network.uploadFile(

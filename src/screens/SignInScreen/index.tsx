@@ -179,12 +179,12 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
 
         <View style={tailwind('mt-auto pb-4 items-center')}>
           <TouchableOpacity onPress={onTermsAndConditionsPressed} style={tailwind('py-2')}>
-            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]} medium>
               {strings.screens.SignInScreen.termsAndConditions}
             </AppText>
           </TouchableOpacity>
           <TouchableOpacity onPress={onNeedHelpPressed} style={tailwind('pb-6')}>
-            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]} medium>
               {strings.screens.SignInScreen.needHelp}
             </AppText>
           </TouchableOpacity>

@@ -4,6 +4,7 @@ import { FileInfo } from '../@inxt-js/api/fileinfo';
 import FileManager from '../@inxt-js/api/FileManager';
 import appService from '../services/AppService';
 
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import asyncStorage from '../services/AsyncStorageService';
 
 type ProgressCallback = (progress: number, uploadedBytes: number, totalBytes: number) => void;
@@ -103,8 +104,27 @@ export class Network {
 }
 
 /**
- * Returns required config to donwload / upload files from / to the Internxt Network
- * @returns
+ * Returns required config data to download/upload files
+ *
+ * @param user - User data
+ * @returns Environment configuration for network operations
+ */
+export function getEnvironmentConfigFromUser(user: UserSettings): EnvironmentConfig {
+  return {
+    bridgeUser: user.bridgeUser,
+    bridgePass: user.userId,
+    encryptionKey: user.mnemonic,
+    bucketId: user.bucket,
+  };
+}
+
+/**
+ * Returns required config to download/upload files
+ *
+ * @deprecated Use getEnvironmentConfigFromUser(user) instead to avoid iOS SecureStore errors.
+ * This function reads from SecureStore which can fail in background contexts on iOS.
+ *
+ * @returns Promise resolving to environment configuration
  */
 export function getEnvironmentConfig(): Promise<EnvironmentConfig> {
   return asyncStorage.getUser().then((user) => ({
