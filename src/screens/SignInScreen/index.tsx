@@ -157,12 +157,13 @@ function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Eleme
             ></View>
             <AppText
               style={[
-                tailwind('text-sm mb-3 text-center'),
+                tailwind('text-base mb-3 text-center'),
                 {
                   backgroundColor: 'transparent',
                   color: getColor('text-gray-80'),
                 },
               ]}
+              medium
             >
               {strings.screens.SignInScreen.no_register}
             </AppText>
