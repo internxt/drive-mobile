@@ -157,7 +157,7 @@ PODS:
     - hermes-engine/Pre-built (= 0.81.5)
   - hermes-engine/Pre-built (0.81.5)
   - IDZSwiftCommonCrypto (0.16.1)
-  - internxt-mobile-sdk (0.3.0-alpha.0):
+  - internxt-mobile-sdk (0.3.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3629,7 +3629,7 @@ SPEC CHECKSUMS:
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 9f4dfe93326146a1c99eb535b1cb0b857a3cd172
   IDZSwiftCommonCrypto: aefd3487b88dc3d7a1de2553188c720ac3194940
-  internxt-mobile-sdk: 3c1b1175d0125b4958f6bd11a6d45256bd412a38
+  internxt-mobile-sdk: 40d91c29a150f1afab787c79db4a9a2c878381e5
   jail-monkey: e057abe7b37f84e1763491eb72113efd334a6de0
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
