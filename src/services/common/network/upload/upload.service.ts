@@ -35,7 +35,7 @@ class UploadService {
    * @param file - File metadata including uri, path, etc.
    * @param apiUrl - API URL for the upload
    * @param progressCallback - Callback for upload progress updates
-   * @param user - User settings from Redux state (avoids SecureStore access issues on iOS)
+   * @param user - User settings
    * @returns Promise resolving to the uploaded file ID
    */
   public async uploadFile(

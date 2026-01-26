@@ -243,7 +243,7 @@ export async function createEmptyFileEntry(bucketId: string, file: UploadingFile
  * @param {Function} dispatch - Redux dispatch function.
  * @param {(uploadingFile: UploadingFile, fileType: 'document' | 'image') => Promise<void>} uploadFile - Upload function.
  * @param {(file: UploadingFile) => void} uploadSuccess - Callback for successful upload.
- * @param {UserSettings} user - User settings from Redux state (avoids SecureStore access issues on iOS).
+ * @param {UserSettings} user - User data
  */
 export async function uploadSingleFile(
   file: UploadingFile,
