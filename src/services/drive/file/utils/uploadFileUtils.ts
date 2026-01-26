@@ -16,10 +16,11 @@ import { prepareFilesToUpload } from './prepareFilesToUpload';
 import errorService from '../../../ErrorService';
 
 import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { Dispatch } from 'react';
 import { Action } from 'redux';
 import { DriveFoldersTreeNode } from '../../../../contexts/Drive';
-import { getEnvironmentConfig } from '../../../../lib/network';
+import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
@@ -242,16 +243,18 @@ export async function createEmptyFileEntry(bucketId: string, file: UploadingFile
  * @param {Function} dispatch - Redux dispatch function.
  * @param {(uploadingFile: UploadingFile, fileType: 'document' | 'image') => Promise<void>} uploadFile - Upload function.
  * @param {(file: UploadingFile) => void} uploadSuccess - Callback for successful upload.
+ * @param {UserSettings} user - User settings from Redux state (avoids SecureStore access issues on iOS).
  */
 export async function uploadSingleFile(
   file: UploadingFile,
   dispatch: Dispatch<Action>,
   uploadFile: (uploadingFile: UploadingFile, fileType: 'document' | 'image') => Promise<void>,
   uploadSuccess: (file: UploadingFile) => void,
+  user?: UserSettings,
 ) {
   try {
     if (isFileEmpty(file)) {
-      const { bucketId } = await getEnvironmentConfig();
+      const bucketId = user ? getEnvironmentConfigFromUser(user).bucketId : undefined;
 
       if (!bucketId) {
         throw new BucketNotFoundError();

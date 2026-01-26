@@ -35,7 +35,6 @@ import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import { constants } from '../../../services/AppService';
-import asyncStorage from '../../../services/AsyncStorageService';
 import {
   createUploadingFiles,
   handleDuplicateFiles,
@@ -70,6 +69,7 @@ function AddModal(): JSX.Element {
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
+  const user = useAppSelector((state) => state.auth.user);
 
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
     const name = file.name ?? decodeURI(file.uri).split('/').pop();
@@ -168,7 +168,10 @@ function AddModal(): JSX.Element {
     modificationTime?: string,
     creationTime?: string,
   ) {
-    const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
+    if (!user) {
+      throw new Error('User not found in Redux state');
+    }
+    const { bucket, bridgeUser, mnemonic, userId } = user;
     const fileStat = await fileSystemService.stat(filePath);
     // Fix for Android, native document picker not returns the correct fileSize when file is big
     // and cannnot get the stat before we got the file in temporary path
@@ -381,7 +384,8 @@ function AddModal(): JSX.Element {
 
     for (const file of formattedFiles) {
       try {
-        await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess);
+        logger.info(`User from redux when upload: ${user?.username}, bucket: ${user?.bucket}`);
+        await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess, user);
       } catch (error) {
         logger.error(`File ${file.name} failed to upload:`, error);
 

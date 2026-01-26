@@ -4,11 +4,13 @@ import { items } from '@internxt/lib';
 import { ArrowCircleUp } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import { useEffect, useState } from 'react';
-import { Animated, Easing, InteractionManager, TouchableHighlight, View } from 'react-native';
+import { TouchableHighlight, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import useGetColor from '../../../../../hooks/useColor';
+import { logger } from '../../../../../services/common';
+import { useAppSelector } from '../../../../../store/hooks';
 import { DownloadedThumbnail } from '../../../../../types/drive/file';
 import { DriveItemStatus } from '../../../../../types/drive/item';
 import { DriveItemProps } from '../../../../../types/drive/ui';
@@ -17,7 +19,7 @@ import AppText from '../../../../AppText';
 function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const spinValue = new Animated.Value(1);
+  const user = useAppSelector((state) => state.auth.user);
   const [downloadedThumbnail, setDownloadedThumbnail] = useState<DownloadedThumbnail | null>(null);
   const [maxThumbnailWidth, setMaxThumbnailWidth] = useState<number | null>(null);
   const thumbnailSize = downloadedThumbnail || null;
@@ -42,28 +44,24 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   };
 
   useEffect(() => {
-    if (props.data.thumbnails && props.data.thumbnails.length && !downloadedThumbnail) {
-      InteractionManager.runAfterInteractions(() => {
+    let isMounted = true;
+
+    if (props.data.thumbnails?.length && !downloadedThumbnail && user) {
+      driveFileService
         // TODO: NEED TO UPDATE SDK TYPES
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        driveFileService.getThumbnail(props.data.thumbnails[0]).then((downloadedThumbnail) => {
-          setDownloadedThumbnail(downloadedThumbnail);
-        });
-      });
+        .getThumbnail(props.data.thumbnails[0], user)
+        .then((thumbnail) => {
+          if (isMounted) setDownloadedThumbnail(thumbnail);
+        })
+        .catch(logger.error);
     }
-  }, [props.data]);
 
-  useEffect(() => {
-    Animated.loop(
-      Animated.timing(spinValue, {
-        toValue: 0,
-        duration: 800,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [props.data.thumbnails, user]);
 
   const renderThumbnail = (thumbnail: { width: number; height: number; uri: string }) => {
     const height = getThumbnailHeight();
