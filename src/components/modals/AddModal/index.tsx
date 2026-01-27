@@ -1,4 +1,3 @@
-import * as FileSystem from 'expo-file-system';
 import {
   ImagePickerAsset,
   launchCameraAsync,
@@ -487,8 +486,8 @@ function AddModal(): JSX.Element {
                 let fileSize = asset.fileSize;
                 if (!fileSize) {
                   try {
-                    const fileInfo = await FileSystem.getInfoAsync(cleanUri);
-                    fileSize = fileInfo.exists ? fileInfo.size || 0 : 0;
+                    const fileInfo = fileSystemService.getFileInfo(cleanUri);
+                    fileSize = fileInfo.exists ? fileInfo.size ?? 0 : 0;
                   } catch (error) {
                     logger.warn('The file size could not be obtained:', error);
                     fileSize = 0;
@@ -498,7 +497,7 @@ function AddModal(): JSX.Element {
                 documents.push({
                   fileCopyUri: cleanUri,
                   name: decodeURIComponent(originalFileName ?? ''),
-                  size: fileSize,
+                  size: fileSize ?? 0,
                   type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
                   uri: cleanUri,
                 });
@@ -580,8 +579,8 @@ function AddModal(): JSX.Element {
               let fileSize = asset.fileSize ?? 0;
               if (!fileSize) {
                 try {
-                  const fileInfo = await FileSystem.getInfoAsync(cleanUri);
-                  fileSize = fileInfo.exists ? fileInfo.size || 0 : 0;
+                  const fileInfo = fileSystemService.getFileInfo(cleanUri);
+                  fileSize = fileInfo.exists ? fileInfo.size ?? 0 : 0;
                 } catch (error) {
                   logger.warn('The file size could not be obtained:', error);
                   fileSize = 0;
@@ -677,10 +676,10 @@ function AddModal(): JSX.Element {
           return;
         }
 
-        const fileInfo = await FileSystem.getInfoAsync(assetToUpload.uri);
+        const fileInfo = fileSystemService.getFileInfo(assetToUpload.uri);
         const formatInfo = detectImageFormat(assetToUpload);
         const name = drive.file.removeExtension(assetToUpload.uri.split('/').pop() as string);
-        const size = fileInfo.exists ? fileInfo?.size : 0;
+        const size = fileInfo.exists ? fileInfo.size ?? 0 : 0;
 
         const file: UploadingFile = {
           id: new Date().getTime(),

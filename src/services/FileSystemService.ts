@@ -1,10 +1,10 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import { type StatResultT } from '@dr.pogodin/react-native-fs';
-import { Platform } from 'react-native';
 import { internxtFS } from '@internxt/mobile-sdk';
-import * as FileSystem from 'expo-file-system';
+import { File, FileInfo } from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
 import prettysize from 'prettysize';
+import { Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
@@ -173,14 +173,22 @@ class FileSystemService {
     return RNFS.stat(uri);
   }
 
+  /**
+   * Gets file information using Expo's File API
+   */
+  public getFileInfo(uri: string): FileInfo {
+    const file = new File(uri);
+    return file.info();
+  }
+
   public async showFileViewer(uri: string, options?: string | Record<string, unknown>): Promise<void> {
-    const fileInfo = await FileSystem.getInfoAsync(uri);
+    const fileInfo = this.getFileInfo(uri);
 
     if (!fileInfo.exists) {
       throw new Error('File not found');
     }
 
-    return FileViewer.open(fileInfo.uri, options);
+    return FileViewer.open(uri, options);
   }
 
   public async moveToAndroidDownloads(source: string) {

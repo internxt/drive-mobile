@@ -1516,9 +1516,9 @@
   dependencies:
     uuid "^11.1.0"
 
-"@internxt/mobile-sdk@https://github.com/internxt/mobile-sdk/releases/download/v0.3.0-alpha.0/internxt-mobile-sdk-v0.3.0-alpha.3.tgz":
-  version "0.3.0-alpha.0"
-  resolved "https://github.com/internxt/mobile-sdk/releases/download/v0.3.0-alpha.0/internxt-mobile-sdk-v0.3.0-alpha.3.tgz#94f506cf617d31cc4149b43e59acb79668c386a2"
+"@internxt/mobile-sdk@https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz":
+  version "0.3.1"
+  resolved "https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz#bc618a913f1d703dcce6f52a545701a6089a9722"
 
 "@internxt/prettier-config@^1.0.2":
   version "1.0.2"

@@ -28,7 +28,7 @@ function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
   return (
     <View style={props.style}>
       {props.displayLogo ? (
-        <View style={tailwind('flex items-center justify-center mb-0.5')}>
+        <View style={tailwind('flex items-center justify-center mb-0.5 mt-5')}>
           <LogoComponent height={10} />
         </View>
       ) : null}
