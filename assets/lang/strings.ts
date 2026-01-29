@@ -1,10 +1,9 @@
 /* eslint-disable quotes */
-import LocalizedStrings from 'react-native-localization';
 import { NotificationType } from '../../src/types';
 import { BiometricAccessType } from '../../src/types/app';
 import { SortType } from '../../src/types/drive/ui';
 
-const strings = new LocalizedStrings({
+const translations = {
   en: {
     languages: {
       en: 'English',
@@ -126,6 +125,8 @@ const strings = new LocalizedStrings({
         register: 'Get started',
         back: 'Back to login',
         errorOpeningLink: 'Error opening login link',
+        termsAndConditions: 'Terms and conditions',
+        needHelp: 'Need help?',
       },
       WebLoginScreen: {
         processing: 'Completing sign in...',
@@ -328,7 +329,7 @@ const strings = new LocalizedStrings({
       export_file: 'Export file',
       duplicate: 'Duplicate',
       save_to_gallery: 'Save to gallery',
-      sign_in: 'Log in',
+      sign_in: 'Login',
       createAccount: 'Create account',
       sendDeleteAccountConfirmation: 'Send confirmation email',
       create: 'Create',
@@ -337,7 +338,7 @@ const strings = new LocalizedStrings({
       back: 'Back',
       creating: 'Creating',
       deactivation: 'Re-send deactivation email',
-      sing_up: 'Sign up',
+      sing_up: 'Create account',
       descrypting: 'Decrypting...',
       cancel: 'Cancel',
       cancelling: 'Cancelling',
@@ -710,6 +711,8 @@ const strings = new LocalizedStrings({
       moveError: 'Cannot move folder',
       unknown: 'Unknown error',
       uploadFile: 'File upload error: {0}',
+      uploadInterrupted: 'Could not upload {0}',
+      uploadsInterrupted: 'Could not upload {0} files',
       storageLimitReached: 'You have reached your storage limit',
       inviteAFriend: 'Error sending invitation: {0}',
       loadProducts: 'Cannot load products: {0}',
@@ -902,6 +905,8 @@ const strings = new LocalizedStrings({
         register: 'Regístrate',
         back: 'Iniciar sesión',
         errorOpeningLink: 'Error al abrir el link de autenticación',
+        termsAndConditions: 'Términos y condiciones',
+        needHelp: '¿Necesitas ayuda?',
       },
       WebLoginScreen: {
         processing: 'Completando inicio de sesión...',
@@ -1490,6 +1495,8 @@ const strings = new LocalizedStrings({
       moveError: 'No se ha podido mover el archivo',
       unknown: 'Error desconocido',
       uploadFile: 'Error al subir archivo: {0}',
+      uploadInterrupted: 'No se pudo subir {0}',
+      uploadsInterrupted: 'No se pudieron subir {0} archivos',
       storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
       inviteAFriend: 'Error enviando invitación: {0}',
       loadProducts: 'Error al cargar productos: {0}',
@@ -1562,6 +1569,43 @@ const strings = new LocalizedStrings({
       },
     },
   },
-});
+};
+
+let currentLanguage = 'en';
+
+const strings = {
+  ...translations.en,
+  setLanguage: (lang: string) => {
+    currentLanguage = lang;
+    if (lang === 'es') {
+      Object.assign(strings, translations.es);
+    } else {
+      Object.assign(strings, translations.en);
+    }
+  },
+  getLanguage: () => currentLanguage,
+  getInterfaceLanguage: () => 'en',
+  formatString: (template: string, ...args: (string | number)[]) => {
+    return template.replaceAll(/{(\d+)}/g, (match, index) => {
+      const argIndex = Number.parseInt(index, 10);
+      return args[argIndex] !== undefined ? String(args[argIndex]) : match;
+    });
+  },
+  getString: (path: string, fallback?: string) => {
+    const keys = path.split('.');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let result: any = currentLanguage === 'es' ? translations.es : translations.en;
+
+    for (const key of keys) {
+      if (result && typeof result === 'object' && key in result) {
+        result = result[key];
+      } else {
+        return fallback || path;
+      }
+    }
+
+    return typeof result === 'string' ? result : fallback || path;
+  },
+};
 
 export default strings;

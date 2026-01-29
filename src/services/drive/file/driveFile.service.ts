@@ -13,7 +13,7 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { SaveFormat } from 'expo-image-manipulator';
 import { Image } from 'react-native';
 import uuid from 'react-native-uuid';
-import { getEnvironmentConfig } from 'src/lib/network';
+import { getEnvironmentConfigFromUser } from 'src/lib/network';
 import * as networkDownload from 'src/network/download';
 import network from '../../../network';
 import { uploadService } from '../../common/network/upload/upload.service';
@@ -207,14 +207,23 @@ class DriveFileService {
     return parsedModifiedFiles;
   }
 
-  public async getThumbnail(thumbnail: {
-    bucket_id: string;
-    bucket_file: string;
-    bucketFile: string;
-    bucketId: string;
-    type: string;
-  }) {
-    const { bridgeUser, bridgePass, encryptionKey } = await getEnvironmentConfig();
+  /**
+   * Download and cache a thumbnail
+   *
+   * @param thumbnail - Thumbnail metadata
+   * @param user - User details
+   */
+  public async getThumbnail(
+    thumbnail: {
+      bucket_id: string;
+      bucket_file: string;
+      bucketFile: string;
+      bucketId: string;
+      type: string;
+    },
+    user: UserSettings,
+  ) {
+    const { bridgeUser, bridgePass, encryptionKey } = getEnvironmentConfigFromUser(user);
     // To handle that server not returns bucket_id and bucket_file when just generated the thumbnail
     const bucketFile = thumbnail.bucket_file ? thumbnail.bucket_file.toString() : thumbnail.bucketFile.toString();
     const bucketId = thumbnail.bucket_id ? thumbnail.bucket_id : thumbnail.bucketId;

@@ -1,5 +1,5 @@
-import { Easing, Platform, StyleProp, TouchableWithoutFeedback, useColorScheme, View, ViewStyle } from 'react-native';
-import Modal from 'react-native-modalbox';
+import { Platform, StyleProp, TouchableWithoutFeedback, useColorScheme, View, ViewStyle } from 'react-native';
+import Modal from 'react-native-modal';
 
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -39,21 +39,23 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
 
   return (
     <Modal
-      isOpen={props.isOpen}
-      onClosed={props.onClosed}
-      position="top"
-      style={
-        [
-          { ...tailwind('bg-transparent'), paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top },
-          props.modalStyle,
-        ] as any
-      }
-      backButtonClose={props.backButtonClose !== undefined ? props.backButtonClose : true}
-      backdropPressToClose={props.backdropPressToClose}
-      animationDuration={props.animationDuration || 250}
-      easing={Easing.ease}
+      isVisible={props.isOpen}
+      onModalHide={props.onClosed}
+      onBackdropPress={(props.backdropPressToClose ?? true) ? props.onClosed : undefined}
+      onBackButtonPress={(props.backButtonClose ?? true) ? props.onClosed : undefined}
+      style={[{ margin: 0, justifyContent: 'flex-start' }, props.modalStyle]}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      animationInTiming={props.animationDuration || 250}
+      animationOutTiming={props.animationDuration || 250}
+      backdropTransitionInTiming={props.animationDuration || 250}
+      backdropTransitionOutTiming={0}
+      useNativeDriver
+      useNativeDriverForBackdrop
+      hideModalContentWhileAnimating
+      coverScreen={false}
     >
-      <View style={tailwind('h-full')}>
+      <View style={[tailwind('h-full bg-transparent'), { paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top }]}>
         <StatusBar style={statusBarStyle} translucent={isTranslucent} />
 
         <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>

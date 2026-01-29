@@ -7,7 +7,7 @@ import LoadingSpinner from '../LoadingSpinner';
 interface AppButtonProps {
   testID?: string;
   title: string | JSX.Element;
-  type: 'accept' | 'accept-2' | 'cancel' | 'cancel-2' | 'delete' | 'white';
+  type: 'accept' | 'accept-2' | 'cancel' | 'cancel-2' | 'delete' | 'white' | 'secondary';
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
@@ -74,6 +74,15 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
           shadowOpacity: isDark ? 0 : 0.16,
           shadowRadius: 1.51,
           elevation: isDark ? 0 : 2,
+        };
+
+      case 'secondary':
+        return {
+          backgroundColor: '#FFFFFF26',
+          textColor: getColor('text-gray-80'),
+          underlayColor: '#FFFFFF40',
+          borderColor: isDark ? '#FFFFFF1A' : '#1111111A',
+          borderWidth: 1,
         };
 
       default:

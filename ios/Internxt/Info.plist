@@ -19,7 +19,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.8.4</string>
+    <string>1.8.5</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -29,12 +29,13 @@
         <array>
           <string>internxt</string>
           <string>inxt</string>
-          <string>com.internxt.snacks</string>
         </array>
       </dict>
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>15.1</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSAppTransportSecurity</key>
@@ -54,6 +55,8 @@
     <string>Allow $(PRODUCT_NAME) to save/download photos from the storage service</string>
     <key>NSPhotoLibraryUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your photos to sync your device camera roll with our Photos cloud service</string>
+    <key>RCTNewArchEnabled</key>
+    <true/>
     <key>RCTRootViewBackgroundColor</key>
     <integer>4294967295</integer>
     <key>UIDesignRequiresCompatibility</key>
@@ -62,7 +65,7 @@
     <string>SplashScreen</string>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
-      <string>armv7</string>
+      <string>arm64</string>
     </array>
     <key>UIRequiresFullScreen</key>
     <false/>

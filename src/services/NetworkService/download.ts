@@ -3,7 +3,7 @@ import { request } from '@internxt/lib';
 
 import axios, { AxiosRequestConfig } from 'axios';
 import { createDecipheriv } from 'react-native-crypto';
-import RNFetchBlob from 'rn-fetch-blob';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 
 import { GenerateFileKey, ripemd160, sha256 } from '../../@inxt-js/lib/crypto';
 
@@ -109,7 +109,7 @@ async function decryptFile(
   const chunks = Math.ceil(fileSize / chunksOf);
 
   const URIWhereWriteFile: FileDecryptedURI = toPath;
-  const writer = await RNFetchBlob.fs.writeStream(URIWhereWriteFile, 'base64');
+  const writer = await ReactNativeBlobUtil.fs.writeStream(URIWhereWriteFile, 'base64');
 
   let start = 0;
 

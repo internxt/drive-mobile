@@ -16,15 +16,14 @@ import { prepareFilesToUpload } from './prepareFilesToUpload';
 import errorService from '../../../ErrorService';
 
 import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
+import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { Dispatch } from 'react';
 import { Action } from 'redux';
 import { DriveFoldersTreeNode } from '../../../../contexts/Drive';
-import { getEnvironmentConfig } from '../../../../lib/network';
-import { NotificationType } from '../../../../types';
+import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
-import notificationsService from '../../../NotificationsService';
 import { BucketNotFoundError } from './upload.errors';
 
 /**
@@ -37,8 +36,11 @@ export function validateAndFilterFiles(documents: DocumentPickerFile[]) {
   const filesToUpload: DocumentPickerFile[] = [];
   const filesExcluded: DocumentPickerFile[] = [];
 
-  if (!documents.every((file) => isValidFilename(file.name))) {
-    throw new Error('Some file names are not valid');
+  const invalidFiles = documents.filter((file) => !isValidFilename(file.name));
+
+  if (invalidFiles.length > 0) {
+    const invalidFileNames = invalidFiles.map((f) => f.name).join(', ');
+    throw new Error(`Invalid file names: ${invalidFileNames}`);
   }
 
   for (const file of documents) {
@@ -241,16 +243,18 @@ export async function createEmptyFileEntry(bucketId: string, file: UploadingFile
  * @param {Function} dispatch - Redux dispatch function.
  * @param {(uploadingFile: UploadingFile, fileType: 'document' | 'image') => Promise<void>} uploadFile - Upload function.
  * @param {(file: UploadingFile) => void} uploadSuccess - Callback for successful upload.
+ * @param {UserSettings} user - User data
  */
 export async function uploadSingleFile(
   file: UploadingFile,
   dispatch: Dispatch<Action>,
   uploadFile: (uploadingFile: UploadingFile, fileType: 'document' | 'image') => Promise<void>,
   uploadSuccess: (file: UploadingFile) => void,
+  user?: UserSettings,
 ) {
   try {
     if (isFileEmpty(file)) {
-      const { bucketId } = await getEnvironmentConfig();
+      const bucketId = user ? getEnvironmentConfigFromUser(user).bucketId : undefined;
 
       if (!bucketId) {
         throw new BucketNotFoundError();
@@ -271,10 +275,7 @@ export async function uploadSingleFile(
     trackUploadError(file, err);
     dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
     logger.error('File upload process failed: ', JSON.stringify(err));
-    notificationsService.show({
-      type: NotificationType.Error,
-      text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
-    });
+    throw err;
   } finally {
     dispatch(driveActions.uploadFileFinished());
   }

@@ -36,7 +36,6 @@ import { imageService, logger, PROFILE_PICTURE_CACHE_KEY } from '@internxt-mobil
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
-import { internxtMobileSDKUtils } from '@internxt/mobile-sdk';
 
 import { useTheme } from '@internxt-mobile/contexts/Theme';
 import { paymentsSelectors } from 'src/store/slices/payments';
@@ -123,10 +122,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     try {
       setGettingLogs(true);
       const exists = await fs.fileExistsAndIsNotEmpty(fs.getRuntimeLogsPath());
-
-      if (Platform.OS === 'android') {
-        await internxtMobileSDKUtils.saveNativeLogs();
-      }
 
       if (Platform.OS === 'ios') {
         await fs.shareFile({

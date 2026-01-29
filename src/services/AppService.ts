@@ -6,8 +6,10 @@ import deviceInfo from 'react-native-device-info';
 import EnvTest from '../../env/.env.test.json';
 import packageJson from '../../package.json';
 import { logger } from './common/logger';
+
 export type AppStatus = AppStateStatus;
 export type AppStateListener = (status: AppStatus) => void;
+
 class AppService {
   private listeners: AppStateListener[] = [];
   public get name(): string {
@@ -31,6 +33,7 @@ class AppService {
   public get urls() {
     return {
       termsAndConditions: 'https://internxt.com/legal',
+      help: 'https://help.internxt.com',
       webAuth: {
         login: `${this.constants.WEB_CLIENT_URL}/login?universalLink=true`,
         signup: `${this.constants.WEB_CLIENT_URL}/new?universalLink=true`,

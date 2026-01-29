@@ -1,5 +1,8 @@
 {
   "extends": "@internxt/eslint-config-internxt",
+  "env": {
+    "es2020": true
+  },
   "rules": {
     "max-len": "off"
   },

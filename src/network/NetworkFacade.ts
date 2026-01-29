@@ -5,11 +5,12 @@ import { ALGORITHMS, Network } from '@internxt/sdk/dist/network';
 import { downloadFile } from '@internxt/sdk/dist/network/download';
 import { BinaryData, Crypto } from '@internxt/sdk/dist/network/types';
 import { uploadFile, uploadMultipartFile } from '@internxt/sdk/dist/network/upload';
+import * as bip39 from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { Platform } from 'react-native';
-import { validateMnemonic } from 'react-native-bip39';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import { randomBytes } from 'react-native-crypto';
 import uuid from 'react-native-uuid';
-import RNFetchBlob from 'rn-fetch-blob';
 
 import drive from '@internxt-mobile/services/drive';
 import pLimit, { LimitFunction } from 'p-limit';
@@ -76,7 +77,7 @@ export class NetworkFacade {
   constructor(private network: Network) {
     this.cryptoLib = {
       algorithm: ALGORITHMS.AES256CTR,
-      validateMnemonic,
+      validateMnemonic: (mnemonic) => bip39.validateMnemonic(mnemonic, wordlist),
       generateFileKey: (mnemonic, bucketId, index) => {
         return generateFileKey(mnemonic, bucketId, index as Buffer);
       },
@@ -135,13 +136,13 @@ export class NetworkFacade {
         fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
       },
       async (url: string) => {
-        await RNFetchBlob.fetch(
+        await ReactNativeBlobUtil.fetch(
           'PUT',
           url,
           {
             'Content-Type': 'application/octet-stream',
           },
-          RNFetchBlob.wrap(encryptedFilePath),
+          ReactNativeBlobUtil.wrap(encryptedFilePath),
         ).uploadProgress({ interval: 150 }, (bytesSent, totalBytes) => {
           // From 0 to 1
           const uploadProgress = bytesSent / totalBytes;
@@ -310,11 +311,11 @@ export class NetworkFacade {
     progressCallback?: (progress: number) => void,
   ): Promise<PartInfo> {
     try {
-      const response = await RNFetchBlob.fetch(
+      const response = await ReactNativeBlobUtil.fetch(
         'PUT',
         url,
         { 'Content-Type': 'application/octet-stream' },
-        RNFetchBlob.wrap(encryptedPartPath),
+        ReactNativeBlobUtil.wrap(encryptedPartPath),
       ).uploadProgress({ interval: 150 }, (sent: number) => {
         this.updateUploadProgress(index, parseInt(sent.toString()), partsUploadedBytes, fileSize, progressCallback);
       });

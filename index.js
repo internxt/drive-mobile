@@ -1,41 +1,34 @@
-// Better and recommended replacement as rn-nodeify
-import 'node-libs-react-native/globals';
+import './shim';
+
+// Polyfills
 import 'expo-asset';
 import 'intl';
 import 'intl/locale-data/jsonp/en';
+import 'react-native-get-random-values';
+import 'react-native-url-polyfill/auto';
+
+// React y Expo
 import { registerRootComponent } from 'expo';
 import { createElement } from 'react';
+import { enableScreens } from 'react-native-screens';
 import { Provider } from 'react-redux';
 import { TailwindProvider } from 'tailwind-rn';
-import utilities from './src/styles/tailwind.json';
 
+// App imports
 import App from './src/App';
 import plugins from './src/plugins';
 import store from './src/store';
+import utilities from './src/styles/tailwind.json';
 
-import 'moment/locale/es';
-import 'moment/locale/en-in';
-import { decode, encode } from 'base-64';
-import { enableScreens } from 'react-native-screens';
 enableScreens(false);
-/**
- * Axios removed support for base64 encoding, so we need to provide
- * a polyfill
- */
-// eslint-disable-next-line no-undef
-if (!global.btoa) {
-  // eslint-disable-next-line no-undef
-  global.btoa = encode;
-}
-// eslint-disable-next-line no-undef
-if (!global.atob) {
-  // eslint-disable-next-line no-undef
-  global.atob = decode;
-}
 
-// Polyfill
-// eslint-disable-next-line no-undef
-process.nextTick = setImmediate;
+// Polyfill for btoa and atob
+if (globalThis.btoa === undefined) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, no-undef
+  const { encode, decode } = require('base-64');
+  globalThis.btoa = encode;
+  globalThis.atob = decode;
+}
 
 // Installs plugins
 plugins.forEach((plugin) => plugin.install(store));

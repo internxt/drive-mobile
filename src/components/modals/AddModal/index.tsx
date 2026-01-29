@@ -1,4 +1,3 @@
-import * as FileSystem from 'expo-file-system';
 import {
   ImagePickerAsset,
   launchCameraAsync,
@@ -35,7 +34,6 @@ import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import { constants } from '../../../services/AppService';
-import asyncStorage from '../../../services/AsyncStorageService';
 import {
   createUploadingFiles,
   handleDuplicateFiles,
@@ -51,8 +49,8 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import { NotificationType, ProgressCallback } from '../../../types';
-import { DocumentPickerFile, UploadingFile, UPLOAD_FILE_SIZE_LIMIT } from '../../../types/drive/operations';
 import { DriveEventKey } from '../../../types/drive/events';
+import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../types/drive/operations';
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
@@ -70,6 +68,7 @@ function AddModal(): JSX.Element {
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
+  const user = useAppSelector((state) => state.auth.user);
 
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
     const name = file.name ?? decodeURI(file.uri).split('/').pop();
@@ -122,7 +121,7 @@ function AddModal(): JSX.Element {
 
       if (!granted) {
         Alert.alert('Can not upload files. Grant permissions to upload files');
-        return;
+        throw new Error('Storage permissions not granted');
       }
     }
     const fileExtension = fileToUpload.type;
@@ -149,7 +148,7 @@ function AddModal(): JSX.Element {
 
       const alertText = strings.formatString(messageKey, fileName).toString();
       Alert.alert(strings.messages.limitPerFile, alertText);
-      return false;
+      throw new Error(`File ${fileName} exceeds upload size limit`);
     }
     return true;
   };
@@ -168,19 +167,16 @@ function AddModal(): JSX.Element {
     modificationTime?: string,
     creationTime?: string,
   ) {
-    const { bucket, bridgeUser, mnemonic, userId } = await asyncStorage.getUser();
-    logger.info('Stating file...');
+    if (!user) {
+      throw new Error('User not found in Redux state');
+    }
+    const { bucket, bridgeUser, mnemonic, userId } = user;
     const fileStat = await fileSystemService.stat(filePath);
     // Fix for Android, native document picker not returns the correct fileSize when file is big
     // and cannnot get the stat before we got the file in temporary path
-    const isFileSizeValid = checkFileSizeLimitToUpload(fileStat.size, fileName);
-    if (!isFileSizeValid) {
-      return;
-    }
+    checkFileSizeLimitToUpload(fileStat.size, fileName);
 
-    logger.info('File stats: ', JSON.stringify(fileStat));
     const fileSize = fileStat.size;
-    logger.info('About to upload file...');
     const fileId = await network.uploadFile(
       filePath,
       bucket,
@@ -338,6 +334,26 @@ function AddModal(): JSX.Element {
     drive.events.emit({ event: DriveEventKey.UploadCompleted });
   }
 
+  const cleanupStuckUploads = (processedFileIds: number[], allFiles: UploadingFile[]) => {
+    const stuckFiles = allFiles.filter((file) => !processedFileIds.includes(file.id));
+
+    if (stuckFiles.length > 0) {
+      stuckFiles.forEach((file) => {
+        dispatch(driveActions.uploadFileFailed({ errorMessage: 'Upload process interrupted', id: file.id }));
+      });
+
+      const errorMessage =
+        stuckFiles.length === 1
+          ? strings.formatString(strings.errors.uploadInterrupted, stuckFiles[0].name)
+          : strings.formatString(strings.errors.uploadsInterrupted, stuckFiles.length);
+
+      notificationsService.show({
+        type: NotificationType.Warning,
+        text1: errorMessage as string,
+      });
+    }
+  };
+
   function processFilesFromPicker(documents: DocumentPickerFile[]): Promise<void> {
     documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
     dispatch(uiActions.setShowUploadFileModal(false));
@@ -363,10 +379,25 @@ function AddModal(): JSX.Element {
 
     initializeUploads(formattedFiles, dispatch);
 
+    const processedFileIds: number[] = [];
+
     for (const file of formattedFiles) {
-      await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess);
+      try {
+        logger.info(`User from redux when upload: ${user?.username}, bucket: ${user?.bucket}`);
+        await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess, user);
+      } catch (error) {
+        logger.error(`File ${file.name} failed to upload:`, error);
+
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.formatString(strings.errors.uploadFile, (error as Error).message) as string,
+        });
+      } finally {
+        processedFileIds.push(file.id);
+      }
     }
 
+    cleanupStuckUploads(processedFileIds, formattedFiles);
     dispatch(driveActions.clearUploadedFiles());
   }
 
@@ -406,19 +437,20 @@ function AddModal(): JSX.Element {
       }
     } catch (err) {
       const error = err as Error;
+
       if (error.message === 'User canceled document picker') {
         return;
       }
 
       errorService.reportError(error);
-      logger.error('Error on handleUploadFiles function:', JSON.stringify(err));
+
+      const errorMessage = error.message || 'Unknown upload error';
 
       notificationsService.show({
         type: NotificationType.Error,
-        text1: strings.formatString(strings.errors.uploadFile, error.message) as string,
+        text1: strings.formatString(strings.errors.uploadFile, errorMessage) as string,
       });
     } finally {
-      // 4. Hide the upload modal
       dispatch(uiActions.setShowUploadFileModal(false));
     }
   };
@@ -454,8 +486,8 @@ function AddModal(): JSX.Element {
                 let fileSize = asset.fileSize;
                 if (!fileSize) {
                   try {
-                    const fileInfo = await FileSystem.getInfoAsync(cleanUri);
-                    fileSize = fileInfo.exists ? fileInfo.size || 0 : 0;
+                    const fileInfo = fileSystemService.getFileInfo(cleanUri);
+                    fileSize = fileInfo.exists ? fileInfo.size ?? 0 : 0;
                   } catch (error) {
                     logger.warn('The file size could not be obtained:', error);
                     fileSize = 0;
@@ -465,7 +497,7 @@ function AddModal(): JSX.Element {
                 documents.push({
                   fileCopyUri: cleanUri,
                   name: decodeURIComponent(originalFileName ?? ''),
-                  size: fileSize,
+                  size: fileSize ?? 0,
                   type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
                   uri: cleanUri,
                 });
@@ -547,8 +579,8 @@ function AddModal(): JSX.Element {
               let fileSize = asset.fileSize ?? 0;
               if (!fileSize) {
                 try {
-                  const fileInfo = await FileSystem.getInfoAsync(cleanUri);
-                  fileSize = fileInfo.exists ? fileInfo.size || 0 : 0;
+                  const fileInfo = fileSystemService.getFileInfo(cleanUri);
+                  fileSize = fileInfo.exists ? fileInfo.size ?? 0 : 0;
                 } catch (error) {
                   logger.warn('The file size could not be obtained:', error);
                   fileSize = 0;
@@ -644,10 +676,10 @@ function AddModal(): JSX.Element {
           return;
         }
 
-        const fileInfo = await FileSystem.getInfoAsync(assetToUpload.uri);
+        const fileInfo = fileSystemService.getFileInfo(assetToUpload.uri);
         const formatInfo = detectImageFormat(assetToUpload);
         const name = drive.file.removeExtension(assetToUpload.uri.split('/').pop() as string);
-        const size = fileInfo.exists ? fileInfo?.size : 0;
+        const size = fileInfo.exists ? fileInfo.size ?? 0 : 0;
 
         const file: UploadingFile = {
           id: new Date().getTime(),

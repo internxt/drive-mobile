@@ -1,0 +1,37 @@
+diff --git a/node_modules/react-native-pdf-thumbnail/android/build.gradle b/node_modules/react-native-pdf-thumbnail/android/build.gradle
+index 37d07c9..8679501 100644
+--- a/node_modules/react-native-pdf-thumbnail/android/build.gradle
++++ b/node_modules/react-native-pdf-thumbnail/android/build.gradle
+@@ -44,7 +44,7 @@ def supportsNamespace() {
+
+ android {
+   if (supportsNamespace()) {
+-    namespace "com.pdfthumbnail"
++    namespace "org.songsterq.pdfthumbnail"
+
+     sourceSets {
+       main {
+@@ -72,8 +72,8 @@ android {
+   }
+
+   compileOptions {
+-    sourceCompatibility JavaVersion.VERSION_1_8
+-    targetCompatibility JavaVersion.VERSION_1_8
++    sourceCompatibility JavaVersion.VERSION_11
++    targetCompatibility JavaVersion.VERSION_11
+   }
+ }
+
+diff --git a/node_modules/react-native-pdf-thumbnail/android/src/main/java/org/songsterq/pdfthumbnail/PdfThumbnailModule.kt b/node_modules/react-native-pdf-thumbnail/android/src/main/java/org/songsterq/pdfthumbnail/PdfThumbnailModule.kt
+index 1234567..abcdefg 100644
+--- a/node_modules/react-native-pdf-thumbnail/android/src/main/java/org/songsterq/pdfthumbnail/PdfThumbnailModule.kt
++++ b/node_modules/react-native-pdf-thumbnail/android/src/main/java/org/songsterq/pdfthumbnail/PdfThumbnailModule.kt
+@@ -98,7 +98,7 @@ class PdfThumbnailModule(reactContext: ReactApplicationContext) :
+     currentPage.close()
+
+     // Some bitmaps have transparent background which results in a black thumbnail. Add a white background.
+-    val bitmapWhiteBG = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config)
++    val bitmapWhiteBG = Bitmap.createBitmap(bitmap.width, bitmap.height, bitmap.config ?: Bitmap.Config.ARGB_8888)
+     val canvas = Canvas(bitmapWhiteBG)
+     canvas.drawBitmap(bitmap, 0f, 0f, null)
+     bitmap.recycle()

@@ -1,15 +1,14 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
-import { Platform } from 'react-native';
-
-import { StatResultT } from '@dr.pogodin/react-native-fs/lib/typescript/src/NativeReactNativeFs';
+import { type StatResultT } from '@dr.pogodin/react-native-fs';
 import { internxtFS } from '@internxt/mobile-sdk';
-import * as FileSystem from 'expo-file-system';
+import { File, FileInfo } from 'expo-file-system';
 import { shareAsync } from 'expo-sharing';
 import prettysize from 'prettysize';
+import { Platform } from 'react-native';
+import ReactNativeBlobUtil from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
-import RNFetchBlob from 'rn-fetch-blob';
 
 export enum AcceptedEncodings {
   Utf8 = 'utf8',
@@ -120,7 +119,7 @@ class FileSystemService {
   }
 
   public writeFileStream(uri: string): Promise<FileWriter> {
-    return RNFetchBlob.fs.writeStream(uri, 'base64').then((writeStream) => {
+    return ReactNativeBlobUtil.fs.writeStream(uri, 'base64').then((writeStream) => {
       return {
         write: (content: string) => writeStream.write(content),
         close: () => writeStream.close(),
@@ -143,7 +142,7 @@ class FileSystemService {
   }
 
   public createFile(path: string, content: string, encoding: AcceptedEncodings): Promise<void> {
-    return RNFetchBlob.fs.createFile(path, content, encoding);
+    return ReactNativeBlobUtil.fs.createFile(path, content, encoding);
   }
 
   public createEmptyFile(path: string): Promise<void> {
@@ -174,14 +173,22 @@ class FileSystemService {
     return RNFS.stat(uri);
   }
 
+  /**
+   * Gets file information using Expo's File API
+   */
+  public getFileInfo(uri: string): FileInfo {
+    const file = new File(uri);
+    return file.info();
+  }
+
   public async showFileViewer(uri: string, options?: string | Record<string, unknown>): Promise<void> {
-    const fileInfo = await FileSystem.getInfoAsync(uri);
+    const fileInfo = this.getFileInfo(uri);
 
     if (!fileInfo.exists) {
       throw new Error('File not found');
     }
 
-    return FileViewer.open(fileInfo.uri, options);
+    return FileViewer.open(uri, options);
   }
 
   public async moveToAndroidDownloads(source: string) {
@@ -332,7 +339,8 @@ class FileSystemService {
     if (Platform.OS === 'android' && !(await this.exists(this.getTemporaryDir()))) {
       await this.mkdir(this.getTemporaryDir());
     }
-    await this.unlinkIfExists(RNFetchBlob.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
+
+    await this.unlinkIfExists(ReactNativeBlobUtil.fs.dirs.DocumentDir + '/RNFetchBlob_tmp');
     await this.clearTempDir();
   }
 

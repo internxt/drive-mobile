@@ -87,3 +87,4 @@ web-build/
 dist/
 
 # @end expo-cli
+.vscode/settings.json

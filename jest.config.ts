@@ -14,9 +14,11 @@ const untranspiledModulePatterns = [
   'unimodules',
   'native-base',
   'react-native-svg',
-  'rn-fetch-blob',
+  'react-native-blob-util',
   '@internxt/rn-crypto',
-  'realm',
+  '@scure/bip39',
+  '@scure/base',
+  '@noble/hashes',
 ];
 
 const config: Config.InitialOptions = {

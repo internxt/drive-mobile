@@ -4,18 +4,21 @@ import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 
 interface SettingsGroupItemProps {
-  key: string;
   template: JSX.Element;
   style?: StyleProp<ViewStyle>;
   loading?: boolean;
   onPress?: (event: GestureResponderEvent) => void;
 }
 
+interface SettingsGroupItemWithKey extends SettingsGroupItemProps {
+  key: string;
+}
+
 interface SettingsGroupProps extends ViewProps {
   style?: StyleProp<ViewStyle>;
   title?: string;
   advice?: string;
-  items: SettingsGroupItemProps[];
+  items: SettingsGroupItemWithKey[];
 }
 
 function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupProps) {
@@ -40,6 +43,7 @@ function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupPr
   const renderItems = () =>
     items.map((i, index) => {
       const isTheLast = index === items.length - 1;
+      const { key, ...itemProps } = i;
       const separator = (
         <View
           style={{
@@ -51,10 +55,10 @@ function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupPr
       );
 
       return isTheLast ? (
-        <SettingsGroupItem {...i} />
+        <SettingsGroupItem key={key} {...itemProps} />
       ) : (
-        <View key={i.key}>
-          <SettingsGroupItem {...i} />
+        <View key={key}>
+          <SettingsGroupItem {...itemProps} />
           {separator}
         </View>
       );

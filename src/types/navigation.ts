@@ -12,7 +12,6 @@ declare global {
 
 export type RootStackParamList = {
   Debug: undefined;
-  SignUp: undefined;
   SignIn: undefined;
   WebLogin: {
     mnemonic?: string;
@@ -22,7 +21,6 @@ export type RootStackParamList = {
   } | undefined;
   DeactivatedAccount: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
-  ForgotPassword: undefined;
   Trash: undefined;
   DrivePreview: undefined;
 };
