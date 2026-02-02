@@ -4558,6 +4558,11 @@ expo-navigation-bar@~5.0.10:
     debug "^4.3.2"
     react-native-is-edge-to-edge "^1.2.1"
 
+expo-screen-orientation@^9.0.8:
+  version "9.0.8"
+  resolved "https://registry.yarnpkg.com/expo-screen-orientation/-/expo-screen-orientation-9.0.8.tgz#15b8f85bd4d183831943fc5a21e3020e17432867"
+  integrity sha512-qRoPi3E893o3vQHT4h1NKo51+7g2hjRSbDeg1fsSo/u2pOW5s6FCeoacLvD+xofOP33cH2MkE4ua54aWWO7Icw==
+
 expo-secure-store@~15.0.8:
   version "15.0.8"
   resolved "https://registry.yarnpkg.com/expo-secure-store/-/expo-secure-store-15.0.8.tgz#678065599bb76061b5a85b15b9426bf7a11089ae"
