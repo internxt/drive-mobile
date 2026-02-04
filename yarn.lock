@@ -1532,10 +1532,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.11.25":
-  version "1.11.25"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.11.25/b606f1db93716e6a9d2356fdab2fbf6024431e1f#b606f1db93716e6a9d2356fdab2fbf6024431e1f"
-  integrity sha512-mVJIDabOjN777ZaUTgaVWZLje3/0mimhJDCThunQ6smKMrei/2UPxBACa9w3k6AKtLE6eUwgKu8/pTz35T5r9Q==
+"@internxt/sdk@1.12.3":
+  version "1.12.3"
+  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.12.3/a8e8b92fb74366ede86d6239307771c7c3c3100e#a8e8b92fb74366ede86d6239307771c7c3c3100e"
+  integrity sha512-rrt2tEUFGAvjD9yJ+kGSVvrSnZiUushqwWh7Bee+cDIFd3c1NCAtCmfhTBZjX/nvMfDqHWA1xeEYgP53qe8tpA==
   dependencies:
     axios "1.13.2"
     uuid "11.1.0"
