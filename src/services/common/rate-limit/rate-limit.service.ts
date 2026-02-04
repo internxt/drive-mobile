@@ -36,6 +36,12 @@ const normalizePathSegments = (pathname: string): string => {
 const UNKNOWN_ENDPOINT = 'unknown';
 
 export const HTTP_TOO_MANY_REQUESTS = 429;
+
+export const HEADER_RATELIMIT_LIMIT = 'x-internxt-ratelimit-limit';
+export const HEADER_RATELIMIT_REMAINING = 'x-internxt-ratelimit-remaining';
+export const HEADER_RATELIMIT_RESET = 'x-internxt-ratelimit-reset';
+export const HEADER_RETRY_AFTER = 'retry-after';
+
 const THROTTLE_THRESHOLD = 0.4;
 const MAX_THROTTLE_DELAY_MS = 2000;
 export const MAX_RATE_LIMIT_RETRIES = 3;
@@ -82,9 +88,9 @@ class RateLimitService {
   private readonly states = new Map<string, RateLimitState>();
 
   updateFromHeaders(headers: Record<string, string>, endpointKey: string): void {
-    const limit = this.parseHeader(headers, 'x-ratelimit-limit');
-    const remaining = this.parseHeader(headers, 'x-ratelimit-remaining');
-    const reset = this.parseHeader(headers, 'x-ratelimit-reset');
+    const limit = this.parseHeader(headers, HEADER_RATELIMIT_LIMIT);
+    const remaining = this.parseHeader(headers, HEADER_RATELIMIT_REMAINING);
+    const reset = this.parseHeader(headers, HEADER_RATELIMIT_RESET);
 
     if (limit === null || remaining === null || reset === null) return;
 
