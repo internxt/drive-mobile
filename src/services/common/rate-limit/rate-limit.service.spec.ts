@@ -1,9 +1,9 @@
 import { extractEndpointKey, rateLimitService } from './rate-limit.service';
 
 const makeHeaders = (limit: number, remaining: number, reset: number): Record<string, string> => ({
-  'x-ratelimit-limit': String(limit),
-  'x-ratelimit-remaining': String(remaining),
-  'x-ratelimit-reset': String(reset),
+  'x-internxt-ratelimit-limit': String(limit),
+  'x-internxt-ratelimit-remaining': String(remaining),
+  'x-internxt-ratelimit-reset': String(reset),
 });
 
 describe('extractEndpointKey', () => {
@@ -206,21 +206,21 @@ describe('RateLimitService', () => {
 
     it('when limit header is missing, then does not store state', () => {
       const endpoint = 'update-missing-limit';
-      rateLimitService.updateFromHeaders({ 'x-ratelimit-remaining': '100', 'x-ratelimit-reset': '1000' }, endpoint);
+      rateLimitService.updateFromHeaders({ 'x-internxt-ratelimit-remaining': '100', 'x-internxt-ratelimit-reset': '1000' }, endpoint);
 
       expect(rateLimitService.shouldThrottle(endpoint)).toBe(false);
     });
 
     it('when remaining header is missing, then does not store state', () => {
       const endpoint = 'update-missing-remaining';
-      rateLimitService.updateFromHeaders({ 'x-ratelimit-limit': '200', 'x-ratelimit-reset': '1000' }, endpoint);
+      rateLimitService.updateFromHeaders({ 'x-internxt-ratelimit-limit': '200', 'x-internxt-ratelimit-reset': '1000' }, endpoint);
 
       expect(rateLimitService.shouldThrottle(endpoint)).toBe(false);
     });
 
     it('when reset header is missing, then does not store state', () => {
       const endpoint = 'update-missing-reset';
-      rateLimitService.updateFromHeaders({ 'x-ratelimit-limit': '200', 'x-ratelimit-remaining': '100' }, endpoint);
+      rateLimitService.updateFromHeaders({ 'x-internxt-ratelimit-limit': '200', 'x-internxt-ratelimit-remaining': '100' }, endpoint);
 
       expect(rateLimitService.shouldThrottle(endpoint)).toBe(false);
     });
@@ -228,7 +228,7 @@ describe('RateLimitService', () => {
     it('when header values are non-numeric, then does not store state', () => {
       const endpoint = 'update-non-numeric';
       rateLimitService.updateFromHeaders(
-        { 'x-ratelimit-limit': 'abc', 'x-ratelimit-remaining': '100', 'x-ratelimit-reset': '1000' },
+        { 'x-internxt-ratelimit-limit': 'abc', 'x-internxt-ratelimit-remaining': '100', 'x-internxt-ratelimit-reset': '1000' },
         endpoint,
       );
 
@@ -369,8 +369,9 @@ describe('RateLimitService', () => {
     });
 
     it('when endpoint has state with pending reset, then uses time until reset', () => {
+      const now = 1700000000000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
       const endpoint = 'retry-with-state';
-      const now = Date.now();
       // resetMs in future, timeUntilReset ≈ 3000 → delay = min(3000 + 2000, 5000) = 5000
       rateLimitService.updateFromHeaders(makeHeaders(200, 0, now + 3000), endpoint);
 
@@ -476,7 +477,7 @@ describe('RateLimitService', () => {
     it('when a header value is a float string, then parses only the integer part', () => {
       const endpoint = 'parse-header-float';
       rateLimitService.updateFromHeaders(
-        { 'x-ratelimit-limit': '200.5', 'x-ratelimit-remaining': '10.9', 'x-ratelimit-reset': '60.3' },
+        { 'x-internxt-ratelimit-limit': '200.5', 'x-internxt-ratelimit-remaining': '10.9', 'x-internxt-ratelimit-reset': '60.3' },
         endpoint,
       );
 
@@ -487,7 +488,7 @@ describe('RateLimitService', () => {
     it('when a header value is empty string, then does not store state', () => {
       const endpoint = 'parse-header-empty';
       rateLimitService.updateFromHeaders(
-        { 'x-ratelimit-limit': '', 'x-ratelimit-remaining': '100', 'x-ratelimit-reset': '1000' },
+        { 'x-internxt-ratelimit-limit': '', 'x-internxt-ratelimit-remaining': '100', 'x-internxt-ratelimit-reset': '1000' },
         endpoint,
       );
 
