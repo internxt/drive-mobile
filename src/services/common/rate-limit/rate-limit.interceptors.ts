@@ -1,6 +1,10 @@
 import { logger } from '@internxt-mobile/services/common';
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import {
+  HEADER_RATELIMIT_LIMIT,
+  HEADER_RATELIMIT_REMAINING,
+  HEADER_RATELIMIT_RESET,
+  HEADER_RETRY_AFTER,
   HTTP_TOO_MANY_REQUESTS,
   MAX_RATE_LIMIT_RETRIES,
   extractEndpointKey,
@@ -52,7 +56,7 @@ export const rateLimitInterceptors = [
           const attempt = (axiosError.config.__rateLimitRetry ?? 0) + 1;
 
           if (attempt <= MAX_RATE_LIMIT_RETRIES) {
-            const retryAfter = axiosError.response.headers?.['retry-after'];
+            const retryAfter = axiosError.response.headers?.[HEADER_RETRY_AFTER];
             const delay = rateLimitService.getRetryDelay(retryAfter, endpointKey);
             logRetry(attempt, delay);
 
@@ -77,10 +81,10 @@ const logResponseHeaders = (response: AxiosResponse) => {
   if (!__DEV__) return;
   const h = response.headers as Record<string, string>;
   const method = response.config?.method?.toUpperCase();
-  const endpoint = response.config?.url || 'unknown';
-  const limit = h['x-ratelimit-limit'];
-  const remaining = h['x-ratelimit-remaining'];
-  const reset = h['x-ratelimit-reset'];
+  const endpoint = response.config?.url ?? 'unknown';
+  const limit = h[HEADER_RATELIMIT_LIMIT];
+  const remaining = h[HEADER_RATELIMIT_REMAINING];
+  const reset = h[HEADER_RATELIMIT_RESET];
   if (limit || remaining || reset) {
     logger.info(`[RateLimit] ${method} ${endpoint} → limit=${limit} remaining=${remaining} reset=${reset}`);
   }
@@ -90,11 +94,11 @@ const logErrorHeaders = (axiosError: AxiosErrorLike) => {
   if (!__DEV__ || !axiosError.response?.headers) return;
   const h = axiosError.response.headers;
   const method = axiosError.config?.method?.toUpperCase();
-  const endpoint = axiosError.config?.url || 'unknown';
+  const endpoint = axiosError.config?.url ?? 'unknown';
   const status = axiosError.response.status;
   logger.warn(
     `[RateLimit] ${method} ${endpoint} → ${status} | ` +
-      `limit=${h['x-ratelimit-limit']} remaining=${h['x-ratelimit-remaining']} reset=${h['x-ratelimit-reset']}`,
+      `limit=${h[HEADER_RATELIMIT_LIMIT]} remaining=${h[HEADER_RATELIMIT_REMAINING]} reset=${h[HEADER_RATELIMIT_RESET]}`,
   );
 };
 

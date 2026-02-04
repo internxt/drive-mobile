@@ -12,17 +12,36 @@ interface EndpointConfig {
 }
 
 /**
- * Matches complete path segments that look like dynamic IDs:
- * - UUIDs: /xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
- * - Hex IDs (12+ chars): /c6fe170df34863c173430633 (MongoDB ObjectIDs, etc.)
- * - Numeric IDs: /12345
- * Only matches full segments (between slashes or at end of path).
+ * Individual patterns for dynamic ID path segments:
+ * - UUIDs: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+ * - Hex IDs (12+ chars): c6fe170df34863c173430633 (MongoDB ObjectIDs, etc.)
+ * - Numeric IDs: 12345
  */
-const ID_SEGMENT_PATTERN =
-  /\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{12,}|\d+)(?=\/|$)/gi;
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const HEX_ID_PATTERN = /^[0-9a-f]{12,}$/i;
+const NUMERIC_ID_PATTERN = /^\d+$/;
+
+const isIdSegment = (segment: string): boolean => {
+  if (!segment) return false;
+  return UUID_PATTERN.test(segment) || HEX_ID_PATTERN.test(segment) || NUMERIC_ID_PATTERN.test(segment);
+};
+
+const normalizePathSegments = (pathname: string): string => {
+  return pathname
+    .split('/')
+    .map((segment) => (isIdSegment(segment) ? ':id' : segment))
+    .join('/');
+};
+
 const UNKNOWN_ENDPOINT = 'unknown';
 
 export const HTTP_TOO_MANY_REQUESTS = 429;
+
+export const HEADER_RATELIMIT_LIMIT = 'x-internxt-ratelimit-limit';
+export const HEADER_RATELIMIT_REMAINING = 'x-internxt-ratelimit-remaining';
+export const HEADER_RATELIMIT_RESET = 'x-internxt-ratelimit-reset';
+export const HEADER_RETRY_AFTER = 'retry-after';
+
 const THROTTLE_THRESHOLD = 0.4;
 const MAX_THROTTLE_DELAY_MS = 2000;
 export const MAX_RATE_LIMIT_RETRIES = 3;
@@ -42,31 +61,36 @@ const MAX_BACKOFF_MS = 5000;
  *     → "https://gw.internxt.com/payments/display-billing"
  */
 export const extractEndpointKey = (config: EndpointConfig): string => {
-  const base = config.baseURL || '';
-  const path = config.url || '';
+  const base = config.baseURL ?? '';
+  const path = config.url ?? '';
   if (!base && !path) return UNKNOWN_ENDPOINT;
 
-  const needsSeparator = base && path && !base.endsWith('/') && !path.startsWith('/');
-  const hasDoubleSlash = base.endsWith('/') && path.startsWith('/');
-  const fullUrl = hasDoubleSlash ? base + path.slice(1) : needsSeparator ? base + '/' + path : base + path;
+  let fullUrl: string;
+  if (base.endsWith('/') && path.startsWith('/')) {
+    fullUrl = base + path.slice(1);
+  } else if (base && path && !base.endsWith('/') && !path.startsWith('/')) {
+    fullUrl = base + '/' + path;
+  } else {
+    fullUrl = base + path;
+  }
 
   try {
     const urlObj = new URL(fullUrl);
-    const normalizedPath = urlObj.pathname.replace(ID_SEGMENT_PATTERN, '/:id');
+    const normalizedPath = normalizePathSegments(urlObj.pathname);
     return `${urlObj.origin}${normalizedPath}`;
   } catch {
     const pathWithoutQuery = fullUrl.split('?')[0];
-    return pathWithoutQuery.replace(ID_SEGMENT_PATTERN, '/:id');
+    return normalizePathSegments(pathWithoutQuery);
   }
 };
 
 class RateLimitService {
-  private states = new Map<string, RateLimitState>();
+  private readonly states = new Map<string, RateLimitState>();
 
   updateFromHeaders(headers: Record<string, string>, endpointKey: string): void {
-    const limit = this.parseHeader(headers, 'x-ratelimit-limit');
-    const remaining = this.parseHeader(headers, 'x-ratelimit-remaining');
-    const reset = this.parseHeader(headers, 'x-ratelimit-reset');
+    const limit = this.parseHeader(headers, HEADER_RATELIMIT_LIMIT);
+    const remaining = this.parseHeader(headers, HEADER_RATELIMIT_REMAINING);
+    const reset = this.parseHeader(headers, HEADER_RATELIMIT_RESET);
 
     if (limit === null || remaining === null || reset === null) return;
 
@@ -109,8 +133,8 @@ class RateLimitService {
 
   getRetryDelay(retryAfterHeader?: string, endpointKey?: string): number {
     if (retryAfterHeader) {
-      const seconds = parseInt(retryAfterHeader, 10);
-      const isValidRetryAfter = !isNaN(seconds) && seconds > 0;
+      const seconds = Number.parseInt(retryAfterHeader, 10);
+      const isValidRetryAfter = !Number.isNaN(seconds) && seconds > 0;
       if (isValidRetryAfter) return seconds * 1000;
     }
 
@@ -151,8 +175,8 @@ class RateLimitService {
   private parseHeader(headers: Record<string, string>, key: string): number | null {
     const val = headers[key] ?? headers[key.toLowerCase()];
     if (val === undefined || val === null) return null;
-    const num = parseInt(String(val), 10);
-    return isNaN(num) ? null : num;
+    const num = Number.parseInt(String(val), 10);
+    return Number.isNaN(num) ? null : num;
   }
 
   private sleep(ms: number): Promise<void> {

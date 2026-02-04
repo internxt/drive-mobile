@@ -13,8 +13,7 @@ export const withRateLimitRetry = async <T>(
 ): Promise<T> => {
   let rateLimitRetries = 0;
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
+  while (rateLimitRetries <= MAX_RATE_LIMIT_RETRIES) {
     try {
       return await operation();
     } catch (err) {
@@ -26,8 +25,14 @@ export const withRateLimitRetry = async <T>(
 
       rateLimitRetries++;
       const delay = rateLimitService.getRetryDelay(undefined, endpointKey);
-      logger.warn(`[RateLimit] ${context} 429, retry ${rateLimitRetries}/${MAX_RATE_LIMIT_RETRIES} after ${delay}ms`);
+      logger.warn(
+        `[RateLimit] ${context} 429, retry ${rateLimitRetries}/${MAX_RATE_LIMIT_RETRIES} after ${delay}ms`,
+      );
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
+
+  // Safety net: This should never be reached due to the loop logic above.
+  // If somehow the loop exits without returning or throwing, we throw an explicit error.
+  throw new Error(`[RateLimit] ${context} exhausted retries`);
 };
