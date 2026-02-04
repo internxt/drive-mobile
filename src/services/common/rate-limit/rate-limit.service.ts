@@ -61,8 +61,8 @@ const MAX_BACKOFF_MS = 5000;
  *     → "https://gw.internxt.com/payments/display-billing"
  */
 export const extractEndpointKey = (config: EndpointConfig): string => {
-  const base = config.baseURL || '';
-  const path = config.url || '';
+  const base = config.baseURL ?? '';
+  const path = config.url ?? '';
   if (!base && !path) return UNKNOWN_ENDPOINT;
 
   let fullUrl: string;

@@ -81,7 +81,7 @@ const logResponseHeaders = (response: AxiosResponse) => {
   if (!__DEV__) return;
   const h = response.headers as Record<string, string>;
   const method = response.config?.method?.toUpperCase();
-  const endpoint = response.config?.url || 'unknown';
+  const endpoint = response.config?.url ?? 'unknown';
   const limit = h[HEADER_RATELIMIT_LIMIT];
   const remaining = h[HEADER_RATELIMIT_REMAINING];
   const reset = h[HEADER_RATELIMIT_RESET];
@@ -94,7 +94,7 @@ const logErrorHeaders = (axiosError: AxiosErrorLike) => {
   if (!__DEV__ || !axiosError.response?.headers) return;
   const h = axiosError.response.headers;
   const method = axiosError.config?.method?.toUpperCase();
-  const endpoint = axiosError.config?.url || 'unknown';
+  const endpoint = axiosError.config?.url ?? 'unknown';
   const status = axiosError.response.status;
   logger.warn(
     `[RateLimit] ${method} ${endpoint} → ${status} | ` +
