@@ -8,7 +8,9 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import appService from '@internxt-mobile/services/AppService';
 import errorService from '@internxt-mobile/services/ErrorService';
+import notificationsService from '@internxt-mobile/services/NotificationsService';
 import { AppStateStatus, NativeEventSubscription } from 'react-native';
+import { NotificationType } from '@internxt-mobile/types/index';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
 import { mapFileWithIsFolder, mapFolderWithIsFolder } from 'src/helpers/driveItemMappers';
@@ -87,7 +89,13 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active' && currentFolderId.current) {
       loadFolderContent(currentFolderId.current, { pullFrom: ['network'], resetPagination: true }).catch((error) => {
+        // TODO: Refactor to custom hook (useDriveWithNotifications) to separate notification concerns from context
         errorService.reportError(error);
+        const err = errorService.castError(error, 'content');
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: err.message,
+        });
       });
     }
   };
@@ -115,7 +123,13 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     setDriveFoldersTree({ [rootFolderId]: ROOT_FOLDER_NODE });
     loadFolderContent(rootFolderId, { pullFrom: ['network'], resetPagination: true, focusFolder: true }).catch(
       (err) => {
+        // TODO: Refactor to custom hook (useDriveWithNotifications) to separate notification concerns from context
         errorService.reportError(err);
+        const error = errorService.castError(err, 'content');
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: error.message,
+        });
       },
     );
   }, [rootFolderId]);
