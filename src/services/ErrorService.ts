@@ -1,5 +1,6 @@
 import strings from '../../assets/lang/strings';
 import AppError from '../types';
+import { HTTP_TOO_MANY_REQUESTS } from './common';
 import { BaseLogger } from './common/logger';
 
 export interface GlobalErrorContext {
@@ -31,7 +32,7 @@ class ErrorService {
     // });
   }
 
-  public castError(err: unknown): AppError {
+  public castError(err: unknown, context?: 'upload' | 'download' | 'content'): AppError {
     if (err && typeof err === 'object') {
       const map = err as Record<string, unknown>;
 
@@ -43,11 +44,31 @@ class ErrorService {
         map.status < 600;
 
       if (isServerReturnedError) {
-        return new AppError(map.message as string, map.status as number);
+        const status = map.status as number;
+
+        if (status === HTTP_TOO_MANY_REQUESTS) {
+          const message = this.getRateLimitMessage(context);
+          return new AppError(message, status);
+        }
+
+        return new AppError(map.message as string, status);
       }
     }
 
     return new AppError(strings.errors.genericError);
+  }
+
+  private getRateLimitMessage(context?: 'upload' | 'download' | 'content'): string {
+    switch (context) {
+      case 'upload':
+        return strings.errors.rateLimitUpload;
+      case 'download':
+        return strings.errors.rateLimitDownload;
+      case 'content':
+        return strings.errors.rateLimitContent;
+      default:
+        return strings.errors.rateLimitReached;
+    }
   }
 
   public reportError = (error: Error | unknown, context: Partial<ErrorContext> = {}) => {
