@@ -1,5 +1,6 @@
 import strings from 'assets/lang/strings';
 
+import * as Localization from 'expo-localization';
 import { Settings } from 'luxon';
 import { AsyncStorageKey, Language, NotificationType } from 'src/types';
 import asyncStorageService from './AsyncStorageService';
@@ -9,11 +10,17 @@ class LanguageService {
     this.initialize();
   }
   private async initialize() {
-    const language = await asyncStorageService.getItem(AsyncStorageKey.Language);
+    const savedLanguage = await asyncStorageService.getItem(AsyncStorageKey.Language);
 
-    Settings.defaultLocale = language ?? strings.getLanguage();
-
-    language && strings.setLanguage(language);
+    if (savedLanguage) {
+      strings.setLanguage(savedLanguage);
+      Settings.defaultLocale = savedLanguage;
+    } else {
+      const deviceLocale = Localization.getLocales()[0]?.languageCode;
+      const detectedLanguage = deviceLocale === 'es' ? Language.Spanish : Language.English;
+      strings.setLanguage(detectedLanguage);
+      Settings.defaultLocale = detectedLanguage;
+    }
   }
 
   public async setLanguage(language: Language) {
@@ -22,7 +29,6 @@ class LanguageService {
 
     Settings.defaultLocale = language ?? strings.getLanguage();
     notificationsService.show({ text1: strings.modals.Language.info, type: NotificationType.Info });
-    // TODO: ADD WAY TO RESTART THE LANGUAGE IN RUNTIME WHEN IT CHANGES
   }
 }
 

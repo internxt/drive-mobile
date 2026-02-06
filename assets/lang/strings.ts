@@ -554,7 +554,7 @@ const translations = {
       },
       Language: {
         title: 'Select language',
-        info: 'Restart the application to see the language change.',
+        info: 'Language changed successfully.',
       },
       ChangeProfilePicture: {
         title: 'Edit photo',
@@ -1338,7 +1338,7 @@ const translations = {
       },
       Language: {
         title: 'Selecciona idioma',
-        info: 'Reinicie la aplicación para ver el cambio de idioma.',
+        info: 'Idioma cambiado correctamente.',
       },
       ChangeProfilePicture: {
         title: 'Editar foto',

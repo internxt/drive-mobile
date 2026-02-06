@@ -25,6 +25,7 @@ import AppVersionWidget from '../../components/AppVersionWidget';
 import SettingsGroup from '../../components/SettingsGroup';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import useGetColor from '../../hooks/useColor';
+import { useLanguage } from '../../hooks/useLanguage';
 import { useScreenProtection } from '../../hooks/useScreenProtection';
 import appService from '../../services/AppService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -50,6 +51,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const isDarkMode = theme === 'dark';
 
   const { isEnabled: isScreenProtectionEnabled, setScreenProtection } = useScreenProtection();
+  useLanguage();
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);

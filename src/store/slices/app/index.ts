@@ -5,6 +5,7 @@ import drive from '@internxt-mobile/services/drive';
 import { BiometricAccessType } from '@internxt-mobile/types/app';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
+import * as Localization from 'expo-localization';
 import languageService from 'src/services/LanguageService';
 import notificationsService from 'src/services/NotificationsService';
 import { Language, NotificationType } from 'src/types';
@@ -22,7 +23,13 @@ export interface AppState {
   screenLocked: boolean;
   lastScreenLock: number | null;
   initialScreenLocked: boolean;
+  language: Language;
 }
+
+const getInitialLanguage = (): Language => {
+  const deviceLocale = Localization.getLocales()[0]?.languageCode;
+  return deviceLocale === 'es' ? Language.Spanish : Language.English;
+};
 
 const initialState: AppState = {
   isInitializing: true,
@@ -32,6 +39,7 @@ const initialState: AppState = {
   screenLocked: false,
   lastScreenLock: null,
   initialScreenLocked: false,
+  language: getInitialLanguage(),
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -46,10 +54,11 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   },
 );
 
-const changeLanguageThunk = createAsyncThunk<void, Language, { state: RootState }>(
+const changeLanguageThunk = createAsyncThunk<Language, Language, { state: RootState }>(
   'app/changeLanguage',
   async (language) => {
-    return languageService.setLanguage(language);
+    await languageService.setLanguage(language);
+    return language;
   },
 );
 
@@ -125,9 +134,13 @@ export const appSlice = createSlice({
         state.isInitializing = false;
       });
 
-    builder.addCase(changeLanguageThunk.rejected, () => {
-      notificationsService.show({ type: NotificationType.Error, text1: strings.errors.changeLanguage });
-    });
+    builder
+      .addCase(changeLanguageThunk.fulfilled, (state, action) => {
+        state.language = action.payload;
+      })
+      .addCase(changeLanguageThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.changeLanguage });
+      });
   },
 });
 
