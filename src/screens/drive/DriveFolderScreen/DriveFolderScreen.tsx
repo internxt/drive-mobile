@@ -20,12 +20,14 @@ import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
 import { DriveListType, SortDirection, SortType } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
+import { useLanguage } from '../../../hooks/useLanguage';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
+  useLanguage();
   const [loadingMore, setLoadingMore] = useState(false);
   const { isRootFolder, folderUuid, folderName, parentFolderName, parentUuid } = route.params;
 
