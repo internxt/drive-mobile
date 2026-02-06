@@ -52,6 +52,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
 
   const { isEnabled: isScreenProtectionEnabled, setScreenProtection } = useScreenProtection();
   useLanguage();
+
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);

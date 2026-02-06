@@ -26,11 +26,6 @@ export interface AppState {
   language: Language;
 }
 
-const getInitialLanguage = (): Language => {
-  const deviceLocale = Localization.getLocales()[0]?.languageCode;
-  return deviceLocale === 'es' ? Language.Spanish : Language.English;
-};
-
 const initialState: AppState = {
   isInitializing: true,
   deviceHasBiometricAccess: false,
@@ -39,13 +34,33 @@ const initialState: AppState = {
   screenLocked: false,
   lastScreenLock: null,
   initialScreenLocked: false,
-  language: getInitialLanguage(),
+  language: Language.English,
 };
+
+const initializeLanguageThunk = createAsyncThunk<Language, void, { state: RootState }>(
+  'app/initializeLanguage',
+  async () => {
+    const savedLanguage = await asyncStorageService.getItem('language' as any);
+
+    if (savedLanguage) {
+      strings.setLanguage(savedLanguage);
+      return savedLanguage as Language;
+    } else {
+      const deviceLocale = Localization.getLocales()[0]?.languageCode;
+      const detectedLanguage = deviceLocale === 'es' ? Language.Spanish : Language.English;
+      strings.setLanguage(detectedLanguage);
+      await asyncStorageService.saveItem('language' as any, detectedLanguage);
+      return detectedLanguage;
+    }
+  },
+);
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'app/initialize',
   async (_, { dispatch }) => {
     await drive.start();
+
+    await dispatch(initializeLanguageThunk()).unwrap();
 
     dispatch(authThunks.initializeThunk());
     dispatch(driveThunks.initializeThunk());
@@ -57,7 +72,9 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const changeLanguageThunk = createAsyncThunk<Language, Language, { state: RootState }>(
   'app/changeLanguage',
   async (language) => {
+    console.log('[changeLanguageThunk] Starting with language:', language);
     await languageService.setLanguage(language);
+    console.log('[changeLanguageThunk] Completed, returning:', language);
     return language;
   },
 );
@@ -134,6 +151,10 @@ export const appSlice = createSlice({
         state.isInitializing = false;
       });
 
+    builder.addCase(initializeLanguageThunk.fulfilled, (state, action) => {
+      state.language = action.payload;
+    });
+
     builder
       .addCase(changeLanguageThunk.fulfilled, (state, action) => {
         state.language = action.payload;
@@ -148,6 +169,7 @@ export const appActions = appSlice.actions;
 
 export const appThunks = {
   initializeThunk,
+  initializeLanguageThunk,
   changeLanguageThunk,
   initializeUserPreferencesThunk,
   lockScreenIfNeededThunk,
