@@ -23,7 +23,7 @@ export interface FileInfo {
 }
 
 export function GetFileInfo(config: EnvironmentConfig, bucketId: string, fileId: string): Promise<FileInfo> {
-  return request(config, 'get', `${config.bridgeUrl}/buckets/${bucketId}/files/${fileId}/info`, {}, false)
+  return request(config, 'get', `${config.bridgeUrl}/buckets/${bucketId}/files/${fileId}/info`, {})
     .then<FileInfo>((res: AxiosResponse) => res.data)
     .catch((err: AxiosError<any>) => {
       switch (err.response?.status) {
@@ -46,7 +46,7 @@ export function GetFileMirror(
   const excludeNodeIds: string = excludeNodes.join(',');
   const targetUrl = `${config.bridgeUrl}/buckets/${bucketId}/files/${fileId}?limit=${limit}&skip=${skip}&exclude=${excludeNodeIds}`;
 
-  return request(config, 'GET', targetUrl, { responseType: 'json' }, false).then((res: AxiosResponse) => res.data);
+  return request(config, 'GET', targetUrl, { responseType: 'json' }).then((res: AxiosResponse) => res.data);
 }
 
 export function ReplacePointer(
