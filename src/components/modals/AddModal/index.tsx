@@ -543,9 +543,10 @@ function AddModal(): JSX.Element {
               })
               .catch((err) => {
                 logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+                const error = errorService.castError(err, 'upload');
                 notificationsService.show({
                   type: NotificationType.Error,
-                  text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                  text1: error.message,
                 });
               })
               .finally(() => {
@@ -638,9 +639,10 @@ function AddModal(): JSX.Element {
             })
             .catch((err) => {
               logger.error('Error on handleUploadFromCameraRoll (Android):', JSON.stringify(err));
+              const error = errorService.castError(err, 'upload');
               notificationsService.show({
                 type: NotificationType.Error,
-                text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                text1: error.message,
               });
             })
             .finally(() => {
