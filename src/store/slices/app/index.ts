@@ -72,9 +72,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const changeLanguageThunk = createAsyncThunk<Language, Language, { state: RootState }>(
   'app/changeLanguage',
   async (language) => {
-    console.log('[changeLanguageThunk] Starting with language:', language);
     await languageService.setLanguage(language);
-    console.log('[changeLanguageThunk] Completed, returning:', language);
     return language;
   },
 );
