@@ -567,8 +567,9 @@ export const driveSlice = createSlice({
       .addCase(moveItemThunk.rejected, (state, action) => {
         state.isLoading = false;
 
+        const castedError = errorService.castError(action.error);
         notificationsService.show({
-          text1: action.error.message || strings.errors.unknown,
+          text1: castedError.message,
           type: NotificationType.Error,
         });
       });

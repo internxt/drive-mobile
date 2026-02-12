@@ -273,7 +273,8 @@ export async function uploadSingleFile(
       },
     });
     trackUploadError(file, err);
-    dispatch(driveActions.uploadFileFailed({ errorMessage: err.message, id: file.id }));
+    const castedError = errorService.castError(e, 'upload');
+    dispatch(driveActions.uploadFileFailed({ errorMessage: castedError.message, id: file.id }));
     logger.error('File upload process failed: ', JSON.stringify(err));
     throw err;
   } finally {
