@@ -349,10 +349,12 @@ class AuthService {
    * If the token is expired, an error will be thrown
    *
    * @param currentAuthToken The current auth token, needs to be still valid
+   * @param isRetry Internal flag to prevent infinite retry loops
    * @returns A valid set of token and newToken
    */
   public async refreshAuthToken(
     currentAuthToken: string,
+    isRetry = false,
   ): Promise<{ newToken: string; token: string; user: UserSettings } | undefined> {
     try {
       const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
@@ -373,13 +375,16 @@ class AuthService {
         user,
       };
     } catch (error) {
-      try {
-        await NetworkCacheModule.clearNetworkCache();
-        logger.info('Network cache cleared after refresh token failure');
-      } catch (cacheError) {
-        logger.error('Failed to clear network cache:', cacheError);
+      if (!isRetry) {
+        try {
+          await NetworkCacheModule.clearNetworkCache();
+          logger.info('Network cache cleared, retrying refresh token...');
+          return await this.refreshAuthToken(currentAuthToken, true);
+        } catch (cacheError) {
+          logger.error('Failed to clear network cache, skipping retry:', cacheError);
+        }
       }
-
+      logger.error('Refresh token failed');
       throw error;
     }
   }
