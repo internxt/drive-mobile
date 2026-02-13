@@ -199,6 +199,8 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
+  - NetworkCache (0.0.1):
+    - ExpoModulesCore
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -3236,6 +3238,7 @@ DEPENDENCIES:
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
   - "internxt-mobile-sdk (from `../node_modules/@internxt/mobile-sdk`)"
   - jail-monkey (from `../node_modules/jail-monkey`)
+  - NetworkCache (from `../modules/network-cache/ios`)
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
   - RCTRequired (from `../node_modules/react-native/Libraries/Required`)
@@ -3414,6 +3417,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@internxt/mobile-sdk"
   jail-monkey:
     :path: "../node_modules/jail-monkey"
+  NetworkCache:
+    :path: "../modules/network-cache/ios"
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -3632,6 +3637,7 @@ SPEC CHECKSUMS:
   internxt-mobile-sdk: 40d91c29a150f1afab787c79db4a9a2c878381e5
   jail-monkey: e057abe7b37f84e1763491eb72113efd334a6de0
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
+  NetworkCache: 75ee7d510387c3ad7631059d995f1863519caf03
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 5eb1d2eeff5fb91151e8a8eef45b6c7658b6c897
   RCTRequired: cebcf9442fc296c9b89ac791dfd463021d9f6f23
