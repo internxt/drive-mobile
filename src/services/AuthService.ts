@@ -7,6 +7,7 @@ import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import EventEmitter from 'events';
 import { jwtDecode } from 'jwt-decode';
+import { NetworkCacheModule } from '../../modules/network-cache';
 import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
@@ -353,23 +354,34 @@ class AuthService {
   public async refreshAuthToken(
     currentAuthToken: string,
   ): Promise<{ newToken: string; token: string; user: UserSettings } | undefined> {
-    const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
-      method: 'GET',
-      headers: await getHeaders(currentAuthToken),
-    });
-    const body = await result.json();
+    try {
+      const result = await fetch(`${appService.constants.DRIVE_NEW_API_URL}/users/refresh`, {
+        method: 'GET',
+        headers: await getHeaders(currentAuthToken),
+      });
+      const body = await result.json();
 
-    const { newToken, token, user } = body;
+      const { newToken, token, user } = body;
 
-    if (!result.ok) {
-      throw new Error('Tokens no longer valid, should sign out');
+      if (!result.ok) {
+        throw new Error('Tokens no longer valid, should sign out');
+      }
+
+      return {
+        newToken,
+        token,
+        user,
+      };
+    } catch (error) {
+      try {
+        await NetworkCacheModule.clearNetworkCache();
+        logger.info('Network cache cleared after refresh token failure');
+      } catch (cacheError) {
+        logger.error('Failed to clear network cache:', cacheError);
+      }
+
+      throw error;
     }
-
-    return {
-      newToken,
-      token,
-      user,
-    };
   }
 
   /**
