@@ -2,6 +2,7 @@ import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 
 import { EnvironmentConfig } from '..';
 import { sha256 } from '../lib/crypto';
+import packageJson from '../../../package.json';
 
 export async function request(
   config: EnvironmentConfig,
@@ -17,6 +18,10 @@ export async function request(
     },
     url: targetUrl,
     maxContentLength: Infinity,
+    headers: {
+      'internxt-client': packageJson.name,
+      'internxt-version': packageJson.version,
+    },
   };
 
   const options = { ...DefaultOptions, ...params };
@@ -35,6 +40,10 @@ export async function plainRequest(
     method,
     url: targetUrl,
     maxContentLength: Infinity,
+    headers: {
+      'internxt-client': packageJson.name,
+      'internxt-version': packageJson.version,
+    },
   };
 
   const options = { ...DefaultOptions, ...params };

@@ -398,9 +398,10 @@ function AddModal(): JSX.Element {
           await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess, user);
         } catch (error) {
           logger.error(`File ${file.name} failed to upload:`, error);
+          const castedError = errorService.castError(error, 'upload');
           notificationsService.show({
             type: NotificationType.Error,
-            text1: strings.formatString(strings.errors.uploadFile, (error as Error).message) as string,
+            text1: castedError.message,
           });
         } finally {
           processedFileIds.push(file.id);
@@ -455,11 +456,10 @@ function AddModal(): JSX.Element {
 
       errorService.reportError(error);
 
-      const errorMessage = error.message || 'Unknown upload error';
-
+      const castedError = errorService.castError(error, 'upload');
       notificationsService.show({
         type: NotificationType.Error,
-        text1: strings.formatString(strings.errors.uploadFile, errorMessage) as string,
+        text1: castedError.message,
       });
     } finally {
       dispatch(uiActions.setShowUploadFileModal(false));
@@ -737,10 +737,10 @@ function AddModal(): JSX.Element {
         }
       } catch (error) {
         logger.error('Error on handleTakePhotoAndUpload function:', JSON.stringify(error));
-
+        const castedError = errorService.castError(error, 'upload');
         notificationsService.show({
           type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.uploadFile, (error as Error)?.message) as string,
+          text1: castedError.message,
         });
       }
     }
