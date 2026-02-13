@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18.20.4]
+        node-version: [20]
       fail-fast: true
 
     steps:

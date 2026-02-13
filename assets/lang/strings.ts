@@ -554,7 +554,7 @@ const translations = {
       },
       Language: {
         title: 'Select language',
-        info: 'Restart the application to see the language change.',
+        info: 'Language changed successfully.',
       },
       ChangeProfilePicture: {
         title: 'Edit photo',
@@ -738,10 +738,14 @@ const translations = {
       notEnoughSpaceOnDevice: 'Not enough storage space available for download',
       fileAlreadyDownloading: 'File is already downloading, stopping download',
       genericError: 'An unexpected error occurred. Please try again.',
+      rateLimitReached: "This action couldn't be completed right now. Please wait a moment and try again.",
+      rateLimitUpload: "Your upload couldn't be completed right now. Please wait a moment and try again.",
+      rateLimitDownload: "Your download couldn't be completed right now. Please wait a moment and try again.",
+      rateLimitContent: "Content couldn't be loaded right now. Please wait a moment and try again.",
     },
     security: {
       alerts: {
-        dontDisplayAgain: 'Don’t show this again',
+        dontDisplayAgain: "Don't show this again",
         securityWarning: {
           title: '⚠️ Security Notice',
           message: 'Security concerns detected:\n\n{0}\n\nFor better security, consider addressing these issues.',
@@ -1334,7 +1338,7 @@ const translations = {
       },
       Language: {
         title: 'Selecciona idioma',
-        info: 'Reinicie la aplicación para ver el cambio de idioma.',
+        info: 'Idioma cambiado correctamente.',
       },
       ChangeProfilePicture: {
         title: 'Editar foto',
@@ -1522,6 +1526,10 @@ const translations = {
       notEnoughSpaceOnDevice: 'No hay suficiente espacio de almacenamiento disponible para la descarga',
       fileAlreadyDownloading: 'El archivo ya se está descargando, deteniendo la descarga',
       genericError: 'Se ha producido un error inesperado. Por favor, inténtelo de nuevo.',
+      rateLimitReached: 'No se ha podido completar esta acción en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      rateLimitUpload: 'No se ha podido completar la subida en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      rateLimitDownload: 'No se ha podido completar la descarga en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      rateLimitContent: 'No se ha podido cargar el contenido en este momento. Por favor, espera un momento e inténtalo de nuevo.',
     },
     security: {
       alerts: {

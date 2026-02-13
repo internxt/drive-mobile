@@ -113,6 +113,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     'expo-localization',
     'expo-secure-store',
     'expo-sqlite',
+    ['expo-screen-orientation', { initialOrientation: 'PORTRAIT' }],
     [
       'expo-splash-screen',
       {

@@ -6,6 +6,7 @@ import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
+import errorService from '../../../services/ErrorService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { BaseModalProps } from '../../../types/ui';
@@ -57,7 +58,8 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
         props.onFolderCreated();
       })
       .catch((err) => {
-        notificationsService.show({ type: NotificationType.Error, text1: err.message });
+        const castedError = errorService.castError(err);
+        notificationsService.show({ type: NotificationType.Error, text1: castedError.message });
       })
       .finally(() => {
         setIsLoading(false);

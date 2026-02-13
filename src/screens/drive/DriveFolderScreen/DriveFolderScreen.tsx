@@ -20,12 +20,14 @@ import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
 import { DriveListType, SortDirection, SortType } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
+import { useLanguage } from '../../../hooks/useLanguage';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
+  useLanguage();
   const [loadingMore, setLoadingMore] = useState(false);
   const { isRootFolder, folderUuid, folderName, parentFolderName, parentUuid } = route.params;
 
@@ -99,6 +101,12 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         })
         .catch((error) => {
           logger.error('Error loading folder content in DriveFolderScreen:', error);
+          errorService.reportError(error);
+          const err = errorService.castError(error, 'content');
+          notificationsService.show({
+            type: NotificationType.Error,
+            text1: err.message,
+          });
         });
     }
   }, [folderUuid]);
@@ -109,7 +117,14 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     if (parentUuid) {
       driveCtx
         .loadFolderContent(parentUuid, { pullFrom: ['network'], resetPagination: false, focusFolder: true })
-        .catch(errorService.reportError);
+        .catch((error) => {
+          errorService.reportError(error);
+          const err = errorService.castError(error, 'content');
+          notificationsService.show({
+            type: NotificationType.Error,
+            text1: err.message,
+          });
+        });
     }
   };
 
@@ -193,7 +208,14 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       );
       handleOnFilePress(driveItem);
     } else if (driveItem.data.uuid) {
-      driveCtx.loadFolderContent(driveItem.data.uuid, { focusFolder: true, resetPagination: true });
+      driveCtx.loadFolderContent(driveItem.data.uuid, { focusFolder: true, resetPagination: true }).catch((error) => {
+        errorService.reportError(error);
+        const err = errorService.castError(error, 'content');
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: err.message,
+        });
+      });
 
       // Navigate to the folder, this is the minimal data
       navigation.push('DriveFolder', {
@@ -277,6 +299,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       });
     } catch (error) {
       errorService.reportError(error);
+      const err = errorService.castError(error, 'content');
+      notificationsService.show({
+        type: NotificationType.Error,
+        text1: err.message,
+      });
     } finally {
       setLoadingMore(false);
     }
@@ -296,11 +323,20 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   }, [driveSortedItems, searchValue]);
 
   async function handleRefresh() {
-    await driveCtx.loadFolderContent(folderUuid, {
-      focusFolder: true,
-      pullFrom: ['network'],
-      resetPagination: true,
-    });
+    try {
+      await driveCtx.loadFolderContent(folderUuid, {
+        focusFolder: true,
+        pullFrom: ['network'],
+        resetPagination: true,
+      });
+    } catch (error) {
+      errorService.reportError(error);
+      const err = errorService.castError(error, 'content');
+      notificationsService.show({
+        type: NotificationType.Error,
+        text1: err.message,
+      });
+    }
   }
 
   return (

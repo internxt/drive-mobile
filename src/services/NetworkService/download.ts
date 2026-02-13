@@ -12,6 +12,7 @@ import { eachLimit } from 'async';
 import { decryptFile as nativeDecryptFile } from '@internxt/rn-crypto';
 
 import { Platform } from 'react-native';
+import packageJson from '../../../package.json';
 import { NetworkCredentials } from '../../types';
 import fileSystemService from '../FileSystemService';
 
@@ -190,6 +191,10 @@ export async function downloadFile(
     auth: {
       username: credentials.user,
       password: sha256(Buffer.from(credentials.password)).toString('hex'),
+    },
+    headers: {
+      'internxt-client': packageJson.name,
+      'internxt-version': packageJson.version,
     },
   };
 

@@ -19,7 +19,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.8.5</string>
+    <string>1.8.6</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -34,6 +34,8 @@
     </array>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>EXDefaultScreenOrientationMask</key>
+    <string>UIInterfaceOrientationMaskPortrait</string>
     <key>LSMinimumSystemVersion</key>
     <string>15.1</string>
     <key>LSRequiresIPhoneOS</key>

@@ -34,6 +34,7 @@ import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import { constants } from '../../../services/AppService';
+import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
 import {
   createUploadingFiles,
   handleDuplicateFiles,
@@ -55,7 +56,7 @@ import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
 
-const MAX_FILES_BULK_UPLOAD = 25;
+const MAX_FILES_BULK_UPLOAD = 50;
 
 function AddModal(): JSX.Element {
   const tailwind = useTailwind();
@@ -368,37 +369,48 @@ function AddModal(): JSX.Element {
 
     const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents);
     showFileSizeAlert(filesExcluded);
-    const filesToProcess = await handleDuplicateFiles(filesToUpload, focusedFolder.uuid);
-    if (filesToProcess.length === 0) {
+
+    if (filesToUpload.length === 0) {
       dispatch(uiActions.setShowUploadFileModal(false));
       return;
     }
 
-    const preparedFiles = await prepareUploadFiles(filesToProcess, focusedFolder.uuid);
-    const formattedFiles = createUploadingFiles(preparedFiles, focusedFolder);
+    const batchId = `batch-${Date.now()}`;
+    const targetFolder = focusedFolder;
 
-    initializeUploads(formattedFiles, dispatch);
-
-    const processedFileIds: number[] = [];
-
-    for (const file of formattedFiles) {
-      try {
-        logger.info(`User from redux when upload: ${user?.username}, bucket: ${user?.bucket}`);
-        await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess, user);
-      } catch (error) {
-        logger.error(`File ${file.name} failed to upload:`, error);
-
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.uploadFile, (error as Error).message) as string,
-        });
-      } finally {
-        processedFileIds.push(file.id);
+    return uploadQueueService.enqueue(batchId, async () => {
+      const filesToProcess = await handleDuplicateFiles(filesToUpload, targetFolder.uuid);
+      if (filesToProcess.length === 0) {
+        return;
       }
-    }
 
-    cleanupStuckUploads(processedFileIds, formattedFiles);
-    dispatch(driveActions.clearUploadedFiles());
+      const preparedFiles = await prepareUploadFiles(filesToProcess, targetFolder.uuid);
+      const formattedFiles = createUploadingFiles(preparedFiles, targetFolder);
+
+      initializeUploads(formattedFiles, dispatch);
+
+      const processedFileIds: number[] = [];
+      const batchFileIds = formattedFiles.map((f) => f.id);
+
+      for (const file of formattedFiles) {
+        try {
+          logger.info(`User from redux when upload: ${user?.username}, bucket: ${user?.bucket}`);
+          await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess, user);
+        } catch (error) {
+          logger.error(`File ${file.name} failed to upload:`, error);
+          const castedError = errorService.castError(error, 'upload');
+          notificationsService.show({
+            type: NotificationType.Error,
+            text1: castedError.message,
+          });
+        } finally {
+          processedFileIds.push(file.id);
+        }
+      }
+
+      cleanupStuckUploads(processedFileIds, formattedFiles);
+      dispatch(driveActions.clearBatchFiles(batchFileIds));
+    });
   }
 
   /**
@@ -444,11 +456,10 @@ function AddModal(): JSX.Element {
 
       errorService.reportError(error);
 
-      const errorMessage = error.message || 'Unknown upload error';
-
+      const castedError = errorService.castError(error, 'upload');
       notificationsService.show({
         type: NotificationType.Error,
-        text1: strings.formatString(strings.errors.uploadFile, errorMessage) as string,
+        text1: castedError.message,
       });
     } finally {
       dispatch(uiActions.setShowUploadFileModal(false));
@@ -487,7 +498,7 @@ function AddModal(): JSX.Element {
                 if (!fileSize) {
                   try {
                     const fileInfo = fileSystemService.getFileInfo(cleanUri);
-                    fileSize = fileInfo.exists ? fileInfo.size ?? 0 : 0;
+                    fileSize = fileInfo.exists ? (fileInfo.size ?? 0) : 0;
                   } catch (error) {
                     logger.warn('The file size could not be obtained:', error);
                     fileSize = 0;
@@ -532,9 +543,10 @@ function AddModal(): JSX.Element {
               })
               .catch((err) => {
                 logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+                const error = errorService.castError(err, 'upload');
                 notificationsService.show({
                   type: NotificationType.Error,
-                  text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                  text1: error.message,
                 });
               })
               .finally(() => {
@@ -580,7 +592,7 @@ function AddModal(): JSX.Element {
               if (!fileSize) {
                 try {
                   const fileInfo = fileSystemService.getFileInfo(cleanUri);
-                  fileSize = fileInfo.exists ? fileInfo.size ?? 0 : 0;
+                  fileSize = fileInfo.exists ? (fileInfo.size ?? 0) : 0;
                 } catch (error) {
                   logger.warn('The file size could not be obtained:', error);
                   fileSize = 0;
@@ -627,9 +639,10 @@ function AddModal(): JSX.Element {
             })
             .catch((err) => {
               logger.error('Error on handleUploadFromCameraRoll (Android):', JSON.stringify(err));
+              const error = errorService.castError(err, 'upload');
               notificationsService.show({
                 type: NotificationType.Error,
-                text1: strings.formatString(strings.errors.uploadFile, err.message) as string,
+                text1: error.message,
               });
             })
             .finally(() => {
@@ -679,7 +692,7 @@ function AddModal(): JSX.Element {
         const fileInfo = fileSystemService.getFileInfo(assetToUpload.uri);
         const formatInfo = detectImageFormat(assetToUpload);
         const name = drive.file.removeExtension(assetToUpload.uri.split('/').pop() as string);
-        const size = fileInfo.exists ? fileInfo.size ?? 0 : 0;
+        const size = fileInfo.exists ? (fileInfo.size ?? 0) : 0;
 
         const file: UploadingFile = {
           id: new Date().getTime(),
@@ -724,10 +737,10 @@ function AddModal(): JSX.Element {
         }
       } catch (error) {
         logger.error('Error on handleTakePhotoAndUpload function:', JSON.stringify(error));
-
+        const castedError = errorService.castError(error, 'upload');
         notificationsService.show({
           type: NotificationType.Error,
-          text1: strings.formatString(strings.errors.uploadFile, (error as Error)?.message) as string,
+          text1: castedError.message,
         });
       }
     }
