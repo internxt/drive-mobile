@@ -235,6 +235,22 @@ describe('RateLimitService', () => {
       expect(rateLimitService.shouldThrottle(endpoint)).toBe(false);
     });
 
+    it('when reset is more than 5 minutes in the future, then does not store state', () => {
+      const endpoint = 'update-reset-too-far';
+      const sixMinutesFromNow = Date.now() + 6 * 60 * 1000;
+      rateLimitService.updateFromHeaders(makeHeaders(200, 100, sixMinutesFromNow), endpoint);
+
+      expect(rateLimitService.shouldThrottle(endpoint)).toBe(false);
+    });
+
+    it('when reset is within 5 minutes, then stores state', () => {
+      const endpoint = 'update-reset-within-limit';
+      const fourMinutesFromNow = Date.now() + 4 * 60 * 1000;
+      rateLimitService.updateFromHeaders(makeHeaders(200, 10, fourMinutesFromNow), endpoint);
+
+      expect(rateLimitService.shouldThrottle(endpoint)).toBe(true);
+    });
+
     it('when two endpoints receive headers, then states are independent', () => {
       const endpointA = 'update-independent-a';
       const endpointB = 'update-independent-b';

@@ -48,6 +48,7 @@ export const MAX_RATE_LIMIT_RETRIES = 3;
 const RETRY_BUFFER_MS = 2000;
 const BASE_BACKOFF_MS = 3000;
 const MAX_BACKOFF_MS = 5000;
+const MAX_VALID_RESET_MS = 5 * 60 * 1000;
 
 /**
  * Extracts a normalized endpoint key from an axios config.
@@ -94,11 +95,11 @@ class RateLimitService {
 
     if (limit === null || remaining === null || reset === null) return;
 
-    this.states.set(endpointKey, {
-      limit,
-      remaining,
-      resetMs: this.parseResetValue(reset),
-    });
+    const resetMs = this.parseResetValue(reset);
+    const timeUntilReset = resetMs - Date.now();
+    if (timeUntilReset > MAX_VALID_RESET_MS) return;
+
+    this.states.set(endpointKey, { limit, remaining, resetMs });
   }
 
   shouldThrottle(endpointKey: string): boolean {
