@@ -19,6 +19,7 @@ const untranspiledModulePatterns = [
   '@scure/bip39',
   '@scure/base',
   '@noble/hashes',
+  'uuid',
 ];
 
 const config: Config.InitialOptions = {
@@ -28,9 +29,7 @@ const config: Config.InitialOptions = {
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  moduleNameMapper: {
-    '^uuid$': require.resolve('uuid'),
-  },
+  moduleNameMapper: {},
 };
 
 export default config;
