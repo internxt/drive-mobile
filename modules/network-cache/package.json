@@ -1,0 +1,6 @@
+{
+  "name": "network-cache",
+  "version": "0.0.1",
+  "main": "index.ts",
+  "dependencies": {}
+}
