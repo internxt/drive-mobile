@@ -57,7 +57,7 @@ export class TimeService {
     if (resolvedFormat.includes('LLLL')) {
       try {
         const monthLong = new Intl.DateTimeFormat(lang, { month: 'long' }).format(date);
-        resolvedFormat = resolvedFormat.replace(/LLLL/g, `'${monthLong}'`);
+        resolvedFormat = resolvedFormat.replaceAll('LLLL', `'${monthLong}'`);
       } catch {
         // falls back to luxon default (English)
       }
@@ -65,7 +65,7 @@ export class TimeService {
     if (resolvedFormat.includes('LLL')) {
       try {
         const monthShort = new Intl.DateTimeFormat(lang, { month: 'short' }).format(date);
-        resolvedFormat = resolvedFormat.replace(/LLL/g, `'${monthShort}'`);
+        resolvedFormat = resolvedFormat.replaceAll('LLL', `'${monthShort}'`);
       } catch {
         // falls back to luxon default (English)
       }
