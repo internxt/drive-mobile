@@ -1581,6 +1581,11 @@ const translations = {
 
 let currentLanguage = 'en';
 
+const nativeLanguageNames: Record<string, string> = {
+  en: translations.en.languages.en,
+  es: translations.es.languages.es,
+};
+
 const strings = {
   ...translations.en,
   setLanguage: (lang: string) => {
@@ -1599,6 +1604,7 @@ const strings = {
       return args[argIndex] !== undefined ? String(args[argIndex]) : match;
     });
   },
+  getNativeLanguageName: (lang: string) => nativeLanguageNames[lang] ?? lang,
   getString: (path: string, fallback?: string) => {
     const keys = path.split('.');
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
