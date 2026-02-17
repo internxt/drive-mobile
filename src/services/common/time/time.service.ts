@@ -7,12 +7,14 @@ export type TimeInput = Date | number | string;
  * with time utilities such dates
  */
 export class TimeService {
-  public formats = {
-    dateAtTime: `dd LLL yyyy '${strings.generic.atTime}' HH:mm`,
-    dateAtTimeLong: `dd LLLL yyyy '${strings.generic.atTime}' HH:mm`,
-    shortDate: 'dd/LL/yyyy',
-    duration: 'mm:ss',
-  };
+  get formats() {
+    return {
+      dateAtTime: `dd LLL yyyy '${strings.generic.atTime}' HH:mm`,
+      dateAtTimeLong: `dd LLLL yyyy '${strings.generic.atTime}' HH:mm`,
+      shortDate: 'dd/LL/yyyy',
+      duration: 'mm:ss',
+    };
+  }
 
   /**
    * Sets a default global locale
@@ -37,7 +39,39 @@ export class TimeService {
    */
   getFormattedDate(input: TimeInput, format: string) {
     const dateTime = this.getDateTime(input);
-    return dateTime.toFormat(format, { locale: Settings.defaultLocale });
+    const lang = strings.getLanguage();
+    const date = new Date(input);
+
+    // Workaround for Hermes (React Native JS engine) bug with locale-sensitive month tokens.
+    //
+    // Luxon resolves LLL/LLLL by calling Intl.DateTimeFormat(locale, { month, timeZone: 'UTC' })
+    // and then extracting the month part via formatToParts(). On Hermes, formatToParts() is
+    // broken for non-English locales on iOS — it returns null for the month field, causing luxon
+    // to render the literal string "null" in the formatted date.
+    //
+    // See: https://github.com/facebook/hermes/issues/1172
+    //
+    // Fix: pre-resolve the month name ourselves using Intl.DateTimeFormat WITHOUT timeZone,
+    // which works correctly in Hermes, and inject it as a luxon literal before luxon processes it.
+    let resolvedFormat = format;
+    if (resolvedFormat.includes('LLLL')) {
+      try {
+        const monthLong = new Intl.DateTimeFormat(lang, { month: 'long' }).format(date);
+        resolvedFormat = resolvedFormat.replace(/LLLL/g, `'${monthLong}'`);
+      } catch {
+        // falls back to luxon default (English)
+      }
+    }
+    if (resolvedFormat.includes('LLL')) {
+      try {
+        const monthShort = new Intl.DateTimeFormat(lang, { month: 'short' }).format(date);
+        resolvedFormat = resolvedFormat.replace(/LLL/g, `'${monthShort}'`);
+      } catch {
+        // falls back to luxon default (English)
+      }
+    }
+
+    return dateTime.toFormat(resolvedFormat);
   }
 
   /**
