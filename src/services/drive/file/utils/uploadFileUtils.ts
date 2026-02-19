@@ -1,5 +1,4 @@
 import { Alert } from 'react-native';
-import { DocumentPickerResponse } from 'react-native-document-picker';
 import uuid from 'react-native-uuid';
 import strings from '../../../../../assets/lang/strings';
 import { isValidFilename } from '../../../../helpers';
@@ -131,11 +130,11 @@ export async function askUserAboutDuplicates(filesWithDuplicates: File[]): Promi
 /**
  * Prepare files to be uploaded by resolving metadata and paths.
  *
- * @param {DocumentPickerResponse[]} files - Files to prepare.
+ * @param {DocumentPickerFile[]} files - Files to prepare.
  * @param {string} folderUuid - UUID of the destination folder.
  * @returns {Promise<FileToUpload[]>} - Prepared file objects ready for upload.
  */
-export async function prepareUploadFiles(files: DocumentPickerResponse[], folderUuid: string): Promise<FileToUpload[]> {
+export async function prepareUploadFiles(files: DocumentPickerFile[], folderUuid: string): Promise<FileToUpload[]> {
   const { filesToUpload: preparedFiles } = await prepareFilesToUpload({
     files,
     parentFolderUuid: folderUuid,

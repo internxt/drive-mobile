@@ -1,4 +1,12 @@
 import {
+  errorCodes,
+  isErrorWithCode,
+  keepLocalCopy,
+  pick,
+  types,
+  type FileToCopy,
+} from '@react-native-documents/picker';
+import {
   ImagePickerAsset,
   launchCameraAsync,
   launchImageLibraryAsync,
@@ -9,7 +17,6 @@ import {
 import * as MediaLibrary from 'expo-media-library';
 import { useState } from 'react';
 import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
-import DocumentPicker, { DocumentPickerResponse } from 'react-native-document-picker';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
@@ -356,7 +363,6 @@ function AddModal(): JSX.Element {
   };
 
   function processFilesFromPicker(documents: DocumentPickerFile[]): Promise<void> {
-    documents.forEach((doc) => (doc.uri = doc.fileCopyUri));
     dispatch(uiActions.setShowUploadFileModal(false));
 
     return uploadDocuments(documents);
@@ -419,9 +425,9 @@ function AddModal(): JSX.Element {
   const handleUploadFiles = async () => {
     try {
       // 1. Get the files from the picker
-      const pickedFiles = await DocumentPicker.pickMultiple({
-        type: [DocumentPicker.types.allFiles],
-        copyTo: 'cachesDirectory',
+      const pickedFiles = await pick({
+        allowMultiSelection: true,
+        type: [types.allFiles],
         mode: 'import',
       });
 
@@ -435,8 +441,27 @@ function AddModal(): JSX.Element {
         return;
       }
 
-      // 2. Add them to the uploader
-      await processFilesFromPicker(pickedFiles);
+      // 2. Copy files to cache so they are accessible as file:// URIs
+      const filesToCopy = pickedFiles.map((file): FileToCopy => ({ uri: file.uri, fileName: file.name ?? 'file' })) as [
+        FileToCopy,
+        ...FileToCopy[],
+      ];
+      const localCopiedFiles = await keepLocalCopy({ destination: 'cachesDirectory', files: filesToCopy });
+      const filesWithLocalUri: DocumentPickerFile[] = pickedFiles.map((file) => {
+        const copy = localCopiedFiles.find((localFile) => localFile.sourceUri === file.uri);
+        if (copy?.status === 'error') {
+          logger.warn(`keepLocalCopy failed for "${file.name}", falling back to original URI. Error: ${copy.copyError}`);
+        }
+        return {
+          uri: copy?.status === 'success' ? copy.localUri : file.uri,
+          name: file.name ?? 'file',
+          size: file.size ?? 0,
+          type: file.type ?? '',
+        };
+      });
+
+      // 3. Add them to the uploader
+      await processFilesFromPicker(filesWithLocalUri);
       dispatch(driveThunks.loadUsageThunk());
 
       // 3. Refresh the current folder
@@ -448,12 +473,11 @@ function AddModal(): JSX.Element {
         });
       }
     } catch (err) {
-      const error = err as Error;
-
-      if (error.message === 'User canceled document picker') {
+      if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
         return;
       }
 
+      const error = err as Error;
       errorService.reportError(error);
 
       const castedError = errorService.castError(error, 'upload');
@@ -486,7 +510,7 @@ function AddModal(): JSX.Element {
           });
 
           if (!result.canceled && result.assets) {
-            const documents: DocumentPickerResponse[] = [];
+            const documents: DocumentPickerFile[] = [];
 
             for (const asset of result.assets) {
               try {
@@ -506,7 +530,6 @@ function AddModal(): JSX.Element {
                 }
 
                 documents.push({
-                  fileCopyUri: cleanUri,
                   name: decodeURIComponent(originalFileName ?? ''),
                   size: fileSize ?? 0,
                   type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
@@ -518,7 +541,6 @@ function AddModal(): JSX.Element {
                 const fallbackName = generateFileName(cleanUri);
 
                 documents.push({
-                  fileCopyUri: cleanUri,
                   name: fallbackName,
                   size: asset.fileSize ?? 0,
                   type: asset.type ?? '',
@@ -600,7 +622,6 @@ function AddModal(): JSX.Element {
               }
 
               documents.push({
-                fileCopyUri: cleanUri,
                 name: decodeURIComponent(originalFileName ?? ''),
                 size: fileSize,
                 type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
@@ -614,7 +635,6 @@ function AddModal(): JSX.Element {
               const fallbackName = generateFileName(cleanUri);
 
               documents.push({
-                fileCopyUri: cleanUri,
                 name: fallbackName,
                 size: asset.fileSize ?? 0,
                 type: asset.type ?? '',

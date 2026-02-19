@@ -1,17 +1,19 @@
-import { DocumentPickerResponse } from 'react-native-document-picker';
-
 /**
  * UPLOAD TYPES
  */
 
 /**
- * Extended DocumentPickerResponse with file metadata timestamps.
- * Used during file upload process to preserve original creation and modification times.
+ * File picked from the device and ready for upload.
+ * Defines only the fields required by the upload pipeline, with non-nullable types.
  */
-export type DocumentPickerFile = DocumentPickerResponse & {
+export interface DocumentPickerFile {
+  uri: string;
+  name: string;
+  size: number;
+  type: string;
   modificationTime?: string;
   creationTime?: string;
-};
+}
 
 /**
  * File prepared and ready to be uploaded
