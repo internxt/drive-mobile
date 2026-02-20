@@ -25,6 +25,7 @@ import {
   DriveNavigationStackItem,
 } from '../../../types/drive/item';
 import { DownloadingFile, UploadingFile } from '../../../types/drive/operations';
+import { FolderUploadProgress } from '../../../types/drive/folderUpload';
 import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
 
 export enum ThunkOperationStatus {
@@ -67,6 +68,7 @@ export interface DriveState {
   usage: number;
   recents: DriveFileData[];
   recentsStatus: ThunkOperationStatus;
+  folderUploadProgress: FolderUploadProgress | null;
 }
 
 const initialState: DriveState = {
@@ -95,6 +97,7 @@ const initialState: DriveState = {
   usage: 0,
   recents: [],
   recentsStatus: ThunkOperationStatus.IDLE,
+  folderUploadProgress: null,
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -515,6 +518,17 @@ export const driveSlice = createSlice({
 
     removeHiddenItemsById(state, action: PayloadAction<string[]>) {
       state.hiddenItemsIds = state.hiddenItemsIds.filter((id) => !action.payload.includes(id));
+    },
+    setFolderUploadProgress(state, action: PayloadAction<FolderUploadProgress>) {
+      state.folderUploadProgress = action.payload;
+    },
+    updateFolderUploadProgress(state, action: PayloadAction<Partial<FolderUploadProgress>>) {
+      if (state.folderUploadProgress) {
+        Object.assign(state.folderUploadProgress, action.payload);
+      }
+    },
+    clearFolderUploadProgress(state) {
+      state.folderUploadProgress = null;
     },
   },
   extraReducers: (builder) => {

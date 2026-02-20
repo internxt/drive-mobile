@@ -34,6 +34,7 @@ const translations = {
       used: 'Used',
       avaiblable: 'Available',
       notEditable: 'Not editable',
+      unnamedFolder: 'Unnamed folder',
     },
     tabs: {
       Home: 'Home',
@@ -349,6 +350,7 @@ const translations = {
       upgrade: 'Upgrade',
       upgradeNow: 'Upgrade now',
       uploadFiles: 'Upload files',
+      uploadFolder: 'Upload folder',
       uploadFromCameraRoll: 'Upload from camera roll',
       takeAPhotoAnUpload: 'Take a photo and upload',
       newFolder: 'New folder',
@@ -818,6 +820,7 @@ const translations = {
       avaiblable: 'Disponible',
       usagePercent: '{0}% usado',
       notEditable: 'No editable',
+      unnamedFolder: 'Carpeta sin nombre',
     },
     tabs: {
       Home: 'Inicio',
@@ -1132,6 +1135,7 @@ const translations = {
       upgrade: 'Mejorar',
       upgradeNow: 'Comprar espacio',
       uploadFiles: 'Subir archivos',
+      uploadFolder: 'Subir carpeta',
       uploadFromCameraRoll: 'Subir desde la galería',
       takeAPhotoAnUpload: 'Tomar una foto y subir',
       newFolder: 'Nueva carpeta',
