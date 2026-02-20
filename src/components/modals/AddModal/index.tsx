@@ -30,7 +30,13 @@ import {
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { SaveFormat } from 'expo-image-manipulator';
-import { BoxArrowUpIcon, CameraIcon, FileArrowUpIcon, FolderSimplePlusIcon, ImageSquareIcon } from 'phosphor-react-native';
+import {
+  BoxArrowUpIcon,
+  CameraIcon,
+  FileArrowUpIcon,
+  FolderSimplePlusIcon,
+  ImageSquareIcon,
+} from 'phosphor-react-native';
 import uuid from 'react-native-uuid';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { storageSelectors } from 'src/store/slices/storage';
@@ -51,6 +57,7 @@ import {
   uploadSingleFile,
   validateAndFilterFiles,
 } from '../../../services/drive/file/utils/uploadFileUtils';
+import { folderTraversalService } from '../../../services/drive/folder/folderTraversal.service';
 import { folderUploadService } from '../../../services/drive/folder/folderUpload.service';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
@@ -426,6 +433,11 @@ function AddModal(): JSX.Element {
       const picked = await folderUploadService.pickFolder();
       if (!picked) return;
       logger.info(`[AddModal] Folder URI selected: ${picked.uri}`);
+
+      const tree = await folderTraversalService.traverseFolder(picked.uri);
+      logger.info(`[AddModal] traverseFolder result — files: ${tree.files.length}, dirs: ${tree.dirs.length}`);
+      logger.info('[AddModal] traverseFolder files:', JSON.stringify(tree.files));
+      logger.info('[AddModal] traverseFolder dirs:', JSON.stringify(tree.dirs));
     } catch (err) {
       const error = err as Error;
       errorService.reportError(error);

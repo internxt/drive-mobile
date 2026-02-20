@@ -1,6 +1,7 @@
 export interface FolderTreeNode {
   /** Relative path from the root of the selected folder (e.g. 'photos/vacation') */
   relativePath: string;
+  parentPath: string;
   name: string;
   isDirectory: boolean;
   size: number;
@@ -10,6 +11,10 @@ export interface FolderTreeNode {
    * - Android: content:// SAF URI
    */
   uri: string;
+}
+export interface FolderTree {
+  dirs: FolderTreeNode[];
+  files: FolderTreeNode[];
 }
 
 export interface FolderUploadProgress {
