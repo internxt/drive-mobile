@@ -744,6 +744,10 @@ const translations = {
       rateLimitUpload: "Your upload couldn't be completed right now. Please wait a moment and try again.",
       rateLimitDownload: "Your download couldn't be completed right now. Please wait a moment and try again.",
       rateLimitContent: "Content couldn't be loaded right now. Please wait a moment and try again.",
+      folderTooLarge: {
+        title: 'Folder is too large',
+        message: 'The selected folder contains more than {0} files. Please select a smaller folder.',
+      },
     },
     security: {
       alerts: {
@@ -1534,6 +1538,10 @@ const translations = {
       rateLimitUpload: 'No se ha podido completar la subida en este momento. Por favor, espera un momento e inténtalo de nuevo.',
       rateLimitDownload: 'No se ha podido completar la descarga en este momento. Por favor, espera un momento e inténtalo de nuevo.',
       rateLimitContent: 'No se ha podido cargar el contenido en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      folderTooLarge: {
+        title: 'La carpeta es demasiado grande',
+        message: 'La carpeta seleccionada contiene más de {0} archivos. Por favor, selecciona una carpeta más pequeña.',
+      },
     },
     security: {
       alerts: {
