@@ -2029,8 +2029,34 @@ PODS:
     - Yoga
   - react-native-create-thumbnail (2.2.0):
     - React-Core
-  - react-native-document-picker (4.3.0):
+  - react-native-document-picker (12.0.1):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - SocketRocket
+    - Yoga
   - react-native-get-random-values (1.11.0):
     - React-Core
   - react-native-pdf (7.0.3):
@@ -3306,7 +3332,7 @@ DEPENDENCIES:
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - react-native-capture-protection (from `../node_modules/react-native-capture-protection`)
   - react-native-create-thumbnail (from `../node_modules/react-native-create-thumbnail`)
-  - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - react-native-get-random-values (from `../node_modules/react-native-get-random-values`)
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
@@ -3524,7 +3550,7 @@ EXTERNAL SOURCES:
   react-native-create-thumbnail:
     :path: "../node_modules/react-native-create-thumbnail"
   react-native-document-picker:
-    :path: "../node_modules/react-native-document-picker"
+    :path: "../node_modules/@react-native-documents/picker"
   react-native-get-random-values:
     :path: "../node_modules/react-native-get-random-values"
   react-native-pdf:
@@ -3708,7 +3734,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: 04189c38b188b2b76ee453be34765241c552547f
   react-native-capture-protection: f976ad979531516fe1ad6fad442c4c53ff894c25
   react-native-create-thumbnail: c15cedc37f3822777d44e6035be041f7961341ea
-  react-native-document-picker: 5a1d7508c8822cabaf544615369e508c6877892c
+  react-native-document-picker: dc2d83366e47e89e7c51e8a41eab99c1d54e941c
   react-native-get-random-values: d16467cf726c618e9c7a8c3c39c31faa2244bbba
   react-native-pdf: edc236298f13f1609e42d41e45b8b6ea88ed10f9
   react-native-pdf-thumbnail: 89dd3532effd7733a33229ce666fd02068dac985
