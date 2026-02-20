@@ -2,9 +2,18 @@ import { FolderTooLargeError, folderTraversalService } from './folderTraversal.s
 
 const mockReadDir = jest.fn();
 const mockAlert = jest.fn();
+const mockReadDirectoryAsync = jest.fn();
+const mockGetInfoAsync = jest.fn();
 
 jest.mock('@dr.pogodin/react-native-fs', () => ({
   readDir: (...args: unknown[]) => mockReadDir(...args),
+}));
+
+jest.mock('expo-file-system/legacy', () => ({
+  StorageAccessFramework: {
+    readDirectoryAsync: (...args: unknown[]) => mockReadDirectoryAsync(...args),
+  },
+  getInfoAsync: (...args: unknown[]) => mockGetInfoAsync(...args),
 }));
 
 jest.mock('react-native', () => ({
@@ -191,10 +200,104 @@ describe('folderTraversalService.traverseFolder', () => {
   });
 
   describe('when the URI uses the content:// scheme', () => {
-    it('when traverseFolder is called, then it throws an unsupported scheme error', async () => {
-      await expect(
-        folderTraversalService.traverseFolder('content://com.android.externalstorage/tree/primary%3ADownload'),
-      ).rejects.toThrow('Unsupported URI scheme');
+    const treeUri = 'content://com.android.externalstorage.documents/tree/primary%3ADownload';
+
+    const safFileUri = (name: string) => `${treeUri}/document/primary%3ADownload%2F${encodeURIComponent(name)}`;
+    const safDirUri = (name: string) => `${treeUri}/document/primary%3ADownload%2F${encodeURIComponent(name)}`;
+    const safNestedUri = (dir: string, name: string) =>
+      `${treeUri}/document/primary%3ADownload%2F${encodeURIComponent(dir)}%2F${encodeURIComponent(name)}`;
+
+    const infoFile = (uri: string, size = 1024) => ({ exists: true as const, isDirectory: false, size, uri, modificationTime: 0 });
+    const infoDir = (uri: string) => ({ exists: true as const, isDirectory: true, size: 0, uri, modificationTime: 0 });
+
+    it('when the folder is empty, then it returns empty dirs and files arrays', async () => {
+      mockReadDirectoryAsync.mockResolvedValue([]);
+
+      const result = await folderTraversalService.traverseFolder(treeUri);
+
+      expect(result).toEqual({ dirs: [], files: [] });
+    });
+
+    it('when the folder contains only files, then it returns them with correct relativePath and parentPath', async () => {
+      const uri1 = safFileUri('photo1.jpg');
+      const uri2 = safFileUri('photo2.jpg');
+
+      mockReadDirectoryAsync.mockResolvedValue([uri1, uri2]);
+      mockGetInfoAsync.mockImplementation((uri: string) => {
+        if (uri === uri1) return Promise.resolve(infoFile(uri1, 2048));
+        if (uri === uri2) return Promise.resolve(infoFile(uri2, 3072));
+      });
+
+      const result = await folderTraversalService.traverseFolder(treeUri);
+
+      expect(result.dirs).toEqual([]);
+      expect(result.files).toEqual([
+        { relativePath: 'photo1.jpg', parentPath: '', name: 'photo1.jpg', isDirectory: false, size: 2048, uri: uri1 },
+        { relativePath: 'photo2.jpg', parentPath: '', name: 'photo2.jpg', isDirectory: false, size: 3072, uri: uri2 },
+      ]);
+    });
+
+    it('when the folder has nested subdirectories, then it traverses all levels in DFS pre-order with correct relativePath and parentPath', async () => {
+      const level1Uri = safDirUri('level1');
+      const deepTxtUri = safNestedUri('level1', 'deep.txt');
+      const rootTxtUri = safFileUri('root.txt');
+
+      mockReadDirectoryAsync.mockImplementation((uri: string) => {
+        if (uri === treeUri) return Promise.resolve([level1Uri, rootTxtUri]);
+        if (uri === level1Uri) return Promise.resolve([deepTxtUri]);
+        return Promise.resolve([]);
+      });
+      mockGetInfoAsync.mockImplementation((uri: string) => {
+        if (uri === level1Uri) return Promise.resolve(infoDir(level1Uri));
+        if (uri === deepTxtUri) return Promise.resolve(infoFile(deepTxtUri, 300));
+        if (uri === rootTxtUri) return Promise.resolve(infoFile(rootTxtUri, 100));
+      });
+
+      const result = await folderTraversalService.traverseFolder(treeUri);
+
+      expect(result.dirs).toEqual([
+        { relativePath: 'level1', parentPath: '', name: 'level1', isDirectory: true, size: 0, uri: level1Uri },
+      ]);
+      expect(result.files).toEqual([
+        { relativePath: 'level1/deep.txt', parentPath: 'level1', name: 'deep.txt', isDirectory: false, size: 300, uri: deepTxtUri },
+        { relativePath: 'root.txt', parentPath: '', name: 'root.txt', isDirectory: false, size: 100, uri: rootTxtUri },
+      ]);
+    });
+
+    it('when the document URI contains percent-encoded characters in the name, then it decodes them correctly', async () => {
+      const uri = safFileUri('my file.txt');
+
+      mockReadDirectoryAsync.mockResolvedValue([uri]);
+      mockGetInfoAsync.mockResolvedValue(infoFile(uri, 512));
+
+      const result = await folderTraversalService.traverseFolder(treeUri);
+
+      expect(result.files[0].name).toBe('my file.txt');
+      expect(result.files[0].relativePath).toBe('my file.txt');
+    });
+
+    it('when the folder contains more than 3000 files, then it throws FolderTooLargeError and shows an alert', async () => {
+      const uris = Array.from({ length: 3001 }, (_, i) => safFileUri(`file${i}.txt`));
+      mockReadDirectoryAsync.mockResolvedValue(uris);
+      mockGetInfoAsync.mockImplementation((uri: string) => Promise.resolve(infoFile(uri)));
+
+      await expect(folderTraversalService.traverseFolder(treeUri)).rejects.toBeInstanceOf(FolderTooLargeError);
+      expect(mockAlert).toHaveBeenCalledWith(
+        'Folder is too large',
+        `The selected folder contains more than ${(3000).toLocaleString()} files. Please select a smaller folder.`,
+      );
+    });
+
+    it('when the folder contains exactly 3000 files, then it resolves without throwing', async () => {
+      const uris = Array.from({ length: 3000 }, (_, i) => safFileUri(`file${i}.txt`));
+      mockReadDirectoryAsync.mockResolvedValue(uris);
+      mockGetInfoAsync.mockImplementation((uri: string) => Promise.resolve(infoFile(uri)));
+
+      const result = await folderTraversalService.traverseFolder(treeUri);
+
+      expect(result.files).toHaveLength(3000);
+      expect(result.dirs).toHaveLength(0);
+      expect(mockAlert).not.toHaveBeenCalled();
     });
   });
 
