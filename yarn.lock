@@ -3290,7 +3290,7 @@ camelize@^1.0.0:
   resolved "https://registry.yarnpkg.com/camelize/-/camelize-1.0.1.tgz#89b7e16884056331a35d6b5ad064332c91daa6c3"
   integrity sha512-dU+Tx2fsypxTgtLoE36npi3UqcjSSMNYfkqgmoEhtZrraP5VWq0K7FkWVTYa8eMPtnU/G2txVsfdCJTn9uzpuQ==
 
-caniuse-lite@^1.0.30001346, caniuse-lite@^1.0.30001759, caniuse-lite@^1.0.30001760:
+caniuse-lite@^1.0.30001759, caniuse-lite@^1.0.30001760:
   version "1.0.30001765"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001765.tgz#4a78d8a797fd4124ebaab2043df942eb091648ee"
   integrity sha512-LWcNtSyZrakjECqmpP4qdg0MMGdN368D7X8XvvAqOcqMv0RxnlqVKZl2V6/mBR68oYMxOZPLw/gO7DuisMHUvQ==
@@ -7197,12 +7197,10 @@ pbkdf2@^3.1.3, pbkdf2@^3.1.5:
     sha.js "^2.4.12"
     to-buffer "^1.2.1"
 
-phosphor-react-native@^1.1.1:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/phosphor-react-native/-/phosphor-react-native-1.1.2.tgz#a9424f40332fe9dbaf19d4ab88c61867072be2cf"
-  integrity sha512-uWYDG4S70JP89jmXljCA0K6/0mjQDHH8GVHFwF+dmbdYkALIE84jMMSemkFtjdsazB1j+xDBJcGaKN3PdEC8uQ==
-  dependencies:
-    caniuse-lite "^1.0.30001346"
+phosphor-react-native@3.0.3:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/phosphor-react-native/-/phosphor-react-native-3.0.3.tgz#e59c8d3e2c231db2a339322565abdaed78ae2186"
+  integrity sha512-h8UIIG/V4pgm20uvkt7L8G/GsOWKaU7rnyu2jnGt1vKmaigE0GZWXOHoEw9wZcfATHwvUpr/mkubEG/nbKeJkg==
 
 picocolors@^1.0.0, picocolors@^1.1.1:
   version "1.1.1"

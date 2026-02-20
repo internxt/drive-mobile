@@ -30,7 +30,7 @@ import {
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { SaveFormat } from 'expo-image-manipulator';
-import { Camera, FileArrowUp, FolderSimplePlus, ImageSquare } from 'phosphor-react-native';
+import { BoxArrowUpIcon, CameraIcon, FileArrowUpIcon, FolderSimplePlusIcon, ImageSquareIcon } from 'phosphor-react-native';
 import uuid from 'react-native-uuid';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { storageSelectors } from 'src/store/slices/storage';
@@ -51,6 +51,7 @@ import {
   uploadSingleFile,
   validateAndFilterFiles,
 } from '../../../services/drive/file/utils/uploadFileUtils';
+import { folderUploadService } from '../../../services/drive/folder/folderUpload.service';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -419,6 +420,23 @@ function AddModal(): JSX.Element {
     });
   }
 
+  const handleUploadFolder = async () => {
+    dispatch(uiActions.setShowUploadFileModal(false));
+    try {
+      const picked = await folderUploadService.pickFolder();
+      if (!picked) return;
+      logger.info(`[AddModal] Folder URI selected: ${picked.uri}`);
+    } catch (err) {
+      const error = err as Error;
+      errorService.reportError(error);
+      const castedError = errorService.castError(error, 'upload');
+      notificationsService.show({
+        type: NotificationType.Error,
+        text1: castedError.message,
+      });
+    }
+  };
+
   /**
    * Upload multiple files
    */
@@ -450,7 +468,9 @@ function AddModal(): JSX.Element {
       const filesWithLocalUri: DocumentPickerFile[] = pickedFiles.map((file) => {
         const copy = localCopiedFiles.find((localFile) => localFile.sourceUri === file.uri);
         if (copy?.status === 'error') {
-          logger.warn(`keepLocalCopy failed for "${file.name}", falling back to original URI. Error: ${copy.copyError}`);
+          logger.warn(
+            `keepLocalCopy failed for "${file.name}", falling back to original URI. Error: ${copy.copyError}`,
+          );
         }
         return {
           uri: copy?.status === 'success' ? copy.localUri : file.uri,
@@ -792,10 +812,32 @@ function AddModal(): JSX.Element {
                 ]}
               >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <FileArrowUp color={getColor('text-gray-100')} size={24} />
+                  <FileArrowUpIcon color={getColor('text-gray-100')} size={24} />
                 </View>
                 <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
                   {strings.buttons.uploadFiles}
+                </AppText>
+              </View>
+            </TouchableHighlight>
+
+            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
+
+            <TouchableHighlight
+              style={tailwind('flex-grow')}
+              underlayColor={getColor('bg-gray-5')}
+              onPress={handleUploadFolder}
+            >
+              <View
+                style={[
+                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
+                  { backgroundColor: getColor('bg-surface') },
+                ]}
+              >
+                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
+                  <BoxArrowUpIcon color={getColor('text-gray-100')} size={24} />
+                </View>
+                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
+                  {strings.buttons.uploadFolder}
                 </AppText>
               </View>
             </TouchableHighlight>
@@ -816,7 +858,7 @@ function AddModal(): JSX.Element {
                 ]}
               >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <ImageSquare color={getColor('text-gray-100')} size={24} />
+                  <ImageSquareIcon color={getColor('text-gray-100')} size={24} />
                 </View>
                 <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
                   {strings.buttons.uploadFromCameraRoll}
@@ -840,7 +882,7 @@ function AddModal(): JSX.Element {
                 ]}
               >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <Camera color={getColor('text-gray-100')} size={24} />
+                  <CameraIcon color={getColor('text-gray-100')} size={24} />
                 </View>
                 <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
                   {strings.buttons.takeAPhotoAnUpload}
@@ -865,7 +907,7 @@ function AddModal(): JSX.Element {
                 ]}
               >
                 <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <FolderSimplePlus color={getColor('text-gray-100')} size={24} />
+                  <FolderSimplePlusIcon color={getColor('text-gray-100')} size={24} />
                 </View>
                 <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
                   {strings.buttons.newFolder}
