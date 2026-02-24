@@ -144,6 +144,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
           data={item.data}
           status={item.status}
           progress={item.progress}
+          folderUploadProgress={item.folderUploadProgress}
           viewMode={props.viewMode}
           onActionsPress={() => props.onDriveItemActionsPress(item)}
           onPress={
@@ -172,6 +173,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
 
   return (
     <FlatList
+      keyExtractor={(item) => item.data.uuid}
       style={{ backgroundColor: getColor('bg-surface') }}
       getItemLayout={(_, index) => {
         return { length: sizeByMode[props.viewMode].height, offset: sizeByMode[props.viewMode].height * index, index };

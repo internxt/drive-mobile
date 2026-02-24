@@ -32,6 +32,10 @@ class DriveFolderService {
     return sdkResult ? sdkResult[0] : Promise.reject('createFolder Sdk method did not return a valid result');
   }
 
+  public async checkDuplicatedFolders(parentFolderUuid: string, folderNamesList: string[]) {
+    return this.sdk.storageV2.checkDuplicatedFolders({ folderUuid: parentFolderUuid, folderNamesList });
+  }
+
   public async moveFolder({
     destinationFolderUuid,
     folderUuid,

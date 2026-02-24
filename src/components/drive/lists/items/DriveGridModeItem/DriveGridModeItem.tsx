@@ -1,10 +1,10 @@
 import { time } from '@internxt-mobile/services/common/time';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import { items } from '@internxt/lib';
-import { ArrowCircleUp } from 'phosphor-react-native';
+import { ArrowCircleUpIcon, XCircleIcon } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import { useEffect, useState } from 'react';
-import { TouchableHighlight, View } from 'react-native';
+import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
@@ -28,6 +28,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const isFolder = props.data.isFolder;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
+  const isFolderUploading = isUploading && isFolder && !!props.folderUploadProgress;
   const maxThumbnailHeight = 96;
 
   const getThumbnailWidth = () => {
@@ -97,7 +98,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
 
   return (
     <TouchableHighlight
-      disabled={isUploading || isDownloading}
+      disabled={!isFolderUploading && (isUploading || isDownloading)}
       underlayColor={getColor('bg-gray-5')}
       onLongPress={props.onActionsPress}
       onPress={props.onPress}
@@ -119,16 +120,40 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
               )}
             </View>
 
-            {isUploading && (
-              <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
-                <View style={[tailwind('rounded px-1 py-0.5 flex-row'), { backgroundColor: getColor('text-primary') }]}>
-                  <ArrowCircleUp weight="fill" color={getColor('text-white')} size={16} />
-                  <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-white') }]}>
-                    {((props.progress || 0) * 100).toFixed(0) + '%'}
-                  </AppText>
+            {isUploading &&
+              (isFolderUploading ? (
+                <TouchableOpacity
+                  onPress={props.onActionsPress}
+                  accessibilityLabel={'Cancel folder upload'}
+                  style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
+                >
+                  <View
+                    style={[
+                      tailwind('rounded px-1 py-0.5 flex-row items-center'),
+                      { backgroundColor: getColor('text-primary') },
+                    ]}
+                  >
+                    <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={14} />
+                    <AppText style={[tailwind('ml-1 text-xs'), { color: getColor('text-white') }]}>
+                      {props.folderUploadProgress?.totalFiles
+                        ? `${props.folderUploadProgress.uploadedFiles}/${props.folderUploadProgress.totalFiles}`
+                        : '...'}
+                    </AppText>
+                    <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
+                  </View>
+                </TouchableOpacity>
+              ) : (
+                <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
+                  <View
+                    style={[tailwind('rounded px-1 py-0.5 flex-row'), { backgroundColor: getColor('text-primary') }]}
+                  >
+                    <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={16} />
+                    <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-white') }]}>
+                      {((props.progress || 0) * 100).toFixed(0) + '%'}
+                    </AppText>
+                  </View>
                 </View>
-              </View>
-            )}
+              ))}
           </View>
 
           <View style={[tailwind('flex items-start justify-center items-center mt-2.5 px-2 py-1')]}>

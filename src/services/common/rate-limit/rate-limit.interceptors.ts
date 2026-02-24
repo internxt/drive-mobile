@@ -1,11 +1,11 @@
 import { logger } from '@internxt-mobile/services/common';
 import axios, { AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import { HTTP_TOO_MANY_REQUESTS } from '../httpStatusCodes';
 import {
   HEADER_RATELIMIT_LIMIT,
   HEADER_RATELIMIT_REMAINING,
   HEADER_RATELIMIT_RESET,
   HEADER_RETRY_AFTER,
-  HTTP_TOO_MANY_REQUESTS,
   MAX_RATE_LIMIT_RETRIES,
   extractEndpointKey,
   rateLimitService,

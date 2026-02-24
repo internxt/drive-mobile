@@ -57,8 +57,6 @@ import {
   uploadSingleFile,
   validateAndFilterFiles,
 } from '../../../services/drive/file/utils/uploadFileUtils';
-import { folderTraversalService } from '../../../services/drive/folder/folderTraversal.service';
-import { folderUploadService } from '../../../services/drive/folder/folderUpload.service';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -66,6 +64,8 @@ import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import { NotificationType, ProgressCallback } from '../../../types';
 import { DriveEventKey } from '../../../types/drive/events';
+import { useFolderUpload } from './hooks/useFolderUpload';
+
 import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../types/drive/operations';
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
@@ -85,6 +85,7 @@ function AddModal(): JSX.Element {
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
   const user = useAppSelector((state) => state.auth.user);
+  const { handleUploadFolder } = useFolderUpload({ uploadAndCreateFileEntry });
 
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
     const name = file.name ?? decodeURI(file.uri).split('/').pop();
@@ -426,28 +427,6 @@ function AddModal(): JSX.Element {
       dispatch(driveActions.clearBatchFiles(batchFileIds));
     });
   }
-
-  const handleUploadFolder = async () => {
-    dispatch(uiActions.setShowUploadFileModal(false));
-    try {
-      const picked = await folderUploadService.pickFolder();
-      if (!picked) return;
-      logger.info(`[AddModal] Folder URI selected: ${picked.uri}`);
-
-      const tree = await folderTraversalService.traverseFolder(picked.uri);
-      logger.info(`[AddModal] traverseFolder result — files: ${tree.files.length}, dirs: ${tree.dirs.length}`);
-      logger.info('[AddModal] traverseFolder files:', JSON.stringify(tree.files));
-      logger.info('[AddModal] traverseFolder dirs:', JSON.stringify(tree.dirs));
-    } catch (err) {
-      const error = err as Error;
-      errorService.reportError(error);
-      const castedError = errorService.castError(error, 'upload');
-      notificationsService.show({
-        type: NotificationType.Error,
-        text1: castedError.message,
-      });
-    }
-  };
 
   /**
    * Upload multiple files

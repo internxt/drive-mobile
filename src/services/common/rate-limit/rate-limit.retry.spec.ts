@@ -1,5 +1,6 @@
 import { withRateLimitRetry } from './rate-limit.retry';
-import { HTTP_TOO_MANY_REQUESTS, MAX_RATE_LIMIT_RETRIES, rateLimitService } from './rate-limit.service';
+import { HTTP_TOO_MANY_REQUESTS } from '../httpStatusCodes';
+import { MAX_RATE_LIMIT_RETRIES, rateLimitService } from './rate-limit.service';
 
 jest.mock('@internxt-mobile/services/common', () => ({
   logger: {

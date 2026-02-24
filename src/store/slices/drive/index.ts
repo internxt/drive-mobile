@@ -16,6 +16,7 @@ import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { DriveEventKey } from '../../../types/drive/events';
+import { FolderUploadState } from '../../../types/drive/folderUpload';
 import {
   DriveItemData,
   FocusedItem as DriveItemFocused,
@@ -25,7 +26,6 @@ import {
   DriveNavigationStackItem,
 } from '../../../types/drive/item';
 import { DownloadingFile, UploadingFile } from '../../../types/drive/operations';
-import { FolderUploadProgress } from '../../../types/drive/folderUpload';
 import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
 
 export enum ThunkOperationStatus {
@@ -68,7 +68,7 @@ export interface DriveState {
   usage: number;
   recents: DriveFileData[];
   recentsStatus: ThunkOperationStatus;
-  folderUploadProgress: FolderUploadProgress | null;
+  folderUploads: Record<string, FolderUploadState>;
 }
 
 const initialState: DriveState = {
@@ -97,7 +97,7 @@ const initialState: DriveState = {
   usage: 0,
   recents: [],
   recentsStatus: ThunkOperationStatus.IDLE,
-  folderUploadProgress: null,
+  folderUploads: {},
 };
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -519,16 +519,20 @@ export const driveSlice = createSlice({
     removeHiddenItemsById(state, action: PayloadAction<string[]>) {
       state.hiddenItemsIds = state.hiddenItemsIds.filter((id) => !action.payload.includes(id));
     },
-    setFolderUploadProgress(state, action: PayloadAction<FolderUploadProgress>) {
-      state.folderUploadProgress = action.payload;
+    addFolderUpload(state, action: PayloadAction<FolderUploadState>) {
+      state.folderUploads[action.payload.uploadId] = action.payload;
     },
-    updateFolderUploadProgress(state, action: PayloadAction<Partial<FolderUploadProgress>>) {
-      if (state.folderUploadProgress) {
-        Object.assign(state.folderUploadProgress, action.payload);
+    updateFolderUpload(state, action: PayloadAction<{ uploadId: string } & Partial<FolderUploadState>>) {
+      const { uploadId, ...rest } = action.payload;
+      if (state.folderUploads[uploadId]) {
+        state.folderUploads[uploadId] = { ...state.folderUploads[uploadId], ...rest };
       }
     },
-    clearFolderUploadProgress(state) {
-      state.folderUploadProgress = null;
+    removeFolderUpload(state, action: PayloadAction<string>) {
+      delete state.folderUploads[action.payload];
+    },
+    clearAllFolderUploads(state) {
+      state.folderUploads = {};
     },
   },
   extraReducers: (builder) => {
