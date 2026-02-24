@@ -20,6 +20,8 @@ const untranspiledModulePatterns = [
   '@scure/base',
   '@noble/hashes',
   'uuid',
+  'p-limit',
+  'yocto-queue',
 ];
 
 const config: Config.InitialOptions = {

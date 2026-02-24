@@ -686,6 +686,9 @@ const translations = {
       uploadFilesLimit: '{0} files will not be uploaded.\nMax upload size per file is 5GB',
       uploadFileLimitName: '{0} will not be uploaded.\nMax upload size per file is 5GB',
       limitPerFile: 'Max upload size per file reached',
+      folderUploadCompleted: 'Successfully uploaded {0} files to "{1}"',
+      folderUploadPartial: '{0} of {1} files uploaded ({2} failed)',
+      folderUploadCancelled: 'Folder upload cancelled',
     },
     errors: {
       runtimeLogsMissing: 'The logs file is missing or empty',
@@ -1480,6 +1483,9 @@ const translations = {
       uploadFilesLimit: '{0} archivos no se han subido.\nEl tamaño máximo por archivo es de 5 GB',
       uploadFileLimitName: '{0} no se ha subido.\nEl tamaño máximo es de 5 GB',
       limitPerFile: 'Tamaño máximo por archivo alcanzado',
+      folderUploadCompleted: '{0} archivos subidos correctamente a "{1}"',
+      folderUploadPartial: '{0} de {1} archivos subidos ({2} fallaron)',
+      folderUploadCancelled: 'Subida de carpeta cancelada',
     },
     errors: {
       runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
