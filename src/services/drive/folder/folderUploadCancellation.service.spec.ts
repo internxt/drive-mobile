@@ -67,7 +67,7 @@ describe('FolderUploadCancellationService', () => {
     });
   });
 
-  describe('multi-upload scenario', () => {
+  describe('multiple uploads are tracked independently', () => {
     it('when cancelling one of several registered uploads, then only that upload is aborted', () => {
       const firstController = new AbortController();
       const secondController = new AbortController();

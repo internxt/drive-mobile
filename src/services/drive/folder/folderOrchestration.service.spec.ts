@@ -74,7 +74,7 @@ describe('uploadFolderContents', () => {
     uploadFile.mockResolvedValue(undefined);
   });
 
-  describe('happy path', () => {
+  describe('folder tree is mapped and uploaded correctly', () => {
     it('when tree is empty, then returns all-zero counts', async () => {
       const result = await uploadFolderContents({
         tree: makeTree([], []),
@@ -192,7 +192,7 @@ describe('uploadFolderContents', () => {
     });
   });
 
-  describe('folder merge on 409', () => {
+  describe('destination folder already exists on the server', () => {
     it('when createFolder returns 409, then calls checkDuplicatedFolders and uploads to the existing UUID', async () => {
       // Arrange
       mockCreateFolder.mockRejectedValueOnce({ status: 409, message: 'Already exists' });
@@ -273,7 +273,7 @@ describe('uploadFolderContents', () => {
     });
   });
 
-  describe('individual file failures', () => {
+  describe('a file failure does not abort the rest of the upload', () => {
     it('when one file upload fails, then counts it as failed and continues uploading the rest', async () => {
       // Arrange
       uploadFile.mockRejectedValueOnce(new Error('Network error')).mockResolvedValue(undefined);
@@ -315,7 +315,7 @@ describe('uploadFolderContents', () => {
     });
   });
 
-  describe('onProgress', () => {
+  describe('progress is reported as files are processed', () => {
     it('when files succeed and fail, then calls onProgress once per file', async () => {
       uploadFile.mockRejectedValueOnce(new Error('fail')).mockResolvedValue(undefined);
       const files = [makeFile('a.jpg', ''), makeFile('b.jpg', ''), makeFile('c.jpg', '')];
@@ -346,7 +346,7 @@ describe('uploadFolderContents', () => {
     });
   });
 
-  describe('cancellation', () => {
+  describe('upload is stopped when a cancellation signal is received', () => {
     it('when signal is already aborted before calling, then returns cancelled=true without uploading any file', async () => {
       const result = await uploadFolderContents({
         tree: makeTree([], [makeFile('a.jpg', ''), makeFile('b.jpg', '')]),
@@ -425,7 +425,7 @@ describe('uploadFolderContents', () => {
     });
   });
 
-  describe('concurrent upload independence', () => {
+  describe('simultaneous uploads do not interfere with each other', () => {
     it('when two uploads run concurrently with independent signals, then both complete with their own file counts', async () => {
       // Arrange
       const onProgressA = jest.fn();
