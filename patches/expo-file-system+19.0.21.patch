@@ -1,0 +1,36 @@
+diff --git a/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt b/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt
+index f6d43bfe..ea830214 100644
+--- a/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt
++++ b/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt
+@@ -144,6 +144,22 @@ open class FileSystemLegacyModule : Module() {
+             putBoolean("isDirectory", false)
+           }
+         }
++      } else if (uri.isSAFUri) {
++        val safFile = DocumentFile.fromSingleUri(context, uri)
++        if (safFile == null || !safFile.exists()) {
++          return@AsyncFunction Bundle().apply {
++            putBoolean("exists", false)
++            putBoolean("isDirectory", false)
++          }
++        }
++        return@AsyncFunction Bundle().apply {
++          putBoolean("exists", true)
++          putBoolean("isDirectory", safFile.isDirectory)
++          putString("uri", uri.toString())
++          putString("name", safFile.name ?: "")
++          putDouble("size", safFile.length().toDouble())
++          putDouble("modificationTime", safFile.lastModified().toDouble() / 1000.0)
++        }
+       } else if (uri.scheme == "content" || uri.scheme == "asset" || uri.scheme == null) {
+         try {
+           val inputStream: InputStream = when (uri.scheme) {
+@@ -1088,7 +1104,7 @@ open class FileSystemLegacyModule : Module() {
+   }
+
+   private val Uri.isSAFUri: Boolean
+-    get() = scheme == "content" && host?.startsWith("com.android.externalstorage") ?: false
++    get() = scheme == "content" && pathSegments.contains("tree")
+
+   private fun parseFileUri(uriStr: String) = uriStr.substring(uriStr.indexOf(':') + 3)
+

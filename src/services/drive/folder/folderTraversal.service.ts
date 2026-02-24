@@ -1,4 +1,5 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import { getInfoAsync, StorageAccessFramework } from 'expo-file-system/legacy';
 import { Alert } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { FolderTree, FolderTreeNode } from '../../../types/drive/folderUpload';
@@ -15,6 +16,13 @@ export class FolderTooLargeError extends Error {
 type TraverseContext = {
   dirPath: string;
   rootPath: string;
+  result: FolderTree;
+  fileCount: number;
+};
+
+type SAFTraverseContext = {
+  dirUri: string;
+  currentRelativePath: string;
   result: FolderTree;
   fileCount: number;
 };
@@ -55,6 +63,56 @@ const traverseFileUri = async ({ dirPath, rootPath, result, fileCount }: Travers
   return fileCount;
 };
 
+const getNameFromSafUri = (childUri: string): string => {
+  const documentPart = childUri.split('/document/').pop() ?? '';
+  const decoded = decodeURIComponent(documentPart);
+  return decoded.split('/').pop() ?? decoded;
+};
+
+const traverseSafUri = async ({
+  dirUri,
+  currentRelativePath,
+  result,
+  fileCount,
+}: SAFTraverseContext): Promise<number> => {
+  const childUris = await StorageAccessFramework.readDirectoryAsync(dirUri);
+
+  for (const childUri of childUris) {
+    const info = await getInfoAsync(childUri);
+    const infoName = (info as typeof info & { name?: string }).name;
+    const name = infoName || getNameFromSafUri(childUri);
+    const isDirectory = info.exists ? info.isDirectory : false;
+    const relativePath = currentRelativePath ? `${currentRelativePath}/${name}` : name;
+    const parentPath = currentRelativePath;
+
+    const node: FolderTreeNode = {
+      relativePath,
+      parentPath,
+      name,
+      isDirectory,
+      size: isDirectory || !info.exists ? 0 : info.size,
+      uri: childUri,
+    };
+
+    if (isDirectory) {
+      result.dirs.push(node);
+      fileCount = await traverseSafUri({ dirUri: childUri, currentRelativePath: relativePath, result, fileCount });
+    } else {
+      fileCount++;
+      if (fileCount > MAX_FILES) {
+        Alert.alert(
+          strings.errors.folderTooLarge.title,
+          strings.formatString(strings.errors.folderTooLarge.message, MAX_FILES.toLocaleString()),
+        );
+        throw new FolderTooLargeError();
+      }
+      result.files.push(node);
+    }
+  }
+
+  return fileCount;
+};
+
 /**
  * Traverses a folder URI and returns all dirs and files separated.
  * Dirs are collected in DFS pre-order so each parent is always listed before its children.
@@ -73,7 +131,9 @@ const traverseFolder = async (uri: string): Promise<FolderTree> => {
   }
 
   if (uri.startsWith('content://')) {
-    // TODO: implement SAF traversal for Android
+    const result: FolderTree = { dirs: [], files: [] };
+    await traverseSafUri({ dirUri: uri, currentRelativePath: '', result, fileCount: 0 });
+    return result;
   }
 
   throw new Error(`Unsupported URI scheme: ${uri}`);
