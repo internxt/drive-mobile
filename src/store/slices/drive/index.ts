@@ -525,7 +525,7 @@ export const driveSlice = createSlice({
     updateFolderUpload(state, action: PayloadAction<{ uploadId: string } & Partial<FolderUploadState>>) {
       const { uploadId, ...rest } = action.payload;
       if (state.folderUploads[uploadId]) {
-        Object.assign(state.folderUploads[uploadId], rest);
+        state.folderUploads[uploadId] = { ...state.folderUploads[uploadId], ...rest };
       }
     },
     removeFolderUpload(state, action: PayloadAction<string>) {
