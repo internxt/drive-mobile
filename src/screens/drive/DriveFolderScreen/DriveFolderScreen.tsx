@@ -144,7 +144,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const { uploading: driveUploadingItems } = useAppSelector(driveSelectors.driveItems);
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
 
-  const screenTitle = !isRootFolder ? (folderName ?? folder.name) : strings.screens.drive.title;
+  const screenTitle = isRootFolder ? strings.screens.drive.title : (folderName ?? folder.name);
 
   const driveSortedItems = useMemo(() => {
     const folderUploadItems = Object.values(folderUploads).map(buildFolderUploadListItem);

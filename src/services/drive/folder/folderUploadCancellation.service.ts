@@ -3,7 +3,7 @@
  * Decouples upload registration (AddModal) from cancellation (drive list items).
  */
 class FolderUploadCancellationService {
-  private controllers = new Map<string, AbortController>();
+  private readonly controllers = new Map<string, AbortController>();
 
   /** Registers `controller` for `uploadId` before starting the upload. */
   public register(uploadId: string, controller: AbortController): void {
