@@ -123,7 +123,7 @@ export const uploadFolderContents = async ({
   }
 
   if (totalFiles === 0) {
-    await Promise.allSettled([...folderCreationPromises.values()]);
+    await Promise.allSettled(folderCreationPromises.values());
     return {
       totalFiles: 0,
       uploadedFiles: 0,
