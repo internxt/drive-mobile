@@ -1,4 +1,5 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import * as NavigationBar from 'expo-navigation-bar';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { Play } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
@@ -20,12 +21,15 @@ const isAndroid = Platform.OS === 'android';
 const lockToPortrait = async () => {
   if (isAndroid) {
     await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    await NavigationBar.setVisibilityAsync('visible');
   }
 };
 
 const unlockOrientation = async () => {
   if (isAndroid) {
     await ScreenOrientation.unlockAsync();
+    await NavigationBar.setVisibilityAsync('hidden');
+    await NavigationBar.setBehaviorAsync('overlay-swipe');
   }
 };
 
@@ -49,7 +53,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
     };
   }, []);
 
-  const handlePlay = () => {
+  const handlePlay = async () => {
     if (loadError) {
       onPlay?.();
       return;
@@ -57,6 +61,10 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
 
     if (isIOS) {
       videoPlayer.current?.presentFullscreenPlayer();
+    }
+    if (isAndroid) {
+      await NavigationBar.setVisibilityAsync('hidden');
+      await NavigationBar.setBehaviorAsync('overlay-swipe');
     }
     setPlaying(true);
   };
@@ -68,8 +76,10 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
   const handleFullscreenWillDismiss = () => {
     if (isIOS) {
       setPlaying(false);
+      lockToPortrait();
+    } else {
+      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
     }
-    lockToPortrait();
   };
 
   const handleFullscreenDidDismiss = () => {
