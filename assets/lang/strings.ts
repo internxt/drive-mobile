@@ -343,6 +343,7 @@ const translations = {
       descrypting: 'Decrypting...',
       cancel: 'Cancel',
       cancelling: 'Cancelling',
+      upload: 'Upload',
       confirm: 'Confirm',
       move: 'Move',
       moveHere: 'Move here',
@@ -476,6 +477,18 @@ const translations = {
         duplicateFilesTitle: 'Duplicate Files Found',
         duplicateFilesMessage: 'The following files already exist: %s\n\nDo you want to upload them with a new name?',
         duplicateFilesAction: 'Upload with new name',
+      },
+      nameCollision: {
+        title: 'Item already exists',
+        titleMultiple: 'Some items already exist',
+        messageSingleFolder:
+          '"{0}" already exists in this location. Do you want to replace the folder or keep both?',
+        messageMultiple:
+          'More than one element already exists in this location. Do you want to replace them or keep all?',
+        replaceCurrentItem: 'Replace current item',
+        keepBoth: 'Keep both',
+        replaceAll: 'Replace all',
+        keepAll: 'Keep all',
       },
       rename: {
         title: 'Rename',
@@ -1134,6 +1147,7 @@ const translations = {
       descrypting: 'Desencriptando...',
       cancel: 'Cancelar',
       cancelling: 'Cancelando',
+      upload: 'Subir',
       confirm: 'Confirmar',
       move: 'Mover',
       save: 'Guardar',
@@ -1267,6 +1281,18 @@ const translations = {
         duplicateFilesTitle: 'Archivos duplicados encontrados',
         duplicateFilesMessage: 'Los siguientes archivos ya existen: %s\n\n¿Quieres subirlos con un nuevo nombre?',
         duplicateFilesAction: 'Subir con nuevo nombre',
+      },
+      nameCollision: {
+        title: 'El elemento ya existe',
+        titleMultiple: 'Algunos elementos ya existen',
+        messageSingleFolder:
+          '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar la carpeta o conservar ambas?',
+        messageMultiple:
+          'Más de un elemento ya existe en esta ubicación. ¿Quieres reemplazarlos o conservar todos?',
+        replaceCurrentItem: 'Reemplazar el elemento actual',
+        keepBoth: 'Conservar ambos',
+        replaceAll: 'Reemplazar todos',
+        keepAll: 'Conservar todos',
       },
       rename: {
         title: 'Renombrar',

@@ -1,4 +1,5 @@
 import { StorageAccessFramework } from 'expo-file-system/legacy';
+import { useRef, useState } from 'react';
 import { Platform } from 'react-native';
 import uuid from 'react-native-uuid';
 
@@ -8,6 +9,7 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from '../../../../../assets/lang/strings';
 import analytics, { DriveAnalyticsEvent } from '../../../../services/AnalyticsService';
+import { driveFolderService } from '../../../../services/drive/folder/driveFolder.service';
 import {
   createFolderWithMerge,
   getMaxDepth,
@@ -16,6 +18,8 @@ import {
 import { FolderTooLargeError, folderTraversalService } from '../../../../services/drive/folder/folderTraversal.service';
 import { folderUploadService } from '../../../../services/drive/folder/folderUpload.service';
 import { folderUploadCancellationService } from '../../../../services/drive/folder/folderUploadCancellation.service';
+import { getUniqueFolderName } from '../../../../services/drive/folder/utils/getUniqueFolderName';
+import { driveTrashService } from '../../../../services/drive/trash/driveTrash.service';
 import fileSystemService from '../../../../services/FileSystemService';
 import notificationsService from '../../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
@@ -23,6 +27,7 @@ import { driveActions, driveThunks } from '../../../../store/slices/drive';
 import { uiActions } from '../../../../store/slices/ui';
 import { NotificationType, ProgressCallback } from '../../../../types';
 import { FolderTreeNode } from '../../../../types/drive/folderUpload';
+import { NameCollisionAction } from '../../NameCollisionModal';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noopProgress: ProgressCallback = () => {};
@@ -43,10 +48,48 @@ type UploadFileEntryFn = (
   creationTime?: string,
 ) => Promise<DriveFileData>;
 
+export interface FolderUploadCollisionModalState {
+  isOpen: boolean;
+  folderName: string;
+  onConfirm: (action: NameCollisionAction) => void;
+  onClose: () => void;
+}
+
 export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateFileEntry: UploadFileEntryFn }) => {
   const dispatch = useAppDispatch();
   const { focusedFolder, loadFolderContent } = useDrive();
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
+
+  const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
+  const [collisionState, setCollisionState] = useState<{
+    isOpen: boolean;
+    folderName: string;
+    existingFolderUuid: string;
+    existingFolderId: number;
+  }>({ isOpen: false, folderName: '', existingFolderUuid: '', existingFolderId: 0 });
+
+  const waitForCollisionResolution = (
+    folderName: string,
+    existingFolderUuid: string,
+    existingFolderId: number,
+  ): Promise<NameCollisionAction | null> => {
+    return new Promise((resolve) => {
+      collisionResolverRef.current = resolve;
+      setCollisionState({ isOpen: true, folderName, existingFolderUuid, existingFolderId });
+    });
+  };
+
+  const closedCollisionState = { isOpen: false, folderName: '', existingFolderUuid: '', existingFolderId: 0 };
+
+  const handleCollisionConfirm = (action: NameCollisionAction) => {
+    setCollisionState(closedCollisionState);
+    collisionResolverRef.current?.(action);
+  };
+
+  const handleCollisionClose = () => {
+    setCollisionState(closedCollisionState);
+    collisionResolverRef.current?.(null);
+  };
 
   const handleUploadFolder = async () => {
     dispatch(uiActions.setShowUploadFileModal(false));
@@ -100,6 +143,19 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
 
       if (!focusedFolder?.uuid) {
         throw new Error('No focused folder UUID');
+      }
+
+      // Name collision check
+      const { existentFolders } = await driveFolderService.checkDuplicatedFolders(focusedFolder.uuid, [picked.name]);
+      if (existentFolders.length > 0) {
+        const existing = existentFolders[0];
+        const action = await waitForCollisionResolution(picked.name, existing.uuid, existing.id);
+        if (action === null) return;
+        if (action === 'replace') {
+          await driveTrashService.moveToTrash([{ uuid: existing.uuid, id: existing.id, type: 'folder' }]);
+        } else {
+          picked.name = await getUniqueFolderName(picked.name, focusedFolder.uuid);
+        }
       }
 
       // 4. Create the root folder (merge if already exists)
@@ -217,5 +273,12 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     }
   };
 
-  return { handleUploadFolder };
+  const nameCollisionModal: FolderUploadCollisionModalState = {
+    isOpen: collisionState.isOpen,
+    folderName: collisionState.folderName,
+    onConfirm: handleCollisionConfirm,
+    onClose: handleCollisionClose,
+  };
+
+  return { handleUploadFolder, nameCollisionModal };
 };
