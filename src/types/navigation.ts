@@ -1,6 +1,7 @@
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { SharedFile } from '../shareExtension/types';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
+  AndroidShare: { files: SharedFile[] } | undefined;
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
