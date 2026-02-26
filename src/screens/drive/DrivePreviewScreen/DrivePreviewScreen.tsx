@@ -109,11 +109,11 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     }).start();
 
     if (Platform.OS === 'android') {
-      if (!topbarVisible) {
+      if (topbarVisible) {
+        NavigationBar.setVisibilityAsync('visible');
+      } else {
         NavigationBar.setVisibilityAsync('hidden');
         NavigationBar.setBehaviorAsync('overlay-swipe');
-      } else {
-        NavigationBar.setVisibilityAsync('visible');
       }
     }
   }, [topbarVisible]);
