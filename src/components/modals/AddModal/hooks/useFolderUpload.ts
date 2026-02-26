@@ -32,6 +32,30 @@ import { NameCollisionAction } from '../../NameCollisionModal';
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noopProgress: ProgressCallback = () => {};
 
+const showFolderUploadResult = (
+  result: { cancelled: boolean; failedFiles: number; uploadedFiles: number; totalFiles: number },
+  folderName: string,
+) => {
+  if (result.cancelled) {
+    notificationsService.show({ type: NotificationType.Info, text1: strings.messages.folderUploadCancelled });
+  } else if (result.failedFiles === 0) {
+    notificationsService.show({
+      type: NotificationType.Success,
+      text1: strings.formatString(strings.messages.folderUploadCompleted, result.uploadedFiles, folderName) as string,
+    });
+  } else {
+    notificationsService.show({
+      type: NotificationType.Warning,
+      text1: strings.formatString(
+        strings.messages.folderUploadPartial,
+        result.uploadedFiles,
+        result.totalFiles,
+        result.failedFiles,
+      ) as string,
+    });
+  }
+};
+
 const getFileExtensionAndPlainName = (name: string): { extension: string; plainName: string } => {
   const lastDot = name.lastIndexOf('.');
   if (lastDot <= 0) return { extension: '', plainName: name };
@@ -227,31 +251,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       });
 
       // 9. Display result
-      if (result.cancelled) {
-        notificationsService.show({
-          type: NotificationType.Info,
-          text1: strings.messages.folderUploadCancelled,
-        });
-      } else if (result.failedFiles === 0) {
-        notificationsService.show({
-          type: NotificationType.Success,
-          text1: strings.formatString(
-            strings.messages.folderUploadCompleted,
-            result.uploadedFiles,
-            picked.name,
-          ) as string,
-        });
-      } else {
-        notificationsService.show({
-          type: NotificationType.Warning,
-          text1: strings.formatString(
-            strings.messages.folderUploadPartial,
-            result.uploadedFiles,
-            result.totalFiles,
-            result.failedFiles,
-          ) as string,
-        });
-      }
+      showFolderUploadResult(result, picked.name);
     } catch (err) {
       const error = err as Error;
       if (!(err instanceof FolderTooLargeError)) {
