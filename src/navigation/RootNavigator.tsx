@@ -28,7 +28,7 @@ type Props = {
   navigationContainerRef?: NavigationContainerRef<RootStackParamList>;
 };
 
-function AppNavigator({ navigationContainerRef }: Props): JSX.Element {
+function AppNavigator({ navigationContainerRef }: Readonly<Props>): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
 

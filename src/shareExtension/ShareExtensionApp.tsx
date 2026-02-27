@@ -33,8 +33,8 @@ const ShareExtensionApp = (props: InitialProps) => {
         {rows.length} {rows.length === 1 ? 'file' : 'files'}
       </Text>
 
-      {rows.map((file, i) => (
-        <View key={i} style={styles.card}>
+      {rows.map((file) => (
+        <View key={file.path} style={styles.card}>
           <Row label="Name" value={file.name} />
           <Row label="Path" value={file.path} />
           {file.size && <Row label="Size" value={file.size} />}

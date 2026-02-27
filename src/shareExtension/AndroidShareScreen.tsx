@@ -11,8 +11,8 @@ const AndroidShareScreen = ({ route }: RootStackScreenProps<'AndroidShare'>) => 
         {files.length} {files.length === 1 ? 'file' : 'files'}
       </Text>
 
-      {files.map((file, i) => (
-        <View key={i} style={styles.card}>
+      {files.map((file) => (
+        <View key={file.uri} style={styles.card}>
           <Row label="Name" value={file.fileName ?? '—'} />
           <Row label="Type" value={file.mimeType ?? '—'} />
         </View>

@@ -13,7 +13,7 @@ import FirebaseAuth
 #endif
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
-  override func sourceURL(for bridge: RCTBridge) -> URL? {
+  override func sourceURL(for _: RCTBridge) -> URL? {
     self.bundleURL()
   }
   
@@ -35,7 +35,6 @@ class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
       fatalError("Could not load bundle URL")
     }
     return bundleURL
-    Bundle.main.url(forResource: "main", withExtension: "jsbundle")
 #endif
   }
 }
@@ -192,8 +191,13 @@ class ShareExtensionViewController: UIViewController {
         urlComponents.queryItems = queryItems
       }
       
-      let pathWithSlashEnsured = pathWithoutQuery.hasPrefix("/") ? pathWithoutQuery : "/\(pathWithoutQuery)"
-      urlComponents.path = pathWithSlashEnsured
+      var baseComponents = URLComponents()
+      baseComponents.scheme = scheme
+      baseComponents.host = ""
+      let strippedPath = pathWithoutQuery.hasPrefix("/") ? String(pathWithoutQuery.dropFirst()) : pathWithoutQuery
+      if let baseURL = baseComponents.url {
+        urlComponents.path = baseURL.appendingPathComponent(strippedPath).path
+      }
     }
     
     guard let url = urlComponents.url else { return }
@@ -235,10 +239,8 @@ class ShareExtensionViewController: UIViewController {
     
     NotificationCenter.default.addObserver(forName: NSNotification.Name("openHostApp"), object: nil, queue: nil) { [weak self] notification in
       DispatchQueue.main.async {
-        if let userInfo = notification.userInfo {
-          if let path = userInfo["path"] as? String {
-            self?.openHostApp(path: path)
-          }
+        if let userInfo = notification.userInfo, let path = userInfo["path"] as? String {
+          self?.openHostApp(path: path)
         }
       }
     }
@@ -580,7 +582,7 @@ class ShareExtensionViewController: UIViewController {
                 
                 exportSession?.outputURL = persistentURL
                 exportSession?.outputFileType = .mov
-                exportSession?.exportAsynchronously {
+                func onExportComplete() {
                   switch exportSession?.status {
                   case .completed:
                     if var videoArray = sharedItems["videos"] as? [String] {
@@ -593,6 +595,7 @@ class ShareExtensionViewController: UIViewController {
                     break
                   }
                 }
+                exportSession?.exportAsynchronously(completionHandler: onExportComplete)
               } else {
                 print("videoItem is not a recognized type")
               }
