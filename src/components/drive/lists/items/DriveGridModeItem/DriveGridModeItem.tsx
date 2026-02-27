@@ -20,6 +20,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const user = useAppSelector((state) => state.auth.user);
+  const language = useAppSelector((state) => state.app.language);
   const [downloadedThumbnail, setDownloadedThumbnail] = useState<DownloadedThumbnail | null>(null);
   const [maxThumbnailWidth, setMaxThumbnailWidth] = useState<number | null>(null);
   const thumbnailSize = downloadedThumbnail || null;
@@ -171,7 +172,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
             </AppText>
             {props.data.createdAt ? (
               <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-50') }, { lineHeight: 14 }]}>
-                {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
+                {time.getFormattedDate(props.data.createdAt, time.formats.shortDate, language)}
               </AppText>
             ) : null}
             {props.data.size ? (

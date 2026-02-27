@@ -37,9 +37,9 @@ export class TimeService {
    * HH   ->  Hours of the date
    * mm   ->  Minutes of the date
    */
-  getFormattedDate(input: TimeInput, format: string) {
+  getFormattedDate(input: TimeInput, format: string, lang?: string) {
     const dateTime = this.getDateTime(input);
-    const lang = strings.getLanguage();
+    const resolvedLang = lang ?? strings.getLanguage();
     const date = new Date(input);
 
     // Workaround for Hermes (React Native JS engine) bug with locale-sensitive month tokens.
@@ -56,7 +56,7 @@ export class TimeService {
     let resolvedFormat = format;
     if (resolvedFormat.includes('LLLL')) {
       try {
-        const monthLong = new Intl.DateTimeFormat(lang, { month: 'long' }).format(date);
+        const monthLong = new Intl.DateTimeFormat(resolvedLang, { month: 'long' }).format(date);
         resolvedFormat = resolvedFormat.replaceAll('LLLL', `'${monthLong}'`);
       } catch {
         // falls back to luxon default (English)
@@ -64,7 +64,7 @@ export class TimeService {
     }
     if (resolvedFormat.includes('LLL')) {
       try {
-        const monthShort = new Intl.DateTimeFormat(lang, { month: 'short' }).format(date);
+        const monthShort = new Intl.DateTimeFormat(resolvedLang, { month: 'short' }).format(date);
         resolvedFormat = resolvedFormat.replaceAll('LLL', `'${monthShort}'`);
       } catch {
         // falls back to luxon default (English)

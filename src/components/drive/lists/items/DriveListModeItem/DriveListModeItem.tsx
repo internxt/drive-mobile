@@ -5,6 +5,7 @@ import { ArrowCircleUp, DotsThree, Link, XCircle } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import strings from '../../../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
+import { useAppSelector } from '../../../../../store/hooks';
 import ProgressBar from '../../../../AppProgressBar';
 import AppText from '../../../../AppText';
 
@@ -18,6 +19,7 @@ import { DriveItemProps } from '../../../../../types/drive/ui';
 export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const language = useAppSelector((state) => state.app.language);
 
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
@@ -29,7 +31,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
 
   const getUpdatedAt = () => {
     if (props.data.createdAt) {
-      return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime);
+      return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime, language);
     }
 
     return '';

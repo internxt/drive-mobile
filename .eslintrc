@@ -1,10 +1,12 @@
 {
   "extends": "@internxt/eslint-config-internxt",
+  "plugins": ["react-compiler"],
   "env": {
     "es2020": true
   },
   "rules": {
-    "max-len": "off"
+    "max-len": "off",
+    "react-compiler/react-compiler": "error"
   },
   "ignorePatterns": [
     "env",
