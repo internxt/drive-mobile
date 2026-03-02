@@ -24,10 +24,6 @@ export function useAndroidShareIntent(
 
   useEffect(() => {
     if (!pendingFiles?.length || isLoggedIn == null) return;
-    if (!isLoggedIn) {
-      setPendingFiles(null);
-      return;
-    }
     navigationContainerRef?.navigate('AndroidShare', { files: pendingFiles });
     setPendingFiles(null);
   }, [pendingFiles, isLoggedIn, navigationContainerRef]);

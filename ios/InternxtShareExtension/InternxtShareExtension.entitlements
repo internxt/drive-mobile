@@ -6,5 +6,9 @@
     <array>
       <string>group.com.internxt.snacks</string>
     </array>
+    <key>keychain-access-groups</key>
+    <array>
+      <string>$(AppIdentifierPrefix)group.com.internxt.snacks</string>
+    </array>
   </dict>
 </plist>
