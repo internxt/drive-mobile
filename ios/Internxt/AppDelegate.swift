@@ -107,7 +107,7 @@ public class AppDelegate: ExpoAppDelegate {
       kSecAttrGeneric as String: Data(key.utf8),
       kSecAttrAccount as String: Data(key.utf8),
       kSecAttrAccessGroup as String: accessGroup,
-      kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
+      kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked,
       kSecValueData as String: data,
     ]
     SecItemAdd(query as CFDictionary, nil)
