@@ -119,6 +119,7 @@ class AsyncStorageService {
         AsyncStorageKey.ScreenLockIsEnabled,
         AsyncStorageKey.LastScreenLock,
         AsyncStorageKey.ThemePreference,
+        AsyncStorageKey.Language,
       ];
 
       await AsyncStorage.multiRemove(nonSensitiveKeys);

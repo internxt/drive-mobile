@@ -56,9 +56,9 @@ const LanguageModal = (props: BaseModalProps) => {
 
               <View style={[tailwind('w-full mr-4 pl-2.5 py-2.5')]}>
                 <AppText style={[tailwind('text-lg'), isSelected && tailwind('text-primary')]}>
-                  {strings.getString('languages.' + l, l)}
+                  {strings.getNativeLanguageName(l)}
                 </AppText>
-                <AppText style={tailwind('text-xs text-gray-60')}>{strings.languages[l]}</AppText>
+                <AppText style={tailwind('text-xs text-gray-60')}>{strings.getString('languages.' + l, l)}</AppText>
               </View>
             </View>
 

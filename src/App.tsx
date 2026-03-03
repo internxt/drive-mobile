@@ -145,6 +145,8 @@ function AppContent(): JSX.Element {
     try {
       logger.info(`--- Starting new app session at ${time.getFormattedDate(new Date(), 'dd/LL/yyyy - HH:mm')} ---`);
 
+      await dispatch(appThunks.initializeLanguageThunk()).unwrap();
+
       // 1. Get remote updates
       await getRemoteUpdateIfAvailable();
 

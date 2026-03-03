@@ -9,7 +9,6 @@ import { aes } from '@internxt/lib';
 import strings from 'assets/lang/strings';
 import { setStringAsync } from 'expo-clipboard';
 import { randomBytes } from 'react-native-crypto';
-import { Network } from 'src/lib/network';
 
 /**
  * Gets an already generated share link
@@ -100,10 +99,9 @@ export const onSharedLinksUpdated = (callback: () => void) => {
  */
 export const generateShareLink = async ({
   itemId,
-  fileId,
+
   displayCopyNotification,
   type,
-  plainPassword,
 }: {
   itemId: string;
   fileId?: string | null;
@@ -115,13 +113,9 @@ export const generateShareLink = async ({
 
   if (!credentials?.user) throw new Error('User credentials not found');
 
-  const { bucket, mnemonic, email, userId } = credentials.user;
-  const network = new Network(email, userId, mnemonic);
+  const { mnemonic } = credentials.user;
   // Random code for the file
   const plainCode = randomBytes(32).toString('hex');
-
-  // 1. Get the file token
-  const itemToken = await network.createFileToken(bucket, fileId as string, 'PULL');
 
   // 2. Create an encrypted code for the file
   const encryptedCode = aes.encrypt(plainCode, mnemonic);

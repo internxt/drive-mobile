@@ -1,4 +1,5 @@
 import { SdkManager } from '@internxt-mobile/services/common';
+import packageJson from '../../package.json';
 import {
   CreatePaymentSessionPayload,
   DisplayPrice,
@@ -36,6 +37,8 @@ class PaymentService {
       {
         headers: {
           Authorization: `Bearer ${token}`,
+          'internxt-client': packageJson.name,
+          'internxt-version': packageJson.version,
         },
       },
     );

@@ -1,3 +1,15 @@
+/**
+ * Legacy Network Wrapper
+ *
+ * @deprecated This class wraps the legacy @inxt-js download system.
+ * Only used by downloadLegacy.ts as a final fallback for very old files.
+ *
+ * Modern downloads should use:
+ * - src/network/NetworkFacade.ts (primary)
+ * - src/services/NetworkService/download.ts (v1 fallback)
+ *
+ */
+
 import { Environment } from '../@inxt-js';
 import { ActionState } from '../@inxt-js/api/actionState';
 import { FileInfo } from '../@inxt-js/api/fileinfo';
@@ -5,7 +17,6 @@ import FileManager from '../@inxt-js/api/FileManager';
 import appService from '../services/AppService';
 
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import asyncStorage from '../services/AsyncStorageService';
 
 type ProgressCallback = (progress: number, uploadedBytes: number, totalBytes: number) => void;
 
@@ -97,10 +108,6 @@ export class Network {
   getFileInfo(bucketId: string, fileId: string): Promise<FileInfo> {
     return this.environment.getFileInfo(bucketId, fileId);
   }
-
-  createFileToken(bucketId: string, fileId: string, operation: 'PULL' | 'PUSH'): Promise<string> {
-    return this.environment.createFileToken(bucketId, fileId, operation);
-  }
 }
 
 /**
@@ -116,23 +123,6 @@ export function getEnvironmentConfigFromUser(user: UserSettings): EnvironmentCon
     encryptionKey: user.mnemonic,
     bucketId: user.bucket,
   };
-}
-
-/**
- * Returns required config to download/upload files
- *
- * @deprecated Use getEnvironmentConfigFromUser(user) instead to avoid iOS SecureStore errors.
- * This function reads from SecureStore which can fail in background contexts on iOS.
- *
- * @returns Promise resolving to environment configuration
- */
-export function getEnvironmentConfig(): Promise<EnvironmentConfig> {
-  return asyncStorage.getUser().then((user) => ({
-    bridgeUser: user.bridgeUser,
-    bridgePass: user.userId,
-    encryptionKey: user.mnemonic,
-    bucketId: user.bucket,
-  }));
 }
 
 export const generateFileKey = Environment.utils.generateFileKey;

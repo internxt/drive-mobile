@@ -1,5 +1,6 @@
 import strings from '../../assets/lang/strings';
 import AppError from '../types';
+import { HTTP_TOO_MANY_REQUESTS } from './common';
 import { BaseLogger } from './common/logger';
 
 export interface GlobalErrorContext {
@@ -22,6 +23,9 @@ export interface ErrorContext extends GlobalErrorContext {
   tags: { [tagName: string]: string };
   extra?: Record<string, unknown>;
 }
+
+export type CastErrorContext = 'upload' | 'download' | 'content';
+
 class ErrorService {
   private logger = new SentryLogger();
   public setGlobalErrorContext(globalContext: Partial<GlobalErrorContext>) {
@@ -31,23 +35,115 @@ class ErrorService {
     // });
   }
 
-  public castError(err: unknown): AppError {
+  /**
+   * Converts errors from different formats to a consistent and user-friendly AppError.
+   *
+   * @param err - Error in any format (Axios, API, JavaScript, etc.)
+   * @param context - Optional context for specific rate limit messages
+   *
+   * @returns AppError with user-friendly message and status code (if available)
+   */
+  public castError(err: unknown, context?: CastErrorContext): AppError {
     if (err && typeof err === 'object') {
       const map = err as Record<string, unknown>;
 
+      const status = this.extractStatus(map);
+      const message = this.extractMessage(map);
+
+      if (status === HTTP_TOO_MANY_REQUESTS) {
+        const rateLimitMessage = this.getRateLimitMessage(context);
+        return new AppError(rateLimitMessage, status);
+      }
+
       const isServerReturnedError =
-        typeof map.message === 'string' &&
-        map.message.trim().length > 0 &&
-        typeof map.status === 'number' &&
-        map.status >= 400 &&
-        map.status < 600;
+        typeof message === 'string' &&
+        message.trim().length > 0 &&
+        typeof status === 'number' &&
+        status >= 400 &&
+        status < 600;
 
       if (isServerReturnedError) {
-        return new AppError(map.message as string, map.status as number);
+        return new AppError(message, status);
       }
     }
 
     return new AppError(strings.errors.genericError);
+  }
+
+  /**
+   * Extract status from error object, checking multiple possible locations:
+   * - error.status (direct)
+   * - error.response.status (axios format)
+   */
+  private extractStatus(err: Record<string, unknown>): number | undefined {
+    const directStatus = this.parseStatus(err.status);
+    if (directStatus !== undefined) {
+      return directStatus;
+    }
+
+    const response = err.response as Record<string, unknown> | undefined;
+    if (response) {
+      const responseStatus = this.parseStatus(response.status);
+      if (responseStatus !== undefined) {
+        return responseStatus;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Parse a status value that can be either a number or a string.
+   * Returns undefined if the value cannot be parsed as a valid HTTP status code.
+   */
+  private parseStatus(value: unknown): number | undefined {
+    if (typeof value === 'number') {
+      return this.isValidHttpStatus(value) ? value : undefined;
+    }
+
+    if (typeof value === 'string') {
+      const parsed = parseInt(value, 10);
+      return !Number.isNaN(parsed) && this.isValidHttpStatus(parsed) ? parsed : undefined;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Check if a number is a valid HTTP status code (100-599)
+   */
+  private isValidHttpStatus(status: number): boolean {
+    return status >= 100 && status < 600;
+  }
+
+  /**
+   * Extract message from error object, checking multiple possible locations
+   */
+  private extractMessage(err: Record<string, unknown>): string {
+    if (typeof err.message === 'string' && err.message.trim().length > 0) {
+      return err.message;
+    }
+
+    const response = err.response as Record<string, unknown> | undefined;
+    const responseData = response?.data as Record<string, unknown> | undefined;
+    if (responseData && typeof responseData.message === 'string') {
+      return responseData.message;
+    }
+
+    return '';
+  }
+
+  private getRateLimitMessage(context?: CastErrorContext): string {
+    switch (context) {
+      case 'upload':
+        return strings.errors.rateLimitUpload;
+      case 'download':
+        return strings.errors.rateLimitDownload;
+      case 'content':
+        return strings.errors.rateLimitContent;
+      default:
+        return strings.errors.rateLimitReached;
+    }
   }
 
   public reportError = (error: Error | unknown, context: Partial<ErrorContext> = {}) => {

@@ -1,6 +1,6 @@
 import { DownloadProgressCallback, EnvironmentConfig } from '../..';
 import { FileObject } from '../../api/FileObject';
-import { DOWNLOAD } from '../events';
+import { Download } from '../events';
 import { ActionState } from '../../api/actionState';
 import { DOWNLOAD_CANCELLED } from '../../api/constants';
 import FileManager from '../../api/FileManager';
@@ -44,7 +44,7 @@ function handleProgress(fl: FileObject, progressCb: DownloadProgressCallback) {
     throw new Error('Total file size can not be 0');
   }
 
-  fl.on(DOWNLOAD.PROGRESS, (addedBytes: number) => {
+  fl.on(Download.Progress, (addedBytes: number) => {
     totalBytesDownloaded += addedBytes;
     progress = totalBytesDownloaded / totalBytes;
     progressCb(progress, totalBytesDownloaded, totalBytes);

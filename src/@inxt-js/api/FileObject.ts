@@ -15,7 +15,6 @@ import { Logger } from '../lib/download';
 import { wrap } from '../lib/utils/error';
 import { EventEmitter } from '../lib/utils/eventEmitter';
 import { logger } from '../lib/utils/logger';
-import { Bridge, InxtApiI } from '../services/api';
 import FileManager from './FileManager';
 import { DEFAULT_INXT_MIRRORS, DOWNLOAD_CANCELLED } from './constants';
 
@@ -34,7 +33,6 @@ export class FileObject extends EventEmitter {
   fileKey: Buffer;
 
   private aborted = false;
-  private api: InxtApiI;
   private file: FileManager;
 
   constructor(config: EnvironmentConfig, bucketId: string, fileId: string, debug: Logger, file: FileManager) {
@@ -43,8 +41,6 @@ export class FileObject extends EventEmitter {
     this.bucketId = bucketId;
     this.fileId = fileId;
     this.fileKey = Buffer.alloc(0);
-
-    this.api = new Bridge(config);
     this.file = file;
 
     this.once(DOWNLOAD_CANCELLED, this.abort.bind(this));

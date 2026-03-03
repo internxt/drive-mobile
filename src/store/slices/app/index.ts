@@ -5,6 +5,7 @@ import drive from '@internxt-mobile/services/drive';
 import { BiometricAccessType } from '@internxt-mobile/types/app';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
+import * as Localization from 'expo-localization';
 import languageService from 'src/services/LanguageService';
 import notificationsService from 'src/services/NotificationsService';
 import { Language, NotificationType } from 'src/types';
@@ -22,6 +23,7 @@ export interface AppState {
   screenLocked: boolean;
   lastScreenLock: number | null;
   initialScreenLocked: boolean;
+  language: Language;
 }
 
 const initialState: AppState = {
@@ -32,12 +34,33 @@ const initialState: AppState = {
   screenLocked: false,
   lastScreenLock: null,
   initialScreenLocked: false,
+  language: Language.English,
 };
+
+const initializeLanguageThunk = createAsyncThunk<Language, void, { state: RootState }>(
+  'app/initializeLanguage',
+  async () => {
+    const savedLanguage = await asyncStorageService.getItem('language' as any);
+
+    if (savedLanguage) {
+      strings.setLanguage(savedLanguage);
+      return savedLanguage as Language;
+    } else {
+      const deviceLocale = Localization.getLocales()[0]?.languageCode;
+      const detectedLanguage = deviceLocale === 'es' ? Language.Spanish : Language.English;
+      strings.setLanguage(detectedLanguage);
+      await asyncStorageService.saveItem('language' as any, detectedLanguage);
+      return detectedLanguage;
+    }
+  },
+);
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'app/initialize',
   async (_, { dispatch }) => {
     await drive.start();
+
+    await dispatch(initializeLanguageThunk()).unwrap();
 
     dispatch(authThunks.initializeThunk());
     dispatch(driveThunks.initializeThunk());
@@ -46,10 +69,11 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   },
 );
 
-const changeLanguageThunk = createAsyncThunk<void, Language, { state: RootState }>(
+const changeLanguageThunk = createAsyncThunk<Language, Language, { state: RootState }>(
   'app/changeLanguage',
   async (language) => {
-    return languageService.setLanguage(language);
+    await languageService.setLanguage(language);
+    return language;
   },
 );
 
@@ -125,9 +149,17 @@ export const appSlice = createSlice({
         state.isInitializing = false;
       });
 
-    builder.addCase(changeLanguageThunk.rejected, () => {
-      notificationsService.show({ type: NotificationType.Error, text1: strings.errors.changeLanguage });
+    builder.addCase(initializeLanguageThunk.fulfilled, (state, action) => {
+      state.language = action.payload;
     });
+
+    builder
+      .addCase(changeLanguageThunk.fulfilled, (state, action) => {
+        state.language = action.payload;
+      })
+      .addCase(changeLanguageThunk.rejected, () => {
+        notificationsService.show({ type: NotificationType.Error, text1: strings.errors.changeLanguage });
+      });
   },
 });
 
@@ -135,6 +167,7 @@ export const appActions = appSlice.actions;
 
 export const appThunks = {
   initializeThunk,
+  initializeLanguageThunk,
   changeLanguageThunk,
   initializeUserPreferencesThunk,
   lockScreenIfNeededThunk,

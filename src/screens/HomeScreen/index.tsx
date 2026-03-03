@@ -10,6 +10,7 @@ import { useTailwind } from 'tailwind-rn';
 import { useUseCase } from '@internxt-mobile/hooks/common';
 import * as useCases from '@internxt-mobile/useCases/drive';
 import { SearchInput } from 'src/components/SearchInput';
+import { useLanguage } from '../../hooks/useLanguage';
 
 enum HomeTab {
   Recents = 'recents',
@@ -17,6 +18,7 @@ enum HomeTab {
 
 const HomeScreen = (): JSX.Element => {
   const tailwind = useTailwind();
+  useLanguage();
   const [searchText, setSearchText] = useState('');
 
   const {

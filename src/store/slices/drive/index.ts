@@ -417,6 +417,10 @@ export const driveSlice = createSlice({
     clearUploadedFiles(state) {
       state.uploadingFiles = [];
     },
+    clearBatchFiles(state, action: PayloadAction<number[]>) {
+      const batchFileIds = new Set(action.payload);
+      state.uploadingFiles = state.uploadingFiles.filter((file) => !batchFileIds.has(file.id));
+    },
     uploadFileFinished(state) {
       state.isLoading = false;
       state.isUploading = false;
@@ -563,8 +567,9 @@ export const driveSlice = createSlice({
       .addCase(moveItemThunk.rejected, (state, action) => {
         state.isLoading = false;
 
+        const castedError = errorService.castError(action.error);
         notificationsService.show({
-          text1: action.error.message || strings.errors.unknown,
+          text1: castedError.message,
           type: NotificationType.Error,
         });
       });

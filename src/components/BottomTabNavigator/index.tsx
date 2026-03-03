@@ -6,22 +6,24 @@ import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
+import { useLanguage } from '../../hooks/useLanguage';
 import { useAppDispatch } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
 import globalStyle from '../../styles/global';
-
-const tabs = {
-  Home: { label: strings.tabs.Home, icon: House },
-  Drive: { label: strings.tabs.Drive, icon: FolderSimple },
-  Add: { label: strings.tabs.Add, icon: PlusCircle },
-  Shared: { label: strings.tabs.Shared, icon: Users },
-  Settings: { label: strings.tabs.Settings, icon: Gear },
-};
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
+  useLanguage();
+
+  const tabs = {
+    Home: { label: strings.tabs.Home, icon: House },
+    Drive: { label: strings.tabs.Drive, icon: FolderSimple },
+    Add: { label: strings.tabs.Add, icon: PlusCircle },
+    Shared: { label: strings.tabs.Shared, icon: Users },
+    Settings: { label: strings.tabs.Settings, icon: Gear },
+  };
 
   const items = props.state.routes
     .filter((route) => Object.keys(tabs).includes(route.name))

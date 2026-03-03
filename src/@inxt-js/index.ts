@@ -1,37 +1,31 @@
-import { download } from './lib/download';
+/**
+ * @deprecated LEGACY DOWNLOAD SYSTEM
+ *
+ * This module is maintained for backwards compatibility with old files only.
+ * Modern downloads use @internxt/sdk via NetworkFacade.
+ *
+ * Only used when:
+ * 1. File has multiple mirrors (old redundancy system)
+ * 2. After modern download and V1 download both fail
+ *
+ */
+
 import { GenerateFileKey } from './lib/crypto';
+import { download } from './lib/download';
 import { logger } from './lib/utils/logger';
 
-import { BUCKET_ID_NOT_PROVIDED, ENCRYPTION_KEY_NOT_PROVIDED } from './api/constants';
 import { ActionState, ActionTypes } from './api/actionState';
+import { BUCKET_ID_NOT_PROVIDED, ENCRYPTION_KEY_NOT_PROVIDED } from './api/constants';
 import { FileInfo, GetFileInfo } from './api/fileinfo';
-import { Bridge, CreateFileTokenResponse } from './services/api';
 import FileManager from './api/FileManager';
 
-export type OnlyErrorCallback = (err: Error | null) => void;
-export type UploadFinishCallback = (err: Error | null, response: string | null) => void;
 export type DownloadFinishedCallback = (err: Error | null) => void;
 export type DownloadProgressCallback = (
   progress: number,
   downloadedBytes: number | null,
   totalBytes: number | null,
 ) => void;
-export type DecryptionProgressCallback = (
-  progress: number,
-  decryptedBytes: number | null,
-  totalBytes: number | null,
-) => void;
-export type UploadProgressCallback = (
-  progress: number,
-  uploadedBytes: number | null,
-  totalBytes: number | null,
-) => void;
-
-export interface ResolveFileOptions {
-  progressCallback: DownloadProgressCallback;
-  finishedCallback: OnlyErrorCallback;
-  overwritte?: boolean;
-}
+type DecryptionProgressCallback = (progress: number, decryptedBytes: number | null, totalBytes: number | null) => void;
 
 export interface DownloadFileOptions {
   fileManager: FileManager;
@@ -89,22 +83,6 @@ export class Environment {
    */
   getFileInfo(bucketId: string, fileId: string): Promise<FileInfo> {
     return GetFileInfo(this.config, bucketId, fileId);
-  }
-
-  /**
-   * Creates file token
-   * @param bucketId Bucket id where file is stored
-   * @param fileId File id
-   * @param operation
-   * @param cb
-   */
-  createFileToken(bucketId: string, fileId: string, operation: 'PUSH' | 'PULL'): Promise<string> {
-    return new Bridge(this.config)
-      .createFileToken(bucketId, fileId, operation)
-      .start<CreateFileTokenResponse>()
-      .then((res) => {
-        return res.token;
-      });
   }
 }
 

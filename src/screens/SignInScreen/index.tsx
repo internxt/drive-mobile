@@ -13,19 +13,20 @@ import AppScreen from '../../components/AppScreen';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import { useTheme } from '../../contexts/Theme/Theme.context';
 import useGetColor from '../../hooks/useColor';
+import { useLanguage } from '../../hooks/useLanguage';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import appService from '../../services/AppService';
 import { logger } from '../../services/common';
 import errorService from '../../services/ErrorService';
 import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
-import { RootStackScreenProps } from '../../types/navigation';
 
-function SignInScreen({ navigation }: RootStackScreenProps<'SignIn'>): JSX.Element {
+function SignInScreen(): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  useLanguage();
 
   const [error, setError] = useState<string>('');
   const dimensions = Dimensions.get('screen');

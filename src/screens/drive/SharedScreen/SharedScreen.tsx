@@ -18,12 +18,14 @@ import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import EmptyList from '../../../components/EmptyList';
 import useGetColor from '../../../hooks/useColor';
+import { useLanguage } from '../../../hooks/useLanguage';
 import { DriveItemStatus } from '../../../types/drive/item';
 
 type SharedItem = SharedFolders & SharedFiles;
 export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  useLanguage();
   const { loading: sharedLoading, executeUseCase: getSharedItems } = useUseCase(driveUseCases.getSharedItems);
 
   const [sharedItemsPage, setSharedItemsPage] = useState(1);
