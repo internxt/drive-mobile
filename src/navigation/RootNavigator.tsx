@@ -19,7 +19,7 @@ import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
 import DebugScreen from '../screens/DebugScreen';
 import { TrashScreen } from '../screens/common/TrashScreen';
 import { DrivePreviewScreen } from '../screens/drive/DrivePreviewScreen';
-import AndroidShareScreen from '../shareExtension/AndroidShareScreen';
+import ShareExtensionView from '../shareExtension/ShareExtensionView.android';
 import { useAndroidShareIntent } from '../shareExtension/useAndroidShareIntent';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -90,7 +90,7 @@ function AppNavigator({ navigationContainerRef }: Readonly<Props>): JSX.Element 
       {Platform.OS === 'android' && (
         <Stack.Screen
           name="AndroidShare"
-          component={AndroidShareScreen}
+          component={ShareExtensionView}
           options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
         />
       )}
