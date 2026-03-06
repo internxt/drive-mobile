@@ -64,6 +64,7 @@ class ShareExtensionViewController: UIViewController {
     super.viewDidLoad()
     setupLoadingIndicator()
     isCleanedUp = false
+    self.view.backgroundColor = .clear
     self.view.contentScaleFactor = UIScreen.main.scale
 
 #if canImport(FirebaseCore)
@@ -96,21 +97,12 @@ class ShareExtensionViewController: UIViewController {
       reactNativeFactory = RCTReactNativeFactory(delegate: reactNativeFactoryDelegate!)
 
       var initialProps = sharedData ?? [:]
-      // ── Internxt: inject auth state from UserDefaults and Keychain ──────────
-      if let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String,
-         let defaults = UserDefaults(suiteName: appGroup) {
-        initialProps["isAuthenticated"] = defaults.bool(forKey: "isAuthenticated")
-        initialProps["userEmail"] = defaults.string(forKey: "userEmail")
-      }
-
+      // ── Internxt: inject auth state from Keychain ───────────────────────────
       if let sharedGroup = Bundle.main.object(forInfoDictionaryKey: "SharedKeychainGroup") as? String {
-        initialProps["photosToken"] = readFromSharedKeychain(key: "shared_photosToken", accessGroup: sharedGroup)
-        if let raw = readFromSharedKeychain(key: "shared_mnemonic", accessGroup: sharedGroup) {
-          // Strip JSON string encoding added by expo-secure-store: '"words"' → 'words'
-          initialProps["mnemonic"] = (raw.hasPrefix("\"") && raw.hasSuffix("\""))
-            ? String(raw.dropFirst().dropLast())
-            : raw
-        }
+        initialProps["photosToken"]  = readFromSharedKeychain(key: "shared_photosToken", accessGroup: sharedGroup)
+        initialProps["mnemonic"]     = readFromSharedKeychainStripped(key: "shared_mnemonic",     accessGroup: sharedGroup)
+        initialProps["rootFolderId"] = readFromSharedKeychainStripped(key: "shared_rootFolderId", accessGroup: sharedGroup)
+        initialProps["bucket"]       = readFromSharedKeychainStripped(key: "shared_bucket",       accessGroup: sharedGroup)
       }
       // ── From expo-share-extension library ──────────────────────────────────
       let currentBounds = self.view.bounds
@@ -274,6 +266,15 @@ class ShareExtensionViewController: UIViewController {
           let data = result as? Data,
           let value = String(data: data, encoding: .utf8) else { return nil }
     return value
+  }
+
+  /// Reads a shared-keychain entry and strips surrounding JSON quotes if present.
+  private func readFromSharedKeychainStripped(key: String, accessGroup: String) -> String? {
+    guard let raw = readFromSharedKeychain(key: key, accessGroup: accessGroup) else { return nil }
+    if raw.hasPrefix("\"") && raw.hasSuffix("\"") {
+      return String(raw.dropFirst().dropLast())
+    }
+    return raw
   }
   // ─────────────────────────────────────────────────────────────────────────
 
