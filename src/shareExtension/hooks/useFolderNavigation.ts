@@ -1,7 +1,6 @@
-import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { shareDriveService } from '../services/shareDriveService';
-import { ShareFileItem, ShareFolderItem } from '../types';
+import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../types';
 
 interface FolderNavEntry {
   uuid: string;
@@ -17,8 +16,8 @@ interface UseFolderNavigationResult {
   loadMore: () => void;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
-  viewMode: DriveListViewMode;
-  setViewMode: (viewMode: DriveListViewMode) => void;
+  viewMode: DriveViewMode;
+  setViewMode: (viewMode: DriveViewMode) => void;
   breadcrumb: FolderNavEntry[];
   navigate: (uuid: string, name: string) => void;
   goBack: () => void;
@@ -36,10 +35,10 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
   const [folderStack, setFolderStack] = useState<FolderNavEntry[]>([{ uuid: rootFolderUuid, name: rootFolderName }]);
   const [allFolders, setAllFolders] = useState<ShareFolderItem[]>([]);
   const [allFiles, setAllFiles] = useState<ShareFileItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<DriveListViewMode>(DriveListViewMode.List);
+  const [viewMode, setViewMode] = useState<DriveViewMode>('list');
 
   const folderOffsetRef = useRef(0);
   const fileOffsetRef = useRef(0);
@@ -80,6 +79,8 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
         fileOffsetRef.current = filesPage.items.length;
         if (!filesPage.hasMore) filesExhaustedRef.current = true;
       }
+    } catch (e) {
+      console.error('[ShareExtension] loadFolder error:', e);
     } finally {
       if (loadSequentialRef.current === seq) setLoading(false);
     }

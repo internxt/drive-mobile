@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { SdkManager } from '../../services/common/sdk/SdkManager';
+import ShareSdkManager from '../services/ShareSdkManager';
 import { SharedFile } from '../types';
 import { readSize } from '../utils';
 
@@ -15,13 +15,18 @@ export const useShareExtension = ({ photosToken, files, images, videos }: ShareE
 
   useEffect(() => {
     if (!photosToken) return;
-    SdkManager.init({ token: photosToken, newToken: photosToken });
+    ShareSdkManager.init({ newToken: photosToken });
     setSdkReady(true);
   }, [photosToken]);
 
   const sharedFiles = useMemo<SharedFile[]>(
     () => [
-      ...(files ?? []).map((uri) => ({ uri, mimeType: null, fileName: uri.split('/').pop() ?? null, size: readSize(uri) })),
+      ...(files ?? []).map((uri) => ({
+        uri,
+        mimeType: null,
+        fileName: uri.split('/').pop() ?? null,
+        size: readSize(uri),
+      })),
       ...(images ?? []).map((uri) => ({
         uri,
         mimeType: 'image/jpeg',

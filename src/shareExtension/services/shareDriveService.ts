@@ -1,4 +1,4 @@
-import { SdkManager } from '../../services/common/sdk/SdkManager';
+import ShareSdkManager from './ShareSdkManager';
 import { ShareFileItem, ShareFolderItem } from '../types';
 
 const PAGE_SIZE = 50;
@@ -27,8 +27,7 @@ const getFolderFolders = async (
   folderUuid: string,
   offset: number,
 ): Promise<{ items: ShareFolderItem[]; hasMore: boolean }> => {
-  const sdk = SdkManager.getInstance();
-  const [promise] = sdk.storageV2.getFolderFoldersByUuid(folderUuid, offset, PAGE_SIZE, 'plainName', 'ASC');
+  const [promise] = ShareSdkManager.storageV2.getFolderFoldersByUuid(folderUuid, offset, PAGE_SIZE, 'plainName', 'ASC');
   const result = await promise;
   return {
     items: result.folders.map(mapFolder),
@@ -40,8 +39,7 @@ const getFolderFiles = async (
   folderUuid: string,
   offset: number,
 ): Promise<{ items: ShareFileItem[]; hasMore: boolean }> => {
-  const sdk = SdkManager.getInstance();
-  const [promise] = sdk.storageV2.getFolderFilesByUuid(folderUuid, offset, PAGE_SIZE, 'plainName', 'ASC');
+  const [promise] = ShareSdkManager.storageV2.getFolderFilesByUuid(folderUuid, offset, PAGE_SIZE, 'plainName', 'ASC');
   const result = await promise;
   return {
     items: result.files.map(mapFile),
@@ -50,8 +48,7 @@ const getFolderFiles = async (
 };
 
 const createFolder = async (parentFolderUuid: string, name: string): Promise<void> => {
-  const sdk = SdkManager.getInstance();
-  const result = sdk.storageV2.createFolderByUuid({ parentFolderUuid, plainName: name });
+  const result = ShareSdkManager.storageV2.createFolderByUuid({ parentFolderUuid, plainName: name });
   if (!result) throw new Error('createFolder failed');
   await result[0];
 };
