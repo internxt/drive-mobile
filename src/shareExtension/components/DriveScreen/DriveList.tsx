@@ -35,10 +35,10 @@ export const DriveList = ({
   const numColumns = viewMode === DriveListViewMode.Grid ? 3 : 1;
 
   const renderItem = useCallback(
-    ({ item }: { item: DriveListItem }) => {
-      const isFolder = item.type === 'folder';
-      const handleItemPress = isFolder ? () => onNavigate(item.data.uuid, item.data.plainName) : undefined;
-      return <FileListItem item={item.data} isFolder={isFolder} viewMode={viewMode} onPress={handleItemPress} />;
+    ({ item: listItem }: { item: DriveListItem }) => {
+      const isFolder = listItem.type === 'folder';
+      const handleItemPress = isFolder ? () => onNavigate(listItem.data.uuid, listItem.data.plainName) : undefined;
+      return <FileListItem item={listItem.data} isFolder={isFolder} viewMode={viewMode} onPress={handleItemPress} />;
     },
     [onNavigate, viewMode],
   );
