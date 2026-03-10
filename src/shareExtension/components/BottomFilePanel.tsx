@@ -68,8 +68,8 @@ export const BottomFilePanel = ({
 
   const formats = useMemo(() => getFormats(sharedFiles), [sharedFiles]);
   const totalSize = useMemo(() => {
-    const sum = sharedFiles.reduce((acc, file) => (file.size != null ? acc + file.size : acc), 0);
-    const hasAnySize = sharedFiles.some((file) => file.size != null);
+    const sum = sharedFiles.reduce((acc, file) => acc + (file.size ?? 0), 0);
+    const hasAnySize = sharedFiles.some((file) => file.size !== null);
     return hasAnySize ? sum : null;
   }, [sharedFiles]);
 
@@ -118,9 +118,9 @@ export const BottomFilePanel = ({
           <Text style={[tailwind('text-sm text-gray-100'), fontStyles.medium]}>
             {strings.formatString(strings.screens.ShareExtension.itemsSelected, sharedFiles.length)}
           </Text>
-          {totalSize != null || formats ? (
+          {totalSize !== null || formats ? (
             <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]}>
-              {[totalSize != null ? formatBytes(totalSize) : null, formats || null].filter(Boolean).join(' · ')}
+              {[totalSize === null ? null : formatBytes(totalSize), formats || null].filter(Boolean).join(' · ')}
             </Text>
           ) : null}
         </View>
@@ -166,7 +166,7 @@ export const BottomFilePanel = ({
           </Text>
         )}
         <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]}>
-          {file.size != null ? `${formatBytes(file.size)} · ${ext}` : ext}
+          {file.size === null ? ext : `${formatBytes(file.size)} · ${ext}`}
         </Text>
       </View>
       {!isRenaming && <TextButton title={strings.screens.ShareExtension.rename} onPress={onStartRename} />}

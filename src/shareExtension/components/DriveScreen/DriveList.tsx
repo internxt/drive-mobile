@@ -9,6 +9,8 @@ import { FileListItem } from '../FileListItem';
 
 export type DriveListItem = { type: 'folder'; data: ShareFolderItem } | { type: 'file'; data: ShareFileItem };
 
+const SKELETON_KEYS = Array.from({ length: 10 }, (_, i) => `skeleton-${i}`);
+
 const keyExtractor = (item: DriveListItem) => item.data.uuid;
 
 interface DriveListProps {
@@ -45,8 +47,8 @@ export const DriveList = ({
   if (loading) {
     return (
       <View style={tailwind('flex-1')}>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <View style={viewMode === 'grid' ? undefined : tailwind('h-16')} key={i}>
+        {SKELETON_KEYS.map((key) => (
+          <View style={viewMode === 'grid' ? undefined : tailwind('h-16')} key={key}>
             <DriveItemSkinSkeleton viewMode={viewMode} />
           </View>
         ))}

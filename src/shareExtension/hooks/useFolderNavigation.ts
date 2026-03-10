@@ -51,7 +51,7 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
   const currentFolder = folderStack[folderStack.length - 1];
 
   const loadFolder = useCallback(async (folderUuid: string) => {
-    const seq = ++loadSequentialRef.current;
+    const capturedLoadSequence = ++loadSequentialRef.current;
     latestUuidRef.current = folderUuid;
     isLoadingMoreRef.current = false;
     folderOffsetRef.current = 0;
@@ -65,7 +65,7 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
 
     try {
       const foldersPage = await shareDriveService.getFolderFolders(folderUuid, 0);
-      if (loadSequentialRef.current !== seq) return;
+      if (loadSequentialRef.current !== capturedLoadSequence) return;
 
       setAllFolders(foldersPage.items);
       folderOffsetRef.current = foldersPage.items.length;
@@ -73,16 +73,16 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
       if (!foldersPage.hasMore) {
         foldersExhaustedRef.current = true;
         const filesPage = await shareDriveService.getFolderFiles(folderUuid, 0);
-        if (loadSequentialRef.current !== seq) return;
+        if (loadSequentialRef.current !== capturedLoadSequence) return;
 
         setAllFiles(filesPage.items);
         fileOffsetRef.current = filesPage.items.length;
         if (!filesPage.hasMore) filesExhaustedRef.current = true;
       }
     } catch (e) {
-      console.error('[ShareExtension] loadFolder error:', e);
+      console.error('loadFolder error:', e);
     } finally {
-      if (loadSequentialRef.current === seq) setLoading(false);
+      if (loadSequentialRef.current === capturedLoadSequence) setLoading(false);
     }
   }, []);
 
@@ -90,47 +90,47 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
     loadFolder(currentFolder.uuid);
   }, [currentFolder.uuid, loadFolder]);
 
+  const loadMoreFiles = useCallback(async (uuid: string, capturedLoadSequence: number) => {
+    const filesPage = await shareDriveService.getFolderFiles(uuid, fileOffsetRef.current);
+    if (loadSequentialRef.current !== capturedLoadSequence) return;
+
+    setAllFiles((prev) => [...prev, ...filesPage.items]);
+    fileOffsetRef.current += filesPage.items.length;
+    if (!filesPage.hasMore) filesExhaustedRef.current = true;
+  }, []);
+
+  const loadMoreFolders = useCallback(async (uuid: string, capturedLoadSequence: number) => {
+    const foldersPage = await shareDriveService.getFolderFolders(uuid, folderOffsetRef.current);
+    if (loadSequentialRef.current !== capturedLoadSequence) return;
+
+    setAllFolders((prev) => [...prev, ...foldersPage.items]);
+    folderOffsetRef.current += foldersPage.items.length;
+    if (foldersPage.hasMore) return;
+
+    foldersExhaustedRef.current = true;
+    await loadMoreFiles(uuid, capturedLoadSequence);
+  }, [loadMoreFiles]);
+
   const loadMore = useCallback(async () => {
-    if (loading) return;
-    if (isLoadingMoreRef.current) return;
-    if (searchQuery) return;
+    if (loading || isLoadingMoreRef.current || searchQuery) return;
     if (foldersExhaustedRef.current && filesExhaustedRef.current) return;
 
     isLoadingMoreRef.current = true;
     setLoadingMore(true);
     const uuid = latestUuidRef.current;
-    const seq = loadSequentialRef.current;
+    const capturedLoadSequence = loadSequentialRef.current;
 
     try {
-      if (!foldersExhaustedRef.current) {
-        const foldersPage = await shareDriveService.getFolderFolders(uuid, folderOffsetRef.current);
-        if (loadSequentialRef.current !== seq) return;
-
-        setAllFolders((prev) => [...prev, ...foldersPage.items]);
-        folderOffsetRef.current += foldersPage.items.length;
-
-        if (!foldersPage.hasMore) {
-          foldersExhaustedRef.current = true;
-          const filesPage = await shareDriveService.getFolderFiles(uuid, 0);
-          if (loadSequentialRef.current !== seq) return;
-
-          setAllFiles((prev) => [...prev, ...filesPage.items]);
-          fileOffsetRef.current = filesPage.items.length;
-          if (!filesPage.hasMore) filesExhaustedRef.current = true;
-        }
+      if (foldersExhaustedRef.current) {
+        await loadMoreFiles(uuid, capturedLoadSequence);
       } else {
-        const filesPage = await shareDriveService.getFolderFiles(uuid, fileOffsetRef.current);
-        if (loadSequentialRef.current !== seq) return;
-
-        setAllFiles((prev) => [...prev, ...filesPage.items]);
-        fileOffsetRef.current += filesPage.items.length;
-        if (!filesPage.hasMore) filesExhaustedRef.current = true;
+        await loadMoreFolders(uuid, capturedLoadSequence);
       }
     } finally {
-      if (loadSequentialRef.current === seq) setLoadingMore(false);
+      if (loadSequentialRef.current === capturedLoadSequence) setLoadingMore(false);
       isLoadingMoreRef.current = false;
     }
-  }, [loading, searchQuery]);
+  }, [loading, searchQuery, loadMoreFiles, loadMoreFolders]);
 
   const navigateToFolder = useCallback((uuid: string, name: string) => {
     setSearchQuery('');
