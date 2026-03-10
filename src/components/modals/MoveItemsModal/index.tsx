@@ -22,6 +22,9 @@ import { useTailwind } from 'tailwind-rn';
 import { checkIsFile, checkIsFolder } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
+import { driveFolderService } from '../../../services/drive/folder/driveFolder.service';
+import { getUniqueFolderName } from '../../../services/drive/folder/utils/getUniqueFolderName';
+import { driveTrashService } from '../../../services/drive/trash/driveTrash.service';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { RootScreenNavigationProp } from '../../../types/navigation';
@@ -30,6 +33,7 @@ import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
 import BottomModal from '../BottomModal';
 import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
 import CreateFolderModal from '../CreateFolderModal';
+import NameCollisionModal, { NameCollisionAction } from '../NameCollisionModal';
 import SortModal, { SortMode } from '../SortModal';
 
 const INITIAL_SORT_MODE: SortMode = {
@@ -45,6 +49,9 @@ function MoveItemsModal(): JSX.Element {
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const dispatch = useAppDispatch();
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [nameCollisionOpen, setNameCollisionOpen] = useState(false);
+  const [collidingFolderName, setCollidingFolderName] = useState('');
+  const [existingCollisionFolder, setExistingCollisionFolder] = useState<{ uuid: string; id: number } | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>(INITIAL_SORT_MODE);
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
@@ -112,7 +119,7 @@ function MoveItemsModal(): JSX.Element {
     return false;
   };
 
-  const confirmMoveItem = async () => {
+  const executeMoveItem = async () => {
     if (!originFolderContentResponse || !itemToMove || !originFolderId || !destinationFolderContentResponse?.uuid) {
       notificationsService.show({
         text1: strings.errors.moveError,
@@ -192,6 +199,53 @@ function MoveItemsModal(): JSX.Element {
       setConfirmModalOpen(false);
       await cleanUp({ shouldRefreshFolder: false });
     }
+  };
+
+  const confirmMoveItem = async () => {
+    if (isFolder) {
+      const folderName = itemToMove?.name ?? '';
+      try {
+        const { existentFolders } = await driveFolderService.checkDuplicatedFolders(
+          destinationFolderContentResponse?.uuid ?? '',
+          [folderName],
+        );
+        if (existentFolders.length > 0) {
+          setConfirmModalOpen(false);
+          setCollidingFolderName(folderName);
+          setExistingCollisionFolder({ uuid: existentFolders[0].uuid, id: existentFolders[0].id });
+          setNameCollisionOpen(true);
+          return;
+        }
+      } catch {
+        notificationsService.show({ text1: strings.errors.moveError, type: NotificationType.Error });
+        return;
+      }
+    }
+
+    await executeMoveItem();
+  };
+
+  const handleNameCollisionConfirm = async (action: NameCollisionAction) => {
+    setNameCollisionOpen(false);
+    try {
+      if (action === 'replace' && existingCollisionFolder) {
+        await driveTrashService.moveToTrash([
+          { uuid: existingCollisionFolder.uuid, id: existingCollisionFolder.id, type: 'folder' },
+        ]);
+      } else if (action === 'keep-both' && itemToMove?.uuid && destinationFolderContentResponse?.uuid) {
+        const uniqueName = await getUniqueFolderName(collidingFolderName, destinationFolderContentResponse.uuid);
+        await driveFolderService.updateMetaData(itemToMove.uuid as string, uniqueName);
+      }
+    } catch {
+      notificationsService.show({ text1: strings.errors.moveError, type: NotificationType.Error });
+      return;
+    }
+    await executeMoveItem();
+  };
+
+  const handleNameCollisionClose = () => {
+    setNameCollisionOpen(false);
+    setConfirmModalOpen(true);
   };
 
   const onFolderCreated = async () => {
@@ -453,6 +507,15 @@ function MoveItemsModal(): JSX.Element {
           onFolderCreated={onFolderCreated}
         />
       ) : null}
+      <NameCollisionModal
+        isOpen={nameCollisionOpen}
+        itemName={collidingFolderName}
+        collisionCount={1}
+        itemType="folder"
+        confirmLabel={strings.buttons.move}
+        onClose={handleNameCollisionClose}
+        onConfirm={handleNameCollisionConfirm}
+      />
     </Portal>
   );
 }

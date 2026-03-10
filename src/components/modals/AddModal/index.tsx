@@ -70,6 +70,7 @@ import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../..
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
+import NameCollisionModal from '../NameCollisionModal';
 
 const MAX_FILES_BULK_UPLOAD = 50;
 
@@ -85,7 +86,7 @@ function AddModal(): JSX.Element {
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
   const user = useAppSelector((state) => state.auth.user);
-  const { handleUploadFolder } = useFolderUpload({ uploadAndCreateFileEntry });
+  const { handleUploadFolder, nameCollisionModal } = useFolderUpload({ uploadAndCreateFileEntry });
 
   async function uploadIOS(file: UploadingFile, fileType: 'document' | 'image', progressCallback: ProgressCallback) {
     const name = file.name ?? decodeURI(file.uri).split('/').pop();
@@ -938,6 +939,15 @@ function AddModal(): JSX.Element {
           onFolderCreated={onFolderCreated}
         />
       ) : null}
+      <NameCollisionModal
+        isOpen={nameCollisionModal.isOpen}
+        itemName={nameCollisionModal.folderName}
+        collisionCount={1}
+        itemType="folder"
+        confirmLabel={strings.buttons.upload}
+        onClose={nameCollisionModal.onClose}
+        onConfirm={nameCollisionModal.onConfirm}
+      />
     </>
   );
 }
