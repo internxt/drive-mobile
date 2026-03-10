@@ -1,9 +1,10 @@
+import { NavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import * as Linking from 'expo-linking';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
+import { Platform, View } from 'react-native';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import SignInScreen from '../screens/SignInScreen';
 import WebLoginScreen from '../screens/WebLoginScreen';
@@ -18,13 +19,21 @@ import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
 import DebugScreen from '../screens/DebugScreen';
 import { TrashScreen } from '../screens/common/TrashScreen';
 import { DrivePreviewScreen } from '../screens/drive/DrivePreviewScreen';
+import AndroidShareScreen from '../shareExtension/AndroidShareScreen';
+import { useAndroidShareIntent } from '../shareExtension/useAndroidShareIntent';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-function AppNavigator(): JSX.Element {
+type Props = {
+  navigationContainerRef?: NavigationContainerRef<RootStackParamList>;
+};
+
+function AppNavigator({ navigationContainerRef }: Readonly<Props>): JSX.Element {
   const dispatch = useAppDispatch();
   const isLoggedIn = useAppSelector((state) => state.auth.loggedIn);
-  const initialRouteName: keyof RootStackParamList = isLoggedIn ? 'TabExplorer' : 'SignIn';
+
+  useAndroidShareIntent(navigationContainerRef, isLoggedIn);
+
   const onAppLinkOpened = async (event: Linking.EventType) => {
     const sessionId = await AsyncStorage.getItem('tmpCheckoutSessionId');
 
@@ -57,15 +66,13 @@ function AppNavigator(): JSX.Element {
 
   useEffect(() => {
     const subscription = Linking.addEventListener('url', onAppLinkOpened);
-
-    return () => {
-      subscription.remove();
-    };
+    return () => subscription.remove();
   }, []);
 
-  // We send null here when we don't know the isLoggedIn status yet, so we avoid
-  // redirects to the login screen even with the user logged
-  if (isLoggedIn == null) return <View></View>;
+  // Block rendering until auth state is known
+  if (isLoggedIn == null) return <View />;
+
+  const initialRouteName: keyof RootStackParamList = isLoggedIn ? 'TabExplorer' : 'SignIn';
 
   return (
     <Stack.Navigator initialRouteName={initialRouteName} screenOptions={{ headerShown: false, gestureEnabled: true }}>
@@ -80,6 +87,13 @@ function AppNavigator(): JSX.Element {
         component={DrivePreviewScreen}
         options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
       />
+      {Platform.OS === 'android' && (
+        <Stack.Screen
+          name="AndroidShare"
+          component={AndroidShareScreen}
+          options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
+        />
+      )}
     </Stack.Navigator>
   );
 }

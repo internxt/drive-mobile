@@ -124,6 +124,37 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
         },
       },
     ],
+    [
+      'expo-share-extension',
+      {
+        activationRules: [
+          { type: 'file', max: 25 },
+          { type: 'image', max: 25 },
+          { type: 'video', max: 25 },
+        ],
+        excludedPackages: [
+          'expo-splash-screen',
+          'expo-dev-client',
+          'expo-updates',
+          'react-native-reanimated',
+          'react-native-screens',
+          'react-native-safe-area-context',
+          'react-native-gesture-handler',
+          'react-native-video',
+          'react-native-webview',
+          'react-native-fast-image',
+          'react-native-svg',
+          '@shopify/flash-list',
+          'react-native-pdf',
+          'react-native-pdf-thumbnail',
+          'react-native-blob-util',
+          'react-native-create-thumbnail',
+          'jail-monkey',
+        ],
+        backgroundColor: { red: 255, green: 255, blue: 255, alpha: 1 },
+        height: 700,
+      },
+    ],
   ],
 };
 
