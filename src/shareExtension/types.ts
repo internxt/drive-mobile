@@ -19,3 +19,5 @@ export interface ShareFileItem {
   updatedAt: string;
 }
 
+export type DriveViewMode = 'grid' | 'list';
+

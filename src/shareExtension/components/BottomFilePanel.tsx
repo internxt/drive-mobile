@@ -1,0 +1,217 @@
+import { CaretLeftIcon, CaretRightIcon } from 'phosphor-react-native';
+import { useCallback, useMemo } from 'react';
+import {
+  Animated,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from 'react-native';
+import { useTailwind } from 'tailwind-rn';
+import StackedFilesIconSvg from '../../../assets/icons/stacked-files.svg';
+import strings from '../../../assets/lang/strings';
+import { getFileTypeIcon } from '../../helpers/filetypes';
+import { useBottomPanelAnimation } from '../hooks/useBottomPanelAnimation';
+import { colors, fontStyles } from '../theme';
+import { SharedFile } from '../types';
+import { formatBytes } from '../utils';
+import { TextButton } from './TextButton';
+
+interface BottomFilePanelProps {
+  sharedFiles: SharedFile[];
+  editingName: string;
+  isRenaming: boolean;
+  onStartRename: () => void;
+  onChangeName: (name: string) => void;
+  onEndRename: () => void;
+}
+
+const getExtension = (file: SharedFile): string => {
+  if (file.mimeType) {
+    const parts = file.mimeType.split('/');
+    return parts[1]?.toUpperCase() ?? '';
+  }
+  if (file.fileName) {
+    const parts = file.fileName.split('.');
+    return parts.length > 1 ? (parts[parts.length - 1]?.toUpperCase() ?? '') : '';
+  }
+  return '';
+};
+
+const getFormats = (files: SharedFile[]): string => {
+  const exts = new Set(files.map(getExtension).filter(Boolean));
+  if (exts.size === 0) return '';
+  if (exts.size === 1) return [...exts][0] ?? '';
+  return strings.screens.ShareExtension.multipleFormats;
+};
+
+const TAB_WIDTH = 44;
+const PANEL_MARGIN = 16;
+const HANDLE_ICON_SIZE = 16;
+
+const StackedFilesIcon = () => <StackedFilesIconSvg width={48} height={48} style={{ marginRight: 12 }} />;
+
+export const BottomFilePanel = ({
+  sharedFiles,
+  editingName,
+  isRenaming,
+  onStartRename,
+  onChangeName,
+  onEndRename,
+}: BottomFilePanelProps) => {
+  const tailwind = useTailwind();
+  const { width: screenWidth } = useWindowDimensions();
+  const { isCollapsed, keyboardBottom, slideAnimation, toggle } = useBottomPanelAnimation(isRenaming, screenWidth);
+
+  const formats = useMemo(() => getFormats(sharedFiles), [sharedFiles]);
+  const totalSize = useMemo(() => {
+    const sum = sharedFiles.reduce((acc, file) => acc + (file.size ?? 0), 0);
+    const hasAnySize = sharedFiles.some((file) => file.size !== null);
+    return hasAnySize ? sum : null;
+  }, [sharedFiles]);
+
+  const containerStyle = useMemo(() => [tailwind('flex-row items-center'), panelStyles.container], [tailwind]);
+
+  const file = sharedFiles[0];
+  const originalFileName = file?.fileName ?? '';
+  const dotIndex = originalFileName.lastIndexOf('.');
+  const fileExt = dotIndex > 0 ? originalFileName.slice(dotIndex) : '';
+  const nameWithoutExt =
+    fileExt && editingName.endsWith(fileExt) ? editingName.slice(0, editingName.length - fileExt.length) : editingName;
+
+  const handleRenameChange = useCallback((name: string) => onChangeName(name + fileExt), [fileExt, onChangeName]);
+  const handleEndRename = useCallback(() => {
+    if (!nameWithoutExt.trim()) {
+      onChangeName(originalFileName || strings.screens.ShareExtension.fileNameFallback);
+    }
+    onEndRename();
+  }, [nameWithoutExt, onChangeName, onEndRename, originalFileName]);
+
+  if (sharedFiles.length === 0) return null;
+
+  const collapseButton = (
+    <TouchableOpacity
+      onPress={toggle}
+      style={[tailwind('items-center justify-center'), panelStyles.collapseButton]}
+      hitSlop={4}
+    >
+      {isCollapsed ? (
+        <CaretLeftIcon size={HANDLE_ICON_SIZE} color={colors.gray40} />
+      ) : (
+        <CaretRightIcon size={HANDLE_ICON_SIZE} color={colors.gray40} />
+      )}
+    </TouchableOpacity>
+  );
+
+  const animatedStyle = { bottom: keyboardBottom, transform: [{ translateX: slideAnimation }] };
+
+  if (sharedFiles.length > 1) {
+    return (
+      <Animated.View style={[...containerStyle, animatedStyle]}>
+        {collapseButton}
+        <View style={panelStyles.divider} />
+        <StackedFilesIcon />
+        <View style={tailwind('flex-1')}>
+          <Text style={[tailwind('text-sm text-gray-100'), fontStyles.medium]}>
+            {strings.formatString(strings.screens.ShareExtension.itemsSelected, sharedFiles.length)}
+          </Text>
+          {totalSize !== null || formats ? (
+            <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]}>
+              {[totalSize === null ? null : formatBytes(totalSize), formats || null].filter(Boolean).join(' · ')}
+            </Text>
+          ) : null}
+        </View>
+      </Animated.View>
+    );
+  }
+
+  if (!file) return null;
+  const ext = getExtension(file);
+  const IconComponent = getFileTypeIcon(ext.toLowerCase());
+  const displayName = editingName || file.fileName || strings.screens.ShareExtension.fileNameFallback;
+  const isImage = file.mimeType?.startsWith('image/') ?? false;
+
+  return (
+    <Animated.View style={[...containerStyle, animatedStyle]}>
+      {collapseButton}
+      <View style={panelStyles.divider} />
+      <View style={tailwind('items-center justify-center mr-3 w-10 h-10')}>
+        {isImage ? (
+          <Image source={{ uri: file.uri }} style={panelStyles.fileImage} resizeMode="cover" />
+        ) : (
+          <IconComponent width={36} height={36} />
+        )}
+      </View>
+      <View style={tailwind('flex-1')}>
+        {isRenaming ? (
+          <TextInput
+            style={[tailwind('text-sm text-gray-100 p-0'), fontStyles.medium, panelStyles.renameInput]}
+            value={nameWithoutExt}
+            onChangeText={handleRenameChange}
+            onBlur={handleEndRename}
+            autoFocus
+            selectTextOnFocus
+            returnKeyType="done"
+            onSubmitEditing={handleEndRename}
+          />
+        ) : (
+          <Text
+            style={[tailwind('text-sm text-gray-100'), fontStyles.medium, panelStyles.fileNameText]}
+            numberOfLines={1}
+          >
+            {displayName}
+          </Text>
+        )}
+        <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]}>
+          {file.size === null ? ext : `${formatBytes(file.size)} · ${ext}`}
+        </Text>
+      </View>
+      {!isRenaming && <TextButton title={strings.screens.ShareExtension.rename} onPress={onStartRename} />}
+    </Animated.View>
+  );
+};
+
+const panelStyles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    marginHorizontal: PANEL_MARGIN,
+    paddingHorizontal: PANEL_MARGIN,
+    paddingVertical: 12,
+    minHeight: 64,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.gray10,
+    backgroundColor: colors.surface,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 32 },
+    shadowOpacity: 0.04,
+    shadowRadius: 40,
+    elevation: 8,
+  },
+  collapseButton: {
+    width: TAB_WIDTH,
+    alignSelf: 'stretch',
+  },
+  divider: {
+    width: 1,
+    alignSelf: 'stretch',
+    backgroundColor: colors.gray10,
+    marginRight: 12,
+  },
+  fileImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 6,
+  },
+  fileNameText: {
+    paddingRight: 8,
+  },
+  renameInput: {
+    padding: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.primary,
+  },
+});

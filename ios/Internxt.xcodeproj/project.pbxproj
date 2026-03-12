@@ -12,11 +12,11 @@
 		18D7DE9587FA2B2314575ED6 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4921399A370F5CE6EE7EA0F /* ExpoModulesProvider.swift */; };
 		2F8E878CDCAC7D5C07B5C670 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		445CF10172E78673CCFF0312 /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E8FCEED6147A3BDEEFC2F889 /* libPods-Internxt.a */; };
+		4FFFBDC8299594E12C9AE469 /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AA07C0C47C6FDDEDFF5E1E69 /* libPods-Internxt.a */; };
 		7D373856C83A43879BFBE604 /* InternxtShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */; };
-		8EC5428D5ED319D4985C4204 /* libPods-InternxtShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0129DECF5F4E7E8C3926EC9C /* libPods-InternxtShareExtension.a */; };
 		8F8148045BC14A539BD1917D /* ShareExtensionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		CC023A92126B8B460E0F68AA /* libPods-InternxtShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 38F229C01EDA05D26EC4399D /* libPods-InternxtShareExtension.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -55,27 +55,27 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0129DECF5F4E7E8C3926EC9C /* libPods-InternxtShareExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtShareExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07F961A680F5B00A75B9A /* Internxt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Internxt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Internxt/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Internxt/Info.plist; sourceTree = "<group>"; };
 		30C3C55FF8AE435F8A82A9BC /* InternxtShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = InternxtShareExtension.entitlements; path = InternxtShareExtension.entitlements; sourceTree = "<group>"; };
 		37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Internxt/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		38F229C01EDA05D26EC4399D /* libPods-InternxtShareExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtShareExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = ShareExtensionViewController.swift; path = ShareExtensionViewController.swift; sourceTree = "<group>"; };
-		686983F82AE2AD08377BBDA6 /* Pods-Internxt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.release.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.release.xcconfig"; sourceTree = "<group>"; };
+		448D004B6956EF6DF255E564 /* Pods-InternxtShareExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.debug.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		7AC7F0FAF8C129DA689FC3CA /* Pods-InternxtShareExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.release.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.release.xcconfig"; sourceTree = "<group>"; };
 		7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = InternxtShareExtension.appex; path = InternxtShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		A0AD434BC480DF8FEC95AFA9 /* Pods-InternxtShareExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.release.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.release.xcconfig"; sourceTree = "<group>"; };
+		8F629BFFA115808F74111A4F /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 		A4921399A370F5CE6EE7EA0F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-InternxtShareExtension/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		AA07C0C47C6FDDEDFF5E1E69 /* libPods-Internxt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Internxt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Internxt/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BD55E1E535AECF7719BDD772 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		C37D5D841BEB188E7E6D9C18 /* Pods-InternxtShareExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.debug.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.debug.xcconfig"; sourceTree = "<group>"; };
+		C28F21CC2769C0983348FCFB /* Pods-Internxt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.release.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.release.xcconfig"; sourceTree = "<group>"; };
 		DAE15E8DB4DF4E048E04B0E0 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
-		E8FCEED6147A3BDEEFC2F889 /* libPods-Internxt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Internxt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Internxt/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* Internxt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Internxt-Bridging-Header.h"; path = "Internxt/Internxt-Bridging-Header.h"; sourceTree = "<group>"; };
-		F4FC1400B5D5C3EC32D079C4 /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,7 +83,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				445CF10172E78673CCFF0312 /* libPods-Internxt.a in Frameworks */,
+				4FFFBDC8299594E12C9AE469 /* libPods-Internxt.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,7 +91,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8EC5428D5ED319D4985C4204 /* libPods-InternxtShareExtension.a in Frameworks */,
+				CC023A92126B8B460E0F68AA /* libPods-InternxtShareExtension.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,10 +116,22 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				E8FCEED6147A3BDEEFC2F889 /* libPods-Internxt.a */,
-				0129DECF5F4E7E8C3926EC9C /* libPods-InternxtShareExtension.a */,
+				AA07C0C47C6FDDEDFF5E1E69 /* libPods-Internxt.a */,
+				38F229C01EDA05D26EC4399D /* libPods-InternxtShareExtension.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		518CD2953D5B93BBEC3EFA2A /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				8F629BFFA115808F74111A4F /* Pods-Internxt.debug.xcconfig */,
+				C28F21CC2769C0983348FCFB /* Pods-Internxt.release.xcconfig */,
+				448D004B6956EF6DF255E564 /* Pods-InternxtShareExtension.debug.xcconfig */,
+				7AC7F0FAF8C129DA689FC3CA /* Pods-InternxtShareExtension.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		66D7C2F92A0F743DEF1629DD /* Internxt */ = {
@@ -156,8 +168,8 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				7151A997BCA04521BD294E7B /* InternxtShareExtension */,
-				BD18EB9A04B7A28951596421 /* Pods */,
 				981C3C7C8D79D31A9C51A14C /* ExpoModulesProviders */,
+				518CD2953D5B93BBEC3EFA2A /* Pods */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -191,18 +203,6 @@
 			path = Internxt/Supporting;
 			sourceTree = "<group>";
 		};
-		BD18EB9A04B7A28951596421 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				F4FC1400B5D5C3EC32D079C4 /* Pods-Internxt.debug.xcconfig */,
-				686983F82AE2AD08377BBDA6 /* Pods-Internxt.release.xcconfig */,
-				C37D5D841BEB188E7E6D9C18 /* Pods-InternxtShareExtension.debug.xcconfig */,
-				A0AD434BC480DF8FEC95AFA9 /* Pods-InternxtShareExtension.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
 		C6094B16F36D353836405054 /* InternxtShareExtension */ = {
 			isa = PBXGroup;
 			children = (
@@ -218,16 +218,16 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Internxt" */;
 			buildPhases = (
-				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
+				E77A4740B9DE53E096CF647C /* [CP] Check Pods Manifest.lock */,
 				C23BF8EF9D9B379F6EADAAE0 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
 				DDE0311FCC774124B044B69C /* Embed Foundation Extensions */,
 				EF531C08E8F54B18956A8C0E /* Copy Files */,
-				6948BE485C2D29A7EA9C13D4 /* [CP] Embed Pods Frameworks */,
+				85D8F38E258D169326112B23 /* [CP] Embed Pods Frameworks */,
+				67507A37DDFA9E8E13617EDE /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -243,14 +243,14 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DDB0A9F040BE45D9929C1B2D /* Build configuration list for PBXNativeTarget "InternxtShareExtension" */;
 			buildPhases = (
-				7FB323B6FD1A8F6C37ED79F4 /* [CP] Check Pods Manifest.lock */,
+				EEEB4CE5A47BD6587C51E4D4 /* [CP] Check Pods Manifest.lock */,
 				90134DAC718F4FE0B3AB7B91 /* Start Packager */,
 				BEAE0DA94817B237B864F997 /* [Expo] Configure project */,
 				3495BDAE4F75461EBD6FFF8F /* Sources */,
 				3ABC9B4F4B9D448B9797EBD7 /* Frameworks */,
 				2F5766E756C84914803E7082 /* Resources */,
 				AA9E71431FBB401A8272B8C4 /* Bundle React Native code and images */,
-				6732354D6D08504E68F826A1 /* [CP] Copy Pods Resources */,
+				24ECF3C7CD06EEB7F3FDB218 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -339,29 +339,7 @@
 			shellPath = /bin/sh;
 			shellScript = "if [[ -f \"$PODS_ROOT/../.xcode.env\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env\"\nfi\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n# The project root by default is one level up from the ios directory\nexport PROJECT_ROOT=\"$PROJECT_DIR\"/..\n\nif [[ \"$CONFIGURATION\" = *Debug* ]]; then\n  export SKIP_BUNDLING=1\nfi\nif [[ -z \"$ENTRY_FILE\" ]]; then\n  # Set the entry JS file using the bundler's entry resolution.\n  export ENTRY_FILE=\"$(\"$NODE_BINARY\" -e \"require('expo/scripts/resolveAppEntry')\" \"$PROJECT_ROOT\" ios absolute | tail -n 1)\"\nfi\n\nif [[ -z \"$CLI_PATH\" ]]; then\n  # Use Expo CLI\n  export CLI_PATH=\"$(\"$NODE_BINARY\" --print \"require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })\")\"\nfi\nif [[ -z \"$BUNDLE_COMMAND\" ]]; then\n  # Default Expo CLI command for bundling\n  export BUNDLE_COMMAND=\"export:embed\"\nfi\n\n# Source .xcode.env.updates if it exists to allow\n# SKIP_BUNDLING to be unset if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.updates\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.updates\"\nfi\n# Source local changes to allow overrides\n# if needed\nif [[ -f \"$PODS_ROOT/../.xcode.env.local\" ]]; then\n  source \"$PODS_ROOT/../.xcode.env.local\"\nfi\n\n`\"$NODE_BINARY\" --print \"require('path').dirname(require.resolve('react-native/package.json')) + '/scripts/react-native-xcode.sh'\"`\n\n";
 		};
-		08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-Internxt-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		6732354D6D08504E68F826A1 /* [CP] Copy Pods Resources */ = {
+		24ECF3C7CD06EEB7F3FDB218 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -403,51 +381,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		6948BE485C2D29A7EA9C13D4 /* [CP] Embed Pods Frameworks */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-Internxt/Pods-Internxt-frameworks.sh",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
-				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
-			);
-			name = "[CP] Embed Pods Frameworks";
-			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Internxt/Pods-Internxt-frameworks.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		7FB323B6FD1A8F6C37ED79F4 /* [CP] Check Pods Manifest.lock */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
-				"${PODS_ROOT}/Manifest.lock",
-			);
-			name = "[CP] Check Pods Manifest.lock";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-				"$(DERIVED_FILE_DIR)/Pods-InternxtShareExtension-checkManifestLockResult.txt",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
-			showEnvVarsInLog = 0;
-		};
-		800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */ = {
+		67507A37DDFA9E8E13617EDE /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -491,6 +425,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Internxt/Pods-Internxt-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		85D8F38E258D169326112B23 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Internxt/Pods-Internxt-frameworks.sh",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/React-Core-prebuilt/React.framework/React",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/ReactNativeDependencies/ReactNativeDependencies.framework/ReactNativeDependencies",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/hermes-engine/Pre-built/hermes.framework/hermes",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/React.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactNativeDependencies.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/hermes.framework",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Internxt/Pods-Internxt-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		90134DAC718F4FE0B3AB7B91 /* Start Packager */ = {
@@ -569,6 +525,50 @@
 			shellPath = /bin/sh;
 			shellScript = "# This script configures Expo modules and generates the modules provider file.\nbash -l -c \"./Pods/Target\\ Support\\ Files/Pods-Internxt/expo-configure-project.sh\"\n";
 		};
+		E77A4740B9DE53E096CF647C /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Internxt-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+		EEEB4CE5A47BD6587C51E4D4 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-InternxtShareExtension-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -603,7 +603,7 @@
 /* Begin XCBuildConfiguration section */
 		00BF7E5F54544AE9B1CDE9D5 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = C37D5D841BEB188E7E6D9C18 /* Pods-InternxtShareExtension.debug.xcconfig */;
+			baseConfigurationReference = 448D004B6956EF6DF255E564 /* Pods-InternxtShareExtension.debug.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = InternxtShareExtension/InternxtShareExtension.entitlements;
@@ -632,7 +632,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F4FC1400B5D5C3EC32D079C4 /* Pods-Internxt.debug.xcconfig */;
+			baseConfigurationReference = 8F629BFFA115808F74111A4F /* Pods-Internxt.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -671,7 +671,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 686983F82AE2AD08377BBDA6 /* Pods-Internxt.release.xcconfig */;
+			baseConfigurationReference = C28F21CC2769C0983348FCFB /* Pods-Internxt.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -822,7 +822,7 @@
 		};
 		B247FB85ACF44D11B7509F34 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A0AD434BC480DF8FEC95AFA9 /* Pods-InternxtShareExtension.release.xcconfig */;
+			baseConfigurationReference = 7AC7F0FAF8C129DA689FC3CA /* Pods-InternxtShareExtension.release.xcconfig */;
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = InternxtShareExtension/InternxtShareExtension.entitlements;

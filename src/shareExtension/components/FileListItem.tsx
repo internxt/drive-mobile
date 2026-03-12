@@ -1,15 +1,14 @@
-import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../helpers/filetypes';
 import { colors, fontStyles } from '../theme';
-import { ShareFileItem, ShareFolderItem } from '../types';
+import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../types';
 import { formatBytes, formatDate } from '../utils';
 
 interface FileListItemProps {
   item: ShareFolderItem | ShareFileItem;
   isFolder: boolean;
-  viewMode: DriveListViewMode;
+  viewMode: DriveViewMode;
   onPress?: () => void;
 }
 
@@ -20,7 +19,7 @@ export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItem
   const fileSize = fileItem ? Number.parseInt(fileItem.size, 10) : Number.NaN;
   const fileSizeText = Number.isNaN(fileSize) ? '' : formatBytes(fileSize);
 
-  if (viewMode === DriveListViewMode.Grid) {
+  if (viewMode === 'grid') {
     return (
       <TouchableOpacity
         style={[tailwind('w-1/3 items-center p-2'), !isFolder && styles.disabled]}

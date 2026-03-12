@@ -1,20 +1,21 @@
-import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { useCallback } from 'react';
 import { FlatList, Keyboard, Text, View } from 'react-native';
 import DriveItemSkinSkeleton from 'src/components/DriveItemSkinSkeleton';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { fontStyles } from '../../theme';
-import { ShareFileItem, ShareFolderItem } from '../../types';
+import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../../types';
 import { FileListItem } from '../FileListItem';
 
 export type DriveListItem = { type: 'folder'; data: ShareFolderItem } | { type: 'file'; data: ShareFileItem };
+
+const SKELETON_KEYS = Array.from({ length: 10 }, (_, i) => `skeleton-${i}`);
 
 const keyExtractor = (item: DriveListItem) => item.data.uuid;
 
 interface DriveListProps {
   listData: DriveListItem[];
-  viewMode: DriveListViewMode;
+  viewMode: DriveViewMode;
   loading: boolean;
   loadingMore: boolean;
   searchQuery: string;
@@ -32,7 +33,7 @@ export const DriveList = ({
   onLoadMore,
 }: DriveListProps) => {
   const tailwind = useTailwind();
-  const numColumns = viewMode === DriveListViewMode.Grid ? 3 : 1;
+  const numColumns = viewMode === 'grid' ? 3 : 1;
 
   const renderItem = useCallback(
     ({ item: listItem }: { item: DriveListItem }) => {
@@ -46,8 +47,8 @@ export const DriveList = ({
   if (loading) {
     return (
       <View style={tailwind('flex-1')}>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <View style={viewMode === DriveListViewMode.Grid ? undefined : tailwind('h-16')} key={i}>
+        {SKELETON_KEYS.map((key) => (
+          <View style={viewMode === 'grid' ? undefined : tailwind('h-16')} key={key}>
             <DriveItemSkinSkeleton viewMode={viewMode} />
           </View>
         ))}
@@ -62,7 +63,7 @@ export const DriveList = ({
       keyExtractor={keyExtractor}
       numColumns={numColumns}
       renderItem={renderItem}
-      contentContainerStyle={viewMode === DriveListViewMode.Grid ? tailwind('px-2') : undefined}
+      contentContainerStyle={viewMode === 'grid' ? tailwind('px-2') : undefined}
       ListEmptyComponent={
         <View style={[tailwind('items-center'), { paddingTop: 48 }]}>
           <Text style={[tailwind('text-gray-40'), { fontSize: 16, ...fontStyles.regular }]}>

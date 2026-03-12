@@ -39,12 +39,7 @@ const ShareExtensionView = (props: ShareExtensionProps) => {
   }
 
   return (
-    <DriveScreen
-      sharedFiles={sharedFiles}
-      rootFolderUuid={props.rootFolderId}
-      onClose={close}
-      onSave={handleSave}
-    />
+    <DriveScreen sharedFiles={sharedFiles} rootFolderUuid={props.rootFolderId} onClose={close} onSave={handleSave} />
   );
 };
 

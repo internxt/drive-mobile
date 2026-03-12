@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import asyncStorageService from '../../services/AsyncStorageService';
 import { AsyncStorageKey } from '../../types';
+import ShareSdkManager from '../services/ShareSdkManager';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -22,6 +23,9 @@ export const useShareAuth = (): ShareAuthData => {
   useEffect(() => {
     Promise.all([asyncStorageService.getItem(AsyncStorageKey.PhotosToken), asyncStorageService.getUser()])
       .then(([photosToken, user]) => {
+        if (photosToken) {
+          ShareSdkManager.init({ newToken: photosToken });
+        }
         setData({
           status: photosToken ? 'authenticated' : 'unauthenticated',
           photosToken,

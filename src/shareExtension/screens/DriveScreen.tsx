@@ -1,4 +1,3 @@
-import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, Keyboard, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -80,7 +79,7 @@ export const DriveScreen = ({ sharedFiles, rootFolderUuid, onClose, onSave }: Dr
   const handleCloseNewFolderModal = useCallback(() => setShowNewFolderModal(false), []);
   const handleClearSearch = useCallback(() => setSearchQuery(''), []);
   const handleToggleViewMode = useCallback(
-    () => setViewMode(viewMode === DriveListViewMode.List ? DriveListViewMode.Grid : DriveListViewMode.List),
+    () => setViewMode(viewMode === 'list' ? 'grid' : 'list'),
     [viewMode, setViewMode],
   );
   const handleStartRename = useCallback(() => setIsRenaming(true), []);
@@ -114,7 +113,6 @@ export const DriveScreen = ({ sharedFiles, rootFolderUuid, onClose, onSave }: Dr
         )}
 
         <SortRow viewMode={viewMode} onToggleViewMode={handleToggleViewMode} />
-
         <DriveList
           listData={listItems}
           viewMode={viewMode}
