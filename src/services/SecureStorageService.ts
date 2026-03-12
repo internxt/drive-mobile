@@ -3,7 +3,16 @@ import * as SecureStore from 'expo-secure-store';
 import { AsyncStorageKey } from '../types';
 import { UserData, UserKeysHandler } from './UserKeysHandler';
 
-const CRITICAL_USER_FIELDS = ['mnemonic', 'privateKey', 'publicKey', 'keys', 'revocationKey', 'revocateKey'];
+const CRITICAL_USER_FIELDS = [
+  'mnemonic',
+  'privateKey',
+  'publicKey',
+  'keys',
+  'revocationKey',
+  'revocateKey',
+  'rootFolderId',
+  'bucket',
+];
 
 class SecureStorageService {
   private readonly MAX_CHUNK_SIZE = 1800;

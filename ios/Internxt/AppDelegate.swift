@@ -44,35 +44,22 @@ public class AppDelegate: ExpoAppDelegate {
   // MARK: - App Group auth sync
 
   private func syncAuthStatusToAppGroup() {
-    guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String,
-          let defaults = UserDefaults(suiteName: appGroup),
-          let sharedGroup = Bundle.main.object(forInfoDictionaryKey: "SharedKeychainGroup") as? String
+    guard let sharedGroup = Bundle.main.object(forInfoDictionaryKey: "SharedKeychainGroup") as? String
     else { return }
 
     let isAuthenticated = privateKeychainItemExists(key: "photosToken")
-    defaults.set(isAuthenticated, forKey: "isAuthenticated")
 
     if isAuthenticated {
-      copyToSharedKeychain(privateKey: "photosToken", sharedKey: "shared_photosToken", accessGroup: sharedGroup)
-      copyToSharedKeychain(privateKey: "xUser_mnemonic", sharedKey: "shared_mnemonic", accessGroup: sharedGroup)
-      defaults.set(readEmailFromKeychain(), forKey: "userEmail")
+      copyToSharedKeychain(privateKey: "photosToken",        sharedKey: "shared_photosToken",   accessGroup: sharedGroup)
+      copyToSharedKeychain(privateKey: "xUser_mnemonic",     sharedKey: "shared_mnemonic",      accessGroup: sharedGroup)
+      copyToSharedKeychain(privateKey: "xUser_rootFolderId", sharedKey: "shared_rootFolderId",  accessGroup: sharedGroup)
+      copyToSharedKeychain(privateKey: "xUser_bucket",       sharedKey: "shared_bucket",        accessGroup: sharedGroup)
     } else {
-      deleteFromSharedKeychain(key: "shared_photosToken", accessGroup: sharedGroup)
-      deleteFromSharedKeychain(key: "shared_mnemonic", accessGroup: sharedGroup)
-      defaults.removeObject(forKey: "userEmail")
+      deleteFromSharedKeychain(key: "shared_photosToken",  accessGroup: sharedGroup)
+      deleteFromSharedKeychain(key: "shared_mnemonic",     accessGroup: sharedGroup)
+      deleteFromSharedKeychain(key: "shared_rootFolderId", accessGroup: sharedGroup)
+      deleteFromSharedKeychain(key: "shared_bucket",       accessGroup: sharedGroup)
     }
-  }
-
-  private func readEmailFromKeychain() -> String? {
-    guard let data = readFromPrivateKeychain(key: "xUser_data"),
-          var raw = String(data: data, encoding: .utf8) else { return nil }
-    if raw.hasPrefix("\"") && raw.hasSuffix("\"") {
-      raw = String(raw.dropFirst().dropLast())
-    }
-    guard let jsonData = raw.data(using: .utf8),
-          let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-          let email = json["email"] as? String else { return nil }
-    return email
   }
 
   private func privateKeychainItemExists(key: String) -> Bool {
