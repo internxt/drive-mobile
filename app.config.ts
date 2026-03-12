@@ -21,6 +21,9 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   version: packageVersion,
   orientation: 'portrait',
   newArchEnabled: true,
+  experiments: {
+    reactCompiler: true,
+  },
   splash: {
     image: './assets/images/splash.png',
     resizeMode: 'cover',

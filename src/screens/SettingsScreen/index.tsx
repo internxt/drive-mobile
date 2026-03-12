@@ -15,7 +15,6 @@ import { Linking, Platform, ScrollView, View } from 'react-native';
 import AppSwitch from '../../components/AppSwitch';
 
 import { storageSelectors } from 'src/store/slices/storage';
-import { Language } from 'src/types';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppScreen from '../../components/AppScreen';
@@ -55,6 +54,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
 
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
+  const currentLanguage = useAppSelector((state) => state.app.language);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const [profileAvatar, setProfileAvatar] = useState<string>();
   const userFullName = useAppSelector(authSelectors.userFullName);
@@ -267,7 +267,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                       </View>
                       <View style={tailwind('flex-row items-center')}>
                         <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>
-                          {strings.languages[strings.getLanguage() as Language]}
+                          {strings.languages[currentLanguage]}
                         </AppText>
                         <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>

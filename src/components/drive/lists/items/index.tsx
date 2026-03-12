@@ -22,6 +22,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   const getColor = useGetColor();
 
   const { selectedItems } = useAppSelector((state) => state.drive);
+  const language = useAppSelector((state) => state.app.language);
   const isSelectionMode = selectedItems.length > 0;
   const spinValue = new Animated.Value(1);
   const iconSize = 40;
@@ -41,7 +42,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   }, []);
 
   const getUpdatedAt = () => {
-    return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime);
+    return time.getFormattedDate(props.data.createdAt, time.formats.dateAtTime, language);
   };
 
   const handleItemPress = () => {

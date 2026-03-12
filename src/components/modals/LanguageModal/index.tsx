@@ -1,12 +1,12 @@
-import { CheckCircle, CircleIcon } from 'phosphor-react-native';
-import { useEffect, useState } from 'react';
+import { CheckCircleIcon, CircleIcon } from 'phosphor-react-native';
+import { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import useGetColor from 'src/hooks/useColor';
 import { appThunks } from 'src/store/slices/app';
 import { Language } from 'src/types';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { useAppDispatch } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
@@ -17,14 +17,17 @@ const LanguageModal = (props: BaseModalProps) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const [isLoading, setIsLoading] = useState(false);
-  const [language, setLanguage] = useState(strings.getLanguage());
-  const isDirty = language !== strings.getLanguage();
+  const savedLanguage = useAppSelector((state) => state.app.language);
+  const [language, setLanguage] = useState<Language>(savedLanguage);
+  const isDirty = language !== savedLanguage;
+
   const onCancelButtonPressed = () => {
     props.onClose();
   };
+
   const onApplyButtonPressed = async () => {
     setIsLoading(true);
-    dispatch(appThunks.changeLanguageThunk(language as Language))
+    dispatch(appThunks.changeLanguageThunk(language))
       .unwrap()
       .then(() => {
         props.onClose();
@@ -34,6 +37,7 @@ const LanguageModal = (props: BaseModalProps) => {
         setIsLoading(false);
       });
   };
+
   const renderRadioButtons = () =>
     Object.values(Language).map((l, index) => {
       const isSelected = language === l;
@@ -48,7 +52,7 @@ const LanguageModal = (props: BaseModalProps) => {
             <View style={tailwind('flex-row items-center')}>
               <View style={tailwind('px-2.5')}>
                 {isSelected ? (
-                  <CheckCircle weight="fill" color={getColor('text-primary')} />
+                  <CheckCircleIcon weight="fill" color={getColor('text-primary')} />
                 ) : (
                   <CircleIcon weight="thin" color={getColor('text-gray-20')} />
                 )}
@@ -67,12 +71,6 @@ const LanguageModal = (props: BaseModalProps) => {
         </TouchableOpacity>
       );
     });
-
-  useEffect(() => {
-    if (props.isOpen) {
-      setLanguage(strings.getLanguage());
-    }
-  }, [props.isOpen]);
 
   return (
     <BottomModal
