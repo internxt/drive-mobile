@@ -6,6 +6,8 @@
     <string>group.com.internxt.snacks</string>
     <key>AppGroupIdentifier</key>
     <string>group.com.internxt.snacks</string>
+    <key>SharedKeychainGroup</key>
+    <string>$(AppIdentifierPrefix)group.com.internxt.snacks</string>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
     <key>CFBundleDevelopmentRegion</key>

@@ -1,122 +1,147 @@
-import { File } from 'expo-file-system';
-import { close, type InitialProps } from 'expo-share-extension';
-import prettysize from 'prettysize';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { close, openHostApp } from 'expo-share-extension';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import strings from '../../assets/lang/strings';
+import { NotSignedInScreen } from './screens/NotSignedInScreen';
 
-interface FileRow {
-  path: string;
-  name: string;
-  size: string | null;
+interface ShareExtensionProps {
+  isAuthenticated?: boolean;
+  userEmail?: string;
+  photosToken?: string;
+  mnemonic?: string;
+  files?: string[];
+  images?: string[];
+  videos?: string[];
+  url?: string;
+  text?: string;
 }
 
-function buildRow(path: string): FileRow {
-  const name = path.split('/').pop() ?? path;
-  try {
-    const file = new File(path);
-    const size = file.exists && file.size > 0 ? prettysize(file.size) : null;
-    return { path, name, size };
-  } catch {
-    return { path, name, size: null };
+const ShareExtensionApp = (props: ShareExtensionProps) => {
+  const translations = strings.screens.ShareExtension;
+
+  if (!props.isAuthenticated) {
+    return <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp('sign-in')} />;
   }
-}
 
-const ShareExtensionApp = (props: InitialProps) => {
-  const rows = [...(props.files ?? []), ...(props.images ?? []), ...(props.videos ?? [])].map(buildRow);
+  const allFiles = [...(props.files ?? []), ...(props.images ?? []), ...(props.videos ?? [])];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Pressable style={styles.closeButton} onPress={close}>
-        <Text style={styles.closeText}>✕</Text>
-      </Pressable>
-      <Text style={styles.title}>Save to Internxt</Text>
-      <Text style={styles.count}>
-        {rows.length} {rows.length === 1 ? 'file' : 'files'}
-      </Text>
-
-      {rows.map((file) => (
-        <View key={file.path} style={styles.card}>
-          <Row label="Name" value={file.name} />
-          <Row label="Path" value={file.path} />
-          {file.size && <Row label="Size" value={file.size} />}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={close} style={styles.closeBtn}>
+          <Text style={styles.closeText}>✕</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>{translations.title}</Text>
+        <View style={styles.closeBtn} />
+      </View>
+      {props.userEmail ? (
+        <View style={styles.sessionBanner}>
+          <Text style={styles.sessionLabel}>Signed in as</Text>
+          <Text style={styles.sessionEmail}>{props.userEmail}</Text>
         </View>
-      ))}
-
-      {props.text && (
-        <View style={styles.card}>
-          <Row label="Text" value={props.text} />
+      ) : null}
+      {props.photosToken ? (
+        <View style={styles.sessionBanner}>
+          <Text style={styles.sessionLabel}>Signed new token</Text>
+          <Text style={styles.sessionEmail}>{props.photosToken}</Text>
         </View>
-      )}
-      {props.url && (
-        <View style={styles.card}>
-          <Row label="URL" value={props.url} />
+      ) : null}
+      {props.mnemonic ? (
+        <View style={styles.sessionBanner}>
+          <Text style={styles.sessionLabel}>Signed in with mnemonic</Text>
+          <Text style={styles.sessionEmail}>{props.mnemonic}</Text>
         </View>
-      )}
-    </ScrollView>
+      ) : null}
+      <ScrollView contentContainerStyle={styles.content}>
+        {allFiles.map((filePath) => {
+          const name = filePath.split('/').pop() ?? filePath;
+          return (
+            <View style={styles.fileRow} key={filePath}>
+              <Text style={styles.fileName} numberOfLines={1}>
+                {name}
+              </Text>
+            </View>
+          );
+        })}
+        {props.url ? (
+          <View style={styles.fileRow}>
+            <Text style={styles.fileName} numberOfLines={1}>
+              {props.url}
+            </Text>
+          </View>
+        ) : null}
+        {props.text ? (
+          <View style={styles.fileRow}>
+            <Text style={styles.fileName} numberOfLines={2}>
+              {props.text}
+            </Text>
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
   );
 };
 
-const Row = ({ label, value }: { label: string; value: string }) => (
-  <View style={styles.row}>
-    <Text style={styles.label}>{label}</Text>
-    <Text style={styles.value} numberOfLines={3}>
-      {value}
-    </Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    paddingTop: 60,
+    flex: 1,
+    backgroundColor: '#ffffff',
   },
-  closeButton: {
-    position: 'absolute',
-    top: 16,
-    right: 16,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e7eb',
+  },
+  closeBtn: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#e5e7eb',
     alignItems: 'center',
     justifyContent: 'center',
   },
   closeText: {
+    fontSize: 18,
+    color: '#6b7280',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  content: {
+    padding: 16,
+    gap: 8,
+  },
+  fileRow: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e5e7eb',
+  },
+  fileName: {
     fontSize: 14,
     color: '#374151',
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 4,
+  sessionBanner: {
+    backgroundColor: '#f0f7ff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#bfdbfe',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
-  count: {
-    fontSize: 14,
+  sessionLabel: {
+    fontSize: 11,
     color: '#6b7280',
-    marginBottom: 20,
+    marginBottom: 2,
   },
-  card: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-    gap: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b7280',
-    width: 44,
-    paddingTop: 1,
-  },
-  value: {
+  sessionEmail: {
     fontSize: 13,
-    color: '#111827',
-    flex: 1,
+    fontWeight: '600',
+    color: '#0066FF',
   },
 });
 

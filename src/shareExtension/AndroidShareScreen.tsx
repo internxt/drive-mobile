@@ -1,73 +1,103 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../assets/lang/strings';
+import asyncStorageService from '../services/AsyncStorageService';
+import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps } from '../types/navigation';
+import { useShareAuth } from './hooks/useShareAuth.android';
+import { NotSignedInScreen } from './screens/NotSignedInScreen';
 
-const AndroidShareScreen = ({ route }: RootStackScreenProps<'AndroidShare'>) => {
+interface DebugInfo {
+  userEmail: string | null;
+  photosToken: string | null;
+  mnemonic: string | null;
+}
+
+const AndroidShareScreen = ({ navigation, route }: RootStackScreenProps<'AndroidShare'>) => {
+  const tailwind = useTailwind();
+  const authStatus = useShareAuth();
+  const [debug, setDebug] = useState<DebugInfo>({ userEmail: null, photosToken: null, mnemonic: null });
+
+  useEffect(() => {
+    if (authStatus !== 'authenticated') return;
+    Promise.all([asyncStorageService.getUser(), asyncStorageService.getItem(AsyncStorageKey.PhotosToken)]).then(
+      ([user, photosToken]) => {
+        setDebug({
+          userEmail: user?.email ?? null,
+          photosToken,
+          mnemonic: user?.mnemonic ?? null,
+        });
+      },
+    );
+  }, [authStatus]);
+
+  if (authStatus === 'loading') {
+    return (
+      <View style={tailwind('flex-1 items-center justify-center bg-white')}>
+        <ActivityIndicator size="large" color="#0066FF" />
+      </View>
+    );
+  }
+
+  if (authStatus === 'unauthenticated') {
+    return <NotSignedInScreen onClose={() => navigation.goBack()} onOpenLogin={() => navigation.navigate('SignIn')} />;
+  }
+
+  const translations = strings.screens.ShareExtension;
   const files = route.params?.files ?? [];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Save to Internxt</Text>
-      <Text style={styles.count}>
-        {files.length} {files.length === 1 ? 'file' : 'files'}
-      </Text>
+    <View style={tailwind('flex-1 bg-white')}>
+      <View style={tailwind('flex-row items-center justify-between px-4 pt-4 pb-3 border-b border-gray-20')}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={tailwind('w-8 h-8 items-center justify-center')}>
+          <Text style={tailwind('text-lg text-gray-50')}>✕</Text>
+        </TouchableOpacity>
+        <Text style={[tailwind('text-base text-gray-100'), styles.semibold]}>{translations.title}</Text>
+        <View style={tailwind('w-8 h-8')} />
+      </View>
 
-      {files.map((file) => (
-        <View key={file.uri} style={styles.card}>
-          <Row label="Name" value={file.fileName ?? '—'} />
-          <Row label="Type" value={file.mimeType ?? '—'} />
+      {debug.userEmail ? (
+        <View style={[tailwind('px-4 py-2'), styles.blueSection]}>
+          <Text style={tailwind('text-xs text-gray-50 mb-0.5')}>Signed in as</Text>
+          <Text style={[tailwind('text-sm text-primary'), styles.semibold]}>{debug.userEmail}</Text>
         </View>
-      ))}
-    </ScrollView>
+      ) : null}
+      {debug.photosToken ? (
+        <View style={[tailwind('px-4 py-2'), styles.blueSection]}>
+          <Text style={tailwind('text-xs text-gray-50 mb-0.5')}>Signed new token</Text>
+          <Text style={[tailwind('text-sm text-primary'), styles.semibold]}>{debug.photosToken}</Text>
+        </View>
+      ) : null}
+      {debug.mnemonic ? (
+        <View style={[tailwind('px-4 py-2'), styles.blueSection]}>
+          <Text style={tailwind('text-xs text-gray-50 mb-0.5')}>Signed in with mnemonic</Text>
+          <Text style={[tailwind('text-sm text-primary'), styles.semibold]}>{debug.mnemonic}</Text>
+        </View>
+      ) : null}
+
+      <ScrollView contentContainerStyle={tailwind('p-4')}>
+        {files.map((file) => {
+          const name = file.fileName ?? file.uri.split('/').pop() ?? file.uri;
+          return (
+            <View key={file.uri} style={tailwind('bg-gray-5 rounded-lg p-3 border border-gray-20 mb-2')}>
+              <Text style={tailwind('text-sm text-gray-60')} numberOfLines={1}>
+                {name}
+              </Text>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 };
 
-const Row = ({ label, value }: { label: string; value: string }) => (
-  <View style={styles.row}>
-    <Text style={styles.label}>{label}</Text>
-    <Text style={styles.value} numberOfLines={2}>
-      {value}
-    </Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    paddingTop: 60,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  count: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 20,
-  },
-  card: {
-    backgroundColor: '#f9fafb',
-    borderRadius: 10,
-    padding: 14,
-    marginBottom: 12,
-    gap: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  label: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#6b7280',
-    width: 44,
-    paddingTop: 1,
-  },
-  value: {
-    fontSize: 13,
-    color: '#111827',
-    flex: 1,
+  semibold: { fontWeight: '600' },
+  blueSection: {
+    backgroundColor: 'rgba(0,102,255,0.05)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,102,255,0.2)',
   },
 });
 

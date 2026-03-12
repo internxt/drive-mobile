@@ -322,6 +322,14 @@ const translations = {
           action: 'Export backup key',
         },
       },
+      ShareExtension: {
+        title: 'Save to Internxt',
+        notSignedIn: {
+          title: "You're not signed in",
+          subtitle: 'Log in to upload files securely',
+          openLogin: 'Open Internxt login',
+        },
+      },
     },
     buttons: {
       fixPhoto: 'Repair photo',
@@ -1126,6 +1134,14 @@ const translations = {
           title: 'Clave de respaldo',
           text: 'En caso de que olvides tu contraseña, puedes usar tu clave de respaldo para recuperar tu cuenta. Nunca compartas esta clave con nadie',
           action: 'Exportar la clave de seguridad',
+        },
+      },
+      ShareExtension: {
+        title: 'Guardar en Internxt',
+        notSignedIn: {
+          title: 'No has iniciado sesión',
+          subtitle: 'Inicia sesión para subir archivos de forma segura',
+          openLogin: 'Abrir login de Internxt',
         },
       },
     },

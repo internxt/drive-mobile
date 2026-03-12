@@ -1,22 +1,26 @@
+// ─── From expo-share-extension library ───────────────────────────────────────
 import UIKit
 import React
 import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import AVFoundation
 import UniformTypeIdentifiers
-// if react native firebase is installed, we import and configure it
+// ─── Internxt additions ───────────────────────────────────────────────────────
+import Security
+
 #if canImport(FirebaseCore)
 import FirebaseCore
 #endif
 #if canImport(FirebaseAuth)
 import FirebaseAuth
 #endif
+// ─────────────────────────────────────────────────────────────────────────────
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {
   override func sourceURL(for _: RCTBridge) -> URL? {
     self.bundleURL()
   }
-  
+
   override func bundleURL() -> URL? {
 #if DEBUG
     let settings = RCTBundleURLProvider.sharedSettings()
@@ -46,103 +50,96 @@ class ShareExtensionViewController: UIViewController {
   private var isCleanedUp = false
 
   deinit {
-    print("🧹 ShareExtensionViewController deinit")
     cleanupAfterClose()
   }
-  
+
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
-    // Start cleanup earlier to ensure proper surface teardown
     if isBeingDismissed {
       cleanupAfterClose()
     }
   }
-  
+
   override func viewDidLoad() {
     super.viewDidLoad()
     setupLoadingIndicator()
     isCleanedUp = false
-    
-    // Set the contentScaleFactor for the main view of this view controller
     self.view.contentScaleFactor = UIScreen.main.scale
-    
+
 #if canImport(FirebaseCore)
     if Bundle.main.object(forInfoDictionaryKey: "WithFirebase") as? Bool ?? false {
       FirebaseApp.configure()
     }
 #endif
-    
+
     loadReactNativeContent()
     setupNotificationCenterObserver()
   }
-  
+
   override func viewDidDisappear(_ animated: Bool) {
     super.viewDidDisappear(animated)
-    // we need to clean up when the view is closed via a swipe
     cleanupAfterClose()
   }
-  
+
   func close() {
     self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
-    // we need to clean up when the view is closed via the close() method in react native
     cleanupAfterClose()
   }
-  
+
   private func loadReactNativeContent() {
     getShareData { [weak self] sharedData in
-      guard let self = self else {
-        print("❌ Self was deallocated")
-        return
-      }
-      
+      guard let self = self else { return }
+
+      // ── From expo-share-extension library ──────────────────────────────────
       reactNativeFactoryDelegate = ReactNativeDelegate()
       reactNativeFactoryDelegate!.dependencyProvider = RCTAppDependencyProvider()
       reactNativeFactory = RCTReactNativeFactory(delegate: reactNativeFactoryDelegate!)
-      
+
       var initialProps = sharedData ?? [:]
-      
-      // Capture current view's properties before replacing it
+      // ── Internxt: inject auth state from UserDefaults and Keychain ──────────
+      if let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String,
+         let defaults = UserDefaults(suiteName: appGroup) {
+        initialProps["isAuthenticated"] = defaults.bool(forKey: "isAuthenticated")
+        initialProps["userEmail"] = defaults.string(forKey: "userEmail")
+      }
+
+      if let sharedGroup = Bundle.main.object(forInfoDictionaryKey: "SharedKeychainGroup") as? String {
+        initialProps["photosToken"] = readFromSharedKeychain(key: "shared_photosToken", accessGroup: sharedGroup)
+        if let raw = readFromSharedKeychain(key: "shared_mnemonic", accessGroup: sharedGroup) {
+          // Strip JSON string encoding added by expo-secure-store: '"words"' → 'words'
+          initialProps["mnemonic"] = (raw.hasPrefix("\"") && raw.hasSuffix("\""))
+            ? String(raw.dropFirst().dropLast())
+            : raw
+        }
+      }
+      // ── From expo-share-extension library ──────────────────────────────────
       let currentBounds = self.view.bounds
-      let currentScale = UIScreen.main.scale
-      
-      // Log the scale of the parent view
-      print("[ShareExtension] self.view.contentScaleFactor before adding subview: \(self.view.contentScaleFactor)")
-      print("[ShareExtension] UIScreen.main.scale: \(currentScale)")
-      
-      // Add screen metrics to initial properties for React Native
-      // These can be used by the JS side to understand its container size and scale
       initialProps["initialViewWidth"] = currentBounds.width
       initialProps["initialViewHeight"] = currentBounds.height
-      initialProps["pixelRatio"] = currentScale
-      // It's also good practice to pass the font scale for accessibility
-      // Default body size on iOS is 17pt, used as a reference for calculating fontScale.
+      initialProps["pixelRatio"] = UIScreen.main.scale
       initialProps["fontScale"] = UIFont.preferredFont(forTextStyle: .body).pointSize / 17.0
-      
-      // Create the React Native root view
+
       let reactNativeRootView = reactNativeFactory!.rootViewFactory.view(
           withModuleName: "shareExtension",
           initialProperties: initialProps
       )
-      
+
       let backgroundFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionBackgroundColor") as? [String: CGFloat]
       let heightFromInfoPlist = Bundle.main.object(forInfoDictionaryKey: "ShareExtensionHeight") as? CGFloat
-      
+
       configureRootView(reactNativeRootView, withBackgroundColorDict: backgroundFromInfoPlist, withHeight: heightFromInfoPlist)
       view.addSubview(reactNativeRootView)
 
-      // Hide loading indicator once React content is ready
       self.loadingIndicator.stopAnimating()
       self.loadingIndicator.removeFromSuperview()
+      // ───────────────────────────────────────────────────────────────────────
     }
   }
-  
+
   private func configureRootView(_ rootView: UIView, withBackgroundColorDict dict: [String: CGFloat]?, withHeight: CGFloat?) {
     rootView.backgroundColor = backgroundColor(from: dict)
 
-    // Get the screen bounds
     let screenBounds = UIScreen.main.bounds
-
-    // Calculate proper frame
     let frame: CGRect
     if let withHeight = withHeight {
       rootView.autoresizingMask = [.flexibleWidth, .flexibleTopMargin]
@@ -158,7 +155,7 @@ class ShareExtensionViewController: UIViewController {
     }
     rootView.frame = frame
   }
-  
+
   private func setupLoadingIndicator() {
     view.addSubview(loadingIndicator)
     loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
@@ -168,19 +165,18 @@ class ShareExtensionViewController: UIViewController {
     ])
     loadingIndicator.startAnimating()
   }
-  
+
   private func openHostApp(path: String?) {
     guard let scheme = Bundle.main.object(forInfoDictionaryKey: "HostAppScheme") as? String else { return }
     var urlComponents = URLComponents()
     urlComponents.scheme = scheme
     urlComponents.host = ""
-    
+
     if let path = path {
       let pathComponents = path.split(separator: "?", maxSplits: 1)
       let pathWithoutQuery = String(pathComponents[0])
       let queryString = pathComponents.count > 1 ? String(pathComponents[1]) : nil
-      
-      // Parse and set query items
+
       if let queryString = queryString {
         let queryItems = queryString.split(separator: "&").map { queryParam -> URLQueryItem in
           let paramComponents = queryParam.split(separator: "=", maxSplits: 1)
@@ -190,7 +186,7 @@ class ShareExtensionViewController: UIViewController {
         }
         urlComponents.queryItems = queryItems
       }
-      
+
       var baseComponents = URLComponents()
       baseComponents.scheme = scheme
       baseComponents.host = ""
@@ -199,12 +195,12 @@ class ShareExtensionViewController: UIViewController {
         urlComponents.path = baseURL.appendingPathComponent(strippedPath).path
       }
     }
-    
+
     guard let url = urlComponents.url else { return }
     openURL(url)
     self.close()
   }
-  
+
   @objc @discardableResult private func openURL(_ url: URL) -> Bool {
     // Method 1: Try responder chain to find UIApplication
     var responder: UIResponder? = self
@@ -216,7 +212,7 @@ class ShareExtensionViewController: UIViewController {
       responder = responder?.next
     }
 
-    // Method 2: Try selector-based approach as fallback
+    // Method 2: Selector-based fallback
     let selector = NSSelectorFromString("openURL:")
     var responder2: UIResponder? = self
     while responder2 != nil {
@@ -229,14 +225,14 @@ class ShareExtensionViewController: UIViewController {
 
     return false
   }
-  
+
   private func setupNotificationCenterObserver() {
     NotificationCenter.default.addObserver(forName: NSNotification.Name("close"), object: nil, queue: nil) { [weak self] _ in
       DispatchQueue.main.async {
         self?.close()
       }
     }
-    
+
     NotificationCenter.default.addObserver(forName: NSNotification.Name("openHostApp"), object: nil, queue: nil) { [weak self] notification in
       DispatchQueue.main.async {
         if let userInfo = notification.userInfo, let path = userInfo["path"] as? String {
@@ -245,26 +241,43 @@ class ShareExtensionViewController: UIViewController {
       }
     }
   }
-  
+
   private func cleanupAfterClose() {
     if isCleanedUp { return }
     isCleanedUp = true
-    
+
     NotificationCenter.default.removeObserver(self)
-    
-    // Remove React Native view and deallocate resources
+
     view.subviews.forEach { subview in
-        if subview is RCTRootView {
-            subview.removeFromSuperview()
-        }
+      if subview is RCTRootView {
+        subview.removeFromSuperview()
+      }
     }
-    
+
     reactNativeFactory = nil
     reactNativeFactoryDelegate = nil
-    
-    print("🧹 ShareExtensionViewController cleaned up")
   }
-  
+
+  // ── Internxt: read a value from the shared Keychain access group ────────────
+  private func readFromSharedKeychain(key: String, accessGroup: String) -> String? {
+    var result: AnyObject?
+    let query: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrService as String: "app:no-auth",
+      kSecAttrGeneric as String: Data(key.utf8),
+      kSecAttrAccount as String: Data(key.utf8),
+      kSecAttrAccessGroup as String: accessGroup,
+      kSecMatchLimit as String: kSecMatchLimitOne,
+      kSecReturnData as String: true,
+    ]
+    guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
+          let data = result as? Data,
+          let value = String(data: data, encoding: .utf8) else { return nil }
+    return value
+  }
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // ── From expo-share-extension library ─────────────────────────────────────
   private func backgroundColor(from dict: [String: CGFloat]?) -> UIColor {
     guard let dict = dict else { return .systemBackground }
     let red = dict["red"] ?? 255.0
@@ -273,19 +286,21 @@ class ShareExtensionViewController: UIViewController {
     let alpha = dict["alpha"] ?? 1
     return UIColor(red: red / 255.0, green: green / 255.0, blue: blue / 255.0, alpha: alpha)
   }
-  
+
+  // ─── From expo-share-extension library ───────────────────────────────────────
+  // Reads the NSExtensionItem attachments from the share context and classifies
+  // each one by UTType into: images / videos / files / url / text.
+  // The result is passed as initialProperties to the React Native root view.
   private func getShareData(completion: @escaping ([String: Any]?) -> Void) {
     guard let extensionItems = extensionContext?.inputItems as? [NSExtensionItem] else {
       completion(nil)
       return
     }
-    
+
     var sharedItems: [String: Any] = [:]
-    
     let group = DispatchGroup()
-    
     let fileManager = FileManager.default
-    
+
     for item in extensionItems {
       for provider in item.attachments ?? [] {
         if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
@@ -298,29 +313,28 @@ class ShareExtensionViewController: UIViewController {
                   let fileExtension = sharedURL.pathExtension.lowercased()
                   let imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "heic", "heif", "webp"]
                   var isImage = imageExtensions.contains(fileExtension)
-                  
+
                   if !isImage, let resourceValues = try? sharedURL.resourceValues(forKeys: [.typeIdentifierKey]),
                      let typeIdentifier = resourceValues.typeIdentifier {
                     isImage = UTType(typeIdentifier)?.conforms(to: .image) ?? false
                   }
-                  
+
                   guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
                     print("Could not find AppGroup in info.plist")
                     group.leave()
                     return
                   }
-                  
+
                   guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
                     print("Could not set up file manager container URL for app group")
                     group.leave()
                     return
                   }
-                  
+
                   let tempFilePath = sharedURL.path
                   let fileName = sharedURL.lastPathComponent
-                  
                   let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-                  
+
                   if !fileManager.fileExists(atPath: sharedDataUrl.path) {
                     do {
                       try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
@@ -328,9 +342,9 @@ class ShareExtensionViewController: UIViewController {
                       print("Failed to create sharedData directory: \(error)")
                     }
                   }
-                  
+
                   let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-                  
+
                   do {
                     try fileManager.copyItem(atPath: tempFilePath, toPath: persistentURL.path)
                     let key = isImage ? "images" : "files"
@@ -383,29 +397,28 @@ class ShareExtensionViewController: UIViewController {
           group.enter()
           provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { (imageItem, error) in
             DispatchQueue.main.async {
-              
+
               // Ensure the array exists
               if sharedItems["images"] == nil {
                 sharedItems["images"] = [String]()
               }
-              
+
               guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
                 print("Could not find AppGroup in info.plist")
                 return
               }
-              
+
               guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
                 print("Could not set up file manager container URL for app group")
                 return
               }
-              
+
               if let imageUri = imageItem as? NSURL {
                 if let tempFilePath = imageUri.path {
                   let fileExtension = imageUri.pathExtension ?? "jpg"
                   let fileName = UUID().uuidString + "." + fileExtension
-                  
                   let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-                  
+
                   if !fileManager.fileExists(atPath: sharedDataUrl.path) {
                     do {
                       try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
@@ -413,14 +426,14 @@ class ShareExtensionViewController: UIViewController {
                       print("Failed to create sharedData directory: \(error)")
                     }
                   }
-                  
+
                   let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-                  
+
                   do {
                     try fileManager.copyItem(atPath: tempFilePath, toPath: persistentURL.path)
-                    if var videoArray = sharedItems["images"] as? [String] {
-                      videoArray.append(persistentURL.absoluteString)
-                      sharedItems["images"] = videoArray
+                    if var imageArray = sharedItems["images"] as? [String] {
+                      imageArray.append(persistentURL.absoluteString)
+                      sharedItems["images"] = imageArray
                     }
                   } catch {
                     print("Failed to copy image: \(error)")
@@ -430,9 +443,8 @@ class ShareExtensionViewController: UIViewController {
                 // Handle UIImage if needed (e.g., save to disk and get the file path)
                 if let imageData = image.jpegData(compressionQuality: 1.0) {
                   let fileName = UUID().uuidString + ".jpg"
-                  
                   let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-                  
+
                   if !fileManager.fileExists(atPath: sharedDataUrl.path) {
                     do {
                       try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
@@ -440,9 +452,9 @@ class ShareExtensionViewController: UIViewController {
                       print("Failed to create sharedData directory: \(error)")
                     }
                   }
-                  
+
                   let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-                  
+
                   do {
                     try imageData.write(to: persistentURL)
                     if var imageArray = sharedItems["images"] as? [String] {
@@ -489,30 +501,29 @@ class ShareExtensionViewController: UIViewController {
           provider.loadItem(forTypeIdentifier: UTType.movie.identifier, options: nil) { (videoItem, error) in
             DispatchQueue.main.async {
               print("videoItem type: \(type(of: videoItem))")
-              
+
               // Ensure the array exists
               if sharedItems["videos"] == nil {
                 sharedItems["videos"] = [String]()
               }
-              
+
               guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
                 print("Could not find AppGroup in info.plist")
                 return
               }
-              
+
               guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
                 print("Could not set up file manager container URL for app group")
                 return
               }
-              
+
               // Check if videoItem is NSURL
               if let videoUri = videoItem as? NSURL {
                 if let tempFilePath = videoUri.path {
                   let fileExtension = videoUri.pathExtension ?? "mov"
                   let fileName = UUID().uuidString + "." + fileExtension
-                  
                   let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-                  
+
                   if !fileManager.fileExists(atPath: sharedDataUrl.path) {
                     do {
                       try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
@@ -520,9 +531,9 @@ class ShareExtensionViewController: UIViewController {
                       print("Failed to create sharedData directory: \(error)")
                     }
                   }
-                  
+
                   let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-                  
+
                   do {
                     try fileManager.copyItem(atPath: tempFilePath, toPath: persistentURL.path)
                     if var videoArray = sharedItems["videos"] as? [String] {
@@ -538,9 +549,8 @@ class ShareExtensionViewController: UIViewController {
               else if let videoData = videoItem as? NSData {
                 let fileExtension = "mov" // Using mov as default type extension
                 let fileName = UUID().uuidString + "." + fileExtension
-                
                 let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-                
+
                 if !fileManager.fileExists(atPath: sharedDataUrl.path) {
                   do {
                     try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
@@ -548,9 +558,9 @@ class ShareExtensionViewController: UIViewController {
                     print("Failed to create sharedData directory: \(error)")
                   }
                 }
-                
+
                 let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-                
+
                 do {
                   try videoData.write(to: persistentURL)
                   if var videoArray = sharedItems["videos"] as? [String] {
@@ -564,12 +574,12 @@ class ShareExtensionViewController: UIViewController {
               // Check if videoItem is AVAsset
               else if let asset = videoItem as? AVAsset {
                 let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
-                
+
                 let fileExtension = "mov" // Using mov as default type extension
                 let fileName = UUID().uuidString + "." + fileExtension
-                
+
                 let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-                
+
                 if !fileManager.fileExists(atPath: sharedDataUrl.path) {
                   do {
                     try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
@@ -577,9 +587,9 @@ class ShareExtensionViewController: UIViewController {
                     print("Failed to create sharedData directory: \(error)")
                   }
                 }
-                
+
                 let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-                
+
                 exportSession?.outputURL = persistentURL
                 exportSession?.outputFileType = .mov
                 func onExportComplete() {
@@ -605,7 +615,7 @@ class ShareExtensionViewController: UIViewController {
         }
       }
     }
-    
+
     group.notify(queue: .main) {
       completion(sharedItems.isEmpty ? nil : sharedItems)
     }
