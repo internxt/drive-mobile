@@ -31,7 +31,7 @@ export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItem
           <IconComponent width={80} height={80} />
         </View>
         <Text style={[tailwind('text-sm text-gray-100 text-center'), fontStyles.regular]} numberOfLines={2}>
-          {item.plainName}
+          {item.plainName}{!isFolder && (item as ShareFileItem).type ? `.${(item as ShareFileItem).type}` : ''}
         </Text>
         <Text style={[tailwind('text-xs text-gray-40 text-center mt-0.5'), fontStyles.regular]}>
           {formatDate(item.updatedAt)}
@@ -52,7 +52,7 @@ export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItem
       </View>
       <View style={tailwind('flex-1')}>
         <Text style={[tailwind('text-base text-gray-100'), fontStyles.regular]} numberOfLines={1}>
-          {item.plainName}
+          {item.plainName}{!isFolder && (item as ShareFileItem).type ? `.${(item as ShareFileItem).type}` : ''}
         </Text>
         <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]} numberOfLines={1}>
           {fileItem ? `${fileSizeText} · ${formatDate(item.updatedAt)}` : formatDate(item.updatedAt)}

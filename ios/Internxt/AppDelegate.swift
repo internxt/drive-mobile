@@ -54,11 +54,15 @@ public class AppDelegate: ExpoAppDelegate {
       copyToSharedKeychain(privateKey: "xUser_mnemonic",     sharedKey: "shared_mnemonic",      accessGroup: sharedGroup)
       copyToSharedKeychain(privateKey: "xUser_rootFolderId", sharedKey: "shared_rootFolderId",  accessGroup: sharedGroup)
       copyToSharedKeychain(privateKey: "xUser_bucket",       sharedKey: "shared_bucket",        accessGroup: sharedGroup)
+      copyToSharedKeychain(privateKey: "xUser_bridgeUser",   sharedKey: "shared_bridgeUser",    accessGroup: sharedGroup)
+      copyToSharedKeychain(privateKey: "xUser_userId",       sharedKey: "shared_userId",        accessGroup: sharedGroup)
     } else {
       deleteFromSharedKeychain(key: "shared_photosToken",  accessGroup: sharedGroup)
       deleteFromSharedKeychain(key: "shared_mnemonic",     accessGroup: sharedGroup)
       deleteFromSharedKeychain(key: "shared_rootFolderId", accessGroup: sharedGroup)
       deleteFromSharedKeychain(key: "shared_bucket",       accessGroup: sharedGroup)
+      deleteFromSharedKeychain(key: "shared_bridgeUser",   accessGroup: sharedGroup)
+      deleteFromSharedKeychain(key: "shared_userId",       accessGroup: sharedGroup)
     }
   }
 

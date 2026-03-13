@@ -103,6 +103,8 @@ class ShareExtensionViewController: UIViewController {
         initialProps["mnemonic"]     = readFromSharedKeychainStripped(key: "shared_mnemonic",     accessGroup: sharedGroup)
         initialProps["rootFolderId"] = readFromSharedKeychainStripped(key: "shared_rootFolderId", accessGroup: sharedGroup)
         initialProps["bucket"]       = readFromSharedKeychainStripped(key: "shared_bucket",       accessGroup: sharedGroup)
+        initialProps["bridgeUser"]   = readFromSharedKeychainStripped(key: "shared_bridgeUser",   accessGroup: sharedGroup)
+        initialProps["userId"]       = readFromSharedKeychainStripped(key: "shared_userId",       accessGroup: sharedGroup)
       }
       // ── From expo-share-extension library ──────────────────────────────────
       let currentBounds = self.view.bounds
