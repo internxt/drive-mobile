@@ -12,6 +12,8 @@ const CRITICAL_USER_FIELDS = [
   'revocateKey',
   'rootFolderId',
   'bucket',
+  'bridgeUser',
+  'userId',
 ];
 
 class SecureStorageService {

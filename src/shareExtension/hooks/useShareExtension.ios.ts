@@ -1,16 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import ShareSdkManager from '../services/ShareSdkManager';
 import { SharedFile } from '../types';
-import { readSize } from '../utils';
+import { getMimeTypeFromUri, readSize } from '../utils';
 
 interface ShareExtensionInput {
   photosToken?: string;
+  mnemonic?: string;
+  bucket?: string;
+  bridgeUser?: string;
+  userId?: string;
   files?: string[];
   images?: string[];
   videos?: string[];
 }
 
-export const useShareExtension = ({ photosToken, files, images, videos }: ShareExtensionInput) => {
+export const useShareExtension = ({
+  photosToken,
+  mnemonic,
+  bucket,
+  bridgeUser,
+  userId,
+  files,
+  images,
+  videos,
+}: ShareExtensionInput) => {
   const [sdkReady, setSdkReady] = useState(false);
 
   useEffect(() => {
@@ -23,19 +36,19 @@ export const useShareExtension = ({ photosToken, files, images, videos }: ShareE
     () => [
       ...(files ?? []).map((uri) => ({
         uri,
-        mimeType: null,
+        mimeType: getMimeTypeFromUri(uri),
         fileName: uri.split('/').pop() ?? null,
         size: readSize(uri),
       })),
       ...(images ?? []).map((uri) => ({
         uri,
-        mimeType: 'image/jpeg',
+        mimeType: getMimeTypeFromUri(uri) ?? 'image/jpeg',
         fileName: uri.split('/').pop() ?? null,
         size: readSize(uri),
       })),
       ...(videos ?? []).map((uri) => ({
         uri,
-        mimeType: 'video/mp4',
+        mimeType: getMimeTypeFromUri(uri) ?? 'video/mp4',
         fileName: uri.split('/').pop() ?? null,
         size: readSize(uri),
       })),
@@ -43,5 +56,5 @@ export const useShareExtension = ({ photosToken, files, images, videos }: ShareE
     [files, images, videos],
   );
 
-  return { sdkReady, sharedFiles };
+  return { sdkReady, sharedFiles, mnemonic, bucket, bridgeUser, userId };
 };
