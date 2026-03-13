@@ -15,9 +15,9 @@ interface FileListItemProps {
 export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItemProps) => {
   const tailwind = useTailwind();
   const IconComponent = isFolder ? FolderIcon : getFileTypeIcon((item as ShareFileItem).type ?? '');
-  const fileItem = !isFolder ? (item as ShareFileItem) : null;
-  const fileSize = fileItem ? parseInt(fileItem.size, 10) : NaN;
-  const fileSizeText = isNaN(fileSize) ? '' : formatBytes(fileSize);
+  const fileItem = isFolder ? null : (item as ShareFileItem);
+  const fileSize = fileItem ? Number.parseInt(fileItem.size, 10) : Number.NaN;
+  const fileSizeText = Number.isNaN(fileSize) ? '' : formatBytes(fileSize);
 
   if (viewMode === 'grid') {
     return (

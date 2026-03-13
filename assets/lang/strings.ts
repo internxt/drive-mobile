@@ -512,6 +512,7 @@ const translations = {
         title: 'Item already exists',
         titleMultiple: 'Some items already exist',
         messageSingleFolder: '"{0}" already exists in this location. Do you want to replace the folder or keep both?',
+        messageSingleFile: '"{0}" already exists in this location. Do you want to replace the file or keep both?',
         messageMultiple:
           'More than one element already exists in this location. Do you want to replace them or keep all?',
         replaceCurrentItem: 'Replace current item',
@@ -1345,6 +1346,7 @@ const translations = {
         title: 'El elemento ya existe',
         titleMultiple: 'Algunos elementos ya existen',
         messageSingleFolder: '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar la carpeta o conservar ambas?',
+        messageSingleFile: '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar el archivo o conservar ambos?',
         messageMultiple: 'Más de un elemento ya existe en esta ubicación. ¿Quieres reemplazarlos o conservar todos?',
         replaceCurrentItem: 'Reemplazar el elemento actual',
         keepBoth: 'Conservar ambos',
