@@ -21,3 +21,19 @@ export interface ShareFileItem {
 
 export type DriveViewMode = 'grid' | 'list';
 
+export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
+
+export type UploadErrorType =
+  | 'general'
+  | 'no_internet'
+  | 'session_expired'
+  | 'prep_failed'
+  | 'file_too_large';
+
+export interface UploadProgress {
+  currentFile: number;
+  totalFiles: number;
+  bytesUploaded: number;
+  currentFileSize: number;
+}
+

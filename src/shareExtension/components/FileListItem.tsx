@@ -15,9 +15,11 @@ interface FileListItemProps {
 export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItemProps) => {
   const tailwind = useTailwind();
   const IconComponent = isFolder ? FolderIcon : getFileTypeIcon((item as ShareFileItem).type ?? '');
-  const fileItem = !isFolder ? (item as ShareFileItem) : null;
-  const fileSize = fileItem ? parseInt(fileItem.size, 10) : NaN;
-  const fileSizeText = isNaN(fileSize) ? '' : formatBytes(fileSize);
+  const fileItem = isFolder ? null : (item as ShareFileItem);
+  const fileSize = fileItem ? Number.parseInt(fileItem.size, 10) : Number.NaN;
+  const fileSizeText = Number.isNaN(fileSize) ? '' : formatBytes(fileSize);
+  const fileType = !isFolder ? (item as ShareFileItem).type : null;
+  const displayName = fileType ? `${item.plainName}.${fileType}` : item.plainName;
 
   if (viewMode === 'grid') {
     return (
@@ -31,7 +33,7 @@ export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItem
           <IconComponent width={80} height={80} />
         </View>
         <Text style={[tailwind('text-sm text-gray-100 text-center'), fontStyles.regular]} numberOfLines={2}>
-          {item.plainName}{!isFolder && (item as ShareFileItem).type ? `.${(item as ShareFileItem).type}` : ''}
+          {displayName}
         </Text>
         <Text style={[tailwind('text-xs text-gray-40 text-center mt-0.5'), fontStyles.regular]}>
           {formatDate(item.updatedAt)}
@@ -52,7 +54,7 @@ export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItem
       </View>
       <View style={tailwind('flex-1')}>
         <Text style={[tailwind('text-base text-gray-100'), fontStyles.regular]} numberOfLines={1}>
-          {item.plainName}{!isFolder && (item as ShareFileItem).type ? `.${(item as ShareFileItem).type}` : ''}
+          {displayName}
         </Text>
         <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]} numberOfLines={1}>
           {fileItem ? `${fileSizeText} · ${formatDate(item.updatedAt)}` : formatDate(item.updatedAt)}

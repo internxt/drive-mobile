@@ -37,11 +37,10 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
 
   const title = isMultiple ? strings.modals.nameCollision.titleMultiple : strings.modals.nameCollision.title;
 
+  const singleMessageKey = itemType === 'folder' ? 'messageSingleFolder' : 'messageSingleFile';
   const message = isMultiple
     ? strings.modals.nameCollision.messageMultiple
-    : itemType === 'folder'
-      ? (strings.formatString(strings.modals.nameCollision.messageSingleFolder, itemName) as string)
-      : (strings.formatString(strings.modals.nameCollision.messageSingleFolder, itemName) as string);
+    : (strings.formatString(strings.modals.nameCollision[singleMessageKey], itemName) as string);
 
   const replaceLabel = isMultiple
     ? strings.modals.nameCollision.replaceAll
