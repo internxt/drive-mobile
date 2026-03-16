@@ -15,7 +15,7 @@ import uuid from 'react-native-uuid';
 import drive from '@internxt-mobile/services/drive';
 import pLimit, { LimitFunction } from 'p-limit';
 import { ripemd160 } from '../@inxt-js/lib/crypto';
-import { generateFileKey } from '../lib/network';
+import { generateFileKey } from './crypto';
 import appService from '../services/AppService';
 import { driveEvents } from '../services/drive/events';
 import fileSystemService from '../services/FileSystemService';

@@ -1,9 +1,11 @@
-import { encryptFile, encryptFileToChunks, createHash as rnCreateHash, pbkdf2 as rnPbkdf2 } from '@internxt/rn-crypto';
-import { HMAC } from '@internxt/rn-crypto/src/types/crypto';
+import { encryptFile, encryptFileToChunks } from '@internxt/rn-crypto';
 import { ALGORITHMS } from '@internxt/sdk/dist/network';
 import { BinaryData } from '@internxt/sdk/dist/network/types';
 import { ripemd160 as nobleRipemd160 } from '@noble/hashes/legacy.js';
+import { validateMnemonic } from '@scure/bip39';
+import { wordlist } from '@scure/bip39/wordlists/english.js';
 import { Buffer } from 'buffer';
+import { generateFileKey } from '../../network/crypto';
 
 /** Cryptographically secure random bytes via Hermes globalThis.crypto */
 const generateSecureRandomBytes = (size: number): Buffer => {
@@ -20,28 +22,10 @@ export const computeRipemd160Digest = (input: Buffer | string): Buffer => {
   return Buffer.from(nobleRipemd160(new Uint8Array(inputBuffer)));
 };
 
-const computeHmacSha512 = async (key: Buffer | string, data: Buffer | string): Promise<Buffer> => {
-  const hmacHasher = rnCreateHash(HMAC.sha512);
-  hmacHasher.update(key);
-  hmacHasher.update(data);
-  return hmacHasher.digest() as Promise<Buffer>;
-};
-
-/**
- * Derives encryption key from mnemonic + bucketId + index.
- * Mirrors GenerateFileKey in @inxt-js/lib/crypto/crypto.ts — reimplemented here because
- * that module imports react-native-crypto at the top level, which crashes in the share extension.
- */
-const generateFileKey = async (mnemonic: string, bucketId: string, index: Buffer | string): Promise<Buffer> => {
-  const mnemonicSeedBytes = await rnPbkdf2(mnemonic, 'mnemonic', 2048, 64);
-  const bucketDerivedKey = await computeHmacSha512(mnemonicSeedBytes, Buffer.from(bucketId, 'hex'));
-  const indexDerivedKey = await computeHmacSha512(bucketDerivedKey.slice(0, 32), index);
-  return indexDerivedKey.slice(0, 32);
-};
 
 export const buildSdkEncryptionAdapter = () => ({
   algorithm: ALGORITHMS.AES256CTR,
-  validateMnemonic: (mnemonic: string) => typeof mnemonic === 'string' && mnemonic.trim().split(/\s+/).length >= 12,
+  validateMnemonic: (mnemonic: string) => validateMnemonic(mnemonic, wordlist),
   generateFileKey: (mnemonic: string, bucketId: string, index: BinaryData | string) =>
     generateFileKey(mnemonic, bucketId, index as Buffer),
   randomBytes: generateSecureRandomBytes,
