@@ -1,43 +1,19 @@
 import { useCallback, useState } from 'react';
 import { Platform } from 'react-native';
+import { FileTooLargeError, MissingFileUriError, UploadNetworkError } from '../errors';
 import {
   ShareUploadCredentials,
   createShareUploadSession,
   isIosTotalSizeTooLargeForUpload,
   shareUploadFile,
 } from '../services/shareUploadService';
-import { SharedFile } from '../types';
+import { SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { getFileExtension, getFileNameWithoutExtension } from '../utils';
 
 const HTTP_STATUS = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
-  PAYMENT_REQUIRED: 402,
-  INSUFFICIENT_STORAGE: 507,
 } as const;
-
-class MissingFileUriError extends Error {
-  constructor() {
-    super('Shared file is missing a URI — cannot upload');
-    this.name = 'MissingFileUriError';
-  }
-}
-
-export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
-export type UploadErrorType =
-  | 'general'
-  | 'no_internet'
-  | 'no_space'
-  | 'session_expired'
-  | 'prep_failed'
-  | 'file_too_large';
-
-export interface UploadProgress {
-  currentFile: number;
-  totalFiles: number;
-  bytesUploaded: number;
-  currentFileSize: number;
-}
 
 interface UseShareUploadResult {
   status: UploadStatus;
@@ -52,24 +28,20 @@ interface UseShareUploadResult {
   reset: () => void;
 }
 
-const classifyError = (error: unknown): UploadErrorType => {
-  const errorMessageLowercase = error instanceof Error ? error.message.toLowerCase() : '';
-  const isNetworkRelatedError =
-    errorMessageLowercase.includes('network') ||
-    errorMessageLowercase.includes('connection') ||
-    errorMessageLowercase.includes('timeout');
-
-  if (isNetworkRelatedError) {
-    return 'no_internet';
+const getHttpStatus = (error: unknown): number | undefined => {
+  if (error !== null && typeof error === 'object' && 'status' in error) {
+    return (error as { status: number }).status;
   }
+  return undefined;
+};
 
-  const httpStatusCode =
-    error && typeof error === 'object' && 'status' in error ? (error as { status: number }).status : undefined;
-
+const classifyError = (error: unknown): UploadErrorType => {
+  const httpStatusCode = getHttpStatus(error);
   if (httpStatusCode === HTTP_STATUS.UNAUTHORIZED || httpStatusCode === HTTP_STATUS.FORBIDDEN) return 'session_expired';
-  if (httpStatusCode === HTTP_STATUS.PAYMENT_REQUIRED || httpStatusCode === HTTP_STATUS.INSUFFICIENT_STORAGE)
-    return 'no_space';
+
+  if (error instanceof FileTooLargeError) return 'file_too_large';
   if (error instanceof MissingFileUriError) return 'prep_failed';
+  if (error instanceof UploadNetworkError) return 'no_internet';
 
   return 'general';
 };
@@ -89,68 +61,56 @@ export const useShareUpload = (): UseShareUploadResult => {
     async (files: SharedFile[], folderUuid: string, credentials: ShareUploadCredentials, renamedFileName?: string) => {
       if (!files.length) return;
 
-      if (Platform.OS === 'ios' && isIosTotalSizeTooLargeForUpload(files)) {
-        setErrorType('file_too_large');
-        setStatus('error');
-        return;
-      }
-
-      setStatus('uploading');
       setErrorType(null);
-      const shareUploadSession = createShareUploadSession(credentials);
 
       try {
+        if (Platform.OS === 'ios' && isIosTotalSizeTooLargeForUpload(files)) {
+          throw new FileTooLargeError();
+        }
+
+        setStatus('uploading');
+        const shareUploadSession = createShareUploadSession(credentials);
+
         for (let i = 0; i < files.length; i++) {
           const currentFileNumber = i + 1;
           const currentSharedFile = files[i];
-          const sharedFileUri = currentSharedFile.uri;
-          if (!sharedFileUri) {
+
+          if (!currentSharedFile.uri) {
             throw new MissingFileUriError();
           }
 
-          let currentFileByteSize = currentSharedFile.size ?? 0;
-          setProgress({
+          const resolvedSize = { current: currentSharedFile.size ?? 0 };
+
+          const buildProgress = (bytesUploaded: number): UploadProgress => ({
             currentFile: currentFileNumber,
             totalFiles: files.length,
-            bytesUploaded: 0,
-            currentFileSize: currentFileByteSize,
+            bytesUploaded,
+            currentFileSize: resolvedSize.current,
           });
 
-          const rawName = files.length === 1 && renamedFileName ? renamedFileName : currentSharedFile.fileName;
-          const fileExtension = getFileExtension(rawName);
-          const fileNameWithoutExtension = getFileNameWithoutExtension(rawName);
+          setProgress(buildProgress(0));
+
+          const finalFileName = files.length === 1 && renamedFileName ? renamedFileName : currentSharedFile.fileName;
 
           await shareUploadFile({
-            filePath: sharedFileUri,
-            fileName: fileNameWithoutExtension,
-            fileExtension,
+            filePath: currentSharedFile.uri,
+            fileName: getFileNameWithoutExtension(finalFileName),
+            fileExtension: getFileExtension(finalFileName),
             fileSize: currentSharedFile.size,
             folderUuid,
             credentials,
             shareUploadSession,
-            onFileResolved: (resolvedSize) => {
-              currentFileByteSize = resolvedSize;
-              setProgress({
-                currentFile: currentFileNumber,
-                totalFiles: files.length,
-                bytesUploaded: 0,
-                currentFileSize: currentFileByteSize,
-              });
+            onFileResolved: (resolvedFileSize) => {
+              resolvedSize.current = resolvedFileSize;
+              setProgress(buildProgress(0));
             },
-            onProgress: (bytesUploaded) =>
-              setProgress({
-                currentFile: currentFileNumber,
-                totalFiles: files.length,
-                bytesUploaded,
-                currentFileSize: currentFileByteSize,
-              }),
+            onProgress: (bytesUploaded) => setProgress(buildProgress(bytesUploaded)),
           });
         }
 
         setStatus('success');
       } catch (error) {
-        const classifiedErrorType = classifyError(error);
-        setErrorType(classifiedErrorType);
+        setErrorType(classifyError(error));
         setStatus('error');
       }
     },

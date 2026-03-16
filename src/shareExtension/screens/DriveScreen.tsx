@@ -10,7 +10,7 @@ import { SortRow } from '../components/DriveScreen/SortRow';
 import { SubfolderHeader } from '../components/DriveScreen/SubfolderHeader';
 import { NewFolderModal } from '../components/NewFolderModal';
 import { UploadFeedback } from '../components/UploadFeedback';
-import { UploadErrorType, UploadProgress, UploadStatus } from '../hooks/useShareUpload';
+import { UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { useFolderNavigation } from '../hooks/useFolderNavigation';
 import { useNavAnimation } from '../hooks/useNavAnimation';
 import { useSearchAnimation } from '../hooks/useSearchAnimation';

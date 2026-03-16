@@ -23,19 +23,19 @@ interface ShareExtensionProps {
   text?: string;
 }
 
-const ShareExtensionView = (props: ShareExtensionProps) => {
+const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridgeUser, userId, files, images, videos }: ShareExtensionProps) => {
   const tailwind = useTailwind();
-  const { sdkReady, sharedFiles, mnemonic, bucket, bridgeUser, userId } = useShareExtension(props);
+  const { sdkReady, sharedFiles } = useShareExtension({ photosToken, mnemonic, bucket, bridgeUser, userId, files, images, videos });
   const { status: uploadStatus, errorType: uploadError, progress: uploadProgress, uploadFiles } = useShareUpload();
 
   const filesTooLarge = useMemo(() => isIosTotalSizeTooLargeForUpload(sharedFiles), [sharedFiles]);
 
   const handleSave = useCallback(
     (destinationFolderUuid: string, renamedFileName?: string) => {
-      if (!mnemonic || !bucket || !bridgeUser || !userId || !props.photosToken) return;
+      if (!mnemonic || !bucket || !bridgeUser || !userId || !photosToken) return;
       uploadFiles(sharedFiles, destinationFolderUuid, { bridgeUser, userId, mnemonic, bucket }, renamedFileName);
     },
-    [mnemonic, bucket, bridgeUser, userId, props.photosToken, sharedFiles, uploadFiles],
+    [mnemonic, bucket, bridgeUser, userId, photosToken, sharedFiles, uploadFiles],
   );
 
   useEffect(() => {
@@ -45,11 +45,11 @@ const ShareExtensionView = (props: ShareExtensionProps) => {
     }
   }, [uploadStatus]);
 
-  if (!props.photosToken) {
+  if (!photosToken) {
     return <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp('sign-in')} />;
   }
 
-  if (!sdkReady || !props.rootFolderId) {
+  if (!sdkReady || !rootFolderId) {
     return (
       <View style={tailwind('flex-1 items-center justify-center bg-white')}>
         <ActivityIndicator size="large" color={colors.primary} />
@@ -60,7 +60,7 @@ const ShareExtensionView = (props: ShareExtensionProps) => {
   return (
     <DriveScreen
       sharedFiles={sharedFiles}
-      rootFolderUuid={props.rootFolderId}
+      rootFolderUuid={rootFolderId}
       uploadStatus={uploadStatus}
       uploadError={uploadError}
       uploadProgress={uploadProgress}
