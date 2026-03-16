@@ -18,7 +18,7 @@ export const FileListItem = ({ item, isFolder, viewMode, onPress }: FileListItem
   const fileItem = isFolder ? null : (item as ShareFileItem);
   const fileSize = fileItem ? Number.parseInt(fileItem.size, 10) : Number.NaN;
   const fileSizeText = Number.isNaN(fileSize) ? '' : formatBytes(fileSize);
-  const fileType = !isFolder ? (item as ShareFileItem).type : null;
+  const fileType = isFolder ? null : (item as ShareFileItem).type;
   const displayName = fileType ? `${item.plainName}.${fileType}` : item.plainName;
 
   if (viewMode === 'grid') {
