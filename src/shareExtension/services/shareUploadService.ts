@@ -6,9 +6,10 @@ import { sha256 as nobleSha256 } from '@noble/hashes/sha2.js';
 import { Buffer } from 'buffer';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import ReactNativeBlobUtil from 'react-native-blob-util';
+import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import uuid from 'react-native-uuid';
 import packageJson from '../../../package.json';
+import { UploadNetworkError } from '../errors';
 import { SharedFile } from '../types';
 import {
   buildSdkEncryptionAdapter,
@@ -132,7 +133,7 @@ const sendFilePutRequest = async (
   url: string,
   encryptedFilePath: string,
   onProgress?: (bytesWritten: number) => void,
-) => {
+): Promise<FetchBlobResponse> => {
   const { size } = await RNFS.stat(encryptedFilePath);
   const uploadRequest = ReactNativeBlobUtil.fetch(
     'PUT',
@@ -143,7 +144,18 @@ const sendFilePutRequest = async (
   if (onProgress) {
     uploadRequest.uploadProgress({ interval: UPLOAD_PROGRESS_INTERVAL_MS }, (written) => onProgress(Number(written)));
   }
-  const response = await uploadRequest;
+
+  let response: FetchBlobResponse;
+  try {
+    response = await uploadRequest;
+  } catch (error) {
+    throw new UploadNetworkError(error);
+  }
+
+  if (response.info().timeout) {
+    throw new UploadNetworkError(new Error('Request timed out'));
+  }
+
   const httpStatusCode = response.info().status;
   if (httpStatusCode < HTTP_SUCCESS_MIN || httpStatusCode > HTTP_SUCCESS_MAX) {
     throw Object.assign(new Error(`Upload failed with HTTP ${httpStatusCode}`), { status: httpStatusCode });
