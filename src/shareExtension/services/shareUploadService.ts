@@ -80,15 +80,9 @@ export const createShareUploadSession = (credentials: ShareUploadCredentials): S
   return { network, cryptoLib: buildSdkEncryptionAdapter() };
 };
 
-/**
- * Strip combining diacritics from a filename.
- * Needed because RNFS fails silently on accented paths on some Android devices.
- */
-const stripDiacriticsFromFilename = (filename: string): string => filename.normalize('NFD').replace(/\p{M}/gu, '');
-
 const getTmpPath = (filename: string): string => {
   const tempBaseDirectory = Platform.OS === 'android' ? ANDROID_TMP_DIR : RNFS.TemporaryDirectoryPath;
-  return `${tempBaseDirectory}${stripDiacriticsFromFilename(filename)}`;
+  return `${tempBaseDirectory}${filename}`;
 };
 
 /** Resolves a shared file URI to a local filesystem path and its real size.

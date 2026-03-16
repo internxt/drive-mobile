@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from 'node:crypto';
 import { createSHA512 } from 'hash-wasm';
 import { generateFileBucketKey, generateFileKey, getFileDeterministicKey } from './crypto';
 
