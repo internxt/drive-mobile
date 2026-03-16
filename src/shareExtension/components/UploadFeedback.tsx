@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
-import { UploadErrorType, UploadProgress, UploadStatus } from '../hooks/useShareUpload';
+import { UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { colors, fontStyles } from '../theme';
 import { formatBytes } from '../utils';
 
@@ -18,8 +18,6 @@ function getErrorMessage(errorType: UploadErrorType | null): string {
   switch (errorType) {
     case 'no_internet':
       return s.errorNoInternet;
-    case 'no_space':
-      return s.errorNoSpace;
     case 'session_expired':
       return s.errorSessionExpired;
     case 'prep_failed':

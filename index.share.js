@@ -1,7 +1,7 @@
 // Polyfills
 import { Buffer } from 'buffer';
 import 'react-native-get-random-values';
-if (typeof globalThis.Buffer === 'undefined') globalThis.Buffer = Buffer;
+if (globalThis.Buffer === undefined) globalThis.Buffer = Buffer;
 
 import { createElement } from 'react';
 import { AppRegistry } from 'react-native';
