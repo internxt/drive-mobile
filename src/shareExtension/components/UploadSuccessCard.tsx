@@ -11,11 +11,17 @@ import { formatBytes, getSharedFileExtension } from '../utils';
 
 interface UploadSuccessCardProps {
   sharedFiles: SharedFile[];
+  uploadedFileName: string;
   onClose: () => void;
   onViewInFolder: () => void;
 }
 
-export const UploadSuccessCard = ({ sharedFiles, onClose, onViewInFolder }: UploadSuccessCardProps) => {
+export const UploadSuccessCard = ({
+  sharedFiles,
+  uploadedFileName,
+  onClose,
+  onViewInFolder,
+}: UploadSuccessCardProps) => {
   const tailwind = useTailwind();
   const shareExtensionTrans = strings.screens.ShareExtension;
   const slideAnim = useRef(new Animated.Value(400)).current;
@@ -34,7 +40,6 @@ export const UploadSuccessCard = ({ sharedFiles, onClose, onViewInFolder }: Uplo
   const fileExtension = firstFile ? getSharedFileExtension(firstFile) : '';
   const isImage = firstFile?.mimeType?.startsWith('image/') ?? false;
   const IconComponent = fileExtension ? getFileTypeIcon(fileExtension.toLowerCase()) : null;
-
   const imageUri = firstFile?.uri ?? null;
 
   const totalSizeOrNull = sharedFiles.some((sharedFile) => sharedFile.size !== null)
@@ -42,16 +47,23 @@ export const UploadSuccessCard = ({ sharedFiles, onClose, onViewInFolder }: Uplo
     : null;
 
   const fileName = isSingleFile
-    ? (firstFile?.fileName ?? shareExtensionTrans.fileNameFallback)
+    ? uploadedFileName
     : strings.formatString(shareExtensionTrans.itemsUploaded, sharedFiles.length).toString();
 
+  const formattedSize = totalSizeOrNull === null ? null : formatBytes(totalSizeOrNull);
   const sizeAndFormat = isSingleFile
-    ? [totalSizeOrNull !== null ? formatBytes(totalSizeOrNull) : null, fileExtension || null]
-        .filter(Boolean)
-        .join(' · ')
-    : totalSizeOrNull !== null
-      ? formatBytes(totalSizeOrNull)
-      : '';
+    ? [formattedSize, fileExtension].filter(Boolean).join(' · ')
+    : (formattedSize ?? '');
+
+  const renderFilePreview = () => {
+    if (isSingleFile && isImage && imageUri) {
+      return <Image source={{ uri: imageUri }} style={tailwind('w-20 h-20')} resizeMode="cover" />;
+    }
+    if (isSingleFile && IconComponent) {
+      return <IconComponent width={56} height={56} />;
+    }
+    return <StackedFilesIconSvg width={48} height={48} />;
+  };
 
   return (
     <View style={styles.overlay}>
@@ -67,13 +79,7 @@ export const UploadSuccessCard = ({ sharedFiles, onClose, onViewInFolder }: Uplo
 
         <View style={tailwind('items-center mb-4')}>
           <View style={tailwind('w-20 h-20 rounded-2xl overflow-hidden items-center justify-center bg-gray-5')}>
-            {isSingleFile && isImage && imageUri ? (
-              <Image source={{ uri: imageUri }} style={tailwind('w-20 h-20')} resizeMode="cover" />
-            ) : isSingleFile && IconComponent ? (
-              <IconComponent width={56} height={56} />
-            ) : (
-              <StackedFilesIconSvg width={48} height={48} />
-            )}
+            {renderFilePreview()}
           </View>
 
           <Text

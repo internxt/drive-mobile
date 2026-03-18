@@ -251,7 +251,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     };
   };
 
-  const registerFolderLoad = (folderId: string): AbortController => {
+  const refreshFolderAbortController = (folderId: string): AbortController => {
     folderAbortControllers.current.get(folderId)?.abort();
     const controller = new AbortController();
     folderAbortControllers.current.set(folderId, controller);
@@ -266,14 +266,21 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     });
   };
 
-  const fetchFolderData = async (
-    folderId: string,
-    options: LoadFolderContentOptions | undefined,
-    controller: AbortController,
-  ): Promise<{ files: DriveFileForTree[]; folders: DriveFolderForTree[] } | null> => {
+  const fetchFolderData = async ({
+    folderId,
+    controller,
+    options,
+  }: {
+    folderId: string;
+    controller: AbortController;
+    options?: LoadFolderContentOptions;
+  }): Promise<{ files: DriveFileForTree[]; folders: DriveFolderForTree[] } | null> => {
+    if (controller.signal.aborted) {
+      return null;
+    }
+
     if (options?.loadAllContent) {
-      const allContent = await fetchAllFolderContent(folderId);
-      return controller.signal.aborted ? null : allContent;
+      return fetchAllFolderContent(folderId);
     }
 
     const currentDriveFoldersTree = driveFoldersTreeRef.current[folderId] ?? ROOT_FOLDER_NODE;
@@ -284,20 +291,19 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       ? 1
       : Math.ceil(currentDriveFoldersTree.folders.length / FOLDERS_LIMIT_PER_PAGE) + 1;
 
-    const folderContentResult = await fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
-    return controller.signal.aborted ? null : folderContentResult;
+    return fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
   };
 
   const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
     const driveFolderNode = driveFoldersTreeRef.current[folderId] ?? ROOT_FOLDER_NODE;
     if (options?.focusFolder) setCurrentFolder(driveFolderNode);
 
-    const controller = registerFolderLoad(folderId);
+    const controller = refreshFolderAbortController(folderId);
     updateFolderNode(folderId, { loading: true, error: undefined });
 
     try {
-      const driveFolderNodeContent = await fetchFolderData(folderId, options, controller);
-      if (!driveFolderNodeContent) return;
+      const driveFolderNodeContent = await fetchFolderData({ folderId, controller, options });
+      if (!driveFolderNodeContent || controller.signal.aborted) return;
 
       updateDriveFoldersTree({
         folderId,

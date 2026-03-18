@@ -60,7 +60,7 @@ export const DriveScreen = ({
   } = useFolderNavigation(rootFolderUuid);
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
-  const [editingName, setEditingName] = useState(sharedFiles[0]?.fileName ?? '');
+  const [finalName, setFinalName] = useState(sharedFiles[0]?.fileName ?? '');
 
   const isRoot = breadcrumb.length === 1;
   const parentFolderIndex = breadcrumb.length - 2;
@@ -85,8 +85,8 @@ export const DriveScreen = ({
 
   const handleSave = useCallback(() => {
     Keyboard.dismiss();
-    onSave(currentFolder.uuid, isRenaming ? editingName : undefined);
-  }, [onSave, currentFolder.uuid, isRenaming, editingName]);
+    onSave(currentFolder.uuid, finalName);
+  }, [onSave, currentFolder.uuid, finalName]);
 
   const handleCreateFolder = useCallback(
     async (name: string) => {
@@ -171,17 +171,22 @@ export const DriveScreen = ({
 
       <BottomFilePanel
         sharedFiles={sharedFiles}
-        editingName={editingName}
+        finalName={finalName}
         isRenaming={isRenaming}
         onStartRename={handleStartRename}
-        onChangeName={setEditingName}
+        onChangeName={setFinalName}
         onEndRename={handleEndRename}
       />
 
       <NewFolderModal visible={showNewFolderModal} onCancel={handleCloseNewFolderModal} onCreate={handleCreateFolder} />
 
       {isSuccess && (
-        <UploadSuccessCard sharedFiles={sharedFiles} onClose={onClose} onViewInFolder={handleViewInFolder} />
+        <UploadSuccessCard
+          sharedFiles={sharedFiles}
+          uploadedFileName={finalName}
+          onClose={onClose}
+          onViewInFolder={handleViewInFolder}
+        />
       )}
     </View>
   );

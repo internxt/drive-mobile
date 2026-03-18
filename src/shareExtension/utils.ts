@@ -45,7 +45,8 @@ export const getMimeTypeFromUri = (uri: string): string | null => {
 export const getSharedFileExtension = (file: SharedFile): string => {
   if (file.mimeType) {
     const mimeSubtype = file.mimeType.split('/')[1];
-    return mimeSubtype?.toUpperCase() ?? '';
+    const isWildcard = mimeSubtype === '*';
+    if (mimeSubtype && !isWildcard) return mimeSubtype.toUpperCase();
   }
   return getFileExtension(file.fileName).toUpperCase();
 };
