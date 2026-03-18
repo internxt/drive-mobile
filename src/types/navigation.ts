@@ -14,12 +14,14 @@ declare global {
 export type RootStackParamList = {
   Debug: undefined;
   SignIn: undefined;
-  WebLogin: {
-    mnemonic?: string;
-    token?: string;
-    newToken?: string;
-    privateKey?: string;
-  } | undefined;
+  WebLogin:
+    | {
+        mnemonic?: string;
+        token?: string;
+        newToken?: string;
+        privateKey?: string;
+      }
+    | undefined;
   DeactivatedAccount: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
@@ -47,11 +49,10 @@ export type TabExplorerStackParamList = {
 
 export type DriveStackParamList = {
   DriveFolder: {
-    isRootFolder?: boolean;
     folderUuid: string;
-    folderName: string;
+    folderName?: string;
     parentFolderName?: string;
-    parentUuid: string;
+    parentUuid?: string;
   };
 };
 

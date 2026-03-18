@@ -17,7 +17,7 @@ import { getFileTypeIcon } from '../../helpers/filetypes';
 import { useBottomPanelAnimation } from '../hooks/useBottomPanelAnimation';
 import { colors, fontStyles } from '../theme';
 import { SharedFile } from '../types';
-import { formatBytes } from '../utils';
+import { formatBytes, getSharedFileExtension } from '../utils';
 import { TextButton } from './TextButton';
 
 interface BottomFilePanelProps {
@@ -29,20 +29,8 @@ interface BottomFilePanelProps {
   onEndRename: () => void;
 }
 
-const getExtension = (file: SharedFile): string => {
-  if (file.mimeType) {
-    const parts = file.mimeType.split('/');
-    return parts[1]?.toUpperCase() ?? '';
-  }
-  if (file.fileName) {
-    const parts = file.fileName.split('.');
-    return parts.length > 1 ? (parts[parts.length - 1]?.toUpperCase() ?? '') : '';
-  }
-  return '';
-};
-
 const getFormats = (files: SharedFile[]): string => {
-  const exts = new Set(files.map(getExtension).filter(Boolean));
+  const exts = new Set(files.map(getSharedFileExtension).filter(Boolean));
   if (exts.size === 0) return '';
   if (exts.size === 1) return [...exts][0] ?? '';
   return strings.screens.ShareExtension.multipleFormats;
@@ -129,7 +117,7 @@ export const BottomFilePanel = ({
   }
 
   if (!file) return null;
-  const ext = getExtension(file);
+  const ext = getSharedFileExtension(file);
   const IconComponent = getFileTypeIcon(ext.toLowerCase());
   const displayName = editingName || file.fileName || strings.screens.ShareExtension.fileNameFallback;
   const isImage = file.mimeType?.startsWith('image/') ?? false;

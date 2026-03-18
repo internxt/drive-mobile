@@ -26,17 +26,25 @@ import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
 import { buildFolderUploadListItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
+import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
   useLanguage();
   const [loadingMore, setLoadingMore] = useState(false);
-  const { isRootFolder, folderUuid, folderName, parentFolderName, parentUuid } = route.params;
+  const { folderUuid, folderName, parentFolderName, parentUuid } = route.params;
+  const { user } = useAppSelector((state) => state.auth);
+  const isRootFolder = folderUuid === user?.rootFolderId;
 
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
   const { downloadingFile } = useAppSelector((state) => state.drive);
+
+  const hasNoNavigationHistory = navigation.getState().index === 0;
+  const isDeepLinked = !isRootFolder && hasNoNavigationHistory;
+
+  useDeepLinkNavigationResolver(folderUuid, isDeepLinked, navigation);
 
   const folder = driveCtx.driveFoldersTree[folderUuid];
 
@@ -132,7 +140,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   // Register a handler for hardware back
   useHardwareBackPress(onBackButtonPressed);
-  const [searchVisible, setSearchVisible] = useState(isRootFolder ? true : false);
+  const [searchVisible, setSearchVisible] = useState(isRootFolder);
   const [searchValue, setSearchValue] = useState('');
 
   const [sortModalOpen, setSortModalOpen] = useState(false);
@@ -144,7 +152,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const { uploading: driveUploadingItems } = useAppSelector(driveSelectors.driveItems);
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
 
-  const screenTitle = isRootFolder ? strings.screens.drive.title : (folderName ?? folder.name);
+  const screenTitle = isRootFolder ? strings.screens.drive.title : (folderName ?? folder?.name);
 
   const driveSortedItems = useMemo(() => {
     const folderUploadItems = Object.values(folderUploads).map(buildFolderUploadListItem);
@@ -226,7 +234,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         parentUuid: driveItem.data.parentUuid as string,
         parentFolderName: screenTitle,
         folderName: driveItem.data.name,
-        isRootFolder: false,
       });
     }
   };
@@ -362,8 +369,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             onFolderActionsPress={handleFolderActionsPress}
             title={screenTitle}
             backButtonConfig={{
-              label: parentFolderName ?? '',
-              canGoBack: isRootFolder ? false : true,
+              label: parentFolderName ?? strings.screens.drive.title,
+              canGoBack: !isRootFolder,
               onBackButtonPressed,
             }}
             searchConfig={{
@@ -404,7 +411,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
               </View>
             )}
             onEndReached={handleEndReached}
-            isLoading={driveCtx.driveFoldersTree[folderUuid].loading}
+            isLoading={driveCtx.driveFoldersTree[folderUuid]?.loading}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}
             items={driveItems}

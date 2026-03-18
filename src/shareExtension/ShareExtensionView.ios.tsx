@@ -1,5 +1,6 @@
 import { close, openHostApp } from 'expo-share-extension';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
+import { AppPaths } from '../navigation/AppLinks';
 import { ActivityIndicator, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import { useShareExtension } from './hooks/useShareExtension.ios';
@@ -26,7 +27,7 @@ interface ShareExtensionProps {
 const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridgeUser, userId, files, images, videos }: ShareExtensionProps) => {
   const tailwind = useTailwind();
   const { sdkReady, sharedFiles } = useShareExtension({ photosToken, mnemonic, bucket, bridgeUser, userId, files, images, videos });
-  const { status: uploadStatus, errorType: uploadError, progress: uploadProgress, uploadFiles } = useShareUpload();
+  const { status: uploadStatus, errorType: uploadError, progress: uploadProgress, uploadFiles, reset: resetUpload } = useShareUpload();
 
   const filesTooLarge = useMemo(() => isIosTotalSizeTooLargeForUpload(sharedFiles), [sharedFiles]);
 
@@ -38,15 +39,16 @@ const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridg
     [mnemonic, bucket, bridgeUser, userId, photosToken, sharedFiles, uploadFiles],
   );
 
-  useEffect(() => {
-    if (uploadStatus === 'success') {
-      const timer = setTimeout(close, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [uploadStatus]);
+  const handleViewInFolder = useCallback(
+    (folderUuid: string) => {
+      openHostApp(AppPaths.driveFolder(folderUuid));
+      close();
+    },
+    [],
+  );
 
   if (!photosToken) {
-    return <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp('sign-in')} />;
+    return <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />;
   }
 
   if (!sdkReady || !rootFolderId) {
@@ -67,6 +69,8 @@ const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridg
       filesTooLarge={filesTooLarge}
       onClose={close}
       onSave={handleSave}
+      onViewInFolder={handleViewInFolder}
+      onDismissError={resetUpload}
     />
   );
 };

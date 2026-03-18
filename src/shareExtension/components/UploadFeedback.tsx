@@ -1,16 +1,17 @@
-import { CheckCircleIcon, XCircleIcon } from 'phosphor-react-native';
+import { WarningCircleIcon, XIcon } from 'phosphor-react-native';
 import { useEffect, useRef } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
-import { UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { colors, fontStyles } from '../theme';
+import { UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { formatBytes } from '../utils';
 
 interface UploadFeedbackProps {
   status: UploadStatus;
   errorType: UploadErrorType | null;
   progress?: UploadProgress | null;
+  onDismissError?: () => void;
 }
 
 function getErrorMessage(errorType: UploadErrorType | null): string {
@@ -31,7 +32,7 @@ function getErrorMessage(errorType: UploadErrorType | null): string {
 
 const PROGRESS_UPDATE_MIN_DELTA = 0.01;
 
-export const UploadFeedback = ({ status, errorType, progress }: UploadFeedbackProps) => {
+export const UploadFeedback = ({ status, errorType, progress, onDismissError }: UploadFeedbackProps) => {
   const tailwind = useTailwind();
   const progressBarAnimation = useRef(new Animated.Value(0)).current;
   const previousFileIndexRef = useRef(0);
@@ -102,24 +103,18 @@ export const UploadFeedback = ({ status, errorType, progress }: UploadFeedbackPr
     );
   }
 
-  if (status === 'success') {
-    return (
-      <View style={[tailwind('flex-row items-center px-4 py-3 mx-4 rounded-xl'), styles.successBg]}>
-        <CheckCircleIcon size={20} color={colors.successGreen} weight="fill" />
-        <Text style={[tailwind('ml-2 text-sm flex-1'), fontStyles.medium, styles.successText]}>
-          {strings.screens.ShareExtension.uploadSuccess}
-        </Text>
-      </View>
-    );
-  }
-
   if (status === 'error') {
     return (
       <View style={[tailwind('flex-row items-center px-4 py-3 mx-4 rounded-xl'), styles.errorBg]}>
-        <XCircleIcon size={20} color={colors.red} weight="fill" />
+        <WarningCircleIcon size={20} color={colors.red} weight="fill" />
         <Text style={[tailwind('ml-2 text-sm flex-1'), fontStyles.medium, styles.errorText]}>
           {getErrorMessage(errorType)}
         </Text>
+        {onDismissError && (
+          <TouchableOpacity onPress={onDismissError} hitSlop={8} style={tailwind('ml-2')}>
+            <XIcon size={16} color={colors.gray40} />
+          </TouchableOpacity>
+        )}
       </View>
     );
   }
@@ -134,16 +129,12 @@ const styles = StyleSheet.create({
   progressBar: {
     backgroundColor: colors.primaryBgStrong,
   },
-  successBg: {
-    backgroundColor: colors.successBg,
-  },
-  successText: {
-    color: colors.successGreen,
-  },
   errorBg: {
     backgroundColor: colors.redBg,
+    borderColor: colors.redBorder,
+    borderWidth: 1,
   },
   errorText: {
-    color: colors.red,
+    color: colors.gray100,
   },
 });

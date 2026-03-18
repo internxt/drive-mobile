@@ -1,0 +1,142 @@
+import { CheckCircleIcon, FolderSimpleIcon, XIcon } from 'phosphor-react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
+import StackedFilesIconSvg from '../../../assets/icons/stacked-files.svg';
+import strings from '../../../assets/lang/strings';
+import { getFileTypeIcon } from '../../helpers/filetypes';
+import { colors, fontStyles } from '../theme';
+import { SharedFile } from '../types';
+import { formatBytes, getSharedFileExtension } from '../utils';
+
+interface UploadSuccessCardProps {
+  sharedFiles: SharedFile[];
+  onClose: () => void;
+  onViewInFolder: () => void;
+}
+
+export const UploadSuccessCard = ({ sharedFiles, onClose, onViewInFolder }: UploadSuccessCardProps) => {
+  const tailwind = useTailwind();
+  const shareExtensionTrans = strings.screens.ShareExtension;
+  const slideAnim = useRef(new Animated.Value(400)).current;
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: 0,
+      useNativeDriver: true,
+      bounciness: 4,
+      speed: 10,
+    }).start();
+  }, [slideAnim]);
+
+  const isSingleFile = sharedFiles.length === 1;
+  const firstFile = sharedFiles[0];
+  const fileExtension = firstFile ? getSharedFileExtension(firstFile) : '';
+  const isImage = firstFile?.mimeType?.startsWith('image/') ?? false;
+  const IconComponent = fileExtension ? getFileTypeIcon(fileExtension.toLowerCase()) : null;
+
+  const imageUri = firstFile?.uri ?? null;
+
+  const totalSizeOrNull = sharedFiles.some((sharedFile) => sharedFile.size !== null)
+    ? sharedFiles.reduce((totalSizeAcc, sharedFile) => totalSizeAcc + (sharedFile.size ?? 0), 0)
+    : null;
+
+  const fileName = isSingleFile
+    ? (firstFile?.fileName ?? shareExtensionTrans.fileNameFallback)
+    : strings.formatString(shareExtensionTrans.itemsUploaded, sharedFiles.length).toString();
+
+  const sizeAndFormat = isSingleFile
+    ? [totalSizeOrNull !== null ? formatBytes(totalSizeOrNull) : null, fileExtension || null]
+        .filter(Boolean)
+        .join(' · ')
+    : totalSizeOrNull !== null
+      ? formatBytes(totalSizeOrNull)
+      : '';
+
+  return (
+    <View style={styles.overlay}>
+      <Animated.View
+        style={[
+          tailwind('bg-white rounded-t-2xl pt-4 pb-8 px-5 items-center'),
+          { transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <TouchableOpacity onPress={onClose} style={styles.closeButton} hitSlop={8}>
+          <XIcon size={20} color={colors.gray60} />
+        </TouchableOpacity>
+
+        <View style={tailwind('items-center mb-4')}>
+          <View style={tailwind('w-20 h-20 rounded-2xl overflow-hidden items-center justify-center bg-gray-5')}>
+            {isSingleFile && isImage && imageUri ? (
+              <Image source={{ uri: imageUri }} style={tailwind('w-20 h-20')} resizeMode="cover" />
+            ) : isSingleFile && IconComponent ? (
+              <IconComponent width={56} height={56} />
+            ) : (
+              <StackedFilesIconSvg width={48} height={48} />
+            )}
+          </View>
+
+          <Text
+            style={[tailwind('mt-3 text-gray-100 text-center'), fontStyles.regular, { fontSize: 16, lineHeight: 19.2 }]}
+            numberOfLines={2}
+          >
+            {fileName}
+          </Text>
+          {sizeAndFormat ? (
+            <Text
+              style={[
+                tailwind('mt-0.5 text-center'),
+                fontStyles.regular,
+                { fontSize: 12, lineHeight: 14.4, color: colors.gray60 },
+              ]}
+            >
+              {sizeAndFormat}
+            </Text>
+          ) : null}
+        </View>
+
+        <View style={tailwind('flex-row items-center mb-2')}>
+          <CheckCircleIcon size={20} color={colors.successGreen} weight="fill" />
+          <Text
+            style={[tailwind('ml-1'), fontStyles.semibold, { color: colors.gray100, fontSize: 20, lineHeight: 24 }]}
+          >
+            {shareExtensionTrans.uploadedTitle}
+          </Text>
+        </View>
+
+        <Text
+          style={[
+            tailwind('text-center px-6 mb-6'),
+            fontStyles.regular,
+            { color: colors.gray60, fontSize: 14, lineHeight: 16.8 },
+          ]}
+        >
+          {shareExtensionTrans.uploadedSubtitle}
+        </Text>
+
+        <TouchableOpacity
+          onPress={onViewInFolder}
+          style={tailwind('flex-row items-center justify-center bg-primary rounded-xl py-3.5 px-6 w-full')}
+          activeOpacity={0.85}
+        >
+          <FolderSimpleIcon size={18} color={colors.surface} weight="regular" />
+          <Text style={[tailwind('ml-2 text-base'), fontStyles.semibold, { color: colors.surface }]}>
+            {shareExtensionTrans.viewInFolder}
+          </Text>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+  },
+  closeButton: {
+    alignSelf: 'flex-start',
+    padding: 4,
+  },
+});
