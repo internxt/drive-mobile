@@ -17,32 +17,20 @@ import { getFileTypeIcon } from '../../helpers/filetypes';
 import { useBottomPanelAnimation } from '../hooks/useBottomPanelAnimation';
 import { colors, fontStyles } from '../theme';
 import { SharedFile } from '../types';
-import { formatBytes } from '../utils';
+import { formatBytes, getSharedFileExtension } from '../utils';
 import { TextButton } from './TextButton';
 
 interface BottomFilePanelProps {
   sharedFiles: SharedFile[];
-  editingName: string;
+  finalName: string;
   isRenaming: boolean;
   onStartRename: () => void;
   onChangeName: (name: string) => void;
   onEndRename: () => void;
 }
 
-const getExtension = (file: SharedFile): string => {
-  if (file.mimeType) {
-    const parts = file.mimeType.split('/');
-    return parts[1]?.toUpperCase() ?? '';
-  }
-  if (file.fileName) {
-    const parts = file.fileName.split('.');
-    return parts.length > 1 ? (parts[parts.length - 1]?.toUpperCase() ?? '') : '';
-  }
-  return '';
-};
-
 const getFormats = (files: SharedFile[]): string => {
-  const exts = new Set(files.map(getExtension).filter(Boolean));
+  const exts = new Set(files.map(getSharedFileExtension).filter(Boolean));
   if (exts.size === 0) return '';
   if (exts.size === 1) return [...exts][0] ?? '';
   return strings.screens.ShareExtension.multipleFormats;
@@ -56,7 +44,7 @@ const StackedFilesIcon = () => <StackedFilesIconSvg width={48} height={48} style
 
 export const BottomFilePanel = ({
   sharedFiles,
-  editingName,
+  finalName,
   isRenaming,
   onStartRename,
   onChangeName,
@@ -80,12 +68,12 @@ export const BottomFilePanel = ({
   const dotIndex = originalFileName.lastIndexOf('.');
   const fileExt = dotIndex > 0 ? originalFileName.slice(dotIndex) : '';
   const nameWithoutExt =
-    fileExt && editingName.endsWith(fileExt) ? editingName.slice(0, editingName.length - fileExt.length) : editingName;
+    fileExt && finalName.endsWith(fileExt) ? finalName.slice(0, finalName.length - fileExt.length) : finalName;
 
   const handleRenameChange = useCallback((name: string) => onChangeName(name + fileExt), [fileExt, onChangeName]);
   const handleEndRename = useCallback(() => {
     if (!nameWithoutExt.trim()) {
-      onChangeName(originalFileName || strings.screens.ShareExtension.fileNameFallback);
+      onChangeName(originalFileName);
     }
     onEndRename();
   }, [nameWithoutExt, onChangeName, onEndRename, originalFileName]);
@@ -129,9 +117,9 @@ export const BottomFilePanel = ({
   }
 
   if (!file) return null;
-  const ext = getExtension(file);
+  const ext = getSharedFileExtension(file);
   const IconComponent = getFileTypeIcon(ext.toLowerCase());
-  const displayName = editingName || file.fileName || strings.screens.ShareExtension.fileNameFallback;
+  const displayName = finalName || file.fileName;
   const isImage = file.mimeType?.startsWith('image/') ?? false;
 
   return (

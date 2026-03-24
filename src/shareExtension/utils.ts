@@ -3,6 +3,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { File as FSFile } from 'expo-file-system';
 import mime from 'mime';
 import prettysize from 'prettysize';
+import { SharedFile } from './types';
 
 dayjs.extend(relativeTime);
 
@@ -39,4 +40,13 @@ export const getMimeTypeFromUri = (uri: string): string | null => {
   const lastSegment = uri.split('/').pop();
   const filename = lastSegment?.split('?')[0];
   return filename ? mime.getType(filename) : null;
+};
+
+export const getSharedFileExtension = (file: SharedFile): string => {
+  if (file.mimeType) {
+    const mimeSubtype = file.mimeType.split('/')[1];
+    const isWildcard = mimeSubtype === '*';
+    if (mimeSubtype && !isWildcard) return mimeSubtype.toUpperCase();
+  }
+  return getFileExtension(file.fileName).toUpperCase();
 };

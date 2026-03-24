@@ -1,7 +1,9 @@
-import { useCallback, useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { useCallback } from 'react';
+import { ActivityIndicator, Linking, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
+import { AppLinks } from '../navigation/AppLinks';
+import errorService from '../services/ErrorService';
 import { RootStackScreenProps } from '../types/navigation';
 import { useShareExtension } from './hooks/useShareExtension.android';
 import { useShareUpload } from './hooks/useShareUpload';
@@ -14,7 +16,13 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
   const { status, rootFolderUuid, sharedFiles, mnemonic, bucket, bridgeUser, userId } = useShareExtension(
     route.params?.files ?? [],
   );
-  const { status: uploadStatus, errorType: uploadError, progress: uploadProgress, uploadFiles } = useShareUpload();
+  const {
+    status: uploadStatus,
+    errorType: uploadError,
+    progress: uploadProgress,
+    uploadFiles,
+    reset: resetUpload,
+  } = useShareUpload();
 
   const handleClose = useCallback(() => navigation.goBack(), [navigation]);
   const handleOpenLogin = useCallback(() => navigation.navigate('SignIn'), [navigation]);
@@ -27,12 +35,15 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
     [mnemonic, bucket, bridgeUser, userId, sharedFiles, uploadFiles],
   );
 
-  useEffect(() => {
-    if (uploadStatus === 'success') {
-      const timer = setTimeout(() => navigation.goBack(), 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [uploadStatus, navigation]);
+  const handleViewInFolder = useCallback(
+    (folderUuid: string) => {
+      Linking.openURL(AppLinks.driveFolder(folderUuid)).catch((error) =>
+        errorService.reportError(error, { extra: { folderUuid, message: 'Failed to open folder in host app' } }),
+      );
+      navigation.goBack();
+    },
+    [navigation],
+  );
 
   if (status === 'unauthenticated') {
     return (
@@ -62,6 +73,8 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
         uploadProgress={uploadProgress}
         onClose={handleClose}
         onSave={handleSave}
+        onViewInFolder={handleViewInFolder}
+        onDismissError={resetUpload}
       />
     </SafeAreaView>
   );

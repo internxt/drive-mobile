@@ -10,6 +10,7 @@ import { SortRow } from '../components/DriveScreen/SortRow';
 import { SubfolderHeader } from '../components/DriveScreen/SubfolderHeader';
 import { NewFolderModal } from '../components/NewFolderModal';
 import { UploadFeedback } from '../components/UploadFeedback';
+import { UploadSuccessCard } from '../components/UploadSuccessCard';
 import { useFolderNavigation } from '../hooks/useFolderNavigation';
 import { useNavAnimation } from '../hooks/useNavAnimation';
 import { useSearchAnimation } from '../hooks/useSearchAnimation';
@@ -24,6 +25,8 @@ interface DriveScreenProps {
   filesTooLarge?: boolean;
   onClose: () => void;
   onSave: (destinationFolderUuid: string, renamedFileName?: string) => void;
+  onViewInFolder: (folderUuid: string) => void;
+  onDismissError: () => void;
 }
 
 export const DriveScreen = ({
@@ -35,6 +38,8 @@ export const DriveScreen = ({
   filesTooLarge = false,
   onClose,
   onSave,
+  onViewInFolder,
+  onDismissError,
 }: DriveScreenProps) => {
   const tailwind = useTailwind();
   const {
@@ -55,12 +60,13 @@ export const DriveScreen = ({
   } = useFolderNavigation(rootFolderUuid);
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
-  const [editingName, setEditingName] = useState(sharedFiles[0]?.fileName ?? '');
+  const [finalName, setFinalName] = useState(sharedFiles[0]?.fileName ?? '');
 
   const isRoot = breadcrumb.length === 1;
   const parentFolderIndex = breadcrumb.length - 2;
   const parentFolder = breadcrumb[parentFolderIndex];
   const isUploading = uploadStatus === 'uploading';
+  const isSuccess = uploadStatus === 'success';
 
   const { translateX, contentOpacity } = useNavAnimation(currentFolder.uuid, breadcrumb.length);
   const searchAnimation = useSearchAnimation();
@@ -79,8 +85,8 @@ export const DriveScreen = ({
 
   const handleSave = useCallback(() => {
     Keyboard.dismiss();
-    onSave(currentFolder.uuid, isRenaming ? editingName : undefined);
-  }, [onSave, currentFolder.uuid, isRenaming, editingName]);
+    onSave(currentFolder.uuid, finalName);
+  }, [onSave, currentFolder.uuid, finalName]);
 
   const handleCreateFolder = useCallback(
     async (name: string) => {
@@ -88,6 +94,11 @@ export const DriveScreen = ({
       setShowNewFolderModal(false);
     },
     [createFolder],
+  );
+
+  const handleViewInFolder = useCallback(
+    () => onViewInFolder(currentFolder.uuid),
+    [onViewInFolder, currentFolder.uuid],
   );
 
   const handleOpenNewFolderModal = useCallback(() => setShowNewFolderModal(true), []);
@@ -100,17 +111,17 @@ export const DriveScreen = ({
   const handleStartRename = useCallback(() => setIsRenaming(true), []);
   const handleEndRename = useCallback(() => setIsRenaming(false), []);
 
+  const showUploadingBanner = filesTooLarge || isUploading;
+  const showErrorBanner = !filesTooLarge && uploadStatus === 'error';
+  const ERROR_BANNER_BOTTOM = 112;
+
   return (
     <View
       style={[tailwind('flex-1 bg-white'), { borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }]}
     >
-      <DriveHeader
-        onClose={onClose}
-        onSave={handleSave}
-        saveEnabled={!filesTooLarge && !isUploading && uploadStatus !== 'success'}
-      />
+      <DriveHeader onClose={onClose} onSave={handleSave} saveEnabled={!filesTooLarge && !isUploading && !isSuccess} />
 
-      {(filesTooLarge || uploadStatus === 'uploading' || uploadStatus === 'success' || uploadStatus === 'error') && (
+      {showUploadingBanner && (
         <View style={tailwind('pt-2')}>
           <UploadFeedback
             status={filesTooLarge ? 'error' : uploadStatus}
@@ -152,16 +163,31 @@ export const DriveScreen = ({
         />
       </Animated.View>
 
+      {showErrorBanner && (
+        <View style={{ position: 'absolute', bottom: ERROR_BANNER_BOTTOM, left: 0, right: 0 }}>
+          <UploadFeedback status="error" errorType={uploadError} onDismissError={onDismissError} />
+        </View>
+      )}
+
       <BottomFilePanel
         sharedFiles={sharedFiles}
-        editingName={editingName}
+        finalName={finalName}
         isRenaming={isRenaming}
         onStartRename={handleStartRename}
-        onChangeName={setEditingName}
+        onChangeName={setFinalName}
         onEndRename={handleEndRename}
       />
 
       <NewFolderModal visible={showNewFolderModal} onCancel={handleCloseNewFolderModal} onCreate={handleCreateFolder} />
+
+      {isSuccess && (
+        <UploadSuccessCard
+          sharedFiles={sharedFiles}
+          uploadedFileName={finalName}
+          onClose={onClose}
+          onViewInFolder={handleViewInFolder}
+        />
+      )}
     </View>
   );
 };
