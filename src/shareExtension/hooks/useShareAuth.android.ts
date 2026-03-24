@@ -10,6 +10,9 @@ export type ShareAuthData = {
   photosToken: string | null;
   mnemonic: string | null;
   rootFolderUuid: string | null;
+  bucket: string | null;
+  bridgeUser: string | null;
+  userId: string | null;
 };
 
 export const useShareAuth = (): ShareAuthData => {
@@ -18,6 +21,9 @@ export const useShareAuth = (): ShareAuthData => {
     photosToken: null,
     mnemonic: null,
     rootFolderUuid: null,
+    bucket: null,
+    bridgeUser: null,
+    userId: null,
   });
 
   useEffect(() => {
@@ -31,6 +37,9 @@ export const useShareAuth = (): ShareAuthData => {
           photosToken,
           mnemonic: user?.mnemonic ?? null,
           rootFolderUuid: user?.rootFolderId ?? null,
+          bucket: user?.bucket ?? null,
+          bridgeUser: user?.bridgeUser ?? null,
+          userId: user?.userId ?? null,
         });
       })
       .catch(() =>
@@ -39,6 +48,9 @@ export const useShareAuth = (): ShareAuthData => {
           photosToken: null,
           mnemonic: null,
           rootFolderUuid: null,
+          bucket: null,
+          bridgeUser: null,
+          userId: null,
         }),
       );
   }, []);

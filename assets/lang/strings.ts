@@ -342,6 +342,14 @@ const translations = {
         folderNamePlaceholder: 'Folder name',
         folderNameEmpty: 'Folder name cannot be empty',
         folderCreateError: 'Failed to create folder. Please try again.',
+        uploadSuccess: 'Files uploaded successfully',
+        errorGeneral: 'Upload failed. Please try again.',
+        errorNoInternet: 'No internet connection.',
+        errorSessionExpired: 'Session expired. Please sign in again.',
+        errorPrep: 'Could not prepare the file for upload.',
+        errorFileTooLarge: 'The maximum upload size is 300 MB at a time.',
+        uploading: 'Uploading…',
+        preparing: 'Preparing…',
       },
     },
     buttons: {
@@ -502,10 +510,8 @@ const translations = {
       nameCollision: {
         title: 'Item already exists',
         titleMultiple: 'Some items already exist',
-        messageSingleFolder:
-          '"{0}" already exists in this location. Do you want to replace the folder or keep both?',
-        messageSingleFile:
-          '"{0}" already exists in this location. Do you want to replace the file or keep both?',
+        messageSingleFolder: '"{0}" already exists in this location. Do you want to replace the folder or keep both?',
+        messageSingleFile: '"{0}" already exists in this location. Do you want to replace the file or keep both?',
         messageMultiple:
           'More than one element already exists in this location. Do you want to replace them or keep all?',
         replaceCurrentItem: 'Replace current item',
@@ -1169,6 +1175,14 @@ const translations = {
         folderNamePlaceholder: 'Nombre de carpeta',
         folderNameEmpty: 'El nombre no puede estar vacío',
         folderCreateError: 'Error al crear la carpeta. Inténtalo de nuevo.',
+        uploadSuccess: 'Archivos subidos correctamente',
+        errorGeneral: 'Error al subir. Inténtalo de nuevo.',
+        errorNoInternet: 'Sin conexión a internet.',
+        errorSessionExpired: 'Sesión expirada. Inicia sesión de nuevo.',
+        errorPrep: 'No se pudo preparar el archivo para la subida.',
+        errorFileTooLarge: 'El tamaño máximo de subida es de 300 MB a la vez.',
+        uploading: 'Subiendo…',
+        preparing: 'Preparando…',
       },
     },
     buttons: {
@@ -1329,12 +1343,9 @@ const translations = {
       nameCollision: {
         title: 'El elemento ya existe',
         titleMultiple: 'Algunos elementos ya existen',
-        messageSingleFolder:
-          '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar la carpeta o conservar ambas?',
-        messageSingleFile:
-          '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar el archivo o conservar ambos?',
-        messageMultiple:
-          'Más de un elemento ya existe en esta ubicación. ¿Quieres reemplazarlos o conservar todos?',
+        messageSingleFolder: '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar la carpeta o conservar ambas?',
+        messageSingleFile: '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar el archivo o conservar ambos?',
+        messageMultiple: 'Más de un elemento ya existe en esta ubicación. ¿Quieres reemplazarlos o conservar todos?',
         replaceCurrentItem: 'Reemplazar el elemento actual',
         keepBoth: 'Conservar ambos',
         replaceAll: 'Reemplazar todos',
@@ -1612,10 +1623,14 @@ const translations = {
       notEnoughSpaceOnDevice: 'No hay suficiente espacio de almacenamiento disponible para la descarga',
       fileAlreadyDownloading: 'El archivo ya se está descargando, deteniendo la descarga',
       genericError: 'Se ha producido un error inesperado. Por favor, inténtelo de nuevo.',
-      rateLimitReached: 'No se ha podido completar esta acción en este momento. Por favor, espera un momento e inténtalo de nuevo.',
-      rateLimitUpload: 'No se ha podido completar la subida en este momento. Por favor, espera un momento e inténtalo de nuevo.',
-      rateLimitDownload: 'No se ha podido completar la descarga en este momento. Por favor, espera un momento e inténtalo de nuevo.',
-      rateLimitContent: 'No se ha podido cargar el contenido en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      rateLimitReached:
+        'No se ha podido completar esta acción en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      rateLimitUpload:
+        'No se ha podido completar la subida en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      rateLimitDownload:
+        'No se ha podido completar la descarga en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      rateLimitContent:
+        'No se ha podido cargar el contenido en este momento. Por favor, espera un momento e inténtalo de nuevo.',
       folderTooLarge: {
         title: 'La carpeta es demasiado grande',
         message: 'La carpeta seleccionada contiene más de {0} archivos. Por favor, selecciona una carpeta más pequeña.',

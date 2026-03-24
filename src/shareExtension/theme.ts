@@ -24,7 +24,12 @@ export const fontStyles = {
 export const colors = {
   primary: 'rgb(0, 102, 255)',
   primaryDisabled: 'rgba(0, 102, 255, 0.5)',
+  primaryBg: 'rgba(0, 102, 255, 0.08)',
+  primaryBgStrong: 'rgba(0, 102, 255, 0.10)',
   red: 'rgb(255, 13, 0)',
+  redBg: 'rgba(255, 13, 0, 0.08)',
+  successGreen: '#16a34a',
+  successBg: 'rgba(22, 163, 74, 0.08)',
   gray100: 'rgb(24, 24, 27)',
   gray80: 'rgb(58, 58, 59)',
   gray60: 'rgb(99, 99, 103)',

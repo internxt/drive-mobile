@@ -9,19 +9,33 @@ import { RootHeader } from '../components/DriveScreen/RootHeader';
 import { SortRow } from '../components/DriveScreen/SortRow';
 import { SubfolderHeader } from '../components/DriveScreen/SubfolderHeader';
 import { NewFolderModal } from '../components/NewFolderModal';
+import { UploadFeedback } from '../components/UploadFeedback';
 import { useFolderNavigation } from '../hooks/useFolderNavigation';
 import { useNavAnimation } from '../hooks/useNavAnimation';
 import { useSearchAnimation } from '../hooks/useSearchAnimation';
-import { SharedFile } from '../types';
+import { SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
 
 interface DriveScreenProps {
   sharedFiles: SharedFile[];
   rootFolderUuid: string;
+  uploadStatus: UploadStatus;
+  uploadError: UploadErrorType | null;
+  uploadProgress?: UploadProgress | null;
+  filesTooLarge?: boolean;
   onClose: () => void;
-  onSave: (destinationFolderUuid: string, finalFileName?: string) => void;
+  onSave: (destinationFolderUuid: string, renamedFileName?: string) => void;
 }
 
-export const DriveScreen = ({ sharedFiles, rootFolderUuid, onClose, onSave }: DriveScreenProps) => {
+export const DriveScreen = ({
+  sharedFiles,
+  rootFolderUuid,
+  uploadStatus,
+  uploadError,
+  uploadProgress,
+  filesTooLarge = false,
+  onClose,
+  onSave,
+}: DriveScreenProps) => {
   const tailwind = useTailwind();
   const {
     currentFolder,
@@ -46,13 +60,14 @@ export const DriveScreen = ({ sharedFiles, rootFolderUuid, onClose, onSave }: Dr
   const isRoot = breadcrumb.length === 1;
   const parentFolderIndex = breadcrumb.length - 2;
   const parentFolder = breadcrumb[parentFolderIndex];
+  const isUploading = uploadStatus === 'uploading';
 
   const { translateX, contentOpacity } = useNavAnimation(currentFolder.uuid, breadcrumb.length);
   const searchAnimation = useSearchAnimation();
 
   useEffect(() => {
     searchAnimation.resetSearch();
-  }, [currentFolder.uuid]);
+  }, [currentFolder.uuid, searchAnimation.resetSearch]);
 
   const listItems = useMemo<DriveListItem[]>(
     () => [
@@ -89,8 +104,21 @@ export const DriveScreen = ({ sharedFiles, rootFolderUuid, onClose, onSave }: Dr
     <View
       style={[tailwind('flex-1 bg-white'), { borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }]}
     >
-      {/* saveEnabled will be blocked when files are uploading (next tasks) */}
-      <DriveHeader onClose={onClose} onSave={handleSave} saveEnabled={true} />
+      <DriveHeader
+        onClose={onClose}
+        onSave={handleSave}
+        saveEnabled={!filesTooLarge && !isUploading && uploadStatus !== 'success'}
+      />
+
+      {(filesTooLarge || uploadStatus === 'uploading' || uploadStatus === 'success' || uploadStatus === 'error') && (
+        <View style={tailwind('pt-2')}>
+          <UploadFeedback
+            status={filesTooLarge ? 'error' : uploadStatus}
+            errorType={filesTooLarge ? 'file_too_large' : uploadError}
+            progress={uploadProgress}
+          />
+        </View>
+      )}
 
       <Animated.View style={{ flex: 1, opacity: contentOpacity, transform: [{ translateX }] }}>
         {isRoot ? (
