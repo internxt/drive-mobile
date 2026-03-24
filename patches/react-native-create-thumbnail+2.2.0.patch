@@ -1,0 +1,372 @@
+diff --git a/node_modules/react-native-create-thumbnail/android/build/.transforms/b0e51eadc74f7bec22fa445c21a664a0/results.bin b/node_modules/react-native-create-thumbnail/android/build/.transforms/b0e51eadc74f7bec22fa445c21a664a0/results.bin
+new file mode 100644
+index 0000000..0d259dd
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/.transforms/b0e51eadc74f7bec22fa445c21a664a0/results.bin
+@@ -0,0 +1 @@
++o/classes
+diff --git a/node_modules/react-native-create-thumbnail/android/build/.transforms/b0e51eadc74f7bec22fa445c21a664a0/transformed/classes/classes_dex/classes.dex b/node_modules/react-native-create-thumbnail/android/build/.transforms/b0e51eadc74f7bec22fa445c21a664a0/transformed/classes/classes_dex/classes.dex
+new file mode 100644
+index 0000000..d52ae3c
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/.transforms/b0e51eadc74f7bec22fa445c21a664a0/transformed/classes/classes_dex/classes.dex differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/results.bin b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/results.bin
+new file mode 100644
+index 0000000..7ed749e
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/results.bin
+@@ -0,0 +1 @@
++o/bundleLibRuntimeToDirDebug
+diff --git a/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/BuildConfig.dex b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/BuildConfig.dex
+new file mode 100644
+index 0000000..4c8d5e2
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/BuildConfig.dex differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/CreateThumbnailModule.dex b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/CreateThumbnailModule.dex
+new file mode 100644
+index 0000000..2e7f494
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/CreateThumbnailModule.dex differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/CreateThumbnailPackage.dex b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/CreateThumbnailPackage.dex
+new file mode 100644
+index 0000000..05f5f1f
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/bundleLibRuntimeToDirDebug_dex/com/reactlibrary/createthumbnail/CreateThumbnailPackage.dex differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin
+new file mode 100644
+index 0000000..601f245
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/.transforms/ec1d777ecabcb2706897ee00a43d091e/transformed/bundleLibRuntimeToDirDebug/desugar_graph.bin differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/generated/source/buildConfig/debug/com/reactlibrary/createthumbnail/BuildConfig.java b/node_modules/react-native-create-thumbnail/android/build/generated/source/buildConfig/debug/com/reactlibrary/createthumbnail/BuildConfig.java
+new file mode 100644
+index 0000000..c689236
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/generated/source/buildConfig/debug/com/reactlibrary/createthumbnail/BuildConfig.java
+@@ -0,0 +1,10 @@
++/**
++ * Automatically generated file. DO NOT MODIFY
++ */
++package com.reactlibrary.createthumbnail;
++
++public final class BuildConfig {
++  public static final boolean DEBUG = Boolean.parseBoolean("true");
++  public static final String LIBRARY_PACKAGE_NAME = "com.reactlibrary.createthumbnail";
++  public static final String BUILD_TYPE = "debug";
++}
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml b/node_modules/react-native-create-thumbnail/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+new file mode 100644
+index 0000000..c0d992c
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.reactlibrary.createthumbnail" >
++
++    <uses-sdk android:minSdkVersion="24" />
++
++    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
++    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json b/node_modules/react-native-create-thumbnail/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+new file mode 100644
+index 0000000..cc0067c
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/output-metadata.json
+@@ -0,0 +1,18 @@
++{
++  "version": 3,
++  "artifactType": {
++    "type": "AAPT_FRIENDLY_MERGED_MANIFESTS",
++    "kind": "Directory"
++  },
++  "applicationId": "com.reactlibrary.createthumbnail",
++  "variantName": "debug",
++  "elements": [
++    {
++      "type": "SINGLE",
++      "filters": [],
++      "attributes": [],
++      "outputFile": "AndroidManifest.xml"
++    }
++  ],
++  "elementType": "File"
++}
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties b/node_modules/react-native-create-thumbnail/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+new file mode 100644
+index 0000000..1211b1e
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
+@@ -0,0 +1,6 @@
++aarFormatVersion=1.0
++aarMetadataVersion=1.0
++minCompileSdk=1
++minCompileSdkExtension=0
++minAndroidGradlePluginVersion=1.0.0
++coreLibraryDesugaringEnabled=false
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json b/node_modules/react-native-create-thumbnail/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+new file mode 100644
+index 0000000..9e26dfe
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/annotation_processor_list/debug/javaPreCompileDebug/annotationProcessors.json
+@@ -0,0 +1 @@
++{}
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar b/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar
+new file mode 100644
+index 0000000..a782255
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar b/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar
+new file mode 100644
+index 0000000..744b164
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt b/node_modules/react-native-create-thumbnail/android/build/intermediates/compile_symbol_list/debug/generateDebugRFile/R.txt
+new file mode 100644
+index 0000000..e69de29
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+new file mode 100644
+index 0000000..4d98f88
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/debug/packageDebugResources/compile-file-map.properties
+@@ -0,0 +1 @@
++#Mon Mar 23 09:47:26 CET 2026
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+new file mode 100644
+index 0000000..07380c0
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/debug/packageDebugResources/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="main" generated-set="main$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="debug" generated-set="debug$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/debug/res"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated$Generated" generated="true" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/build/generated/res/resValues/debug"/></dataSet><dataSet aapt-namespace="http://schemas.android.com/apk/res-auto" config="generated" generated-set="generated$Generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/build/generated/res/resValues/debug"/></dataSet><mergedItems/></merger>
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugAssets/merger.xml b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugAssets/merger.xml
+new file mode 100644
+index 0000000..135ea06
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugAssets/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/assets"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/debug/assets"/></dataSet><dataSet config="generated" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/build/intermediates/shader_assets/debug/compileDebugShaders/out"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml
+new file mode 100644
+index 0000000..4da3de2
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugJniLibFolders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/jniLibs"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/debug/jniLibs"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugShaders/merger.xml b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugShaders/merger.xml
+new file mode 100644
+index 0000000..48e0788
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/incremental/mergeDebugShaders/merger.xml
+@@ -0,0 +1,2 @@
++<?xml version="1.0" encoding="utf-8"?>
++<merger version="3"><dataSet config="main" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/shaders"/></dataSet><dataSet config="debug" ignore_pattern="!.svn:!.git:!.ds_store:!*.scc:.*:&lt;dir>_*:!CVS:!thumbs.db:!picasa.ini:!*~"><source path="/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/debug/shaders"/></dataSet></merger>
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/BuildConfig.class b/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/BuildConfig.class
+new file mode 100644
+index 0000000..4d3d132
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/BuildConfig.class differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/CreateThumbnailModule.class b/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/CreateThumbnailModule.class
+new file mode 100644
+index 0000000..2f86f71
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/CreateThumbnailModule.class differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/CreateThumbnailPackage.class b/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/CreateThumbnailPackage.class
+new file mode 100644
+index 0000000..85e00f9
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/reactlibrary/createthumbnail/CreateThumbnailPackage.class differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt b/node_modules/react-native-create-thumbnail/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+new file mode 100644
+index 0000000..78ac5b8
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/local_only_symbol_list/debug/parseDebugLocalResources/R-def.txt
+@@ -0,0 +1,2 @@
++R_DEF: Internal format may change without notice
++local
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt b/node_modules/react-native-create-thumbnail/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+new file mode 100644
+index 0000000..5ea3415
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/manifest_merge_blame_file/debug/processDebugManifest/manifest-merger-blame-debug-report.txt
+@@ -0,0 +1,14 @@
++1<?xml version="1.0" encoding="utf-8"?>
++2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++3    package="com.reactlibrary.createthumbnail" >
++4
++5    <uses-sdk android:minSdkVersion="24" />
++6
++7    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
++7-->/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:3:5-80
++7-->/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:3:22-78
++8    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
++8-->/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:4:5-79
++8-->/Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:4:22-77
++9
++10</manifest>
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml b/node_modules/react-native-create-thumbnail/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+new file mode 100644
+index 0000000..c0d992c
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/merged_manifest/debug/processDebugManifest/AndroidManifest.xml
+@@ -0,0 +1,10 @@
++<?xml version="1.0" encoding="utf-8"?>
++<manifest xmlns:android="http://schemas.android.com/apk/res/android"
++    package="com.reactlibrary.createthumbnail" >
++
++    <uses-sdk android:minSdkVersion="24" />
++
++    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
++    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
++
++</manifest>
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json b/node_modules/react-native-create-thumbnail/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+new file mode 100644
+index 0000000..0637a08
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/navigation_json/debug/extractDeepLinksDebug/navigation.json
+@@ -0,0 +1 @@
++[]
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt b/node_modules/react-native-create-thumbnail/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+new file mode 100644
+index 0000000..08f4ebe
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/nested_resources_validation_report/debug/generateDebugResources/nestedResourcesValidationReport.txt
+@@ -0,0 +1 @@
++0 Warning/Error
+\ No newline at end of file
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/BuildConfig.class b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/BuildConfig.class
+new file mode 100644
+index 0000000..4d3d132
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/BuildConfig.class differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/CreateThumbnailModule.class b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/CreateThumbnailModule.class
+new file mode 100644
+index 0000000..2f86f71
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/CreateThumbnailModule.class differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/CreateThumbnailPackage.class b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/CreateThumbnailPackage.class
+new file mode 100644
+index 0000000..85e00f9
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_dir/debug/bundleLibRuntimeToDirDebug/com/reactlibrary/createthumbnail/CreateThumbnailPackage.class differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar
+new file mode 100644
+index 0000000..eafcfc1
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar differ
+diff --git a/node_modules/react-native-create-thumbnail/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt b/node_modules/react-native-create-thumbnail/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+new file mode 100644
+index 0000000..88a2ea6
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
+@@ -0,0 +1 @@
++com.reactlibrary.createthumbnail
+diff --git a/node_modules/react-native-create-thumbnail/android/build/outputs/logs/manifest-merger-debug-report.txt b/node_modules/react-native-create-thumbnail/android/build/outputs/logs/manifest-merger-debug-report.txt
+new file mode 100644
+index 0000000..1ac2e6d
+--- /dev/null
++++ b/node_modules/react-native-create-thumbnail/android/build/outputs/logs/manifest-merger-debug-report.txt
+@@ -0,0 +1,25 @@
++-- Merging decision tree log ---
++manifest
++ADDED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:1:1-5:12
++INJECTED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:1:1-5:12
++	package
++		ADDED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:2:11-53
++		INJECTED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml
++	xmlns:android
++		ADDED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:1:11-69
++uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
++ADDED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:3:5-80
++	android:name
++		ADDED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:3:22-78
++uses-permission#android.permission.READ_EXTERNAL_STORAGE
++ADDED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:4:5-79
++	android:name
++		ADDED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml:4:22-77
++uses-sdk
++INJECTED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml reason: use-sdk injection requested
++INJECTED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml
++INJECTED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml
++	android:targetSdkVersion
++		INJECTED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml
++	android:minSdkVersion
++		INJECTED from /Users/mameo/Internxt_Projects/drive-mobile/node_modules/react-native-create-thumbnail/android/src/main/AndroidManifest.xml
+diff --git a/node_modules/react-native-create-thumbnail/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin b/node_modules/react-native-create-thumbnail/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin
+new file mode 100644
+index 0000000..058b6d1
+Binary files /dev/null and b/node_modules/react-native-create-thumbnail/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin differ
+diff --git a/node_modules/react-native-create-thumbnail/ios/CreateThumbnail.m b/node_modules/react-native-create-thumbnail/ios/CreateThumbnail.m
+index 4c87cfa..89ba04f 100644
+--- a/node_modules/react-native-create-thumbnail/ios/CreateThumbnail.m
++++ b/node_modules/react-native-create-thumbnail/ios/CreateThumbnail.m
+@@ -1,4 +1,5 @@
+ #import "CreateThumbnail.h"
++#import <ImageIO/ImageIO.h>
+ 
+ @implementation CreateThumbnail
+ 
+@@ -79,7 +80,18 @@ RCT_EXPORT_METHOD(create:(NSDictionary *)config findEventsWithResolver:(RCTPromi
+             reject(error.domain, error.description, nil);
+         };
+         
+-        if ([url_ hasPrefix:@"http://"] || [url_ hasPrefix:@"https://"]) {
++        NSString *fileExt = [[url_ pathExtension] lowercaseString];
++        BOOL isImageFile = [fileExt isEqualToString:@"jpg"] ||
++                           [fileExt isEqualToString:@"jpeg"] ||
++                           [fileExt isEqualToString:@"png"] ||
++                           [fileExt isEqualToString:@"heic"] ||
++                           [fileExt isEqualToString:@"heif"];
++
++        if (isImageFile) {
++            NSURL *imageURL = [url_ hasPrefix:@"file://"] ? [NSURL URLWithString:url] : [NSURL fileURLWithPath:url];
++            CGFloat maxSize = MAX(maxWidth, maxHeight);
++            [self generateImageThumbnailAtURL:imageURL maxSize:maxSize completion:completionBlock failure:failBlock];
++        } else if ([url_ hasPrefix:@"http://"] || [url_ hasPrefix:@"https://"]) {
+             AVURLAsset *asset = [[AVURLAsset alloc] initWithURL:vidURL options:@{@"AVURLAssetHTTPHeaderFieldsKey": headers}];
+             [self generateThumbImage:asset atTime:timeStamp maxWidth:maxWidth maxHeight:maxHeight timeToleranceMs:timeToleranceMs completion:completionBlock failure:failBlock];
+         } else {
+@@ -120,6 +132,36 @@ RCT_EXPORT_METHOD(create:(NSDictionary *)config findEventsWithResolver:(RCTPromi
+     return;
+ }
+ 
++- (void) generateImageThumbnailAtURL:(NSURL *)imageURL maxSize:(CGFloat)maxSize completion:(void (^)(UIImage* thumbnail))completion failure:(void (^)(NSError* error))failure {
++    @autoreleasepool {
++        CGImageSourceRef source = CGImageSourceCreateWithURL((__bridge CFURLRef)imageURL, NULL);
++        if (!source) {
++            NSError *error = [NSError errorWithDomain:@"CreateThumbnail" code:1 userInfo:@{NSLocalizedDescriptionKey: @"Could not create image source from URL"}];
++            failure(error);
++            return;
++        }
++
++        NSDictionary *options = @{
++            (NSString *)kCGImageSourceThumbnailMaxPixelSize: @(maxSize),
++            (NSString *)kCGImageSourceCreateThumbnailWithTransform: @YES,
++            (NSString *)kCGImageSourceCreateThumbnailFromImageAlways: @YES
++        };
++
++        CGImageRef cgImageRef = CGImageSourceCreateThumbnailAtIndex(source, 0, (__bridge CFDictionaryRef)options);
++        CFRelease(source);
++
++        if (!cgImageRef) {
++            NSError *error = [NSError errorWithDomain:@"CreateThumbnail" code:2 userInfo:@{NSLocalizedDescriptionKey: @"Could not generate thumbnail from image source"}];
++            failure(error);
++            return;
++        }
++
++        UIImage *thumbnail = [UIImage imageWithCGImage:cgImageRef];
++        CGImageRelease(cgImageRef);
++        completion(thumbnail);
++    }
++}
++
+ - (void) generateThumbImage:(AVURLAsset *)asset atTime:(int)timeStamp maxWidth:(CGFloat)maxWidth maxHeight:(CGFloat)maxHeight timeToleranceMs:(int)timeToleranceMs completion:(void (^)(UIImage* thumbnail))completion failure:(void (^)(NSError* error))failure {
+     AVAssetImageGenerator *generator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+     generator.appliesPreferredTrackTransform = YES;
+@@ -141,6 +183,7 @@ RCT_EXPORT_METHOD(create:(NSDictionary *)config findEventsWithResolver:(RCTPromi
+ - (void) generateLocalMediaThumbImage:(AVAsset *)asset atTime:(int)timeStamp completion:(void (^)(UIImage* thumbnail))completion failure:(void (^)(NSError* error))failure {
+     AVAssetImageGenerator *imageGenerator = [[AVAssetImageGenerator alloc] initWithAsset:asset];
+     imageGenerator.appliesPreferredTrackTransform = YES;
++    imageGenerator.maximumSize = CGSizeMake(512, 512);
+     CMTime time = CMTimeMake(timeStamp, 1000);
+     NSError *error = nil;
+     CMTime actualTime;

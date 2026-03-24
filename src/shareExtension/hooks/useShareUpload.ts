@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Platform } from 'react-native';
+import * as RNFS from '@dr.pogodin/react-native-fs';
 import { FileTooLargeError, MissingFileUriError, UploadNetworkError } from '../errors';
 import {
   ShareUploadCredentials,
@@ -19,6 +20,7 @@ interface UseShareUploadResult {
   status: UploadStatus;
   errorType: UploadErrorType | null;
   progress: UploadProgress | null;
+  thumbnailUri: string | null;
   uploadFiles: (
     files: SharedFile[],
     folderUuid: string,
@@ -50,11 +52,18 @@ export const useShareUpload = (): UseShareUploadResult => {
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [errorType, setErrorType] = useState<UploadErrorType | null>(null);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
+  const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
+  const thumbnailUriRef = useRef<string | null>(null);
 
   const reset = useCallback(() => {
+    if (thumbnailUriRef.current) {
+      RNFS.unlink(thumbnailUriRef.current).catch(() => undefined);
+      thumbnailUriRef.current = null;
+    }
     setStatus('idle');
     setErrorType(null);
     setProgress(null);
+    setThumbnailUri(null);
   }, []);
 
   const uploadFiles = useCallback(
@@ -69,6 +78,8 @@ export const useShareUpload = (): UseShareUploadResult => {
         }
 
         setStatus('uploading');
+        setThumbnailUri(null);
+        const isSingleFile = files.length === 1;
         const shareUploadSession = createShareUploadSession(credentials);
 
         for (let i = 0; i < files.length; i++) {
@@ -90,9 +101,9 @@ export const useShareUpload = (): UseShareUploadResult => {
 
           setProgress(buildProgress(0));
 
-          const finalFileName = files.length === 1 && renamedFileName ? renamedFileName : currentSharedFile.fileName;
+          const finalFileName = isSingleFile && renamedFileName ? renamedFileName : currentSharedFile.fileName;
 
-          await shareUploadFile({
+          const result = await shareUploadFile({
             filePath: currentSharedFile.uri,
             fileName: getFileNameWithoutExtension(finalFileName),
             fileExtension: getFileExtension(finalFileName),
@@ -106,6 +117,11 @@ export const useShareUpload = (): UseShareUploadResult => {
             },
             onProgress: (bytesUploaded) => setProgress(buildProgress(bytesUploaded)),
           });
+
+          if (isSingleFile) {
+            thumbnailUriRef.current = result.thumbnailLocalUri;
+            setThumbnailUri(result.thumbnailLocalUri);
+          }
         }
 
         setStatus('success');
@@ -117,5 +133,5 @@ export const useShareUpload = (): UseShareUploadResult => {
     [],
   );
 
-  return { status, errorType, progress, uploadFiles, reset };
+  return { status, errorType, progress, thumbnailUri, uploadFiles, reset };
 };
