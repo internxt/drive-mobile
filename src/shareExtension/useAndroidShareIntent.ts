@@ -1,14 +1,14 @@
 import { NavigationContainerRef } from '@react-navigation/native';
 import { useEffect, useState } from 'react';
 import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
+import { logger } from '../services/common';
 import { RootStackParamList } from '../types/navigation';
 import { SharedFile } from './types';
-import { logger } from '../services/common';
 
-export function useAndroidShareIntent(
+export const useAndroidShareIntent = (
   navigationContainerRef: NavigationContainerRef<RootStackParamList> | undefined,
   isLoggedIn: boolean | null,
-) {
+) => {
   const [pendingFiles, setPendingFiles] = useState<SharedFile[] | null>(null);
 
   useEffect(() => {
@@ -37,4 +37,4 @@ export function useAndroidShareIntent(
     });
     return () => subscription.remove();
   }, [navigationContainerRef]);
-}
+};

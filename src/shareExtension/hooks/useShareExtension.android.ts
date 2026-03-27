@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { SharedFile } from '../types';
 import { readSize } from '../utils';
-import { useShareAuth } from './useShareAuth.android';
+import { useShareAuth } from './useShareAuth';
 
 export const useShareExtension = (rawFiles: SharedFile[]) => {
   const { status, rootFolderUuid, mnemonic, bucket, bridgeUser, userId } = useShareAuth();

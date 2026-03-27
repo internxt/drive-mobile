@@ -3,6 +3,7 @@ export interface SharedFile {
   mimeType: string | null;
   fileName: string | null;
   size: number | null;
+  phAssetId?: string; // iOS only: PHAsset localIdentifier
 }
 
 export interface ShareFolderItem {
@@ -23,12 +24,7 @@ export type DriveViewMode = 'grid' | 'list';
 
 export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
-export type UploadErrorType =
-  | 'general'
-  | 'no_internet'
-  | 'session_expired'
-  | 'prep_failed'
-  | 'file_too_large';
+export type UploadErrorType = 'general' | 'no_internet' | 'session_expired' | 'prep_failed' | 'file_too_large';
 
 export interface UploadProgress {
   currentFile: number;
@@ -36,4 +32,3 @@ export interface UploadProgress {
   bytesUploaded: number;
   currentFileSize: number;
 }
-

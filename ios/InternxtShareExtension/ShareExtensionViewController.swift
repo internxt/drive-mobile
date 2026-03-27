@@ -5,6 +5,8 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import AVFoundation
 import UniformTypeIdentifiers
+import Photos
+
 // ─── Internxt additions ───────────────────────────────────────────────────────
 import Security
 
@@ -48,6 +50,17 @@ class ShareExtensionViewController: UIViewController {
   var reactNativeFactory: RCTReactNativeFactory?
   var reactNativeFactoryDelegate: RCTReactNativeFactoryDelegate?
   private var isCleanedUp = false
+
+  // ── Internxt: threshold for handoff to main app ────────────────────────────
+  private let IOS_HANDOFF_THRESHOLD: Int64 = 300 * 1024 * 1024
+
+  private struct CollectedItem {
+    let url: URL
+    let name: String
+    let category: String       // "files", "images", "videos"
+    let phAssetId: String?     // PHAsset localIdentifier — nil for non-Photos items
+  }
+  // ──────────────────────────────────────────────────────────────────────────
 
   deinit {
     cleanupAfterClose()
@@ -290,329 +303,209 @@ class ShareExtensionViewController: UIViewController {
     return UIColor(red: red / 255.0, green: green / 255.0, blue: blue / 255.0, alpha: alpha)
   }
 
-  // ─── From expo-share-extension library ───────────────────────────────────────
-  // Reads the NSExtensionItem attachments from the share context and classifies
-  // each one by UTType into: images / videos / files / url / text.
-  // The result is passed as initialProperties to the React Native root view.
+  // ─── Internxt: Two-phase getShareData with large file handoff ─────────────
+  //
+  // PHASE 1: Collect all items without copying to the App Group
+  // PHASE 2 (group.notify): Calculate totalSize → decide normal upload vs handoff
+  //
+  // If totalSize > IOS_HANDOFF_THRESHOLD:
+  //   • Photos assets → phAssetId only in JSON (no file copy, 0 bytes written)
+  //   • Files.app / iCloud Drive → moveItem to App Group, dest URI in JSON
+  //   • Do NOT call completion → React Native must never start on handoff
+  //
+  // If totalSize ≤ IOS_HANDOFF_THRESHOLD:
+  //   • copyItem to App Group → completion(sharedItems) → React Native normal upload
+  // ──────────────────────────────────────────────────────────────────────────
   private func getShareData(completion: @escaping ([String: Any]?) -> Void) {
     guard let extensionItems = extensionContext?.inputItems as? [NSExtensionItem] else {
       completion(nil)
       return
     }
 
-    var sharedItems: [String: Any] = [:]
+    // Flatten all providers with a global index
+    var allProviders: [NSItemProvider] = []
+    for item in extensionItems {
+      allProviders.append(contentsOf: item.attachments ?? [])
+    }
+
+    // Resultados por índice de provider
+    var resultURLs:          [Int: URL]    = [:]
+    var resultNames:         [Int: String] = [:]
+    var resultCategories:    [Int: String] = [:]
+    var resultPhAssetIds:    [Int: String] = [:]
+
+    var preprocessingResults: NSDictionary? = nil
+    var sharedURL: String? = nil
+    var sharedText: String? = nil
+
+    let lock = NSLock()
     let group = DispatchGroup()
     let fileManager = FileManager.default
+    let tempDir = fileManager.temporaryDirectory
 
-    for item in extensionItems {
-      for provider in item.attachments ?? [] {
-        if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
-          group.enter()
-          provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { (urlItem, error) in
-            DispatchQueue.main.async {
-              if let sharedURL = urlItem as? URL {
-                if sharedURL.isFileURL {
-                  // Screenshot overlay sends public.url (file URLs) instead of public.image
-                  let fileExtension = sharedURL.pathExtension.lowercased()
-                  let imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "heic", "heif", "webp"]
-                  var isImage = imageExtensions.contains(fileExtension)
+    for (idx, provider) in allProviders.enumerated() {
 
-                  if !isImage, let resourceValues = try? sharedURL.resourceValues(forKeys: [.typeIdentifierKey]),
-                     let typeIdentifier = resourceValues.typeIdentifier {
-                    isImage = UTType(typeIdentifier)?.conforms(to: .image) ?? false
-                  }
+      // ── PHAsset (Photos) — loads concurrently with the URL, captures localIdentifier ──
+      // NSClassFromString avoids the Swift generic overload that requires _ObjectiveCBridgeable.
+      // Casting to NSItemProviderReading.Type uses the non-generic ObjC overload of canLoadObject/loadObject.
+      if let phAssetClass = NSClassFromString("PHAsset") as? NSItemProviderReading.Type,
+         provider.canLoadObject(ofClass: phAssetClass) {
+        group.enter()
+        provider.loadObject(ofClass: phAssetClass) { (obj, _) in
+          DispatchQueue.main.async {
+            defer { group.leave() }
+            guard let asset = obj as? PHAsset else { return }
+            let resources = PHAssetResource.assetResources(for: asset)
+            let originalName = resources.first(where: {
+              $0.type == .video || $0.type == .fullSizeVideo
+            })?.originalFilename ?? resources.first?.originalFilename
+            lock.lock()
+            resultPhAssetIds[idx] = asset.localIdentifier
+            if let name = originalName {
+              resultNames[idx] = name   // nombre original del asset (IMG_3290.MOV)
+            }
+            lock.unlock()
+          }
+        }
+      }
 
-                  guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                    print("Could not find AppGroup in info.plist")
-                    group.leave()
-                    return
-                  }
+      // ── public.url — Files.app, iCloud Drive, screenshots ──
+      if provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
+        group.enter()
+        provider.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { (urlItem, _) in
+          DispatchQueue.main.async {
+            defer { group.leave() }
+            if let url = urlItem as? URL {
+              if url.isFileURL {
+                let ext = url.pathExtension.lowercased()
+                let imageExtensions = ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "tif", "heic", "heif", "webp"]
+                var isImage = imageExtensions.contains(ext)
+                if !isImage, let resourceValues = try? url.resourceValues(forKeys: [.typeIdentifierKey]),
+                   let typeIdentifier = resourceValues.typeIdentifier {
+                  isImage = UTType(typeIdentifier)?.conforms(to: .image) ?? false
+                }
+                lock.lock()
+                resultURLs[idx] = url
+                // Only set name if PHAsset has not already set the original filename
+                if resultNames[idx] == nil { resultNames[idx] = url.lastPathComponent }
+                resultCategories[idx] = isImage ? "images" : "files"
+                lock.unlock()
+              } else {
+                lock.lock()
+                sharedURL = url.absoluteString
+                lock.unlock()
+              }
+            }
+          }
+        }
+      }
 
-                  guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                    print("Could not set up file manager container URL for app group")
-                    group.leave()
-                    return
-                  }
+      // ── propertyList — Safari preprocessing ──
+      if provider.hasItemConformingToTypeIdentifier(UTType.propertyList.identifier) {
+        group.enter()
+        provider.loadItem(forTypeIdentifier: UTType.propertyList.identifier, options: nil) { (item, _) in
+          DispatchQueue.main.async {
+            defer { group.leave() }
+            if let itemDict = item as? NSDictionary,
+               let results = itemDict[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary {
+              lock.lock()
+              preprocessingResults = results
+              lock.unlock()
+            }
+          }
+        }
+      }
 
-                  let tempFilePath = sharedURL.path
-                  let fileName = sharedURL.lastPathComponent
-                  let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-
-                  if !fileManager.fileExists(atPath: sharedDataUrl.path) {
-                    do {
-                      try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
-                    } catch {
-                      print("Failed to create sharedData directory: \(error)")
-                    }
-                  }
-
-                  let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-
-                  do {
-                    try? fileManager.removeItem(atPath: persistentURL.path)
-                    try fileManager.copyItem(atPath: tempFilePath, toPath: persistentURL.path)
-                    let key = isImage ? "images" : "files"
-                    if sharedItems[key] == nil {
-                      sharedItems[key] = [String]()
-                    }
-                    if var array = sharedItems[key] as? [String] {
-                      array.append(persistentURL.absoluteString)
-                      sharedItems[key] = array
-                    }
-                  } catch {
-                    print("Failed to copy file: \(error)")
-                  }
+      // ── text — if there are no URL ──
+      if !provider.hasItemConformingToTypeIdentifier(UTType.url.identifier)
+          && provider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
+        group.enter()
+        provider.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { (textItem, _) in
+          DispatchQueue.main.async {
+            defer { group.leave() }
+            if let text = textItem as? String {
+              lock.lock()
+              sharedText = text
+              lock.unlock()
+            }
+          }
+        }
+      } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+        // ── image — only if there is no URL (avoids duplicating Photos items via url+image) ──
+        group.enter()
+        provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { (imageItem, _) in
+          DispatchQueue.main.async {
+            defer { group.leave() }
+            let name = UUID().uuidString
+            if let imageURL = imageItem as? NSURL, let path = imageURL.path {
+              let ext = imageURL.pathExtension ?? "jpg"
+              lock.lock()
+              resultURLs[idx] = URL(fileURLWithPath: path)
+              if resultNames[idx] == nil { resultNames[idx] = "\(name).\(ext)" }
+              resultCategories[idx] = "images"
+              lock.unlock()
+            } else if let image = imageItem as? UIImage,
+                      let data = image.jpegData(compressionQuality: 1.0) {
+              let dest = tempDir.appendingPathComponent("\(name).jpg")
+              try? data.write(to: dest)
+              lock.lock()
+              resultURLs[idx] = dest
+              if resultNames[idx] == nil { resultNames[idx] = "\(name).jpg" }
+              resultCategories[idx] = "images"
+              lock.unlock()
+            } else if let data = imageItem as? Data {
+              let dest = tempDir.appendingPathComponent("\(name).jpg")
+              try? data.write(to: dest)
+              lock.lock()
+              resultURLs[idx] = dest
+              if resultNames[idx] == nil { resultNames[idx] = "\(name).jpg" }
+              resultCategories[idx] = "images"
+              lock.unlock()
+            }
+          }
+        }
+      } else if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
+        // ── movie — only if there is no URL ──
+        group.enter()
+        provider.loadItem(forTypeIdentifier: UTType.movie.identifier, options: nil) { (videoItem, _) in
+          DispatchQueue.main.async {
+            let name = UUID().uuidString
+            if let videoURL = videoItem as? NSURL, let path = videoURL.path {
+              let ext = videoURL.pathExtension ?? "mov"
+              lock.lock()
+              resultURLs[idx] = URL(fileURLWithPath: path)
+              if resultNames[idx] == nil { resultNames[idx] = "\(name).\(ext)" }
+              resultCategories[idx] = "videos"
+              lock.unlock()
+              group.leave()
+            } else if let videoData = videoItem as? NSData {
+              let dest = tempDir.appendingPathComponent("\(name).mov")
+              try? videoData.write(to: dest)
+              lock.lock()
+              resultURLs[idx] = dest
+              if resultNames[idx] == nil { resultNames[idx] = "\(name).mov" }
+              resultCategories[idx] = "videos"
+              lock.unlock()
+              group.leave()
+            } else if let asset = videoItem as? AVAsset {
+              let dest = tempDir.appendingPathComponent("\(name).mov")
+              let session = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
+              session?.outputURL = dest
+              session?.outputFileType = .mov
+              session?.exportAsynchronously {
+                if session?.status == .completed {
+                  lock.lock()
+                  resultURLs[idx] = dest
+                  if resultNames[idx] == nil { resultNames[idx] = "\(name).mov" }
+                  resultCategories[idx] = "videos"
+                  lock.unlock()
                 } else {
-                  sharedItems["url"] = sharedURL.absoluteString
+                  print("[ShareExt] AVAsset export failed: \(String(describing: session?.error))")
                 }
+                group.leave()
               }
-              group.leave()
-            }
-          }
-        }
-
-        // Check for propertyList separately (not else-if) to handle preprocessing results
-        // Safari provides both URL and propertyList when JavaScript preprocessing is enabled
-        if provider.hasItemConformingToTypeIdentifier(UTType.propertyList.identifier) {
-          group.enter()
-          provider.loadItem(forTypeIdentifier: UTType.propertyList.identifier, options: nil) { (item, error) in
-            DispatchQueue.main.async {
-              if let itemDict = item as? NSDictionary,
-                 let results = itemDict[NSExtensionJavaScriptPreprocessingResultsKey] as? NSDictionary {
-                sharedItems["preprocessingResults"] = results
-              }
-              group.leave()
-            }
-          }
-        }
-
-        // Only check for plain text if no URL was found
-        if !provider.hasItemConformingToTypeIdentifier(UTType.url.identifier) && provider.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
-          group.enter()
-          provider.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { (textItem, error) in
-            DispatchQueue.main.async {
-              if let text = textItem as? String {
-                sharedItems["text"] = text
-              }
-              group.leave()
-            }
-          }
-        } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-          group.enter()
-          provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { (imageItem, error) in
-            DispatchQueue.main.async {
-
-              // Ensure the array exists
-              if sharedItems["images"] == nil {
-                sharedItems["images"] = [String]()
-              }
-
-              guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                print("Could not find AppGroup in info.plist")
-                return
-              }
-
-              guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                print("Could not set up file manager container URL for app group")
-                return
-              }
-
-              if let imageUri = imageItem as? NSURL {
-                if let tempFilePath = imageUri.path {
-                  let fileExtension = imageUri.pathExtension ?? "jpg"
-                  let fileName = UUID().uuidString + "." + fileExtension
-                  let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-
-                  if !fileManager.fileExists(atPath: sharedDataUrl.path) {
-                    do {
-                      try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
-                    } catch {
-                      print("Failed to create sharedData directory: \(error)")
-                    }
-                  }
-
-                  let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-
-                  do {
-                    try fileManager.copyItem(atPath: tempFilePath, toPath: persistentURL.path)
-                    if var imageArray = sharedItems["images"] as? [String] {
-                      imageArray.append(persistentURL.absoluteString)
-                      sharedItems["images"] = imageArray
-                    }
-                  } catch {
-                    print("Failed to copy image: \(error)")
-                  }
-                }
-              } else if let image = imageItem as? UIImage {
-                // Handle UIImage if needed (e.g., save to disk and get the file path)
-                if let imageData = image.jpegData(compressionQuality: 1.0) {
-                  let fileName = UUID().uuidString + ".jpg"
-                  let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-
-                  if !fileManager.fileExists(atPath: sharedDataUrl.path) {
-                    do {
-                      try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
-                    } catch {
-                      print("Failed to create sharedData directory: \(error)")
-                    }
-                  }
-
-                  let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-
-                  do {
-                    try imageData.write(to: persistentURL)
-                    if var imageArray = sharedItems["images"] as? [String] {
-                      imageArray.append(persistentURL.absoluteString)
-                      sharedItems["images"] = imageArray
-                    }
-                  } catch {
-                    print("Failed to save image: \(error)")
-                  }
-                }
-              } else if let image = imageItem as? Data {
-                print("📸 Handling Data type image")
-                let fileName = UUID().uuidString + ".jpg"
-                let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-
-                if !fileManager.fileExists(atPath: sharedDataUrl.path) {
-                  do {
-                    try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
-                  } catch {
-                    print("Failed to create sharedData directory: \(error)")
-                  }
-                }
-
-                let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-
-                do {
-                  try image.write(to: persistentURL)
-                  if var imageArray = sharedItems["images"] as? [String] {
-                    imageArray.append(persistentURL.path)
-                    sharedItems["images"] = imageArray
-                  }
-                  print("📸 Successfully saved Data type image to: \(persistentURL.path)")
-                } catch {
-                  print("Failed to save Data image: \(error)")
-                }
-              } else {
-                print("imageItem is not a recognized type")
-              }
-              group.leave()
-            }
-          }
-        } else if provider.hasItemConformingToTypeIdentifier(UTType.movie.identifier) {
-          group.enter()
-          provider.loadItem(forTypeIdentifier: UTType.movie.identifier, options: nil) { (videoItem, error) in
-            DispatchQueue.main.async {
-              print("videoItem type: \(type(of: videoItem))")
-
-              // Ensure the array exists
-              if sharedItems["videos"] == nil {
-                sharedItems["videos"] = [String]()
-              }
-
-              guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String else {
-                print("Could not find AppGroup in info.plist")
-                return
-              }
-
-              guard let containerUrl = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroup) else {
-                print("Could not set up file manager container URL for app group")
-                return
-              }
-
-              // Check if videoItem is NSURL
-              if let videoUri = videoItem as? NSURL {
-                if let tempFilePath = videoUri.path {
-                  let fileExtension = videoUri.pathExtension ?? "mov"
-                  let fileName = UUID().uuidString + "." + fileExtension
-                  let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-
-                  if !fileManager.fileExists(atPath: sharedDataUrl.path) {
-                    do {
-                      try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
-                    } catch {
-                      print("Failed to create sharedData directory: \(error)")
-                    }
-                  }
-
-                  let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-
-                  do {
-                    try fileManager.copyItem(atPath: tempFilePath, toPath: persistentURL.path)
-                    if var videoArray = sharedItems["videos"] as? [String] {
-                      videoArray.append(persistentURL.path)
-                      sharedItems["videos"] = videoArray
-                    }
-                  } catch {
-                    print("Failed to copy video: \(error)")
-                  }
-                }
-              }
-              // Check if videoItem is NSData
-              else if let videoData = videoItem as? NSData {
-                let fileExtension = "mov" // Using mov as default type extension
-                let fileName = UUID().uuidString + "." + fileExtension
-                let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-
-                if !fileManager.fileExists(atPath: sharedDataUrl.path) {
-                  do {
-                    try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
-                  } catch {
-                    print("Failed to create sharedData directory: \(error)")
-                  }
-                }
-
-                let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-
-                do {
-                  try videoData.write(to: persistentURL)
-                  if var videoArray = sharedItems["videos"] as? [String] {
-                    videoArray.append(persistentURL.path)
-                    sharedItems["videos"] = videoArray
-                  }
-                } catch {
-                  print("Failed to save video: \(error)")
-                }
-              }
-              // Check if videoItem is AVAsset
-              else if let asset = videoItem as? AVAsset {
-                let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetPassthrough)
-
-                let fileExtension = "mov" // Using mov as default type extension
-                let fileName = UUID().uuidString + "." + fileExtension
-
-                let sharedDataUrl = containerUrl.appendingPathComponent("sharedData")
-
-                if !fileManager.fileExists(atPath: sharedDataUrl.path) {
-                  do {
-                    try fileManager.createDirectory(at: sharedDataUrl, withIntermediateDirectories: true)
-                  } catch {
-                    print("Failed to create sharedData directory: \(error)")
-                  }
-                }
-
-                let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
-
-                exportSession?.outputURL = persistentURL
-                exportSession?.outputFileType = .mov
-                func onExportComplete() {
-                  switch exportSession?.status {
-                  case .completed:
-                    if var videoArray = sharedItems["videos"] as? [String] {
-                      videoArray.append(persistentURL.absoluteString)
-                      sharedItems["videos"] = videoArray
-                    }
-                  case .failed:
-                    print("Failed to export video: \(String(describing: exportSession?.error))")
-                  default:
-                    break
-                  }
-                }
-                exportSession?.exportAsynchronously(completionHandler: onExportComplete)
-              } else {
-                print("videoItem is not a recognized type")
-              }
+            } else {
+              print("[ShareExt] videoItem is not a recognized type")
               group.leave()
             }
           }
@@ -621,7 +514,141 @@ class ShareExtensionViewController: UIViewController {
     }
 
     group.notify(queue: .main) {
-      completion(sharedItems.isEmpty ? nil : sharedItems)
+      // Build collectedItems from the indexed dictionaries
+      var collectedItems: [CollectedItem] = []
+      for (idx, url) in resultURLs {
+        collectedItems.append(CollectedItem(
+          url: url,
+          name: resultNames[idx] ?? url.lastPathComponent,
+          category: resultCategories[idx] ?? "files",
+          phAssetId: resultPhAssetIds[idx]
+        ))
+      }
+      // Items with PHAsset only (no public.url): the Photos provider does not always emit a URL.
+      // In the normal path they are skipped (no local file to copy); in handoff the assetId is used.
+      for (idx, assetId) in resultPhAssetIds where resultURLs[idx] == nil {
+        collectedItems.append(CollectedItem(
+          url: URL(fileURLWithPath: ""),  // placeholder — sin archivo local
+          name: resultNames[idx] ?? assetId,
+          category: resultCategories[idx] ?? "videos",
+          phAssetId: assetId
+        ))
+      }
+
+      // Calculate totalSize — [.size] returns NSNumber, not Int64 directly
+      let totalSize = collectedItems.reduce(Int64(0)) { sum, item in
+        let itemSize = (try? (fileManager.attributesOfItem(atPath: item.url.path)[.size] as? NSNumber)?.int64Value) ?? 0
+        return sum + itemSize
+      }
+
+      guard let appGroup = Bundle.main.object(forInfoDictionaryKey: "AppGroup") as? String,
+            let containerURL = fileManager.containerURL(forSecurityApplicationGroupIdentifier: appGroup)
+      else {
+        completion(nil)
+        return
+      }
+
+      let sharedDataURL = containerURL.appendingPathComponent("sharedData")
+      if !fileManager.fileExists(atPath: sharedDataURL.path) {
+        try? fileManager.createDirectory(at: sharedDataURL, withIntermediateDirectories: true)
+      }
+
+      if totalSize > self.IOS_HANDOFF_THRESHOLD {
+        self.handleLargeFileHandoff(
+          items: collectedItems,
+          containerURL: containerURL,
+          sharedDataURL: sharedDataURL
+        )
+      } else {
+        var sharedItems: [String: Any] = [:]
+
+        for item in collectedItems {
+          // PHAsset-only items (empty url) are only supported in the handoff path; skip them here
+          guard !item.url.path.isEmpty else { continue }
+          let dest = sharedDataURL.appendingPathComponent(item.name)
+          try? fileManager.removeItem(at: dest)
+          try? fileManager.copyItem(at: item.url, to: dest)
+          var arr = sharedItems[item.category] as? [String] ?? []
+          arr.append(dest.absoluteString)
+          sharedItems[item.category] = arr
+        }
+
+        if let url = sharedURL { sharedItems["url"] = url }
+        if let text = sharedText { sharedItems["text"] = text }
+        if let results = preprocessingResults { sharedItems["preprocessingResults"] = results }
+
+        completion(sharedItems.isEmpty ? nil : sharedItems)
+      }
     }
+  }
+
+  private func handleLargeFileHandoff(items: [CollectedItem],
+                                      containerURL: URL,
+                                      sharedDataURL: URL) {
+    let fileManager = FileManager.default
+    var fileEntries: [[String: Any]] = []
+
+    for item in items {
+      if let assetId = item.phAssetId {
+        // ── Photos item: no file copy, 0 bytes written ──
+        // The main app will export the asset via PHAssetResourceManager
+        let size = (try? (fileManager.attributesOfItem(atPath: item.url.path)[.size] as? NSNumber)?.int64Value) ?? 0
+        fileEntries.append([
+          "uri": "",
+          "name": item.name,
+          "size": size,
+          "phAssetId": assetId,
+        ])
+        print("[Handoff] PHAsset queued (no copy): \(item.name) id=\(assetId)")
+      } else {
+        // ── Files.app / iCloud Drive item: move or copy to App Group ──
+        let dest = sharedDataURL.appendingPathComponent(item.name)
+        let finalURL: URL
+        try? fileManager.removeItem(at: dest)
+        do {
+          try fileManager.moveItem(at: item.url, to: dest)
+          finalURL = dest
+          print("[Handoff] moveItem OK: \(item.name)")
+        } catch {
+          print("[Handoff] moveItem failed for \(item.name): \(error). Trying copyItem...")
+          do {
+            try fileManager.copyItem(at: item.url, to: dest)
+            finalURL = dest
+            print("[Handoff] copyItem OK: \(item.name)")
+          } catch {
+            print("[Handoff] copyItem also failed, using original URL: \(error)")
+            finalURL = item.url
+          }
+        }
+        let size = (try? (fileManager.attributesOfItem(atPath: finalURL.path)[.size] as? NSNumber)?.int64Value) ?? 0
+        fileEntries.append([
+          "uri": finalURL.absoluteString,
+          "name": item.name,
+          "size": size,
+        ])
+      }
+    }
+
+    let timestamp = Int64(Date().timeIntervalSince1970 * 1000)
+    let metadata: [String: Any] = [
+      "files": fileEntries,
+      "timestamp": timestamp,
+    ]
+
+    do {
+      guard let data = try? JSONSerialization.data(withJSONObject: metadata),
+            let json = String(data: data, encoding: .utf8) else {
+        throw NSError(domain: "Handoff", code: 1,
+                      userInfo: [NSLocalizedDescriptionKey: "Failed to serialize handoff metadata"])
+      }
+      try json.write(
+        to: containerURL.appendingPathComponent("pending_share_upload.json"),
+        atomically: true,
+        encoding: .utf8
+      )
+    } catch {
+      print("[Handoff] ERROR: Failed to write pending_share_upload.json: \(error)")
+    }
+    openHostApp(path: "handle-large-share")
   }
 }

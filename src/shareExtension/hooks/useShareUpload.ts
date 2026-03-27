@@ -1,6 +1,6 @@
-import { useCallback, useRef, useState } from 'react';
-import { Platform } from 'react-native';
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import { useCallback, useRef, useState } from 'react';
+import { NativeModules, Platform } from 'react-native';
 import { FileTooLargeError, MissingFileUriError, UploadNetworkError } from '../errors';
 import {
   ShareUploadCredentials,
@@ -11,10 +11,28 @@ import {
 import { SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { getFileExtension, getFileNameWithoutExtension } from '../utils';
 
+interface PHAssetExportNativeModule {
+  exportAsset(localIdentifier: string): Promise<PHAssetExportResult>;
+}
+
+interface PHAssetExportResult {
+  uri: string;
+  size: number;
+  fileName: string;
+}
+
+const PHAssetExport = NativeModules.PHAssetExport as PHAssetExportNativeModule;
+
+const exportPhAsset = (phAssetId: string): Promise<PHAssetExportResult> => PHAssetExport.exportAsset(phAssetId);
+
 const HTTP_STATUS = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
 } as const;
+
+interface UseShareUploadOptions {
+  skipSizeCheck?: boolean;
+}
 
 interface UseShareUploadResult {
   status: UploadStatus;
@@ -48,7 +66,14 @@ const classifyError = (error: unknown): UploadErrorType => {
   return 'general';
 };
 
-export const useShareUpload = (): UseShareUploadResult => {
+const buildProgressState =
+  (updatedFields: Partial<UploadProgress>) =>
+  (prev: UploadProgress | null): UploadProgress => {
+    const prevState = prev ?? {};
+    return { ...prevState, ...updatedFields } as UploadProgress;
+  };
+
+export const useShareUpload = ({ skipSizeCheck = false }: UseShareUploadOptions = {}): UseShareUploadResult => {
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [errorType, setErrorType] = useState<UploadErrorType | null>(null);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
@@ -73,7 +98,7 @@ export const useShareUpload = (): UseShareUploadResult => {
       setErrorType(null);
 
       try {
-        if (Platform.OS === 'ios' && isIosTotalSizeTooLargeForUpload(files)) {
+        if (!skipSizeCheck && Platform.OS === 'ios' && isIosTotalSizeTooLargeForUpload(files)) {
           throw new FileTooLargeError();
         }
 
@@ -86,36 +111,44 @@ export const useShareUpload = (): UseShareUploadResult => {
           const currentFileNumber = i + 1;
           const currentSharedFile = files[i];
 
-          if (!currentSharedFile.uri) {
+          if (!currentSharedFile.uri && !currentSharedFile.phAssetId) {
             throw new MissingFileUriError();
           }
 
-          const resolvedSize = { current: currentSharedFile.size ?? 0 };
+          let fileToUpload = currentSharedFile;
+          if (Platform.OS === 'ios' && currentSharedFile.phAssetId) {
+            const exported = await exportPhAsset(currentSharedFile.phAssetId);
+            fileToUpload = {
+              ...currentSharedFile,
+              uri: exported.uri,
+              size: exported.size,
+              fileName: exported.fileName,
+            };
+          }
 
-          const buildProgress = (bytesUploaded: number): UploadProgress => ({
-            currentFile: currentFileNumber,
-            totalFiles: files.length,
-            bytesUploaded,
-            currentFileSize: resolvedSize.current,
-          });
+          setProgress(
+            buildProgressState({
+              currentFile: currentFileNumber,
+              totalFiles: files.length,
+              bytesUploaded: 0,
+              currentFileSize: fileToUpload.size ?? 0,
+            }),
+          );
 
-          setProgress(buildProgress(0));
-
-          const finalFileName = isSingleFile && renamedFileName ? renamedFileName : currentSharedFile.fileName;
+          const finalFileName = isSingleFile && renamedFileName ? renamedFileName : fileToUpload.fileName;
 
           const result = await shareUploadFile({
-            filePath: currentSharedFile.uri,
+            filePath: fileToUpload.uri,
             fileName: getFileNameWithoutExtension(finalFileName),
             fileExtension: getFileExtension(finalFileName),
-            fileSize: currentSharedFile.size,
+            fileSize: fileToUpload.size,
             folderUuid,
             credentials,
             shareUploadSession,
             onFileResolved: (resolvedFileSize) => {
-              resolvedSize.current = resolvedFileSize;
-              setProgress(buildProgress(0));
+              setProgress(buildProgressState({ currentFileSize: resolvedFileSize, bytesUploaded: 0 }));
             },
-            onProgress: (bytesUploaded) => setProgress(buildProgress(bytesUploaded)),
+            onProgress: (bytesUploaded) => setProgress(buildProgressState({ bytesUploaded })),
           });
 
           if (isSingleFile) {
@@ -130,7 +163,7 @@ export const useShareUpload = (): UseShareUploadResult => {
         setStatus('error');
       }
     },
-    [],
+    [skipSizeCheck],
   );
 
   return { status, errorType, progress, thumbnailUri, uploadFiles, reset };

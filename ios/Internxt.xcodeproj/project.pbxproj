@@ -17,6 +17,8 @@
 		8F8148045BC14A539BD1917D /* ShareExtensionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		DC811D94D426EAC8A114E590 /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 5FA215C540BF95F26A64F2F6 /* libPods-Internxt.a */; };
+		DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */; };
+		DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
@@ -58,20 +60,22 @@
 		13B07F961A680F5B00A75B9A /* Internxt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Internxt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Internxt/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Internxt/Info.plist; sourceTree = "<group>"; };
-		30C3C55FF8AE435F8A82A9BC /* InternxtShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = InternxtShareExtension.entitlements; path = InternxtShareExtension.entitlements; sourceTree = "<group>"; };
-		37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Internxt/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = ShareExtensionViewController.swift; path = ShareExtensionViewController.swift; sourceTree = "<group>"; };
+		30C3C55FF8AE435F8A82A9BC /* InternxtShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = InternxtShareExtension.entitlements; sourceTree = "<group>"; };
+		37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Internxt/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = ShareExtensionViewController.swift; sourceTree = "<group>"; };
 		5FA215C540BF95F26A64F2F6 /* libPods-Internxt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Internxt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		60332A8E6FC972BA25BDFAC7 /* Pods-InternxtShareExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.release.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.release.xcconfig"; sourceTree = "<group>"; };
 		619167A9846BFB149A4E4B07 /* Pods-Internxt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.release.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.release.xcconfig"; sourceTree = "<group>"; };
-		7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = undefined; name = InternxtShareExtension.appex; path = InternxtShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; fileEncoding = 9; includeInIndex = 0; path = InternxtShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4921399A370F5CE6EE7EA0F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-InternxtShareExtension/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Internxt/SplashScreen.storyboard; sourceTree = "<group>"; };
 		B85DFBD084E638185FB887AE /* Pods-InternxtShareExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.debug.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BC2974BAFE19B2AA4BDF29A1 /* libPods-InternxtShareExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtShareExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD55E1E535AECF7719BDD772 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		DAE15E8DB4DF4E048E04B0E0 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = Info.plist; path = Info.plist; sourceTree = "<group>"; };
+		DAE15E8DB4DF4E048E04B0E0 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppGroupPendingShareModule.m; path = Internxt/AppGroupPendingShareModule.m; sourceTree = "<group>"; };
+		DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppGroupPendingShareModule.swift; path = Internxt/AppGroupPendingShareModule.swift; sourceTree = "<group>"; };
 		DEF416740AEC235EDB62E97F /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Internxt/AppDelegate.swift; sourceTree = "<group>"; };
@@ -101,6 +105,8 @@
 		13B07FAE1A68108700A75B9A /* Internxt */ = {
 			isa = PBXGroup;
 			children = (
+				DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */,
+				DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */,
 				F11748412D0307B40044C1D9 /* AppDelegate.swift */,
 				F11748442D0722820044C1D9 /* Internxt-Bridging-Header.h */,
 				BB2F792B24A3F905000567C9 /* Supporting */,
@@ -137,7 +143,6 @@
 				DAE15E8DB4DF4E048E04B0E0 /* Info.plist */,
 				30C3C55FF8AE435F8A82A9BC /* InternxtShareExtension.entitlements */,
 			);
-			name = InternxtShareExtension;
 			path = InternxtShareExtension;
 			sourceTree = "<group>";
 		};
@@ -149,7 +154,6 @@
 				B85DFBD084E638185FB887AE /* Pods-InternxtShareExtension.debug.xcconfig */,
 				60332A8E6FC972BA25BDFAC7 /* Pods-InternxtShareExtension.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -578,6 +582,8 @@
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				1818AB341F31CC033FFF750B /* ExpoModulesProvider.swift in Sources */,
+				DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */,
+				DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
