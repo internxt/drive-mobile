@@ -17,19 +17,38 @@ import { RootStackParamList } from '../../types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LargeShareUpload'>;
 
+const handleFileUploaded = async (uploadedFile: SharedFile): Promise<void> => {
+  try {
+    const pendingUploadJson = await AppGroupPendingShareService.read();
+    if (!pendingUploadJson) return;
+    const updatedFiles = pendingUploadJson.files.filter((file) => file.uri !== uploadedFile.uri);
+    if (updatedFiles.length === 0) {
+      await AppGroupPendingShareService.clear();
+    } else {
+      await AppGroupPendingShareService.update({ ...pendingUploadJson, files: updatedFiles });
+    }
+  } catch (error) {
+    errorService.reportError(error as Error, {
+      extra: { message: 'Failed to update pending share after file upload' },
+    });
+  }
+};
+
 export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Element => {
   const tailwind = useTailwind();
   const { metadata } = route.params;
 
   const { status, rootFolderUuid, mnemonic, bucket, bridgeUser, userId } = useShareAuth();
+
   const {
     status: uploadStatus,
-    errorType: uploadError,
+    errorType: uploadErrorType,
+    uploadError,
     progress: uploadProgress,
     thumbnailUri,
     uploadFiles,
     reset: resetUpload,
-  } = useShareUpload({ skipSizeCheck: true });
+  } = useShareUpload({ onFileUploaded: handleFileUploaded });
 
   const sharedFiles = useMemo<SharedFile[]>(
     () =>
@@ -122,6 +141,7 @@ export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Elemen
         sharedFiles={sharedFiles}
         rootFolderUuid={rootFolderUuid}
         uploadStatus={uploadStatus}
+        uploadErrorType={uploadErrorType}
         uploadError={uploadError}
         uploadProgress={uploadProgress}
         thumbnailUri={thumbnailUri}

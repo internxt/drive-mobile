@@ -4,35 +4,19 @@ import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity, View }
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import { colors, fontStyles } from '../theme';
-import { UploadErrorType, UploadProgress, UploadStatus } from '../types';
+import { UploadProgress, UploadStatus } from '../types';
 import { formatBytes } from '../utils';
 
 interface UploadFeedbackProps {
   status: UploadStatus;
-  errorType: UploadErrorType | null;
+  errorMessage?: string | null;
   progress?: UploadProgress | null;
   onDismissError?: () => void;
 }
 
-function getErrorMessage(errorType: UploadErrorType | null): string {
-  const s = strings.screens.ShareExtension;
-  switch (errorType) {
-    case 'no_internet':
-      return s.errorNoInternet;
-    case 'session_expired':
-      return s.errorSessionExpired;
-    case 'prep_failed':
-      return s.errorPrep;
-    case 'file_too_large':
-      return s.errorFileTooLarge;
-    default:
-      return s.errorGeneral;
-  }
-}
-
 const PROGRESS_UPDATE_MIN_DELTA = 0.01;
 
-export const UploadFeedback = ({ status, errorType, progress, onDismissError }: UploadFeedbackProps) => {
+export const UploadFeedback = ({ status, errorMessage, progress, onDismissError }: UploadFeedbackProps) => {
   const tailwind = useTailwind();
   const progressBarAnimation = useRef(new Animated.Value(0)).current;
   const previousFileIndexRef = useRef(0);
@@ -107,9 +91,7 @@ export const UploadFeedback = ({ status, errorType, progress, onDismissError }: 
     return (
       <View style={[tailwind('flex-row items-center px-4 py-3 mx-4 rounded-xl'), styles.errorBg]}>
         <WarningCircleIcon size={20} color={colors.red} weight="fill" />
-        <Text style={[tailwind('ml-2 text-sm flex-1'), fontStyles.medium, styles.errorText]}>
-          {getErrorMessage(errorType)}
-        </Text>
+        <Text style={[tailwind('ml-2 text-sm flex-1'), fontStyles.medium, styles.errorText]}>{errorMessage}</Text>
         {onDismissError && (
           <TouchableOpacity onPress={onDismissError} hitSlop={8} style={tailwind('ml-2')}>
             <XIcon size={16} color={colors.gray40} />

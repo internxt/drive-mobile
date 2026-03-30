@@ -49,4 +49,26 @@ class AppGroupPendingShareModule: NSObject {
       rejecter("CLEAR_FAILED", error.localizedDescription, error as NSError)
     }
   }
+
+  @objc func writePendingShare(
+    _ json: String,
+    resolver: @escaping RCTPromiseResolveBlock,
+    rejecter: @escaping RCTPromiseRejectBlock
+  ) {
+    guard
+      let group = appGroup,
+      let base = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group)
+    else {
+      resolver(nil)
+      return
+    }
+
+    do {
+      let jsonFile = base.appendingPathComponent("pending_share_upload.json")
+      try json.write(to: jsonFile, atomically: true, encoding: .utf8)
+      resolver(nil)
+    } catch {
+      rejecter("WRITE_FAILED", error.localizedDescription, error as NSError)
+    }
+  }
 }

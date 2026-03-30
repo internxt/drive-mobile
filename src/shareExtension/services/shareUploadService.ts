@@ -9,8 +9,7 @@ import { Platform } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import uuid from 'react-native-uuid';
 import packageJson from '../../../package.json';
-import { UploadNetworkError } from '../errors';
-import { SharedFile } from '../types';
+import { HttpUploadError, UploadNetworkError } from '../errors';
 import {
   buildSdkEncryptionAdapter,
   computeRipemd160Digest,
@@ -46,14 +45,6 @@ export interface ShareUploadFileParams {
 
 const MULTIPART_THRESHOLD_BYTES = 100 * 1024 * 1024;
 const PART_SIZE_BYTES = 30 * 1024 * 1024;
-export const IOS_MAX_TOTAL_SIZE = 300 * 1024 * 1024;
-
-export const isIosTotalSizeTooLargeForUpload = (files: SharedFile[]): boolean => {
-  const allFileSizesKnown = files.every((file) => file.size !== null);
-  if (!allFileSizesKnown) return false;
-  const totalBytes = files.reduce((sum, file) => sum + (file.size ?? 0), 0);
-  return totalBytes > IOS_MAX_TOTAL_SIZE;
-};
 
 const HTTP_SUCCESS_MIN = 200;
 const HTTP_SUCCESS_MAX = 299;
@@ -153,7 +144,8 @@ const sendFilePutRequest = async (
 
   const httpStatusCode = response.info().status;
   if (httpStatusCode < HTTP_SUCCESS_MIN || httpStatusCode > HTTP_SUCCESS_MAX) {
-    throw Object.assign(new Error(`Upload failed with HTTP ${httpStatusCode}`), { status: httpStatusCode });
+    const responseBody = response.data ?? '';
+    throw new HttpUploadError(httpStatusCode, responseBody);
   }
   return response;
 };

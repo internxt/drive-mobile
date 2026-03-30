@@ -15,14 +15,15 @@ import { useFolderNavigation } from '../hooks/useFolderNavigation';
 import { useNavAnimation } from '../hooks/useNavAnimation';
 import { useSearchAnimation } from '../hooks/useSearchAnimation';
 import { SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
+import { getUploadErrorMessage } from '../utils';
 
 interface DriveScreenProps {
   sharedFiles: SharedFile[];
   rootFolderUuid: string;
   uploadStatus: UploadStatus;
-  uploadError: UploadErrorType | null;
+  uploadErrorType: UploadErrorType | null;
+  uploadError?: unknown;
   uploadProgress?: UploadProgress | null;
-  filesTooLarge?: boolean;
   thumbnailUri?: string | null;
   onClose: () => void;
   onSave: (destinationFolderUuid: string, renamedFileName?: string) => void;
@@ -34,9 +35,9 @@ export const DriveScreen = ({
   sharedFiles,
   rootFolderUuid,
   uploadStatus,
+  uploadErrorType,
   uploadError,
   uploadProgress,
-  filesTooLarge = false,
   thumbnailUri,
   onClose,
   onSave,
@@ -113,21 +114,21 @@ export const DriveScreen = ({
   const handleStartRename = useCallback(() => setIsRenaming(true), []);
   const handleEndRename = useCallback(() => setIsRenaming(false), []);
 
-  const showUploadingBanner = filesTooLarge || isUploading;
-  const showErrorBanner = !filesTooLarge && uploadStatus === 'error';
+  const showUploadingBanner = isUploading;
+  const showErrorBanner = uploadStatus === 'error';
   const ERROR_BANNER_BOTTOM = 112;
 
   return (
     <View
       style={[tailwind('flex-1 bg-white'), { borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }]}
     >
-      <DriveHeader onClose={onClose} onSave={handleSave} saveEnabled={!filesTooLarge && !isUploading && !isSuccess} />
+      <DriveHeader onClose={onClose} onSave={handleSave} saveEnabled={!isUploading && !isSuccess} />
 
       {showUploadingBanner && (
         <View style={tailwind('pt-2')}>
           <UploadFeedback
-            status={filesTooLarge ? 'error' : uploadStatus}
-            errorType={filesTooLarge ? 'file_too_large' : uploadError}
+            status={uploadStatus}
+            errorMessage={getUploadErrorMessage(uploadErrorType, uploadError)}
             progress={uploadProgress}
           />
         </View>
@@ -167,7 +168,11 @@ export const DriveScreen = ({
 
       {showErrorBanner && (
         <View style={{ position: 'absolute', bottom: ERROR_BANNER_BOTTOM, left: 0, right: 0 }}>
-          <UploadFeedback status="error" errorType={uploadError} onDismissError={onDismissError} />
+          <UploadFeedback
+            status="error"
+            errorMessage={getUploadErrorMessage(uploadErrorType, uploadError)}
+            onDismissError={onDismissError}
+          />
         </View>
       )}
 

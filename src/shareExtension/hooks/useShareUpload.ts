@@ -1,13 +1,8 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import { useCallback, useRef, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
-import { FileTooLargeError, MissingFileUriError, UploadNetworkError } from '../errors';
-import {
-  ShareUploadCredentials,
-  createShareUploadSession,
-  isIosTotalSizeTooLargeForUpload,
-  shareUploadFile,
-} from '../services/shareUploadService';
+import { HttpUploadError, MissingFileUriError, UploadNetworkError } from '../errors';
+import { ShareUploadCredentials, createShareUploadSession, shareUploadFile } from '../services/shareUploadService';
 import { SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { getFileExtension, getFileNameWithoutExtension } from '../utils';
 
@@ -28,15 +23,17 @@ const exportPhAsset = (phAssetId: string): Promise<PHAssetExportResult> => PHAss
 const HTTP_STATUS = {
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
+  CONFLICT: 409,
 } as const;
 
 interface UseShareUploadOptions {
-  skipSizeCheck?: boolean;
+  onFileUploaded?: (file: SharedFile) => void;
 }
 
 interface UseShareUploadResult {
   status: UploadStatus;
   errorType: UploadErrorType | null;
+  uploadError: unknown;
   progress: UploadProgress | null;
   thumbnailUri: string | null;
   uploadFiles: (
@@ -48,21 +45,19 @@ interface UseShareUploadResult {
   reset: () => void;
 }
 
-const getHttpStatus = (error: unknown): number | undefined => {
-  if (error !== null && typeof error === 'object' && 'status' in error) {
-    return (error as { status: number }).status;
-  }
-  return undefined;
-};
+interface FailedFile {
+  index: number;
+  errorType: UploadErrorType;
+  uploadError: unknown;
+}
 
 const classifyError = (error: unknown): UploadErrorType => {
-  const httpStatusCode = getHttpStatus(error);
-  if (httpStatusCode === HTTP_STATUS.UNAUTHORIZED || httpStatusCode === HTTP_STATUS.FORBIDDEN) return 'session_expired';
-
-  if (error instanceof FileTooLargeError) return 'file_too_large';
+  if (error instanceof HttpUploadError) {
+    if (error.status === HTTP_STATUS.UNAUTHORIZED || error.status === HTTP_STATUS.FORBIDDEN) return 'session_expired';
+    if (error.status === HTTP_STATUS.CONFLICT) return 'file_already_exists';
+  }
   if (error instanceof MissingFileUriError) return 'prep_failed';
   if (error instanceof UploadNetworkError) return 'no_internet';
-
   return 'general';
 };
 
@@ -73,9 +68,10 @@ const buildProgressState =
     return { ...prevState, ...updatedFields } as UploadProgress;
   };
 
-export const useShareUpload = ({ skipSizeCheck = false }: UseShareUploadOptions = {}): UseShareUploadResult => {
+export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): UseShareUploadResult => {
   const [status, setStatus] = useState<UploadStatus>('idle');
   const [errorType, setErrorType] = useState<UploadErrorType | null>(null);
+  const [uploadError, setUploadError] = useState<unknown>(null);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
   const thumbnailUriRef = useRef<string | null>(null);
@@ -87,6 +83,7 @@ export const useShareUpload = ({ skipSizeCheck = false }: UseShareUploadOptions 
     }
     setStatus('idle');
     setErrorType(null);
+    setUploadError(null);
     setProgress(null);
     setThumbnailUri(null);
   }, []);
@@ -96,75 +93,95 @@ export const useShareUpload = ({ skipSizeCheck = false }: UseShareUploadOptions 
       if (!files.length) return;
 
       setErrorType(null);
+      setUploadError(null);
 
       try {
-        if (!skipSizeCheck && Platform.OS === 'ios' && isIosTotalSizeTooLargeForUpload(files)) {
-          throw new FileTooLargeError();
-        }
-
         setStatus('uploading');
         setThumbnailUri(null);
         const isSingleFile = files.length === 1;
         const shareUploadSession = createShareUploadSession(credentials);
 
+        const failedFiles: FailedFile[] = [];
+
         for (let i = 0; i < files.length; i++) {
           const currentFileNumber = i + 1;
           const currentSharedFile = files[i];
 
-          if (!currentSharedFile.uri && !currentSharedFile.phAssetId) {
-            throw new MissingFileUriError();
-          }
+          try {
+            if (!currentSharedFile.uri && !currentSharedFile.phAssetId) {
+              throw new MissingFileUriError();
+            }
 
-          let fileToUpload = currentSharedFile;
-          if (Platform.OS === 'ios' && currentSharedFile.phAssetId) {
-            const exported = await exportPhAsset(currentSharedFile.phAssetId);
-            fileToUpload = {
-              ...currentSharedFile,
-              uri: exported.uri,
-              size: exported.size,
-              fileName: exported.fileName,
-            };
-          }
+            let fileToUpload = currentSharedFile;
+            if (Platform.OS === 'ios' && currentSharedFile.phAssetId) {
+              const exported = await exportPhAsset(currentSharedFile.phAssetId);
+              fileToUpload = {
+                ...currentSharedFile,
+                uri: exported.uri,
+                size: exported.size,
+                fileName: exported.fileName,
+              };
+            }
 
-          setProgress(
-            buildProgressState({
-              currentFile: currentFileNumber,
-              totalFiles: files.length,
-              bytesUploaded: 0,
-              currentFileSize: fileToUpload.size ?? 0,
-            }),
-          );
+            setProgress(
+              buildProgressState({
+                currentFile: currentFileNumber,
+                totalFiles: files.length,
+                bytesUploaded: 0,
+                currentFileSize: fileToUpload.size ?? 0,
+              }),
+            );
 
-          const finalFileName = isSingleFile && renamedFileName ? renamedFileName : fileToUpload.fileName;
+            const finalFileName = isSingleFile && renamedFileName ? renamedFileName : fileToUpload.fileName;
 
-          const result = await shareUploadFile({
-            filePath: fileToUpload.uri,
-            fileName: getFileNameWithoutExtension(finalFileName),
-            fileExtension: getFileExtension(finalFileName),
-            fileSize: fileToUpload.size,
-            folderUuid,
-            credentials,
-            shareUploadSession,
-            onFileResolved: (resolvedFileSize) => {
-              setProgress(buildProgressState({ currentFileSize: resolvedFileSize, bytesUploaded: 0 }));
-            },
-            onProgress: (bytesUploaded) => setProgress(buildProgressState({ bytesUploaded })),
-          });
+            const result = await shareUploadFile({
+              filePath: fileToUpload.uri,
+              fileName: getFileNameWithoutExtension(finalFileName),
+              fileExtension: getFileExtension(finalFileName),
+              fileSize: fileToUpload.size,
+              folderUuid,
+              credentials,
+              shareUploadSession,
+              onFileResolved: (resolvedFileSize) => {
+                setProgress(buildProgressState({ currentFileSize: resolvedFileSize, bytesUploaded: 0 }));
+              },
+              onProgress: (bytesUploaded) => setProgress(buildProgressState({ bytesUploaded })),
+            });
 
-          if (isSingleFile) {
-            thumbnailUriRef.current = result.thumbnailLocalUri;
-            setThumbnailUri(result.thumbnailLocalUri);
+            if (isSingleFile) {
+              thumbnailUriRef.current = result.thumbnailLocalUri;
+              setThumbnailUri(result.thumbnailLocalUri);
+            }
+
+            try {
+              onFileUploaded?.(currentSharedFile);
+            } catch (error) {
+              console.error('onFileUploaded callback threw an error: ', error);
+            }
+          } catch (error) {
+            const uploadErrorType = classifyError(error);
+            failedFiles.push({ index: i, errorType: uploadErrorType, uploadError: error });
+            if (uploadErrorType === 'session_expired') break;
           }
         }
 
-        setStatus('success');
+        if (failedFiles.length === 0) {
+          setStatus('success');
+        } else {
+          const firstFailure = failedFiles[0];
+          setErrorType(firstFailure.errorType);
+          setUploadError(firstFailure.uploadError);
+          setStatus('error');
+        }
       } catch (error) {
-        setErrorType(classifyError(error));
+        const uploadErrorType = classifyError(error);
+        setErrorType(uploadErrorType);
+        setUploadError(error);
         setStatus('error');
       }
     },
-    [skipSizeCheck],
+    [onFileUploaded],
   );
 
-  return { status, errorType, progress, thumbnailUri, uploadFiles, reset };
+  return { status, errorType, uploadError, progress, thumbnailUri, uploadFiles, reset };
 };

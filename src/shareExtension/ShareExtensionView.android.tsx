@@ -18,7 +18,8 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
   );
   const {
     status: uploadStatus,
-    errorType: uploadError,
+    errorType: uploadErrorType,
+    uploadError,
     progress: uploadProgress,
     thumbnailUri,
     uploadFiles,
@@ -70,6 +71,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
         sharedFiles={sharedFiles}
         rootFolderUuid={rootFolderUuid}
         uploadStatus={uploadStatus}
+        uploadErrorType={uploadErrorType}
         uploadError={uploadError}
         uploadProgress={uploadProgress}
         thumbnailUri={thumbnailUri}

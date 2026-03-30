@@ -5,4 +5,7 @@ RCT_EXTERN_METHOD(readPendingShare:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
 RCT_EXTERN_METHOD(clearPendingShare:(RCTPromiseResolveBlock)resolver
                   rejecter:(RCTPromiseRejectBlock)rejecter)
+RCT_EXTERN_METHOD(writePendingShare:(NSString *)json
+                  resolver:(RCTPromiseResolveBlock)resolver
+                  rejecter:(RCTPromiseRejectBlock)rejecter)
 @end
