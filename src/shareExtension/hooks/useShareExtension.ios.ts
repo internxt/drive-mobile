@@ -37,19 +37,19 @@ export const useShareExtension = ({
       ...(files ?? []).map((uri) => ({
         uri,
         mimeType: getMimeTypeFromUri(uri),
-        fileName: uri.split('/').pop() ?? null,
+        fileName: decodeURIComponent(uri.split('/').pop() ?? '') || null,
         size: readSize(uri),
       })),
       ...(images ?? []).map((uri) => ({
         uri,
         mimeType: getMimeTypeFromUri(uri) ?? 'image/jpeg',
-        fileName: uri.split('/').pop() ?? null,
+        fileName: decodeURIComponent(uri.split('/').pop() ?? '') || null,
         size: readSize(uri),
       })),
       ...(videos ?? []).map((uri) => ({
         uri,
         mimeType: getMimeTypeFromUri(uri) ?? 'video/mp4',
-        fileName: uri.split('/').pop() ?? null,
+        fileName: decodeURIComponent(uri.split('/').pop() ?? '') || null,
         size: readSize(uri),
       })),
     ],

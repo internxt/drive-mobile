@@ -51,7 +51,9 @@ const ShareExtensionView = ({
     uploadError,
     progress: uploadProgress,
     thumbnailUri,
+    collisionState,
     uploadFiles,
+    handleCollisionAction,
     reset: resetUpload,
   } = useShareUpload();
 
@@ -89,10 +91,12 @@ const ShareExtensionView = ({
       uploadError={uploadError}
       uploadProgress={uploadProgress}
       thumbnailUri={thumbnailUri}
+      collisionState={collisionState}
       onClose={close}
       onSave={handleSave}
       onViewInFolder={handleViewInFolder}
       onDismissError={resetUpload}
+      onCollisionAction={handleCollisionAction}
     />
   );
 };

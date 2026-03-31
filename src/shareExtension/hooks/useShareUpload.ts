@@ -3,8 +3,9 @@ import { useCallback, useRef, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
 import { HttpUploadError, MissingFileUriError, UploadNetworkError } from '../errors';
 import { ShareUploadCredentials, createShareUploadSession, shareUploadFile } from '../services/shareUploadService';
-import { SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
+import { CollisionState, NameCollisionAction, SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
 import { getFileExtension, getFileNameWithoutExtension } from '../utils';
+import { useNameCollision } from './useNameCollision';
 
 interface PHAssetExportNativeModule {
   exportAsset(localIdentifier: string): Promise<PHAssetExportResult>;
@@ -36,12 +37,14 @@ interface UseShareUploadResult {
   uploadError: unknown;
   progress: UploadProgress | null;
   thumbnailUri: string | null;
+  collisionState: CollisionState;
   uploadFiles: (
     files: SharedFile[],
     folderUuid: string,
     credentials: ShareUploadCredentials,
     renamedFileName?: string,
   ) => Promise<void>;
+  handleCollisionAction: (action: NameCollisionAction | null) => void;
   reset: () => void;
 }
 
@@ -76,6 +79,8 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
   const thumbnailUriRef = useRef<string | null>(null);
 
+  const { collisionState, handleCollisionAction, resetCollisionState, resolveCollisions } = useNameCollision();
+
   const reset = useCallback(() => {
     if (thumbnailUriRef.current) {
       RNFS.unlink(thumbnailUriRef.current).catch(() => undefined);
@@ -86,7 +91,8 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
     setUploadError(null);
     setProgress(null);
     setThumbnailUri(null);
-  }, []);
+    resetCollisionState();
+  }, [resetCollisionState]);
 
   const uploadFiles = useCallback(
     async (files: SharedFile[], folderUuid: string, credentials: ShareUploadCredentials, renamedFileName?: string) => {
@@ -94,12 +100,20 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
 
       setErrorType(null);
       setUploadError(null);
+      setStatus('checking');
 
       try {
-        setStatus('uploading');
-        setThumbnailUri(null);
         const isSingleFile = files.length === 1;
         const shareUploadSession = createShareUploadSession(credentials);
+
+        const renameMap = await resolveCollisions(files, folderUuid, isSingleFile, renamedFileName);
+        if (renameMap === null) {
+          setStatus('idle');
+          return;
+        }
+
+        setStatus('uploading');
+        setThumbnailUri(null);
 
         const failedFiles: FailedFile[] = [];
 
@@ -132,12 +146,14 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
               }),
             );
 
-            const finalFileName = isSingleFile && renamedFileName ? renamedFileName : fileToUpload.fileName;
+            const baseFileName = isSingleFile && renamedFileName ? renamedFileName : (fileToUpload.fileName ?? '');
+            const uploadPlainName = renameMap.has(i) ? renameMap.get(i)! : getFileNameWithoutExtension(baseFileName);
+            const uploadExtension = getFileExtension(baseFileName);
 
             const result = await shareUploadFile({
               filePath: fileToUpload.uri,
-              fileName: getFileNameWithoutExtension(finalFileName),
-              fileExtension: getFileExtension(finalFileName),
+              fileName: uploadPlainName,
+              fileExtension: uploadExtension,
               fileSize: fileToUpload.size,
               folderUuid,
               credentials,
@@ -180,8 +196,8 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
         setStatus('error');
       }
     },
-    [onFileUploaded],
+    [onFileUploaded, resolveCollisions],
   );
 
-  return { status, errorType, uploadError, progress, thumbnailUri, uploadFiles, reset };
+  return { status, errorType, uploadError, progress, thumbnailUri, collisionState, uploadFiles, handleCollisionAction, reset };
 };

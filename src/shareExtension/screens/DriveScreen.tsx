@@ -9,12 +9,20 @@ import { RootHeader } from '../components/DriveScreen/RootHeader';
 import { SortRow } from '../components/DriveScreen/SortRow';
 import { SubfolderHeader } from '../components/DriveScreen/SubfolderHeader';
 import { NewFolderModal } from '../components/NewFolderModal';
+import { ShareNameCollisionModal } from '../components/ShareNameCollisionModal';
 import { UploadFeedback } from '../components/UploadFeedback';
 import { UploadSuccessCard } from '../components/UploadSuccessCard';
 import { useFolderNavigation } from '../hooks/useFolderNavigation';
 import { useNavAnimation } from '../hooks/useNavAnimation';
 import { useSearchAnimation } from '../hooks/useSearchAnimation';
-import { SharedFile, UploadErrorType, UploadProgress, UploadStatus } from '../types';
+import {
+  CollisionState,
+  NameCollisionAction,
+  SharedFile,
+  UploadErrorType,
+  UploadProgress,
+  UploadStatus,
+} from '../types';
 import { getUploadErrorMessage } from '../utils';
 
 interface DriveScreenProps {
@@ -25,10 +33,12 @@ interface DriveScreenProps {
   uploadError?: unknown;
   uploadProgress?: UploadProgress | null;
   thumbnailUri?: string | null;
+  collisionState?: CollisionState;
   onClose: () => void;
   onSave: (destinationFolderUuid: string, renamedFileName?: string) => void;
   onViewInFolder: (folderUuid: string) => void;
   onDismissError: () => void;
+  onCollisionAction?: (action: NameCollisionAction | null) => void;
 }
 
 export const DriveScreen = ({
@@ -39,10 +49,12 @@ export const DriveScreen = ({
   uploadError,
   uploadProgress,
   thumbnailUri,
+  collisionState,
   onClose,
   onSave,
   onViewInFolder,
   onDismissError,
+  onCollisionAction,
 }: DriveScreenProps) => {
   const tailwind = useTailwind();
   const {
@@ -68,8 +80,10 @@ export const DriveScreen = ({
   const isRoot = breadcrumb.length === 1;
   const parentFolderIndex = breadcrumb.length - 2;
   const parentFolder = breadcrumb[parentFolderIndex];
+  const isChecking = uploadStatus === 'checking';
   const isUploading = uploadStatus === 'uploading';
   const isSuccess = uploadStatus === 'success';
+  const isConflict = uploadStatus === 'conflict';
 
   const { translateX, contentOpacity } = useNavAnimation(currentFolder.uuid, breadcrumb.length);
   const searchAnimation = useSearchAnimation();
@@ -114,7 +128,7 @@ export const DriveScreen = ({
   const handleStartRename = useCallback(() => setIsRenaming(true), []);
   const handleEndRename = useCallback(() => setIsRenaming(false), []);
 
-  const showUploadingBanner = isUploading;
+  const showUploadingBanner = isChecking || isUploading;
   const showErrorBanner = uploadStatus === 'error';
   const ERROR_BANNER_BOTTOM = 112;
 
@@ -122,7 +136,12 @@ export const DriveScreen = ({
     <View
       style={[tailwind('flex-1 bg-white'), { borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }]}
     >
-      <DriveHeader onClose={onClose} onSave={handleSave} saveEnabled={!isUploading && !isSuccess} />
+      <DriveHeader
+        onClose={onClose}
+        onSave={handleSave}
+        saveEnabled={!isChecking && !isUploading && !isSuccess && !isConflict}
+        isSaveLoading={isChecking}
+      />
 
       {showUploadingBanner && (
         <View style={tailwind('pt-2')}>
@@ -186,6 +205,14 @@ export const DriveScreen = ({
       />
 
       <NewFolderModal visible={showNewFolderModal} onCancel={handleCloseNewFolderModal} onCreate={handleCreateFolder} />
+
+      <ShareNameCollisionModal
+        visible={!!collisionState?.visible}
+        itemNameWithoutExtension={collisionState?.itemNameWithoutExtension ?? ''}
+        collisionedFilesCounter={collisionState?.collisionCount ?? 0}
+        onConfirm={(action) => onCollisionAction?.(action)}
+        onCancel={() => onCollisionAction?.(null)}
+      />
 
       {isSuccess && (
         <UploadSuccessCard

@@ -1,5 +1,7 @@
-import ShareSdkManager from './ShareSdkManager';
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { getUniqueFilename } from '../../services/drive/file/utils/getUniqueFilename';
 import { ShareFileItem, ShareFolderItem } from '../types';
+import ShareSdkManager from './ShareSdkManager';
 
 const PAGE_SIZE = 50;
 
@@ -53,4 +55,34 @@ const createFolder = async (parentFolderUuid: string, name: string): Promise<voi
   await result[0];
 };
 
-export const shareDriveService = { getFolderFolders, getFolderFiles, createFolder };
+const checkDuplicatedFiles = async (
+  folderUuid: string,
+  filesList: { plainName: string; type: string }[],
+): Promise<DriveFileData[]> => {
+  if (filesList.length === 0) return [];
+  const response = await ShareSdkManager.storageV2.checkDuplicatedFiles({ folderUuid, filesList });
+  return response.existentFiles;
+};
+
+const trashFiles = async (fileUuids: string[]): Promise<void> => {
+  if (fileUuids.length === 0) return;
+  await ShareSdkManager.trashV2.addItemsToTrash({
+    items: fileUuids.map((uuid) => ({ uuid, type: 'file' })),
+  });
+};
+
+const getUniqueFilenameInFolder = async (
+  plainName: string,
+  extension: string,
+  existingDuplicates: DriveFileData[],
+  folderUuid: string,
+): Promise<string> => getUniqueFilename(plainName, extension, existingDuplicates, folderUuid, checkDuplicatedFiles);
+
+export const shareDriveService = {
+  getFolderFolders,
+  getFolderFiles,
+  createFolder,
+  checkDuplicatedFiles,
+  trashFiles,
+  getUniqueFilename: getUniqueFilenameInFolder,
+};

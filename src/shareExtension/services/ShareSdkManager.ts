@@ -20,10 +20,12 @@ const getAppDetails = () => ({
 class ShareSdkManager {
   private static apiSecurity?: ShareSdkManagerApiSecurity;
   private static storageClient?: ReturnType<typeof Drive.Storage.client>;
+  private static trashClient?: ReturnType<typeof Drive.Trash.client>;
 
   static init(apiSecurity: ShareSdkManagerApiSecurity) {
     this.apiSecurity = apiSecurity;
     this.storageClient = undefined;
+    this.trashClient = undefined;
   }
 
   static get storageV2() {
@@ -34,6 +36,16 @@ class ShareSdkManager {
       });
     }
     return this.storageClient;
+  }
+
+  static get trashV2() {
+    if (!this.apiSecurity) throw new Error('ShareSdkManager not initialized');
+    if (!this.trashClient) {
+      this.trashClient = Drive.Trash.client(getEnv().DRIVE_NEW_API_URL, getAppDetails(), {
+        token: this.apiSecurity.newToken,
+      });
+    }
+    return this.trashClient;
   }
 }
 

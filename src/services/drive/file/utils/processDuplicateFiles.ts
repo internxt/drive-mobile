@@ -1,5 +1,6 @@
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { DocumentPickerFile, FileToUpload } from '../../../../types/drive/operations';
+import { driveFileService } from '../driveFile.service';
 import { getUniqueFilename } from './getUniqueFilename';
 
 interface ProcessDuplicateFilesParams {
@@ -26,7 +27,11 @@ export const processDuplicateFiles = async ({
     let finalFilename = plainName;
 
     if (!disableDuplicatedNamesCheck && duplicatedFiles) {
-      finalFilename = await getUniqueFilename(plainName, extension, duplicatedFiles, parentFolderUuid);
+      const checkDuplicates = async (folderUuid: string, files: { plainName: string; type: string }[]) => {
+        const response = await driveFileService.checkFileExistence(folderUuid, files);
+        return response.existentFiles;
+      };
+      finalFilename = await getUniqueFilename(plainName, extension, duplicatedFiles, parentFolderUuid, checkDuplicates);
     }
 
     newFilesToUpload.push({
