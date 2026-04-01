@@ -1,24 +1,13 @@
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
-
-import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
-import { FileExtension } from '@internxt-mobile/types/drive/file';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
 
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import { createThumbnail } from 'react-native-create-thumbnail';
-import PdfThumbnail from 'react-native-pdf-thumbnail';
-import uuid from 'react-native-uuid';
+import { isThumbnailSupported } from './thumbnail.constants';
+import { generateThumbnail as generateThumbnailShared } from './thumbnail.generation';
+export type { GeneratedThumbnail } from './thumbnail.types';
 
-export type GeneratedThumbnail = {
-  size: number;
-  type: string;
-  width: number;
-  height: number;
-  path: string;
-};
 export const PROFILE_PICTURE_CACHE_KEY = 'PROFILE_PICTURE';
-const MAX_THUMBNAIL_WIDTH = 512;
 export type ThumbnailGenerateConfig = {
   outputPath: string;
   quality?: number;
@@ -27,23 +16,6 @@ export type ThumbnailGenerateConfig = {
 };
 
 class ImageService {
-  private get thumbnailGenerators(): Record<
-    FileExtension,
-    (filePath: string, config: ThumbnailGenerateConfig) => Promise<GeneratedThumbnail>
-  > {
-    return {
-      [FileExtension.AVI]: this.generateVideoThumbnail,
-      [FileExtension.MP4]: this.generateVideoThumbnail,
-      [FileExtension.MOV]: this.generateVideoThumbnail,
-      [FileExtension.JPEG]: this.generateImageThumbnail,
-      [FileExtension.JPG]: this.generateImageThumbnail,
-      [FileExtension.PNG]: this.generateImageThumbnail,
-      [FileExtension.HEIC]: this.generateImageThumbnail,
-      [FileExtension.PDF]: this.generatePdfThumbnail,
-    };
-  }
-  public readonly BASE64_PREFIX = 'data:image/png;base64,';
-
   public async resize({
     uri,
     width,
@@ -67,21 +39,10 @@ class ImageService {
       }
     };
 
-    const result = await manipulateAsync(
-      getRequiredUriFormat(),
-      [
-        {
-          resize: {
-            width,
-            height,
-          },
-        },
-      ],
-      {
-        format: SaveFormat.JPEG,
-        compress: quality / 100,
-      },
-    );
+    const imageManipulatorContext = ImageManipulator.manipulate(getRequiredUriFormat());
+    imageManipulatorContext.resize({ width, height });
+    const imageRef = await imageManipulatorContext.renderAsync();
+    const result = await imageRef.saveAsync({ format: SaveFormat.JPEG, compress: quality / 100 });
 
     const stat = await fileSystemService.statRNFS(result.uri);
     if (outputPath && !(await fileSystemService.exists(outputPath))) {
@@ -93,10 +54,6 @@ class ImageService {
       height: result.height,
       path: outputPath || result.uri,
     };
-  }
-
-  public async pathToBase64(uri: string): Promise<string> {
-    return await ReactNativeBlobUtil.fs.readFile(uri, 'base64');
   }
 
   /**
@@ -150,102 +107,13 @@ class ImageService {
   public async generateThumbnail(
     filePath: string,
     config: { outputPath: string; quality?: number; extension: string; thumbnailFormat: SaveFormat },
-  ): Promise<GeneratedThumbnail | null> {
-    const generator = this.thumbnailGenerators[config.extension.toLowerCase() as FileExtension];
-
-    if (!generator) {
+  ) {
+    if (!isThumbnailSupported(config.extension)) {
       // eslint-disable-next-line no-console
       console.error(`Cannot generate thumbnail for extension ${config.extension}`);
-
       return null;
     }
-    return this.resizeThumbnail(await generator(filePath, config));
-  }
-
-  /**
-   * Generates a thumbnail for a video file
-   */
-  public generateVideoThumbnail = async (filePath: string): Promise<GeneratedThumbnail> => {
-    const result = await createThumbnail({
-      url: fileSystemService.pathToUri(filePath),
-      dirSize: 100,
-    });
-
-    return {
-      size: result.size,
-      type: 'JPEG',
-      width: result.width,
-      height: result.height,
-      path: result.path,
-    };
-  };
-
-  /**
-   * Generates a thumbnail for an image
-   */
-  public generateImageThumbnail = async (
-    filePath: string,
-    config: ThumbnailGenerateConfig,
-  ): Promise<GeneratedThumbnail> => {
-    const result = await this.resize({
-      uri: filePath,
-      outputPath: config.outputPath,
-      width: config.width || MAX_THUMBNAIL_WIDTH,
-      height: config.height,
-      format: 'JPEG',
-      quality: 80,
-    });
-
-    return {
-      size: result.size,
-      type: 'JPEG',
-      width: result.width,
-      height: result.height,
-      path: result.path,
-    };
-  };
-
-  /** Generates a thumbnail from a PDF file */
-  public generatePdfThumbnail = async (
-    filePath: string,
-    config: ThumbnailGenerateConfig,
-  ): Promise<GeneratedThumbnail> => {
-    const neededPath = filePath.startsWith('file:///') ? filePath : `file:///${filePath}`;
-    const result = await PdfThumbnail.generate(neededPath, 0, config.quality || 80);
-    // The library has some problems if the URI contains spaces
-    const outputPath = decodeURI(result.uri);
-    if (!(await fileSystemService.exists(config.outputPath))) {
-      await fileSystemService.moveFile(outputPath, config.outputPath);
-    }
-
-    const stat = await fileSystemService.statRNFS(config.outputPath);
-    return {
-      path: config.outputPath,
-      width: result.width,
-      height: result.height,
-      size: stat.size,
-      type: 'JPEG',
-    };
-  };
-
-  private async resizeThumbnail(originThumbnail: GeneratedThumbnail): Promise<GeneratedThumbnail> {
-    const destination = fileSystemService.tmpFilePath(uuid.v4().toString());
-
-    const result = await this.resize({
-      uri: originThumbnail.path,
-      width: MAX_THUMBNAIL_WIDTH,
-      quality: 80,
-      format: 'JPEG',
-      outputPath: destination,
-    });
-
-    return {
-      width: result.width,
-      height: result.height,
-      path: result.path,
-      size: result.size,
-      type: 'JPEG',
-    };
+    return generateThumbnailShared(filePath, config.extension);
   }
 }
 

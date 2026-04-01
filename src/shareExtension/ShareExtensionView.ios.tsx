@@ -27,7 +27,7 @@ interface ShareExtensionProps {
 const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridgeUser, userId, files, images, videos }: ShareExtensionProps) => {
   const tailwind = useTailwind();
   const { sdkReady, sharedFiles } = useShareExtension({ photosToken, mnemonic, bucket, bridgeUser, userId, files, images, videos });
-  const { status: uploadStatus, errorType: uploadError, progress: uploadProgress, uploadFiles, reset: resetUpload } = useShareUpload();
+  const { status: uploadStatus, errorType: uploadError, progress: uploadProgress, thumbnailUri, uploadFiles, reset: resetUpload } = useShareUpload();
 
   const filesTooLarge = useMemo(() => isIosTotalSizeTooLargeForUpload(sharedFiles), [sharedFiles]);
 
@@ -67,6 +67,7 @@ const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridg
       uploadError={uploadError}
       uploadProgress={uploadProgress}
       filesTooLarge={filesTooLarge}
+      thumbnailUri={thumbnailUri}
       onClose={close}
       onSave={handleSave}
       onViewInFolder={handleViewInFolder}

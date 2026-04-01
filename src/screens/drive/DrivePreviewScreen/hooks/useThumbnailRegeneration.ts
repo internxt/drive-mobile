@@ -1,12 +1,9 @@
 import { logger } from '@internxt-mobile/services/common';
+import { isThumbnailSupported } from '@internxt-mobile/services/common/media/thumbnail.constants';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
+import { Thumbnail } from '@internxt-mobile/types/drive/file';
 import { useEffect, useRef, useState } from 'react';
-
-const IMAGE_PREVIEW_TYPES = new Set([FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC]);
-const VIDEO_PREVIEW_TYPES = new Set([FileExtension.MP4, FileExtension.MOV, FileExtension.AVI]);
-const PDF_PREVIEW_TYPES = new Set([FileExtension.PDF]);
 
 interface ThumbnailRegenerationParams {
   downloadedFilePath?: string;
@@ -19,10 +16,7 @@ interface ThumbnailRegenerationCallbacks {
   onSuccess: (thumbnail: Thumbnail) => void;
 }
 
-export const canGenerateThumbnail = (fileExtension: string): boolean => {
-  const extension = fileExtension.toLowerCase() as FileExtension;
-  return IMAGE_PREVIEW_TYPES.has(extension) || VIDEO_PREVIEW_TYPES.has(extension) || PDF_PREVIEW_TYPES.has(extension);
-};
+export const canGenerateThumbnail = isThumbnailSupported;
 
 export const shouldRegenerateThumbnail = (params: ThumbnailRegenerationParams): boolean => {
   const { downloadedFilePath, fileExtension, hasThumbnails } = params;

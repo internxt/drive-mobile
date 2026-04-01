@@ -349,6 +349,7 @@ class ShareExtensionViewController: UIViewController {
                   let persistentURL = sharedDataUrl.appendingPathComponent(fileName)
 
                   do {
+                    try? fileManager.removeItem(atPath: persistentURL.path)
                     try fileManager.copyItem(atPath: tempFilePath, toPath: persistentURL.path)
                     let key = isImage ? "images" : "files"
                     if sharedItems[key] == nil {

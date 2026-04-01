@@ -18,6 +18,7 @@ import {
   encryptFileIntoMultipartChunks,
 } from './shareEncryptionService';
 import ShareSdkManager from './ShareSdkManager';
+import { generateAndUploadThumbnail } from './shareThumbnailService';
 
 export interface ShareUploadCredentials {
   bridgeUser: string;
@@ -80,7 +81,7 @@ export const createShareUploadSession = (credentials: ShareUploadCredentials): S
   return { network, cryptoLib: buildSdkEncryptionAdapter() };
 };
 
-const getTmpPath = (filename: string): string => {
+export const getTmpPath = (filename: string): string => {
   const tempBaseDirectory = Platform.OS === 'android' ? ANDROID_TMP_DIR : RNFS.TemporaryDirectoryPath;
   return `${tempBaseDirectory}${filename}`;
 };
@@ -157,7 +158,7 @@ const sendFilePutRequest = async (
   return response;
 };
 
-const uploadEncryptedFile = async (
+export const uploadEncryptedFile = async (
   url: string,
   encryptedFilePath: string,
   onProgress?: (bytesWritten: number) => void,
@@ -185,9 +186,9 @@ const createFileEntry = async (
   fileName: string,
   bucket: string,
   folderUuid: string,
-): Promise<void> => {
+) => {
   const now = new Date().toISOString();
-  await ShareSdkManager.storageV2.createFileEntryByUuid({
+  return ShareSdkManager.storageV2.createFileEntryByUuid({
     fileId,
     type: fileExtension,
     size: fileSize,
@@ -213,7 +214,7 @@ interface UploadFileContext {
   onProgress?: (bytesUploaded: number) => void;
 }
 
-const shareUploadSingleFile = async (context: UploadFileContext): Promise<void> => {
+const shareUploadSingleFile = async (context: UploadFileContext): Promise<{ fileUuid: string }> => {
   const { network, cryptoLib, localPath, fileSize, bucket, mnemonic, folderUuid, fileName, fileExtension, onProgress } =
     context;
   const encryptedTempFilePath = getTmpPath(`${uuid.v4()}.enc`);
@@ -236,14 +237,15 @@ const shareUploadSingleFile = async (context: UploadFileContext): Promise<void> 
         return encryptedFileHash;
       },
     );
-    await createFileEntry(uploadedFileId, fileExtension, fileSize, fileName, bucket, folderUuid);
+    const fileEntry = await createFileEntry(uploadedFileId, fileExtension, fileSize, fileName, bucket, folderUuid);
+    return { fileUuid: fileEntry.uuid };
   } finally {
     const exists = await RNFS.exists(encryptedTempFilePath);
     if (exists) await RNFS.unlink(encryptedTempFilePath);
   }
 };
 
-const shareUploadMultipartFile = async (context: UploadFileContext): Promise<void> => {
+const shareUploadMultipartFile = async (context: UploadFileContext): Promise<{ fileUuid: string }> => {
   const { network, cryptoLib, localPath, fileSize, bucket, mnemonic, folderUuid, fileName, fileExtension, onProgress } =
     context;
   const totalPartsCount = Math.ceil(fileSize / PART_SIZE_BYTES);
@@ -293,7 +295,8 @@ const shareUploadMultipartFile = async (context: UploadFileContext): Promise<voi
       },
       totalPartsCount,
     );
-    await createFileEntry(uploadedFileId, fileExtension, fileSize, fileName, bucket, folderUuid);
+    const fileEntry = await createFileEntry(uploadedFileId, fileExtension, fileSize, fileName, bucket, folderUuid);
+    return { fileUuid: fileEntry.uuid };
   } finally {
     await Promise.all(
       encryptedPartFilePaths.map((p) =>
@@ -305,7 +308,11 @@ const shareUploadMultipartFile = async (context: UploadFileContext): Promise<voi
   }
 };
 
-export const shareUploadFile = async (params: ShareUploadFileParams): Promise<void> => {
+export interface ShareUploadFileResult {
+  thumbnailLocalUri: string | null;
+}
+
+export const shareUploadFile = async (params: ShareUploadFileParams): Promise<ShareUploadFileResult> => {
   const { filePath, fileName, fileExtension, folderUuid, credentials, shareUploadSession, onFileResolved, onProgress } =
     params;
   const { mnemonic, bucket } = credentials;
@@ -313,8 +320,10 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<vo
   const { localPath, fileSize, tempPath: androidTempCopyPath } = await resolveInputFile(filePath);
   onFileResolved?.(fileSize);
 
-  const { network, cryptoLib } = shareUploadSession ?? createShareUploadSession(credentials);
+  const session = shareUploadSession ?? createShareUploadSession(credentials);
+  const { network, cryptoLib } = session;
 
+  let thumbnailLocalUri: string | null = null;
   try {
     const uploadContext: UploadFileContext = {
       network,
@@ -329,14 +338,30 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<vo
       onProgress,
     };
 
+    let uploadResult: { fileUuid: string };
     if (fileSize >= MULTIPART_THRESHOLD_BYTES) {
-      await shareUploadMultipartFile(uploadContext);
+      uploadResult = await shareUploadMultipartFile(uploadContext);
     } else {
-      await shareUploadSingleFile(uploadContext);
+      uploadResult = await shareUploadSingleFile(uploadContext);
+    }
+
+    try {
+      thumbnailLocalUri = await generateAndUploadThumbnail(
+        localPath,
+        fileExtension,
+        uploadResult.fileUuid,
+        bucket,
+        mnemonic,
+        session,
+      );
+    } catch (error) {
+      console.log('Thumbnail generation/upload failed, proceeding without it, error: ', error);
     }
   } finally {
     if (androidTempCopyPath) await RNFS.unlink(androidTempCopyPath).catch(() => undefined);
     // On iOS the OS provides a sandboxed temp copy of the shared file; clean it up after upload.
     if (Platform.OS === 'ios') await RNFS.unlink(localPath).catch(() => undefined);
   }
+
+  return { thumbnailLocalUri };
 };

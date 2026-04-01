@@ -12,6 +12,7 @@ import { formatBytes, getSharedFileExtension } from '../utils';
 interface UploadSuccessCardProps {
   sharedFiles: SharedFile[];
   uploadedFileName: string;
+  thumbnailUri?: string | null;
   onClose: () => void;
   onViewInFolder: () => void;
 }
@@ -19,6 +20,7 @@ interface UploadSuccessCardProps {
 export const UploadSuccessCard = ({
   sharedFiles,
   uploadedFileName,
+  thumbnailUri,
   onClose,
   onViewInFolder,
 }: UploadSuccessCardProps) => {
@@ -41,6 +43,7 @@ export const UploadSuccessCard = ({
   const isImage = firstFile?.mimeType?.startsWith('image/') ?? false;
   const IconComponent = fileExtension ? getFileTypeIcon(fileExtension.toLowerCase()) : null;
   const imageUri = firstFile?.uri ?? null;
+  const displayUri = thumbnailUri ?? (isImage ? imageUri : null);
 
   const totalSizeOrNull = sharedFiles.some((sharedFile) => sharedFile.size !== null)
     ? sharedFiles.reduce((totalSizeAcc, sharedFile) => totalSizeAcc + (sharedFile.size ?? 0), 0)
@@ -56,8 +59,8 @@ export const UploadSuccessCard = ({
     : (formattedSize ?? '');
 
   const renderFilePreview = () => {
-    if (isSingleFile && isImage && imageUri) {
-      return <Image source={{ uri: imageUri }} style={tailwind('w-20 h-20')} resizeMode="cover" />;
+    if (isSingleFile && displayUri) {
+      return <Image source={{ uri: displayUri }} style={tailwind('w-20 h-20')} resizeMode="cover" />;
     }
     if (isSingleFile && IconComponent) {
       return <IconComponent width={56} height={56} />;

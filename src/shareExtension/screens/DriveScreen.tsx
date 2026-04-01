@@ -23,6 +23,7 @@ interface DriveScreenProps {
   uploadError: UploadErrorType | null;
   uploadProgress?: UploadProgress | null;
   filesTooLarge?: boolean;
+  thumbnailUri?: string | null;
   onClose: () => void;
   onSave: (destinationFolderUuid: string, renamedFileName?: string) => void;
   onViewInFolder: (folderUuid: string) => void;
@@ -36,6 +37,7 @@ export const DriveScreen = ({
   uploadError,
   uploadProgress,
   filesTooLarge = false,
+  thumbnailUri,
   onClose,
   onSave,
   onViewInFolder,
@@ -184,6 +186,7 @@ export const DriveScreen = ({
         <UploadSuccessCard
           sharedFiles={sharedFiles}
           uploadedFileName={finalName}
+          thumbnailUri={thumbnailUri}
           onClose={onClose}
           onViewInFolder={handleViewInFolder}
         />

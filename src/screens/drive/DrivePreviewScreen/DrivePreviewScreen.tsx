@@ -1,4 +1,4 @@
-import { GeneratedThumbnail, imageService } from '@internxt-mobile/services/common';
+import { GeneratedThumbnail, generateVideoThumbnail } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
@@ -6,7 +6,7 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
 import strings from 'assets/lang/strings';
-import { WarningCircle } from 'phosphor-react-native';
+import { WarningCircleIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -57,8 +57,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       VIDEO_PREVIEW_TYPES.has(downloadingFile.data.type as FileExtension) &&
       !generatedThumbnail
     ) {
-      imageService
-        .generateVideoThumbnail(downloadingFile.downloadedFilePath)
+      generateVideoThumbnail(downloadingFile.downloadedFilePath)
         .then((generatedThumbnail) => {
           setGeneratedThumbnail(generatedThumbnail);
         })
@@ -184,8 +183,8 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         {error ? (
           <View style={tailwind('mt-1')}>
             <View style={tailwind('flex flex-row items-center')}>
-              <WarningCircle weight="fill" size={20} color={tailwind('text-red').color as string} />
-              <AppText style={tailwind('text-gray-60 text-center text-red ml-1')}>{error}</AppText>
+              <WarningCircleIcon weight="fill" size={20} color={tailwind('text-red').color as string} />
+              <AppText style={tailwind('text-center text-red ml-1')}>{error}</AppText>
             </View>
             {downloadingFile && error !== strings.messages.downloadLimit && (
               <AppButton
