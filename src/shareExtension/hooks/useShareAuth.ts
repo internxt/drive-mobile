@@ -15,6 +15,11 @@ export type ShareAuthData = {
   userId: string | null;
 };
 
+/**
+ * Auth hook for the main app and the Android share extension.
+ * Reads credentials from AsyncStorage.
+ * Do NOT use inside the iOS share extension.
+ */
 export const useShareAuth = (): ShareAuthData => {
   const [data, setData] = useState<ShareAuthData>({
     status: 'loading',

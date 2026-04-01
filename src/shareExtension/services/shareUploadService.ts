@@ -355,7 +355,7 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<Sh
         session,
       );
     } catch (error) {
-      console.log('Thumbnail generation/upload failed, proceeding without it, error: ', error);
+      if (__DEV__) console.log('Thumbnail generation/upload failed, proceeding without it, error: ', error);
     }
   } finally {
     if (androidTempCopyPath) await RNFS.unlink(androidTempCopyPath).catch(() => undefined);

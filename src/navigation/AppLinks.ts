@@ -1,5 +1,7 @@
 const SCHEME = 'internxt://';
 
+export const LARGE_SHARE_DEEP_LINK = 'handle-large-share';
+
 export const AppLinks = {
   driveFolder: (folderUuid: string): string => `${SCHEME}tab-explorer/drive/folder/${folderUuid}`,
   signIn: (): string => `${SCHEME}sign-in`,

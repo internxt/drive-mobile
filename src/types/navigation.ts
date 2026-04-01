@@ -1,6 +1,7 @@
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
 import { SharedFile } from '../shareExtension/types';
 
 declare global {
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   Trash: undefined;
   DrivePreview: undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
+  LargeShareUpload: { metadata: PendingShareMetadata };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
