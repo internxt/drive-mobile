@@ -1,8 +1,11 @@
-export class FileTooLargeError extends Error {
-  constructor() {
-    super('Total file size exceeds the iOS share extension upload limit');
-    this.name = 'FileTooLargeError';
-    Object.setPrototypeOf(this, FileTooLargeError.prototype);
+export class HttpUploadError extends Error {
+  constructor(
+    readonly status: number,
+    readonly responseBody: string,
+  ) {
+    super(`Upload failed with HTTP ${status}`);
+    this.name = 'HttpUploadError';
+    Object.setPrototypeOf(this, HttpUploadError.prototype);
   }
 }
 

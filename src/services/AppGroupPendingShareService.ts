@@ -18,6 +18,7 @@ export const STALE_THRESHOLD_MS = 24 * ONE_HOUR_MS;
 interface AppGroupPendingShareNativeModule {
   readPendingShare(): Promise<string | null>;
   clearPendingShare(): Promise<void>;
+  writePendingShare(json: string): Promise<void>;
 }
 
 const AppGroupPendingShare = NativeModules.AppGroupPendingShare as AppGroupPendingShareNativeModule;
@@ -35,7 +36,13 @@ export const AppGroupPendingShareService = {
       return null;
     }
 
-    const parsedJSON: unknown = JSON.parse(json);
+    let parsedJSON: unknown;
+    try {
+      parsedJSON = JSON.parse(json);
+    } catch {
+      await AppGroupPendingShare.clearPendingShare().catch(() => undefined);
+      return null;
+    }
     if (!isPendingShareMetadata(parsedJSON)) {
       await AppGroupPendingShare.clearPendingShare().catch(() => undefined);
       return null;
@@ -43,5 +50,7 @@ export const AppGroupPendingShareService = {
     return parsedJSON;
   },
   clear: (): Promise<void> => AppGroupPendingShare.clearPendingShare(),
+  update: (metadata: PendingShareMetadata): Promise<void> =>
+    AppGroupPendingShare.writePendingShare(JSON.stringify(metadata)),
   isStale: (metadata: PendingShareMetadata): boolean => Date.now() - metadata.timestamp > STALE_THRESHOLD_MS,
 };

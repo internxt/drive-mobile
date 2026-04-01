@@ -1,13 +1,12 @@
 import { close, openHostApp } from 'expo-share-extension';
-import { useCallback, useMemo } from 'react';
-import { AppPaths } from '../navigation/AppLinks';
+import { useCallback } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
+import { AppPaths } from '../navigation/AppLinks';
 import { useShareExtension } from './hooks/useShareExtension.ios';
 import { useShareUpload } from './hooks/useShareUpload';
 import { DriveScreen } from './screens/DriveScreen';
 import { NotSignedInScreen } from './screens/NotSignedInScreen';
-import { isIosTotalSizeTooLargeForUpload } from './services/shareUploadService';
 import { colors } from './theme';
 
 interface ShareExtensionProps {
@@ -24,12 +23,37 @@ interface ShareExtensionProps {
   text?: string;
 }
 
-const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridgeUser, userId, files, images, videos }: ShareExtensionProps) => {
+const ShareExtensionView = ({
+  photosToken,
+  mnemonic,
+  rootFolderId,
+  bucket,
+  bridgeUser,
+  userId,
+  files,
+  images,
+  videos,
+}: ShareExtensionProps) => {
   const tailwind = useTailwind();
-  const { sdkReady, sharedFiles } = useShareExtension({ photosToken, mnemonic, bucket, bridgeUser, userId, files, images, videos });
-  const { status: uploadStatus, errorType: uploadError, progress: uploadProgress, thumbnailUri, uploadFiles, reset: resetUpload } = useShareUpload();
-
-  const filesTooLarge = useMemo(() => isIosTotalSizeTooLargeForUpload(sharedFiles), [sharedFiles]);
+  const { sdkReady, sharedFiles } = useShareExtension({
+    photosToken,
+    mnemonic,
+    bucket,
+    bridgeUser,
+    userId,
+    files,
+    images,
+    videos,
+  });
+  const {
+    status: uploadStatus,
+    errorType: uploadErrorType,
+    uploadError,
+    progress: uploadProgress,
+    thumbnailUri,
+    uploadFiles,
+    reset: resetUpload,
+  } = useShareUpload();
 
   const handleSave = useCallback(
     (destinationFolderUuid: string, renamedFileName?: string) => {
@@ -39,13 +63,10 @@ const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridg
     [mnemonic, bucket, bridgeUser, userId, photosToken, sharedFiles, uploadFiles],
   );
 
-  const handleViewInFolder = useCallback(
-    (folderUuid: string) => {
-      openHostApp(AppPaths.driveFolder(folderUuid));
-      close();
-    },
-    [],
-  );
+  const handleViewInFolder = useCallback((folderUuid: string) => {
+    openHostApp(AppPaths.driveFolder(folderUuid));
+    close();
+  }, []);
 
   if (!photosToken) {
     return <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />;
@@ -64,9 +85,9 @@ const ShareExtensionView = ({ photosToken, mnemonic, rootFolderId, bucket, bridg
       sharedFiles={sharedFiles}
       rootFolderUuid={rootFolderId}
       uploadStatus={uploadStatus}
+      uploadErrorType={uploadErrorType}
       uploadError={uploadError}
       uploadProgress={uploadProgress}
-      filesTooLarge={filesTooLarge}
       thumbnailUri={thumbnailUri}
       onClose={close}
       onSave={handleSave}
