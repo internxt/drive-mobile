@@ -25,6 +25,9 @@ export enum DriveAnalyticsEvent {
   FileDownloadStarted = 'File Download Started',
   FileDownloadError = 'File Download Error',
   FileDownloadCompleted = 'File Download Completed',
+  FolderUploadStarted = 'Folder Upload Started',
+  FolderUploadCompleted = 'Folder Upload Completed',
+  FolderUploadError = 'Folder Upload Error',
 }
 
 export class AnalyticsService {

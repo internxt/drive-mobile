@@ -35,8 +35,6 @@ const normalizePathSegments = (pathname: string): string => {
 
 const UNKNOWN_ENDPOINT = 'unknown';
 
-export const HTTP_TOO_MANY_REQUESTS = 429;
-
 export const HEADER_RATELIMIT_LIMIT = 'x-internxt-ratelimit-limit';
 export const HEADER_RATELIMIT_REMAINING = 'x-internxt-ratelimit-remaining';
 export const HEADER_RATELIMIT_RESET = 'x-internxt-ratelimit-reset';

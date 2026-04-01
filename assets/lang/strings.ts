@@ -34,6 +34,7 @@ const translations = {
       used: 'Used',
       avaiblable: 'Available',
       notEditable: 'Not editable',
+      unnamedFolder: 'Unnamed folder',
     },
     tabs: {
       Home: 'Home',
@@ -342,6 +343,7 @@ const translations = {
       descrypting: 'Decrypting...',
       cancel: 'Cancel',
       cancelling: 'Cancelling',
+      upload: 'Upload',
       confirm: 'Confirm',
       move: 'Move',
       moveHere: 'Move here',
@@ -349,6 +351,7 @@ const translations = {
       upgrade: 'Upgrade',
       upgradeNow: 'Upgrade now',
       uploadFiles: 'Upload files',
+      uploadFolder: 'Upload folder',
       uploadFromCameraRoll: 'Upload from camera roll',
       takeAPhotoAnUpload: 'Take a photo and upload',
       newFolder: 'New folder',
@@ -474,6 +477,20 @@ const translations = {
         duplicateFilesTitle: 'Duplicate Files Found',
         duplicateFilesMessage: 'The following files already exist: %s\n\nDo you want to upload them with a new name?',
         duplicateFilesAction: 'Upload with new name',
+      },
+      nameCollision: {
+        title: 'Item already exists',
+        titleMultiple: 'Some items already exist',
+        messageSingleFolder:
+          '"{0}" already exists in this location. Do you want to replace the folder or keep both?',
+        messageSingleFile:
+          '"{0}" already exists in this location. Do you want to replace the file or keep both?',
+        messageMultiple:
+          'More than one element already exists in this location. Do you want to replace them or keep all?',
+        replaceCurrentItem: 'Replace current item',
+        keepBoth: 'Keep both',
+        replaceAll: 'Replace all',
+        keepAll: 'Keep all',
       },
       rename: {
         title: 'Rename',
@@ -684,6 +701,9 @@ const translations = {
       uploadFilesLimit: '{0} files will not be uploaded.\nMax upload size per file is 5GB',
       uploadFileLimitName: '{0} will not be uploaded.\nMax upload size per file is 5GB',
       limitPerFile: 'Max upload size per file reached',
+      folderUploadCompleted: 'Successfully uploaded {0} files to "{1}"',
+      folderUploadPartial: '{0} of {1} files uploaded ({2} failed)',
+      folderUploadCancelled: 'Folder upload cancelled',
     },
     errors: {
       runtimeLogsMissing: 'The logs file is missing or empty',
@@ -742,6 +762,10 @@ const translations = {
       rateLimitUpload: "Your upload couldn't be completed right now. Please wait a moment and try again.",
       rateLimitDownload: "Your download couldn't be completed right now. Please wait a moment and try again.",
       rateLimitContent: "Content couldn't be loaded right now. Please wait a moment and try again.",
+      folderTooLarge: {
+        title: 'Folder is too large',
+        message: 'The selected folder contains more than {0} files. Please select a smaller folder.',
+      },
     },
     security: {
       alerts: {
@@ -818,6 +842,7 @@ const translations = {
       avaiblable: 'Disponible',
       usagePercent: '{0}% usado',
       notEditable: 'No editable',
+      unnamedFolder: 'Carpeta sin nombre',
     },
     tabs: {
       Home: 'Inicio',
@@ -1124,6 +1149,7 @@ const translations = {
       descrypting: 'Desencriptando...',
       cancel: 'Cancelar',
       cancelling: 'Cancelando',
+      upload: 'Subir',
       confirm: 'Confirmar',
       move: 'Mover',
       save: 'Guardar',
@@ -1132,6 +1158,7 @@ const translations = {
       upgrade: 'Mejorar',
       upgradeNow: 'Comprar espacio',
       uploadFiles: 'Subir archivos',
+      uploadFolder: 'Subir carpeta',
       uploadFromCameraRoll: 'Subir desde la galería',
       takeAPhotoAnUpload: 'Tomar una foto y subir',
       newFolder: 'Nueva carpeta',
@@ -1256,6 +1283,20 @@ const translations = {
         duplicateFilesTitle: 'Archivos duplicados encontrados',
         duplicateFilesMessage: 'Los siguientes archivos ya existen: %s\n\n¿Quieres subirlos con un nuevo nombre?',
         duplicateFilesAction: 'Subir con nuevo nombre',
+      },
+      nameCollision: {
+        title: 'El elemento ya existe',
+        titleMultiple: 'Algunos elementos ya existen',
+        messageSingleFolder:
+          '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar la carpeta o conservar ambas?',
+        messageSingleFile:
+          '"{0}" ya existe en esta ubicación. ¿Quieres reemplazar el archivo o conservar ambos?',
+        messageMultiple:
+          'Más de un elemento ya existe en esta ubicación. ¿Quieres reemplazarlos o conservar todos?',
+        replaceCurrentItem: 'Reemplazar el elemento actual',
+        keepBoth: 'Conservar ambos',
+        replaceAll: 'Reemplazar todos',
+        keepAll: 'Conservar todos',
       },
       rename: {
         title: 'Renombrar',
@@ -1472,6 +1513,9 @@ const translations = {
       uploadFilesLimit: '{0} archivos no se han subido.\nEl tamaño máximo por archivo es de 5 GB',
       uploadFileLimitName: '{0} no se ha subido.\nEl tamaño máximo es de 5 GB',
       limitPerFile: 'Tamaño máximo por archivo alcanzado',
+      folderUploadCompleted: '{0} archivos subidos correctamente a "{1}"',
+      folderUploadPartial: '{0} de {1} archivos subidos ({2} fallaron)',
+      folderUploadCancelled: 'Subida de carpeta cancelada',
     },
     errors: {
       runtimeLogsMissing: 'El archivo no se encuentra o está vacío',
@@ -1530,6 +1574,10 @@ const translations = {
       rateLimitUpload: 'No se ha podido completar la subida en este momento. Por favor, espera un momento e inténtalo de nuevo.',
       rateLimitDownload: 'No se ha podido completar la descarga en este momento. Por favor, espera un momento e inténtalo de nuevo.',
       rateLimitContent: 'No se ha podido cargar el contenido en este momento. Por favor, espera un momento e inténtalo de nuevo.',
+      folderTooLarge: {
+        title: 'La carpeta es demasiado grande',
+        message: 'La carpeta seleccionada contiene más de {0} archivos. Por favor, selecciona una carpeta más pequeña.',
+      },
     },
     security: {
       alerts: {

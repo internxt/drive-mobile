@@ -1,10 +1,9 @@
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
-import { DocumentPickerResponse } from 'react-native-document-picker';
 import { DocumentPickerFile, FileToUpload } from '../../../../types/drive/operations';
 import { getUniqueFilename } from './getUniqueFilename';
 
 interface ProcessDuplicateFilesParams {
-  files: DocumentPickerResponse[];
+  files: DocumentPickerFile[];
   existingFilesToUpload: FileToUpload[];
   parentFolderUuid: string;
   disableDuplicatedNamesCheck?: boolean;

@@ -12,7 +12,9 @@ import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
 import SortModal, { SortMode } from '../../../components/modals/SortModal';
+import { useLanguage } from '../../../hooks/useLanguage';
 import { logger } from '../../../services/common';
+import { folderUploadCancellationService } from '../../../services/drive/folder/folderUploadCancellation.service';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
@@ -20,9 +22,9 @@ import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
 import { DriveListType, SortDirection, SortType } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
-import { useLanguage } from '../../../hooks/useLanguage';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
+import { buildFolderUploadListItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
@@ -88,7 +90,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     });
 
     return folders.concat(files);
-  }, [folderFiles]);
+  }, [folderFiles, folderFolders]);
 
   useEffect(() => {
     // to ensure that the folder content is loaded when new folder is focused
@@ -140,16 +142,17 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   });
 
   const { uploading: driveUploadingItems } = useAppSelector(driveSelectors.driveItems);
+  const folderUploads = useAppSelector((state) => state.drive.folderUploads);
 
-  const screenTitle = !isRootFolder ? folderName ?? folder.name : strings.screens.drive.title;
+  const screenTitle = isRootFolder ? strings.screens.drive.title : (folderName ?? folder.name);
 
-  const driveSortedItems = useMemo(
-    () =>
-      driveUploadingItems
-        .concat(folderContent.filter((item) => item.data.isFolder).sort(drive.file.getSortFunction(sortMode)))
-        .concat(folderContent.filter((item) => !item.data.isFolder).sort(drive.file.getSortFunction(sortMode))),
-    [sortMode, driveUploadingItems, folderContent],
-  );
+  const driveSortedItems = useMemo(() => {
+    const folderUploadItems = Object.values(folderUploads).map(buildFolderUploadListItem);
+    return folderUploadItems
+      .concat(driveUploadingItems)
+      .concat(folderContent.filter((item) => item.data.isFolder).sort(drive.file.getSortFunction(sortMode)))
+      .concat(folderContent.filter((item) => !item.data.isFolder).sort(drive.file.getSortFunction(sortMode)));
+  }, [sortMode, driveUploadingItems, folderContent, folderUploads]);
 
   /**
    * TODO: WARNING REDUX USAGE OVER HERE, SHOULD REMOVE
@@ -229,6 +232,13 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleDriveItemActionsPress = (driveItem: DriveListItem) => {
+    if (driveItem.id.startsWith('folder-upload-')) {
+      const uploadId = driveItem.data.uuid;
+      folderUploadCancellationService.cancel(uploadId);
+      dispatch(driveActions.removeFolderUpload(uploadId));
+      return;
+    }
+
     dispatch(
       driveActions.setFocusedItem({
         ...driveItem.data,
@@ -315,11 +325,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         return item.data.name.toLowerCase().includes(searchValue.toLowerCase());
       });
     }
-    return driveSortedItems.map((item) => {
-      return {
-        ...item,
-      };
-    });
+    return driveSortedItems;
   }, [driveSortedItems, searchValue]);
 
   async function handleRefresh() {

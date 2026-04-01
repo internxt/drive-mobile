@@ -1,5 +1,6 @@
 import { logger } from '@internxt-mobile/services/common';
-import { HTTP_TOO_MANY_REQUESTS, MAX_RATE_LIMIT_RETRIES, rateLimitService } from './rate-limit.service';
+import { HTTP_TOO_MANY_REQUESTS } from '../httpStatusCodes';
+import { MAX_RATE_LIMIT_RETRIES, rateLimitService } from './rate-limit.service';
 
 /**
  * Wraps an async operation with rate-limit-aware retry logic.
@@ -25,9 +26,7 @@ export const withRateLimitRetry = async <T>(
 
       rateLimitRetries++;
       const delay = rateLimitService.getRetryDelay(undefined, endpointKey);
-      logger.warn(
-        `[RateLimit] ${context} 429, retry ${rateLimitRetries}/${MAX_RATE_LIMIT_RETRIES} after ${delay}ms`,
-      );
+      logger.warn(`[RateLimit] ${context} 429, retry ${rateLimitRetries}/${MAX_RATE_LIMIT_RETRIES} after ${delay}ms`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
   }
