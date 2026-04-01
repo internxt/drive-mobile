@@ -12,7 +12,7 @@ class AppGroupPendingShareModule: NSObject {
 
   @objc func readPendingShare(
     _ resolver: @escaping RCTPromiseResolveBlock,
-    rejecter: @escaping RCTPromiseRejectBlock
+    rejecter _: @escaping RCTPromiseRejectBlock
   ) {
     guard
       let group = appGroup,

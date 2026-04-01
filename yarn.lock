@@ -7633,7 +7633,7 @@ react-native-capture-protection@2.4.0:
   resolved "https://registry.yarnpkg.com/react-native-capture-protection/-/react-native-capture-protection-2.4.0.tgz#3a448361747c5d9ffdb3497f020b52a1bb12c8cf"
   integrity sha512-nipLYnXorytj2Ynk6npRTL6EG3DVby4mpOd3ywG3HOBFqniLly05awqRQCbJY7knQvYFoDuVauKaV08lBwNBNw==
 
-react-native-create-thumbnail@^2.0.0:
+react-native-create-thumbnail@^2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/react-native-create-thumbnail/-/react-native-create-thumbnail-2.2.0.tgz#d5c99c97c02cd5c51a57983f5d79088e58e986bb"
   integrity sha512-zrwVYWMpeMEGIYO1jgwUMBpSpIzMR7Z2gkSANVlf9BFZLRw017k7CfjttvDhCHjsxNNDb7+V8uJaNwIGdTpz/g==

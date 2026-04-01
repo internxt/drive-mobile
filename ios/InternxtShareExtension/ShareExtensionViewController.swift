@@ -52,7 +52,7 @@ class ShareExtensionViewController: UIViewController {
   private var isCleanedUp = false
 
   // ── Internxt: threshold for handoff to main app ────────────────────────────
-  private let IOS_HANDOFF_THRESHOLD: Int64 = 300 * 1024 * 1024
+  private let iosHandoffThreshold: Int64 = 300 * 1024 * 1024
 
   private struct CollectedItem {
     let url: URL
@@ -308,12 +308,12 @@ class ShareExtensionViewController: UIViewController {
   // PHASE 1: Collect all items without copying to the App Group
   // PHASE 2 (group.notify): Calculate totalSize → decide normal upload vs handoff
   //
-  // If totalSize > IOS_HANDOFF_THRESHOLD:
+  // If totalSize > iosHandoffThreshold:
   //   • Photos assets → phAssetId only in JSON (no file copy, 0 bytes written)
   //   • Files.app / iCloud Drive → moveItem to App Group, dest URI in JSON
   //   • Do NOT call completion → React Native must never start on handoff
   //
-  // If totalSize ≤ IOS_HANDOFF_THRESHOLD:
+  // If totalSize ≤ iosHandoffThreshold:
   //   • copyItem to App Group → completion(sharedItems) → React Native normal upload
   // ──────────────────────────────────────────────────────────────────────────
   private func getShareData(completion: @escaping ([String: Any]?) -> Void) {
@@ -444,23 +444,22 @@ class ShareExtensionViewController: UIViewController {
               if resultNames[idx] == nil { resultNames[idx] = "\(name).\(ext)" }
               resultCategories[idx] = "images"
               lock.unlock()
-            } else if let image = imageItem as? UIImage,
-                      let data = image.jpegData(compressionQuality: 1.0) {
-              let dest = tempDir.appendingPathComponent("\(name).jpg")
-              try? data.write(to: dest)
-              lock.lock()
-              resultURLs[idx] = dest
-              if resultNames[idx] == nil { resultNames[idx] = "\(name).jpg" }
-              resultCategories[idx] = "images"
-              lock.unlock()
-            } else if let data = imageItem as? Data {
-              let dest = tempDir.appendingPathComponent("\(name).jpg")
-              try? data.write(to: dest)
-              lock.lock()
-              resultURLs[idx] = dest
-              if resultNames[idx] == nil { resultNames[idx] = "\(name).jpg" }
-              resultCategories[idx] = "images"
-              lock.unlock()
+            } else {
+              let rawData: Data?
+              if let image = imageItem as? UIImage {
+                rawData = image.jpegData(compressionQuality: 1.0)
+              } else {
+                rawData = imageItem as? Data
+              }
+              if let data = rawData {
+                let dest = tempDir.appendingPathComponent("\(name).jpg")
+                try? data.write(to: dest)
+                lock.lock()
+                resultURLs[idx] = dest
+                if resultNames[idx] == nil { resultNames[idx] = "\(name).jpg" }
+                resultCategories[idx] = "images"
+                lock.unlock()
+              }
             }
           }
         }
@@ -553,7 +552,7 @@ class ShareExtensionViewController: UIViewController {
         try? fileManager.createDirectory(at: sharedDataURL, withIntermediateDirectories: true)
       }
 
-      if totalSize > self.IOS_HANDOFF_THRESHOLD {
+      if totalSize > self.iosHandoffThreshold {
         self.handleLargeFileHandoff(
           items: collectedItems,
           containerURL: containerURL,

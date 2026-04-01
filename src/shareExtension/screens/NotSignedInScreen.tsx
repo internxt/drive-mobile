@@ -5,8 +5,8 @@ import strings from '../../../assets/lang/strings';
 import { colors, fontStyles } from '../theme';
 
 interface NotSignedInScreenProps {
-  onClose: () => void;
-  onOpenLogin: () => void;
+  readonly onClose: () => void;
+  readonly onOpenLogin: () => void;
 }
 
 function LoginIcon() {
