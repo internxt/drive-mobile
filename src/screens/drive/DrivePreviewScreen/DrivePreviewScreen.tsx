@@ -6,9 +6,10 @@ import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
 import strings from 'assets/lang/strings';
+import * as NavigationBar from 'expo-navigation-bar';
 import { WarningCircleIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, useWindowDimensions, View } from 'react-native';
+import { Animated, Platform, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppButton from 'src/components/AppButton';
 import AppProgressBar from 'src/components/AppProgressBar';
@@ -105,6 +106,15 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       useNativeDriver: false,
       easing: DEFAULT_EASING,
     }).start();
+
+    if (Platform.OS === 'android') {
+      if (topbarVisible) {
+        NavigationBar.setVisibilityAsync('visible');
+      } else {
+        NavigationBar.setVisibilityAsync('hidden');
+        NavigationBar.setBehaviorAsync('overlay-swipe');
+      }
+    }
   }, [topbarVisible]);
 
   const handleActionsButtonPress = () => {
@@ -245,7 +255,11 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     }
 
     if (renderVideoPreview && downloadingFile.downloadedFilePath) {
-      return <DriveVideoPreview thumbnail={generatedThumbnail?.path} source={downloadingFile.downloadedFilePath} />;
+      return (
+        <View style={[tailwind('flex-1'), { paddingTop: totalHeaderHeight, paddingBottom: insets.bottom }]}>
+          <DriveVideoPreview thumbnail={generatedThumbnail?.path} source={downloadingFile.downloadedFilePath} />
+        </View>
+      );
     }
 
     if (renderPdfPreview) {
