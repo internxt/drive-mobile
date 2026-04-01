@@ -18,7 +18,7 @@ const uploadAndRegisterThumbnail = async (
   session: ShareUploadSession,
 ): Promise<void> => {
   const { network, cryptoLib } = session;
-  const encryptedPath = getTmpPath(`${uuid.v4()}_thumb.enc`);
+  const encryptedThumbnailPath = getTmpPath(`${uuid.v4()}_thumb.enc`);
   let encryptedHash: string | undefined;
 
   try {
@@ -29,13 +29,13 @@ const uploadAndRegisterThumbnail = async (
       mnemonic,
       thumbnail.size,
       async (_algorithm, key, iv) => {
-        await encryptFileForUpload(thumbnail.path, encryptedPath, key as Buffer, iv as Buffer);
-        const sha256Hex = await RNFS.hash(encryptedPath, 'sha256');
+        await encryptFileForUpload(thumbnail.path, encryptedThumbnailPath, key as Buffer, iv as Buffer);
+        const sha256Hex = await RNFS.hash(encryptedThumbnailPath, 'sha256');
         encryptedHash = computeRipemd160Digest(Buffer.from(sha256Hex, 'hex')).toString('hex');
       },
       async (url: string) => {
         if (!encryptedHash) throw new Error('invariant: encryptedHash not assigned');
-        await uploadEncryptedFile(url, encryptedPath);
+        await uploadEncryptedFile(url, encryptedThumbnailPath);
         return encryptedHash;
       },
     );
@@ -51,7 +51,7 @@ const uploadAndRegisterThumbnail = async (
       encryptVersion: EncryptionVersion.Aes03,
     });
   } finally {
-    await RNFS.unlink(encryptedPath).catch(() => undefined);
+    await RNFS.unlink(encryptedThumbnailPath).catch(() => undefined);
   }
 };
 
