@@ -46,7 +46,9 @@ export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Elemen
     uploadError,
     progress: uploadProgress,
     thumbnailUri,
+    collisionState,
     uploadFiles,
+    handleCollisionAction,
     reset: resetUpload,
   } = useShareUpload({ onFileUploaded: handleFileUploaded });
 
@@ -71,7 +73,7 @@ export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Elemen
   }, [uploadStatus]);
 
   const handleClose = useCallback(() => {
-    if (uploadStatus === 'uploading') return;
+    if (uploadStatus === 'uploading' || uploadStatus === 'conflict') return;
     if (uploadStatus === 'success') {
       navigation.goBack();
       return;
@@ -145,10 +147,12 @@ export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Elemen
         uploadError={uploadError}
         uploadProgress={uploadProgress}
         thumbnailUri={thumbnailUri}
+        collisionState={collisionState}
         onClose={handleClose}
         onSave={handleSave}
         onViewInFolder={handleViewInFolder}
         onDismissError={resetUpload}
+        onCollisionAction={handleCollisionAction}
       />
     </SafeAreaView>
   );

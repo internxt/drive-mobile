@@ -22,7 +22,9 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
     uploadError,
     progress: uploadProgress,
     thumbnailUri,
+    collisionState,
     uploadFiles,
+    handleCollisionAction,
     reset: resetUpload,
   } = useShareUpload();
 
@@ -75,10 +77,12 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
         uploadError={uploadError}
         uploadProgress={uploadProgress}
         thumbnailUri={thumbnailUri}
+        collisionState={collisionState}
         onClose={handleClose}
         onSave={handleSave}
         onViewInFolder={handleViewInFolder}
         onDismissError={resetUpload}
+        onCollisionAction={handleCollisionAction}
       />
     </SafeAreaView>
   );

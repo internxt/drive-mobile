@@ -1,12 +1,17 @@
-import { items as itemsUtils } from '@internxt/lib';
-import { DriveFileData } from '@internxt-mobile/types/drive/file';
-import { driveFileService } from '../driveFile.service';
+import renameIfNeeded from '@internxt/lib/dist/src/items/renameIfNeeded';
+import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+
+export type CheckDuplicates = (
+  folderUuid: string,
+  files: { plainName: string; type: string }[],
+) => Promise<DriveFileData[]>;
 
 export const getUniqueFilename = async (
   filename: string,
   extension: string,
   duplicatedFiles: DriveFileData[],
   parentFolderUuid: string,
+  checkDuplicates: CheckDuplicates,
 ): Promise<string> => {
   let isFileNewNameDuplicated = true;
   let finalFilename = filename;
@@ -18,19 +23,11 @@ export const getUniqueFilename = async (
       type: file.type,
     }));
 
-    const [, , renamedFilename] = itemsUtils.renameIfNeeded(
-      currentFolderFilesToCheckDuplicates,
-      finalFilename,
-      extension,
-    );
+    const [, , renamedFilename] = renameIfNeeded(currentFolderFilesToCheckDuplicates, finalFilename, extension);
 
     finalFilename = renamedFilename;
 
-    const duplicatedFilesResponse = await driveFileService.checkFileExistence(parentFolderUuid, [
-      { plainName: renamedFilename, type: extension },
-    ]);
-
-    currentDuplicatedFiles = duplicatedFilesResponse.existentFiles;
+    currentDuplicatedFiles = await checkDuplicates(parentFolderUuid, [{ plainName: renamedFilename, type: extension }]);
     isFileNewNameDuplicated = currentDuplicatedFiles.length > 0;
   } while (isFileNewNameDuplicated);
 
