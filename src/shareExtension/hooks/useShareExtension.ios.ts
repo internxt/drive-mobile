@@ -32,26 +32,23 @@ export const useShareExtension = ({
     setSdkReady(true);
   }, [photosToken]);
 
+  const toSharedFile =
+    (mimeTypeFallback: string | null = null) =>
+    (uri: string): SharedFile => {
+      const segment = uri.split('/').pop();
+      return {
+        uri,
+        mimeType: getMimeTypeFromUri(uri) ?? mimeTypeFallback,
+        fileName: segment ? decodeURIComponent(segment) : null,
+        size: readSize(uri),
+      };
+    };
+
   const sharedFiles = useMemo<SharedFile[]>(
     () => [
-      ...(files ?? []).map((uri) => ({
-        uri,
-        mimeType: getMimeTypeFromUri(uri),
-        fileName: decodeURIComponent(uri.split('/').pop() ?? '') || null,
-        size: readSize(uri),
-      })),
-      ...(images ?? []).map((uri) => ({
-        uri,
-        mimeType: getMimeTypeFromUri(uri) ?? 'image/jpeg',
-        fileName: decodeURIComponent(uri.split('/').pop() ?? '') || null,
-        size: readSize(uri),
-      })),
-      ...(videos ?? []).map((uri) => ({
-        uri,
-        mimeType: getMimeTypeFromUri(uri) ?? 'video/mp4',
-        fileName: decodeURIComponent(uri.split('/').pop() ?? '') || null,
-        size: readSize(uri),
-      })),
+      ...(files ?? []).map(toSharedFile()),
+      ...(images ?? []).map(toSharedFile('image/jpeg')),
+      ...(videos ?? []).map(toSharedFile('video/mp4')),
     ],
     [files, images, videos],
   );
