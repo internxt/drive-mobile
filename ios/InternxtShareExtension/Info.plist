@@ -73,8 +73,6 @@
 		<key>red</key>
 		<integer>255</integer>
 	</dict>
-	<key>ShareExtensionHeight</key>
-	<integer>700</integer>
 	<key>UIAppFonts</key>
 	<array/>
 	<key>UIApplicationSceneManifest</key>

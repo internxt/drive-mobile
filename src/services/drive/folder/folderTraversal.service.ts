@@ -79,7 +79,7 @@ const traverseSafUri = async ({
 
   for (const childUri of childUris) {
     const info = await getInfoAsync(childUri);
-    const infoName = (info as typeof info & { name?: string }).name;
+    const infoName = (info as { name?: string }).name;
     const name = infoName || getNameFromSafUri(childUri);
     const isDirectory = info.exists ? info.isDirectory : false;
     const relativePath = currentRelativePath ? `${currentRelativePath}/${name}` : name;

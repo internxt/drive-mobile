@@ -32,7 +32,7 @@ jest.mock('../../../../assets/lang/strings', () => ({
     formatString: (template: string, ...args: (string | number)[]) =>
       template.replaceAll(/{(\d+)}/g, (match, index) => {
         const argIndex = Number.parseInt(index, 10);
-        return args[argIndex] !== undefined ? String(args[argIndex]) : match;
+        return args[argIndex] === undefined ? match : String(args[argIndex]);
       }),
   },
 }));
