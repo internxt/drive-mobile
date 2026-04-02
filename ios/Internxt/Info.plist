@@ -6,8 +6,6 @@
     <string>group.com.internxt.snacks</string>
     <key>AppGroupIdentifier</key>
     <string>group.com.internxt.snacks</string>
-    <key>SharedKeychainGroup</key>
-    <string>$(AppIdentifierPrefix)group.com.internxt.snacks</string>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
     <key>CFBundleDevelopmentRegion</key>
@@ -25,7 +23,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.8.7</string>
+    <string>1.9.0</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -67,6 +65,8 @@
     <true/>
     <key>RCTRootViewBackgroundColor</key>
     <integer>4294967295</integer>
+    <key>SharedKeychainGroup</key>
+    <string>$(AppIdentifierPrefix)group.com.internxt.snacks</string>
     <key>UIDesignRequiresCompatibility</key>
     <true/>
     <key>UILaunchStoryboardName</key>
