@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
   <dict>
+    <key>AppGroup</key>
+    <string>group.com.internxt.snacks</string>
+    <key>AppGroupIdentifier</key>
+    <string>group.com.internxt.snacks</string>
+    <key>SharedKeychainGroup</key>
+    <string>$(AppIdentifierPrefix)group.com.internxt.snacks</string>
     <key>CADisableMinimumFrameDurationOnPhone</key>
     <true/>
     <key>CFBundleDevelopmentRegion</key>

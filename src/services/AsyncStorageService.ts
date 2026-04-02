@@ -185,6 +185,17 @@ class AsyncStorageService {
     }
   }
 
+  async migrateShareExtensionCriticalFields(): Promise<void> {
+    const alreadyMigrated = await secureStorageService.hasItem('xUser_bridgeUser');
+    if (alreadyMigrated) return;
+
+    const user = await this.getUser();
+    if (!user?.rootFolderId) return;
+
+    await this.saveItem(AsyncStorageKey.User, JSON.stringify(user));
+    logger.info('Share extension critical fields migrated (rootFolderId, bucket, bridgeUser, userId)');
+  }
+
   async checkNeedsMigration(): Promise<{ needsMigration: boolean; itemsToMigrate: string[] }> {
     const itemsToMigrate: string[] = [];
 

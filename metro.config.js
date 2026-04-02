@@ -1,16 +1,17 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { withShareExtension } = require('expo-share-extension/metro');
 
-module.exports = (() => {
-  const config = getDefaultConfig(__dirname);
-  const { transformer, resolver } = config;
+const config = (() => {
+  const baseConfig = getDefaultConfig(__dirname);
+  const { transformer, resolver } = baseConfig;
 
   // SVG transformer - use /expo for compatibility with Expo SDK 53
-  config.transformer = {
+  baseConfig.transformer = {
     ...transformer,
     babelTransformerPath: require.resolve('react-native-svg-transformer/expo'),
   };
 
-  config.resolver = {
+  baseConfig.resolver = {
     ...resolver,
     assetExts: resolver.assetExts.filter((ext) => ext !== 'svg'),
     sourceExts: [...resolver.sourceExts, 'svg'],
@@ -21,5 +22,7 @@ module.exports = (() => {
     },
   };
 
-  return config;
+  return baseConfig;
 })();
+
+module.exports = withShareExtension(config);

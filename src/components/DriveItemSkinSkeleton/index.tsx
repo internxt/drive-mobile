@@ -1,30 +1,33 @@
-import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
-import React, { useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
-const DriveItemSkinSkeleton: React.FC<{ viewMode?: DriveListViewMode }> = ({ viewMode }) => {
+const DriveItemSkinSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ viewMode }) => {
   const tailwind = useTailwind();
-  const [fadeAnim] = useState(new Animated.Value(1));
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  Animated.loop(
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 0.4,
-        duration: 1500,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 800,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ]),
-  ).start();
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.4,
+          duration: 1500,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 800,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
 
-  if (viewMode === DriveListViewMode.Grid) {
+  if (viewMode === 'grid') {
     const renderGridItem = () => {
       return (
         <View style={[tailwind('items-center flex-col justify-center pt-6 mb-6 w-1/3')]}>

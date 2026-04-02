@@ -9,8 +9,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import appService from '@internxt-mobile/services/AppService';
 import errorService from '@internxt-mobile/services/ErrorService';
 import notificationsService from '@internxt-mobile/services/NotificationsService';
-import { AppStateStatus, NativeEventSubscription } from 'react-native';
 import { NotificationType } from '@internxt-mobile/types/index';
+import { AppStateStatus, NativeEventSubscription } from 'react-native';
 
 import { driveFolderService } from '@internxt-mobile/services/drive/folder';
 import { mapFileWithIsFolder, mapFolderWithIsFolder } from 'src/helpers/driveItemMappers';
@@ -85,6 +85,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const [currentFolder, setCurrentFolder] = useState<DriveFoldersTreeNode | null>(null);
   const currentFolderId = useRef<string | null>(null);
   const onAppStateChangeListener = useRef<NativeEventSubscription | null>(null);
+  const folderAbortControllers = useRef<Map<string, AbortController>>(new Map());
+  const driveFoldersTreeRef = useRef<DriveFoldersTree>({ [rootFolderId]: ROOT_FOLDER_NODE });
 
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active' && currentFolderId.current) {
@@ -109,6 +111,10 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       onAppStateChangeListener.current = null;
     };
   }, []);
+
+  useEffect(() => {
+    driveFoldersTreeRef.current = driveFoldersTree;
+  }, [driveFoldersTree]);
 
   useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.PreferredDriveViewMode).then((preferredDriveViewMode) => {
@@ -245,43 +251,77 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     };
   };
 
-  const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
-    const shouldResetPagination = options?.resetPagination;
-    const driveFolderTreeNode: DriveFoldersTreeNode = driveFoldersTree[folderId] ?? ROOT_FOLDER_NODE;
-    if (!driveFolderTreeNode) throw new Error('Cannot load this folder');
+  const refreshFolderAbortController = (folderId: string): AbortController => {
+    folderAbortControllers.current.get(folderId)?.abort();
+    const controller = new AbortController();
+    folderAbortControllers.current.set(folderId, controller);
+    return controller;
+  };
 
-    if (options?.focusFolder && driveFolderTreeNode) {
-      setCurrentFolder(driveFolderTreeNode);
+  const updateFolderNode = (folderId: string, updates: Partial<DriveFoldersTreeNode>) => {
+    setDriveFoldersTree((prevTree) => {
+      const node = prevTree[folderId];
+      if (!node) return prevTree;
+      return { ...prevTree, [folderId]: { ...node, ...updates } };
+    });
+  };
+
+  const fetchFolderData = async ({
+    folderId,
+    controller,
+    options,
+  }: {
+    folderId: string;
+    controller: AbortController;
+    options?: LoadFolderContentOptions;
+  }): Promise<{ files: DriveFileForTree[]; folders: DriveFolderForTree[] } | null> => {
+    if (controller.signal.aborted) {
+      return null;
     }
-
-    let files: DriveFileForTree[] = [];
-    let folders: DriveFolderForTree[] = [];
 
     if (options?.loadAllContent) {
-      const allContent = await fetchAllFolderContent(folderId);
-      files = allContent.files;
-      folders = allContent.folders;
-    } else {
-      const nextFilesPage = options?.resetPagination
-        ? 1
-        : Math.ceil(driveFolderTreeNode.files.length / FILES_LIMIT_PER_PAGE) + 1;
-      const nextFoldersPage = options?.resetPagination
-        ? 1
-        : Math.ceil(driveFolderTreeNode.folders.length / FOLDERS_LIMIT_PER_PAGE) + 1;
-
-      const paginatedContent = await fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
-      files = paginatedContent.files;
-      folders = paginatedContent.folders;
+      return fetchAllFolderContent(folderId);
     }
 
-    updateDriveFoldersTree({
-      folderId,
-      parentId: driveFolderTreeNode.parentId,
-      newFiles: files,
-      newFolders: folders,
-      error: undefined,
-      resetPagination: shouldResetPagination ?? false,
-    });
+    const currentDriveFoldersTree = driveFoldersTreeRef.current[folderId] ?? ROOT_FOLDER_NODE;
+    const nextFilesPage = options?.resetPagination
+      ? 1
+      : Math.ceil(currentDriveFoldersTree.files.length / FILES_LIMIT_PER_PAGE) + 1;
+    const nextFoldersPage = options?.resetPagination
+      ? 1
+      : Math.ceil(currentDriveFoldersTree.folders.length / FOLDERS_LIMIT_PER_PAGE) + 1;
+
+    return fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
+  };
+
+  const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
+    const driveFolderNode = driveFoldersTreeRef.current[folderId] ?? ROOT_FOLDER_NODE;
+    if (options?.focusFolder) setCurrentFolder(driveFolderNode);
+
+    const controller = refreshFolderAbortController(folderId);
+    updateFolderNode(folderId, { loading: true, error: undefined });
+
+    try {
+      const driveFolderNodeContent = await fetchFolderData({ folderId, controller, options });
+      if (!driveFolderNodeContent || controller.signal.aborted) return;
+
+      updateDriveFoldersTree({
+        folderId,
+        parentId: driveFolderNode.parentId,
+        newFiles: driveFolderNodeContent.files,
+        newFolders: driveFolderNodeContent.folders,
+        error: undefined,
+        resetPagination: options?.resetPagination ?? false,
+      });
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      updateFolderNode(folderId, { loading: false, error: error as Error });
+      throw error;
+    } finally {
+      if (folderAbortControllers.current.get(folderId) === controller) {
+        folderAbortControllers.current.delete(folderId);
+      }
+    }
   };
 
   const updateDriveFoldersTree = ({
@@ -299,47 +339,46 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     newFolders: DriveFolderForTree[];
     error?: Error;
   }) => {
-    const driveFolderTreeNode = driveFoldersTree[folderId];
+    setDriveFoldersTree((prevDriveFoldersTree) => {
+      const driveFolderTreeNode = prevDriveFoldersTree[folderId];
 
-    const allFiles = resetPagination ? newFiles : [...(driveFolderTreeNode?.files ?? []), ...newFiles];
+      const allFiles = resetPagination ? newFiles : [...(driveFolderTreeNode?.files ?? []), ...newFiles];
 
-    const allFolders = resetPagination ? newFolders : [...(driveFolderTreeNode?.folders ?? []), ...newFolders];
+      const allFolders = resetPagination ? newFolders : [...(driveFolderTreeNode?.folders ?? []), ...newFolders];
 
-    const newTreeNodes = {
-      [folderId]: {
-        name: driveFolderTreeNode?.name || 'Drive',
-        parentId: parentId,
-        uuid: folderId,
-        files: allFiles,
-        folders: allFolders,
-        loading: false,
-        error,
-      } as DriveFoldersTreeNode,
-    };
+      const newTreeNodes = {
+        [folderId]: {
+          name: driveFolderTreeNode?.name || 'Drive',
+          parentId: parentId,
+          uuid: folderId,
+          files: allFiles,
+          folders: allFolders,
+          loading: false,
+          error,
+        } as DriveFoldersTreeNode,
+      };
 
-    allFolders.forEach((folder) => {
-      const existingNode = driveFoldersTree[folder.uuid];
-      if (!existingNode) {
-        newTreeNodes[folder.uuid] = {
-          uuid: folder.uuid,
-          name: folder.plainName ?? '',
-          parentId: folder.parentUuid,
-          id: folder.id,
-          updatedAt: folder.updatedAt,
-          createdAt: folder.createdAt,
-          loading: true,
-          files: [],
-          folders: [],
-          // @ts-expect-error - leave old implementation in order to not break anything
-          currentFoldersPage: 2,
-          error: undefined,
-        };
-      }
-    });
+      allFolders.forEach((folder) => {
+        const existingNode = prevDriveFoldersTree[folder.uuid];
+        if (!existingNode) {
+          newTreeNodes[folder.uuid] = {
+            uuid: folder.uuid,
+            name: folder.plainName ?? '',
+            parentId: folder.parentUuid,
+            id: folder.id,
+            updatedAt: folder.updatedAt,
+            createdAt: folder.createdAt,
+            loading: true,
+            files: [],
+            folders: [],
+            // @ts-expect-error - leave old implementation in order to not break anything
+            currentFoldersPage: 2,
+            error: undefined,
+          };
+        }
+      });
 
-    setDriveFoldersTree({
-      ...driveFoldersTree,
-      ...newTreeNodes,
+      return { ...prevDriveFoldersTree, ...newTreeNodes };
     });
   };
 

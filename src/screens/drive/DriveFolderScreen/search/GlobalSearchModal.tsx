@@ -101,7 +101,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
         parentUuid: parentFolder?.uuid ?? '',
         parentFolderName: parentFolder?.plainName ?? 'Drive',
         folderName: folderMeta.plainName,
-        isRootFolder: false,
       });
     } catch (error) {
       errorService.reportError(error);

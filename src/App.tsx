@@ -125,6 +125,7 @@ function AppContent(): JSX.Element {
     if (needsMigration) {
       await asyncStorageService.migrateToSecureStorage();
     }
+    await asyncStorageService.migrateShareExtensionCriticalFields();
   };
 
   useEffect(() => {
