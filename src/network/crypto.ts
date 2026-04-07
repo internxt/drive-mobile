@@ -1,5 +1,5 @@
+import { pbkdf2 } from '@internxt/rn-crypto';
 import { sha512 } from '@noble/hashes/sha2.js';
-import { mnemonicToSeed } from '@scure/bip39';
 import { Buffer } from 'buffer';
 
 /**
@@ -15,7 +15,7 @@ export const getFileDeterministicKey = (key: Buffer | string, data: Buffer | str
 };
 
 export const generateFileBucketKey = async (mnemonic: string, bucketId: string): Promise<Buffer> => {
-  const seed = Buffer.from(await mnemonicToSeed(mnemonic));
+  const seed = await pbkdf2(mnemonic, 'mnemonic', 2048, 64);
   return getFileDeterministicKey(seed, Buffer.from(bucketId, 'hex'));
 };
 
