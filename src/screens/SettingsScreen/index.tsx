@@ -112,7 +112,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     Linking.openURL('mailto:hello@internxt.com');
   };
   const onMoreInfoPressed = () => {
-    Linking.openURL('https://internxt.com');
+    Linking.openURL('https://help.internxt.com');
   };
   const onTermsAndConditionsPressed = () => {
     Linking.openURL(appService.urls.termsAndConditions);
