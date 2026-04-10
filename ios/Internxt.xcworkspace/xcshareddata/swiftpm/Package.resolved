@@ -1,0 +1,24 @@
+{
+  "originHash" : "f8d6cbc56ef3d7b4288ed213a329a2171e922e22cab926463add5c4d1f99c732",
+  "pins" : [
+    {
+      "identity" : "idzswiftcommoncrypto",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/iosdevzone/IDZSwiftCommonCrypto.git",
+      "state" : {
+        "revision" : "47f9747d12137cd59d783ab376e3ccab7206319b",
+        "version" : "0.16.1"
+      }
+    },
+    {
+      "identity" : "swift-core",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/internxt/swift-core",
+      "state" : {
+        "branch" : "main",
+        "revision" : "ab849424b8e12641207184fe3695de0c69a0de80"
+      }
+    }
+  ],
+  "version" : 3
+}
