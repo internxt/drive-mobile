@@ -10,6 +10,7 @@ import { openUrl } from '../../../helpers/utils';
 import useGetColor from '../../../hooks/useColor';
 import { PRICING_URL } from '../../../services/drive/constants';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { paymentsSelectors } from '../../../store/slices/payments';
 import { uiActions } from '../../../store/slices/ui';
 import { INFINITE_PLAN } from '../../../types';
 
@@ -20,6 +21,7 @@ function RunOutOfStorageModal(): JSX.Element {
   const { limit, totalUsage } = useAppSelector((state) => state.storage);
 
   const { showRunOutOfSpaceModal } = useAppSelector((state) => state.ui);
+  const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
 
   const getLimitString = () => {
     if (limit === 0) {
@@ -101,15 +103,27 @@ function RunOutOfStorageModal(): JSX.Element {
               </AppText>
             </View>
 
-            <TouchableHighlight
-              underlayColor={getColor('text-primary-dark')}
-              style={tailwind('bg-primary rounded-lg py-2 mx-6 items-center justify-center')}
-              onPress={onUpgradeNowButtonPressed}
-            >
-              <AppText style={tailwind('text-lg text-white')} medium>
-                {strings.buttons.upgradeNow}
-              </AppText>
-            </TouchableHighlight>
+            {showBilling ? (
+              <TouchableHighlight
+                underlayColor={getColor('text-primary-dark')}
+                style={tailwind('bg-primary rounded-lg py-2 mx-6 items-center justify-center')}
+                onPress={onUpgradeNowButtonPressed}
+              >
+                <AppText style={tailwind('text-lg text-white')} medium>
+                  {strings.buttons.upgradeNow}
+                </AppText>
+              </TouchableHighlight>
+            ) : (
+              <TouchableHighlight
+                underlayColor={getColor('text-gray-10')}
+                style={tailwind('bg-gray-5 rounded-lg py-2 mx-6 items-center justify-center')}
+                onPress={handleClose}
+              >
+                <AppText style={tailwind('text-lg text-gray-80')} medium>
+                  {strings.buttons.close}
+                </AppText>
+              </TouchableHighlight>
+            )}
           </View>
         </View>
       </View>
