@@ -370,28 +370,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 },
               ]}
             />
-            {/* LEGAL */}
-            <SettingsGroup
-              title={strings.screens.SettingsScreen.legal}
-              items={[
-                {
-                  key: 'terms-and-conditions',
-                  template: (
-                    <View style={[tailwind('flex-row px-4 py-3')]}>
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>
-                          {strings.screens.SettingsScreen.termsAndConditions}
-                        </AppText>
-                      </View>
-                      <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-gray-40')} size={20} />
-                      </View>
-                    </View>
-                  ),
-                  onPress: onTermsAndConditionsPressed,
-                },
-              ]}
-            />
 
             {/* DEBUG */}
             {appService.isDevMode && (
