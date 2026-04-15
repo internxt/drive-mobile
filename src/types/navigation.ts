@@ -27,6 +27,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
+  Settings: undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };
 };
@@ -46,7 +47,7 @@ export type TabExplorerStackParamList = {
   Drive: { sharedFolderId: number } | undefined;
   Add: undefined;
   Shared: undefined;
-  Settings: undefined;
+  Photos: undefined;
 };
 
 export type DriveStackParamList = {

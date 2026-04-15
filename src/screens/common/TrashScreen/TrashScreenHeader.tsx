@@ -21,7 +21,7 @@ export const TrashScreenHeader: React.FC<TrashScreenHeaderProps> = (props) => {
   return (
     <View style={tailwind('flex justify-evenly flex-row pt-4 pb-2 ')}>
       <View style={tailwind('flex-1')}>
-        <BackButton onPress={props.onBackButtonPress} label={strings.tabs.Settings} />
+        <BackButton onPress={props.onBackButtonPress} label={strings.screens.SettingsScreen.title} />
       </View>
       <View style={tailwind('flex-1')}>
         <AppText medium style={[tailwind('text-center text-xl'), { color: getColor('text-gray-100') }]}>

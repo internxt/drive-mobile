@@ -1,8 +1,7 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
 import { Text, TouchableWithoutFeedback, View } from 'react-native';
 
-import { FolderSimple, Gear, House, PlusCircle, Users } from 'phosphor-react-native';
-import { storageThunks } from 'src/store/slices/storage';
+import { FolderSimpleIcon, HouseIcon, ImageIcon, PlusCircleIcon, UsersIcon } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
@@ -18,11 +17,11 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   useLanguage();
 
   const tabs = {
-    Home: { label: strings.tabs.Home, icon: House },
-    Drive: { label: strings.tabs.Drive, icon: FolderSimple },
-    Add: { label: strings.tabs.Add, icon: PlusCircle },
-    Shared: { label: strings.tabs.Shared, icon: Users },
-    Settings: { label: strings.tabs.Settings, icon: Gear },
+    Home: { label: strings.tabs.Home, icon: HouseIcon },
+    Drive: { label: strings.tabs.Drive, icon: FolderSimpleIcon },
+    Add: { label: strings.tabs.Add, icon: PlusCircleIcon },
+    Shared: { label: strings.tabs.Shared, icon: UsersIcon },
+    Photos: { label: strings.tabs.Photos, icon: ImageIcon },
   };
 
   const items = props.state.routes
@@ -32,12 +31,8 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
       const label = tabs[route.name as keyof typeof tabs].label;
       const isFocused = props.state.index === index;
       const isAddRoute = route.name === 'Add';
-      const isSettingsRoute = route.name === 'Settings';
 
       const onPress = () => {
-        if (isSettingsRoute) {
-          dispatch(storageThunks.loadStorageUsageThunk());
-        }
         if (isAddRoute) {
           return dispatch(uiActions.setShowUploadFileModal(true));
         }
@@ -59,8 +54,8 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
       const iconColor = isAddRoute
         ? getColor('text-white')
         : isFocused
-        ? getColor('text-primary')
-        : getColor('text-gray-50');
+          ? getColor('text-primary')
+          : getColor('text-gray-50');
 
       const Icon = tabs[route.name as keyof typeof tabs].icon;
 
