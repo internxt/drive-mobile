@@ -139,7 +139,7 @@
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
     "@internxt/eslint-config-internxt": "^1.0.9",
-    "@internxt/prettier-config": "^1.0.2",
+    "@internxt/prettier-config": "^2.0.1",
     "@testing-library/jest-native": "^4.0.13",
     "@testing-library/react-native": "^12.8.0",
     "@types/async": "^3.2.6",

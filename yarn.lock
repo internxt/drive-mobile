@@ -1501,9 +1501,9 @@
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
 
 "@internxt/eslint-config-internxt@^1.0.9":
-  version "1.0.9"
-  resolved "https://npm.pkg.github.com/download/@internxt/eslint-config-internxt/1.0.9/d2dddb6a5809873ce717507f8d9dbc5964f6d0f4#d2dddb6a5809873ce717507f8d9dbc5964f6d0f4"
-  integrity sha512-e1VCBhXnGcaWZq4viz2MJ1jsgLObw4BgDKMF7F4oDEktOybe+4Bty69+oezuj+q3LAf2M7JZSgkhpLBiP7vrpw==
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@internxt/eslint-config-internxt/-/eslint-config-internxt-1.0.10.tgz#19025c479f84617a59484660f2f9c983ff3bc4ec"
+  integrity sha512-58fMjE/ro/eK/b4v1UBwpDtK0PvUo6o7yULRU5LVrqe4gCE4pgruI4RUJfLJ/WprfAFDQxUgJbyQMc5TtUVjiw==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^5.4.0"
     "@typescript-eslint/parser" "^5.4.0"
@@ -1511,8 +1511,8 @@
 
 "@internxt/lib@^1.4.1":
   version "1.4.1"
-  resolved "https://npm.pkg.github.com/download/@internxt/lib/1.4.1/215ee72e49c238e13d40ec9033296f70c8279f88#215ee72e49c238e13d40ec9033296f70c8279f88"
-  integrity sha512-0Nv+/V4z+bwCt9r+XMKWMSxwdnTCD7YHEeNMtMQKtyOzNVElDjGoDuYP8UrQ5TC5wVsP/yyQ/kM2ugZjueH6Mg==
+  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.4.1.tgz#dd4974cb49ab6bba118cf218434e69e95cc4a481"
+  integrity sha512-sWNp57IKCk0HjzTdPSuxOgZWvrSDWGYrzNOq90LIZTzr1HwkxObicUaZqSzmw4uDKrJhsdFdzwdywk3g8gwDDA==
   dependencies:
     uuid "^11.1.0"
 
@@ -1521,22 +1521,22 @@
   resolved "https://registry.yarnpkg.com/@internxt/mobile-sdk/-/mobile-sdk-0.3.1.tgz#f173132a1045546a8f534f72e6c93114881522b3"
   integrity sha512-QcVw/KLjOUodSB4tfawE6QsAFZT7JIsrby15JLUku6bR1/IqukhIaMp6cl/IGKwdt1aso/Haq4S4zH9KEL4jQg==
 
-"@internxt/prettier-config@^1.0.2":
-  version "1.0.2"
-  resolved "https://npm.pkg.github.com/download/@internxt/prettier-config/1.0.2/5bd220b8de76734448db5475b3e0c01f9d22c19b#5bd220b8de76734448db5475b3e0c01f9d22c19b"
-  integrity sha512-t4HiqvCbC7XgQepwWlIaFJe3iwW7HCf6xOSU9nKTV0tiGqOPz7xMtIgLEloQrDA34Cx4PkOYBXrvFPV6RxSFAA==
+"@internxt/prettier-config@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@internxt/prettier-config/-/prettier-config-2.0.1.tgz#a25e7a16f62a990aed2bd1804e04140cc8c33e77"
+  integrity sha512-sCnOMX7GR7BYDJ5OH1RiV/JaOBLE3uhL6QN6tYhMKi7QXK/cnM/77qmDlIEBlhTNIFEMLFljSkc0vZEvf6m2xA==
 
 "@internxt/rn-crypto@0.1.15":
   version "0.1.15"
-  resolved "https://npm.pkg.github.com/download/@internxt/rn-crypto/0.1.15/314531ddb17f2edaadc8ab18c876dacdaac38452#314531ddb17f2edaadc8ab18c876dacdaac38452"
-  integrity sha512-RApd7JHMQ6EhjpY65s7DRdS3R3Jm8dFmeomWyDWVquGVjb7PgE4OXq4Zz6JS33zp197HkPBcUdlOf0N3Ky3Ygw==
+  resolved "https://registry.yarnpkg.com/@internxt/rn-crypto/-/rn-crypto-0.1.15.tgz#3373de015ed882c5b837eae86b9539c92a22ebfa"
+  integrity sha512-SIoGAy1SKK9tQUaqPNxlCsNql5TXyXbVeQTrOvnqfxJJ+agnJ0do0fGFtXO0KMPKPHTTh1YEkd7kVuBnWFDlGg==
   dependencies:
     buffer "^6.0.3"
 
 "@internxt/sdk@1.13.2":
   version "1.13.2"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.13.2/058ce3a1600b0517a6ad1214eceb0e8eeea2b4b0#058ce3a1600b0517a6ad1214eceb0e8eeea2b4b0"
-  integrity sha512-7WMFkjiF8DSwPlQ7qI4QizBNvT4J0pCEPo1WO+q3MCEvm+eNA3BxxpvXTwTPRroX+O74oE8MFfWtlE9CDSYLkw==
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.13.2.tgz#e789b9280a2c9f5451935d7358bdf1e259e896f4"
+  integrity sha512-KHC0QlXZ0HMtVOq8P56OkHhEhy3x8OyoUAwvRib+2CIzHWk78xApO2t4R4HScWRFH6xmHIoCgP1fTC6ctCmPqA==
   dependencies:
     axios "1.13.5"
     uuid "13.0.0"
