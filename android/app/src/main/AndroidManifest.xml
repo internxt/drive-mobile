@@ -48,5 +48,17 @@
       </intent-filter>
     </activity>
     <provider android:name="io.sentry.android.core.SentryInitProvider" android:authorities="${applicationId}.SentryInitProvider" tools:node="remove"/>
+    <provider
+      android:name="com.internxt.cloud.documents.InternxtDocumentsProvider"
+      android:authorities="com.internxt.cloud.documents"
+      android:exported="true"
+      android:grantUriPermissions="true"
+      android:permission="android.permission.MANAGE_DOCUMENTS"
+      android:label="@string/documents_provider_label"
+      android:icon="@mipmap/ic_launcher">
+      <intent-filter>
+        <action android:name="android.content.action.DOCUMENTS_PROVIDER"/>
+      </intent-filter>
+    </provider>
   </application>
 </manifest>
