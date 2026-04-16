@@ -1516,9 +1516,10 @@
   dependencies:
     uuid "^11.1.0"
 
-"@internxt/mobile-sdk@https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz":
+"@internxt/mobile-sdk@^0.3.1":
   version "0.3.1"
-  resolved "https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz#bc618a913f1d703dcce6f52a545701a6089a9722"
+  resolved "https://registry.yarnpkg.com/@internxt/mobile-sdk/-/mobile-sdk-0.3.1.tgz#f173132a1045546a8f534f72e6c93114881522b3"
+  integrity sha512-QcVw/KLjOUodSB4tfawE6QsAFZT7JIsrby15JLUku6bR1/IqukhIaMp6cl/IGKwdt1aso/Haq4S4zH9KEL4jQg==
 
 "@internxt/prettier-config@^1.0.2":
   version "1.0.2"
