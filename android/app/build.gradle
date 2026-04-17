@@ -92,7 +92,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 122
-        versionName "1.8.81"
+        versionName "1.8.9"
     }
 
     flavorDimensions "react-native-capture-protection"
