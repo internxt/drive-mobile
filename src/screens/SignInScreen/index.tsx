@@ -78,18 +78,6 @@ function SignInScreen(): JSX.Element {
     }
   };
 
-  const onTermsAndConditionsPressed = async () => {
-    try {
-      const termsUrl = appService.urls.termsAndConditions;
-      const canOpen = await Linking.canOpenURL(termsUrl);
-      if (canOpen) {
-        await Linking.openURL(termsUrl);
-      }
-    } catch (err) {
-      logger.error('Error opening terms and conditions URL', err);
-    }
-  };
-
   const onNeedHelpPressed = async () => {
     try {
       const helpUrl = appService.urls.help;
@@ -180,11 +168,6 @@ function SignInScreen(): JSX.Element {
         </View>
 
         <View style={tailwind('mt-auto pb-4 items-center')}>
-          <TouchableOpacity onPress={onTermsAndConditionsPressed} style={tailwind('py-2')}>
-            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]} medium>
-              {strings.screens.SignInScreen.termsAndConditions}
-            </AppText>
-          </TouchableOpacity>
           <TouchableOpacity onPress={onNeedHelpPressed} style={tailwind('pb-6')}>
             <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]} medium>
               {strings.screens.SignInScreen.needHelp}

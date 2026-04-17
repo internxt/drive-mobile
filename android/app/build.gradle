@@ -91,8 +91,8 @@ android {
         applicationId 'com.internxt.cloud'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 121
-        versionName "1.8.8"
+        versionCode 122
+        versionName "1.8.9"
     }
 
     flavorDimensions "react-native-capture-protection"
