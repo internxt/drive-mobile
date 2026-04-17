@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowUpIcon, CloudSlashIcon } from 'phosphor-react-native';
 import { memo, useCallback } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -33,7 +34,13 @@ const PhotoItem = memo(({ item, isSelectMode, isSelected, onPress, onLongPress }
 
       {(item.backupState === 'not-backed' || item.backupState === 'uploading') && (
         <View style={[tailwind('absolute justify-center items-center'), { bottom: 8, left: 8 }]} pointerEvents="none">
-          <View style={styles.badgeShadow} />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.6)']}
+            locations={[0, 0.4, 0.7, 1]}
+            start={{ x: 1, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={styles.badgeShadow}
+          />
           {item.backupState === 'not-backed' ? (
             <CloudSlashIcon size={18} color={getColor('text-white')} weight="light" />
           ) : (
@@ -44,7 +51,13 @@ const PhotoItem = memo(({ item, isSelectMode, isSelected, onPress, onLongPress }
 
       {item.mediaType === 'video' && item.duration && (
         <View style={[tailwind('absolute justify-center items-end'), { bottom: 8, right: 8 }]} pointerEvents="none">
-          <View style={styles.durationShadow} />
+          <LinearGradient
+            colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.6)']}
+            locations={[0, 0.4, 0.7, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.durationShadow}
+          />
           <AppText medium style={[tailwind('text-sm'), { color: getColor('text-white') }]}>
             {item.duration}
           </AppText>
@@ -96,7 +109,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 40,
     borderTopRightRadius: 100,
-    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   durationShadow: {
     position: 'absolute',
@@ -105,7 +117,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 40,
     borderTopLeftRadius: 100,
-    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   checkbox: {
     left: 8,
