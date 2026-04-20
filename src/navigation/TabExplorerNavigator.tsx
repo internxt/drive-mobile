@@ -21,7 +21,9 @@ import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
+import { useDiscoverPhotosSheet } from '../screens/HomeScreen/useDiscoverPhotosSheet';
 import PhotosScreen from '../screens/PhotosScreen';
+import DiscoverPhotosBottomSheet from '../screens/PhotosScreen/DiscoverPhotosBottomSheet';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { AsyncStorageKey } from '../types';
@@ -41,6 +43,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   const safeAreaInsets = useSafeAreaInsets();
   const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
   const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
+
+  const discoverSheet = useDiscoverPhotosSheet(() => props.navigation.navigate('TabExplorer', { screen: 'Photos' }));
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', handleOnAppStateChange);
@@ -80,6 +84,11 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Photos" component={PhotosScreen} />
       </Tab.Navigator>
 
+      <DiscoverPhotosBottomSheet
+        isOpen={discoverSheet.isOpen}
+        onDismiss={discoverSheet.onDismiss}
+        onStartPhotos={discoverSheet.onStartPhotos}
+      />
       <AddModal />
       <DriveItemInfoModal />
       <SharedLinkInfoModal />

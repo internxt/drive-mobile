@@ -202,6 +202,12 @@ const translations = {
           disclaimer:
             'Internxt Photos needs access to your photos to let you view, sync and share photos from this device.',
         },
+        discoverSheet: {
+          title: 'Backup your gallery',
+          subtitle:
+            'Internxt Photos keeps your gallery backed up and lets you share your photos privately with your family and friends',
+          startButton: 'Start using Photos',
+        },
       },
       forgot_password: {
         title: 'Delete account',
@@ -1096,6 +1102,12 @@ const translations = {
           deniedHintAllPhotos: 'Todas las fotos',
           disclaimer:
             'Internxt Photos necesita acceso a tus fotos para que puedas ver, sincronizar y compartir fotos desde este dispositivo.',
+        },
+        discoverSheet: {
+          title: 'Guarda tu galería',
+          subtitle:
+            'Internxt Photos hace copias de seguridad de tu galería y te permite compartir tus fotos de forma privada con tu familia y amigos',
+          startButton: 'Empezar a usar Photos',
         },
       },
       forgot_password: {
