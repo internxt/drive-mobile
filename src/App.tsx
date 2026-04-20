@@ -33,6 +33,7 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import { appActions, appThunks } from './store/slices/app';
 import { authThunks } from './store/slices/auth';
 import { paymentsThunks } from './store/slices/payments';
+import { hydratePhotosStateThunk } from './store/slices/photos';
 import { uiActions } from './store/slices/ui';
 
 let listener: NativeEventSubscription | null = null;
@@ -65,6 +66,7 @@ function AppContent(): JSX.Element {
     await dispatch(appThunks.initializeUserPreferencesThunk());
     await dispatch(authThunks.silentSignInThunk());
     await dispatch(authThunks.refreshTokensThunk());
+    dispatch(hydratePhotosStateThunk());
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));

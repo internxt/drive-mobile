@@ -396,9 +396,10 @@ describe('RateLimitService', () => {
     });
 
     it('when endpoint has state with short reset, then returns proportional delay', () => {
+      const now = 1700000000000;
+      jest.spyOn(Date, 'now').mockReturnValue(now);
       const endpoint = 'retry-short-reset';
-      const now = Date.now();
-      // resetMs in future, timeUntilReset ≈ 1000 → delay = min(1000 + 2000, 5000) = 3000
+      // resetMs in future, timeUntilReset = 1000 → delay = min(1000 + 2000, 5000) = 3000
       rateLimitService.updateFromHeaders(makeHeaders(200, 0, now + 1000), endpoint);
 
       const delay = rateLimitService.getRetryDelay(undefined, endpoint);
