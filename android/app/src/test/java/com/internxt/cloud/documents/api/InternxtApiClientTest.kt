@@ -14,6 +14,10 @@ class InternxtApiClientTest {
     private lateinit var server: MockWebServer
     private lateinit var client: InternxtApiClient
 
+    companion object {
+        private const val PARENT_UUID = "parent-uuid"
+    }
+
     @Before
     fun setUp() {
         server = MockWebServer().apply { start() }
@@ -48,7 +52,7 @@ class InternxtApiClientTest {
                       "type": "pdf",
                       "size": 102400,
                       "bucket": "bucket-id",
-                      "folderUuid": "parent-uuid",
+                      "folderUuid": "$PARENT_UUID",
                       "createdAt": "2026-01-10T00:00:00.000Z",
                       "updatedAt": "2026-01-11T00:00:00.000Z",
                       "fileId": "file-id-1"
@@ -59,7 +63,7 @@ class InternxtApiClientTest {
             )
         )
 
-        val files = client.listFolderFiles("parent-uuid")
+        val files = client.listFolderFiles(PARENT_UUID)
 
         assertEquals(1, files.size)
         val file = files[0]
@@ -68,7 +72,7 @@ class InternxtApiClientTest {
         assertEquals("pdf", file.type)
         assertEquals(102400L, file.size)
         assertEquals("bucket-id", file.bucket)
-        assertEquals("parent-uuid", file.folderUuid)
+        assertEquals(PARENT_UUID, file.folderUuid)
         assertEquals("2026-01-10T00:00:00.000Z", file.createdAt)
         assertEquals("file-id-1", file.fileId)
     }
@@ -77,12 +81,12 @@ class InternxtApiClientTest {
     fun listFolderFilesBuildsAuthenticatedDriveRequest() {
         server.enqueue(MockResponse().setResponseCode(200).setBody("""{"files":[]}"""))
 
-        client.listFolderFiles("parent-uuid")
+        client.listFolderFiles(PARENT_UUID)
 
         val recorded = server.takeRequest()
         assertEquals("GET", recorded.method)
         assertEquals(
-            "/folders/content/parent-uuid/files?offset=0&limit=50&sort=plainName&order=ASC",
+            "/folders/content/$PARENT_UUID/files?offset=0&limit=50&sort=plainName&order=ASC",
             recorded.path
         )
         assertEquals("Bearer test-token", recorded.getHeader("Authorization"))
@@ -96,7 +100,7 @@ class InternxtApiClientTest {
         server.enqueue(MockResponse().setResponseCode(401))
 
         assertThrows(InternxtApiException.UnauthorizedException::class.java) {
-            client.listFolderFiles("parent-uuid")
+            client.listFolderFiles(PARENT_UUID)
         }
     }
 
@@ -114,7 +118,7 @@ class InternxtApiClientTest {
         server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START))
 
         assertThrows(InternxtApiException.NetworkException::class.java) {
-            client.listFolderFiles("parent-uuid")
+            client.listFolderFiles(PARENT_UUID)
         }
     }
 
