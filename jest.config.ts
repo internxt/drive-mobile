@@ -28,6 +28,7 @@ const config: Config.InitialOptions = {
   preset: 'jest-expo',
   verbose: true,
   testRegex: ['\\.spec\\.ts$', '\\.spec\\.tsx$'],
+  setupFiles: ['./jest.setup.ts'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],

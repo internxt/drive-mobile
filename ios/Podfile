@@ -59,11 +59,34 @@ target 'Internxt' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
-# @generated begin post-install-build-settings - expo prebuild (DO NOT MODIFY) sync-f4e2a1acf7da60b403fcf5c1d5d9517cb9953853
+    # @generated begin post-install-build-settings - expo prebuild (DO NOT MODIFY) sync-f4e2a1acf7da60b403fcf5c1d5d9517cb9953853
     installer.pods_project.targets.each do |target|
       unless target.name == 'Sentry'
         target.build_configurations.each do |config|
           config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'No'
+        end
+      end
+    end
+
+    # Fix: fmt/glog consteval incompatibility with Xcode 26 / Apple Clang 17.
+    # consteval in C++20 is strictly enforced; forcing c++17 disables it entirely
+    # in fmt (FMT_CONSTEVAL becomes a no-op when __cpp_consteval is not defined).
+    installer.pods_project.targets.each do |target|
+      if ['fmt', 'glog'].include?(target.name)
+        target.build_configurations.each do |config|
+          config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+          config.build_settings['OTHER_CPLUSPLUSFLAGS'] = '$(inherited) -DFMT_USE_CONSTEVAL=0'
+        end
+      end
+    end
+
+    # This is necessary for Xcode 14, because it signs resource bundles by default
+    # when building for devices.
+    installer.target_installation_results.pod_target_installation_results
+      .each do |pod_name, target_installation_result|
+      target_installation_result.resource_bundle_targets.each do |resource_bundle_target|
+        resource_bundle_target.build_configurations.each do |config|
+          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
         end
       end
     end
