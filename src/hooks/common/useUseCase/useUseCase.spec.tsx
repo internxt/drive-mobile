@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react-native';
 import { useUseCase } from './useUseCase';
 
 describe('useUseCase', () => {
-  it('when use case resolves successfully, then data is set and no error', async () => {
+  test('when use case resolves successfully, then data is set and no error', async () => {
     const mockedUseCase = jest.fn(async () => {
       return true;
     });
