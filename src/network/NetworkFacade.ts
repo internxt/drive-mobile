@@ -1,4 +1,5 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import { AbortError } from './errors';
 import { logger } from '@internxt-mobile/services/common';
 import { decryptFile, encryptFile, encryptFileToChunks, joinFiles } from '@internxt/rn-crypto';
 import { ALGORITHMS, Network } from '@internxt/sdk/dist/network';
@@ -108,6 +109,9 @@ export class NetworkFacade {
     const fileSize = stat.size;
     const shouldEnableEncryptionProgress = fileSize >= MINIMUM_SIZE_FOR_ENCRYPTION_PROGRESS;
 
+    let activeFetchTask: ReturnType<typeof ReactNativeBlobUtil.fetch> | null = null;
+    let aborted = false;
+
     const uploadFilePromise = uploadFile(
       this.network,
       this.cryptoLib,
@@ -136,7 +140,9 @@ export class NetworkFacade {
         fileHash = ripemd160(Buffer.from(await RNFS.hash(encryptedFilePath, 'sha256'), 'hex')).toString('hex');
       },
       async (url: string) => {
-        await ReactNativeBlobUtil.fetch(
+        if (aborted) throw new AbortError();
+
+        const fetchTask = ReactNativeBlobUtil.fetch(
           'PUT',
           url,
           {
@@ -153,6 +159,13 @@ export class NetworkFacade {
             updateProgress(uploadProgress);
           }
         });
+
+        activeFetchTask = fetchTask;
+        try {
+          await fetchTask;
+        } finally {
+          activeFetchTask = null;
+        }
 
         return fileHash;
       },
@@ -174,7 +187,12 @@ export class NetworkFacade {
       }
     };
 
-    return [wrapUploadWithCleanup(), () => null];
+    const abortable: Abortable = () => {
+      aborted = true;
+      activeFetchTask?.cancel?.();
+    };
+
+    return [wrapUploadWithCleanup(), abortable];
   }
 
   async uploadMultipart(
@@ -185,6 +203,23 @@ export class NetworkFacade {
   ): Promise<string> {
     const CONCURRENT_UPLOADS = 6;
     const limit = pLimit(CONCURRENT_UPLOADS);
+    const activeFetchTasks = new Set<ReturnType<typeof ReactNativeBlobUtil.fetch>>();
+    let aborted = false;
+
+    const abortHandler = () => {
+      aborted = true;
+      limit.clearQueue();
+      activeFetchTasks.forEach((t) => t.cancel?.());
+      activeFetchTasks.clear();
+    };
+
+    if (options.abortController) {
+      if (options.abortController.aborted) {
+        abortHandler();
+      } else {
+        options.abortController.addEventListener('abort', abortHandler, { once: true });
+      }
+    }
 
     const uploadState = {
       partsUploadedBytes: {} as Record<number, number>,
@@ -194,8 +229,9 @@ export class NetworkFacade {
 
     const fileInfo = await this.getFileInfo(filePath, options.partSize);
     const encryptedPartPaths = this.createEncryptedPartPaths(fileInfo.parts);
+    const abortCtx = { isAborted: () => aborted, activeFetchTasks };
     const uploadMultipart = async (urls: string[]) => {
-      await this.processUploadParts(urls, encryptedPartPaths, uploadState, limit, fileInfo.size, options);
+      await this.processUploadParts(urls, encryptedPartPaths, uploadState, limit, fileInfo.size, options, abortCtx);
       uploadState.fileHash = await this.calculateFileHash(encryptedPartPaths);
 
       return {
@@ -216,6 +252,7 @@ export class NetworkFacade {
       );
     } finally {
       await this.cleanupEncryptedFiles(encryptedPartPaths);
+      options.abortController?.removeEventListener('abort', abortHandler);
     }
   }
 
@@ -260,30 +297,16 @@ export class NetworkFacade {
     limit: LimitFunction,
     fileSize: number,
     options: UploadMultipartOptions,
+    abortCtx: { isAborted: () => boolean; activeFetchTasks: Set<ReturnType<typeof ReactNativeBlobUtil.fetch>> },
   ): Promise<void> {
     const uploadWithRetry = async (path: string, url: string, index: number): Promise<PartInfo> => {
       try {
-        const result = await this.uploadPart(
-          url,
-          path,
-          index,
-          uploadState.partsUploadedBytes,
-          fileSize,
-          options.uploadingCallback,
-        );
-        return result;
+        return await this.uploadPart(url, path, index, uploadState.partsUploadedBytes, fileSize, options.uploadingCallback, abortCtx);
       } catch (error) {
+        if ((error as Error)?.name === AbortError.errorName) throw error;
         logger.error(`First attempt failed for part ${index + 1}, retrying...`);
         try {
-          const retryResult = await this.uploadPart(
-            url,
-            path,
-            index,
-            uploadState.partsUploadedBytes,
-            fileSize,
-            options.uploadingCallback,
-          );
-          return retryResult;
+          return await this.uploadPart(url, path, index, uploadState.partsUploadedBytes, fileSize, options.uploadingCallback, abortCtx);
         } catch (retryError) {
           logger.error(`Retry failed for part ${index + 1}`);
           throw retryError;
@@ -309,17 +332,22 @@ export class NetworkFacade {
     partsUploadedBytes: Record<number, number>,
     fileSize: number,
     progressCallback?: (progress: number) => void,
+    abortCtx?: { isAborted: () => boolean; activeFetchTasks: Set<ReturnType<typeof ReactNativeBlobUtil.fetch>> },
   ): Promise<PartInfo> {
-    try {
-      const response = await ReactNativeBlobUtil.fetch(
-        'PUT',
-        url,
-        { 'Content-Type': 'application/octet-stream' },
-        ReactNativeBlobUtil.wrap(encryptedPartPath),
-      ).uploadProgress({ interval: 150 }, (sent: number) => {
-        this.updateUploadProgress(index, parseInt(sent.toString()), partsUploadedBytes, fileSize, progressCallback);
-      });
+    if (abortCtx?.isAborted()) throw new AbortError();
 
+    const fetchTask = ReactNativeBlobUtil.fetch(
+      'PUT',
+      url,
+      { 'Content-Type': 'application/octet-stream' },
+      ReactNativeBlobUtil.wrap(encryptedPartPath),
+    ).uploadProgress({ interval: 150 }, (sent: number) => {
+      this.updateUploadProgress(index, parseInt(sent.toString()), partsUploadedBytes, fileSize, progressCallback);
+    });
+
+    abortCtx?.activeFetchTasks.add(fetchTask);
+    try {
+      const response = await fetchTask;
       const etag = Platform.OS === 'android' ? response.info().headers.ETag : response.info().headers.Etag;
       if (!etag) throw new Error('Missing ETag in upload response');
 
@@ -328,8 +356,11 @@ export class NetworkFacade {
         ETag: etag,
       };
     } catch (error) {
+      if (abortCtx?.isAborted()) throw new AbortError();
       logger.error(`Error uploading part ${index + 1}:`, error);
       throw error;
+    } finally {
+      abortCtx?.activeFetchTasks.delete(fetchTask);
     }
   }
 

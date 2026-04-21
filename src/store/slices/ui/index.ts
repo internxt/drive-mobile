@@ -25,6 +25,7 @@ export interface UIState {
   isPlansModalOpen: boolean;
   isCancelSubscriptionModalOpen: boolean;
   isSharedLinkOptionsModalOpen: boolean;
+  showEmptyFileNotAllowedModal: boolean;
 }
 
 const initialState: UIState = {
@@ -51,6 +52,7 @@ const initialState: UIState = {
   isPlansModalOpen: false,
   isCancelSubscriptionModalOpen: false,
   isSharedLinkOptionsModalOpen: false,
+  showEmptyFileNotAllowedModal: false,
 };
 
 export const uiSlice = createSlice({
@@ -123,6 +125,9 @@ export const uiSlice = createSlice({
     },
     setIsSharedLinkOptionsModalOpen: (state, action: PayloadAction<boolean>) => {
       state.isSharedLinkOptionsModalOpen = action.payload;
+    },
+    setShowEmptyFileNotAllowedModal: (state, action: PayloadAction<boolean>) => {
+      state.showEmptyFileNotAllowedModal = action.payload;
     },
   },
 });

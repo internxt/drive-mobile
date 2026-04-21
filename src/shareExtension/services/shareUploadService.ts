@@ -9,7 +9,7 @@ import { Platform } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import uuid from 'react-native-uuid';
 import packageJson from '../../../package.json';
-import { HttpUploadError, UploadNetworkError } from '../errors';
+import { EmptyFileNotAllowedError, HttpUploadError, isEmptyFilePlanError, UploadNetworkError } from '../errors';
 import {
   buildSdkEncryptionAdapter,
   computeRipemd160Digest,
@@ -172,7 +172,7 @@ const uploadEncryptedPart = async (
 };
 
 const createFileEntry = async (
-  fileId: string,
+  fileId: string | undefined,
   fileExtension: string,
   fileSize: number,
   fileName: string,
@@ -304,6 +304,21 @@ export interface ShareUploadFileResult {
   thumbnailLocalUri: string | null;
 }
 
+const uploadEmptyFile = async (
+  fileExtension: string,
+  fileName: string,
+  bucket: string,
+  folderUuid: string,
+): Promise<ShareUploadFileResult> => {
+  try {
+    await createFileEntry(undefined, fileExtension, 0, fileName, bucket, folderUuid);
+    return { thumbnailLocalUri: null };
+  } catch (err) {
+    if (isEmptyFilePlanError(err)) throw new EmptyFileNotAllowedError();
+    throw err;
+  }
+};
+
 export const shareUploadFile = async (params: ShareUploadFileParams): Promise<ShareUploadFileResult> => {
   const { filePath, fileName, fileExtension, folderUuid, credentials, shareUploadSession, onFileResolved, onProgress } =
     params;
@@ -312,11 +327,20 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<Sh
   const { localPath, fileSize, tempPath: androidTempCopyPath } = await resolveInputFile(filePath);
   onFileResolved?.(fileSize);
 
-  const session = shareUploadSession ?? createShareUploadSession(credentials);
-  const { network, cryptoLib } = session;
+  const cleanup = async () => {
+    if (androidTempCopyPath) await RNFS.unlink(androidTempCopyPath).catch(() => undefined);
+    // On iOS the OS provides a sandboxed temp copy of the shared file; clean it up after upload.
+    if (Platform.OS === 'ios') await RNFS.unlink(localPath).catch(() => undefined);
+  };
 
-  let thumbnailLocalUri: string | null = null;
   try {
+    if (fileSize === 0) {
+      return await uploadEmptyFile(fileExtension, fileName, bucket, folderUuid);
+    }
+
+    const session = shareUploadSession ?? createShareUploadSession(credentials);
+    const { network, cryptoLib } = session;
+
     const uploadContext: UploadFileContext = {
       network,
       cryptoLib,
@@ -330,13 +354,11 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<Sh
       onProgress,
     };
 
-    let uploadResult: { fileUuid: string };
-    if (fileSize >= MULTIPART_THRESHOLD_BYTES) {
-      uploadResult = await shareUploadMultipartFile(uploadContext);
-    } else {
-      uploadResult = await shareUploadSingleFile(uploadContext);
-    }
+    const uploadResult = await (fileSize >= MULTIPART_THRESHOLD_BYTES
+      ? shareUploadMultipartFile(uploadContext)
+      : shareUploadSingleFile(uploadContext));
 
+    let thumbnailLocalUri: string | null = null;
     try {
       thumbnailLocalUri = await generateAndUploadThumbnail(
         localPath,
@@ -349,11 +371,9 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<Sh
     } catch (error) {
       if (__DEV__) console.log('Thumbnail generation/upload failed, proceeding without it, error: ', error);
     }
-  } finally {
-    if (androidTempCopyPath) await RNFS.unlink(androidTempCopyPath).catch(() => undefined);
-    // On iOS the OS provides a sandboxed temp copy of the shared file; clean it up after upload.
-    if (Platform.OS === 'ios') await RNFS.unlink(localPath).catch(() => undefined);
-  }
 
-  return { thumbnailLocalUri };
+    return { thumbnailLocalUri };
+  } finally {
+    await cleanup();
+  }
 };

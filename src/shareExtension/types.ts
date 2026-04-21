@@ -31,7 +31,8 @@ export type UploadErrorType =
   | 'no_internet'
   | 'session_expired'
   | 'prep_failed'
-  | 'file_already_exists';
+  | 'file_already_exists'
+  | 'payment_required';
 
 export interface UploadProgress {
   currentFile: number;

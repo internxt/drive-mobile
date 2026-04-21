@@ -353,6 +353,7 @@ const translations = {
         errorPrep: 'Could not prepare the file for upload.',
         errorFileTooLarge: 'The maximum upload size is 300 MB at a time.',
         errorFileAlreadyExists: 'A file with this name already exists in this folder.',
+        errorPaymentRequired: 'Uploading empty files requires a paid plan.',
         uploading: 'Uploading…',
         preparing: 'Preparing…',
         cancelUploadTitle: 'Cancel upload?',
@@ -672,6 +673,11 @@ const translations = {
           'You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan.',
         advice: 'Get a higher plan or remove files you will no longer use in order to upload or sync your files again.',
       },
+      EmptyFileNotAllowedModal: {
+        title: 'Empty files not supported',
+        message:
+          'Uploading empty files is only available for some plans. Please upgrade your plan to use this feature.',
+      },
       ComingSoonModal: {
         title: 'Coming soon!',
         subtitle: 'Our fantastic devs are working on it, so stay tuned!',
@@ -741,7 +747,9 @@ const translations = {
       limitPerFile: 'Max upload size per file reached',
       folderUploadCompleted: 'Successfully uploaded {0} files to "{1}"',
       folderUploadPartial: '{0} of {1} files uploaded ({2} failed)',
+      folderUploadPartialWithSkipped: '{0} of {1} files uploaded ({2} failed, {3} skipped)',
       folderUploadCancelled: 'Folder upload cancelled',
+      emptyFileSkippedDuringFolderUpload: 'Empty files were skipped (upgrade your plan to upload them)',
     },
     errors: {
       runtimeLogsMissing: 'The logs file is missing or empty',
@@ -1197,6 +1205,7 @@ const translations = {
         errorPrep: 'No se pudo preparar el archivo para la subida.',
         errorFileTooLarge: 'El tamaño máximo de subida es de 300 MB a la vez.',
         errorFileAlreadyExists: 'Ya existe un archivo con este nombre en esta carpeta.',
+        errorPaymentRequired: 'La subida de archivos vacíos requiere un plan de pago.',
         uploading: 'Subiendo…',
         preparing: 'Preparando…',
         cancelUploadTitle: '¿Cancelar la subida?',
@@ -1518,6 +1527,11 @@ const translations = {
         advice:
           'Mejora tu plan o borra los archivos que no vayas a usar para subir o sincronizar tus archivos de nuevo.',
       },
+      EmptyFileNotAllowedModal: {
+        title: 'Archivos vacíos no permitidos',
+        message:
+          'La subida de archivos vacíos solo está disponible en algunos planes. Actualiza tu plan para usar esta función.',
+      },
       ComingSoonModal: {
         title: '¡Próximamente!',
         subtitle: 'Nuestros fantásticos programadores están trabajando en ello, así que mantente al tanto!',
@@ -1590,7 +1604,9 @@ const translations = {
       limitPerFile: 'Tamaño máximo por archivo alcanzado',
       folderUploadCompleted: '{0} archivos subidos correctamente a "{1}"',
       folderUploadPartial: '{0} de {1} archivos subidos ({2} fallaron)',
+      folderUploadPartialWithSkipped: '{0} de {1} archivos subidos ({2} fallaron, {3} omitidos)',
       folderUploadCancelled: 'Subida de carpeta cancelada',
+      emptyFileSkippedDuringFolderUpload: 'Se han omitido archivos vacíos (actualiza tu plan para subirlos)',
     },
     errors: {
       runtimeLogsMissing: 'El archivo no se encuentra o está vacío',

@@ -13,6 +13,7 @@ interface UploadSuccessCardProps {
   sharedFiles: SharedFile[];
   uploadedFileName: string;
   thumbnailUri?: string | null;
+  uploadedCount?: number;
   onClose: () => void;
   onViewInFolder: () => void;
 }
@@ -21,6 +22,7 @@ export const UploadSuccessCard = ({
   sharedFiles,
   uploadedFileName,
   thumbnailUri,
+  uploadedCount,
   onClose,
   onViewInFolder,
 }: UploadSuccessCardProps) => {
@@ -37,7 +39,8 @@ export const UploadSuccessCard = ({
     }).start();
   }, [slideAnim]);
 
-  const isSingleFile = sharedFiles.length === 1;
+  const displayCount = uploadedCount ?? sharedFiles.length;
+  const isSingleFile = displayCount === 1;
   const firstFile = sharedFiles[0];
   const fileExtension = firstFile ? getSharedFileExtension(firstFile) : '';
   const isImage = firstFile?.mimeType?.startsWith('image/') ?? false;
@@ -51,7 +54,7 @@ export const UploadSuccessCard = ({
 
   const fileName = isSingleFile
     ? uploadedFileName
-    : strings.formatString(shareExtensionTrans.itemsUploaded, sharedFiles.length).toString();
+    : strings.formatString(shareExtensionTrans.itemsUploaded, displayCount).toString();
 
   const formattedSize = totalSizeOrNull === null ? null : formatBytes(totalSizeOrNull);
   const sizeAndFormat = isSingleFile

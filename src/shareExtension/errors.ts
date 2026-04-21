@@ -1,3 +1,5 @@
+import { EmptyFileNotAllowedError, isEmptyFilePlanError } from '../services/drive/file/utils/emptyFileErrors';
+
 export class HttpUploadError extends Error {
   constructor(
     readonly status: number,
@@ -27,3 +29,5 @@ export class UploadNetworkError extends Error {
     Object.setPrototypeOf(this, UploadNetworkError.prototype);
   }
 }
+
+export { EmptyFileNotAllowedError, isEmptyFilePlanError };

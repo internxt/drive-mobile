@@ -2,6 +2,7 @@ import * as RNFS from '@dr.pogodin/react-native-fs';
 import { logger } from '../services/common';
 import { withRateLimitRetry } from '../services/common/rate-limit';
 import { Abortable } from '../types';
+import { AbortError } from './errors';
 import { getNetwork } from './NetworkFacade';
 import { NetworkCredentials } from './requests';
 
@@ -28,7 +29,7 @@ export async function uploadFile(
 
   const useMultipart = fileSize > MAX_SIZE_FOR_SINGLE_UPLOAD;
 
-  const uploadAbortController = new AbortController();
+  const isAborted = () => params.signal?.aborted === true;
 
   async function retryUpload(): Promise<string> {
     const MAX_TRIES = 3;
@@ -38,11 +39,13 @@ export async function uploadFile(
     for (let attempt = 1; attempt <= MAX_TRIES; attempt++) {
       try {
         const result = await withRateLimitRetry(async () => {
+          if (isAborted()) throw new AbortError();
+
           if (useMultipart) {
-            return await network.uploadMultipart(bucketId, mnemonic, filePath, {
+            return network.uploadMultipart(bucketId, mnemonic, filePath, {
               partSize: MULTIPART_PART_SIZE,
               uploadingCallback: params.notifyProgress,
-              abortController: uploadAbortController.signal,
+              abortController: params.signal,
             });
           }
 
@@ -54,11 +57,16 @@ export async function uploadFile(
             onAbortableReady(abortable);
           }
 
-          return await promise;
+          params.signal?.addEventListener('abort', () => abortable(), { once: true });
+          if (isAborted()) abortable();
+
+          return promise;
         }, 'Upload');
 
         return result;
       } catch (err) {
+        if ((err as Error)?.name === AbortError.errorName) throw err;
+
         logger.error(`Upload attempt ${attempt} of ${MAX_TRIES} failed:`, err);
 
         const lastTryFailed = attempt === MAX_TRIES;

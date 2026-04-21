@@ -1,7 +1,7 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import { useCallback, useRef, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
-import { HttpUploadError, MissingFileUriError, UploadNetworkError } from '../errors';
+import { EmptyFileNotAllowedError, HttpUploadError, MissingFileUriError, UploadNetworkError } from '../errors';
 import {
   ShareUploadCredentials,
   ShareUploadSession,
@@ -35,6 +35,7 @@ const exportPhAsset = (phAssetId: string): Promise<PHAssetExportResult> => PHAss
 
 const HTTP_STATUS = {
   UNAUTHORIZED: 401,
+  PAYMENT_REQUIRED: 402,
   FORBIDDEN: 403,
   CONFLICT: 409,
 } as const;
@@ -49,6 +50,7 @@ interface UseShareUploadResult {
   uploadError: unknown;
   progress: UploadProgress | null;
   thumbnailUri: string | null;
+  uploadedCount: number;
   collisionState: CollisionState;
   uploadFiles: (
     files: SharedFile[],
@@ -67,9 +69,11 @@ interface FailedFile {
 }
 
 const classifyError = (error: unknown): UploadErrorType => {
+  if (error instanceof EmptyFileNotAllowedError) return 'payment_required';
   if (error instanceof HttpUploadError) {
     if (error.status === HTTP_STATUS.UNAUTHORIZED || error.status === HTTP_STATUS.FORBIDDEN) return 'session_expired';
     if (error.status === HTTP_STATUS.CONFLICT) return 'file_already_exists';
+    if (error.status === HTTP_STATUS.PAYMENT_REQUIRED) return 'payment_required';
   }
   if (error instanceof MissingFileUriError) return 'prep_failed';
   if (error instanceof UploadNetworkError) return 'no_internet';
@@ -161,6 +165,7 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
   const [uploadError, setUploadError] = useState<unknown>(null);
   const [progress, setProgress] = useState<UploadProgress | null>(null);
   const [thumbnailUri, setThumbnailUri] = useState<string | null>(null);
+  const [uploadedCount, setUploadedCount] = useState(0);
   const thumbnailUriRef = useRef<string | null>(null);
 
   const { collisionState, handleCollisionAction, resetCollisionState, resolveCollisions } = useNameCollision();
@@ -175,6 +180,7 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
     setUploadError(null);
     setProgress(null);
     setThumbnailUri(null);
+    setUploadedCount(0);
     resetCollisionState();
   }, [resetCollisionState]);
 
@@ -200,6 +206,8 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
         setThumbnailUri(null);
 
         const failedFiles: FailedFile[] = [];
+        let actualUploadedCount = 0;
+        let skippedPaymentRequired = 0;
 
         for (let i = 0; i < files.length; i++) {
           try {
@@ -220,19 +228,35 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
                 onFileUploaded,
               },
             );
+            actualUploadedCount++;
             if (isSingleFile) {
               thumbnailUriRef.current = thumbnailLocalUri;
               setThumbnailUri(thumbnailLocalUri);
             }
           } catch (error) {
             const uploadErrorType = classifyError(error);
+            const isPaymentRequiredFeature = uploadErrorType === 'payment_required';
+            const isMultiupload = files.length > 1;
+            if (isPaymentRequiredFeature && isMultiupload) {
+              skippedPaymentRequired++;
+              continue;
+            }
             failedFiles.push({ index: i, errorType: uploadErrorType, uploadError: error });
             if (uploadErrorType === 'session_expired') break;
           }
         }
 
+        setUploadedCount(actualUploadedCount);
+
         if (failedFiles.length === 0) {
-          setStatus('success');
+          if (actualUploadedCount === 0 && skippedPaymentRequired > 0) {
+            // All files were empty — treat as payment_required error
+            setErrorType('payment_required');
+            setUploadError(new EmptyFileNotAllowedError());
+            setStatus('error');
+          } else {
+            setStatus('success');
+          }
         } else {
           const { errorType: firstErrorType, uploadError: firstUploadError } = failedFiles[0];
           setErrorType(firstErrorType);
@@ -255,6 +279,7 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
     uploadError,
     progress,
     thumbnailUri,
+    uploadedCount,
     collisionState,
     uploadFiles,
     handleCollisionAction,
