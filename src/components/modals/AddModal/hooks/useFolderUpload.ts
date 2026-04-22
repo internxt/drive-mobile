@@ -34,6 +34,48 @@ import { NameCollisionAction } from '../../NameCollisionModal';
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noopProgress: ProgressCallback = () => {};
 
+const uploadFolderFileIOS = async (
+  fileNode: FolderTreeNode,
+  parentUuid: string,
+  signal: AbortSignal,
+  uploadAndCreateFileEntry: UploadFileEntryFn,
+  onEmptyFileSkipped: () => void,
+): Promise<void> => {
+  const filePath = fileNode.uri.replace('file://', '');
+  const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
+  try {
+    await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+  } catch (err) {
+    if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
+    throw err;
+  }
+};
+
+const uploadFolderFileAndroid = async (
+  fileNode: FolderTreeNode,
+  parentUuid: string,
+  signal: AbortSignal,
+  uploadId: string,
+  uploadAndCreateFileEntry: UploadFileEntryFn,
+  onEmptyFileSkipped: () => void,
+): Promise<void> => {
+  const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
+  const tempPath = fileSystemService.tmpFilePath(`${uploadId}_${fileNode.name}`);
+  const tempUri = fileSystemService.pathToUri(tempPath);
+  try {
+    await StorageAccessFramework.copyAsync({ from: fileNode.uri, to: tempUri });
+    if (signal.aborted) return;
+    await uploadAndCreateFileEntry(tempPath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+  } catch (err) {
+    if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
+    throw err;
+  } finally {
+    await fileSystemService.unlinkIfExists(tempPath).catch((e) => {
+      logger.warn('[useFolderUpload] Failed to unlink temp file: ' + (e as Error).message);
+    });
+  }
+};
+
 const showFolderUploadResult = (
   result: { cancelled: boolean; failedFiles: number; uploadedFiles: number; totalFiles: number; skippedFiles: number },
   folderName: string,
@@ -132,67 +174,6 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         notificationsService.show({
           type: NotificationType.Warning,
           text1: strings.messages.emptyFileSkippedDuringFolderUpload,
-        });
-      }
-    };
-
-    const uploadFolderFileIOS = async (
-      fileNode: FolderTreeNode,
-      parentUuid: string,
-      signal: AbortSignal,
-    ): Promise<void> => {
-      const filePath = fileNode.uri.replace('file://', '');
-      const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
-      try {
-        await uploadAndCreateFileEntry(
-          filePath,
-          plainName,
-          extension,
-          parentUuid,
-          noopProgress,
-          undefined,
-          undefined,
-          signal,
-        );
-      } catch (err) {
-        if (err instanceof EmptyFileNotAllowedError) {
-          handleEmptyFileSkipped();
-        }
-        throw err;
-      }
-    };
-
-    const uploadFolderFileAndroid = async (
-      fileNode: FolderTreeNode,
-      parentUuid: string,
-      signal: AbortSignal,
-      uploadId: string,
-    ): Promise<void> => {
-      const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
-      // Prefix with uploadId to isolate temp files across concurrent uploads
-      const tempPath = fileSystemService.tmpFilePath(`${uploadId}_${fileNode.name}`);
-      const tempUri = fileSystemService.pathToUri(tempPath);
-      try {
-        await StorageAccessFramework.copyAsync({ from: fileNode.uri, to: tempUri });
-        if (signal.aborted) return;
-        await uploadAndCreateFileEntry(
-          tempPath,
-          plainName,
-          extension,
-          parentUuid,
-          noopProgress,
-          undefined,
-          undefined,
-          signal,
-        );
-      } catch (err) {
-        if (err instanceof EmptyFileNotAllowedError) {
-          handleEmptyFileSkipped();
-        }
-        throw err;
-      } finally {
-        await fileSystemService.unlinkIfExists(tempPath).catch((e) => {
-          logger.warn('[useFolderUpload] Failed to unlink temp file: ' + (e as Error).message);
         });
       }
     };
@@ -298,9 +279,9 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         },
         uploadFile: async (fileNode, parentUuid, signal) => {
           if (Platform.OS === 'android' && fileNode.uri.startsWith('content://')) {
-            await uploadFolderFileAndroid(fileNode, parentUuid, signal, uploadId);
+            await uploadFolderFileAndroid(fileNode, parentUuid, signal, uploadId, uploadAndCreateFileEntry, handleEmptyFileSkipped);
           } else {
-            await uploadFolderFileIOS(fileNode, parentUuid, signal);
+            await uploadFolderFileIOS(fileNode, parentUuid, signal, uploadAndCreateFileEntry, handleEmptyFileSkipped);
           }
         },
       });

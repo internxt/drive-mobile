@@ -98,6 +98,68 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
     );
   };
 
+  const renderUploadOverlay = () => {
+    if (!isUploading) return null;
+
+    if (isFolderScanning) {
+      return (
+        <TouchableOpacity
+          onPress={props.onActionsPress}
+          accessibilityLabel={'Cancel folder upload'}
+          style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
+        >
+          <View
+            style={[
+              tailwind('rounded px-1 py-0.5 flex-row items-center'),
+              { backgroundColor: getColor('text-primary') },
+            ]}
+          >
+            <AppText style={[tailwind('text-xs'), { color: getColor('text-white') }]}>
+              {strings.screens.drive.scanningFolderShort}
+            </AppText>
+            <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    if (isFolderUploading) {
+      return (
+        <TouchableOpacity
+          onPress={props.onActionsPress}
+          accessibilityLabel={'Cancel folder upload'}
+          style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
+        >
+          <View
+            style={[
+              tailwind('rounded px-1 py-0.5 flex-row items-center'),
+              { backgroundColor: getColor('text-primary') },
+            ]}
+          >
+            <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={14} />
+            <AppText style={[tailwind('ml-1 text-xs'), { color: getColor('text-white') }]}>
+              {props.folderUploadProgress?.totalFiles
+                ? `${props.folderUploadProgress.uploadedFiles}/${props.folderUploadProgress.totalFiles}`
+                : '...'}
+            </AppText>
+            <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
+          </View>
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
+        <View style={[tailwind('rounded px-1 py-0.5 flex-row'), { backgroundColor: getColor('text-primary') }]}>
+          <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={16} />
+          <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-white') }]}>
+            {((props.progress || 0) * 100).toFixed(0) + '%'}
+          </AppText>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <TouchableHighlight
       disabled={!isFolderUploading && (isUploading || isDownloading)}
@@ -122,58 +184,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
               )}
             </View>
 
-            {isUploading &&
-              (isFolderScanning ? (
-                <TouchableOpacity
-                  onPress={props.onActionsPress}
-                  accessibilityLabel={'Cancel folder upload'}
-                  style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
-                >
-                  <View
-                    style={[
-                      tailwind('rounded px-1 py-0.5 flex-row items-center'),
-                      { backgroundColor: getColor('text-primary') },
-                    ]}
-                  >
-                    <AppText style={[tailwind('text-xs'), { color: getColor('text-white') }]}>
-                      {strings.screens.drive.scanningFolderShort}
-                    </AppText>
-                    <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
-                  </View>
-                </TouchableOpacity>
-              ) : isFolderUploading ? (
-                <TouchableOpacity
-                  onPress={props.onActionsPress}
-                  accessibilityLabel={'Cancel folder upload'}
-                  style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
-                >
-                  <View
-                    style={[
-                      tailwind('rounded px-1 py-0.5 flex-row items-center'),
-                      { backgroundColor: getColor('text-primary') },
-                    ]}
-                  >
-                    <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={14} />
-                    <AppText style={[tailwind('ml-1 text-xs'), { color: getColor('text-white') }]}>
-                      {props.folderUploadProgress?.totalFiles
-                        ? `${props.folderUploadProgress.uploadedFiles}/${props.folderUploadProgress.totalFiles}`
-                        : '...'}
-                    </AppText>
-                    <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
-                  </View>
-                </TouchableOpacity>
-              ) : (
-                <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
-                  <View
-                    style={[tailwind('rounded px-1 py-0.5 flex-row'), { backgroundColor: getColor('text-primary') }]}
-                  >
-                    <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={16} />
-                    <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-white') }]}>
-                      {((props.progress || 0) * 100).toFixed(0) + '%'}
-                    </AppText>
-                  </View>
-                </View>
-              ))}
+            {renderUploadOverlay()}
           </View>
 
           <View style={[tailwind('flex items-start justify-center items-center mt-2.5 px-2 py-1')]}>

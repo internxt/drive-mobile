@@ -1,6 +1,6 @@
-// Matches SAF storage volume prefixes only
+// Matches SAF storage volume prefixes
 export const SAF_VOLUME_PREFIX_RE =
-  /^(primary|secondary|home|downloads|raw|[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):/;
+  /^(primary|secondary|home|downloads|raw|[0-9a-f]{4}-[0-9a-f]{4}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}):/i;
 
 /**
  * Extracts the display name from a SAF child document URI.
