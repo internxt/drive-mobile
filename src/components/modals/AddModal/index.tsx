@@ -21,6 +21,7 @@ import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'r
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
+import { EmptyFileNotAllowedError, isEmptyFilePlanError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
 import drive from '@internxt-mobile/services/drive';
 import {
   generateFileName,
@@ -184,6 +185,7 @@ function AddModal(): JSX.Element {
     progressCallback: ProgressCallback,
     modificationTime?: string,
     creationTime?: string,
+    signal?: AbortSignal,
   ) {
     if (!user) {
       throw new Error('User not found in Redux state');
@@ -195,6 +197,33 @@ function AddModal(): JSX.Element {
     checkFileSizeLimitToUpload(fileStat.size, fileName);
 
     const fileSize = fileStat.size;
+
+    const modTimestamp = modificationTime ?? fileStat.mtime;
+    const modificationTimeISO = modTimestamp ? new Date(modTimestamp).toISOString() : undefined;
+    const createTimestamp = creationTime ?? fileStat.ctime;
+    const creationTimeISO = createTimestamp ? new Date(createTimestamp).toISOString() : undefined;
+
+    if (fileSize === 0) {
+      const emptyEntry: FileEntryByUuid = {
+        type: fileExtension,
+        size: 0,
+        plainName: fileName,
+        bucket,
+        folderUuid: currentFolderId,
+        encryptVersion: EncryptionVersion.Aes03,
+        modificationTime: modificationTimeISO,
+        creationTime: creationTimeISO,
+      };
+      try {
+        const entry = await uploadService.createFileEntry(emptyEntry);
+        drive.events.emit({ event: DriveEventKey.UploadCompleted });
+        return { ...entry, thumbnails: [] } as DriveFileData;
+      } catch (err) {
+        if (isEmptyFilePlanError(err)) throw new EmptyFileNotAllowedError();
+        throw err;
+      }
+    }
+
     const fileId = await network.uploadFile(
       filePath,
       bucket,
@@ -206,6 +235,7 @@ function AddModal(): JSX.Element {
       },
       {
         notifyProgress: progressCallback,
+        signal,
       },
     );
     logger.info('File uploaded with fileId: ', fileId);
@@ -215,11 +245,6 @@ function AddModal(): JSX.Element {
 
     const folderId = currentFolderId;
     const plainName = fileName;
-    const modTimestamp = modificationTime ?? fileStat.mtime;
-    const modificationTimeISO = modTimestamp ? new Date(modTimestamp).toISOString() : undefined;
-
-    const createTimestamp = creationTime ?? fileStat.ctime;
-    const creationTimeISO = createTimestamp ? new Date(createTimestamp).toISOString() : undefined;
 
     const fileEntryByUuid: FileEntryByUuid = {
       fileId: fileId,

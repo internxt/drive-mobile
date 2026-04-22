@@ -33,6 +33,7 @@ interface DriveScreenProps {
   uploadError?: unknown;
   uploadProgress?: UploadProgress | null;
   thumbnailUri?: string | null;
+  uploadedCount?: number;
   collisionState?: CollisionState;
   onClose: () => void;
   onSave: (destinationFolderUuid: string, renamedFileName?: string) => void;
@@ -49,6 +50,7 @@ export const DriveScreen = ({
   uploadError,
   uploadProgress,
   thumbnailUri,
+  uploadedCount,
   collisionState,
   onClose,
   onSave,
@@ -219,6 +221,7 @@ export const DriveScreen = ({
           sharedFiles={sharedFiles}
           uploadedFileName={finalName}
           thumbnailUri={thumbnailUri}
+          uploadedCount={uploadedCount}
           onClose={onClose}
           onViewInFolder={handleViewInFolder}
         />

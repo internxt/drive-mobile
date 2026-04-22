@@ -20,9 +20,11 @@ import { Dispatch } from 'react';
 import { Action } from 'redux';
 import { DriveFoldersTreeNode } from '../../../../contexts/Drive';
 import { getEnvironmentConfigFromUser } from '../../../../lib/network';
+import { uiActions } from '../../../../store/slices/ui';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
+import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
 import { BucketNotFoundError } from './upload.errors';
 
 /**
@@ -232,7 +234,12 @@ export async function createEmptyFileEntry(bucketId: string, file: UploadingFile
     creationTime: creationTimeISO,
   };
 
-  return uploadService.createFileEntry(fileEntry);
+  try {
+    return await uploadService.createFileEntry(fileEntry);
+  } catch (err) {
+    if (isEmptyFilePlanError(err)) throw new EmptyFileNotAllowedError();
+    throw err;
+  }
 }
 
 /**
@@ -265,6 +272,11 @@ export async function uploadSingleFile(
     }
     uploadSuccess(file);
   } catch (e) {
+    if (e instanceof EmptyFileNotAllowedError) {
+      dispatch(uiActions.setShowEmptyFileNotAllowedModal(true));
+      dispatch(driveActions.uploadFileFinished());
+      return;
+    }
     const err = e as Error;
     errorService.reportError(err, {
       extra: {
@@ -280,3 +292,4 @@ export async function uploadSingleFile(
     dispatch(driveActions.uploadFileFinished());
   }
 }
+

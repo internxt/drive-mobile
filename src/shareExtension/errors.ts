@@ -1,3 +1,5 @@
+export { EmptyFileNotAllowedError, isEmptyFilePlanError } from '../services/drive/file/utils/emptyFileErrors';
+
 export class HttpUploadError extends Error {
   constructor(
     readonly status: number,

@@ -1,5 +1,7 @@
 import { logger } from '@internxt-mobile/services/common';
+import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
 import pLimit from 'p-limit';
+import { AbortError } from '../../../network/errors';
 import { FolderTree, FolderTreeNode, FolderUploadResult, UploadFileCallback } from '../../../types/drive/folderUpload';
 import { HTTP_CONFLICT, HTTP_NOT_FOUND } from '../../common/httpStatusCodes';
 import { driveFolderService } from './driveFolder.service';
@@ -111,13 +113,13 @@ export const uploadFolderContents = async ({
       continue;
     }
     const folderPromise = parentPromise.then(async (parentUuid) => {
-      if (signal.aborted) throw new DOMException('Upload cancelled', 'AbortError');
+      if (signal.aborted) throw new AbortError();
       const uuid = await createFolderWithMerge(parentUuid, directory.name);
       createdFolders++;
       return uuid;
     });
     folderPromise.catch((err) => {
-      if ((err as Error)?.name !== 'AbortError') failedFolders++;
+      if ((err as Error)?.name !== AbortError.errorName) failedFolders++;
     });
     folderCreationPromises.set(directory.relativePath, folderPromise);
   }
@@ -128,6 +130,7 @@ export const uploadFolderContents = async ({
       totalFiles: 0,
       uploadedFiles: 0,
       failedFiles: 0,
+      skippedFiles: 0,
       totalFolders,
       createdFolders,
       failedFolders,
@@ -137,6 +140,7 @@ export const uploadFolderContents = async ({
 
   let uploadedFiles = 0;
   let failedFiles = 0;
+  let skippedFiles = 0;
   let wasCancelled = false;
   const uploadLimit = pLimit(FOLDER_UPLOAD_CONCURRENCY);
 
@@ -168,8 +172,11 @@ export const uploadFolderContents = async ({
           logger.info(TAG, `created: "${file.relativePath}" (${uploadedFiles}/${totalFiles})`);
         } catch (err) {
           const error = err as Error;
-          if (error.name === 'AbortError') {
+          if (error.name === AbortError.errorName) {
             wasCancelled = true;
+          } else if (err instanceof EmptyFileNotAllowedError) {
+            skippedFiles++;
+            logger.info(TAG, `skipped empty file: "${file.relativePath}" (plan restriction)`);
           } else {
             failedFiles++;
             logger.error(TAG, `failed creation: "${file.relativePath}": ${error.message}`);
@@ -185,6 +192,7 @@ export const uploadFolderContents = async ({
     totalFiles,
     uploadedFiles,
     failedFiles,
+    skippedFiles,
     totalFolders,
     createdFolders,
     failedFolders,

@@ -40,6 +40,7 @@ export interface FolderUploadResult {
   totalFiles: number;
   uploadedFiles: number;
   failedFiles: number;
+  skippedFiles: number;
   totalFolders: number;
   createdFolders: number;
   failedFolders: number;

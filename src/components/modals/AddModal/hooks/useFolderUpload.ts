@@ -5,6 +5,7 @@ import uuid from 'react-native-uuid';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { logger } from '@internxt-mobile/services/common';
+import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from '../../../../../assets/lang/strings';
@@ -33,12 +34,12 @@ import { NameCollisionAction } from '../../NameCollisionModal';
 const noopProgress: ProgressCallback = () => {};
 
 const showFolderUploadResult = (
-  result: { cancelled: boolean; failedFiles: number; uploadedFiles: number; totalFiles: number },
+  result: { cancelled: boolean; failedFiles: number; uploadedFiles: number; totalFiles: number; skippedFiles: number },
   folderName: string,
 ) => {
   if (result.cancelled) {
     notificationsService.show({ type: NotificationType.Info, text1: strings.messages.folderUploadCancelled });
-  } else if (result.failedFiles === 0) {
+  } else if (result.failedFiles === 0 && result.skippedFiles === 0) {
     notificationsService.show({
       type: NotificationType.Success,
       text1: strings.formatString(strings.messages.folderUploadCompleted, result.uploadedFiles, folderName) as string,
@@ -47,10 +48,11 @@ const showFolderUploadResult = (
     notificationsService.show({
       type: NotificationType.Warning,
       text1: strings.formatString(
-        strings.messages.folderUploadPartial,
+        strings.messages.folderUploadPartialWithSkipped,
         result.uploadedFiles,
         result.totalFiles,
         result.failedFiles,
+        result.skippedFiles,
       ) as string,
     });
   }
@@ -70,6 +72,7 @@ type UploadFileEntryFn = (
   progressCallback: ProgressCallback,
   modificationTime?: string,
   creationTime?: string,
+  signal?: AbortSignal,
 ) => Promise<DriveFileData>;
 
 export interface FolderUploadCollisionModalState {
@@ -118,10 +121,29 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const handleUploadFolder = async () => {
     dispatch(uiActions.setShowUploadFileModal(false));
 
-    const uploadFolderFileIOS = async (fileNode: FolderTreeNode, parentUuid: string): Promise<void> => {
+    let hasShownEmptyFileNotice = false;
+
+    const handleEmptyFileSkipped = () => {
+      if (!hasShownEmptyFileNotice) {
+        hasShownEmptyFileNotice = true;
+        notificationsService.show({
+          type: NotificationType.Warning,
+          text1: strings.messages.emptyFileSkippedDuringFolderUpload,
+        });
+      }
+    };
+
+    const uploadFolderFileIOS = async (fileNode: FolderTreeNode, parentUuid: string, signal: AbortSignal): Promise<void> => {
       const filePath = fileNode.uri.replace('file://', '');
       const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
-      await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress);
+      try {
+        await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+      } catch (err) {
+        if (err instanceof EmptyFileNotAllowedError) {
+          handleEmptyFileSkipped();
+        }
+        throw err;
+      }
     };
 
     const uploadFolderFileAndroid = async (
@@ -137,7 +159,12 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       try {
         await StorageAccessFramework.copyAsync({ from: fileNode.uri, to: tempUri });
         if (signal.aborted) return;
-        await uploadAndCreateFileEntry(tempPath, plainName, extension, parentUuid, noopProgress);
+        await uploadAndCreateFileEntry(tempPath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+      } catch (err) {
+        if (err instanceof EmptyFileNotAllowedError) {
+          handleEmptyFileSkipped();
+        }
+        throw err;
       } finally {
         await fileSystemService.unlinkIfExists(tempPath).catch((e) => {
           logger.warn('[useFolderUpload] Failed to unlink temp file: ' + (e as Error).message);
@@ -231,7 +258,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
           if (Platform.OS === 'android' && fileNode.uri.startsWith('content://')) {
             await uploadFolderFileAndroid(fileNode, parentUuid, signal, uploadId);
           } else {
-            await uploadFolderFileIOS(fileNode, parentUuid);
+            await uploadFolderFileIOS(fileNode, parentUuid, signal);
           }
         },
       });
