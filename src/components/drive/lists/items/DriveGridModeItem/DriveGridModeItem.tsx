@@ -1,4 +1,5 @@
 import { time } from '@internxt-mobile/services/common/time';
+import strings from '../../../../../../assets/lang/strings';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import { items } from '@internxt/lib';
 import { ArrowCircleUpIcon, XCircleIcon } from 'phosphor-react-native';
@@ -29,6 +30,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
   const isFolderUploading = isUploading && isFolder && !!props.folderUploadProgress;
+  const isFolderScanning = isUploading && isFolder && !props.folderUploadProgress;
   const maxThumbnailHeight = 96;
 
   const getThumbnailWidth = () => {
@@ -121,7 +123,25 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
             </View>
 
             {isUploading &&
-              (isFolderUploading ? (
+              (isFolderScanning ? (
+                <TouchableOpacity
+                  onPress={props.onActionsPress}
+                  accessibilityLabel={'Cancel folder upload'}
+                  style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
+                >
+                  <View
+                    style={[
+                      tailwind('rounded px-1 py-0.5 flex-row items-center'),
+                      { backgroundColor: getColor('text-primary') },
+                    ]}
+                  >
+                    <AppText style={[tailwind('text-xs'), { color: getColor('text-white') }]}>
+                      {strings.screens.drive.scanningFolderShort}
+                    </AppText>
+                    <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
+                  </View>
+                </TouchableOpacity>
+              ) : isFolderUploading ? (
                 <TouchableOpacity
                   onPress={props.onActionsPress}
                   accessibilityLabel={'Cancel folder upload'}

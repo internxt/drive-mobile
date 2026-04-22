@@ -25,8 +25,9 @@ import fileSystemService from '../../../../services/FileSystemService';
 import notificationsService from '../../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { driveActions, driveThunks } from '../../../../store/slices/drive';
+import { storageSelectors } from '../../../../store/slices/storage';
 import { uiActions } from '../../../../store/slices/ui';
-import { NotificationType, ProgressCallback } from '../../../../types';
+import { INFINITE_PLAN, NotificationType, ProgressCallback } from '../../../../types';
 import { FolderTreeNode } from '../../../../types/drive/folderUpload';
 import { NameCollisionAction } from '../../NameCollisionModal';
 
@@ -86,6 +87,8 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const dispatch = useAppDispatch();
   const { focusedFolder, loadFolderContent } = useDrive();
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
+  const { limit } = useAppSelector((state) => state.storage);
+  const usage = useAppSelector(storageSelectors.usage);
 
   const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
   const [collisionState, setCollisionState] = useState<{
@@ -133,11 +136,24 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       }
     };
 
-    const uploadFolderFileIOS = async (fileNode: FolderTreeNode, parentUuid: string, signal: AbortSignal): Promise<void> => {
+    const uploadFolderFileIOS = async (
+      fileNode: FolderTreeNode,
+      parentUuid: string,
+      signal: AbortSignal,
+    ): Promise<void> => {
       const filePath = fileNode.uri.replace('file://', '');
       const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
       try {
-        await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+        await uploadAndCreateFileEntry(
+          filePath,
+          plainName,
+          extension,
+          parentUuid,
+          noopProgress,
+          undefined,
+          undefined,
+          signal,
+        );
       } catch (err) {
         if (err instanceof EmptyFileNotAllowedError) {
           handleEmptyFileSkipped();
@@ -159,7 +175,16 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       try {
         await StorageAccessFramework.copyAsync({ from: fileNode.uri, to: tempUri });
         if (signal.aborted) return;
-        await uploadAndCreateFileEntry(tempPath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+        await uploadAndCreateFileEntry(
+          tempPath,
+          plainName,
+          extension,
+          parentUuid,
+          noopProgress,
+          undefined,
+          undefined,
+          signal,
+        );
       } catch (err) {
         if (err instanceof EmptyFileNotAllowedError) {
           handleEmptyFileSkipped();
@@ -173,6 +198,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     };
 
     const uploadId = uuid.v4().toString();
+    const abortController = new AbortController();
 
     try {
       // 1. Pick folder
@@ -180,14 +206,38 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       if (!picked) return;
       logger.info(`[useFolderUpload][${uploadId}] Folder: "${picked.name}" (${picked.uri})`);
 
+      const startedAt = Date.now();
+      dispatch(
+        driveActions.addFolderUpload({
+          uploadId,
+          folderName: picked.name,
+          totalFiles: 0,
+          uploadedFiles: 0,
+          failedFiles: 0,
+          status: 'scanning',
+          startedAt,
+        }),
+      );
+      folderUploadCancellationService.register(uploadId, abortController);
+
       // 2. Traverse
-      const tree = await folderTraversalService.traverseFolder(picked.uri);
+      const tree = await folderTraversalService.traverseFolder(picked.uri, abortController.signal);
       logger.info(`[useFolderUpload][${uploadId}] Tree: ${tree.files.length} files, ${tree.dirs.length} dirs`);
 
-      // 3. Storage quota check
+      // 3. Device space check
+      if (tree.files.length > 0) {
+        const maxFileSize = Math.max(...tree.files.map((f) => f.size));
+        const hasDeviceSpace = await fileSystemService.checkAvailableStorage(maxFileSize).catch(() => true);
+        if (!hasDeviceSpace) {
+          dispatch(uiActions.setShowNotEnoughDeviceSpaceModal(true));
+          return;
+        }
+      }
+
+      // 4. Cloud quota check
       const totalSize = tree.files.reduce((sum, file) => sum + file.size, 0);
-      const hasStorage = await fileSystemService.checkAvailableStorage(totalSize).catch(() => true);
-      if (!hasStorage) {
+      const isUnlimited = limit >= INFINITE_PLAN;
+      if (!isUnlimited && usage + totalSize > limit) {
         dispatch(uiActions.setShowRunOutSpaceModal(true));
         return;
       }
@@ -209,25 +259,17 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         }
       }
 
-      // 4. Create the root folder (merge if already exists)
+      // 5. Create the root folder (merge if already exists)
       const rootFolderUuid = await createFolderWithMerge(focusedFolder.uuid, picked.name);
       logger.info(`[useFolderUpload][${uploadId}] Root folder "${picked.name}" - ${rootFolderUuid}`);
 
-      // 5. Initialize progress state + AbortController
-      const startedAt = Date.now();
       dispatch(
-        driveActions.addFolderUpload({
+        driveActions.updateFolderUpload({
           uploadId,
-          folderName: picked.name,
           totalFiles: tree.files.length,
-          uploadedFiles: 0,
-          failedFiles: 0,
           status: 'uploading',
-          startedAt,
         }),
       );
-      const abortController = new AbortController();
-      folderUploadCancellationService.register(uploadId, abortController);
 
       // 6. Log upload start
       analytics.track(DriveAnalyticsEvent.FolderUploadStarted, {
@@ -280,6 +322,10 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       // 9. Display result
       showFolderUploadResult(result, picked.name);
     } catch (err) {
+      if (abortController.signal.aborted) {
+        notificationsService.show({ type: NotificationType.Info, text1: strings.messages.folderUploadCancelled });
+        return;
+      }
       const error = err as Error;
       if (!(err instanceof FolderTooLargeError)) {
         errorService.reportError(error);

@@ -206,6 +206,8 @@ const translations = {
         searchInThisFolder: 'Search items in this folder',
         searchInAllFolders: 'Search all my files',
         encrypting: 'Encrypting',
+        scanningFolder: 'Scanning folder...',
+        scanningFolderShort: 'Scanning...',
         decrypting: 'Decrypting',
         downloadingPercent: 'Downloading... {0}%',
         decryptingPercent: 'Decrypting... {0}%',
@@ -673,6 +675,11 @@ const translations = {
           'You have currently used 3GB of storage. To start uploading more files, please upgrade your storage plan.',
         advice: 'Get a higher plan or remove files you will no longer use in order to upload or sync your files again.',
       },
+      NotEnoughDeviceSpaceModal: {
+        title: 'Not enough space on your device',
+        advice:
+          'Internxt needs free space on your device to encrypt and upload your files. Please free up some storage and try again.',
+      },
       EmptyFileNotAllowedModal: {
         title: 'Empty files not supported',
         message:
@@ -1061,6 +1068,8 @@ const translations = {
         searchInThisFolder: 'Buscar en esta carpeta',
         searchInAllFolders: 'Buscar en todos mis archivos',
         encrypting: 'Encriptando',
+        scanningFolder: 'Escaneando carpeta...',
+        scanningFolderShort: 'Escaneando...',
         decrypting: 'Desencriptando',
         downloadingPercent: 'Descargando... {0}%',
         decryptingPercent: 'Desencriptando... {0}%',
@@ -1526,6 +1535,11 @@ const translations = {
           'Actualmente has usado 10GB de almaceniamiento. Para seguir subiendo más archivos, por favor, mejora tu plan de almacenamiento.',
         advice:
           'Mejora tu plan o borra los archivos que no vayas a usar para subir o sincronizar tus archivos de nuevo.',
+      },
+      NotEnoughDeviceSpaceModal: {
+        title: 'No hay suficiente espacio en tu dispositivo',
+        advice:
+          'Internxt necesita espacio libre en tu dispositivo para encriptar y subir tus archivos. Libera algo de almacenamiento e inténtalo de nuevo.',
       },
       EmptyFileNotAllowedModal: {
         title: 'Archivos vacíos no permitidos',

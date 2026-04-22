@@ -3,6 +3,7 @@ import { getInfoAsync, StorageAccessFramework } from 'expo-file-system/legacy';
 import { Alert } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { FolderTree, FolderTreeNode } from '../../../types/drive/folderUpload';
+import { getNameFromSafUri, SAF_VOLUME_PREFIX_RE } from './utils/safUri';
 
 const MAX_FILES = 3000;
 
@@ -16,13 +17,6 @@ export class FolderTooLargeError extends Error {
 type TraverseContext = {
   dirPath: string;
   rootPath: string;
-  result: FolderTree;
-  fileCount: number;
-};
-
-type SAFTraverseContext = {
-  dirUri: string;
-  currentRelativePath: string;
   result: FolderTree;
   fileCount: number;
 };
@@ -63,41 +57,38 @@ const traverseFileUri = async ({ dirPath, rootPath, result, fileCount }: Travers
   return fileCount;
 };
 
-const getNameFromSafUri = (childUri: string): string => {
-  const documentPart = childUri.split('/document/').pop() ?? '';
-  const decoded = decodeURIComponent(documentPart);
-  return decoded.split('/').pop() ?? decoded;
-};
-
-const traverseSafUri = async ({
-  dirUri,
-  currentRelativePath,
-  result,
-  fileCount,
-}: SAFTraverseContext): Promise<number> => {
-  const childUris = await StorageAccessFramework.readDirectoryAsync(dirUri);
-
+/**
+ * Traverses SAF child URIs recursively.
+ *
+ * Each child gets exactly one readDirectoryAsync call:
+ * - Resolves → directory; the returned list is reused directly for recursion.
+ * - Throws   → file.
+ *
+ * Checks signal.aborted before each item so cancellation takes effect within one loop tick.
+ */
+const traverseSafChildren = async (
+  childUris: string[],
+  currentRelativePath: string,
+  result: FolderTree,
+  fileCount: number,
+  signal?: AbortSignal,
+): Promise<number> => {
   for (const childUri of childUris) {
-    const info = await getInfoAsync(childUri);
+    if (signal?.aborted) throw new DOMException('Folder scan cancelled', 'AbortError');
+
+    const info = await getInfoAsync(childUri).catch(() => ({ exists: false as const }));
     const infoName = (info as { name?: string }).name;
-    const name = infoName || getNameFromSafUri(childUri);
-    const isDirectory = info.exists ? info.isDirectory : false;
+    const useInfoName = infoName != null && !SAF_VOLUME_PREFIX_RE.test(infoName);
+    const name = useInfoName ? infoName : getNameFromSafUri(childUri);
+
     const relativePath = currentRelativePath ? `${currentRelativePath}/${name}` : name;
     const parentPath = currentRelativePath;
 
-    const node: FolderTreeNode = {
-      relativePath,
-      parentPath,
-      name,
-      isDirectory,
-      size: isDirectory || !info.exists ? 0 : info.size,
-      uri: childUri,
-    };
-
-    if (isDirectory) {
-      result.dirs.push(node);
-      fileCount = await traverseSafUri({ dirUri: childUri, currentRelativePath: relativePath, result, fileCount });
-    } else {
+    let grandchildUris: string[];
+    try {
+      grandchildUris = await StorageAccessFramework.readDirectoryAsync(childUri);
+    } catch {
+      const size = (info as { size?: number }).size ?? 0;
       fileCount++;
       if (fileCount > MAX_FILES) {
         Alert.alert(
@@ -106,8 +97,12 @@ const traverseSafUri = async ({
         );
         throw new FolderTooLargeError();
       }
-      result.files.push(node);
+      result.files.push({ relativePath, parentPath, name, isDirectory: false, size, uri: childUri });
+      continue;
     }
+
+    result.dirs.push({ relativePath, parentPath, name, isDirectory: true, size: 0, uri: childUri });
+    fileCount = await traverseSafChildren(grandchildUris, relativePath, result, fileCount, signal);
   }
 
   return fileCount;
@@ -122,7 +117,7 @@ const traverseSafUri = async ({
  * @throws {FolderTooLargeError} When the folder contains more than {@link MAX_FILES} files.
  * @throws {Error} When the URI scheme is not supported.
  */
-const traverseFolder = async (uri: string): Promise<FolderTree> => {
+const traverseFolder = async (uri: string, signal?: AbortSignal): Promise<FolderTree> => {
   if (uri.startsWith('file://')) {
     const rootPath = decodeURIComponent(uri.replace('file://', '').replace(/\/$/, ''));
     const result: FolderTree = { dirs: [], files: [] };
@@ -132,7 +127,8 @@ const traverseFolder = async (uri: string): Promise<FolderTree> => {
 
   if (uri.startsWith('content://')) {
     const result: FolderTree = { dirs: [], files: [] };
-    await traverseSafUri({ dirUri: uri, currentRelativePath: '', result, fileCount: 0 });
+    const rootChildUris = await StorageAccessFramework.readDirectoryAsync(uri);
+    await traverseSafChildren(rootChildUris, '', result, 0, signal);
     return result;
   }
 
