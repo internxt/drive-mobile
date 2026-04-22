@@ -3,7 +3,7 @@ import { getInfoAsync, StorageAccessFramework } from 'expo-file-system/legacy';
 import { Alert } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { FolderTree, FolderTreeNode } from '../../../types/drive/folderUpload';
-import { getNameFromSafUri, SAF_VOLUME_PREFIX_RE } from './utils/safUri';
+import { getNameFromSafUri, hasSafVolumePrefix } from './utils/safUri';
 
 const MAX_FILES = 3000;
 
@@ -78,7 +78,7 @@ const traverseSafChildren = async (
 
     const info = await getInfoAsync(childUri).catch(() => ({ exists: false as const }));
     const infoName = (info as { name?: string }).name;
-    const useInfoName = infoName != null && !SAF_VOLUME_PREFIX_RE.test(infoName);
+    const useInfoName = infoName != null && !hasSafVolumePrefix(infoName);
     const name = useInfoName ? infoName : getNameFromSafUri(childUri);
 
     const relativePath = currentRelativePath ? `${currentRelativePath}/${name}` : name;

@@ -1,9 +1,9 @@
-import { getNameFromSafUri, getSafTreeName, SAF_VOLUME_PREFIX_RE } from './safUri';
+import { getNameFromSafUri, getSafTreeName, hasSafVolumePrefix } from './safUri';
 
 const tree = 'content://com.android.externalstorage.documents/tree/primary%3ADownload';
 const childUri = (encoded: string) => `${tree}/document/${encoded}`;
 
-describe('SAF_VOLUME_PREFIX_RE', () => {
+describe('hasSafVolumePrefix', () => {
   test.each([
     ['primary:DCIM', 'primary'],
     ['secondary:folder', 'secondary'],
@@ -12,8 +12,8 @@ describe('SAF_VOLUME_PREFIX_RE', () => {
     ['raw:/absolute/path', 'raw'],
     ['1A2B-3C4D:Pictures', 'short SD-card UUID'],
     ['550e8400-e29b-41d4-a716-446655440000:folder', 'long UUID'],
-  ])('when the input is "%s" (%s), then it matches', (input) => {
-    expect(SAF_VOLUME_PREFIX_RE.test(input)).toBe(true);
+  ])('when the input is "%s" (%s), then it returns true', (input) => {
+    expect(hasSafVolumePrefix(input)).toBe(true);
   });
 
   test.each([
@@ -21,8 +21,8 @@ describe('SAF_VOLUME_PREFIX_RE', () => {
     ['my-folder', 'no colon'],
     ['IMG_20260417.jpeg', 'plain filename'],
     ['', 'empty string'],
-  ])('when the input is "%s" (%s), then it does not match', (input) => {
-    expect(SAF_VOLUME_PREFIX_RE.test(input)).toBe(false);
+  ])('when the input is "%s" (%s), then it returns false', (input) => {
+    expect(hasSafVolumePrefix(input)).toBe(false);
   });
 });
 

@@ -132,6 +132,18 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
 
+  const hasShownEmptyFileNoticeRef = useRef(false);
+
+  const handleEmptyFileSkipped = () => {
+    if (!hasShownEmptyFileNoticeRef.current) {
+      hasShownEmptyFileNoticeRef.current = true;
+      notificationsService.show({
+        type: NotificationType.Warning,
+        text1: strings.messages.emptyFileSkippedDuringFolderUpload,
+      });
+    }
+  };
+
   const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
   const [collisionState, setCollisionState] = useState<{
     isOpen: boolean;
@@ -163,20 +175,22 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     collisionResolverRef.current?.(null);
   };
 
+  const resolveCollision = async (pickedName: string, parentUuid: string): Promise<string | null> => {
+    const { existentFolders } = await driveFolderService.checkDuplicatedFolders(parentUuid, [pickedName]);
+    if (existentFolders.length === 0) return pickedName;
+    const existing = existentFolders[0];
+    const action = await waitForCollisionResolution(pickedName, existing.uuid, existing.id);
+    if (action === null) return null;
+    if (action === 'replace') {
+      await driveTrashService.moveToTrash([{ uuid: existing.uuid, id: existing.id, type: 'folder' }]);
+      return pickedName;
+    }
+    return getUniqueFolderName(pickedName, parentUuid);
+  };
+
   const handleUploadFolder = async () => {
     dispatch(uiActions.setShowUploadFileModal(false));
-
-    let hasShownEmptyFileNotice = false;
-
-    const handleEmptyFileSkipped = () => {
-      if (!hasShownEmptyFileNotice) {
-        hasShownEmptyFileNotice = true;
-        notificationsService.show({
-          type: NotificationType.Warning,
-          text1: strings.messages.emptyFileSkippedDuringFolderUpload,
-        });
-      }
-    };
+    hasShownEmptyFileNoticeRef.current = false;
 
     const uploadId = uuid.v4().toString();
     const abortController = new AbortController();
@@ -227,18 +241,10 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         throw new Error('No focused folder UUID');
       }
 
-      // Name collision check
-      const { existentFolders } = await driveFolderService.checkDuplicatedFolders(focusedFolder.uuid, [picked.name]);
-      if (existentFolders.length > 0) {
-        const existing = existentFolders[0];
-        const action = await waitForCollisionResolution(picked.name, existing.uuid, existing.id);
-        if (action === null) return;
-        if (action === 'replace') {
-          await driveTrashService.moveToTrash([{ uuid: existing.uuid, id: existing.id, type: 'folder' }]);
-        } else {
-          picked.name = await getUniqueFolderName(picked.name, focusedFolder.uuid);
-        }
-      }
+      // 5. Name collision check
+      const resolvedName = await resolveCollision(picked.name, focusedFolder.uuid);
+      if (resolvedName === null) return;
+      picked.name = resolvedName;
 
       // 5. Create the root folder (merge if already exists)
       const rootFolderUuid = await createFolderWithMerge(focusedFolder.uuid, picked.name);
