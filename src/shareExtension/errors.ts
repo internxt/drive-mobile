@@ -1,4 +1,4 @@
-import { EmptyFileNotAllowedError, isEmptyFilePlanError } from '../services/drive/file/utils/emptyFileErrors';
+export { EmptyFileNotAllowedError, isEmptyFilePlanError } from '../services/drive/file/utils/emptyFileErrors';
 
 export class HttpUploadError extends Error {
   constructor(
@@ -29,5 +29,3 @@ export class UploadNetworkError extends Error {
     Object.setPrototypeOf(this, UploadNetworkError.prototype);
   }
 }
-
-export { EmptyFileNotAllowedError, isEmptyFilePlanError };
