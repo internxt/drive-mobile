@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { Dimensions, Linking, TouchableOpacity, View } from 'react-native';
+import { Dimensions, TouchableOpacity, View } from 'react-native';
 
 import { LinearGradient } from 'expo-linear-gradient';
-import { WarningCircle } from 'phosphor-react-native';
+import { WarningCircleIcon } from 'phosphor-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import AppText from 'src/components/AppText';
@@ -12,11 +12,11 @@ import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
 import AppVersionWidget from '../../components/AppVersionWidget';
 import { useTheme } from '../../contexts/Theme/Theme.context';
+import { openUrl } from '../../helpers/utils';
 import useGetColor from '../../hooks/useColor';
 import { useLanguage } from '../../hooks/useLanguage';
 import analytics, { AnalyticsEventKey } from '../../services/AnalyticsService';
 import appService from '../../services/AppService';
-import { logger } from '../../services/common';
 import errorService from '../../services/ErrorService';
 import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
@@ -31,75 +31,26 @@ function SignInScreen(): JSX.Element {
   const [error, setError] = useState<string>('');
   const dimensions = Dimensions.get('screen');
 
-  const onSignInWithBrowserPressed = async () => {
-    try {
-      const webAuthUrl = appService.urls.webAuth.login;
-      const canOpen = await Linking.canOpenURL(webAuthUrl);
-      if (canOpen) {
-        await Linking.openURL(webAuthUrl);
-
-        analytics.track(AnalyticsEventKey.UserSignIn, {
-          method: 'browser',
-        });
-      } else {
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.screens.SignInScreen.errorOpeningLink,
-        });
-      }
-    } catch (err) {
+  const onSignInWithBrowserPressed = () => {
+    openUrl(appService.urls.webAuth.login, (err) => {
       const errorMessage = errorService.castError(err).message;
-      logger.error('Error opening web auth URL', err);
+      notificationsService.show({ type: NotificationType.Error, text1: strings.screens.SignInScreen.errorOpeningLink });
       setError(errorMessage);
-    }
+    });
+    analytics.track(AnalyticsEventKey.UserSignIn, { method: 'browser' });
   };
-  const onSignUpWithBrowserPressed = async () => {
-    try {
-      const webAuthUrl = appService.urls.webAuth.signup;
 
-      const canOpen = await Linking.canOpenURL(webAuthUrl);
-
-      if (canOpen) {
-        await Linking.openURL(webAuthUrl);
-
-        analytics.track(AnalyticsEventKey.UserSignUp, {
-          method: 'browser',
-        });
-      } else {
-        notificationsService.show({
-          type: NotificationType.Error,
-          text1: strings.screens.SignUpScreen.errorOpeningLink,
-        });
-      }
-    } catch (err) {
+  const onSignUpWithBrowserPressed = () => {
+    openUrl(appService.urls.webAuth.signup, (err) => {
       const errorMessage = errorService.castError(err).message;
-      logger.error('Error opening web sign up URL', err);
+      notificationsService.show({ type: NotificationType.Error, text1: strings.screens.SignUpScreen.errorOpeningLink });
       setError(errorMessage);
-    }
+    });
+    analytics.track(AnalyticsEventKey.UserSignUp, { method: 'browser' });
   };
 
-  const onTermsAndConditionsPressed = async () => {
-    try {
-      const termsUrl = appService.urls.termsAndConditions;
-      const canOpen = await Linking.canOpenURL(termsUrl);
-      if (canOpen) {
-        await Linking.openURL(termsUrl);
-      }
-    } catch (err) {
-      logger.error('Error opening terms and conditions URL', err);
-    }
-  };
-
-  const onNeedHelpPressed = async () => {
-    try {
-      const helpUrl = appService.urls.help;
-      const canOpen = await Linking.canOpenURL(helpUrl);
-      if (canOpen) {
-        await Linking.openURL(helpUrl);
-      }
-    } catch (err) {
-      logger.error('Error opening help URL', err);
-    }
+  const onNeedHelpPressed = () => {
+    openUrl(appService.urls.help);
   };
 
   const renderErrorMessage = () => {
@@ -109,7 +60,7 @@ function SignInScreen(): JSX.Element {
 
     return (
       <View style={tailwind('flex flex-row items-center mt-0.5')}>
-        <WarningCircle weight="fill" color={getColor('text-red')} size={13} />
+        <WarningCircleIcon weight="fill" color={getColor('text-red')} size={13} />
         <AppText style={[tailwind('text-sm ml-1'), { color: getColor('text-red') }]}>{error}</AppText>
       </View>
     );
@@ -118,7 +69,7 @@ function SignInScreen(): JSX.Element {
   return (
     <AppScreen
       safeAreaTop
-      safeAreaBottom={false}
+      safeAreaBottom
       style={[tailwind('h-full px-6'), { backgroundColor: isDark ? 'transparent' : getColor('bg-surface') }]}
     >
       {isDark ? (
@@ -180,11 +131,6 @@ function SignInScreen(): JSX.Element {
         </View>
 
         <View style={tailwind('mt-auto pb-4 items-center')}>
-          <TouchableOpacity onPress={onTermsAndConditionsPressed} style={tailwind('py-2')}>
-            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]} medium>
-              {strings.screens.SignInScreen.termsAndConditions}
-            </AppText>
-          </TouchableOpacity>
           <TouchableOpacity onPress={onNeedHelpPressed} style={tailwind('pb-6')}>
             <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]} medium>
               {strings.screens.SignInScreen.needHelp}

@@ -3,7 +3,6 @@ import {
   CaretRight,
   FileText,
   FolderSimple,
-  Info,
   Moon,
   Question,
   Shield,
@@ -112,7 +111,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     Linking.openURL('mailto:hello@internxt.com');
   };
   const onMoreInfoPressed = () => {
-    Linking.openURL('https://internxt.com');
+    Linking.openURL('https://help.internxt.com');
   };
   const onTermsAndConditionsPressed = () => {
     Linking.openURL(appService.urls.termsAndConditions);
@@ -354,21 +353,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   onPress: onSupportPressed,
                 },
                 {
-                  key: 'more-information',
-                  template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                      <Info size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.more}</AppText>
-                      </View>
-                      <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-gray-40')} size={20} />
-                      </View>
-                    </View>
-                  ),
-                  onPress: onMoreInfoPressed,
-                },
-                {
                   key: 'share-logs',
                   loading: gettingLogs,
                   template: (
@@ -383,28 +367,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                     </View>
                   ),
                   onPress: onShareLogsPressed,
-                },
-              ]}
-            />
-            {/* LEGAL */}
-            <SettingsGroup
-              title={strings.screens.SettingsScreen.legal}
-              items={[
-                {
-                  key: 'terms-and-conditions',
-                  template: (
-                    <View style={[tailwind('flex-row px-4 py-3')]}>
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>
-                          {strings.screens.SettingsScreen.termsAndConditions}
-                        </AppText>
-                      </View>
-                      <View style={tailwind('justify-center')}>
-                        <CaretRight color={getColor('text-gray-40')} size={20} />
-                      </View>
-                    </View>
-                  ),
-                  onPress: onTermsAndConditionsPressed,
                 },
               ]}
             />
