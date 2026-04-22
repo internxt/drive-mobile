@@ -7,7 +7,7 @@ import { useShareExtension } from './hooks/useShareExtension.ios';
 import { useShareUpload } from './hooks/useShareUpload';
 import { DriveScreen } from './screens/DriveScreen';
 import { NotSignedInScreen } from './screens/NotSignedInScreen';
-import { colors } from './theme';
+import { useShareColors } from './theme';
 
 interface ShareExtensionProps {
   photosToken?: string;
@@ -35,6 +35,7 @@ const ShareExtensionView = ({
   videos,
 }: ShareExtensionProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const { sdkReady, sharedFiles } = useShareExtension({
     photosToken,
     mnemonic,
@@ -77,7 +78,7 @@ const ShareExtensionView = ({
 
   if (!sdkReady || !rootFolderId) {
     return (
-      <View style={tailwind('flex-1 items-center justify-center bg-white')}>
+      <View style={[tailwind('flex-1 items-center justify-center'), { backgroundColor: colors.surface }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );

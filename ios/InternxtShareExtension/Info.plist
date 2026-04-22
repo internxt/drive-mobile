@@ -65,13 +65,13 @@
 	<key>ShareExtensionBackgroundColor</key>
 	<dict>
 		<key>alpha</key>
-		<integer>1</integer>
+		<integer>0</integer>
 		<key>blue</key>
-		<integer>255</integer>
+		<integer>0</integer>
 		<key>green</key>
-		<integer>255</integer>
+		<integer>0</integer>
 		<key>red</key>
-		<integer>255</integer>
+		<integer>0</integer>
 	</dict>
 	<key>UIAppFonts</key>
 	<array/>

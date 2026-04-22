@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Pressable, Text, TouchableHighlight, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
-import { colors, fontStyles } from '../theme';
+import { fontStyles, useShareColors } from '../theme';
 import { NameCollisionAction } from '../types';
 
 interface ShareNameCollisionModalProps {
@@ -21,6 +21,7 @@ export const ShareNameCollisionModal = ({
   onCancel,
 }: ShareNameCollisionModalProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const [selectedAction, setSelectedAction] = useState<NameCollisionAction>('replace');
 
   const isMultiple = collisionedFilesCounter > 1;
@@ -41,27 +42,30 @@ export const ShareNameCollisionModal = ({
         style={[tailwind('flex-1 items-center justify-center px-5'), { backgroundColor: 'rgba(0,0,0,0.4)' }]}
         onPress={onCancel}
       >
-        <Pressable style={tailwind('w-full bg-white rounded-xl p-4')}>
-          <Text style={[tailwind('text-xl text-gray-100 mb-2'), fontStyles.semibold]}>{title}</Text>
-          <Text style={[tailwind('text-base text-gray-60 mb-5'), { lineHeight: 22 }]}>{message}</Text>
+        <Pressable style={[tailwind('w-full rounded-xl p-4'), { backgroundColor: colors.surface }]}>
+          <Text style={[tailwind('text-xl mb-2'), fontStyles.semibold, { color: colors.gray100 }]}>{title}</Text>
+          <Text style={[tailwind('text-base mb-5'), { lineHeight: 22, color: colors.gray60 }]}>{message}</Text>
 
           <RadioOption
             label={replaceLabel}
             selected={selectedAction === 'replace'}
             onPress={() => setSelectedAction('replace')}
+            colors={colors}
           />
           <View style={tailwind('mt-3')}>
             <RadioOption
               label={keepLabel}
               selected={selectedAction === 'keep-both'}
               onPress={() => setSelectedAction('keep-both')}
+              colors={colors}
             />
           </View>
 
           <View style={[tailwind('flex-row mt-6'), { gap: 12 }]}>
             <TouchableHighlight
               style={[
-                tailwind('flex-1 rounded-lg px-4 py-3 items-center justify-center bg-white border border-gray-10'),
+                tailwind('flex-1 rounded-lg px-4 py-3 items-center justify-center border'),
+                { backgroundColor: colors.surface, borderColor: colors.gray10 },
               ]}
               underlayColor={colors.gray10}
               onPress={onCancel}
@@ -77,7 +81,7 @@ export const ShareNameCollisionModal = ({
               underlayColor="rgb(0, 88, 219)"
               onPress={handleConfirm}
             >
-              <Text style={[tailwind('text-base text-white'), fontStyles.semibold]}>{strings.buttons.upload}</Text>
+              <Text style={[tailwind('text-base'), fontStyles.semibold, { color: colors.white }]}>{strings.buttons.upload}</Text>
             </TouchableHighlight>
           </View>
         </Pressable>
@@ -90,9 +94,10 @@ interface RadioOptionProps {
   label: string;
   selected: boolean;
   onPress: () => void;
+  colors: ReturnType<typeof useShareColors>;
 }
 
-const RadioOption = ({ label, selected, onPress }: RadioOptionProps) => {
+const RadioOption = ({ label, selected, onPress, colors }: RadioOptionProps) => {
   const tailwind = useTailwind();
   return (
     <Pressable onPress={onPress} style={tailwind('flex-row items-center')}>

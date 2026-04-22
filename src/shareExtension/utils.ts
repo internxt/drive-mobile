@@ -9,6 +9,12 @@ import { SharedFile, UploadErrorType } from './types';
 
 dayjs.extend(relativeTime);
 
+/**
+ * Normalizes a local filesystem path to a URI suitable for React Native's Image component.
+ */
+export const toDisplayUri = (path: string): string =>
+  path.startsWith('file://') || path.startsWith('content://') || path.startsWith('http') ? path : `file://${path}`;
+
 export const formatDate = (dateStr: string): string => {
   const date = dayjs(dateStr);
   const weekDays = 7;

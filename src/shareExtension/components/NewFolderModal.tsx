@@ -2,7 +2,8 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
-import { colors, fontStyles } from '../theme';
+import { HTTP_CONFLICT } from '../../services/common';
+import { fontStyles, useShareColors } from '../theme';
 
 interface NewFolderModalProps {
   visible: boolean;
@@ -12,6 +13,7 @@ interface NewFolderModalProps {
 
 export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const [name, setName] = useState(strings.screens.create_folder.defaultName);
   const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -29,8 +31,12 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
       await onCreate(trimmed);
       setName(strings.screens.create_folder.defaultName);
       onCancel();
-    } catch {
-      setError(strings.screens.ShareExtension.folderCreateError);
+    } catch (error) {
+      setError(
+        (error as { status: number }).status === HTTP_CONFLICT
+          ? strings.screens.ShareExtension.folderAlreadyExists
+          : strings.screens.ShareExtension.folderCreateError,
+      );
     } finally {
       setLoading(false);
     }
@@ -56,22 +62,25 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
         style={[tailwind('flex-1 items-center justify-center px-5'), { backgroundColor: 'rgba(0,0,0,0.4)' }]}
         onPress={handleCancel}
       >
-        <View style={tailwind('w-full bg-white rounded-xl p-4')}>
-          <Text style={[tailwind('text-xl text-gray-100 mb-6'), fontStyles.semibold]}>{strings.buttons.newFolder}</Text>
+        <View style={[tailwind('w-full rounded-xl p-4'), { backgroundColor: colors.surface }]}>
+          <Text style={[tailwind('text-xl mb-6'), fontStyles.semibold, { color: colors.gray100 }]}>
+            {strings.buttons.newFolder}
+          </Text>
 
           <View style={tailwind('mb-8')}>
-            <Text style={tailwind('text-sm text-gray-100 mb-1')}>{strings.screens.ShareExtension.folderNameLabel}</Text>
+            <Text style={[tailwind('text-sm mb-1'), { color: colors.gray100 }]}>
+              {strings.screens.ShareExtension.folderNameLabel}
+            </Text>
             <View
               style={[
                 tailwind('flex-row items-center rounded-lg border py-1.5'),
                 {
-                  borderColor: focused ? colors.primary : colors.gray20,
+                  borderColor: error ? colors.red : focused ? colors.primary : colors.gray20,
                 },
-                !!error && { borderColor: colors.red },
               ]}
             >
               <TextInput
-                style={tailwind('flex-1 py-2 px-4 text-base text-gray-80')}
+                style={[tailwind('flex-1 py-2 px-4 text-base'), { color: colors.gray80 }]}
                 placeholder={strings.screens.ShareExtension.folderNamePlaceholder}
                 placeholderTextColor={colors.gray40}
                 value={name}
@@ -85,13 +94,14 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
                 onSubmitEditing={handleCreate}
               />
             </View>
-            {error ? <Text style={tailwind('mt-1 text-sm text-red')}>{error}</Text> : null}
+            {error ? <Text style={[tailwind('mt-1 text-sm'), { color: colors.red }]}>{error}</Text> : null}
           </View>
 
           <View style={[tailwind('flex-row'), { gap: 8 }]}>
             <TouchableHighlight
               style={[
-                tailwind('flex-1 rounded-lg px-4 py-3 items-center justify-center bg-white border border-gray-10'),
+                tailwind('flex-1 rounded-lg px-4 py-3 items-center justify-center border'),
+                { backgroundColor: colors.surface, borderColor: colors.gray10 },
               ]}
               underlayColor={colors.gray10}
               onPress={handleCancel}
@@ -110,9 +120,11 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
               disabled={!name.trim() || loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color={colors.surface} />
+                <ActivityIndicator size="small" color={colors.white} />
               ) : (
-                <Text style={[tailwind('text-base text-white'), fontStyles.semibold]}>{strings.buttons.create}</Text>
+                <Text style={[tailwind('text-base'), fontStyles.semibold, { color: colors.white }]}>
+                  {strings.buttons.create}
+                </Text>
               )}
             </TouchableHighlight>
           </View>
