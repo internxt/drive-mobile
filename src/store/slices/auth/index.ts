@@ -8,8 +8,10 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import errorService from 'src/services/ErrorService';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
+import appService from '../../../services/AppService';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
+import InternxtAuthCredentialsModule from '../../../services/native/InternxtAuthCredentialsModule';
 import notificationsService from '../../../services/NotificationsService';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
@@ -32,6 +34,22 @@ const initialState: AuthState = {
   securityDetails: undefined,
   sessionPassword: undefined,
 };
+
+async function syncNativeCredentials(token: string, user: UserSettings): Promise<void> {
+  try {
+    await InternxtAuthCredentialsModule.setCredentials({
+      bearerToken: token,
+      userId: user.userId,
+      bridgeUser: user.bridgeUser,
+      rootFolderUuid: user.rootFolderUuid || user.rootFolderId,
+      email: user.email,
+      driveBaseUrl: appService.constants.DRIVE_NEW_API_URL,
+      bridgeBaseUrl: appService.constants.BRIDGE_URL,
+    });
+  } catch (err) {
+    errorService.reportError(err);
+  }
+}
 
 export const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/initialize',
@@ -116,6 +134,9 @@ export const signInThunk = createAsyncThunk<
   await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(userToSave));
   // Reset this, in case we logged out during the pull process
   await asyncStorageService.deleteItem(AsyncStorageKey.LastPhotoPulledDate);
+
+  await syncNativeCredentials(payload.token, userToSave);
+
   dispatch(
     authActions.setSignInData({
       token: payload.token,
@@ -154,6 +175,8 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
 
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
+
+      await syncNativeCredentials(refreshed.token, credentials.user);
 
       // Pass the new tokens to the SdkManager
       SdkManager.init({
@@ -205,6 +228,7 @@ export const signOutThunk = createAsyncThunk<
   const reason = payload.reason;
   authService.signout(reason).catch(errorService.reportError);
   drive.clear().catch(errorService.reportError);
+  InternxtAuthCredentialsModule.clearCredentials().catch(errorService.reportError);
   dispatch(uiActions.resetState());
   dispatch(authActions.resetState());
   dispatch(driveActions.resetState());
