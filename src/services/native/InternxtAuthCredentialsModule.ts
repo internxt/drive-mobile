@@ -19,15 +19,12 @@ interface NativeBridge {
 const bridge: NativeBridge | undefined =
   Platform.OS === 'android' ? NativeModules.InternxtAuthCredentialsModule : undefined;
 
-const InternxtAuthCredentialsModule = {
-  async setCredentials(creds: InternxtAuthCredentials): Promise<void> {
-    if (!bridge) return;
-    await bridge.setCredentials(creds);
-  },
-  async clearCredentials(): Promise<void> {
-    if (!bridge) return;
-    await bridge.clearCredentials();
-  },
-};
+export async function setCredentials(creds: InternxtAuthCredentials): Promise<void> {
+  if (!bridge) return;
+  await bridge.setCredentials(creds);
+}
 
-export default InternxtAuthCredentialsModule;
+export async function clearCredentials(): Promise<void> {
+  if (!bridge) return;
+  await bridge.clearCredentials();
+}

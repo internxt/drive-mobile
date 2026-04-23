@@ -11,7 +11,7 @@ import strings from '../../../../assets/lang/strings';
 import appService from '../../../services/AppService';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
-import InternxtAuthCredentialsModule from '../../../services/native/InternxtAuthCredentialsModule';
+import { clearCredentials, setCredentials } from '../../../services/native/InternxtAuthCredentialsModule';
 import notificationsService from '../../../services/NotificationsService';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
@@ -37,7 +37,7 @@ const initialState: AuthState = {
 
 async function syncNativeCredentials(token: string, user: UserSettings): Promise<void> {
   try {
-    await InternxtAuthCredentialsModule.setCredentials({
+    await setCredentials({
       bearerToken: token,
       userId: user.userId,
       bridgeUser: user.bridgeUser,
@@ -228,7 +228,7 @@ export const signOutThunk = createAsyncThunk<
   const reason = payload.reason;
   authService.signout(reason).catch(errorService.reportError);
   drive.clear().catch(errorService.reportError);
-  InternxtAuthCredentialsModule.clearCredentials().catch(errorService.reportError);
+  clearCredentials().catch(errorService.reportError);
   dispatch(uiActions.resetState());
   dispatch(authActions.resetState());
   dispatch(driveActions.resetState());
