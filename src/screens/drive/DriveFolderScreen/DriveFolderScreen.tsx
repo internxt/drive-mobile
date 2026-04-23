@@ -24,7 +24,7 @@ import { DriveListType, SortDirection, SortType } from '../../../types/drive/ui'
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
-import { buildFolderUploadListItem } from './DriveFolderScreen.helpers';
+import { buildFolderUploadListItem, isFolderUploadItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 
@@ -218,7 +218,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         }),
       );
       handleOnFilePress(driveItem);
-    } else if (driveItem.data.uuid) {
+    } else if (driveItem.data.uuid && !isFolderUploadItem(driveItem)) {
       driveCtx.loadFolderContent(driveItem.data.uuid, { focusFolder: true, resetPagination: true }).catch((error) => {
         errorService.reportError(error);
         const err = errorService.castError(error, 'content');
@@ -239,7 +239,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleDriveItemActionsPress = (driveItem: DriveListItem) => {
-    if (driveItem.id.startsWith('folder-upload-')) {
+    if (isFolderUploadItem(driveItem)) {
       const uploadId = driveItem.data.uuid;
       folderUploadCancellationService.cancel(uploadId);
       dispatch(driveActions.removeFolderUpload(uploadId));

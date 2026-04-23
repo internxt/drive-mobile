@@ -59,7 +59,7 @@ describe('folderTraversalService.traverseFolder', () => {
   });
 
   describe('when the URI uses the file:// scheme', () => {
-    it('when the folder is empty, then it returns empty dirs and files arrays', async () => {
+    test('when the folder is empty, then it returns empty dirs and files arrays', async () => {
       mockReadDir.mockResolvedValue([]);
 
       const result = await folderTraversalService.traverseFolder('file:///var/mobile/Photos');
@@ -67,7 +67,7 @@ describe('folderTraversalService.traverseFolder', () => {
       expect(result).toEqual({ dirs: [], files: [] });
     });
 
-    it('when the folder contains only files, then it returns them with correct relativePath and parentPath', async () => {
+    test('when the folder contains only files, then it returns them with correct relativePath and parentPath', async () => {
       mockReadDir.mockResolvedValue([
         mockFile('photo1.jpg', '/var/mobile/Photos/photo1.jpg', 2048),
         mockFile('photo2.jpg', '/var/mobile/Photos/photo2.jpg', 3072),
@@ -96,7 +96,7 @@ describe('folderTraversalService.traverseFolder', () => {
       ]);
     });
 
-    it('when the folder has nested subdirectories, then it traverses all levels in DFS pre-order with correct relativePath and parentPath', async () => {
+    test('when the folder has nested subdirectories, then it traverses all levels in DFS pre-order with correct relativePath and parentPath', async () => {
       const root = '/var/mobile/Root';
 
       mockReadDir.mockImplementation((path: string) => {
@@ -164,7 +164,7 @@ describe('folderTraversalService.traverseFolder', () => {
       ]);
     });
 
-    it('when the folder contains more than 3000 files, then it throws FolderTooLargeError and shows an alert', async () => {
+    test('when the folder contains more than 3000 files, then it throws FolderTooLargeError and shows an alert', async () => {
       const files = Array.from({ length: 3001 }, (_, i) => mockFile(`file${i}.txt`, `/var/mobile/Big/file${i}.txt`));
       mockReadDir.mockResolvedValue(files);
 
@@ -177,7 +177,7 @@ describe('folderTraversalService.traverseFolder', () => {
       );
     });
 
-    it('when the folder contains exactly 3000 files, then it resolves without throwing', async () => {
+    test('when the folder contains exactly 3000 files, then it resolves without throwing', async () => {
       const files = Array.from({ length: 3000 }, (_, i) => mockFile(`file${i}.txt`, `/var/mobile/Big/file${i}.txt`));
       mockReadDir.mockResolvedValue(files);
 
@@ -188,7 +188,7 @@ describe('folderTraversalService.traverseFolder', () => {
       expect(mockAlert).not.toHaveBeenCalled();
     });
 
-    it('when the root path contains percent-encoded characters, then it decodes them before reading', async () => {
+    test('when the root path contains percent-encoded characters, then it decodes them before reading', async () => {
       mockReadDir.mockResolvedValue([mockFile('a.txt', '/var/mobile/My Folder/a.txt', 10)]);
 
       const result = await folderTraversalService.traverseFolder('file:///var/mobile/My%20Folder');
@@ -207,22 +207,34 @@ describe('folderTraversalService.traverseFolder', () => {
     const safNestedUri = (dir: string, name: string) =>
       `${treeUri}/document/primary%3ADownload%2F${encodeURIComponent(dir)}%2F${encodeURIComponent(name)}`;
 
-    const infoFile = (uri: string, size = 1024) => ({ exists: true as const, isDirectory: false, size, uri, modificationTime: 0 });
+    const infoFile = (uri: string, size = 1024) => ({
+      exists: true as const,
+      isDirectory: false,
+      size,
+      uri,
+      modificationTime: 0,
+    });
     const infoDir = (uri: string) => ({ exists: true as const, isDirectory: true, size: 0, uri, modificationTime: 0 });
 
-    it('when the folder is empty, then it returns empty dirs and files arrays', async () => {
-      mockReadDirectoryAsync.mockResolvedValue([]);
+    test('when the folder is empty, then it returns empty dirs and files arrays', async () => {
+      mockReadDirectoryAsync.mockImplementation((uri: string) => {
+        if (uri === treeUri) return Promise.resolve([]);
+        return Promise.reject(new Error('Not a directory'));
+      });
 
       const result = await folderTraversalService.traverseFolder(treeUri);
 
       expect(result).toEqual({ dirs: [], files: [] });
     });
 
-    it('when the folder contains only files, then it returns them with correct relativePath and parentPath', async () => {
+    test('when the folder contains only files, then it returns them with correct relativePath and parentPath', async () => {
       const uri1 = safFileUri('photo1.jpg');
       const uri2 = safFileUri('photo2.jpg');
 
-      mockReadDirectoryAsync.mockResolvedValue([uri1, uri2]);
+      mockReadDirectoryAsync.mockImplementation((uri: string) => {
+        if (uri === treeUri) return Promise.resolve([uri1, uri2]);
+        return Promise.reject(new Error('Not a directory'));
+      });
       mockGetInfoAsync.mockImplementation((uri: string) => {
         if (uri === uri1) return Promise.resolve(infoFile(uri1, 2048));
         if (uri === uri2) return Promise.resolve(infoFile(uri2, 3072));
@@ -237,7 +249,7 @@ describe('folderTraversalService.traverseFolder', () => {
       ]);
     });
 
-    it('when the folder has nested subdirectories, then it traverses all levels in DFS pre-order with correct relativePath and parentPath', async () => {
+    test('when the folder has nested subdirectories, then it traverses all levels in DFS pre-order with correct relativePath and parentPath', async () => {
       const level1Uri = safDirUri('level1');
       const deepTxtUri = safNestedUri('level1', 'deep.txt');
       const rootTxtUri = safFileUri('root.txt');
@@ -245,7 +257,7 @@ describe('folderTraversalService.traverseFolder', () => {
       mockReadDirectoryAsync.mockImplementation((uri: string) => {
         if (uri === treeUri) return Promise.resolve([level1Uri, rootTxtUri]);
         if (uri === level1Uri) return Promise.resolve([deepTxtUri]);
-        return Promise.resolve([]);
+        return Promise.reject(new Error('Not a directory'));
       });
       mockGetInfoAsync.mockImplementation((uri: string) => {
         if (uri === level1Uri) return Promise.resolve(infoDir(level1Uri));
@@ -259,15 +271,25 @@ describe('folderTraversalService.traverseFolder', () => {
         { relativePath: 'level1', parentPath: '', name: 'level1', isDirectory: true, size: 0, uri: level1Uri },
       ]);
       expect(result.files).toEqual([
-        { relativePath: 'level1/deep.txt', parentPath: 'level1', name: 'deep.txt', isDirectory: false, size: 300, uri: deepTxtUri },
+        {
+          relativePath: 'level1/deep.txt',
+          parentPath: 'level1',
+          name: 'deep.txt',
+          isDirectory: false,
+          size: 300,
+          uri: deepTxtUri,
+        },
         { relativePath: 'root.txt', parentPath: '', name: 'root.txt', isDirectory: false, size: 100, uri: rootTxtUri },
       ]);
     });
 
-    it('when the document URI contains percent-encoded characters in the name, then it decodes them correctly', async () => {
+    test('when the document URI contains percent-encoded characters in the name, then it decodes them correctly', async () => {
       const uri = safFileUri('my file.txt');
 
-      mockReadDirectoryAsync.mockResolvedValue([uri]);
+      mockReadDirectoryAsync.mockImplementation((calledUri: string) => {
+        if (calledUri === treeUri) return Promise.resolve([uri]);
+        return Promise.reject(new Error('Not a directory'));
+      });
       mockGetInfoAsync.mockResolvedValue(infoFile(uri, 512));
 
       const result = await folderTraversalService.traverseFolder(treeUri);
@@ -276,9 +298,12 @@ describe('folderTraversalService.traverseFolder', () => {
       expect(result.files[0].relativePath).toBe('my file.txt');
     });
 
-    it('when the folder contains more than 3000 files, then it throws FolderTooLargeError and shows an alert', async () => {
+    test('when the folder contains more than 3000 files, then it throws FolderTooLargeError and shows an alert', async () => {
       const uris = Array.from({ length: 3001 }, (_, i) => safFileUri(`file${i}.txt`));
-      mockReadDirectoryAsync.mockResolvedValue(uris);
+      mockReadDirectoryAsync.mockImplementation((uri: string) => {
+        if (uri === treeUri) return Promise.resolve(uris);
+        return Promise.reject(new Error('Not a directory'));
+      });
       mockGetInfoAsync.mockImplementation((uri: string) => Promise.resolve(infoFile(uri)));
 
       await expect(folderTraversalService.traverseFolder(treeUri)).rejects.toBeInstanceOf(FolderTooLargeError);
@@ -288,9 +313,12 @@ describe('folderTraversalService.traverseFolder', () => {
       );
     });
 
-    it('when the folder contains exactly 3000 files, then it resolves without throwing', async () => {
+    test('when the folder contains exactly 3000 files, then it resolves without throwing', async () => {
       const uris = Array.from({ length: 3000 }, (_, i) => safFileUri(`file${i}.txt`));
-      mockReadDirectoryAsync.mockResolvedValue(uris);
+      mockReadDirectoryAsync.mockImplementation((uri: string) => {
+        if (uri === treeUri) return Promise.resolve(uris);
+        return Promise.reject(new Error('Not a directory'));
+      });
       mockGetInfoAsync.mockImplementation((uri: string) => Promise.resolve(infoFile(uri)));
 
       const result = await folderTraversalService.traverseFolder(treeUri);
@@ -299,10 +327,154 @@ describe('folderTraversalService.traverseFolder', () => {
       expect(result.dirs).toHaveLength(0);
       expect(mockAlert).not.toHaveBeenCalled();
     });
+
+    test('when getInfoAsync rejects (throws), then it falls back gracefully and still processes the item', async () => {
+      const uri = safFileUri('photo.jpg');
+
+      mockReadDirectoryAsync.mockImplementation((calledUri: string) => {
+        if (calledUri === treeUri) return Promise.resolve([uri]);
+        return Promise.reject(new Error('Not a directory'));
+      });
+      mockGetInfoAsync.mockRejectedValue(new Error('Function not implemented'));
+
+      const result = await folderTraversalService.traverseFolder(treeUri);
+
+      expect(result.files).toHaveLength(1);
+      expect(result.files[0].name).toBe('photo.jpg');
+      expect(result.files[0].size).toBe(0);
+    });
+
+    describe('SAF volume prefix stripping', () => {
+      test('when info.name returns a volume-prefixed name (patch inactive), then it strips the prefix', async () => {
+        const uri = safFileUri('IMG_20260417.jpeg');
+
+        mockReadDirectoryAsync.mockImplementation((calledUri: string) => {
+          if (calledUri === treeUri) return Promise.resolve([uri]);
+          return Promise.reject(new Error('Not a directory'));
+        });
+        // Simulates the expo-file-system patch being inactive: info.name carries the SAF prefix
+        mockGetInfoAsync.mockResolvedValue({ ...infoFile(uri, 512), name: 'primary:IMG_20260417.jpeg' });
+
+        const result = await folderTraversalService.traverseFolder(treeUri);
+
+        expect(result.files[0].name).toBe('IMG_20260417.jpeg');
+        expect(result.files[0].relativePath).toBe('IMG_20260417.jpeg');
+      });
+
+      test('when the URI encodes a root-level name without a slash, then it strips the volume prefix from the document segment', async () => {
+        // URI like: .../document/primary%3ADCIM (no slash after the prefix)
+        const uri = `${treeUri}/document/primary%3ADCIM`;
+
+        mockReadDirectoryAsync.mockImplementation((calledUri: string) => {
+          if (calledUri === treeUri) return Promise.resolve([uri]);
+          return Promise.reject(new Error('Not a directory'));
+        });
+        mockGetInfoAsync.mockResolvedValue({ ...infoFile(uri, 100), name: undefined });
+
+        const result = await folderTraversalService.traverseFolder(treeUri);
+
+        expect(result.files[0].name).toBe('DCIM');
+      });
+
+      test('when a folder name legitimately contains a colon not matching the whitelist, then it is preserved', async () => {
+        const uri = safFileUri('notes: draft.txt');
+
+        mockReadDirectoryAsync.mockImplementation((calledUri: string) => {
+          if (calledUri === treeUri) return Promise.resolve([uri]);
+          return Promise.reject(new Error('Not a directory'));
+        });
+        mockGetInfoAsync.mockResolvedValue({ ...infoFile(uri, 200), name: 'notes: draft.txt' });
+
+        const result = await folderTraversalService.traverseFolder(treeUri);
+
+        expect(result.files[0].name).toBe('notes: draft.txt');
+      });
+
+      test('when the URI uses a short SD-card UUID prefix, then it strips the prefix', async () => {
+        // SD card URIs use a short hex UUID like "1A2B-3C4D"
+        const sdUri =
+          'content://com.android.externalstorage.documents/tree/1A2B-3C4D%3APictures/document/1A2B-3C4D%3APictures%2Ffoo.jpg';
+
+        mockReadDirectoryAsync.mockImplementation((calledUri: string) => {
+          if (calledUri === treeUri) return Promise.resolve([sdUri]);
+          return Promise.reject(new Error('Not a directory'));
+        });
+        mockGetInfoAsync.mockResolvedValue({ ...infoFile(sdUri, 300), name: undefined });
+
+        const result = await folderTraversalService.traverseFolder(treeUri);
+
+        expect(result.files[0].name).toBe('foo.jpg');
+      });
+    });
+
+    describe('Cancellation via AbortSignal', () => {
+      test('when the signal is aborted before traversal starts, then it throws an AbortError immediately', async () => {
+        const controller = new AbortController();
+        controller.abort();
+
+        mockReadDirectoryAsync.mockResolvedValue([safFileUri('file.txt')]);
+        mockGetInfoAsync.mockResolvedValue(infoFile(safFileUri('file.txt')));
+
+        await expect(folderTraversalService.traverseFolder(treeUri, controller.signal)).rejects.toMatchObject({
+          name: 'AbortError',
+        });
+      });
+
+      test('when the signal is aborted mid-traversal, then it stops processing remaining items', async () => {
+        const controller = new AbortController();
+        const uri1 = safFileUri('file1.txt');
+        const uri2 = safFileUri('file2.txt');
+
+        mockReadDirectoryAsync.mockImplementation((uri: string) => {
+          if (uri === treeUri) return Promise.resolve([uri1, uri2]);
+          return Promise.reject(new Error('Not a directory'));
+        });
+        mockGetInfoAsync.mockImplementation((uri: string) => {
+          if (uri === uri1) {
+            controller.abort();
+            return Promise.resolve(infoFile(uri1, 100));
+          }
+          return Promise.resolve(infoFile(uri, 200));
+        });
+
+        await expect(folderTraversalService.traverseFolder(treeUri, controller.signal)).rejects.toMatchObject({
+          name: 'AbortError',
+        });
+        // uri2 was never processed because abort was detected at the start of the second iteration
+        expect(mockGetInfoAsync).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('SAF directory detection via readDirectoryAsync', () => {
+      test('when getInfoAsync returns exists:false but readDirectoryAsync succeeds, then the item is treated as a directory', async () => {
+        const subDirUri = safDirUri('SubFolder');
+        const fileUri = safNestedUri('SubFolder', 'file.txt');
+
+        mockReadDirectoryAsync.mockImplementation((uri: string) => {
+          if (uri === treeUri) return Promise.resolve([subDirUri]);
+          if (uri === subDirUri) return Promise.resolve([fileUri]);
+          return Promise.reject(new Error('Not a directory'));
+        });
+        mockGetInfoAsync.mockImplementation((uri: string) => {
+          // Patch inactive: getInfoAsync claims the dir doesn't exist
+          if (uri === subDirUri) return Promise.resolve({ exists: false });
+          if (uri === fileUri) return Promise.resolve(infoFile(fileUri, 512));
+        });
+
+        const result = await folderTraversalService.traverseFolder(treeUri);
+
+        expect(result.dirs).toHaveLength(1);
+        expect(result.dirs[0].name).toBe('SubFolder');
+        expect(result.dirs[0].isDirectory).toBe(true);
+        expect(result.files).toHaveLength(1);
+        expect(result.files[0].name).toBe('file.txt');
+        expect(result.files[0].relativePath).toBe('SubFolder/file.txt');
+      });
+    });
   });
 
   describe('when the URI uses an unsupported scheme', () => {
-    it('when traverseFolder is called, then it throws an unsupported scheme error', async () => {
+    test('when traverseFolder is called, then it throws an unsupported scheme error', async () => {
       await expect(folderTraversalService.traverseFolder('ftp://example.com/folder')).rejects.toThrow(
         'Unsupported URI scheme',
       );
