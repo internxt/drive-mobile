@@ -56,6 +56,12 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
   const handleFocus = useCallback(() => setFocused(true), []);
   const handleBlur = useCallback(() => setFocused(false), []);
 
+  const inputBorderColor = () => {
+    if (error) return colors.red;
+    if (focused) return colors.primary;
+    return colors.gray20;
+  };
+
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={handleCancel}>
       <Pressable
@@ -75,7 +81,7 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
               style={[
                 tailwind('flex-row items-center rounded-lg border py-1.5'),
                 {
-                  borderColor: error ? colors.red : focused ? colors.primary : colors.gray20,
+                  borderColor: inputBorderColor(),
                 },
               ]}
             >

@@ -61,6 +61,21 @@ export const NotificationLabel = ({
   const Icon = isSuccess ? CheckCircleIcon : WarningCircleIcon;
   const hasAction = isSuccess && !!actionLabel && !!onAction;
 
+  let actionComponent;
+  if (hasAction) {
+    actionComponent = (
+      <TouchableOpacity onPress={onAction} hitSlop={8}>
+        <Text style={[tailwind('text-base'), fontStyles.medium, { color: colors.primary }]}>{actionLabel}</Text>
+      </TouchableOpacity>
+    );
+  } else {
+    actionComponent = (
+      <TouchableOpacity onPress={onDismiss} hitSlop={8}>
+        <XIcon size={20} color={colors.gray60} />
+      </TouchableOpacity>
+    );
+  }
+
   return (
     <Animated.View style={[tailwind('mx-4'), { transform: [{ translateY }] }]}>
       <View
@@ -81,18 +96,13 @@ export const NotificationLabel = ({
         ]}
       >
         <Icon size={20} color={iconColor} weight="fill" />
-        <Text style={[tailwind('flex-1 text-base'), fontStyles.regular, { lineHeight: 19, color: colors.gray100 }]} numberOfLines={2}>
+        <Text
+          style={[tailwind('flex-1 text-base'), fontStyles.regular, { lineHeight: 19, color: colors.gray100 }]}
+          numberOfLines={2}
+        >
           {message}
         </Text>
-        {hasAction ? (
-          <TouchableOpacity onPress={onAction} hitSlop={8}>
-            <Text style={[tailwind('text-base'), fontStyles.medium, { color: colors.primary }]}>{actionLabel}</Text>
-          </TouchableOpacity>
-        ) : !isSuccess ? (
-          <TouchableOpacity onPress={onDismiss} hitSlop={8}>
-            <XIcon size={20} color={colors.gray60} />
-          </TouchableOpacity>
-        ) : null}
+        {actionComponent}
       </View>
     </Animated.View>
   );

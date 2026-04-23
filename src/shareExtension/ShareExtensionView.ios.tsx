@@ -75,30 +75,35 @@ const ShareExtensionView = ({
     close();
   }, []);
 
-  const content = !photosToken ? (
-    <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />
-  ) : !sdkReady || !rootFolderId ? (
-    <View style={[tailwind('flex-1 items-center justify-center'), { backgroundColor: colors.surface }]}>
-      <ActivityIndicator size="large" color={colors.primary} />
-    </View>
-  ) : (
-    <DriveScreen
-      sharedFiles={sharedFiles}
-      rootFolderUuid={rootFolderId}
-      uploadStatus={uploadStatus}
-      uploadErrorType={uploadErrorType}
-      uploadError={uploadError}
-      uploadProgress={uploadProgress}
-      thumbnailUri={thumbnailUri}
-      uploadedCount={uploadedCount}
-      collisionState={collisionState}
-      onClose={close}
-      onSave={handleSave}
-      onViewInFolder={handleViewInFolder}
-      onDismissError={resetUpload}
-      onCollisionAction={handleCollisionAction}
-    />
-  );
+  let content;
+  if (photosToken && sdkReady && rootFolderId) {
+    content = (
+      <DriveScreen
+        sharedFiles={sharedFiles}
+        rootFolderUuid={rootFolderId}
+        uploadStatus={uploadStatus}
+        uploadErrorType={uploadErrorType}
+        uploadError={uploadError}
+        uploadProgress={uploadProgress}
+        thumbnailUri={thumbnailUri}
+        uploadedCount={uploadedCount}
+        collisionState={collisionState}
+        onClose={close}
+        onSave={handleSave}
+        onViewInFolder={handleViewInFolder}
+        onDismissError={resetUpload}
+        onCollisionAction={handleCollisionAction}
+      />
+    );
+  } else if (photosToken) {
+    content = (
+      <View style={[tailwind('flex-1 items-center justify-center'), { backgroundColor: colors.surface }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  } else {
+    content = <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />;
+  }
 
   return <ShareThemeProvider themePreference={themePreference}>{content}</ShareThemeProvider>;
 };
