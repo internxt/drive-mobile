@@ -40,15 +40,22 @@ export const buildDeepLinkRoutes = (folderUuid: string, ancestors: FolderAncesto
   return routes;
 };
 
+const FOLDER_UPLOAD_ID_PREFIX = 'folder-upload-';
+
+export const isFolderUploadItem = (item: DriveListItem): boolean => item.id.startsWith(FOLDER_UPLOAD_ID_PREFIX);
+
 export const buildFolderUploadListItem = (state: FolderUploadState): DriveListItem => ({
-  id: `folder-upload-${state.uploadId}`,
+  id: `${FOLDER_UPLOAD_ID_PREFIX}${state.uploadId}`,
   status: DriveItemStatus.Uploading,
   progress: state.totalFiles > 0 ? state.uploadedFiles / state.totalFiles : 0,
-  folderUploadProgress: {
-    uploadedFiles: state.uploadedFiles,
-    totalFiles: state.totalFiles,
-    failedFiles: state.failedFiles,
-  },
+  folderUploadProgress:
+    state.status === 'scanning'
+      ? undefined
+      : {
+          uploadedFiles: state.uploadedFiles,
+          totalFiles: state.totalFiles,
+          failedFiles: state.failedFiles,
+        },
   data: {
     id: -1,
     uuid: state.uploadId,

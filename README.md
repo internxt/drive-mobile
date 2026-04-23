@@ -8,15 +8,23 @@
 </p>
 <p align="center" style="margin-top: 10px;">Internxt</p>
 
+## Stack
+
+- React Native 0.81.5 · Expo 54 · React 19 · TypeScript 5.9
+- State management: Redux Toolkit
+- Navigation: React Navigation 6
+- Styling: tailwind-rn
+
 ## Requirements
 
-- JDK version: 11
-- SDK version: 29 or 30
+- Node version: ≥ 20
+- JDK version: 17+
+- SDK version: 34+
 
 In case that you open the project in Android Studio:
 
-- NDK version: 21.1.6
-- CMake version: 3.10.2
+- NDK version: 23.1.7779620
+- CMake version: 3.22.1
 
 ## Setup
 
@@ -44,6 +52,16 @@ Remember to run the tailwind command during development to dynamically add and r
 
 ```bash
 yarn tailwind:dev
+```
+
+Other useful commands:
+
+```bash
+yarn check-ts        # TypeScript type check (run before committing)
+yarn lint            # type check + ESLint
+yarn lint:fix        # lint with auto-fix
+yarn test:unit       # run Jest unit tests
+yarn test:unit:watch # run Jest in watch mode
 ```
 
 </br>
@@ -83,19 +101,6 @@ bash <(curl -s https://raw.githubusercontent.com/corbindavenport/nexus-tools/mas
 #### Dependencies
 
 Opening the project with Android Studio will install the necessary dependencies to start the application.
-</br></br>
-
-If you are using <b>Mac OS</b> an receiving the following error when during gradle sync
-
-<p style="color: red; background: lightyellow; padding: 10px 15px;">
-<span style="margin-right: 5px; font-size: 12px;">❌</span>
-Caused by: groovy.lang.MissingPropertyException: No such property: logger for class: org.gradle.initialization.DefaultProjectDescriptor
-</p>
-Try opening Android Studio with the command below to ensure Android Studio is able to find Node
-
-```bash
-open -a /Applications/Android\ Studio.app
-```
 
 </br>
 
@@ -115,22 +120,6 @@ yarn android
 
 You can only run the iOS application on a Mac OS computer.
 
-### iOS installation
-
-```bash
-cd ios
-
-pod install
-```
-
-If your computer is using <b>M1 Apple chipset</b>, replace the `pod install` command with the following:
-
-```bash
-sudo arch -x86_64 gem install ffi
-
-arch -x86_64 pod install
-```
-
 ### Run
 
 ```bash
@@ -141,18 +130,28 @@ yarn ios
 <hr>
 </br>
 
-## Known issues
-
-Current react-native-reanimated fails with Android using RN 0.64, until we upgrade RN version, a patch needs to be added manually:
-https://github.com/software-mansion/react-native-reanimated/issues/3161#issuecomment-1112285417
-
 ## Test
 
 This is what you should know about project testing.
 
 Take a look to this official article about [testing in React Native](https://reactnative.dev/docs/testing-overview).
 
-### E2E
+### Unit tests
+
+```bash
+yarn test:unit
+# or a single file:
+jest path/to/file.spec.ts
+```
+
+### E2E tests (Detox)
+
+```bash
+yarn test:e2e:build:ios.debug
+yarn test:e2e:test:ios.debug
+yarn test:e2e:build:android.debug
+yarn test:e2e:test:android.debug
+```
 
 - [Getting Started | Detox](https://wix.github.io/Detox/docs/introduction/getting-started/)
 - [Jest Setup Guide | Detox](https://wix.github.io/Detox/docs/guide/jest)

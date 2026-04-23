@@ -9,12 +9,14 @@ import { RootHeader } from '../components/DriveScreen/RootHeader';
 import { SortRow } from '../components/DriveScreen/SortRow';
 import { SubfolderHeader } from '../components/DriveScreen/SubfolderHeader';
 import { NewFolderModal } from '../components/NewFolderModal';
+import { NotificationLabel } from '../components/NotificationLabel';
 import { ShareNameCollisionModal } from '../components/ShareNameCollisionModal';
 import { UploadFeedback } from '../components/UploadFeedback';
 import { UploadSuccessCard } from '../components/UploadSuccessCard';
 import { useFolderNavigation } from '../hooks/useFolderNavigation';
 import { useNavAnimation } from '../hooks/useNavAnimation';
 import { useSearchAnimation } from '../hooks/useSearchAnimation';
+import { useShareColors } from '../theme';
 import {
   CollisionState,
   NameCollisionAction,
@@ -33,6 +35,7 @@ interface DriveScreenProps {
   uploadError?: unknown;
   uploadProgress?: UploadProgress | null;
   thumbnailUri?: string | null;
+  uploadedCount?: number;
   collisionState?: CollisionState;
   onClose: () => void;
   onSave: (destinationFolderUuid: string, renamedFileName?: string) => void;
@@ -49,6 +52,7 @@ export const DriveScreen = ({
   uploadError,
   uploadProgress,
   thumbnailUri,
+  uploadedCount,
   collisionState,
   onClose,
   onSave,
@@ -57,6 +61,7 @@ export const DriveScreen = ({
   onCollisionAction,
 }: DriveScreenProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const {
     currentFolder,
     folders,
@@ -76,6 +81,7 @@ export const DriveScreen = ({
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [finalName, setFinalName] = useState(sharedFiles[0]?.fileName ?? '');
+  const [folderCreatedToast, setFolderCreatedToast] = useState(false);
 
   const isRoot = breadcrumb.length === 1;
   const parentFolderIndex = breadcrumb.length - 2;
@@ -109,6 +115,7 @@ export const DriveScreen = ({
     async (name: string) => {
       await createFolder(name);
       setShowNewFolderModal(false);
+      setFolderCreatedToast(true);
     },
     [createFolder],
   );
@@ -130,11 +137,14 @@ export const DriveScreen = ({
 
   const showUploadingBanner = isChecking || isUploading;
   const showErrorBanner = uploadStatus === 'error';
-  const ERROR_BANNER_BOTTOM = 112;
+  const NOTIFICATION_BOTTOM = 120;
 
   return (
     <View
-      style={[tailwind('flex-1 bg-white'), { borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden' }]}
+      style={[
+        tailwind('flex-1'),
+        { borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden', backgroundColor: colors.surface },
+      ]}
     >
       <DriveHeader
         onClose={onClose}
@@ -153,7 +163,7 @@ export const DriveScreen = ({
         </View>
       )}
 
-      <Animated.View style={{ flex: 1, opacity: contentOpacity, transform: [{ translateX }] }}>
+      <Animated.View style={[tailwind('flex-1'), { opacity: contentOpacity, transform: [{ translateX }] }]}>
         {isRoot ? (
           <RootHeader
             searchQuery={searchQuery}
@@ -185,15 +195,22 @@ export const DriveScreen = ({
         />
       </Animated.View>
 
-      {showErrorBanner && (
-        <View style={{ position: 'absolute', bottom: ERROR_BANNER_BOTTOM, left: 0, right: 0 }}>
-          <UploadFeedback
-            status="error"
-            errorMessage={getUploadErrorMessage(uploadErrorType, uploadError)}
-            onDismissError={onDismissError}
-          />
-        </View>
-      )}
+      <View style={{ position: 'absolute', bottom: NOTIFICATION_BOTTOM, left: 0, right: 0, zIndex: 20 }}>
+        <NotificationLabel
+          visible={showErrorBanner}
+          type="error"
+          message={getUploadErrorMessage(uploadErrorType, uploadError)}
+          onDismiss={onDismissError}
+          dismissAfter={5000}
+        />
+        <NotificationLabel
+          visible={folderCreatedToast}
+          type="success"
+          message={strings.screens.ShareExtension.folderCreatedSuccess}
+          onDismiss={() => setFolderCreatedToast(false)}
+          dismissAfter={5000}
+        />
+      </View>
 
       <BottomFilePanel
         sharedFiles={sharedFiles}
@@ -219,6 +236,7 @@ export const DriveScreen = ({
           sharedFiles={sharedFiles}
           uploadedFileName={finalName}
           thumbnailUri={thumbnailUri}
+          uploadedCount={uploadedCount}
           onClose={onClose}
           onViewInFolder={handleViewInFolder}
         />

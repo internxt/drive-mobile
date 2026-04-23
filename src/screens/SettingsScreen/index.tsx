@@ -3,7 +3,6 @@ import {
   CaretRightIcon,
   FileTextIcon,
   FolderSimpleIcon,
-  InfoIcon,
   MoonIcon,
   QuestionIcon,
   ShieldIcon,
@@ -12,8 +11,8 @@ import {
 } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
 import { Linking, Platform, ScrollView, View } from 'react-native';
-import EnableBackupBottomSheet from '../PhotosScreen/EnableBackupBottomSheet';
 import AppSwitch from '../../components/AppSwitch';
+import EnableBackupBottomSheet from '../PhotosScreen/EnableBackupBottomSheet';
 
 import { storageSelectors } from 'src/store/slices/storage';
 import { Language } from 'src/types';
@@ -92,7 +91,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     Linking.openURL('mailto:hello@internxt.com');
   };
   const onMoreInfoPressed = () => {
-    Linking.openURL('https://internxt.com');
+    Linking.openURL('https://help.internxt.com');
   };
   const onTermsAndConditionsPressed = () => {
     Linking.openURL(appService.urls.termsAndConditions);
@@ -360,12 +359,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'photos-mobile-data',
                   template: (
-                    <View
-                      style={[
-                        tailwind('flex-row items-center px-4 py-3'),
-                        !photosEnabled && { opacity: 0.4 },
-                      ]}
-                    >
+                    <View style={[tailwind('flex-row items-center px-4 py-3'), !photosEnabled && { opacity: 0.4 }]}>
                       <View style={tailwind('flex-1 mr-3')}>
                         <AppText style={[tailwind('text-lg')]}>
                           {strings.screens.SettingsScreen.photos.mobileDataTitle}
@@ -389,7 +383,12 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                     </View>
                   ),
                   onPress: photosEnabled
-                    ? () => dispatch(setNetworkConditionThunk(networkCondition === 'wifi-and-data' ? 'wifi-only' : 'wifi-and-data'))
+                    ? () =>
+                        dispatch(
+                          setNetworkConditionThunk(
+                            networkCondition === 'wifi-and-data' ? 'wifi-only' : 'wifi-and-data',
+                          ),
+                        )
                     : undefined,
                 },
               ]}
@@ -415,21 +414,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   onPress: onSupportPressed,
                 },
                 {
-                  key: 'more-information',
-                  template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                      <InfoIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.more}</AppText>
-                      </View>
-                      <View style={tailwind('justify-center')}>
-                        <CaretRightIcon color={getColor('text-gray-40')} size={20} />
-                      </View>
-                    </View>
-                  ),
-                  onPress: onMoreInfoPressed,
-                },
-                {
                   key: 'share-logs',
                   loading: gettingLogs,
                   template: (
@@ -444,28 +428,6 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                     </View>
                   ),
                   onPress: onShareLogsPressed,
-                },
-              ]}
-            />
-            {/* LEGAL */}
-            <SettingsGroup
-              title={strings.screens.SettingsScreen.legal}
-              items={[
-                {
-                  key: 'terms-and-conditions',
-                  template: (
-                    <View style={[tailwind('flex-row px-4 py-3')]}>
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>
-                          {strings.screens.SettingsScreen.termsAndConditions}
-                        </AppText>
-                      </View>
-                      <View style={tailwind('justify-center')}>
-                        <CaretRightIcon color={getColor('text-gray-40')} size={20} />
-                      </View>
-                    </View>
-                  ),
-                  onPress: onTermsAndConditionsPressed,
                 },
               ]}
             />

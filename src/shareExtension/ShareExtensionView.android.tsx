@@ -9,10 +9,11 @@ import { useShareExtension } from './hooks/useShareExtension.android';
 import { useShareUpload } from './hooks/useShareUpload';
 import { DriveScreen } from './screens/DriveScreen';
 import { NotSignedInScreen } from './screens/NotSignedInScreen';
-import { colors } from './theme';
+import { useShareColors } from './theme';
 
 const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'AndroidShare'>) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const { status, rootFolderUuid, sharedFiles, mnemonic, bucket, bridgeUser, userId } = useShareExtension(
     route.params?.files ?? [],
   );
@@ -22,6 +23,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
     uploadError,
     progress: uploadProgress,
     thumbnailUri,
+    uploadedCount,
     collisionState,
     uploadFiles,
     handleCollisionAction,
@@ -51,7 +53,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
 
   if (status === 'unauthenticated') {
     return (
-      <SafeAreaView style={tailwind('flex-1 bg-white')}>
+      <SafeAreaView style={[tailwind('flex-1'), { backgroundColor: colors.surface }]}>
         <NotSignedInScreen onClose={handleClose} onOpenLogin={handleOpenLogin} />
       </SafeAreaView>
     );
@@ -59,7 +61,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
 
   if (status === 'loading' || !rootFolderUuid) {
     return (
-      <SafeAreaView style={tailwind('flex-1 bg-white')}>
+      <SafeAreaView style={[tailwind('flex-1'), { backgroundColor: colors.surface }]}>
         <View style={tailwind('flex-1 items-center justify-center')}>
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
@@ -68,7 +70,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
   }
 
   return (
-    <SafeAreaView style={tailwind('flex-1 bg-white')}>
+    <SafeAreaView style={[tailwind('flex-1'), { backgroundColor: colors.surface }]}>
       <DriveScreen
         sharedFiles={sharedFiles}
         rootFolderUuid={rootFolderUuid}
@@ -77,6 +79,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
         uploadError={uploadError}
         uploadProgress={uploadProgress}
         thumbnailUri={thumbnailUri}
+        uploadedCount={uploadedCount}
         collisionState={collisionState}
         onClose={handleClose}
         onSave={handleSave}

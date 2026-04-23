@@ -7,7 +7,8 @@ import { useShareExtension } from './hooks/useShareExtension.ios';
 import { useShareUpload } from './hooks/useShareUpload';
 import { DriveScreen } from './screens/DriveScreen';
 import { NotSignedInScreen } from './screens/NotSignedInScreen';
-import { colors } from './theme';
+import { ShareThemeProvider } from './ShareThemeProvider';
+import { useShareColors } from './theme';
 
 interface ShareExtensionProps {
   photosToken?: string;
@@ -16,6 +17,7 @@ interface ShareExtensionProps {
   bucket?: string;
   bridgeUser?: string;
   userId?: string;
+  themePreference?: 'light' | 'dark';
   files?: string[];
   images?: string[];
   videos?: string[];
@@ -30,11 +32,13 @@ const ShareExtensionView = ({
   bucket,
   bridgeUser,
   userId,
+  themePreference,
   files,
   images,
   videos,
 }: ShareExtensionProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const { sdkReady, sharedFiles } = useShareExtension({
     photosToken,
     mnemonic,
@@ -51,6 +55,7 @@ const ShareExtensionView = ({
     uploadError,
     progress: uploadProgress,
     thumbnailUri,
+    uploadedCount,
     collisionState,
     uploadFiles,
     handleCollisionAction,
@@ -70,35 +75,37 @@ const ShareExtensionView = ({
     close();
   }, []);
 
-  if (!photosToken) {
-    return <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />;
-  }
-
-  if (!sdkReady || !rootFolderId) {
-    return (
-      <View style={tailwind('flex-1 items-center justify-center bg-white')}>
+  let content;
+  if (photosToken && sdkReady && rootFolderId) {
+    content = (
+      <DriveScreen
+        sharedFiles={sharedFiles}
+        rootFolderUuid={rootFolderId}
+        uploadStatus={uploadStatus}
+        uploadErrorType={uploadErrorType}
+        uploadError={uploadError}
+        uploadProgress={uploadProgress}
+        thumbnailUri={thumbnailUri}
+        uploadedCount={uploadedCount}
+        collisionState={collisionState}
+        onClose={close}
+        onSave={handleSave}
+        onViewInFolder={handleViewInFolder}
+        onDismissError={resetUpload}
+        onCollisionAction={handleCollisionAction}
+      />
+    );
+  } else if (photosToken) {
+    content = (
+      <View style={[tailwind('flex-1 items-center justify-center'), { backgroundColor: colors.surface }]}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
+  } else {
+    content = <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />;
   }
 
-  return (
-    <DriveScreen
-      sharedFiles={sharedFiles}
-      rootFolderUuid={rootFolderId}
-      uploadStatus={uploadStatus}
-      uploadErrorType={uploadErrorType}
-      uploadError={uploadError}
-      uploadProgress={uploadProgress}
-      thumbnailUri={thumbnailUri}
-      collisionState={collisionState}
-      onClose={close}
-      onSave={handleSave}
-      onViewInFolder={handleViewInFolder}
-      onDismissError={resetUpload}
-      onCollisionAction={handleCollisionAction}
-    />
-  );
+  return <ShareThemeProvider themePreference={themePreference}>{content}</ShareThemeProvider>;
 };
 
 export default ShareExtensionView;

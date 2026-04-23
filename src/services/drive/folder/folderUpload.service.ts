@@ -1,6 +1,7 @@
 import { logger } from '@internxt-mobile/services/common';
 import { errorCodes, isErrorWithCode, pickDirectory } from '@react-native-documents/picker';
 import strings from '../../../../assets/lang/strings';
+import { getSafTreeName } from './utils/safUri';
 
 export interface PickedFolder {
   uri: string;
@@ -16,9 +17,7 @@ const pickFolder = async (): Promise<PickedFolder | null> => {
     const result = await pickDirectory({ requestLongTermAccess: false });
     const uri = result.uri;
 
-    const decoded = decodeURIComponent(uri);
-    const segments = decoded.replace(/\/$/, '').split('/');
-    const name = segments[segments.length - 1] || strings.generic.unnamedFolder;
+    const name = getSafTreeName(uri, strings.generic.unnamedFolder);
 
     logger.info(`[folderUpload] Folder picked — uri: ${uri}, name: ${name}`);
 

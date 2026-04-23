@@ -24,7 +24,7 @@ export interface FolderUploadProgress {
   failedFiles: number;
 }
 
-export type FolderUploadStatus = 'uploading' | 'cancelled' | 'completed' | 'error';
+export type FolderUploadStatus = 'scanning' | 'uploading' | 'cancelled' | 'completed' | 'error';
 
 export interface FolderUploadState {
   uploadId: string;
@@ -40,6 +40,7 @@ export interface FolderUploadResult {
   totalFiles: number;
   uploadedFiles: number;
   failedFiles: number;
+  skippedFiles: number;
   totalFolders: number;
   createdFolders: number;
   failedFolders: number;

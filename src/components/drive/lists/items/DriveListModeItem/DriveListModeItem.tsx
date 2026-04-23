@@ -26,6 +26,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
   const isFolderUploading = isUploading && isFolder && !!props.folderUploadProgress;
+  const isFolderScanning = isUploading && isFolder && !props.folderUploadProgress;
 
   const getUpdatedAt = () => {
     if (props.data.createdAt) {
@@ -38,6 +39,13 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const progress = props.progress;
 
   const renderUploadProgress = () => {
+    if (isFolderScanning) {
+      return (
+        <AppText style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
+          {strings.screens.drive.scanningFolder}
+        </AppText>
+      );
+    }
     if (isFolderUploading) {
       return (
         <View style={tailwind('flex-row items-center')}>
@@ -76,7 +84,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
 
   const renderOptionsButton = () => {
     if (props.hideOptionsButton) return null;
-    if (isFolderUploading) {
+    if (isFolderUploading || isFolderScanning) {
       return (
         <TouchableOpacity
           onPress={props.onActionsPress}
