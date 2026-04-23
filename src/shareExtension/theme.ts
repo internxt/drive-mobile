@@ -1,4 +1,5 @@
 import { Platform, useColorScheme } from 'react-native';
+import { useShareThemeContext } from './ShareThemeProvider';
 
 /**
  * Used for icon colors, fonts, and values not expressed as tailwind classes (e.g. primaryDisabled).
@@ -88,8 +89,10 @@ export interface ShareColors {
 }
 
 export const useShareColors = (): ShareColors => {
-  const scheme = useColorScheme();
-  return scheme === 'dark' ? darkColors : lightColors;
+  const themePreference = useShareThemeContext();
+  const systemScheme = useColorScheme();
+  const theme = themePreference ?? systemScheme;
+  return theme === 'dark' ? darkColors : lightColors;
 };
 
 export const colors = lightColors;

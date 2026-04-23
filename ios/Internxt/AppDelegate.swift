@@ -64,6 +64,12 @@ public class AppDelegate: ExpoAppDelegate {
       deleteFromSharedKeychain(key: "shared_bridgeUser",   accessGroup: sharedGroup)
       deleteFromSharedKeychain(key: "shared_userId",       accessGroup: sharedGroup)
     }
+
+    if privateKeychainItemExists(key: "themePreference") {
+      copyToSharedKeychain(privateKey: "themePreference", sharedKey: "shared_themePreference", accessGroup: sharedGroup)
+    } else {
+      deleteFromSharedKeychain(key: "shared_themePreference", accessGroup: sharedGroup)
+    }
   }
 
   private func privateKeychainItemExists(key: String) -> Bool {

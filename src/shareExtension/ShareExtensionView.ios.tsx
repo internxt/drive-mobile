@@ -7,6 +7,7 @@ import { useShareExtension } from './hooks/useShareExtension.ios';
 import { useShareUpload } from './hooks/useShareUpload';
 import { DriveScreen } from './screens/DriveScreen';
 import { NotSignedInScreen } from './screens/NotSignedInScreen';
+import { ShareThemeProvider } from './ShareThemeProvider';
 import { useShareColors } from './theme';
 
 interface ShareExtensionProps {
@@ -16,6 +17,7 @@ interface ShareExtensionProps {
   bucket?: string;
   bridgeUser?: string;
   userId?: string;
+  themePreference?: 'light' | 'dark';
   files?: string[];
   images?: string[];
   videos?: string[];
@@ -30,6 +32,7 @@ const ShareExtensionView = ({
   bucket,
   bridgeUser,
   userId,
+  themePreference,
   files,
   images,
   videos,
@@ -72,19 +75,13 @@ const ShareExtensionView = ({
     close();
   }, []);
 
-  if (!photosToken) {
-    return <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />;
-  }
-
-  if (!sdkReady || !rootFolderId) {
-    return (
-      <View style={[tailwind('flex-1 items-center justify-center'), { backgroundColor: colors.surface }]}>
-        <ActivityIndicator size="large" color={colors.primary} />
-      </View>
-    );
-  }
-
-  return (
+  const content = !photosToken ? (
+    <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />
+  ) : !sdkReady || !rootFolderId ? (
+    <View style={[tailwind('flex-1 items-center justify-center'), { backgroundColor: colors.surface }]}>
+      <ActivityIndicator size="large" color={colors.primary} />
+    </View>
+  ) : (
     <DriveScreen
       sharedFiles={sharedFiles}
       rootFolderUuid={rootFolderId}
@@ -102,6 +99,8 @@ const ShareExtensionView = ({
       onCollisionAction={handleCollisionAction}
     />
   );
+
+  return <ShareThemeProvider themePreference={themePreference}>{content}</ShareThemeProvider>;
 };
 
 export default ShareExtensionView;
