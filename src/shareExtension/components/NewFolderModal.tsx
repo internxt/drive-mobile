@@ -68,7 +68,7 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
         style={[tailwind('flex-1 items-center justify-center px-5'), { backgroundColor: 'rgba(0,0,0,0.4)' }]}
         onPress={handleCancel}
       >
-        <View style={[tailwind('w-full rounded-xl p-4'), { backgroundColor: colors.surface }]}>
+        <Pressable style={[tailwind('w-full rounded-xl p-4'), { backgroundColor: colors.surface }]}>
           <Text style={[tailwind('text-xl mb-6'), fontStyles.semibold, { color: colors.gray100 }]}>
             {strings.buttons.newFolder}
           </Text>
@@ -134,7 +134,7 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
               )}
             </TouchableHighlight>
           </View>
-        </View>
+        </Pressable>
       </Pressable>
     </Modal>
   );
