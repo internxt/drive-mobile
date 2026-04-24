@@ -395,4 +395,120 @@ class InternxtApiClientTest {
         assertEquals(500, thrown.code)
         assertEquals("""{"error":"boom"}""", thrown.body)
     }
+
+    @Test
+    fun listFolderFoldersParsesResponseFields() {
+        enqueueJson(
+            """
+            {
+              "folders": [
+                {
+                  "uuid": "folder-uuid-1",
+                  "plainName": "Documents",
+                  "parentUuid": "$PARENT_UUID",
+                  "bucket": "bucket-id",
+                  "createdAt": "2026-01-10T00:00:00.000Z",
+                  "updatedAt": "2026-01-11T00:00:00.000Z"
+                }
+              ]
+            }
+            """.trimIndent()
+        )
+
+        val folders = client.listFolderFolders(PARENT_UUID)
+
+        assertEquals(1, folders.size)
+        val folder = folders[0]
+        assertEquals("folder-uuid-1", folder.uuid)
+        assertEquals("Documents", folder.plainName)
+        assertEquals(PARENT_UUID, folder.parentUuid)
+        assertEquals("bucket-id", folder.bucket)
+
+        val recorded = server.takeRequest()
+        assertEquals(
+            "/folders/content/$PARENT_UUID/folders?offset=0&limit=50&sort=plainName&order=ASC",
+            recorded.path
+        )
+    }
+
+    @Test
+    fun createFolderPostsPayloadAndReturnsFolder() {
+        enqueueJson("""{"uuid":"new-folder-uuid","plainName":"New Folder","parentUuid":"$PARENT_UUID"}""")
+
+        val created = client.createFolder(PARENT_UUID, "New Folder")
+
+        assertEquals("new-folder-uuid", created.uuid)
+        assertEquals("New Folder", created.plainName)
+        assertEquals(PARENT_UUID, created.parentUuid)
+
+        val recorded = server.takeRequest()
+        assertEquals("POST", recorded.method)
+        assertEquals("/folders", recorded.path)
+        val sentBody = JSONObject(recorded.body.readUtf8())
+        assertEquals("New Folder", sentBody.getString("plainName"))
+        assertEquals(PARENT_UUID, sentBody.getString("parentFolderUuid"))
+    }
+
+    @Test
+    fun listFolderFilesMapsNullOptionalFieldsToNull() {
+        enqueueJson(
+            """
+            {
+              "files": [
+                {
+                  "uuid": "file-uuid-1",
+                  "plainName": "report.pdf",
+                  "type": null,
+                  "bucket": null,
+                  "folderUuid": null,
+                  "createdAt": null,
+                  "updatedAt": null,
+                  "fileId": null
+                }
+              ]
+            }
+            """.trimIndent()
+        )
+
+        val file = client.listFolderFiles(PARENT_UUID).single()
+
+        assertNull(file.type)
+        assertNull(file.bucket)
+        assertNull(file.folderUuid)
+        assertNull(file.createdAt)
+        assertNull(file.updatedAt)
+        assertNull(file.fileId)
+    }
+
+    @Test
+    fun listFolderFilesParsesSizeGivenAsString() {
+        enqueueJson(
+            """
+            {
+              "files": [
+                {
+                  "uuid": "file-uuid-1",
+                  "plainName": "big.bin",
+                  "size": "9999999999"
+                }
+              ]
+            }
+            """.trimIndent()
+        )
+
+        val file = client.listFolderFiles(PARENT_UUID).single()
+
+        assertEquals(9999999999L, file.size)
+    }
+
+    @Test
+    fun serverErrorSurfacesAsApiError() {
+        enqueueJson("""{"error":"boom"}""", code = 500)
+
+        val thrown = assertThrows(InternxtApiException.ApiError::class.java) {
+            client.listFolderFiles(PARENT_UUID)
+        }
+        assertEquals(500, thrown.code)
+        assertEquals("""{"error":"boom"}""", thrown.body)
+    }
 }
