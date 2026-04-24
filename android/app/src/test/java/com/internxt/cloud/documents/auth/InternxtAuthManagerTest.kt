@@ -14,12 +14,13 @@ class InternxtAuthManagerTest {
     private lateinit var manager: InternxtAuthManager
 
     companion object {
+        private const val USER_EMAIL = "user@example.com"
         private val FULL_CREDS = InternxtAuthManager.Credentials(
             bearerToken = "bearer-xyz",
             userId = "user-1",
-            bridgeUser = "user@example.com",
+            bridgeUser = USER_EMAIL,
             rootFolderUuid = "root-uuid",
-            email = "user@example.com",
+            email = USER_EMAIL,
             driveBaseUrl = "https://drive.test/api",
             bridgeBaseUrl = "https://bridge.test",
             desktopToken = "desktop-tok",
@@ -46,7 +47,7 @@ class InternxtAuthManagerTest {
 
         assertTrue(manager.isLoggedIn())
         assertEquals("root-uuid", manager.rootFolderUuid())
-        assertEquals("user@example.com", manager.userEmail())
+        assertEquals(USER_EMAIL, manager.userEmail())
     }
 
     @Test
@@ -57,7 +58,7 @@ class InternxtAuthManagerTest {
         assertEquals("https://drive.test/api", config.driveBaseUrl)
         assertEquals("https://bridge.test", config.bridgeBaseUrl)
         assertEquals("bearer-xyz", config.bearerToken)
-        assertEquals("user@example.com", config.bridgeUser)
+        assertEquals(USER_EMAIL, config.bridgeUser)
         assertEquals("user-1", config.userId)
         assertEquals("desktop-tok", config.desktopToken)
     }
