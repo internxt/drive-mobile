@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { AppDispatch } from 'src/store';
 import photosReducer, {
+  checkPermissionRevocationThunk,
   disableBackupThunk,
   enableBackupThunk,
   hydratePhotosStateThunk,
@@ -41,7 +42,7 @@ describe('photos slice', () => {
     jest.clearAllMocks();
   });
 
-  it('when store initializes, then backup is disabled with wifi-only and undetermined permission', () => {
+  test('when store initializes, then backup is disabled with wifi-only and undetermined permission', () => {
     const store = makeStore();
     const { enabled, networkCondition, permissionStatus } = store.getState().photos;
 
@@ -50,7 +51,7 @@ describe('photos slice', () => {
     expect(permissionStatus).toBe('undetermined');
   });
 
-  it('when hydratePhotosStateThunk runs with persisted data, then state reflects saved values', async () => {
+  test('when hydratePhotosStateThunk runs with persisted data, then state reflects saved values', async () => {
     const saved: PhotosState = { enabled: true, networkCondition: 'wifi-and-data', permissionStatus: 'granted' };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
@@ -62,7 +63,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('granted');
   });
 
-  it('when hydratePhotosStateThunk runs with partial data, then missing fields keep defaults', async () => {
+  test('when hydratePhotosStateThunk runs with partial data, then missing fields keep defaults', async () => {
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify({ enabled: true }));
 
     const store = makeStore();
@@ -73,7 +74,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('undetermined');
   });
 
-  it('when hydratePhotosStateThunk runs with corrupted JSON, then all defaults are preserved', async () => {
+  test('when hydratePhotosStateThunk runs with corrupted JSON, then all defaults are preserved', async () => {
     mockAsyncStorage.getItem.mockResolvedValueOnce('NOT_JSON');
 
     const store = makeStore();
@@ -84,7 +85,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('undetermined');
   });
 
-  it('when hydratePhotosStateThunk runs with nothing persisted, then state keeps defaults', async () => {
+  test('when hydratePhotosStateThunk runs with nothing persisted, then state keeps defaults', async () => {
     mockAsyncStorage.getItem.mockResolvedValueOnce(null);
 
     const store = makeStore();
@@ -93,7 +94,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.enabled).toBe(false);
   });
 
-  it('when enableBackupThunk runs and permission is granted, then backup is enabled and persisted correctly', async () => {
+  test('when enableBackupThunk runs and permission is granted, then backup is enabled and persisted correctly', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
 
     const store = makeStore();
@@ -106,7 +107,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: true, permissionStatus: 'granted' });
   });
 
-  it('when enableBackupThunk runs and permission is limited, then backup is enabled and persisted correctly', async () => {
+  test('when enableBackupThunk runs and permission is limited, then backup is enabled and persisted correctly', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('limited');
 
     const store = makeStore();
@@ -118,7 +119,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: true, permissionStatus: 'limited' });
   });
 
-  it('when enableBackupThunk runs and permission is denied, then backup stays disabled and persisted correctly', async () => {
+  test('when enableBackupThunk runs and permission is denied, then backup stays disabled and persisted correctly', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('denied');
 
     const store = makeStore();
@@ -130,7 +131,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: false, permissionStatus: 'denied' });
   });
 
-  it('when enableBackupThunk runs and permission is undetermined, then backup stays disabled', async () => {
+  test('when enableBackupThunk runs and permission is undetermined, then backup stays disabled', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('undetermined');
 
     const store = makeStore();
@@ -141,7 +142,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('undetermined');
   });
 
-  it('when disableBackupThunk runs after backup was enabled, then backup is disabled and permission status is untouched', async () => {
+  test('when disableBackupThunk runs after backup was enabled, then backup is disabled and permission status is untouched', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
@@ -153,7 +154,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: false, permissionStatus: 'granted' });
   });
 
-  it('when setNetworkConditionThunk runs with wifi-and-data, then network condition is updated and persisted', async () => {
+  test('when setNetworkConditionThunk runs with wifi-and-data, then network condition is updated and persisted', async () => {
     const store = makeStore();
     await store.dispatch(setNetworkConditionThunk('wifi-and-data'));
 
@@ -161,7 +162,56 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ networkCondition: 'wifi-and-data' });
   });
 
-  it('when setNetworkConditionThunk runs with wifi-only after wifi-and-data, then network condition reverts and is persisted', async () => {
+  test('when checkPermissionRevocationThunk runs and backup is disabled, then nothing happens', async () => {
+    const store = makeStore();
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(mockPermissionService.getStatus).not.toHaveBeenCalled();
+    expect(store.getState().photos.enabled).toBe(false);
+  });
+
+  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is denied, then backup is disabled', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('denied');
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(store.getState().photos.enabled).toBe(false);
+    expect(store.getState().photos.permissionStatus).toBe('denied');
+    expect(getPersistedState()).toMatchObject({ enabled: false });
+  });
+
+  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is still granted, then backup stays enabled', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('granted');
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(store.getState().photos.enabled).toBe(true);
+    expect(store.getState().photos.permissionStatus).toBe('granted');
+  });
+
+  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is limited, then backup stays enabled', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('limited');
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(store.getState().photos.enabled).toBe(true);
+    expect(store.getState().photos.permissionStatus).toBe('limited');
+  });
+
+  test('when setNetworkConditionThunk runs with wifi-only after wifi-and-data, then network condition reverts and is persisted', async () => {
     const store = makeStore();
     await store.dispatch(setNetworkConditionThunk('wifi-and-data'));
     await store.dispatch(setNetworkConditionThunk('wifi-only'));
