@@ -18,6 +18,8 @@ class InternxtApiClientTest {
 
     companion object {
         private const val PARENT_UUID = "parent-uuid"
+        private const val BUCKET_ID = "bucket-id"
+        private const val NEW_FOLDER_NAME = "New Folder"
     }
 
     @Before
@@ -58,7 +60,7 @@ class InternxtApiClientTest {
                   "plainName": "report.pdf",
                   "type": "pdf",
                   "size": 102400,
-                  "bucket": "bucket-id",
+                  "bucket": "$BUCKET_ID",
                   "folderUuid": "$PARENT_UUID",
                   "createdAt": "2026-01-10T00:00:00.000Z",
                   "fileId": "file-id-1"
@@ -76,7 +78,7 @@ class InternxtApiClientTest {
         assertEquals("report.pdf", file.plainName)
         assertEquals("pdf", file.type)
         assertEquals(102400L, file.size)
-        assertEquals("bucket-id", file.bucket)
+        assertEquals(BUCKET_ID, file.bucket)
         assertEquals(PARENT_UUID, file.folderUuid)
         assertEquals("2026-01-10T00:00:00.000Z", file.createdAt)
         assertEquals("file-id-1", file.fileId)
@@ -132,7 +134,7 @@ class InternxtApiClientTest {
         enqueueJson(
             """
             {
-              "bucket": "bucket-id",
+              "bucket": "$BUCKET_ID",
               "index": "idx",
               "size": 1024,
               "version": 2,
@@ -143,7 +145,7 @@ class InternxtApiClientTest {
             """.trimIndent()
         )
 
-        val links = client.getDownloadLinks("bucket-id", "file-id-1")
+        val links = client.getDownloadLinks(BUCKET_ID, "file-id-1")
 
         assertEquals(1, links.shards.size)
         assertEquals("https://shard/0", links.shards[0].url)
@@ -166,7 +168,7 @@ class InternxtApiClientTest {
                   "uuid": "folder-uuid-1",
                   "plainName": "Documents",
                   "parentUuid": "$PARENT_UUID",
-                  "bucket": "bucket-id",
+                  "bucket": "$BUCKET_ID",
                   "createdAt": "2026-01-10T00:00:00.000Z",
                   "updatedAt": "2026-01-11T00:00:00.000Z"
                 }
@@ -182,7 +184,7 @@ class InternxtApiClientTest {
         assertEquals("folder-uuid-1", folder.uuid)
         assertEquals("Documents", folder.plainName)
         assertEquals(PARENT_UUID, folder.parentUuid)
-        assertEquals("bucket-id", folder.bucket)
+        assertEquals(BUCKET_ID, folder.bucket)
 
         val recorded = server.takeRequest()
         assertEquals(
@@ -193,19 +195,19 @@ class InternxtApiClientTest {
 
     @Test
     fun createFolderPostsPayloadAndReturnsFolder() {
-        enqueueJson("""{"uuid":"new-folder-uuid","plainName":"New Folder","parentUuid":"$PARENT_UUID"}""")
+        enqueueJson("""{"uuid":"new-folder-uuid","plainName":"$NEW_FOLDER_NAME","parentUuid":"$PARENT_UUID"}""")
 
-        val created = client.createFolder(PARENT_UUID, "New Folder")
+        val created = client.createFolder(PARENT_UUID, NEW_FOLDER_NAME)
 
         assertEquals("new-folder-uuid", created.uuid)
-        assertEquals("New Folder", created.plainName)
+        assertEquals(NEW_FOLDER_NAME, created.plainName)
         assertEquals(PARENT_UUID, created.parentUuid)
 
         val recorded = server.takeRequest()
         assertEquals("POST", recorded.method)
         assertEquals("/folders", recorded.path)
         val sentBody = JSONObject(recorded.body.readUtf8())
-        assertEquals("New Folder", sentBody.getString("plainName"))
+        assertEquals(NEW_FOLDER_NAME, sentBody.getString("plainName"))
         assertEquals(PARENT_UUID, sentBody.getString("parentFolderUuid"))
     }
 
