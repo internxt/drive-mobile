@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.internxt.cloud.BuildConfig
 import com.internxt.cloud.documents.api.AuthConfig
 
 class InternxtAuthManager(private val prefs: SharedPreferences) {
@@ -36,6 +37,8 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
             bearerToken = required(KEY_BEARER_TOKEN),
             bridgeUser = required(KEY_BRIDGE_USER),
             userId = required(KEY_USER_ID),
+            clientName = BuildConfig.INTERNXT_CLIENT_NAME,
+            clientVersion = BuildConfig.INTERNXT_CLIENT_VERSION,
             desktopToken = prefs.getString(KEY_DESKTOP_TOKEN, null)?.takeIf { it.isNotBlank() },
         )
     }
