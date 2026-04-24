@@ -44,7 +44,7 @@ class InternxtApiClient(
             .addQueryParameter("sort", "plainName")
             .addQueryParameter("order", "ASC")
             .build()
-        val body = execute(driveRequest(url).get().build())
+        val body = executeApiRequest(driveRequest(url).get().build())
         return body.optJSONArray(jsonKey).orEmpty().map(parse)
     }
 
@@ -55,7 +55,7 @@ class InternxtApiClient(
         val req = driveRequest(driveUrl("folders"))
             .post(payload.toString().toRequestBody(JSON))
             .build()
-        return parseFolder(execute(req))
+        return parseFolder(executeApiRequest(req))
     }
 
     fun renameFile(fileUuid: String, newName: String): DriveFile {
@@ -63,7 +63,7 @@ class InternxtApiClient(
         val req = driveRequest(driveUrl("files/$fileUuid"))
             .patch(payload.toString().toRequestBody(JSON))
             .build()
-        return parseFile(execute(req))
+        return parseFile(executeApiRequest(req))
     }
 
     fun renameFolder(folderUuid: String, newName: String): DriveFolder {
@@ -71,7 +71,7 @@ class InternxtApiClient(
         val req = driveRequest(driveUrl("folders/$folderUuid"))
             .put(payload.toString().toRequestBody(JSON))
             .build()
-        return parseFolder(execute(req))
+        return parseFolder(executeApiRequest(req))
     }
 
     fun moveFile(fileUuid: String, destinationFolderUuid: String): DriveFile {
@@ -79,7 +79,7 @@ class InternxtApiClient(
         val req = driveRequest(driveUrl("files/$fileUuid"))
             .patch(payload.toString().toRequestBody(JSON))
             .build()
-        return parseFile(execute(req))
+        return parseFile(executeApiRequest(req))
     }
 
     fun moveFolder(folderUuid: String, destinationFolderUuid: String): DriveFolder {
@@ -87,7 +87,7 @@ class InternxtApiClient(
         val req = driveRequest(driveUrl("folders/$folderUuid"))
             .patch(payload.toString().toRequestBody(JSON))
             .build()
-        return parseFolder(execute(req))
+        return parseFolder(executeApiRequest(req))
     }
 
     fun sendToTrash(items: List<TrashItem>) {
@@ -99,12 +99,12 @@ class InternxtApiClient(
         val req = driveRequest(driveUrl("storage/trash/add"))
             .post(payload.toString().toRequestBody(JSON))
             .build()
-        execute(req)
+        executeApiRequest(req)
     }
 
     fun getDownloadLinks(bucketId: String, fileId: String): DownloadLinks {
         val url = bridgeUrl("buckets/$bucketId/files/$fileId/mirrors")
-        val body = execute(bridgeRequest(url).get().build())
+        val body = executeApiRequest(bridgeRequest(url).get().build())
         return parseDownloadLinks(body)
     }
 
@@ -129,7 +129,7 @@ class InternxtApiClient(
     private fun driveUrl(path: String) = "${config.driveBaseUrl.trimEnd('/')}/$path".toHttpUrl()
     private fun bridgeUrl(path: String) = "${config.bridgeBaseUrl.trimEnd('/')}/$path".toHttpUrl()
 
-    private fun execute(request: Request): JSONObject {
+    private fun executeApiRequest(request: Request): JSONObject {
         val response: Response = try {
             client.newCall(request).execute()
         } catch (e: IOException) {
@@ -196,21 +196,4 @@ class InternxtApiClient(
             .readTimeout(30, TimeUnit.SECONDS)
             .build()
     }
-}
-
-private fun JSONArray?.orEmpty(): JSONArray = this ?: JSONArray()
-
-private inline fun <T> JSONArray.map(transform: (JSONObject) -> T): List<T> {
-    val out = ArrayList<T>(length())
-    for (i in 0 until length()) out.add(transform(getJSONObject(i)))
-    return out
-}
-
-private fun JSONObject.optStringOrNull(key: String): String? =
-    if (isNull(key)) null else optString(key).takeIf { it.isNotEmpty() }
-
-private fun JSONObject.optLongFlexible(key: String): Long = when (val v = opt(key)) {
-    is Number -> v.toLong()
-    is String -> v.toLongOrNull() ?: 0L
-    else -> 0L
 }

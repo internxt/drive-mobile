@@ -4,6 +4,8 @@ apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
+def packageJson = new groovy.json.JsonSlurper().parse(file("${projectRoot}/package.json"))
+
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -97,6 +99,8 @@ android {
         versionName "1.9.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+        buildConfigField "String", "INTERNXT_CLIENT_NAME", "\"${packageJson.name}\""
+        buildConfigField "String", "INTERNXT_CLIENT_VERSION", "\"${packageJson.version}\""
     }
     flavorDimensions "react-native-capture-protection"
     productFlavors {
