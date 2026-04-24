@@ -53,6 +53,12 @@ export interface DriveItemProps {
   onPress?: () => void;
   children?: string;
   hideOptionsButton?: boolean;
+  /** Present only for the folder-upload progress item */
+  folderUploadProgress?: {
+    uploadedFiles: number;
+    totalFiles: number;
+    failedFiles: number;
+  };
 }
 
 /**

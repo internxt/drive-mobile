@@ -15,6 +15,8 @@ import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
+import EmptyFileNotAllowedModal from '../components/modals/EmptyFileNotAllowedModal';
+import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
 import SignOutModal from '../components/modals/SignOutModal';
 import useGetColor from '../hooks/useColor';
@@ -86,6 +88,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <MoveItemsModal />
       <DriveRenameModal />
       <RunOutOfStorageModal />
+      <EmptyFileNotAllowedModal />
+      <NotEnoughDeviceSpaceModal />
       <SignOutModal />
       <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>

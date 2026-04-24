@@ -1,4 +1,4 @@
-import { CheckCircle, Circle } from 'phosphor-react-native';
+import { CheckCircle, CircleIcon } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import useGetColor from 'src/hooks/useColor';
@@ -50,7 +50,7 @@ const LanguageModal = (props: BaseModalProps) => {
                 {isSelected ? (
                   <CheckCircle weight="fill" color={getColor('text-primary')} />
                 ) : (
-                  <Circle weight="thin" color={getColor('text-gray-20')} />
+                  <CircleIcon weight="thin" color={getColor('text-gray-20')} />
                 )}
               </View>
 

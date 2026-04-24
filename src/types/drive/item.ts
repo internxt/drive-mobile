@@ -75,6 +75,12 @@ export interface DriveListItem {
   id: string;
   status: DriveItemStatus;
   progress?: number;
+  /** Present only for the folder-upload progress item */
+  folderUploadProgress?: {
+    uploadedFiles: number;
+    totalFiles: number;
+    failedFiles: number;
+  };
   data: DriveItemData;
 }
 

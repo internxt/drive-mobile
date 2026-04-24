@@ -20,6 +20,9 @@ const untranspiledModulePatterns = [
   '@scure/base',
   '@noble/hashes',
   'uuid',
+  'p-limit',
+  'yocto-queue',
+  'mime',
 ];
 
 const config: Config.InitialOptions = {
@@ -30,7 +33,9 @@ const config: Config.InitialOptions = {
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
-  moduleNameMapper: {},
+  moduleNameMapper: {
+    '@internxt/rn-crypto': '<rootDir>/__mocks__/@internxt/rn-crypto.ts',
+  },
 };
 
 export default config;

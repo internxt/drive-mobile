@@ -12,7 +12,9 @@ import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
 import SortModal, { SortMode } from '../../../components/modals/SortModal';
+import { useLanguage } from '../../../hooks/useLanguage';
 import { logger } from '../../../services/common';
+import { folderUploadCancellationService } from '../../../services/drive/folder/folderUploadCancellation.service';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
@@ -20,21 +22,29 @@ import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
 import { DriveListType, SortDirection, SortType } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
-import { useLanguage } from '../../../hooks/useLanguage';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
+import { buildFolderUploadListItem, isFolderUploadItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
+import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
   useLanguage();
   const [loadingMore, setLoadingMore] = useState(false);
-  const { isRootFolder, folderUuid, folderName, parentFolderName, parentUuid } = route.params;
+  const { folderUuid, folderName, parentFolderName, parentUuid } = route.params;
+  const { user } = useAppSelector((state) => state.auth);
+  const isRootFolder = folderUuid === user?.rootFolderId;
 
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
   const { downloadingFile } = useAppSelector((state) => state.drive);
+
+  const hasNoNavigationHistory = navigation.getState().index === 0;
+  const isDeepLinked = !isRootFolder && hasNoNavigationHistory;
+
+  useDeepLinkNavigationResolver(folderUuid, isDeepLinked, navigation);
 
   const folder = driveCtx.driveFoldersTree[folderUuid];
 
@@ -88,7 +98,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     });
 
     return folders.concat(files);
-  }, [folderFiles]);
+  }, [folderFiles, folderFolders]);
 
   useEffect(() => {
     // to ensure that the folder content is loaded when new folder is focused
@@ -130,7 +140,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   // Register a handler for hardware back
   useHardwareBackPress(onBackButtonPressed);
-  const [searchVisible, setSearchVisible] = useState(isRootFolder ? true : false);
+  const [searchVisible, setSearchVisible] = useState(isRootFolder);
   const [searchValue, setSearchValue] = useState('');
 
   const [sortModalOpen, setSortModalOpen] = useState(false);
@@ -140,16 +150,17 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   });
 
   const { uploading: driveUploadingItems } = useAppSelector(driveSelectors.driveItems);
+  const folderUploads = useAppSelector((state) => state.drive.folderUploads);
 
-  const screenTitle = !isRootFolder ? folderName ?? folder.name : strings.screens.drive.title;
+  const screenTitle = isRootFolder ? strings.screens.drive.title : (folderName ?? folder?.name);
 
-  const driveSortedItems = useMemo(
-    () =>
-      driveUploadingItems
-        .concat(folderContent.filter((item) => item.data.isFolder).sort(drive.file.getSortFunction(sortMode)))
-        .concat(folderContent.filter((item) => !item.data.isFolder).sort(drive.file.getSortFunction(sortMode))),
-    [sortMode, driveUploadingItems, folderContent],
-  );
+  const driveSortedItems = useMemo(() => {
+    const folderUploadItems = Object.values(folderUploads).map(buildFolderUploadListItem);
+    return folderUploadItems
+      .concat(driveUploadingItems)
+      .concat(folderContent.filter((item) => item.data.isFolder).sort(drive.file.getSortFunction(sortMode)))
+      .concat(folderContent.filter((item) => !item.data.isFolder).sort(drive.file.getSortFunction(sortMode)));
+  }, [sortMode, driveUploadingItems, folderContent, folderUploads]);
 
   /**
    * TODO: WARNING REDUX USAGE OVER HERE, SHOULD REMOVE
@@ -207,7 +218,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         }),
       );
       handleOnFilePress(driveItem);
-    } else if (driveItem.data.uuid) {
+    } else if (driveItem.data.uuid && !isFolderUploadItem(driveItem)) {
       driveCtx.loadFolderContent(driveItem.data.uuid, { focusFolder: true, resetPagination: true }).catch((error) => {
         errorService.reportError(error);
         const err = errorService.castError(error, 'content');
@@ -223,12 +234,18 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         parentUuid: driveItem.data.parentUuid as string,
         parentFolderName: screenTitle,
         folderName: driveItem.data.name,
-        isRootFolder: false,
       });
     }
   };
 
   const handleDriveItemActionsPress = (driveItem: DriveListItem) => {
+    if (isFolderUploadItem(driveItem)) {
+      const uploadId = driveItem.data.uuid;
+      folderUploadCancellationService.cancel(uploadId);
+      dispatch(driveActions.removeFolderUpload(uploadId));
+      return;
+    }
+
     dispatch(
       driveActions.setFocusedItem({
         ...driveItem.data,
@@ -315,11 +332,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         return item.data.name.toLowerCase().includes(searchValue.toLowerCase());
       });
     }
-    return driveSortedItems.map((item) => {
-      return {
-        ...item,
-      };
-    });
+    return driveSortedItems;
   }, [driveSortedItems, searchValue]);
 
   async function handleRefresh() {
@@ -356,8 +369,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             onFolderActionsPress={handleFolderActionsPress}
             title={screenTitle}
             backButtonConfig={{
-              label: parentFolderName ?? '',
-              canGoBack: isRootFolder ? false : true,
+              label: parentFolderName ?? strings.screens.drive.title,
+              canGoBack: !isRootFolder,
               onBackButtonPressed,
             }}
             searchConfig={{
@@ -398,7 +411,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
               </View>
             )}
             onEndReached={handleEndReached}
-            isLoading={driveCtx.driveFoldersTree[folderUuid].loading}
+            isLoading={driveCtx.driveFoldersTree[folderUuid]?.loading}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}
             items={driveItems}

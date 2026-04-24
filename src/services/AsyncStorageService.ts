@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageKey } from '../types';
 import secureStorageService from './SecureStorageService';
 
-const SENSITIVE_KEYS = [AsyncStorageKey.Token, AsyncStorageKey.PhotosToken, AsyncStorageKey.User];
+const SENSITIVE_KEYS = [AsyncStorageKey.Token, AsyncStorageKey.PhotosToken, AsyncStorageKey.User, AsyncStorageKey.ThemePreference];
 
 class AsyncStorageService {
   private isSensitiveKey(key: AsyncStorageKey): boolean {
@@ -183,6 +183,17 @@ class AsyncStorageService {
     } else {
       logger.warn('Migration verification found issues:', issues);
     }
+  }
+
+  async migrateShareExtensionCriticalFields(): Promise<void> {
+    const alreadyMigrated = await secureStorageService.hasItem('xUser_bridgeUser');
+    if (alreadyMigrated) return;
+
+    const user = await this.getUser();
+    if (!user?.rootFolderId) return;
+
+    await this.saveItem(AsyncStorageKey.User, JSON.stringify(user));
+    logger.info('Share extension critical fields migrated (rootFolderId, bucket, bridgeUser, userId)');
   }
 
   async checkNeedsMigration(): Promise<{ needsMigration: boolean; itemsToMigrate: string[] }> {

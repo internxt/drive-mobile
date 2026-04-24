@@ -25,8 +25,11 @@ describe('Theme.context', () => {
     jest.spyOn(Appearance, 'addChangeListener').mockReturnValue({ remove: jest.fn() });
   });
 
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
+  afterEach(async () => {
+    await act(async () => {
+      jest.runOnlyPendingTimers();
+      await Promise.resolve();
+    });
     jest.useRealTimers();
     jest.restoreAllMocks();
   });
@@ -50,10 +53,8 @@ describe('Theme.context', () => {
 
       expect(result.current.isInitialized).toBe(false);
 
-      // Fast-forward timers to complete initialization
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -72,8 +73,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -91,8 +91,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -110,7 +109,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -143,8 +142,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -168,8 +166,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -192,8 +189,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -230,8 +226,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -260,8 +255,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -315,8 +309,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -360,8 +353,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {
@@ -387,8 +379,7 @@ describe('Theme.context', () => {
       const { result } = renderHook(() => useTheme(), { wrapper });
 
       await act(async () => {
-        await Promise.resolve();
-        jest.advanceTimersByTime(100);
+        await jest.runAllTimersAsync();
       });
 
       await waitFor(() => {

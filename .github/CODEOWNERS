@@ -1,0 +1,6 @@
+# Encryption / key derivation
+src/network/crypto.ts                                        @TamaraFinogina
+src/network/crypto.spec.ts                                   @TamaraFinogina
+src/shareExtension/services/shareEncryptionService.ts        @TamaraFinogina
+src/shareExtension/services/shareUploadService.ts            @TamaraFinogina
+src/network/NetworkFacade.ts                                 @TamaraFinogina

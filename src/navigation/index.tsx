@@ -2,11 +2,12 @@ import { NavigationContainer, useNavigationContainerRef } from '@react-navigatio
 import { useRef } from 'react';
 import { View } from 'react-native';
 
+import { RootStackParamList } from '../types/navigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import RootNavigator from './RootNavigator';
 
 export default function Navigation() {
-  const navigationRef = useNavigationContainerRef();
+  const navigationRef = useNavigationContainerRef<RootStackParamList>();
   const routeNameRef = useRef<string>();
 
   return (
@@ -36,7 +37,7 @@ export default function Navigation() {
         routeNameRef.current = currentRouteName;
       }}
     >
-      <RootNavigator />
+      <RootNavigator navigationContainerRef={navigationRef} />
     </NavigationContainer>
   );
 }

@@ -13,7 +13,17 @@ const linking: LinkingOptions<RootStackParamList> = {
     screens: {
       Debug: 'debug',
       SignIn: 'sign-in',
-      TabExplorer: 'tab-explorer',
+      TabExplorer: {
+        path: 'tab-explorer',
+        screens: {
+          Drive: {
+            path: 'drive',
+            screens: {
+              DriveFolder: 'folder/:folderUuid',
+            },
+          },
+        },
+      },
       WebLogin: 'login-success',
     },
   },

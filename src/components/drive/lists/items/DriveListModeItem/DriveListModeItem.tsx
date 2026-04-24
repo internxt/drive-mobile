@@ -1,7 +1,7 @@
 import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
 
 import { items } from '@internxt/lib';
-import { ArrowCircleUp, DotsThree, Link } from 'phosphor-react-native';
+import { ArrowCircleUp, DotsThree, Link, XCircle } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import strings from '../../../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
@@ -25,6 +25,8 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const isIdle = props.status === DriveItemStatus.Idle;
   const isUploading = props.status === DriveItemStatus.Uploading;
   const isDownloading = props.status === DriveItemStatus.Downloading;
+  const isFolderUploading = isUploading && isFolder && !!props.folderUploadProgress;
+  const isFolderScanning = isUploading && isFolder && !props.folderUploadProgress;
 
   const getUpdatedAt = () => {
     if (props.data.createdAt) {
@@ -35,9 +37,84 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   };
 
   const progress = props.progress;
+
+  const renderUploadProgress = () => {
+    if (isFolderScanning) {
+      return (
+        <AppText style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
+          {strings.screens.drive.scanningFolder}
+        </AppText>
+      );
+    }
+    if (isFolderUploading) {
+      return (
+        <View style={tailwind('flex-row items-center')}>
+          <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
+          <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
+            {`${props.folderUploadProgress!.uploadedFiles} / ${props.folderUploadProgress!.totalFiles}`}
+            {props.folderUploadProgress!.failedFiles > 0
+              ? `  •  ${props.folderUploadProgress!.failedFiles} failed`
+              : ''}
+          </AppText>
+        </View>
+      );
+    }
+    if (progress === 0) {
+      return (
+        <AppText style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
+          {strings.screens.drive.encrypting}
+        </AppText>
+      );
+    }
+    return (
+      <View style={tailwind('flex-row items-center')}>
+        <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
+        <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
+          {((progress || 0) * 100).toFixed(0) + '%'}
+        </AppText>
+        <ProgressBar
+          style={tailwind('flex-grow h-1 ml-1.5')}
+          progressStyle={tailwind('h-1')}
+          totalValue={1}
+          currentValue={progress || 0}
+        />
+      </View>
+    );
+  };
+
+  const renderOptionsButton = () => {
+    if (props.hideOptionsButton) return null;
+    if (isFolderUploading || isFolderScanning) {
+      return (
+        <TouchableOpacity
+          onPress={props.onActionsPress}
+          accessibilityRole="button"
+          accessibilityLabel={strings.buttons.cancel + ' folder upload'}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
+          <View style={tailwind('px-5 flex-1 items-center justify-center')}>
+            <XCircle weight="bold" size={22} color={getColor('text-primary')} />
+          </View>
+        </TouchableOpacity>
+      );
+    }
+    return (
+      <TouchableOpacity
+        disabled={isUploading || isDownloading}
+        style={props.isSelected && tailwind('hidden')}
+        onPress={props.onActionsPress}
+        onLongPress={props.onActionsPress}
+      >
+        <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
+          <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <TouchableHighlight
-      disabled={isUploading || isDownloading}
+      disabled={!isFolderUploading && (isUploading || isDownloading)}
       underlayColor={getColor('bg-gray-5')}
       onLongPress={props.onActionsPress}
       onPress={props.onPress}
@@ -94,25 +171,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
               })}
             </AppText>
 
-            {isUploading &&
-              (progress === 0 ? (
-                <AppText style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
-                  {strings.screens.drive.encrypting}
-                </AppText>
-              ) : (
-                <View style={tailwind('flex-row items-center')}>
-                  <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
-                  <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
-                    {((progress || 0) * 100).toFixed(0) + '%'}
-                  </AppText>
-                  <ProgressBar
-                    style={tailwind('flex-grow h-1 ml-1.5')}
-                    progressStyle={tailwind('h-1')}
-                    totalValue={1}
-                    currentValue={progress || 0}
-                  />
-                </View>
-              ))}
+            {isUploading && renderUploadProgress()}
 
             {isIdle &&
               props.type !== DriveListType.Shared &&
@@ -142,18 +201,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
               ))}
           </View>
         </View>
-        {props.hideOptionsButton ? null : (
-          <TouchableOpacity
-            disabled={isUploading || isDownloading}
-            style={props.isSelected && tailwind('hidden')}
-            onPress={props.onActionsPress}
-            onLongPress={props.onActionsPress}
-          >
-            <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
-              <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
-            </View>
-          </TouchableOpacity>
-        )}
+        {renderOptionsButton()}
       </View>
     </TouchableHighlight>
   );

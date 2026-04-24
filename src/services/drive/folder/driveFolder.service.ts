@@ -1,9 +1,12 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { SdkManager } from '@internxt-mobile/services/common';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
+import { FolderAncestor as SdkFolderAncestor } from '@internxt/sdk/dist/drive/storage/types';
 import { getHeaders } from '../../../helpers/headers';
 import { ModifiedFolder } from '../../../types/drive/folder';
 import { constants } from '../../AppService';
+
+export type FolderAncestor = SdkFolderAncestor & { parentUuid: string | null };
 
 class DriveFolderService {
   private sdk: SdkManager;
@@ -32,6 +35,10 @@ class DriveFolderService {
     return sdkResult ? sdkResult[0] : Promise.reject('createFolder Sdk method did not return a valid result');
   }
 
+  public async checkDuplicatedFolders(parentFolderUuid: string, folderNamesList: string[]) {
+    return this.sdk.storageV2.checkDuplicatedFolders({ folderUuid: parentFolderUuid, folderNamesList });
+  }
+
   public async moveFolder({
     destinationFolderUuid,
     folderUuid,
@@ -47,6 +54,10 @@ class DriveFolderService {
       folderUuid,
       name: newName,
     });
+  }
+
+  public async getFolderAncestors(folderUuid: string): Promise<FolderAncestor[]> {
+    return this.sdk.storageV2.getFolderAncestors(folderUuid) as Promise<FolderAncestor[]>;
   }
 
   public getFolderContentByUuid(folderUuid: string) {

@@ -1,6 +1,8 @@
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
+import { SharedFile } from '../shareExtension/types';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -13,16 +15,20 @@ declare global {
 export type RootStackParamList = {
   Debug: undefined;
   SignIn: undefined;
-  WebLogin: {
-    mnemonic?: string;
-    token?: string;
-    newToken?: string;
-    privateKey?: string;
-  } | undefined;
+  WebLogin:
+    | {
+        mnemonic?: string;
+        token?: string;
+        newToken?: string;
+        privateKey?: string;
+      }
+    | undefined;
   DeactivatedAccount: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
+  AndroidShare: { files: SharedFile[] } | undefined;
+  LargeShareUpload: { metadata: PendingShareMetadata };
 };
 
 export type RootStackScreenProps<Screen extends keyof RootStackParamList> = NativeStackScreenProps<
@@ -45,11 +51,10 @@ export type TabExplorerStackParamList = {
 
 export type DriveStackParamList = {
   DriveFolder: {
-    isRootFolder?: boolean;
     folderUuid: string;
-    folderName: string;
+    folderName?: string;
     parentFolderName?: string;
-    parentUuid: string;
+    parentUuid?: string;
   };
 };
 
