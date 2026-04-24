@@ -15,7 +15,7 @@ import StackedFilesIconSvg from '../../../assets/icons/stacked-files.svg';
 import strings from '../../../assets/lang/strings';
 import { getFileTypeIcon } from '../../helpers/filetypes';
 import { useBottomPanelAnimation } from '../hooks/useBottomPanelAnimation';
-import { colors, fontStyles } from '../theme';
+import { fontStyles, useShareColors } from '../theme';
 import { SharedFile } from '../types';
 import { formatBytes, getSharedFileExtension } from '../utils';
 import { TextButton } from './TextButton';
@@ -51,6 +51,7 @@ export const BottomFilePanel = ({
   onEndRename,
 }: BottomFilePanelProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const { width: screenWidth } = useWindowDimensions();
   const { isCollapsed, keyboardBottom, slideAnimation, toggle } = useBottomPanelAnimation(isRenaming, screenWidth);
 
@@ -61,7 +62,16 @@ export const BottomFilePanel = ({
     return hasAnySize ? sum : null;
   }, [sharedFiles]);
 
-  const containerStyle = useMemo(() => [tailwind('flex-row items-center'), panelStyles.container], [tailwind]);
+  const containerStyle = useMemo(
+    () => [
+      styles.containerBase,
+      {
+        backgroundColor: colors.surface,
+        borderColor: colors.gray10,
+      },
+    ],
+    [colors],
+  );
 
   const file = sharedFiles[0];
   const originalFileName = file?.fileName ?? '';
@@ -83,7 +93,7 @@ export const BottomFilePanel = ({
   const collapseButton = (
     <TouchableOpacity
       onPress={toggle}
-      style={[tailwind('items-center justify-center'), panelStyles.collapseButton]}
+      style={[tailwind('items-center justify-center'), styles.collapseButton]}
       hitSlop={4}
     >
       {isCollapsed ? (
@@ -94,20 +104,22 @@ export const BottomFilePanel = ({
     </TouchableOpacity>
   );
 
+  const divider = <View style={[styles.dividerBase, { backgroundColor: colors.gray10 }]} />;
+
   const animatedStyle = { bottom: keyboardBottom, transform: [{ translateX: slideAnimation }] };
 
   if (sharedFiles.length > 1) {
     return (
-      <Animated.View style={[...containerStyle, animatedStyle]}>
+      <Animated.View style={[tailwind('flex-row items-center'), ...containerStyle, animatedStyle]}>
         {collapseButton}
-        <View style={panelStyles.divider} />
+        {divider}
         <StackedFilesIcon />
         <View style={tailwind('flex-1')}>
-          <Text style={[tailwind('text-sm text-gray-100'), fontStyles.medium]}>
+          <Text style={[tailwind('text-sm'), fontStyles.medium, { color: colors.gray100 }]}>
             {strings.formatString(strings.screens.ShareExtension.itemsSelected, sharedFiles.length)}
           </Text>
           {totalSize !== null || formats ? (
-            <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]}>
+            <Text style={[tailwind('text-xs mt-0.5'), fontStyles.regular, { color: colors.gray40 }]}>
               {[totalSize === null ? null : formatBytes(totalSize), formats || null].filter(Boolean).join(' · ')}
             </Text>
           ) : null}
@@ -123,12 +135,12 @@ export const BottomFilePanel = ({
   const isImage = file.mimeType?.startsWith('image/') ?? false;
 
   return (
-    <Animated.View style={[...containerStyle, animatedStyle]}>
+    <Animated.View style={[tailwind('flex-row items-center'), ...containerStyle, animatedStyle]}>
       {collapseButton}
-      <View style={panelStyles.divider} />
+      {divider}
       <View style={tailwind('items-center justify-center mr-3 w-10 h-10')}>
         {isImage ? (
-          <Image source={{ uri: file.uri }} style={panelStyles.fileImage} resizeMode="cover" />
+          <Image source={{ uri: file.uri }} style={styles.fileImage} resizeMode="cover" />
         ) : (
           <IconComponent width={36} height={36} />
         )}
@@ -136,7 +148,7 @@ export const BottomFilePanel = ({
       <View style={tailwind('flex-1')}>
         {isRenaming ? (
           <TextInput
-            style={[tailwind('text-sm text-gray-100 p-0'), fontStyles.medium, panelStyles.renameInput]}
+            style={[tailwind('text-sm p-0'), fontStyles.medium, styles.renameInputBase, { color: colors.gray100, borderBottomColor: colors.primary }]}
             value={nameWithoutExt}
             onChangeText={handleRenameChange}
             onBlur={handleEndRename}
@@ -147,13 +159,13 @@ export const BottomFilePanel = ({
           />
         ) : (
           <Text
-            style={[tailwind('text-sm text-gray-100'), fontStyles.medium, panelStyles.fileNameText]}
+            style={[tailwind('text-sm'), fontStyles.medium, styles.fileNameText, { color: colors.gray100 }]}
             numberOfLines={1}
           >
             {displayName}
           </Text>
         )}
-        <Text style={[tailwind('text-xs text-gray-40 mt-0.5'), fontStyles.regular]}>
+        <Text style={[tailwind('text-xs mt-0.5'), fontStyles.regular, { color: colors.gray40 }]}>
           {file.size === null ? ext : `${formatBytes(file.size)} · ${ext}`}
         </Text>
       </View>
@@ -162,8 +174,8 @@ export const BottomFilePanel = ({
   );
 };
 
-const panelStyles = StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({
+  containerBase: {
     position: 'absolute',
     marginHorizontal: PANEL_MARGIN,
     paddingHorizontal: PANEL_MARGIN,
@@ -171,8 +183,6 @@ const panelStyles = StyleSheet.create({
     minHeight: 64,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.gray10,
-    backgroundColor: colors.surface,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 32 },
     shadowOpacity: 0.04,
@@ -183,10 +193,9 @@ const panelStyles = StyleSheet.create({
     width: TAB_WIDTH,
     alignSelf: 'stretch',
   },
-  divider: {
+  dividerBase: {
     width: 1,
     alignSelf: 'stretch',
-    backgroundColor: colors.gray10,
     marginRight: 12,
   },
   fileImage: {
@@ -197,9 +206,8 @@ const panelStyles = StyleSheet.create({
   fileNameText: {
     paddingRight: 8,
   },
-  renameInput: {
+  renameInputBase: {
     padding: 0,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary,
   },
 });

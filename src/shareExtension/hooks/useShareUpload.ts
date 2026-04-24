@@ -16,7 +16,7 @@ import {
   UploadProgress,
   UploadStatus,
 } from '../types';
-import { getFileExtension, getFileNameWithoutExtension } from '../utils';
+import { getFileExtension, getFileNameWithoutExtension, toDisplayUri } from '../utils';
 import { useNameCollision } from './useNameCollision';
 
 interface PHAssetExportNativeModule {
@@ -231,7 +231,7 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
             actualUploadedCount++;
             if (isSingleFile) {
               thumbnailUriRef.current = thumbnailLocalUri;
-              setThumbnailUri(thumbnailLocalUri);
+              setThumbnailUri(thumbnailLocalUri ? toDisplayUri(thumbnailLocalUri) : null);
             }
           } catch (error) {
             const uploadErrorType = classifyError(error);

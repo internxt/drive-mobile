@@ -22,6 +22,7 @@ const untranspiledModulePatterns = [
   'uuid',
   'p-limit',
   'yocto-queue',
+  'mime',
 ];
 
 const config: Config.InitialOptions = {
