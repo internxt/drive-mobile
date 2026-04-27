@@ -120,7 +120,7 @@ const PhotosScreen = (): JSX.Element => {
     checkPermissionStatus();
   }, [permissionStatus]);
 
-  const variant: ScreenVariant = !enabled ? 'backup-off' : variantFromSyncStatus[syncStatus];
+  const variant: ScreenVariant = enabled ? variantFromSyncStatus[syncStatus] : 'backup-off';
   const { accessState, groups } = useMemo(() => getScreenConfig(variant), [variant]);
 
   const handleEnableBackup = useCallback(() => setIsSheetOpen(true), []);
