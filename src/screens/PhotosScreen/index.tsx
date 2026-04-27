@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { photosActions } from 'src/store/slices/photos';
+import { photosActions, PhotoSyncStatus } from 'src/store/slices/photos';
 import { useTailwind } from 'tailwind-rn';
 import { photoPermissionService } from '../../services/photos/photoPermissionService';
 import BackupDisabledBanner from './components/BackupDisabledBanner';
@@ -15,6 +15,7 @@ import { MOCK_GROUP, MOCK_GROUP_BACKING_UP, MOCK_MULTI_DATE_GROUPS } from './moc
 import { PhotosAccessState, PhotosSyncStatus } from './types';
 
 type ScreenVariant =
+  | 'scanning'
   | 'fetching'
   | 'uploading'
   | 'paused'
@@ -38,6 +39,12 @@ const multiDateGroups = ({ first }: { first: GroupSyncStatus }): TimelineDateGro
 
 const getScreenConfig = (variant: ScreenVariant): ScreenConfig => {
   switch (variant) {
+    case 'scanning':
+      return {
+        syncStatus: { type: 'fetching' },
+        accessState: { type: 'available' },
+        groups: [{ group: MOCK_GROUP, syncStatus: { type: 'scanning' } }],
+      };
     case 'fetching':
       return {
         syncStatus: { type: 'fetching' },
@@ -89,10 +96,17 @@ const getScreenConfig = (variant: ScreenVariant): ScreenConfig => {
   }
 };
 
+const variantFromSyncStatus: Record<PhotoSyncStatus, ScreenVariant> = {
+  scanning: 'scanning',
+  idle: 'synced',
+  synced: 'synced',
+  error: 'synced',
+};
+
 const PhotosScreen = (): JSX.Element => {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
-  const { enabled, permissionStatus } = useAppSelector((state) => state.photos);
+  const { enabled, permissionStatus, syncStatus } = useAppSelector((state) => state.photos);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
   useEffect(() => {
@@ -106,7 +120,7 @@ const PhotosScreen = (): JSX.Element => {
     checkPermissionStatus();
   }, [permissionStatus]);
 
-  const variant: ScreenVariant = enabled ? 'synced' : 'backup-off';
+  const variant: ScreenVariant = !enabled ? 'backup-off' : variantFromSyncStatus[syncStatus];
   const { accessState, groups } = useMemo(() => getScreenConfig(variant), [variant]);
 
   const handleEnableBackup = useCallback(() => setIsSheetOpen(true), []);

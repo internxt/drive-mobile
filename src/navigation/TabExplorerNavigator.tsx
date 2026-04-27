@@ -7,7 +7,7 @@ import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SecurityModal from 'src/components/modals/SecurityModal';
 import { authThunks } from 'src/store/slices/auth';
-import { checkPermissionRevocationThunk } from 'src/store/slices/photos';
+import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import BottomTabNavigator from '../components/BottomTabNavigator';
@@ -56,7 +56,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
 
   async function handleOnAppStateChange(state: AppStateStatus) {
     if (state === 'active') {
-      dispatch(checkPermissionRevocationThunk());
+      dispatch(runBackupCycleThunk());
       try {
         await dispatch(storageThunks.loadLimitThunk()).unwrap();
       } catch {
