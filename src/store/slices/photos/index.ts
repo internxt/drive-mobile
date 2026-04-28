@@ -121,15 +121,15 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
     try {
       await photosLocalDB.init();
       const scannedAssets = await PhotoAssetScanner.scanAll();
-      const pending = await PhotoDeduplicator.filter(scannedAssets);
+      const assetsToSync = await PhotoDeduplicator.getAssetsToSync(scannedAssets);
       dispatch(
         photosSlice.actions.setDiscoveryResult({
-          pendingCount: pending.length,
+          pendingCount: assetsToSync.length,
           totalScannedCount: scannedAssets.length,
         }),
       );
       dispatch(photosSlice.actions.setSyncStatus('idle'));
-      logger.info(`[Discovery] Complete — scanned: ${scannedAssets.length}, pending: ${pending.length}`);
+      logger.info(`[Discovery] Complete — scanned: ${scannedAssets.length}, pending: ${assetsToSync.length}`);
     } catch (error) {
       logger.error('[Discovery] Failed', { error });
       dispatch(photosSlice.actions.setSyncStatus('error'));

@@ -44,7 +44,7 @@ jest.mock('src/services/photos/PhotoAssetScanner', () => ({
 }));
 
 jest.mock('src/services/photos/PhotoDeduplicator', () => ({
-  PhotoDeduplicator: { filter: jest.fn().mockResolvedValue([]) },
+  PhotoDeduplicator: { getAssetsToSync: jest.fn().mockResolvedValue([]) },
 }));
 
 jest.mock('src/services/photos/database/photosLocalDB', () => ({
@@ -293,13 +293,13 @@ describe('photos slice', () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     const assets = Array.from({ length: 10 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.filter.mockResolvedValueOnce(assets.slice(3) as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets.slice(3) as never);
 
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
     jest.clearAllMocks();
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.filter.mockResolvedValueOnce(assets.slice(3) as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets.slice(3) as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
     await store.dispatch(runDiscoveryThunk());
 
@@ -315,7 +315,7 @@ describe('photos slice', () => {
     await store.dispatch(enableBackupThunk());
     jest.clearAllMocks();
     mockScanner.scanAll.mockResolvedValueOnce([] as never);
-    mockDeduplicator.filter.mockResolvedValueOnce([] as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce([] as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
     await store.dispatch(runDiscoveryThunk());
 
@@ -350,7 +350,7 @@ describe('photos slice', () => {
     mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('device-id');
     const assets = Array.from({ length: 5 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.filter.mockResolvedValueOnce(assets as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
 
     await store.dispatch(runBackupCycleThunk());
