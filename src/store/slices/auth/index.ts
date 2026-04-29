@@ -147,7 +147,7 @@ export const signInThunk = createAsyncThunk<
   // Reset this, in case we logged out during the pull process
   await asyncStorageService.deleteItem(AsyncStorageKey.LastPhotoPulledDate);
 
-  await syncNativeCredentials(payload.token, userToSave);
+  await syncNativeCredentials(payload.newToken, userToSave);
 
   dispatch(
     authActions.setSignInData({
@@ -188,7 +188,7 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
 
-      await syncNativeCredentials(refreshed.token, credentials.user);
+      await syncNativeCredentials(refreshed.newToken, credentials.user);
 
       // Pass the new tokens to the SdkManager
       SdkManager.init({
