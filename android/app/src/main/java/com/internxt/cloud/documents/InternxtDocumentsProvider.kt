@@ -8,7 +8,10 @@ import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document
 import android.provider.DocumentsContract.Root
 import android.provider.DocumentsProvider
+import android.util.Log
 import com.internxt.cloud.R
+import com.internxt.cloud.documents.api.InternxtApiClient
+import com.internxt.cloud.documents.api.InternxtApiException
 import com.internxt.cloud.documents.auth.InternxtAuthManager
 
 class InternxtDocumentsProvider : DocumentsProvider() {
@@ -38,14 +41,89 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         return cursor
     }
 
-    override fun queryDocument(documentId: String?, projection: Array<String>?): Cursor =
-        MatrixCursor(resolveDocumentProjection(projection))
+    override fun queryDocument(documentId: String?, projection: Array<String>?): Cursor {
+        val cursor = MatrixCursor(resolveDocumentProjection(projection))
+        val ctx = context ?: return cursor
+        val id = documentId ?: return cursor
+        cursor.setNotificationUri(ctx.contentResolver, DocumentsContract.buildDocumentUri(AUTHORITY, id))
+        Log.d(TAG, "queryDocument id=$id")
+
+        if (id == authManager.authenticatedRootUuid()) {
+            cursor.addDocumentRow(
+                DocumentRowBuilder.folderRow(id, ctx.getString(R.string.documents_provider_label))
+            )
+            return cursor
+        }
+
+        val api = apiClient(op = "queryDocument")
+        val row = if (api == null) null else try {
+            api.getFolder(id)?.let { DocumentRowBuilder.folderRow(it) }
+                ?: api.getFile(id)?.let { DocumentRowBuilder.fileRow(it) }
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "queryDocument id=$id failed: ${e.javaClass.simpleName}: ${e.message}")
+            null
+        }
+
+        cursor.addDocumentRow(row ?: DocumentRowBuilder.folderRow(uuid = id, displayName = id))
+        return cursor
+    }
 
     override fun queryChildDocuments(
         parentDocumentId: String?,
         projection: Array<String>?,
         sortOrder: String?
-    ): Cursor = MatrixCursor(resolveDocumentProjection(projection))
+    ): Cursor {
+        val cursor = MatrixCursor(resolveDocumentProjection(projection))
+        val ctx = context ?: return cursor
+        val parent = parentDocumentId ?: return cursor
+        cursor.setNotificationUri(
+            ctx.contentResolver,
+            DocumentsContract.buildChildDocumentsUri(AUTHORITY, parent)
+        )
+        Log.d(TAG, "queryChildDocuments parent=$parent")
+
+        val api = apiClient(op = "queryChildDocuments") ?: return cursor
+
+        try {
+            paginate({ offset, size -> api.listFolderFolders(parent, offset, size) }) {
+                cursor.addDocumentRow(DocumentRowBuilder.folderRow(it))
+            }
+            paginate({ offset, size -> api.listFolderFiles(parent, offset, size) }) {
+                cursor.addDocumentRow(DocumentRowBuilder.fileRow(it))
+            }
+            Log.d(TAG, "queryChildDocuments parent=$parent rows=${cursor.count}")
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "queryChildDocuments parent=$parent failed: ${e.javaClass.simpleName}: ${e.message}")
+            return cursor
+        }
+
+        return cursor
+    }
+
+    private fun apiClient(op: String): InternxtApiClient? {
+        val cfg = authManager.loadAuthConfig()
+        if (cfg == null) {
+            Log.w(TAG, "$op: loadAuthConfig() returned null")
+            return null
+        }
+        return InternxtApiClient(cfg)
+    }
+
+    private inline fun <T> paginate(fetch: (offset: Int, size: Int) -> List<T>, onItem: (T) -> Unit) {
+        val pageSize = InternxtApiClient.DEFAULT_PAGE_SIZE
+        var offset = 0
+        while (true) {
+            val page = fetch(offset, pageSize)
+            page.forEach(onItem)
+            if (page.size < pageSize) break
+            offset += pageSize
+        }
+    }
+
+    private fun MatrixCursor.addDocumentRow(row: Map<String, Any?>) {
+        val builder = newRow()
+        row.forEach { (column, value) -> builder.add(column, value) }
+    }
 
     override fun openDocument(
         documentId: String?,
@@ -64,6 +142,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     companion object {
         const val AUTHORITY = "com.internxt.cloud.documents"
         private const val ROOT_ID = "internxt-root"
+        private const val TAG = "InternxtDocsProvider"
 
         private val DEFAULT_ROOT_PROJECTION = arrayOf(
             Root.COLUMN_ROOT_ID,
