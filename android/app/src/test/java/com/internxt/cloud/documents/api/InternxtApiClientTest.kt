@@ -264,6 +264,49 @@ class InternxtApiClientTest {
     }
 
     @Test
+    fun getFolderHitsMetaEndpointAndReturnsParsedFolder() {
+        enqueueJson("""{"uuid":"folder-uuid-1","plainName":"Documents"}""")
+
+        val folder = client.getFolder("folder-uuid-1")
+
+        assertEquals("folder-uuid-1", folder?.uuid)
+        assertEquals("Documents", folder?.plainName)
+
+        val recorded = server.takeRequest()
+        assertEquals("GET", recorded.method)
+        assertEquals("/folders/folder-uuid-1/meta", recorded.path)
+    }
+
+    @Test
+    fun getFolderReturnsNullWhenNotFound() {
+        enqueueJson("", code = 404)
+
+        assertNull(client.getFolder("missing-uuid"))
+    }
+
+    @Test
+    fun getFileHitsMetaEndpointAndReturnsParsedFile() {
+        enqueueJson("""{"uuid":"file-uuid-1","plainName":"report.pdf","type":"pdf","size":102400}""")
+
+        val file = client.getFile("file-uuid-1")
+
+        assertEquals("file-uuid-1", file?.uuid)
+        assertEquals("report.pdf", file?.plainName)
+        assertEquals(102400L, file?.size)
+
+        val recorded = server.takeRequest()
+        assertEquals("GET", recorded.method)
+        assertEquals("/files/file-uuid-1/meta", recorded.path)
+    }
+
+    @Test
+    fun getFileReturnsNullWhenNotFound() {
+        enqueueJson("", code = 404)
+
+        assertNull(client.getFile("missing-uuid"))
+    }
+
+    @Test
     fun serverErrorSurfacesAsApiError() {
         enqueueJson("""{"error":"boom"}""", code = 500)
 
