@@ -1,5 +1,6 @@
 package com.internxt.cloud.documents.api
 
+import com.internxt.cloud.documents.api.model.TrashItem
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
@@ -304,6 +305,76 @@ class InternxtApiClientTest {
         enqueueJson("", code = 404)
 
         assertNull(client.getFile("missing-uuid"))
+    }
+
+    @Test
+    fun renameFilePutsPlainNameToMetaEndpoint() {
+        enqueueJson("")
+
+        client.renameFile("file-uuid-1", "renamed.pdf")
+
+        val recorded = server.takeRequest()
+        assertEquals("PUT", recorded.method)
+        assertEquals("/files/file-uuid-1/meta", recorded.path)
+        assertEquals("renamed.pdf", JSONObject(recorded.body.readUtf8()).getString("plainName"))
+    }
+
+    @Test
+    fun renameFolderPutsPlainNameToMetaEndpoint() {
+        enqueueJson("")
+
+        client.renameFolder("folder-uuid-1", "Renamed")
+
+        val recorded = server.takeRequest()
+        assertEquals("PUT", recorded.method)
+        assertEquals("/folders/folder-uuid-1/meta", recorded.path)
+        assertEquals("Renamed", JSONObject(recorded.body.readUtf8()).getString("plainName"))
+    }
+
+    @Test
+    fun moveFilePatchesDestinationPayload() {
+        enqueueJson("""{"uuid":"file-uuid-1","folderUuid":"$PARENT_UUID"}""")
+
+        client.moveFile("file-uuid-1", PARENT_UUID)
+
+        val recorded = server.takeRequest()
+        assertEquals("PATCH", recorded.method)
+        assertEquals("/files/file-uuid-1", recorded.path)
+        assertEquals(PARENT_UUID, JSONObject(recorded.body.readUtf8()).getString("destinationFolder"))
+    }
+
+    @Test
+    fun moveFolderPatchesDestinationPayload() {
+        enqueueJson("""{"uuid":"folder-uuid-1","parentUuid":"$PARENT_UUID"}""")
+
+        client.moveFolder("folder-uuid-1", PARENT_UUID)
+
+        val recorded = server.takeRequest()
+        assertEquals("PATCH", recorded.method)
+        assertEquals("/folders/folder-uuid-1", recorded.path)
+        assertEquals(PARENT_UUID, JSONObject(recorded.body.readUtf8()).getString("destinationFolder"))
+    }
+
+    @Test
+    fun sendToTrashPostsItemsPayload() {
+        enqueueJson("")
+
+        client.sendToTrash(
+            listOf(
+                TrashItem("file-uuid-1", TrashItem.Type.FILE),
+                TrashItem("folder-uuid-1", TrashItem.Type.FOLDER),
+            )
+        )
+
+        val recorded = server.takeRequest()
+        assertEquals("POST", recorded.method)
+        assertEquals("/storage/trash/add", recorded.path)
+        val items = JSONObject(recorded.body.readUtf8()).getJSONArray("items")
+        assertEquals(2, items.length())
+        assertEquals("file-uuid-1", items.getJSONObject(0).getString("uuid"))
+        assertEquals("file", items.getJSONObject(0).getString("type"))
+        assertEquals("folder-uuid-1", items.getJSONObject(1).getString("uuid"))
+        assertEquals("folder", items.getJSONObject(1).getString("type"))
     }
 
     @Test
