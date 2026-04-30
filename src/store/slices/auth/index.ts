@@ -248,7 +248,7 @@ export const signOutThunk = createAsyncThunk<
     await dispatch(photosSignOutThunk());
     authService.signout(payload.reason).catch(errorService.reportError);
     drive.clear().catch(errorService.reportError);
-    clearCredentials().catch(errorService.reportError);
+    await clearCredentials().catch(errorService.reportError);
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveActions.resetState());
