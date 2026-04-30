@@ -8,13 +8,22 @@ import java.time.format.DateTimeParseException
 
 object DocumentRowBuilder {
 
-    private const val FOLDER_FLAGS = Document.FLAG_DIR_SUPPORTS_CREATE
-    private const val FILE_FLAGS = 0
+    private const val MUTATION_FLAGS =
+        Document.FLAG_SUPPORTS_RENAME or
+            Document.FLAG_SUPPORTS_DELETE or
+            Document.FLAG_SUPPORTS_MOVE
 
-    fun folderRow(folder: DriveFolder): Map<String, Any?> = folderRow(
-        uuid = folder.uuid,
-        displayName = folder.plainName,
-        lastModified = parseIsoToMillis(folder.updatedAt),
+    private const val FOLDER_FLAGS_BASIC = Document.FLAG_DIR_SUPPORTS_CREATE
+    private const val FOLDER_FLAGS = FOLDER_FLAGS_BASIC or MUTATION_FLAGS
+    private const val FILE_FLAGS = MUTATION_FLAGS
+
+    fun folderRow(folder: DriveFolder): Map<String, Any?> = mapOf(
+        Document.COLUMN_DOCUMENT_ID to folder.uuid,
+        Document.COLUMN_MIME_TYPE to Document.MIME_TYPE_DIR,
+        Document.COLUMN_DISPLAY_NAME to folder.plainName,
+        Document.COLUMN_LAST_MODIFIED to parseIsoToMillis(folder.updatedAt),
+        Document.COLUMN_FLAGS to FOLDER_FLAGS,
+        Document.COLUMN_SIZE to null,
     )
 
     fun folderRow(uuid: String, displayName: String, lastModified: Long? = null): Map<String, Any?> = mapOf(
@@ -22,7 +31,7 @@ object DocumentRowBuilder {
         Document.COLUMN_MIME_TYPE to Document.MIME_TYPE_DIR,
         Document.COLUMN_DISPLAY_NAME to displayName,
         Document.COLUMN_LAST_MODIFIED to lastModified,
-        Document.COLUMN_FLAGS to FOLDER_FLAGS,
+        Document.COLUMN_FLAGS to FOLDER_FLAGS_BASIC,
         Document.COLUMN_SIZE to null,
     )
 

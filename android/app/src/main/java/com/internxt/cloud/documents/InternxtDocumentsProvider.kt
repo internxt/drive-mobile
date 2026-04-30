@@ -12,11 +12,17 @@ import android.util.Log
 import com.internxt.cloud.R
 import com.internxt.cloud.documents.api.InternxtApiClient
 import com.internxt.cloud.documents.api.InternxtApiException
+import com.internxt.cloud.documents.api.model.TrashItem
 import com.internxt.cloud.documents.auth.InternxtAuthManager
+import java.io.FileNotFoundException
+import java.util.concurrent.ConcurrentHashMap
 
 class InternxtDocumentsProvider : DocumentsProvider() {
 
     private lateinit var authManager: InternxtAuthManager
+    private val itemKinds = ConcurrentHashMap<String, ItemKind>()
+
+    private enum class ItemKind { FILE, FOLDER }
 
     override fun onCreate(): Boolean {
         authManager = InternxtAuthManager.create(context!!.applicationContext)
@@ -57,8 +63,13 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
         val api = apiClient(op = "queryDocument")
         val row = if (api == null) null else try {
-            api.getFolder(id)?.let { DocumentRowBuilder.folderRow(it) }
-                ?: api.getFile(id)?.let { DocumentRowBuilder.fileRow(it) }
+            api.getFolder(id)?.let {
+                itemKinds[id] = ItemKind.FOLDER
+                DocumentRowBuilder.folderRow(it)
+            } ?: api.getFile(id)?.let {
+                itemKinds[id] = ItemKind.FILE
+                DocumentRowBuilder.fileRow(it)
+            }
         } catch (e: InternxtApiException) {
             Log.w(TAG, "queryDocument id=$id failed: ${e.javaClass.simpleName}: ${e.message}")
             null
@@ -86,9 +97,11 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
         try {
             paginate({ offset, size -> api.listFolderFolders(parent, offset, size) }) {
+                itemKinds[it.uuid] = ItemKind.FOLDER
                 cursor.addDocumentRow(DocumentRowBuilder.folderRow(it))
             }
             paginate({ offset, size -> api.listFolderFiles(parent, offset, size) }) {
+                itemKinds[it.uuid] = ItemKind.FILE
                 cursor.addDocumentRow(DocumentRowBuilder.fileRow(it))
             }
             Log.d(TAG, "queryChildDocuments parent=$parent rows=${cursor.count}")
@@ -123,6 +136,81 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun MatrixCursor.addDocumentRow(row: Map<String, Any?>) {
         val builder = newRow()
         row.forEach { (column, value) -> builder.add(column, value) }
+    }
+
+    override fun renameDocument(documentId: String, displayName: String): String? {
+        val api = apiClient(op = "renameDocument") ?: throw FileNotFoundException("No auth")
+        val kind = resolveKind(api, documentId) ?: throw FileNotFoundException("Not found: $documentId")
+        val parentUuid: String? = try {
+            when (kind) {
+                ItemKind.FILE -> {
+                    val parent = api.getFile(documentId)?.folderUuid
+                    api.renameFile(documentId, displayName)
+                    parent
+                }
+                ItemKind.FOLDER -> {
+                    val parent = api.getFolder(documentId)?.parentUuid
+                    api.renameFolder(documentId, displayName)
+                    parent
+                }
+            }
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "renameDocument $documentId failed: ${e.javaClass.simpleName}: ${e.message}")
+            throw FileNotFoundException(e.message)
+        }
+        parentUuid?.let { notifyChildren(it) }
+        return null
+    }
+
+    override fun moveDocument(
+        sourceDocumentId: String,
+        sourceParentDocumentId: String?,
+        targetParentDocumentId: String
+    ): String? {
+        val api = apiClient(op = "moveDocument") ?: throw FileNotFoundException("No auth")
+        val kind = resolveKind(api, sourceDocumentId) ?: throw FileNotFoundException("Not found: $sourceDocumentId")
+        try {
+            when (kind) {
+                ItemKind.FILE -> api.moveFile(sourceDocumentId, targetParentDocumentId)
+                ItemKind.FOLDER -> api.moveFolder(sourceDocumentId, targetParentDocumentId)
+            }
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "moveDocument $sourceDocumentId failed: ${e.javaClass.simpleName}: ${e.message}")
+            throw FileNotFoundException(e.message)
+        }
+        sourceParentDocumentId?.let { notifyChildren(it) }
+        notifyChildren(targetParentDocumentId)
+        return null
+    }
+
+    override fun deleteDocument(documentId: String) {
+        val api = apiClient(op = "deleteDocument") ?: throw FileNotFoundException("No auth")
+        val kind = resolveKind(api, documentId) ?: throw FileNotFoundException("Not found: $documentId")
+        val parentUuid: String? = when (kind) {
+            ItemKind.FILE -> api.getFile(documentId)?.folderUuid
+            ItemKind.FOLDER -> api.getFolder(documentId)?.parentUuid
+        }
+        val trashType = if (kind == ItemKind.FILE) TrashItem.Type.FILE else TrashItem.Type.FOLDER
+        try {
+            api.sendToTrash(listOf(TrashItem(documentId, trashType)))
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "deleteDocument $documentId failed: ${e.javaClass.simpleName}: ${e.message}")
+            throw FileNotFoundException(e.message)
+        }
+        itemKinds.remove(documentId)
+        parentUuid?.let { notifyChildren(it) }
+    }
+
+    private fun resolveKind(api: InternxtApiClient, uuid: String): ItemKind? =
+        itemKinds[uuid]
+            ?: api.getFolder(uuid)?.let { itemKinds[uuid] = ItemKind.FOLDER; ItemKind.FOLDER }
+            ?: api.getFile(uuid)?.let { itemKinds[uuid] = ItemKind.FILE; ItemKind.FILE }
+
+    private fun notifyChildren(parentUuid: String) {
+        context?.contentResolver?.notifyChange(
+            DocumentsContract.buildChildDocumentsUri(AUTHORITY, parentUuid),
+            null
+        )
     }
 
     override fun openDocument(
