@@ -4,6 +4,7 @@ import asyncStorageService from 'src/services/AsyncStorageService';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
 import { PhotoDeviceId } from 'src/services/photos/PhotoDeviceId';
+import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
 import photosReducer, {
@@ -16,6 +17,7 @@ import photosReducer, {
   PhotosState,
   runBackupCycleThunk,
   runDiscoveryThunk,
+  runUploadThunk,
   setNetworkConditionThunk,
 } from './index';
 
@@ -40,15 +42,29 @@ jest.mock('src/services/photos/PhotoDeviceId', () => ({
 }));
 
 jest.mock('src/services/photos/PhotoAssetScanner', () => ({
-  PhotoAssetScanner: { scanAll: jest.fn().mockResolvedValue([]) },
+  PhotoAssetScanner: {
+    scanAll: jest.fn().mockResolvedValue([]),
+    getAssetsByIds: jest.fn().mockResolvedValue([]),
+  },
+}));
+
+jest.mock('src/services/photos/PhotoUploadQueue', () => ({
+  PhotoUploadQueue: { start: jest.fn().mockResolvedValue(undefined) },
 }));
 
 jest.mock('src/services/photos/PhotoDeduplicator', () => ({
-  PhotoDeduplicator: { getAssetsToSync: jest.fn().mockResolvedValue([]) },
+  PhotoDeduplicator: { getAssetsToSync: jest.fn().mockResolvedValue({ newAssets: [], editedAssets: [] }) },
 }));
 
 jest.mock('src/services/photos/database/photosLocalDB', () => ({
-  photosLocalDB: { init: jest.fn().mockResolvedValue(undefined) },
+  photosLocalDB: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getPendingAssets: jest.fn().mockResolvedValue([]),
+    markPending: jest.fn().mockResolvedValue(undefined),
+    markPendingEdit: jest.fn().mockResolvedValue(undefined),
+    markSynced: jest.fn().mockResolvedValue(undefined),
+    markError: jest.fn().mockResolvedValue(undefined),
+  },
 }));
 
 const mockAsyncStorage = asyncStorageService as jest.Mocked<typeof asyncStorageService>;
@@ -57,6 +73,7 @@ const mockPhotoDeviceId = PhotoDeviceId as jest.Mocked<typeof PhotoDeviceId>;
 const mockScanner = PhotoAssetScanner as jest.Mocked<typeof PhotoAssetScanner>;
 const mockDeduplicator = PhotoDeduplicator as jest.Mocked<typeof PhotoDeduplicator>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
+const mockUploadQueue = PhotoUploadQueue as jest.Mocked<typeof PhotoUploadQueue>;
 
 const makeStore = () => {
   const store = configureStore({ reducer: { photos: photosReducer } });
@@ -72,7 +89,23 @@ const getPersistedState = (): PhotosState => {
 
 describe('photos slice', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    // Re-set default implementations after reset clears them
+    mockAsyncStorage.saveItem.mockResolvedValue(undefined);
+    mockAsyncStorage.getItem.mockResolvedValue(null);
+    mockPhotoDeviceId.getOrCreate.mockResolvedValue('mock-device-id');
+    mockScanner.scanAll.mockResolvedValue([]);
+    mockScanner.getAssetsByIds.mockResolvedValue([]);
+    mockUploadQueue.start.mockResolvedValue(undefined);
+    mockDeduplicator.getAssetsToSync.mockResolvedValue({ newAssets: [], editedAssets: [] });
+    mockPhotosLocalDB.init.mockResolvedValue(undefined);
+    mockPhotosLocalDB.getPendingAssets.mockResolvedValue([]);
+    mockPhotosLocalDB.markPending.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markPendingEdit.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markSynced.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markError.mockResolvedValue(undefined);
+    // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
+    mockPermissionService.getStatus.mockResolvedValue('granted');
   });
 
   test('when the app starts for the first time, then backup is disabled and set to wifi-only with no permission yet', () => {
@@ -90,9 +123,15 @@ describe('photos slice', () => {
       networkCondition: 'wifi-and-data',
       permissionStatus: 'granted',
       syncStatus: 'idle',
-      pendingCount: 0,
-      totalScannedCount: 0,
+      pendingBackupAssets: 0,
+      totalScannedAssets: 0,
+      totalAssetsUploaded: 0,
+      currentUploadProgress: 0,
+      lastSyncTimestamp: null,
+      uploadingAssetIds: [],
       deviceId: null,
+      sessionTotalAssets: 0,
+      sessionUploadedAssets: 0,
     };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
@@ -150,6 +189,7 @@ describe('photos slice', () => {
 
   test('when the user enables backup and grants limited permission, then backup is turned on and saved', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('limited');
+    mockPermissionService.getStatus.mockResolvedValue('limited');
 
     const store = makeStore();
     const result = await store.dispatch(enableBackupThunk()).unwrap();
@@ -241,7 +281,8 @@ describe('photos slice', () => {
 
   test('when the permission check runs and the user has limited access, then backup continues running', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
-    mockPermissionService.getStatus.mockResolvedValueOnce('limited');
+    mockPermissionService.getStatus.mockResolvedValueOnce('granted');  // consumed by background runBackupCycleThunk
+    mockPermissionService.getStatus.mockResolvedValueOnce('limited');  // consumed by the direct checkPermissionRevocationThunk call
 
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
@@ -293,18 +334,18 @@ describe('photos slice', () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     const assets = Array.from({ length: 10 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets.slice(3) as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets.slice(3), editedAssets: [] } as never);
 
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
     jest.clearAllMocks();
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets.slice(3) as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets.slice(3), editedAssets: [] } as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
     await store.dispatch(runDiscoveryThunk());
 
-    expect(store.getState().photos.pendingCount).toBe(7);
-    expect(store.getState().photos.totalScannedCount).toBe(10);
+    expect(store.getState().photos.pendingBackupAssets).toBe(7);
+    expect(store.getState().photos.totalScannedAssets).toBe(10);
     expect(store.getState().photos.syncStatus).toBe('idle');
   });
 
@@ -315,12 +356,12 @@ describe('photos slice', () => {
     await store.dispatch(enableBackupThunk());
     jest.clearAllMocks();
     mockScanner.scanAll.mockResolvedValueOnce([] as never);
-    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce([] as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: [], editedAssets: [] } as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
     await store.dispatch(runDiscoveryThunk());
 
-    expect(store.getState().photos.pendingCount).toBe(0);
-    expect(store.getState().photos.totalScannedCount).toBe(0);
+    expect(store.getState().photos.pendingBackupAssets).toBe(0);
+    expect(store.getState().photos.totalScannedAssets).toBe(0);
     expect(store.getState().photos.syncStatus).toBe('idle');
   });
 
@@ -343,23 +384,22 @@ describe('photos slice', () => {
     expect(store.getState().photos.enabled).toBe(false);
   });
 
-  test('when a backup cycle starts and all conditions are met, then photos are scanned and the pending count is updated', async () => {
+  test('when a backup cycle starts and all conditions are met, then photos are scanned, the pending count is updated and the cycle completes', async () => {
     const store = makeStore();
     store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
     mockPermissionService.getStatus.mockResolvedValueOnce('granted');
     mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('device-id');
     const assets = Array.from({ length: 5 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets, editedAssets: [] } as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
 
     await store.dispatch(runBackupCycleThunk());
-    // drain any background microtasks before asserting
     await Promise.resolve();
 
     expect(mockPhotoDeviceId.getOrCreate).toHaveBeenCalledTimes(1);
     expect(mockScanner.scanAll).toHaveBeenCalledTimes(1);
-    expect(store.getState().photos.pendingCount).toBe(5);
-    expect(store.getState().photos.syncStatus).toBe('idle');
+    expect(store.getState().photos.pendingBackupAssets).toBe(5);
+    expect(store.getState().photos.syncStatus).toBe('synced');
   });
 });
