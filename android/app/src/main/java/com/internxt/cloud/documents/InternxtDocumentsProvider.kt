@@ -37,6 +37,9 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         @Volatile var errorMessage: String? = null
         val rows = mutableListOf<Map<String, Any?>>()
     }
+    private val itemKinds = ConcurrentHashMap<String, ItemKind>()
+
+    private enum class ItemKind { FILE, FOLDER }
 
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
