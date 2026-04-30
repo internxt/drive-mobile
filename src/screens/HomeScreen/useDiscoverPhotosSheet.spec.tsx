@@ -26,7 +26,7 @@ const makeWrapper = (photosState?: Partial<PhotosState>) => {
   const store = configureStore({
     reducer: { photos: photosReducer },
     preloadedState: {
-      photos: { enabled: false, networkCondition: 'wifi-only', permissionStatus: 'undetermined', syncStatus: 'idle', pendingCount: 0, totalScannedCount: 0, deviceId: null, ...photosState },
+      photos: { enabled: false, networkCondition: 'wifi-only', permissionStatus: 'undetermined', syncStatus: 'idle', pendingBackupAssets: 0, totalScannedAssets: 0, totalAssetsUploaded: 0, currentUploadProgress: 0, lastSyncTimestamp: null, uploadingAssetIds: [], deviceId: null, sessionTotalAssets: 0, sessionUploadedAssets: 0, ...photosState },
     },
   });
   return ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;
