@@ -1,5 +1,4 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
-import { AbortError } from './errors';
 import { logger } from '@internxt-mobile/services/common';
 import { decryptFile, encryptFile, encryptFileToChunks, joinFiles } from '@internxt/rn-crypto';
 import { ALGORITHMS, Network } from '@internxt/sdk/dist/network';
@@ -12,17 +11,23 @@ import { Platform } from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
 import { randomBytes } from 'react-native-crypto';
 import uuid from 'react-native-uuid';
+import { AbortError } from './errors';
 
 import drive from '@internxt-mobile/services/drive';
 import pLimit, { LimitFunction } from 'p-limit';
 import { ripemd160 } from '../@inxt-js/lib/crypto';
-import { generateFileKey } from './crypto';
 import appService from '../services/AppService';
 import { driveEvents } from '../services/drive/events';
 import fileSystemService from '../services/FileSystemService';
 import { Abortable } from '../types';
+import { generateFileKey } from './crypto';
 import { EncryptedFileDownloadedParams } from './download';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
+
+const getCaseInsensitiveHeader = (headers: Record<string, string>, name: string): string | undefined => {
+  const key = Object.keys(headers).find((key) => key.toLowerCase() === name.toLowerCase());
+  return key ? headers[key] : undefined;
+};
 
 interface UploadMultipartOptions {
   partSize: number;
@@ -301,12 +306,28 @@ export class NetworkFacade {
   ): Promise<void> {
     const uploadWithRetry = async (path: string, url: string, index: number): Promise<PartInfo> => {
       try {
-        return await this.uploadPart(url, path, index, uploadState.partsUploadedBytes, fileSize, options.uploadingCallback, abortCtx);
+        return await this.uploadPart(
+          url,
+          path,
+          index,
+          uploadState.partsUploadedBytes,
+          fileSize,
+          options.uploadingCallback,
+          abortCtx,
+        );
       } catch (error) {
         if ((error as Error)?.name === AbortError.errorName) throw error;
         logger.error(`First attempt failed for part ${index + 1}, retrying...`);
         try {
-          return await this.uploadPart(url, path, index, uploadState.partsUploadedBytes, fileSize, options.uploadingCallback, abortCtx);
+          return await this.uploadPart(
+            url,
+            path,
+            index,
+            uploadState.partsUploadedBytes,
+            fileSize,
+            options.uploadingCallback,
+            abortCtx,
+          );
         } catch (retryError) {
           logger.error(`Retry failed for part ${index + 1}`);
           throw retryError;
@@ -348,7 +369,7 @@ export class NetworkFacade {
     abortCtx?.activeFetchTasks.add(fetchTask);
     try {
       const response = await fetchTask;
-      const etag = Platform.OS === 'android' ? response.info().headers.ETag : response.info().headers.Etag;
+      const etag = getCaseInsensitiveHeader(response.info().headers, 'etag');
       if (!etag) throw new Error('Missing ETag in upload response');
 
       return {

@@ -3,7 +3,7 @@ import assetSyncTable from './tables/asset_sync';
 
 const DB_NAME = 'photos_sync.db';
 
-export type AssetSyncStatus = 'pending' | 'synced' | 'error';
+export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error';
 
 export interface AssetSyncEntry {
   assetId: string;
@@ -51,8 +51,16 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPending, [assetId]);
   }
 
+  async markPendingEdit(assetId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPendingEdit, [assetId]);
+  }
+
   async markSynced(assetId: string, remoteFileId: string, modificationTime: number | null): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSynced, [assetId, remoteFileId, modificationTime]);
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSynced, [
+      assetId,
+      remoteFileId,
+      modificationTime,
+    ]);
   }
 
   async markError(assetId: string, errorMessage?: string): Promise<void> {
@@ -103,6 +111,19 @@ class PhotosLocalDB {
       lastAttemptAt: row.last_attempt_at,
       modificationTime: row.modification_time,
     };
+  }
+
+  async getPendingAssets(): Promise<Array<{ assetId: string; status: AssetSyncStatus; remoteFileId: string | null }>> {
+    const pendingAssets = await sqliteService.getAllAsync<{
+      asset_id: string;
+      status: AssetSyncStatus;
+      remote_file_id: string | null;
+    }>(DB_NAME, assetSyncTable.statements.getPendingAssets);
+    return pendingAssets.map((asset) => ({
+      assetId: asset.asset_id,
+      status: asset.status,
+      remoteFileId: asset.remote_file_id,
+    }));
   }
 
   async reset(): Promise<void> {
