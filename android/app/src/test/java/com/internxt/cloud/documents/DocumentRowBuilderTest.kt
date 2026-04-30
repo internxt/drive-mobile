@@ -26,7 +26,11 @@ class DocumentRowBuilderTest {
         assertEquals(Document.MIME_TYPE_DIR, row[Document.COLUMN_MIME_TYPE])
         assertEquals("Documents", row[Document.COLUMN_DISPLAY_NAME])
         assertEquals(1768089600000L, row[Document.COLUMN_LAST_MODIFIED])
-        assertEquals(Document.FLAG_DIR_SUPPORTS_CREATE, row[Document.COLUMN_FLAGS])
+        val expectedFolderFlags = Document.FLAG_DIR_SUPPORTS_CREATE or
+            Document.FLAG_SUPPORTS_RENAME or
+            Document.FLAG_SUPPORTS_DELETE or
+            Document.FLAG_SUPPORTS_MOVE
+        assertEquals(expectedFolderFlags, row[Document.COLUMN_FLAGS])
         assertNull(row[Document.COLUMN_SIZE])
     }
 
@@ -50,7 +54,10 @@ class DocumentRowBuilderTest {
         assertEquals("application/pdf", row[Document.COLUMN_MIME_TYPE])
         assertEquals("report.pdf", row[Document.COLUMN_DISPLAY_NAME])
         assertEquals(1768089600000L, row[Document.COLUMN_LAST_MODIFIED])
-        assertEquals(0, row[Document.COLUMN_FLAGS])
+        val expectedFileFlags = Document.FLAG_SUPPORTS_RENAME or
+            Document.FLAG_SUPPORTS_DELETE or
+            Document.FLAG_SUPPORTS_MOVE
+        assertEquals(expectedFileFlags, row[Document.COLUMN_FLAGS])
         assertEquals(102400L, row[Document.COLUMN_SIZE])
     }
 
