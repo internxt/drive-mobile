@@ -4,22 +4,35 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
+import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document
 import android.provider.DocumentsContract.Root
 import android.provider.DocumentsProvider
 import com.internxt.cloud.R
+import com.internxt.cloud.documents.auth.InternxtAuthManager
 
 class InternxtDocumentsProvider : DocumentsProvider() {
 
-    override fun onCreate(): Boolean = true
+    private lateinit var authManager: InternxtAuthManager
+
+    override fun onCreate(): Boolean {
+        authManager = InternxtAuthManager.create(context!!.applicationContext)
+        return true
+    }
 
     override fun queryRoots(projection: Array<String>?): Cursor {
         val cursor = MatrixCursor(resolveRootProjection(projection))
+        val ctx = context ?: return cursor
+        cursor.setNotificationUri(ctx.contentResolver, DocumentsContract.buildRootsUri(AUTHORITY))
+
+        val rootUuid = authManager.authenticatedRootUuid() ?: return cursor
+
         cursor.newRow().apply {
             add(Root.COLUMN_ROOT_ID, ROOT_ID)
-            add(Root.COLUMN_DOCUMENT_ID, ROOT_DOCUMENT_ID)
-            add(Root.COLUMN_TITLE, context?.getString(R.string.documents_provider_label))
-            add(Root.COLUMN_FLAGS, 0)
+            add(Root.COLUMN_DOCUMENT_ID, rootUuid)
+            add(Root.COLUMN_TITLE, ctx.getString(R.string.documents_provider_label))
+            authManager.userEmail()?.let { add(Root.COLUMN_SUMMARY, it) }
+            add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE or Root.FLAG_SUPPORTS_IS_CHILD)
             add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
         }
         return cursor
@@ -50,8 +63,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
     companion object {
         const val AUTHORITY = "com.internxt.cloud.documents"
-        private const val ROOT_ID = "root"
-        private const val ROOT_DOCUMENT_ID = "root"
+        private const val ROOT_ID = "internxt-root"
 
         private val DEFAULT_ROOT_PROJECTION = arrayOf(
             Root.COLUMN_ROOT_ID,
