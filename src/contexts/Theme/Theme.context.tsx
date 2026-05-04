@@ -1,5 +1,6 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { logger } from '@internxt-mobile/services/common';
+import secureStorageService from '@internxt-mobile/services/SecureStorageService';
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Appearance, NativeEventSubscription } from 'react-native';
 
@@ -22,10 +23,16 @@ interface ThemeProviderProps {
  */
 const loadThemePreference = async (): Promise<ThemeMode> => {
   try {
-    const savedTheme = await asyncStorageService.getThemePreference();
-    logger.info(`Saved theme from storage: ${savedTheme}`);
+    // SecureStorage is the source of truth after migration, was added to share with iOS in the keychain
+    const secureTheme = await secureStorageService.getItem('themePreference');
+    if (secureTheme === 'light' || secureTheme === 'dark') {
+      logger.info(`Loaded theme from SecureStorage: ${secureTheme}`);
+      return secureTheme;
+    }
 
+    const savedTheme = await asyncStorageService.getThemePreference();
     if (savedTheme) {
+      logger.info(`Loaded theme from AsyncStorage: ${savedTheme}`);
       return savedTheme;
     }
 
@@ -135,6 +142,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
       applyTheme(newTheme, setThemeState);
       await asyncStorageService.saveThemePreference(newTheme);
+      secureStorageService.setItem('themePreference', newTheme).catch(() => undefined);
 
       setTimeout(() => {
         isSettingThemeRef.current = false;

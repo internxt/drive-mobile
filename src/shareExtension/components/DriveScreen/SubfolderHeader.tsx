@@ -3,7 +3,7 @@ import { Animated, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { UseSearchAnimationResult } from '../../hooks/useSearchAnimation';
-import { colors, fontStyles } from '../../theme';
+import { fontStyles, useShareColors } from '../../theme';
 import { TextButton } from '../TextButton';
 
 interface SubfolderHeaderProps {
@@ -28,6 +28,7 @@ export const SubfolderHeader = ({
   searchAnim,
 }: SubfolderHeaderProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const { searchHeight, searchOpacity, isSearchOpen, searchRef, toggleSearch } = searchAnim;
 
   const handleSearchPress = () => toggleSearch(onClearSearch);
@@ -39,8 +40,9 @@ export const SubfolderHeader = ({
           <CaretLeftIcon size={18} color={colors.primary} style={{ marginLeft: -4 }} />
           <Text
             style={[
-              tailwind('text-base text-primary ml-1'),
+              tailwind('text-base ml-1'),
               fontStyles.regular,
+              { color: colors.primary },
             ]}
             numberOfLines={1}
           >
@@ -53,13 +55,13 @@ export const SubfolderHeader = ({
       </View>
 
       <Animated.View style={{ height: searchHeight, opacity: searchOpacity, overflow: 'hidden' }}>
-        <View style={[tailwind('flex-row items-center mx-4 mt-2 px-3 py-2 bg-gray-5'), { borderRadius: 10 }]}>
+        <View style={[tailwind('flex-row items-center mx-4 mt-2 px-3 py-2'), { borderRadius: 10, backgroundColor: colors.gray5 }]}>
           <MagnifyingGlassIcon size={16} color={colors.gray40} style={{ marginRight: 6 }} />
           <TextInput
             ref={searchRef}
             style={[
-              tailwind('flex-1 text-base text-gray-100'),
-              { padding: 0, ...fontStyles.regular },
+              tailwind('flex-1 text-base'),
+              { padding: 0, ...fontStyles.regular, color: colors.gray100 },
             ]}
             placeholder={strings.screens.ShareExtension.searchPlaceholder}
             placeholderTextColor={colors.gray40}
@@ -74,8 +76,9 @@ export const SubfolderHeader = ({
       <View style={[tailwind('flex-row justify-between px-4 mt-1 pb-2'), { alignItems: 'baseline' }]}>
         <Text
           style={[
-            tailwind('flex-1 text-2xl text-gray-100 mr-2'),
+            tailwind('flex-1 text-2xl mr-2'),
             fontStyles.bold,
+            { color: colors.gray100 },
           ]}
           numberOfLines={1}
         >

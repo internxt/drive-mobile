@@ -65,6 +65,22 @@ export const disableBackupThunk = createAsyncThunk<void, void, { state: RootStat
   },
 );
 
+export const checkPermissionRevocationThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/checkPermissionRevocation',
+  async (_, { getState, dispatch }) => {
+    const { enabled } = getState().photos;
+    if (!enabled) return;
+
+    const status = await photoPermissionService.getStatus();
+    if (status === 'denied') {
+      await dispatch(disableBackupThunk());
+      dispatch(photosSlice.actions.setPermissionStatus('denied'));
+    } else {
+      dispatch(photosSlice.actions.setPermissionStatus(status));
+    }
+  },
+);
+
 export const setNetworkConditionThunk = createAsyncThunk<void, PhotoNetworkCondition, { state: RootState }>(
   'photos/setNetworkCondition',
   async (value, { getState, dispatch }) => {

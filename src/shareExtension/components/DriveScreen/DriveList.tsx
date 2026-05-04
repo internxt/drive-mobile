@@ -3,7 +3,7 @@ import { FlatList, Keyboard, Text, View } from 'react-native';
 import DriveItemSkinSkeleton from 'src/components/DriveItemSkinSkeleton';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { fontStyles } from '../../theme';
+import { fontStyles, useShareColors } from '../../theme';
 import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../../types';
 import { FileListItem } from '../FileListItem';
 
@@ -33,6 +33,7 @@ export const DriveList = ({
   onLoadMore,
 }: DriveListProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
   const numColumns = viewMode === 'grid' ? 3 : 1;
 
   const renderItem = useCallback(
@@ -66,7 +67,7 @@ export const DriveList = ({
       contentContainerStyle={viewMode === 'grid' ? tailwind('px-2') : undefined}
       ListEmptyComponent={
         <View style={[tailwind('items-center'), { paddingTop: 48 }]}>
-          <Text style={[tailwind('text-gray-40'), { fontSize: 16, ...fontStyles.regular }]}>
+          <Text style={[{ fontSize: 16, color: colors.gray40 }, fontStyles.regular]}>
             {searchQuery ? strings.screens.ShareExtension.noResults : strings.screens.ShareExtension.emptyFolder}
           </Text>
         </View>

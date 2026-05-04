@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { AppDispatch } from 'src/store';
 import photosReducer, {
+  checkPermissionRevocationThunk,
   disableBackupThunk,
   enableBackupThunk,
   hydratePhotosStateThunk,
@@ -159,6 +160,55 @@ describe('photos slice', () => {
 
     expect(store.getState().photos.networkCondition).toBe('wifi-and-data');
     expect(getPersistedState()).toMatchObject({ networkCondition: 'wifi-and-data' });
+  });
+
+  test('when checkPermissionRevocationThunk runs and backup is disabled, then nothing happens', async () => {
+    const store = makeStore();
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(mockPermissionService.getStatus).not.toHaveBeenCalled();
+    expect(store.getState().photos.enabled).toBe(false);
+  });
+
+  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is denied, then backup is disabled', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('denied');
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(store.getState().photos.enabled).toBe(false);
+    expect(store.getState().photos.permissionStatus).toBe('denied');
+    expect(getPersistedState()).toMatchObject({ enabled: false });
+  });
+
+  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is still granted, then backup stays enabled', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('granted');
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(store.getState().photos.enabled).toBe(true);
+    expect(store.getState().photos.permissionStatus).toBe('granted');
+  });
+
+  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is limited, then backup stays enabled', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('limited');
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+
+    await store.dispatch(checkPermissionRevocationThunk());
+
+    expect(store.getState().photos.enabled).toBe(true);
+    expect(store.getState().photos.permissionStatus).toBe('limited');
   });
 
   test('when setNetworkConditionThunk runs with wifi-only after wifi-and-data, then network condition reverts and is persisted', async () => {

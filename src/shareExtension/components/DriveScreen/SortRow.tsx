@@ -2,7 +2,7 @@ import { RowsIcon, SquaresFourIcon } from 'phosphor-react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { colors, fontStyles } from '../../theme';
+import { fontStyles, useShareColors } from '../../theme';
 import { DriveViewMode } from '../../types';
 
 interface SortRowProps {
@@ -12,10 +12,11 @@ interface SortRowProps {
 
 export const SortRow = ({ viewMode, onToggleViewMode }: SortRowProps) => {
   const tailwind = useTailwind();
+  const colors = useShareColors();
 
   return (
     <View style={tailwind('flex-row items-center justify-between px-4 pb-1')}>
-      <Text style={[tailwind('text-xs text-gray-60'), fontStyles.regular]}>
+      <Text style={[tailwind('text-xs'), fontStyles.regular, { color: colors.gray60 }]}>
         {strings.screens.ShareExtension.sortByName}
       </Text>
       <TouchableOpacity onPress={onToggleViewMode} hitSlop={8}>

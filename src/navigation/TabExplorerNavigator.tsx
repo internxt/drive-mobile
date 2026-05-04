@@ -7,13 +7,16 @@ import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import SecurityModal from 'src/components/modals/SecurityModal';
 import { authThunks } from 'src/store/slices/auth';
+import { checkPermissionRevocationThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import AddModal from '../components/modals/AddModal';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
+import EmptyFileNotAllowedModal from '../components/modals/EmptyFileNotAllowedModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
+import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
 import SignOutModal from '../components/modals/SignOutModal';
@@ -53,6 +56,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
 
   async function handleOnAppStateChange(state: AppStateStatus) {
     if (state === 'active') {
+      dispatch(checkPermissionRevocationThunk());
       try {
         await dispatch(storageThunks.loadLimitThunk()).unwrap();
       } catch {
@@ -64,6 +68,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       }
     }
   }
+
   return (
     <View
       style={{ ...tailwind('h-full'), backgroundColor: getColor('bg-surface'), paddingBottom: safeAreaInsets.bottom }}
@@ -95,6 +100,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <MoveItemsModal />
       <DriveRenameModal />
       <RunOutOfStorageModal />
+      <EmptyFileNotAllowedModal />
+      <NotEnoughDeviceSpaceModal />
       <SignOutModal />
       <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>

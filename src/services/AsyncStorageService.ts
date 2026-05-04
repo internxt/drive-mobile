@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageKey } from '../types';
 import secureStorageService from './SecureStorageService';
 
-const SENSITIVE_KEYS = [AsyncStorageKey.Token, AsyncStorageKey.PhotosToken, AsyncStorageKey.User];
+const SENSITIVE_KEYS = [AsyncStorageKey.Token, AsyncStorageKey.PhotosToken, AsyncStorageKey.User, AsyncStorageKey.ThemePreference];
 
 class AsyncStorageService {
   private isSensitiveKey(key: AsyncStorageKey): boolean {
