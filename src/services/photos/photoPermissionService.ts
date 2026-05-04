@@ -11,6 +11,9 @@ const mapPermission = (status: MediaLibrary.PermissionStatus, accessPrivileges?:
   return 'undetermined';
 };
 
+export const isPermissionActive = (status: PhotoPermissionStatus): boolean =>
+  status === 'granted' || status === 'limited';
+
 export const photoPermissionService = {
   async getStatus(): Promise<PhotoPermissionStatus> {
     const { status, accessPrivileges } = await MediaLibrary.getPermissionsAsync();

@@ -182,6 +182,7 @@ const translations = {
           storageFull: 'Storage is full',
           backupCompleted: 'Backup completed',
           gettingPhotos: 'Getting photos from the cloud',
+          scanningGallery: 'Scanning gallery',
         },
         photosLocked: {
           title: 'Photos is locked',
@@ -1100,6 +1101,7 @@ const translations = {
           storageFull: 'Almacenamiento lleno',
           backupCompleted: 'Backup completado',
           gettingPhotos: 'Obteniendo fotos de la nube',
+          scanningGallery: 'Escaneando galería',
         },
         photosLocked: {
           title: 'Photos está bloqueado',

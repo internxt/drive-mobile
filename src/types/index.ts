@@ -102,6 +102,7 @@ export enum AsyncStorageKey {
   ScreenProtectionEnabled = 'screenProtectionEnabled',
   PhotosSettings = 'photosSettings',
   PhotosDiscoverSeen = 'photosDiscoverSeen',
+  PhotosDeviceId = 'photos-device-id',
 }
 
 export type ProgressCallback = (progress: number) => void;

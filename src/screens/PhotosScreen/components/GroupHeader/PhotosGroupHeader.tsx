@@ -10,11 +10,13 @@ import {
   GroupHeaderFetching,
   GroupHeaderPaused,
   GroupHeaderPausedStorageFull,
+  GroupHeaderScanning,
   GroupHeaderUploading,
 } from './GroupHeaderStatus';
 
 export type GroupSyncStatus =
   | { type: 'count'; count: number }
+  | { type: 'scanning' }
   | { type: 'fetching' }
   | { type: 'uploading'; count?: number; backupProgress?: number }
   | { type: 'paused'; count: number }
@@ -74,6 +76,7 @@ const PhotosGroupHeader = memo(
 
           <View style={[tailwind('flex-row items-center overflow-hidden'), { maxWidth: 226, gap: 8 }]}>
             {syncStatus.type === 'count' && <GroupHeaderCount count={syncStatus.count} color={statusColor} />}
+            {syncStatus.type === 'scanning' && <GroupHeaderScanning color={statusColor} />}
             {syncStatus.type === 'fetching' && <GroupHeaderFetching color={statusColor} />}
             {syncStatus.type === 'uploading' && (
               <GroupHeaderUploading

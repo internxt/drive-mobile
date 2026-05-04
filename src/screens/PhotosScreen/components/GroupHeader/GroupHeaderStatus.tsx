@@ -1,8 +1,19 @@
-import { CloudArrowDownIcon, CheckCircleIcon, PauseCircleIcon, PlayCircleIcon, WarningCircleIcon } from 'phosphor-react-native';
+import {
+  CheckCircleIcon,
+  CloudArrowDownIcon,
+  DeviceMobileIcon,
+  PauseCircleIcon,
+  PlayCircleIcon,
+  WarningCircleIcon,
+} from 'phosphor-react-native';
 import { ActivityIndicator } from 'react-native';
 import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../../assets/lang/strings';
+
+interface ColorProps {
+  color: string;
+}
 
 interface CountProps {
   count: number;
@@ -18,11 +29,20 @@ export const GroupHeaderCount = ({ count, color }: CountProps): JSX.Element => {
   );
 };
 
-interface FetchingProps {
-  color: string;
-}
+export const GroupHeaderScanning = ({ color }: ColorProps): JSX.Element => {
+  const tailwind = useTailwind();
+  return (
+    <>
+      <ActivityIndicator size="small" color={color} />
+      <AppText medium style={[tailwind('text-base'), { color }]}>
+        {strings.screens.photos.groupHeader.scanningGallery}
+      </AppText>
+      <DeviceMobileIcon size={24} color={color} weight="regular" />
+    </>
+  );
+};
 
-export const GroupHeaderFetching = ({ color }: FetchingProps): JSX.Element => {
+export const GroupHeaderFetching = ({ color }: ColorProps): JSX.Element => {
   const tailwind = useTailwind();
   return (
     <>
@@ -100,11 +120,7 @@ export const GroupHeaderPausedStorageFull = ({ dangerColor }: PausedStorageFullP
   );
 };
 
-interface CompletedProps {
-  color: string;
-}
-
-export const GroupHeaderCompleted = ({ color }: CompletedProps): JSX.Element => {
+export const GroupHeaderCompleted = ({ color }: ColorProps): JSX.Element => {
   const tailwind = useTailwind();
   return (
     <>

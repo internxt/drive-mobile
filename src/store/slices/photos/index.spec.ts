@@ -1,13 +1,21 @@
 import { photoPermissionService } from '@internxt-mobile/services/photos/photoPermissionService';
 import { configureStore } from '@reduxjs/toolkit';
 import asyncStorageService from 'src/services/AsyncStorageService';
+import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
+import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
+import { PhotoDeviceId } from 'src/services/photos/PhotoDeviceId';
+import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
 import photosReducer, {
   checkPermissionRevocationThunk,
   disableBackupThunk,
   enableBackupThunk,
   hydratePhotosStateThunk,
+  initDeviceIdThunk,
+  photosSlice,
   PhotosState,
+  runBackupCycleThunk,
+  runDiscoveryThunk,
   setNetworkConditionThunk,
 } from './index';
 
@@ -20,22 +28,47 @@ jest.mock('src/services/AsyncStorageService', () => ({
 }));
 
 jest.mock('@internxt-mobile/services/photos/photoPermissionService', () => ({
+  isPermissionActive: (status: string) => status === 'granted' || status === 'limited',
   photoPermissionService: {
     getStatus: jest.fn(),
     requestPermission: jest.fn(),
   },
 }));
 
+jest.mock('src/services/photos/PhotoDeviceId', () => ({
+  PhotoDeviceId: { getOrCreate: jest.fn().mockResolvedValue('mock-device-id') },
+}));
+
+jest.mock('src/services/photos/PhotoAssetScanner', () => ({
+  PhotoAssetScanner: { scanAll: jest.fn().mockResolvedValue([]) },
+}));
+
+jest.mock('src/services/photos/PhotoDeduplicator', () => ({
+  PhotoDeduplicator: { filter: jest.fn().mockResolvedValue([]) },
+}));
+
+jest.mock('src/services/photos/database/photosLocalDB', () => ({
+  photosLocalDB: { init: jest.fn().mockResolvedValue(undefined) },
+}));
+
 const mockAsyncStorage = asyncStorageService as jest.Mocked<typeof asyncStorageService>;
 const mockPermissionService = photoPermissionService as jest.Mocked<typeof photoPermissionService>;
+const mockPhotoDeviceId = PhotoDeviceId as jest.Mocked<typeof PhotoDeviceId>;
+const mockScanner = PhotoAssetScanner as jest.Mocked<typeof PhotoAssetScanner>;
+const mockDeduplicator = PhotoDeduplicator as jest.Mocked<typeof PhotoDeduplicator>;
+const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
 
 const makeStore = () => {
   const store = configureStore({ reducer: { photos: photosReducer } });
   return { ...store, dispatch: store.dispatch as AppDispatch };
 };
 
-const getPersistedState = (): PhotosState =>
-  JSON.parse((mockAsyncStorage.saveItem.mock.calls.at(-1) as [string, string])[1]);
+const getPersistedState = (): PhotosState => {
+  const call = (mockAsyncStorage.saveItem.mock.calls as [string, string][]).findLast(
+    ([key]) => key === 'photosSettings',
+  );
+  return JSON.parse(call![1]);
+};
 
 describe('photos slice', () => {
   beforeEach(() => {
@@ -52,7 +85,15 @@ describe('photos slice', () => {
   });
 
   test('when hydratePhotosStateThunk runs with persisted data, then state reflects saved values', async () => {
-    const saved: PhotosState = { enabled: true, networkCondition: 'wifi-and-data', permissionStatus: 'granted' };
+    const saved: PhotosState = {
+      enabled: true,
+      networkCondition: 'wifi-and-data',
+      permissionStatus: 'granted',
+      syncStatus: 'idle',
+      pendingCount: 0,
+      totalScannedCount: 0,
+      deviceId: null,
+    };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
     const store = makeStore();
@@ -219,5 +260,106 @@ describe('photos slice', () => {
     expect(store.getState().photos.networkCondition).toBe('wifi-only');
     expect(mockAsyncStorage.saveItem).toHaveBeenCalledTimes(2);
     expect(getPersistedState()).toMatchObject({ networkCondition: 'wifi-only' });
+  });
+
+  test('when initDeviceIdThunk runs and no id is stored, then a new device id is created and set in state', async () => {
+    mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('new-device-id');
+
+    const store = makeStore();
+    await store.dispatch(initDeviceIdThunk());
+
+    expect(store.getState().photos.deviceId).toBe('new-device-id');
+  });
+
+  test('when initDeviceIdThunk runs and an id already exists, then the existing id is returned and set in state', async () => {
+    mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('existing-device-id');
+
+    const store = makeStore();
+    await store.dispatch(initDeviceIdThunk());
+
+    expect(store.getState().photos.deviceId).toBe('existing-device-id');
+    expect(mockPhotoDeviceId.getOrCreate).toHaveBeenCalledTimes(1);
+  });
+
+  test('when runDiscoveryThunk runs and backup is disabled, then scanner is not called', async () => {
+    const store = makeStore();
+    await store.dispatch(runDiscoveryThunk());
+
+    expect(mockScanner.scanAll).not.toHaveBeenCalled();
+    expect(store.getState().photos.syncStatus).toBe('idle');
+  });
+
+  test('when runDiscoveryThunk runs and scanner returns 10 assets with 3 already synced, then pendingCount is 7', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    const assets = Array.from({ length: 10 }, (_, i) => ({ id: `asset-${i}` }));
+    mockScanner.scanAll.mockResolvedValueOnce(assets as never);
+    mockDeduplicator.filter.mockResolvedValueOnce(assets.slice(3) as never);
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+    jest.clearAllMocks();
+    mockScanner.scanAll.mockResolvedValueOnce(assets as never);
+    mockDeduplicator.filter.mockResolvedValueOnce(assets.slice(3) as never);
+    mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
+    await store.dispatch(runDiscoveryThunk());
+
+    expect(store.getState().photos.pendingCount).toBe(7);
+    expect(store.getState().photos.totalScannedCount).toBe(10);
+    expect(store.getState().photos.syncStatus).toBe('idle');
+  });
+
+  test('when runDiscoveryThunk runs and scanner returns 0 assets, then pendingCount is 0 and syncStatus is idle', async () => {
+    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+
+    const store = makeStore();
+    await store.dispatch(enableBackupThunk());
+    jest.clearAllMocks();
+    mockScanner.scanAll.mockResolvedValueOnce([] as never);
+    mockDeduplicator.filter.mockResolvedValueOnce([] as never);
+    mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
+    await store.dispatch(runDiscoveryThunk());
+
+    expect(store.getState().photos.pendingCount).toBe(0);
+    expect(store.getState().photos.totalScannedCount).toBe(0);
+    expect(store.getState().photos.syncStatus).toBe('idle');
+  });
+
+  test('when runBackupCycleThunk runs and backup is disabled, then scanner is not called', async () => {
+    const store = makeStore();
+    await store.dispatch(runBackupCycleThunk());
+
+    expect(mockScanner.scanAll).not.toHaveBeenCalled();
+    expect(mockPhotoDeviceId.getOrCreate).not.toHaveBeenCalled();
+  });
+
+  test('when runBackupCycleThunk runs and permission is revoked, then scanner is not called', async () => {
+    const store = makeStore();
+    store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+    mockPermissionService.getStatus.mockResolvedValueOnce('denied');
+
+    await store.dispatch(runBackupCycleThunk());
+
+    expect(mockScanner.scanAll).not.toHaveBeenCalled();
+    expect(store.getState().photos.enabled).toBe(false);
+  });
+
+  test('when runBackupCycleThunk runs and backup is enabled with granted permission, then discovery runs', async () => {
+    const store = makeStore();
+    store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+    mockPermissionService.getStatus.mockResolvedValueOnce('granted');
+    mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('device-id');
+    const assets = Array.from({ length: 5 }, (_, i) => ({ id: `asset-${i}` }));
+    mockScanner.scanAll.mockResolvedValueOnce(assets as never);
+    mockDeduplicator.filter.mockResolvedValueOnce(assets as never);
+    mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
+
+    await store.dispatch(runBackupCycleThunk());
+    // drain any background microtasks before asserting
+    await Promise.resolve();
+
+    expect(mockPhotoDeviceId.getOrCreate).toHaveBeenCalledTimes(1);
+    expect(mockScanner.scanAll).toHaveBeenCalledTimes(1);
+    expect(store.getState().photos.pendingCount).toBe(5);
+    expect(store.getState().photos.syncStatus).toBe('idle');
   });
 });

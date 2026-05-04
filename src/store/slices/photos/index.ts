@@ -1,22 +1,39 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import asyncStorageService from 'src/services/AsyncStorageService';
-import { photoPermissionService, PhotoPermissionStatus } from 'src/services/photos/photoPermissionService';
+import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
+import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
+import { PhotoDeviceId } from 'src/services/photos/PhotoDeviceId';
+import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
+import {
+  isPermissionActive,
+  photoPermissionService,
+  PhotoPermissionStatus,
+} from 'src/services/photos/photoPermissionService';
 import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
+export type PhotoSyncStatus = 'idle' | 'scanning' | 'synced' | 'error';
 
 export interface PhotosState {
   enabled: boolean;
   networkCondition: PhotoNetworkCondition;
   permissionStatus: PhotoPermissionStatus;
+  syncStatus: PhotoSyncStatus;
+  pendingCount: number;
+  totalScannedCount: number;
+  deviceId: string | null;
 }
 
 const initialState: PhotosState = {
   enabled: false,
   networkCondition: 'wifi-only',
   permissionStatus: 'undetermined',
+  syncStatus: 'idle',
+  pendingCount: 0,
+  totalScannedCount: 0,
+  deviceId: null,
 };
 
 const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
@@ -44,14 +61,17 @@ export const enableBackupThunk = createAsyncThunk<
   { state: RootState }
 >('photos/enableBackup', async (_, { getState, dispatch }) => {
   const permissionStatus = await photoPermissionService.requestPermission();
-  const isGranted = permissionStatus === 'granted' || permissionStatus === 'limited';
+  const isGranted = isPermissionActive(permissionStatus);
 
   const state = getState().photos;
   const updated: PhotosState = { ...state, enabled: isGranted, permissionStatus };
   dispatch(photosSlice.actions.setState({ enabled: isGranted, permissionStatus }));
   await persistPhotosSettings(updated);
 
-  // TODO: trigger initial gallery scan here
+  if (isGranted) {
+    await dispatch(initDeviceIdThunk());
+    dispatch(runDiscoveryThunk());
+  }
 
   return { isGranted, permissionStatus };
 });
@@ -78,6 +98,54 @@ export const checkPermissionRevocationThunk = createAsyncThunk<void, void, { sta
     } else {
       dispatch(photosSlice.actions.setPermissionStatus(status));
     }
+  },
+);
+
+export const initDeviceIdThunk = createAsyncThunk<string, void, { state: RootState }>(
+  'photos/initDeviceId',
+  async (_, { dispatch }) => {
+    const id = await PhotoDeviceId.getOrCreate();
+    dispatch(photosSlice.actions.setDeviceId(id));
+    return id;
+  },
+);
+
+export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/runDiscovery',
+  async (_, { getState, dispatch }) => {
+    const { enabled, syncStatus } = getState().photos;
+    if (!enabled || syncStatus === 'scanning') return;
+
+    logger.info('[Discovery] Starting discovery cycle');
+    dispatch(photosSlice.actions.setSyncStatus('scanning'));
+    try {
+      await photosLocalDB.init();
+      const scannedAssets = await PhotoAssetScanner.scanAll();
+      const pending = await PhotoDeduplicator.filter(scannedAssets);
+      dispatch(
+        photosSlice.actions.setDiscoveryResult({
+          pendingCount: pending.length,
+          totalScannedCount: scannedAssets.length,
+        }),
+      );
+      dispatch(photosSlice.actions.setSyncStatus('idle'));
+      logger.info(`[Discovery] Complete — scanned: ${scannedAssets.length}, pending: ${pending.length}`);
+    } catch (error) {
+      logger.error('[Discovery] Failed', { error });
+      dispatch(photosSlice.actions.setSyncStatus('error'));
+    }
+  },
+);
+
+export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/runBackupCycle',
+  async (_, { getState, dispatch }) => {
+    await dispatch(checkPermissionRevocationThunk());
+    const { enabled, permissionStatus, deviceId } = getState().photos;
+    if (!enabled || !isPermissionActive(permissionStatus)) return;
+
+    if (!deviceId) await dispatch(initDeviceIdThunk());
+    await dispatch(runDiscoveryThunk());
   },
 );
 
@@ -108,6 +176,16 @@ export const photosSlice = createSlice({
     },
     setState: (state, action: PayloadAction<Partial<PhotosState>>) => {
       return { ...state, ...action.payload };
+    },
+    setSyncStatus: (state, action: PayloadAction<PhotoSyncStatus>) => {
+      state.syncStatus = action.payload;
+    },
+    setDeviceId: (state, action: PayloadAction<string>) => {
+      state.deviceId = action.payload;
+    },
+    setDiscoveryResult: (state, action: PayloadAction<{ pendingCount: number; totalScannedCount: number }>) => {
+      state.pendingCount = action.payload.pendingCount;
+      state.totalScannedCount = action.payload.totalScannedCount;
     },
   },
 });
