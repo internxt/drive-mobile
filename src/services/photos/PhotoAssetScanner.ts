@@ -4,7 +4,6 @@ import { logger } from 'src/services/common';
 const PAGE_SIZE = 200;
 const MEDIA_TYPES = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video];
 
-// onAssetFetched returns true to stop pagination early
 const paginateAssets = async (
   options: Omit<MediaLibrary.AssetsOptions, 'first' | 'after'>,
   onAssetFetched: (asset: MediaLibrary.Asset) => boolean,
@@ -37,7 +36,7 @@ export const PhotoAssetScanner = {
 
     await paginateAssets({ mediaType: MEDIA_TYPES, sortBy: MediaLibrary.SortBy.modificationTime }, (asset) => {
       results.push(asset);
-      return false; // never stop early — collect all
+      return false;
     });
 
     logger.info(`[PhotoAssetScanner] Scan complete — ${results.length} assets`);
