@@ -19,7 +19,7 @@ describe('PhotoPermissionService', () => {
   });
 
   describe('getStatus', () => {
-    it('when iOS accessPrivileges is all, then returns granted', async () => {
+    test('when iOS accessPrivileges is all, then returns granted', async () => {
       mockMediaLibrary.getPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'granted' as MediaLibrary.PermissionStatus, accessPrivileges: 'all', granted: true }),
       );
@@ -27,7 +27,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.getStatus()).toBe('granted');
     });
 
-    it('when iOS accessPrivileges is limited, then returns limited', async () => {
+    test('when iOS accessPrivileges is limited, then returns limited', async () => {
       mockMediaLibrary.getPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'granted' as MediaLibrary.PermissionStatus, accessPrivileges: 'limited', granted: true }),
       );
@@ -35,7 +35,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.getStatus()).toBe('limited');
     });
 
-    it('when iOS accessPrivileges is none, then returns denied', async () => {
+    test('when iOS accessPrivileges is none, then returns denied', async () => {
       mockMediaLibrary.getPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'denied' as MediaLibrary.PermissionStatus, accessPrivileges: 'none', granted: false }),
       );
@@ -43,7 +43,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.getStatus()).toBe('denied');
     });
 
-    it('when iOS accessPrivileges is all but status is denied, then accessPrivileges takes precedence and returns granted', async () => {
+    test('when iOS accessPrivileges is all but status is denied, then accessPrivileges takes precedence and returns granted', async () => {
       mockMediaLibrary.getPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'denied' as MediaLibrary.PermissionStatus, accessPrivileges: 'all', granted: false }),
       );
@@ -51,7 +51,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.getStatus()).toBe('granted');
     });
 
-    it('when Android status is granted with no accessPrivileges, then returns granted', async () => {
+    test('when Android status is granted with no accessPrivileges, then returns granted', async () => {
       mockMediaLibrary.getPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'granted' as MediaLibrary.PermissionStatus, granted: true }),
       );
@@ -59,7 +59,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.getStatus()).toBe('granted');
     });
 
-    it('when status is denied, then returns denied', async () => {
+    test('when status is denied, then returns denied', async () => {
       mockMediaLibrary.getPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'denied' as MediaLibrary.PermissionStatus, canAskAgain: false }),
       );
@@ -67,7 +67,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.getStatus()).toBe('denied');
     });
 
-    it('when status is undetermined, then returns undetermined', async () => {
+    test('when status is undetermined, then returns undetermined', async () => {
       mockMediaLibrary.getPermissionsAsync.mockResolvedValueOnce(makeResponse({}));
 
       expect(await photoPermissionService.getStatus()).toBe('undetermined');
@@ -75,7 +75,7 @@ describe('PhotoPermissionService', () => {
   });
 
   describe('requestPermission', () => {
-    it('when iOS user grants full access, then returns granted', async () => {
+    test('when iOS user grants full access, then returns granted', async () => {
       mockMediaLibrary.requestPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'granted' as MediaLibrary.PermissionStatus, accessPrivileges: 'all', granted: true }),
       );
@@ -83,7 +83,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.requestPermission()).toBe('granted');
     });
 
-    it('when iOS user grants limited access, then returns limited', async () => {
+    test('when iOS user grants limited access, then returns limited', async () => {
       mockMediaLibrary.requestPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'granted' as MediaLibrary.PermissionStatus, accessPrivileges: 'limited', granted: true }),
       );
@@ -91,7 +91,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.requestPermission()).toBe('limited');
     });
 
-    it('when iOS user revokes access, then returns denied', async () => {
+    test('when iOS user revokes access, then returns denied', async () => {
       mockMediaLibrary.requestPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'denied' as MediaLibrary.PermissionStatus, accessPrivileges: 'none', granted: false }),
       );
@@ -99,7 +99,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.requestPermission()).toBe('denied');
     });
 
-    it('when Android user allows, then returns granted', async () => {
+    test('when Android user allows, then returns granted', async () => {
       mockMediaLibrary.requestPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'granted' as MediaLibrary.PermissionStatus, granted: true }),
       );
@@ -107,7 +107,7 @@ describe('PhotoPermissionService', () => {
       expect(await photoPermissionService.requestPermission()).toBe('granted');
     });
 
-    it('when user denies, then returns denied', async () => {
+    test('when user denies, then returns denied', async () => {
       mockMediaLibrary.requestPermissionsAsync.mockResolvedValueOnce(
         makeResponse({ status: 'denied' as MediaLibrary.PermissionStatus, canAskAgain: false }),
       );
