@@ -21,12 +21,12 @@ import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
+import PhotosScreen from '../screens/PhotosScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
-import { SettingsNavigator } from './SettingsNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -77,7 +77,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
-        <Tab.Screen name="Settings" component={SettingsNavigator} options={{ lazy: false }} />
+        <Tab.Screen name="Photos" component={PhotosScreen} />
       </Tab.Navigator>
 
       <AddModal />

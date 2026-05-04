@@ -14,6 +14,7 @@ import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
 import DebugScreen from '../screens/DebugScreen';
 import { TrashScreen } from '../screens/common/TrashScreen';
 import { DrivePreviewScreen } from '../screens/drive/DrivePreviewScreen';
+import { SettingsNavigator } from './SettingsNavigator';
 import ShareExtensionView from '../shareExtension/ShareExtensionView.android';
 import { useIosPendingShareHandoff } from '../shareExtension/hooks/useIosPendingShareHandoff';
 import { useAndroidShareIntent } from '../shareExtension/useAndroidShareIntent';
@@ -43,6 +44,7 @@ function AppNavigator({ navigationContainerRef }: Readonly<Props>): JSX.Element 
       <Stack.Screen name="DeactivatedAccount" component={DeactivatedAccountScreen} />
       <Stack.Screen name="TabExplorer" component={AuthenticatedNavigator} />
       <Stack.Screen name="Trash" component={TrashScreen} />
+      <Stack.Screen name="Settings" component={SettingsNavigator} />
       <Stack.Screen
         name="DrivePreview"
         component={DrivePreviewScreen}

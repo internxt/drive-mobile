@@ -1,21 +1,17 @@
-import React from 'react';
-
-import strings from '../../../assets/lang/strings';
-import ScreenTitle from '../../components/AppScreenTitle';
-import AppScreen from '../../components/AppScreen';
-import DebugNotificationsWidget from '../../components/DebugNotificationsWidget';
-import DebugInternetWidget from '../../components/DebugInternetWidget';
-import DebugUploadWidget from '../../components/DebugUploadWidget';
-import DebugDownloadWidget from '../../components/DebugDownloadWidget';
-import { RootStackScreenProps } from '../../types/navigation';
-import { useTailwind } from 'tailwind-rn';
-import useGetColor from '../../hooks/useColor';
-import { DebugDeviceStorageWidget } from 'src/components/DebugDeviceStorageWidget';
 import { ScrollView } from 'react-native';
+import { DebugDeviceStorageWidget } from 'src/components/DebugDeviceStorageWidget';
+import { useTailwind } from 'tailwind-rn';
+import strings from '../../../assets/lang/strings';
+import AppScreen from '../../components/AppScreen';
+import ScreenTitle from '../../components/AppScreenTitle';
+import DebugDownloadWidget from '../../components/DebugDownloadWidget';
+import DebugInternetWidget from '../../components/DebugInternetWidget';
+import DebugNotificationsWidget from '../../components/DebugNotificationsWidget';
+import DebugUploadWidget from '../../components/DebugUploadWidget';
+import { RootStackScreenProps } from '../../types/navigation';
 
 function DebugScreen({ navigation }: RootStackScreenProps<'Debug'>): JSX.Element {
   const tailwind = useTailwind();
-  const getColor = useGetColor();
   const onBackButtonPressed = () => navigation.goBack();
 
   return (

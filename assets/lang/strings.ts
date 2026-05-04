@@ -41,7 +41,7 @@ const translations = {
       Drive: 'Drive',
       Add: 'Add',
       Shared: 'Shared',
-      Settings: 'Settings',
+      Photos: 'Photos',
     },
     subscriptions: {
       free: 'Free plan',
@@ -161,6 +161,11 @@ const translations = {
       },
       home: {
         title: 'Home',
+      },
+      photos: {
+        title: 'Photos',
+        emptyTitle: 'No photos to show',
+        emptySubtitle: 'Take a photo or video to start backing up',
       },
       forgot_password: {
         title: 'Delete account',
@@ -887,7 +892,7 @@ const translations = {
       Drive: 'Drive',
       Add: 'Añadir',
       Shared: 'Compartido',
-      Settings: 'Ajustes',
+      Photos: 'Fotos',
     },
     subscriptions: {
       free: 'Plan gratuito',
@@ -1008,6 +1013,11 @@ const translations = {
       },
       home: {
         title: 'Inicio',
+      },
+      photos: {
+        title: 'Fotos',
+        emptyTitle: 'No hay fotos que mostrar',
+        emptySubtitle: 'Haz una foto o vídeo para empezar el backup',
       },
       forgot_password: {
         title: 'Borrar cuenta',
