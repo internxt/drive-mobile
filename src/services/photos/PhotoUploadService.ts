@@ -20,8 +20,6 @@ import {
   stripFileSchemeAndFragment,
 } from './PhotoUploadService.utils';
 
-export { FileAlreadyExistsError };
-
 const TEMP_FILE_PREFIX = 'photo_upload_';
 
 interface UploadCredentials {
