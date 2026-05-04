@@ -4,6 +4,7 @@
     "strict": true,
     "baseUrl": ".",
     "jsx": "react-jsx",
+    "types": ["jest"],
     "paths": {
       "@internxt-mobile/ui-kit": ["src/components/ui-kit/index.ts"],
       "@internxt-mobile/hooks/*": ["src/hooks/*"],

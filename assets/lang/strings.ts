@@ -164,8 +164,31 @@ const translations = {
       },
       photos: {
         title: 'Photos',
+        select: 'Select',
         emptyTitle: 'No photos to show',
         emptySubtitle: 'Take a photo or video to start backing up',
+        syncStatus: {
+          loading: 'Getting photos from the cloud',
+          completed: 'Backup completed',
+        },
+        backupDisabled: {
+          message: 'Internxt Photos is disabled. Your photos and videos are not being backed up.',
+          enableCta: 'Enable gallery backup in settings.',
+        },
+        groupHeader: {
+          items: 'items',
+          backingUp: 'Backing up',
+          backupPaused: 'Backup paused',
+          storageFull: 'Storage is full',
+          backupCompleted: 'Backup completed',
+          gettingPhotos: 'Getting photos from the cloud',
+        },
+        photosLocked: {
+          title: 'Photos is locked',
+          body: 'Automatically back up, organize, and protect your photos in one private space.',
+          upgradeLine: 'Upgrade to Ultimate to unlock Photos.',
+          upgradeCta: 'Upgrade',
+        },
       },
       forgot_password: {
         title: 'Delete account',
@@ -1016,8 +1039,31 @@ const translations = {
       },
       photos: {
         title: 'Fotos',
+        select: 'Seleccionar',
         emptyTitle: 'No hay fotos que mostrar',
         emptySubtitle: 'Haz una foto o vídeo para empezar el backup',
+        syncStatus: {
+          loading: 'Obteniendo fotos de la nube',
+          completed: 'Backup completado',
+        },
+        backupDisabled: {
+          message: 'Internxt Photos está desactivado. Tus fotos y vídeos no se están guardando.',
+          enableCta: 'Activa el backup en ajustes.',
+        },
+        groupHeader: {
+          items: 'elementos',
+          backingUp: 'Guardando copia',
+          backupPaused: 'Backup pausado',
+          storageFull: 'Almacenamiento lleno',
+          backupCompleted: 'Backup completado',
+          gettingPhotos: 'Obteniendo fotos de la nube',
+        },
+        photosLocked: {
+          title: 'Photos está bloqueado',
+          body: 'Haz copias de seguridad, organiza y protege tus fotos automáticamente en un espacio privado.',
+          upgradeLine: 'Actualiza a Ultimate para desbloquear Fotos.',
+          upgradeCta: 'Mejorar plan',
+        },
       },
       forgot_password: {
         title: 'Borrar cuenta',

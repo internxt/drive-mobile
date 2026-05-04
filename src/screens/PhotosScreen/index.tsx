@@ -1,28 +1,109 @@
-import { ImageIcon } from 'phosphor-react-native';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
-import AppScreenTitle from 'src/components/AppScreenTitle';
-import AppText from 'src/components/AppText';
-import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
-import strings from '../../../assets/lang/strings';
+import BackupDisabledBanner from './components/BackupDisabledBanner';
+import { GroupSyncStatus } from './components/GroupHeader/PhotosGroupHeader';
+import PhotosHeader from './components/PhotosHeader';
+import PhotosLockedOverlay from './components/PhotosLockedOverlay';
+import PhotosTimeline, { TimelineDateGroup } from './components/PhotosTimeline';
+import { MOCK_GROUP, MOCK_GROUP_BACKING_UP, MOCK_MULTI_DATE_GROUPS } from './mockData';
+import { PhotosAccessState, PhotosSyncStatus } from './types';
+
+type ScreenVariant =
+  | 'fetching'
+  | 'uploading'
+  | 'paused'
+  | 'paused-storage-full'
+  | 'completed'
+  | 'synced'
+  | 'backup-off'
+  | 'photos-locked';
+
+interface ScreenConfig {
+  syncStatus: PhotosSyncStatus;
+  accessState: PhotosAccessState;
+  groups: TimelineDateGroup[];
+}
+
+const multiDateGroups = ({ first }: { first: GroupSyncStatus }): TimelineDateGroup[] =>
+  MOCK_MULTI_DATE_GROUPS.map((group, i) => ({
+    group,
+    syncStatus: i === 0 ? first : ({ type: 'count', count: group.photos.length } satisfies GroupSyncStatus),
+  }));
+
+const getScreenConfig = (variant: ScreenVariant): ScreenConfig => {
+  switch (variant) {
+    case 'fetching':
+      return {
+        syncStatus: { type: 'fetching' },
+        accessState: { type: 'available' },
+        groups: [{ group: MOCK_GROUP, syncStatus: { type: 'fetching' } }],
+      };
+    case 'uploading':
+      return {
+        syncStatus: { type: 'uploading' },
+        accessState: { type: 'available' },
+        groups: [{ group: MOCK_GROUP_BACKING_UP, syncStatus: { type: 'uploading', count: 1275, backupProgress: 0.6 } }],
+      };
+    case 'paused':
+      return {
+        syncStatus: { type: 'paused' },
+        accessState: { type: 'available' },
+        groups: multiDateGroups({ first: { type: 'paused', count: 1275 } }),
+      };
+    case 'paused-storage-full':
+      return {
+        syncStatus: { type: 'paused' },
+        accessState: { type: 'available' },
+        groups: multiDateGroups({ first: { type: 'paused-storage-full' } }),
+      };
+    case 'completed':
+      return {
+        syncStatus: { type: 'completed' },
+        accessState: { type: 'available' },
+        groups: multiDateGroups({ first: { type: 'completed' } }),
+      };
+    case 'synced':
+      return {
+        syncStatus: { type: 'synced' },
+        accessState: { type: 'available' },
+        groups: multiDateGroups({ first: { type: 'count', count: 55691 } }),
+      };
+    case 'backup-off':
+      return {
+        syncStatus: { type: 'synced' },
+        accessState: { type: 'backup-off' },
+        groups: multiDateGroups({ first: { type: 'count', count: 55691 } }),
+      };
+    case 'photos-locked':
+      return {
+        syncStatus: { type: 'synced' },
+        accessState: { type: 'photos-locked' },
+        groups: multiDateGroups({ first: { type: 'count', count: 55691 } }),
+      };
+  }
+};
+
+const DEMO_VARIANT: ScreenVariant = 'synced';
+const DEMO_CONFIG = getScreenConfig(DEMO_VARIANT);
+
+const handleEnableBackup = () => console.log('Enable backup pressed');
+const handleSelectPress = () => console.log('Select pressed');
+const handleUpgradePress = () => console.log('Upgrade pressed');
 
 const PhotosScreen = (): JSX.Element => {
   const tailwind = useTailwind();
-  const getColor = useGetColor();
+  const { accessState, groups } = DEMO_CONFIG;
+
+  const listHeader =
+    accessState.type === 'backup-off' ? <BackupDisabledBanner onEnablePress={handleEnableBackup} /> : undefined;
 
   return (
     <AppScreen safeAreaTop style={tailwind('flex-1')}>
-      <AppScreenTitle text={strings.screens.photos.title} showBackButton={false} />
-
-      <View style={tailwind('flex-1 items-center justify-center px-10')}>
-        <ImageIcon size={64} color={getColor('text-primary')} />
-        <AppText medium style={[tailwind('text-xl mt-5 text-center'), { color: getColor('text-gray-100') }]}>
-          {strings.screens.photos.emptyTitle}
-        </AppText>
-        <AppText style={[tailwind('text-base mt-1 text-center'), { color: getColor('text-gray-50') }]}>
-          {strings.screens.photos.emptySubtitle}
-        </AppText>
+      <PhotosHeader onSelectPress={handleSelectPress} />
+      <View style={tailwind('flex-1')}>
+        <PhotosTimeline groups={groups} ListHeaderComponent={listHeader} />
+        {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>
     </AppScreen>
   );
