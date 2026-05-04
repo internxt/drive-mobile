@@ -6,10 +6,10 @@ const PHOTOS_BACKUP_ROOT_NAME = 'Photos Backup';
 
 class PhotoBackupFolderService {
   private photosRootUuid: string | null = null;
-  private deviceFolderUuid = new Map<string, string>();
-  private yearFolderUuid = new Map<string, string>();
-  private monthFolderUuid = new Map<string, string>();
-  private dayFolderUuid = new Map<string, string>();
+  private readonly deviceFolderUuid = new Map<string, string>();
+  private readonly yearFolderUuid = new Map<string, string>();
+  private readonly monthFolderUuid = new Map<string, string>();
+  private readonly dayFolderUuid = new Map<string, string>();
 
   async getOrCreateFolderForDate(deviceId: string, date: Date): Promise<string> {
     const year = date.getFullYear().toString();

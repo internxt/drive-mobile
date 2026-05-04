@@ -2,9 +2,11 @@ import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import network from '../../../../network';
 
 import {
+  CheckDuplicatedFilesResponse,
   CreateThumbnailEntryPayload,
   DriveFileData,
   FileEntryByUuid,
+  FileStructure,
   ReplaceFile,
   Thumbnail,
 } from '@internxt/sdk/dist/drive/storage/types';
@@ -74,6 +76,13 @@ class UploadService {
 
   public async createThumbnailEntry(entry: CreateThumbnailEntryPayload): Promise<Thumbnail> {
     return this.sdk.storageV2.createThumbnailEntryWithUUID(entry);
+  }
+
+  public async checkFileExistence(
+    parentFolderUuid: string,
+    filesList: FileStructure[],
+  ): Promise<CheckDuplicatedFilesResponse> {
+    return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
   }
 
   public getFinalUri(fileUri: string, fileType: FileType): string {
