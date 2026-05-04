@@ -1,42 +1,45 @@
 import { FlashList, FlashListProps, ListRenderItem } from '@shopify/flash-list';
 import { useCallback, useMemo, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
-import { PhotoDateGroup, PhotoItem as PhotoItemType } from '../types';
+import { Animated, Dimensions, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
+import { PhotoBackupState, PhotoDateGroup } from '../types';
+import { FlatItem, buildTimelineItems } from '../utils/photoTimelineGroups';
 import PhotosGroupHeader, { GroupSyncStatus } from './GroupHeader/PhotosGroupHeader';
 import PhotoItem from './PhotoItem';
+import PhotosEmptyState from './PhotosEmptyState';
 
-const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as React.ComponentType<FlashListProps<FlatItem>>;
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList) as React.ComponentType<
+  FlashListProps<FlatItem> & { estimatedItemSize?: number }
+>;
 
 export type TimelineDateGroup = { group: PhotoDateGroup; syncStatus: GroupSyncStatus };
 
-type FlatItem =
-  | { type: 'header'; id: string; label: string; syncStatus: GroupSyncStatus }
-  | { type: 'photo'; photo: PhotoItemType };
+const SKELETON_GROUP: TimelineDateGroup = {
+  group: {
+    id: '__skeleton__',
+    label: '',
+    photos: Array.from({ length: 12 }, (_, i) => ({
+      id: `__skeleton_${i}__`,
+      backupState: 'loading' as PhotoBackupState,
+      mediaType: 'photo' as const,
+    })),
+  },
+  syncStatus: { type: 'none' },
+};
 
 const NUM_COLUMNS = 3;
+const ESTIMATED_ITEM_SIZE = Math.round(Dimensions.get('window').width / NUM_COLUMNS);
 
 interface PhotosTimelineProps {
-  groups: TimelineDateGroup[];
+  assetsGroupsByDate: TimelineDateGroup[];
+  isLoading?: boolean;
   onPhotoPress?: (id: string) => void;
   onPhotoLongPress?: (id: string) => void;
   isSelectMode?: boolean;
   selectedIds?: Set<string>;
   ListHeaderComponent?: React.ReactElement;
+  onEndReached?: () => void;
 }
-
-const flattenGroups = (groups: TimelineDateGroup[]): { items: FlatItem[]; headerIndices: number[] } => {
-  const items: FlatItem[] = [];
-  const headerIndices: number[] = [];
-  for (const { group, syncStatus } of groups) {
-    const currentHeaderIndex = items.length;
-    headerIndices.push(currentHeaderIndex);
-    items.push({ type: 'header', id: group.id, label: group.label, syncStatus });
-    for (const photo of group.photos) {
-      items.push({ type: 'photo', photo });
-    }
-  }
-  return { items, headerIndices };
-};
 
 const getItemType = (item: FlatItem) => item.type;
 
@@ -49,14 +52,20 @@ const overrideItemLayout = (layout: { span?: number }, item: FlatItem) => {
 const keyExtractor = (item: FlatItem) => (item.type === 'header' ? `header-${item.id}` : item.photo.id);
 
 const PhotosTimeline = ({
-  groups,
+  assetsGroupsByDate,
+  isLoading,
   onPhotoPress,
   onPhotoLongPress,
   isSelectMode,
   selectedIds,
   ListHeaderComponent,
+  onEndReached,
 }: PhotosTimelineProps) => {
-  const { items, headerIndices } = useMemo(() => flattenGroups(groups), [groups]);
+  const tailwind = useTailwind();
+  const { items, headerIndices } = useMemo(() => {
+    const effectiveGroups = isLoading ? [...assetsGroupsByDate, SKELETON_GROUP] : assetsGroupsByDate;
+    return buildTimelineItems(effectiveGroups);
+  }, [assetsGroupsByDate, isLoading]);
 
   const extraData = useMemo(() => ({ isSelectMode, selectedIds }), [isSelectMode, selectedIds]);
 
@@ -69,17 +78,19 @@ const PhotosTimeline = ({
   const renderItem: ListRenderItem<FlatItem> = useCallback(
     ({ item, target }) => {
       if (item.type === 'header') {
+        const isSticky = target === 'StickyHeader';
+        const showSyncStatus = isSticky || item.isFirst;
         return (
           <PhotosGroupHeader
             label={item.label}
-            syncStatus={item.syncStatus}
-            isSticky={target === 'StickyHeader'}
-            stickyOpacity={target === 'StickyHeader' ? stickyOpacity : undefined}
+            syncStatus={showSyncStatus ? item.syncStatus : { type: 'count', count: item.count }}
+            isSticky={isSticky}
+            stickyOpacity={isSticky ? stickyOpacity : undefined}
           />
         );
       }
       return (
-        <View style={styles.photoCell}>
+        <View style={[tailwind('flex-1'), { aspectRatio: 1, margin: 1 }]}>
           <PhotoItem
             item={item.photo}
             isSelectMode={isSelectMode}
@@ -93,34 +104,29 @@ const PhotosTimeline = ({
     [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, stickyOpacity],
   );
 
+  const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
+
   return (
     <AnimatedFlashList
       data={items}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       numColumns={NUM_COLUMNS}
+      estimatedItemSize={ESTIMATED_ITEM_SIZE}
       stickyHeaderIndices={headerIndices}
       getItemType={getItemType}
       overrideItemLayout={overrideItemLayout}
       extraData={extraData}
       ListHeaderComponent={ListHeaderComponent}
-      contentContainerStyle={styles.content}
+      ListEmptyComponent={isEmpty ? <PhotosEmptyState /> : undefined}
+      contentContainerStyle={isEmpty ? { paddingBottom: 80, flexGrow: 1 } : { paddingBottom: 80 }}
       showsVerticalScrollIndicator={false}
+      onEndReached={onEndReached}
+      onEndReachedThreshold={0.5}
       onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
       scrollEventThrottle={16}
     />
   );
 };
-
-const styles = StyleSheet.create({
-  photoCell: {
-    flex: 1,
-    aspectRatio: 1,
-    margin: 1,
-  },
-  content: {
-    paddingBottom: 80,
-  },
-});
 
 export default PhotosTimeline;
