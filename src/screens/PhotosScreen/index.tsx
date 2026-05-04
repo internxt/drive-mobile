@@ -1,11 +1,16 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { photosActions } from 'src/store/slices/photos';
 import { useTailwind } from 'tailwind-rn';
+import { photoPermissionService } from '../../services/photos/photoPermissionService';
 import BackupDisabledBanner from './components/BackupDisabledBanner';
 import { GroupSyncStatus } from './components/GroupHeader/PhotosGroupHeader';
 import PhotosHeader from './components/PhotosHeader';
 import PhotosLockedOverlay from './components/PhotosLockedOverlay';
 import PhotosTimeline, { TimelineDateGroup } from './components/PhotosTimeline';
+import EnableBackupBottomSheet from './EnableBackupBottomSheet';
 import { MOCK_GROUP, MOCK_GROUP_BACKING_UP, MOCK_MULTI_DATE_GROUPS } from './mockData';
 import { PhotosAccessState, PhotosSyncStatus } from './types';
 
@@ -84,16 +89,29 @@ const getScreenConfig = (variant: ScreenVariant): ScreenConfig => {
   }
 };
 
-const DEMO_VARIANT: ScreenVariant = 'synced';
-const DEMO_CONFIG = getScreenConfig(DEMO_VARIANT);
-
-const handleEnableBackup = () => console.log('Enable backup pressed');
-const handleSelectPress = () => console.log('Select pressed');
-const handleUpgradePress = () => console.log('Upgrade pressed');
-
 const PhotosScreen = (): JSX.Element => {
   const tailwind = useTailwind();
-  const { accessState, groups } = DEMO_CONFIG;
+  const dispatch = useAppDispatch();
+  const { enabled, permissionStatus } = useAppSelector((state) => state.photos);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  useEffect(() => {
+    if (permissionStatus !== 'undetermined') return;
+
+    const checkPermissionStatus = async () => {
+      const permissionStatus = await photoPermissionService.getStatus();
+      dispatch(photosActions.setPermissionStatus(permissionStatus));
+    };
+
+    checkPermissionStatus();
+  }, [permissionStatus]);
+
+  const variant: ScreenVariant = enabled ? 'synced' : 'backup-off';
+  const { accessState, groups } = useMemo(() => getScreenConfig(variant), [variant]);
+
+  const handleEnableBackup = useCallback(() => setIsSheetOpen(true), []);
+  const handleSelectPress = useCallback(() => undefined, []);
+  const handleUpgradePress = useCallback(() => undefined, []);
 
   const listHeader =
     accessState.type === 'backup-off' ? <BackupDisabledBanner onEnablePress={handleEnableBackup} /> : undefined;
@@ -105,6 +123,7 @@ const PhotosScreen = (): JSX.Element => {
         <PhotosTimeline groups={groups} ListHeaderComponent={listHeader} />
         {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>
+      <EnableBackupBottomSheet isOpen={isSheetOpen} onClose={() => setIsSheetOpen(false)} />
     </AppScreen>
   );
 };

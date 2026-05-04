@@ -12,6 +12,7 @@ import {
 } from 'phosphor-react-native';
 import { useRef, useState } from 'react';
 import { Linking, Platform, ScrollView, View } from 'react-native';
+import EnableBackupBottomSheet from '../PhotosScreen/EnableBackupBottomSheet';
 import AppSwitch from '../../components/AppSwitch';
 
 import { storageSelectors } from 'src/store/slices/storage';
@@ -31,6 +32,7 @@ import { useScreenProtection } from '../../hooks/useScreenProtection';
 import appService from '../../services/AppService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
+import { disableBackupThunk, setNetworkConditionThunk } from '../../store/slices/photos';
 import { uiActions } from '../../store/slices/ui';
 import { SettingsScreenProps } from '../../types/navigation';
 
@@ -43,6 +45,7 @@ import { paymentsSelectors } from 'src/store/slices/payments';
 
 function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JSX.Element {
   const [gettingLogs, setGettingLogs] = useState(false);
+  const [isBackupSheetOpen, setIsBackupSheetOpen] = useState(false);
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
@@ -53,6 +56,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const { isEnabled: isScreenProtectionEnabled, setScreenProtection } = useScreenProtection();
   useLanguage();
 
+  const { enabled: photosEnabled, networkCondition } = useAppSelector((state) => state.photos);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const profileAvatar = useProfileAvatar();
@@ -125,6 +129,11 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
 
   return (
     <>
+      <EnableBackupBottomSheet
+        isOpen={isBackupSheetOpen}
+        onClose={() => setIsBackupSheetOpen(false)}
+        onSuccess={() => navigation.navigate('Photos')}
+      />
       <AppScreen
         safeAreaTop
         safeAreaColor={getColor('bg-surface')}
@@ -308,6 +317,80 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                     </View>
                   ),
                   onPress: undefined,
+                },
+              ]}
+            />
+
+            {/* PHOTOS */}
+            <SettingsGroup
+              title={strings.screens.SettingsScreen.photos.sectionTitle}
+              items={[
+                {
+                  key: 'photos-backup',
+                  template: (
+                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <View style={tailwind('flex-1 mr-3')}>
+                        <AppText style={[tailwind('text-lg')]}>
+                          {strings.screens.SettingsScreen.photos.backupTitle}
+                        </AppText>
+                        <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
+                          {strings.screens.SettingsScreen.photos.backupDescription}
+                        </AppText>
+                      </View>
+                      <AppSwitch
+                        trackColor={{
+                          false: getColor('text-gray-20'),
+                          true: getColor('text-primary'),
+                        }}
+                        thumbColor={photosEnabled ? getColor('text-white') : getColor('text-gray-40')}
+                        ios_backgroundColor={getColor('text-gray-20')}
+                        value={photosEnabled}
+                        pointerEvents="none"
+                      />
+                    </View>
+                  ),
+                  onPress: () => {
+                    if (photosEnabled) {
+                      dispatch(disableBackupThunk());
+                    } else {
+                      setIsBackupSheetOpen(true);
+                    }
+                  },
+                },
+                {
+                  key: 'photos-mobile-data',
+                  template: (
+                    <View
+                      style={[
+                        tailwind('flex-row items-center px-4 py-3'),
+                        !photosEnabled && { opacity: 0.4 },
+                      ]}
+                    >
+                      <View style={tailwind('flex-1 mr-3')}>
+                        <AppText style={[tailwind('text-lg')]}>
+                          {strings.screens.SettingsScreen.photos.mobileDataTitle}
+                        </AppText>
+                        <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
+                          {strings.screens.SettingsScreen.photos.mobileDataDescription}
+                        </AppText>
+                      </View>
+                      <AppSwitch
+                        trackColor={{
+                          false: getColor('text-gray-20'),
+                          true: getColor('text-primary'),
+                        }}
+                        thumbColor={
+                          networkCondition === 'wifi-and-data' ? getColor('text-white') : getColor('text-gray-40')
+                        }
+                        ios_backgroundColor={getColor('text-gray-20')}
+                        value={networkCondition === 'wifi-and-data'}
+                        pointerEvents="none"
+                      />
+                    </View>
+                  ),
+                  onPress: photosEnabled
+                    ? () => dispatch(setNetworkConditionThunk(networkCondition === 'wifi-and-data' ? 'wifi-only' : 'wifi-and-data'))
+                    : undefined,
                 },
               ]}
             />

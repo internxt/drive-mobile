@@ -189,6 +189,19 @@ const translations = {
           upgradeLine: 'Upgrade to Ultimate to unlock Photos.',
           upgradeCta: 'Upgrade',
         },
+        enableSheet: {
+          title: 'All your photos,\none gallery',
+          featurePrivacy: 'Keep your memories safe and private, only you can access them.',
+          featureDevices: 'Access from all your devices, even from the browser with Photos Web.',
+          featureBackup: 'Backup all your photos in case you lose your device.',
+          allowButton: 'Back up my gallery',
+          deniedHintPrefix: 'On the following screen, change Photos access from ',
+          deniedHintNone: 'None',
+          deniedHintMiddle: ' to ',
+          deniedHintAllPhotos: 'All Photos',
+          disclaimer:
+            'Internxt Photos needs access to your photos to let you view, sync and share photos from this device.',
+        },
       },
       forgot_password: {
         title: 'Delete account',
@@ -299,6 +312,13 @@ const translations = {
         darkModeDescription: 'Change the app theme',
         screenProtection: 'Screen protection',
         screenProtectionDescription: 'Enable screen protection',
+        photos: {
+          sectionTitle: 'PHOTOS',
+          backupTitle: 'Backup photos',
+          backupDescription: 'All your gallery photos and videos will be backed up on Internxt Photos',
+          mobileDataTitle: 'Use mobile data to upload',
+          mobileDataDescription: 'Use wifi and mobile data to backup your gallery',
+        },
       },
       AccountScreen: {
         title: 'Account',
@@ -1064,6 +1084,19 @@ const translations = {
           upgradeLine: 'Actualiza a Ultimate para desbloquear Fotos.',
           upgradeCta: 'Mejorar plan',
         },
+        enableSheet: {
+          title: 'Todas tus fotos,\nuna galería',
+          featurePrivacy: 'Mantén tus recuerdos seguros y privados, solo tú puedes acceder a ellos.',
+          featureDevices: 'Accede desde todos tus dispositivos, incluso desde el navegador con Photos Web.',
+          featureBackup: 'Haz backup de todas tus fotos por si pierdes tu dispositivo.',
+          allowButton: 'Guardar mi galería',
+          deniedHintPrefix: 'En la siguiente pantalla, cambia el acceso a Fotos de ',
+          deniedHintNone: 'Ninguno',
+          deniedHintMiddle: ' a ',
+          deniedHintAllPhotos: 'Todas las fotos',
+          disclaimer:
+            'Internxt Photos necesita acceso a tus fotos para que puedas ver, sincronizar y compartir fotos desde este dispositivo.',
+        },
       },
       forgot_password: {
         title: 'Borrar cuenta',
@@ -1174,6 +1207,13 @@ const translations = {
         darkModeDescription: 'Cambiar apariencia de la aplicación',
         screenProtection: 'Protección de pantalla',
         screenProtectionDescription: 'Activar protección de pantalla',
+        photos: {
+          sectionTitle: 'PHOTOS',
+          backupTitle: 'Backup de fotos',
+          backupDescription: 'Todas tus fotos y vídeos de la galería se guardarán en Internxt Photos',
+          mobileDataTitle: 'Usar datos móviles para subir',
+          mobileDataDescription: 'Usa wifi y datos móviles para hacer el backup de tu galería',
+        },
       },
       AccountScreen: {
         title: 'Cuenta',
