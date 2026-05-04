@@ -5,6 +5,7 @@ import {
   CreateThumbnailEntryPayload,
   DriveFileData,
   FileEntryByUuid,
+  ReplaceFile,
   Thumbnail,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
@@ -65,6 +66,10 @@ class UploadService {
 
   public async createFileEntry(entry: FileEntryByUuid): Promise<DriveFileData> {
     return this.sdk.storageV2.createFileEntryByUuid(entry);
+  }
+
+  public async replaceFileEntry(fileUuid: string, payload: ReplaceFile): Promise<DriveFileData> {
+    return this.sdk.storageV2.replaceFile(fileUuid, payload);
   }
 
   public async createThumbnailEntry(entry: CreateThumbnailEntryPayload): Promise<Thumbnail> {
