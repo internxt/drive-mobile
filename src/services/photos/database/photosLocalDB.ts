@@ -14,6 +14,7 @@ export interface AssetSyncEntry {
   attemptCount: number;
   createdAt: number;
   lastAttemptAt: number | null;
+  modificationTime: number | null;
 }
 
 interface AssetSyncRow {
@@ -25,6 +26,11 @@ interface AssetSyncRow {
   attempt_count: number;
   created_at: number;
   last_attempt_at: number | null;
+  modification_time: number | null;
+}
+
+export interface SyncedAssetInfo {
+  modificationTime: number | null;
 }
 
 const CHUNK_SIZE = 300;
@@ -45,16 +51,16 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPending, [assetId]);
   }
 
-  async markSynced(assetId: string, remoteFileId: string): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSynced, [assetId, remoteFileId]);
+  async markSynced(assetId: string, remoteFileId: string, modificationTime: number | null): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSynced, [assetId, remoteFileId, modificationTime]);
   }
 
   async markError(assetId: string, errorMessage?: string): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markError, [assetId, errorMessage ?? null]);
   }
 
-  async getSyncedIds(assetIds: string[]): Promise<Set<string>> {
-    if (assetIds.length === 0) return new Set();
+  async getSyncedEntries(assetIds: string[]): Promise<Map<string, SyncedAssetInfo>> {
+    if (assetIds.length === 0) return new Map();
 
     const chunks: string[][] = [];
     for (let i = 0; i < assetIds.length; i += CHUNK_SIZE) {
@@ -64,7 +70,7 @@ class PhotosLocalDB {
     const results = await Promise.all(
       chunks.map((chunk) => {
         const placeholders = chunk.map(() => '?').join(', ');
-        return sqliteService.getAllAsync<{ asset_id: string }>(
+        return sqliteService.getAllAsync<{ asset_id: string; modification_time: number | null }>(
           DB_NAME,
           assetSyncTable.statements.getSyncedInList(placeholders),
           chunk,
@@ -72,8 +78,12 @@ class PhotosLocalDB {
       }),
     );
 
-    const synced = new Set<string>();
-    results.flat().forEach((row) => synced.add(row.asset_id));
+    const synced = new Map<string, SyncedAssetInfo>();
+    for (const chunk of results) {
+      for (const row of chunk) {
+        synced.set(row.asset_id, { modificationTime: row.modification_time });
+      }
+    }
     return synced;
   }
 
@@ -91,6 +101,7 @@ class PhotosLocalDB {
       attemptCount: row.attempt_count,
       createdAt: row.created_at,
       lastAttemptAt: row.last_attempt_at,
+      modificationTime: row.modification_time,
     };
   }
 

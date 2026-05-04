@@ -20,23 +20,23 @@ describe('photosLocalDB', () => {
     (photosLocalDB as any).initPromise = null;
   });
 
-  test('when init runs, then it opens the DB and ensures the table and index exist', async () => {
+  test('when the database is initialized, then it opens the database file and creates the table and index', async () => {
     await photosLocalDB.init();
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(2);
   });
 
-  test('when init runs a second time, then it is a no-op', async () => {
+  test('when the database is initialized a second time, then no database calls are made', async () => {
     await photosLocalDB.init();
-    jest.clearAllMocks(); // Clear calls from the first init
+    jest.clearAllMocks();
     await photosLocalDB.init();
 
     expect(mockSqlite.open).not.toHaveBeenCalled();
     expect(mockSqlite.executeSql).not.toHaveBeenCalled();
   });
 
-  test('when markPending runs, then it upserts to pending and never overwrites synced', async () => {
+  test('when a photo is marked as pending, then it never overwrites an already synced photo', async () => {
     await photosLocalDB.markPending('asset-1');
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
@@ -46,17 +46,24 @@ describe('photosLocalDB', () => {
     expect(params).toEqual(['asset-1']);
   });
 
-  test('when markSynced runs, then it upserts the asset with status synced and remoteFileId using SQL timestamps', async () => {
-    await photosLocalDB.markSynced('asset-1', 'remote-file-id');
+  test('when a photo is marked as synced, then it stores the remote file id and the modification time', async () => {
+    await photosLocalDB.markSynced('asset-1', 'remote-file-id', 1714000000);
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
     expect(stmt).toContain('\'synced\'');
     expect(stmt).toContain('unixepoch()');
-    expect(params).toEqual(['asset-1', 'remote-file-id']);
+    expect(params).toEqual(['asset-1', 'remote-file-id', 1714000000]);
   });
 
-  test('when markError runs without a message, then it upserts the asset with status error and null message', async () => {
+  test('when a photo is marked as synced without a modification time, then the modification time is stored as null', async () => {
+    await photosLocalDB.markSynced('asset-1', 'remote-file-id', null);
+
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual(['asset-1', 'remote-file-id', null]);
+  });
+
+  test('when a photo upload fails without an error message, then it is marked as failed with a null message', async () => {
     await photosLocalDB.markError('asset-2');
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
@@ -65,14 +72,14 @@ describe('photosLocalDB', () => {
     expect(params).toEqual(['asset-2', null]);
   });
 
-  test('when markError runs with a message, then it passes the message as a parameter', async () => {
+  test('when a photo upload fails with an error message, then the message is saved', async () => {
     await photosLocalDB.markError('asset-2', 'Network timeout');
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
     expect(params).toEqual(['asset-2', 'Network timeout']);
   });
 
-  test('when markError runs, then the statement increments attempt_count and guards against overwriting synced', async () => {
+  test('when a photo upload fails, then the attempt counter is incremented and a synced photo is never overwritten', async () => {
     await photosLocalDB.markError('asset-2');
 
     const [, stmt] = mockSqlite.executeSql.mock.calls[0];
@@ -80,66 +87,72 @@ describe('photosLocalDB', () => {
     expect(stmt).toContain('status != \'synced\'');
   });
 
-  test('when getSyncedIds runs, then the query filters by status synced', async () => {
+  test('when looking up synced photos, then only photos with synced status are queried', async () => {
     mockSqlite.getAllAsync.mockResolvedValueOnce([]);
 
-    await photosLocalDB.getSyncedIds(['asset-1']);
+    await photosLocalDB.getSyncedEntries(['asset-1']);
 
     const [, stmt] = mockSqlite.getAllAsync.mock.calls[0];
     expect(stmt).toContain('status = \'synced\'');
   });
 
-  test('when getSyncedIds runs with exactly 300 ids, then it queries the DB in exactly 1 batch', async () => {
+  test('when looking up 300 photos at once, then a single database query is made', async () => {
     const ids = Array.from({ length: 300 }, (_, i) => `asset-${i}`);
     mockSqlite.getAllAsync.mockResolvedValue([]);
 
-    await photosLocalDB.getSyncedIds(ids);
+    await photosLocalDB.getSyncedEntries(ids);
 
     expect(mockSqlite.getAllAsync).toHaveBeenCalledTimes(1);
   });
 
-  test('when getSyncedIds runs with 301 ids, then it queries the DB in 2 batches', async () => {
+  test('when looking up 301 photos at once, then two database queries are made', async () => {
     const ids = Array.from({ length: 301 }, (_, i) => `asset-${i}`);
     mockSqlite.getAllAsync.mockResolvedValue([]);
 
-    await photosLocalDB.getSyncedIds(ids);
+    await photosLocalDB.getSyncedEntries(ids);
 
     expect(mockSqlite.getAllAsync).toHaveBeenCalledTimes(2);
   });
 
-  test('when getSyncedIds runs with a list of ids, then it returns only the synced ones', async () => {
-    mockSqlite.getAllAsync.mockResolvedValueOnce([{ asset_id: 'asset-1' }, { asset_id: 'asset-3' }]);
+  test('when looking up synced photos, then each result includes the modification time', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([
+      { asset_id: 'asset-1', modification_time: 1714000000 },
+      { asset_id: 'asset-3', modification_time: null },
+    ]);
 
-    const result = await photosLocalDB.getSyncedIds(['asset-1', 'asset-2', 'asset-3']);
+    const result = await photosLocalDB.getSyncedEntries(['asset-1', 'asset-2', 'asset-3']);
 
-    expect(result).toEqual(new Set(['asset-1', 'asset-3']));
+    expect(result.size).toBe(2);
+    expect(result.get('asset-1')).toEqual({ modificationTime: 1714000000 });
+    expect(result.get('asset-3')).toEqual({ modificationTime: null });
+    expect(result.has('asset-2')).toBe(false);
   });
 
-  test('when getSyncedIds runs and no assets are synced, then it returns an empty set', async () => {
+  test('when none of the given photos have been synced, then an empty result is returned', async () => {
     mockSqlite.getAllAsync.mockResolvedValueOnce([]);
 
-    const result = await photosLocalDB.getSyncedIds(['asset-1', 'asset-2']);
+    const result = await photosLocalDB.getSyncedEntries(['asset-1', 'asset-2']);
 
-    expect(result).toEqual(new Set());
+    expect(result).toEqual(new Map());
   });
 
-  test('when getSyncedIds runs with an empty list, then it returns an empty set without querying the DB', async () => {
-    const result = await photosLocalDB.getSyncedIds([]);
+  test('when the list of photos to look up is empty, then no database query is made', async () => {
+    const result = await photosLocalDB.getSyncedEntries([]);
 
     expect(mockSqlite.getAllAsync).not.toHaveBeenCalled();
-    expect(result).toEqual(new Set());
+    expect(result).toEqual(new Map());
   });
 
-  test('when getSyncedIds runs with 650 ids, then it queries the DB in 3 batches of at most 300', async () => {
+  test('when looking up 650 photos at once, then three database queries are made', async () => {
     const ids = Array.from({ length: 650 }, (_, i) => `asset-${i}`);
     mockSqlite.getAllAsync.mockResolvedValue([]);
 
-    await photosLocalDB.getSyncedIds(ids);
+    await photosLocalDB.getSyncedEntries(ids);
 
     expect(mockSqlite.getAllAsync).toHaveBeenCalledTimes(3);
   });
 
-  test('when getStatus runs and the asset is pending, then it returns the pending entry', async () => {
+  test('when checking the status of a pending photo, then the full pending record is returned', async () => {
     mockSqlite.getFirstAsync.mockResolvedValueOnce({
       asset_id: 'asset-3',
       status: 'pending',
@@ -149,6 +162,7 @@ describe('photosLocalDB', () => {
       attempt_count: 0,
       created_at: 1713900000000,
       last_attempt_at: null,
+      modification_time: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-3');
@@ -162,10 +176,11 @@ describe('photosLocalDB', () => {
       attemptCount: 0,
       createdAt: 1713900000000,
       lastAttemptAt: null,
+      modificationTime: null,
     });
   });
 
-  test('when getStatus runs and the asset is not in the DB, then it returns null', async () => {
+  test('when checking the status of a photo that has never been seen, then null is returned', async () => {
     mockSqlite.getFirstAsync.mockResolvedValueOnce(null);
 
     const result = await photosLocalDB.getStatus('unknown-asset');
@@ -173,7 +188,7 @@ describe('photosLocalDB', () => {
     expect(result).toBeNull();
   });
 
-  test('when getStatus runs and a synced asset exists, then it returns the fully mapped entry', async () => {
+  test('when checking the status of a synced photo, then all fields including modification time are returned', async () => {
     mockSqlite.getFirstAsync.mockResolvedValueOnce({
       asset_id: 'asset-1',
       status: 'synced',
@@ -183,6 +198,7 @@ describe('photosLocalDB', () => {
       attempt_count: 0,
       created_at: 1713900000000,
       last_attempt_at: 1714000000000,
+      modification_time: 1714000000,
     });
 
     const result = await photosLocalDB.getStatus('asset-1');
@@ -196,10 +212,11 @@ describe('photosLocalDB', () => {
       attemptCount: 0,
       createdAt: 1713900000000,
       lastAttemptAt: 1714000000000,
+      modificationTime: 1714000000,
     });
   });
 
-  test('when getStatus runs and the asset has errors, then it returns the error details', async () => {
+  test('when checking the status of a photo that failed to sync, then the error details and attempt count are returned', async () => {
     mockSqlite.getFirstAsync.mockResolvedValueOnce({
       asset_id: 'asset-2',
       status: 'error',
@@ -209,6 +226,7 @@ describe('photosLocalDB', () => {
       attempt_count: 3,
       created_at: 1713900000000,
       last_attempt_at: 1714000000000,
+      modification_time: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-2');
@@ -222,10 +240,11 @@ describe('photosLocalDB', () => {
       attemptCount: 3,
       createdAt: 1713900000000,
       lastAttemptAt: 1714000000000,
+      modificationTime: null,
     });
   });
 
-  test('when reset runs, then it deletes all records from the DB', async () => {
+  test('when the database is reset, then all records are deleted', async () => {
     await photosLocalDB.reset();
 
     expect(mockSqlite.executeSql).toHaveBeenCalledWith('photos_sync.db', expect.stringContaining('DELETE FROM'));

@@ -44,7 +44,7 @@ jest.mock('src/services/photos/PhotoAssetScanner', () => ({
 }));
 
 jest.mock('src/services/photos/PhotoDeduplicator', () => ({
-  PhotoDeduplicator: { filter: jest.fn().mockResolvedValue([]) },
+  PhotoDeduplicator: { getAssetsToSync: jest.fn().mockResolvedValue([]) },
 }));
 
 jest.mock('src/services/photos/database/photosLocalDB', () => ({
@@ -75,7 +75,7 @@ describe('photos slice', () => {
     jest.clearAllMocks();
   });
 
-  test('when store initializes, then backup is disabled with wifi-only and undetermined permission', () => {
+  test('when the app starts for the first time, then backup is disabled and set to wifi-only with no permission yet', () => {
     const store = makeStore();
     const { enabled, networkCondition, permissionStatus } = store.getState().photos;
 
@@ -84,7 +84,7 @@ describe('photos slice', () => {
     expect(permissionStatus).toBe('undetermined');
   });
 
-  test('when hydratePhotosStateThunk runs with persisted data, then state reflects saved values', async () => {
+  test('when the app starts and backup settings were previously saved, then those settings are restored', async () => {
     const saved: PhotosState = {
       enabled: true,
       networkCondition: 'wifi-and-data',
@@ -104,7 +104,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('granted');
   });
 
-  test('when hydratePhotosStateThunk runs with partial data, then missing fields keep defaults', async () => {
+  test('when the app starts and only some settings were saved, then missing fields use their defaults', async () => {
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify({ enabled: true }));
 
     const store = makeStore();
@@ -115,7 +115,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('undetermined');
   });
 
-  test('when hydratePhotosStateThunk runs with corrupted JSON, then all defaults are preserved', async () => {
+  test('when the app starts and saved settings are corrupted, then all defaults are used', async () => {
     mockAsyncStorage.getItem.mockResolvedValueOnce('NOT_JSON');
 
     const store = makeStore();
@@ -126,7 +126,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('undetermined');
   });
 
-  test('when hydratePhotosStateThunk runs with nothing persisted, then state keeps defaults', async () => {
+  test('when the app starts and nothing was previously saved, then all defaults are used', async () => {
     mockAsyncStorage.getItem.mockResolvedValueOnce(null);
 
     const store = makeStore();
@@ -135,7 +135,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.enabled).toBe(false);
   });
 
-  test('when enableBackupThunk runs and permission is granted, then backup is enabled and persisted correctly', async () => {
+  test('when the user enables backup and grants permission, then backup is turned on and saved', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
 
     const store = makeStore();
@@ -148,7 +148,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: true, permissionStatus: 'granted' });
   });
 
-  test('when enableBackupThunk runs and permission is limited, then backup is enabled and persisted correctly', async () => {
+  test('when the user enables backup and grants limited permission, then backup is turned on and saved', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('limited');
 
     const store = makeStore();
@@ -160,7 +160,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: true, permissionStatus: 'limited' });
   });
 
-  test('when enableBackupThunk runs and permission is denied, then backup stays disabled and persisted correctly', async () => {
+  test('when the user enables backup but denies permission, then backup stays off and the denial is saved', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('denied');
 
     const store = makeStore();
@@ -172,7 +172,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: false, permissionStatus: 'denied' });
   });
 
-  test('when enableBackupThunk runs and permission is undetermined, then backup stays disabled', async () => {
+  test('when the user enables backup but permission status is undetermined, then backup stays off', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('undetermined');
 
     const store = makeStore();
@@ -183,7 +183,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('undetermined');
   });
 
-  test('when disableBackupThunk runs after backup was enabled, then backup is disabled and permission status is untouched', async () => {
+  test('when the user disables backup, then backup is turned off and the permission status is unchanged', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
@@ -195,7 +195,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: false, permissionStatus: 'granted' });
   });
 
-  test('when setNetworkConditionThunk runs with wifi-and-data, then network condition is updated and persisted', async () => {
+  test('when the user switches to wifi and mobile data, then the setting is saved', async () => {
     const store = makeStore();
     await store.dispatch(setNetworkConditionThunk('wifi-and-data'));
 
@@ -203,7 +203,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ networkCondition: 'wifi-and-data' });
   });
 
-  test('when checkPermissionRevocationThunk runs and backup is disabled, then nothing happens', async () => {
+  test('when the permission check runs and backup is disabled, then no permission check is done', async () => {
     const store = makeStore();
 
     await store.dispatch(checkPermissionRevocationThunk());
@@ -212,7 +212,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.enabled).toBe(false);
   });
 
-  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is denied, then backup is disabled', async () => {
+  test('when the permission check runs and the user has revoked access, then backup is automatically disabled', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     mockPermissionService.getStatus.mockResolvedValueOnce('denied');
 
@@ -226,7 +226,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ enabled: false });
   });
 
-  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is still granted, then backup stays enabled', async () => {
+  test('when the permission check runs and the user still has access granted, then backup continues running', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     mockPermissionService.getStatus.mockResolvedValueOnce('granted');
 
@@ -239,7 +239,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('granted');
   });
 
-  test('when checkPermissionRevocationThunk runs and backup is enabled and permission is limited, then backup stays enabled', async () => {
+  test('when the permission check runs and the user has limited access, then backup continues running', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     mockPermissionService.getStatus.mockResolvedValueOnce('limited');
 
@@ -252,7 +252,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.permissionStatus).toBe('limited');
   });
 
-  test('when setNetworkConditionThunk runs with wifi-only after wifi-and-data, then network condition reverts and is persisted', async () => {
+  test('when the user switches back to wifi-only, then the setting is updated and saved', async () => {
     const store = makeStore();
     await store.dispatch(setNetworkConditionThunk('wifi-and-data'));
     await store.dispatch(setNetworkConditionThunk('wifi-only'));
@@ -262,7 +262,7 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ networkCondition: 'wifi-only' });
   });
 
-  test('when initDeviceIdThunk runs and no id is stored, then a new device id is created and set in state', async () => {
+  test('when the device is first registered for backup, then a new device identifier is created', async () => {
     mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('new-device-id');
 
     const store = makeStore();
@@ -271,7 +271,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.deviceId).toBe('new-device-id');
   });
 
-  test('when initDeviceIdThunk runs and an id already exists, then the existing id is returned and set in state', async () => {
+  test('when the device was already registered for backup, then the existing identifier is reused', async () => {
     mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('existing-device-id');
 
     const store = makeStore();
@@ -281,7 +281,7 @@ describe('photos slice', () => {
     expect(mockPhotoDeviceId.getOrCreate).toHaveBeenCalledTimes(1);
   });
 
-  test('when runDiscoveryThunk runs and backup is disabled, then scanner is not called', async () => {
+  test('when backup is disabled and discovery runs, then no photos are scanned', async () => {
     const store = makeStore();
     await store.dispatch(runDiscoveryThunk());
 
@@ -289,17 +289,17 @@ describe('photos slice', () => {
     expect(store.getState().photos.syncStatus).toBe('idle');
   });
 
-  test('when runDiscoveryThunk runs and scanner returns 10 assets with 3 already synced, then pendingCount is 7', async () => {
+  test('when 10 photos are found and 3 are already synced, then 7 are reported as pending', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     const assets = Array.from({ length: 10 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.filter.mockResolvedValueOnce(assets.slice(3) as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets.slice(3) as never);
 
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
     jest.clearAllMocks();
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.filter.mockResolvedValueOnce(assets.slice(3) as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets.slice(3) as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
     await store.dispatch(runDiscoveryThunk());
 
@@ -308,14 +308,14 @@ describe('photos slice', () => {
     expect(store.getState().photos.syncStatus).toBe('idle');
   });
 
-  test('when runDiscoveryThunk runs and scanner returns 0 assets, then pendingCount is 0 and syncStatus is idle', async () => {
+  test('when no photos are found on the device, then zero photos are pending and the status returns to idle', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
 
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
     jest.clearAllMocks();
     mockScanner.scanAll.mockResolvedValueOnce([] as never);
-    mockDeduplicator.filter.mockResolvedValueOnce([] as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce([] as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
     await store.dispatch(runDiscoveryThunk());
 
@@ -324,7 +324,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.syncStatus).toBe('idle');
   });
 
-  test('when runBackupCycleThunk runs and backup is disabled, then scanner is not called', async () => {
+  test('when a backup cycle starts and backup is disabled, then no photos are scanned', async () => {
     const store = makeStore();
     await store.dispatch(runBackupCycleThunk());
 
@@ -332,7 +332,7 @@ describe('photos slice', () => {
     expect(mockPhotoDeviceId.getOrCreate).not.toHaveBeenCalled();
   });
 
-  test('when runBackupCycleThunk runs and permission is revoked, then scanner is not called', async () => {
+  test('when a backup cycle starts and the user has revoked permission, then no photos are scanned and backup is disabled', async () => {
     const store = makeStore();
     store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
     mockPermissionService.getStatus.mockResolvedValueOnce('denied');
@@ -343,14 +343,14 @@ describe('photos slice', () => {
     expect(store.getState().photos.enabled).toBe(false);
   });
 
-  test('when runBackupCycleThunk runs and backup is enabled with granted permission, then discovery runs', async () => {
+  test('when a backup cycle starts and all conditions are met, then photos are scanned and the pending count is updated', async () => {
     const store = makeStore();
     store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
     mockPermissionService.getStatus.mockResolvedValueOnce('granted');
     mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('device-id');
     const assets = Array.from({ length: 5 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.filter.mockResolvedValueOnce(assets as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce(assets as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
 
     await store.dispatch(runBackupCycleThunk());

@@ -1,10 +1,26 @@
 import * as MediaLibrary from 'expo-media-library';
 import { photosLocalDB } from './database/photosLocalDB';
 
+const hasBeenEdited = (asset: MediaLibrary.Asset, syncedModificationTime: number | null): boolean => {
+  if (syncedModificationTime !== null && asset.modificationTime > syncedModificationTime) {
+    return true;
+  }
+  return false;
+};
+
 export const PhotoDeduplicator = {
-  async filter(assets: MediaLibrary.Asset[]): Promise<MediaLibrary.Asset[]> {
+  async getAssetsToSync(assets: MediaLibrary.Asset[]): Promise<MediaLibrary.Asset[]> {
     if (assets.length === 0) return [];
-    const syncedIds = await photosLocalDB.getSyncedIds(assets.map((asset) => asset.id));
-    return assets.filter((asset) => !syncedIds.has(asset.id));
+    const syncedEntries = await photosLocalDB.getSyncedEntries(assets.map((asset) => asset.id));
+
+    const uniqueAssets = assets.filter((asset) => {
+      const syncedInfo = syncedEntries.get(asset.id);
+      if (!syncedInfo) {
+        return true;
+      }
+      return hasBeenEdited(asset, syncedInfo.modificationTime);
+    });
+
+    return uniqueAssets;
   },
 };
