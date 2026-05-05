@@ -57,6 +57,7 @@ describe('PhotoBackupFolders.getOrCreateFolderForDate', () => {
     const folderNames = mockCreateFolder.mock.calls.map((call) => call[1]);
     const monthCalls = folderNames.filter((name) => name === '06');
     expect(monthCalls).toHaveLength(1);
+    expect(mockCreateFolder).toHaveBeenCalledTimes(6);
   });
 
   test('when called for two dates in different years, then separate year folders are created', async () => {

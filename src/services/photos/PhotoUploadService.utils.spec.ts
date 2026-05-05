@@ -34,6 +34,10 @@ describe('stripFileScheme', () => {
     expect(stripFileScheme('file:///data/My%20Camera/photo.jpg')).toBe('/data/My Camera/photo.jpg');
   });
 
+  test('when the extension contains a percent-encoded dot, then it decodes it', () => {
+    expect(stripFileScheme('file:///downloads/photo.jpg%2Epng')).toBe('/downloads/photo.jpg.png');
+  });
+
   test('when a plain path without scheme is provided, then it returns it unchanged', () => {
     expect(stripFileScheme('/data/user/0/com.app/photo.jpg')).toBe('/data/user/0/com.app/photo.jpg');
   });
