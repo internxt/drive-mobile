@@ -17,8 +17,8 @@ import photosReducer, {
   photosSlice,
   PhotosState,
   runBackupCycleThunk,
-  runCloudMetadataSyncThunk,
   runDiscoveryThunk,
+  runFullCloudHistorySyncThunk,
   setNetworkConditionThunk,
 } from './index';
 
@@ -60,7 +60,7 @@ jest.mock('src/services/photos/PhotoDeduplicator', () => ({
 jest.mock('src/services/photos/PhotoCloudBrowser', () => ({
   photoCloudBrowser: {
     listDeviceFolders: jest.fn().mockResolvedValue([]),
-    syncAllDevicesFromMonth: jest.fn().mockResolvedValue(undefined),
+    syncAllHistory: jest.fn().mockResolvedValue(undefined),
   },
 }));
 
@@ -114,7 +114,7 @@ describe('photos slice', () => {
     mockPhotosLocalDB.markSynced.mockResolvedValue(undefined);
     mockPhotosLocalDB.markError.mockResolvedValue(undefined);
     mockCloudBrowser.listDeviceFolders.mockResolvedValue([]);
-    mockCloudBrowser.syncAllDevicesFromMonth.mockResolvedValue(undefined);
+    mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
     mockPermissionService.getStatus.mockResolvedValue('granted');
   });
@@ -144,6 +144,7 @@ describe('photos slice', () => {
       sessionTotalAssets: 0,
       sessionUploadedAssets: 0,
       cloudFetchRevision: 0,
+      isFetchingCloudHistory: false,
     };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
@@ -415,62 +416,77 @@ describe('photos slice', () => {
     expect(store.getState().photos.syncStatus).toBe('synced');
   });
 
-  describe('runCloudMetadataSyncThunk', () => {
-    test('when backup is disabled, then the drive API is not called', async () => {
+  describe('runFullCloudHistorySyncThunk', () => {
+    test('when the thunk runs, then syncAllHistory is invoked once', async () => {
       const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true }));
 
-      await store.dispatch(runCloudMetadataSyncThunk());
+      await store.dispatch(runFullCloudHistorySyncThunk());
 
-      expect(mockCloudBrowser.listDeviceFolders).not.toHaveBeenCalled();
+      expect(mockCloudBrowser.syncAllHistory).toHaveBeenCalledTimes(1);
     });
 
-    test('when backup is enabled but the device id is not set, then the drive API is not called', async () => {
-      const store = makeStore();
-      store.dispatch(photosSlice.actions.setState({ enabled: true, deviceId: null }));
-
-      await store.dispatch(runCloudMetadataSyncThunk());
-
-      expect(mockCloudBrowser.listDeviceFolders).not.toHaveBeenCalled();
-    });
-
-    test('when there are no device folders in drive, then syncing is skipped', async () => {
-      const store = makeStore();
-      store.dispatch(photosSlice.actions.setState({ enabled: true, deviceId: 'device-1' }));
-
-      await store.dispatch(runCloudMetadataSyncThunk());
-
-      expect(mockCloudBrowser.syncAllDevicesFromMonth).not.toHaveBeenCalled();
-    });
-
-    test('when device folders exist, then all devices are synced for the last 12 months', async () => {
-      const devices = [{ uuid: 'd1-uuid', name: 'device-1' }];
-      mockCloudBrowser.listDeviceFolders.mockResolvedValueOnce(devices);
-
-      const store = makeStore();
-      store.dispatch(photosSlice.actions.setState({ enabled: true, deviceId: 'device-1' }));
-
-      await store.dispatch(runCloudMetadataSyncThunk());
-
-      expect(mockCloudBrowser.syncAllDevicesFromMonth).toHaveBeenCalledWith({
-        devices,
-        fromYear: expect.any(Number),
-        fromMonth: expect.any(Number),
-        monthsBack: 12,
-        onMonthFetched: expect.any(Function),
+    test('when syncAllHistory invokes onMonthFetched, then cloudFetchRevision increments for each call', async () => {
+      mockCloudBrowser.syncAllHistory.mockImplementationOnce(async ({ onMonthFetched }) => {
+        onMonthFetched?.();
+        onMonthFetched?.();
+        onMonthFetched?.();
       });
+
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true }));
+      const before = store.getState().photos.cloudFetchRevision;
+
+      await store.dispatch(runFullCloudHistorySyncThunk());
+
+      expect(store.getState().photos.cloudFetchRevision).toBe(before + 3);
     });
 
-    test('when the cloud sync step fails during a backup cycle, then the cycle still completes without throwing', async () => {
+    test('when backup is disabled, then isCancelled returns true', async () => {
+      let capturedIsCancelled: (() => boolean) | undefined;
+      mockCloudBrowser.syncAllHistory.mockImplementationOnce(async ({ isCancelled }) => {
+        capturedIsCancelled = isCancelled;
+      });
+
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: false }));
+
+      await store.dispatch(runFullCloudHistorySyncThunk());
+
+      expect(capturedIsCancelled?.()).toBe(true);
+    });
+
+    test('when the thunk completes, then isFetchingCloudHistory returns to false', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true }));
+
+      await store.dispatch(runFullCloudHistorySyncThunk());
+
+      expect(store.getState().photos.isFetchingCloudHistory).toBe(false);
+    });
+
+    test('when syncAllHistory throws, then isFetchingCloudHistory returns to false', async () => {
+      mockCloudBrowser.syncAllHistory.mockRejectedValueOnce(new Error('cloud sync failed'));
+
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true }));
+
+      await store.dispatch(runFullCloudHistorySyncThunk());
+
+      expect(store.getState().photos.isFetchingCloudHistory).toBe(false);
+    });
+
+    test('when the backup cycle runs, then cloud history sync and discovery both run', async () => {
+      mockPhotoDeviceId.getOrCreate.mockResolvedValue('device-id');
+
       const store = makeStore();
       store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
-      mockPermissionService.getStatus.mockResolvedValueOnce('granted');
-      mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('device-id');
-      mockScanner.scanAll.mockResolvedValueOnce([] as never);
-      mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: [], editedAssets: [] } as never);
-      mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
-      mockCloudBrowser.listDeviceFolders.mockRejectedValueOnce(new Error('network error'));
+      mockPermissionService.getStatus.mockResolvedValue('granted');
 
-      await expect(store.dispatch(runBackupCycleThunk())).resolves.not.toThrow();
+      await store.dispatch(runBackupCycleThunk());
+
+      expect(mockCloudBrowser.syncAllHistory).toHaveBeenCalled();
+      expect(mockScanner.scanAll).toHaveBeenCalled();
     });
   });
 });

@@ -76,6 +76,21 @@ const SelectOverlay = ({
   );
 };
 
+const localPhotoCellAreEqual = (
+  prev: CellProps & { item: PhotoItemType },
+  next: CellProps & { item: PhotoItemType },
+) =>
+  prev.item.id === next.item.id &&
+  prev.item.backupState === next.item.backupState &&
+  prev.item.uri === next.item.uri &&
+  prev.item.uploadProgress === next.item.uploadProgress &&
+  prev.item.mediaType === next.item.mediaType &&
+  prev.item.duration === next.item.duration &&
+  prev.isSelectMode === next.isSelectMode &&
+  prev.isSelected === next.isSelected &&
+  prev.onPress === next.onPress &&
+  prev.onLongPress === next.onLongPress;
+
 const LocalPhotoCell = memo(
   ({ item, isSelectMode, isSelected, onPress, onLongPress }: CellProps & { item: PhotoItemType }): JSX.Element => {
     const tailwind = useTailwind();
@@ -92,7 +107,8 @@ const LocalPhotoCell = memo(
 
     return (
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
-        <Image source={{ uri: item.uri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+        {/* key forces Image to remount on cell recycle, preventing the previous photo from flashing */}
+        <Image key={item.id} source={{ uri: item.uri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
 
         {(item.backupState === 'not-backed' || item.backupState === 'uploading') && (
           <View style={[tailwind('absolute justify-center items-center'), { bottom: 8, left: 8 }]} pointerEvents="none">
@@ -130,6 +146,7 @@ const LocalPhotoCell = memo(
       </TouchableOpacity>
     );
   },
+  localPhotoCellAreEqual,
 );
 
 const CloudPhotoCell = memo(
