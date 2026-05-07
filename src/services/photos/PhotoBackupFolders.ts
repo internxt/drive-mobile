@@ -31,6 +31,14 @@ class PhotoBackupFolderService {
     return dayUuid;
   }
 
+  async getRootFolderUuid(): Promise<string | null> {
+    try {
+      return await this.getOrCreatePhotosRoot();
+    } catch {
+      return null;
+    }
+  }
+
   clearCache(): void {
     this.photosRootUuid = null;
     this.deviceFolderUuid.clear();

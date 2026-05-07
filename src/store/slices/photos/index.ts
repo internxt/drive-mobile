@@ -1,6 +1,8 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import asyncStorageService from 'src/services/AsyncStorageService';
+import errorService from 'src/services/ErrorService';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
+import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
 import { PhotoDeviceId } from 'src/services/photos/PhotoDeviceId';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
@@ -15,7 +17,7 @@ import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
-export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'synced' | 'paused' | 'error';
+export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'fetching-cloud' | 'synced' | 'paused' | 'error';
 
 export interface PhotosState {
   enabled: boolean;
@@ -214,8 +216,22 @@ export const runUploadThunk = createAsyncThunk<void, void, { state: RootState }>
     });
 
     dispatch(photosSlice.actions.setSyncStatus('synced'));
-    dispatch(photosSlice.actions.setLastSyncTimestamp(Date.now()));
     dispatch(photosSlice.actions.setCurrentUploadProgress(0));
+  },
+);
+
+export const runCloudMetadataSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/runCloudMetadataSync',
+  async (_, { getState }) => {
+    const { enabled, deviceId } = getState().photos;
+    if (!enabled || !deviceId) return;
+
+    await photosLocalDB.init();
+    const devices = await photoCloudBrowser.listDeviceFolders();
+    if (devices.length === 0) return;
+
+    const now = new Date();
+    await photoCloudBrowser.syncAllDevicesFromMonth(devices, now.getFullYear(), now.getMonth() + 1, 12);
   },
 );
 
@@ -223,18 +239,39 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
   'photos/runBackupCycle',
   async (_, { getState, dispatch }) => {
     const { syncStatus } = getState().photos;
-    if (syncStatus === 'scanning' || syncStatus === 'uploading') return;
+    if (syncStatus === 'scanning' || syncStatus === 'uploading' || syncStatus === 'fetching-cloud') {
+      return;
+    }
 
     await dispatch(checkPermissionRevocationThunk());
     const { enabled, permissionStatus, deviceId } = getState().photos;
-    if (!enabled || !isPermissionActive(permissionStatus)) return;
+    if (!enabled || !isPermissionActive(permissionStatus)) {
+      return;
+    }
 
-    if (!deviceId) await dispatch(initDeviceIdThunk());
+    if (!deviceId) {
+      await dispatch(initDeviceIdThunk());
+    }
+
+    const { syncStatus: statusBeforeCloud } = getState().photos;
+    if (statusBeforeCloud === 'scanning' || statusBeforeCloud === 'uploading') {
+      return;
+    }
+
+    dispatch(photosSlice.actions.setSyncStatus('fetching-cloud'));
+    try {
+      await dispatch(runCloudMetadataSyncThunk()).unwrap();
+    } catch (err) {
+      errorService.reportError(err);
+    }
+
     await dispatch(runDiscoveryThunk());
 
     if (getState().photos.pendingBackupAssets > 0) {
       await dispatch(runUploadThunk());
     }
+
+    dispatch(photosSlice.actions.setLastSyncTimestamp(Date.now()));
   },
 );
 
@@ -304,4 +341,13 @@ export const photosSlice = createSlice({
 });
 
 export const photosActions = photosSlice.actions;
+
+export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/signOut',
+  async (_, { dispatch }) => {
+    await Promise.all([photosLocalDB.reset(), photosLocalDB.resetCloudAssets()]).catch(errorService.reportError);
+    dispatch(photosActions.resetState());
+  },
+);
+
 export default photosSlice.reducer;

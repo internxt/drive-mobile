@@ -14,6 +14,7 @@ import notificationsService from '../../../services/NotificationsService';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
+import { signOutThunk as photosSignOutThunk } from '../photos';
 import { uiActions } from '../ui';
 export interface AuthState {
   loggedIn: boolean | null;
@@ -208,6 +209,7 @@ export const signOutThunk = createAsyncThunk<
   dispatch(uiActions.resetState());
   dispatch(authActions.resetState());
   dispatch(driveActions.resetState());
+  dispatch(photosSignOutThunk());
   dispatch(authActions.setLoggedIn(false));
   authService.emitLogoutEvent();
 });

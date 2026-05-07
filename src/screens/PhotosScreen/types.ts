@@ -3,6 +3,7 @@ export type PhotoMediaType = 'photo' | 'video';
 
 export interface PhotoItem {
   id: string;
+  type: 'local';
   uri?: string;
   backupState: PhotoBackupState;
   mediaType: PhotoMediaType;
@@ -10,10 +11,25 @@ export interface PhotoItem {
   uploadProgress?: number;
 }
 
+export interface CloudPhotoItem {
+  id: string;
+  type: 'cloud-only';
+  mediaType: PhotoMediaType;
+  thumbnailPath: string | null;
+  thumbnailBucketId: string | null;
+  thumbnailBucketFile: string | null;
+  thumbnailType: string | null;
+  deviceId: string;
+  createdAt: number;
+  fileName: string;
+}
+
+export type TimelinePhotoItem = PhotoItem | CloudPhotoItem;
+
 export interface PhotoDateGroup {
   id: string;
   label: string;
-  photos: PhotoItem[];
+  photos: TimelinePhotoItem[];
 }
 
 export type PhotosSyncStatus =
@@ -23,7 +39,4 @@ export type PhotosSyncStatus =
   | { type: 'completed' }
   | { type: 'synced' };
 
-export type PhotosAccessState =
-  | { type: 'available' }
-  | { type: 'backup-off' }
-  | { type: 'photos-locked' };
+export type PhotosAccessState = { type: 'available' } | { type: 'backup-off' } | { type: 'photos-locked' };
