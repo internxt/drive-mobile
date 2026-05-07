@@ -11,7 +11,7 @@ import UserProfilePicture from '../../UserProfilePicture';
 import CenterModal from '../CenterModal';
 
 interface SignOutModalProps {
-  onSignedOut: () => void;
+  readonly onSignedOut: () => void;
 }
 
 function SignOutModal({ onSignedOut }: SignOutModalProps): JSX.Element {

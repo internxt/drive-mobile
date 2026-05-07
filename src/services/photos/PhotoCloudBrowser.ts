@@ -22,9 +22,9 @@ const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Prom
 
 class PhotoCloudBrowserService {
   constructor(
-    private backupFolders: typeof photoBackupFolders,
-    private folderService: typeof driveFolderService,
-    private localDB: typeof photosLocalDB,
+    private readonly backupFolders: typeof photoBackupFolders,
+    private readonly folderService: typeof driveFolderService,
+    private readonly localDB: typeof photosLocalDB,
   ) {}
 
   async listDeviceFolders(): Promise<{ uuid: string; name: string }[]> {
@@ -59,8 +59,8 @@ class PhotoCloudBrowserService {
     const now = Date.now();
 
     for (const dayFolder of dayFolders) {
-      const day = parseInt(dayFolder.plainName ?? '', 10);
-      const folderDate = new Date(year, month - 1, isNaN(day) ? 1 : day).getTime();
+      const day = Number.parseInt(dayFolder.plainName ?? '', 10);
+      const folderDate = new Date(year, month - 1, Number.isNaN(day) ? 1 : day).getTime();
 
       const files = await this.listFilesWithThumbnails(dayFolder.uuid);
       for (const file of files) {
