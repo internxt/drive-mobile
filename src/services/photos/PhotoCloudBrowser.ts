@@ -5,8 +5,7 @@ import { photosLocalDB } from './database/photosLocalDB';
 import { photoBackupFolders } from './PhotoBackupFolders';
 
 const HOUR_MS = 60 * 60 * 1000;
-// TODO: REMEMBER TO CHANGE THE TIME BEFORE PR
-const CACHE_TTL_MS = 1 * HOUR_MS;
+const CACHE_TTL_MS = 24 * HOUR_MS;
 const PAGE_SIZE = 50;
 
 const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Promise<T[]> => {
@@ -38,7 +37,14 @@ class PhotoCloudBrowserService {
     return folders.map((f) => ({ uuid: f.uuid, name: f.plainName ?? '' }));
   }
 
-  async fetchMonth(deviceId: string, deviceFolderUuid: string, year: number, month: number): Promise<void> {
+  async fetchMonth(params: {
+    deviceId: string;
+    deviceFolderUuid: string;
+    year: number;
+    month: number;
+    onMonthFetched?: () => void;
+  }): Promise<void> {
+    const { deviceId, deviceFolderUuid, year, month, onMonthFetched } = params;
     const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
     if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return;
 
@@ -76,14 +82,18 @@ class PhotoCloudBrowserService {
         });
       }
     }
+
+    onMonthFetched?.();
   }
 
-  async syncAllDevicesFromMonth(
-    devices: { uuid: string; name: string }[],
-    fromYear: number,
-    fromMonth: number,
-    monthsBack = 12,
-  ): Promise<void> {
+  async syncAllDevicesFromMonth(params: {
+    devices: { uuid: string; name: string }[];
+    fromYear: number;
+    fromMonth: number;
+    monthsBack?: number;
+    onMonthFetched?: () => void;
+  }): Promise<void> {
+    const { devices, fromYear, fromMonth, monthsBack = 12, onMonthFetched } = params;
     for (let i = 0; i < monthsBack; i++) {
       let year = fromYear;
       let month = fromMonth - i;
@@ -92,7 +102,7 @@ class PhotoCloudBrowserService {
         year -= 1;
       }
       for (const device of devices) {
-        await this.fetchMonth(device.name, device.uuid, year, month);
+        await this.fetchMonth({ deviceId: device.name, deviceFolderUuid: device.uuid, year, month, onMonthFetched });
       }
     }
   }

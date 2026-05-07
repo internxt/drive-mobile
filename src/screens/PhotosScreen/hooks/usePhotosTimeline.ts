@@ -32,8 +32,14 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
   const isLoadingMoreRef = useRef(false);
   const appStateRef = useRef(AppState.currentState);
 
-  const { syncStatus, uploadingAssetIds, sessionTotalAssets, sessionUploadedAssets, lastSyncTimestamp } =
-    useAppSelector((state) => state.photos);
+  const {
+    syncStatus,
+    uploadingAssetIds,
+    sessionTotalAssets,
+    sessionUploadedAssets,
+    lastSyncTimestamp,
+    cloudFetchRevision,
+  } = useAppSelector((state) => state.photos);
 
   const fetchLocalPage = useCallback(async (after?: string): Promise<MediaLibrary.PagedInfo<MediaLibrary.Asset>> => {
     return MediaLibrary.getAssetsAsync({
@@ -117,7 +123,7 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
       setCloudItems(deduplicated.map(cloudEntryToPhotoItem));
     };
     loadCloudAssets();
-  }, [lastSyncTimestamp]);
+  }, [lastSyncTimestamp, cloudFetchRevision]);
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
 

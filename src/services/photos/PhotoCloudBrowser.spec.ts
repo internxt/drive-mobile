@@ -27,14 +27,15 @@ const mockFolderService = driveFolderService as jest.Mocked<typeof driveFolderSe
 const mockBackupFolders = photoBackupFolders as jest.Mocked<typeof photoBackupFolders>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
 
-const makeFolder = (uuid: string, plainName: string) => ({ uuid, plainName, name: plainName } as never);
-const makeFile = (uuid: string, plainName: string) => ({
-  uuid,
-  plainName,
-  name: plainName,
-  size: 1024,
-  thumbnails: [{ bucket_id: 'bucket-1', bucket_file: 'file-1', type: 'jpg' }],
-} as never);
+const makeFolder = (uuid: string, plainName: string) => ({ uuid, plainName, name: plainName }) as never;
+const makeFile = (uuid: string, plainName: string) =>
+  ({
+    uuid,
+    plainName,
+    name: plainName,
+    size: 1024,
+    thumbnails: [{ bucket_id: 'bucket-1', bucket_file: 'file-1', type: 'jpg' }],
+  }) as never;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -85,7 +86,12 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     const freshTimestamp = Date.now() - 1000;
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(freshTimestamp);
 
-    await photoCloudBrowser.fetchMonth('device-1', 'device-folder-uuid', 2024, 6);
+    await photoCloudBrowser.fetchMonth({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-folder-uuid',
+      year: 2024,
+      month: 6,
+    });
 
     expect(mockFolderService.getFolderFolders).not.toHaveBeenCalled();
     expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
@@ -107,7 +113,12 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
-    await photoCloudBrowser.fetchMonth('device-1', 'device-folder-uuid', 2024, 6);
+    await photoCloudBrowser.fetchMonth({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-folder-uuid',
+      year: 2024,
+      month: 6,
+    });
 
     expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledTimes(1);
     expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
@@ -127,7 +138,12 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
 
     mockFolderService.getFolderFolders.mockResolvedValue({ folders: [] } as never);
 
-    await photoCloudBrowser.fetchMonth('device-1', 'device-folder-uuid', 2024, 6);
+    await photoCloudBrowser.fetchMonth({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-folder-uuid',
+      year: 2024,
+      month: 6,
+    });
 
     expect(mockFolderService.getFolderFolders).toHaveBeenCalled();
   });
@@ -136,7 +152,12 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
     mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
 
-    await photoCloudBrowser.fetchMonth('device-1', 'device-folder-uuid', 2024, 6);
+    await photoCloudBrowser.fetchMonth({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-folder-uuid',
+      year: 2024,
+      month: 6,
+    });
 
     expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
   });
@@ -156,7 +177,12 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
-    await photoCloudBrowser.fetchMonth('device-1', 'device-folder-uuid', 2024, 6);
+    await photoCloudBrowser.fetchMonth({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-folder-uuid',
+      year: 2024,
+      month: 6,
+    });
 
     const upsertCall = mockPhotosLocalDB.upsertCloudAsset.mock.calls[0][0];
     expect(upsertCall.createdAt).toBe(new Date(2024, 5, 15).getTime());
@@ -172,7 +198,7 @@ describe('PhotoCloudBrowser.syncAllDevicesFromMonth', () => {
       { uuid: 'd2-uuid', name: 'device-2' },
     ];
 
-    await photoCloudBrowser.syncAllDevicesFromMonth(devices, 2024, 6, 3);
+    await photoCloudBrowser.syncAllDevicesFromMonth({ devices, fromYear: 2024, fromMonth: 6, monthsBack: 3 });
 
     expect(fetchMonthSpy).toHaveBeenCalledTimes(6);
     fetchMonthSpy.mockRestore();
@@ -183,12 +209,18 @@ describe('PhotoCloudBrowser.syncAllDevicesFromMonth', () => {
 
     const devices = [{ uuid: 'd1-uuid', name: 'device-1' }];
 
-    await photoCloudBrowser.syncAllDevicesFromMonth(devices, 2024, 2, 3);
+    await photoCloudBrowser.syncAllDevicesFromMonth({ devices, fromYear: 2024, fromMonth: 2, monthsBack: 3 });
 
     const calls = fetchMonthSpy.mock.calls;
-    expect(calls).toContainEqual(['device-1', 'd1-uuid', 2024, 2]);
-    expect(calls).toContainEqual(['device-1', 'd1-uuid', 2024, 1]);
-    expect(calls).toContainEqual(['device-1', 'd1-uuid', 2023, 12]);
+    expect(calls).toContainEqual([
+      expect.objectContaining({ deviceId: 'device-1', deviceFolderUuid: 'd1-uuid', year: 2024, month: 2 }),
+    ]);
+    expect(calls).toContainEqual([
+      expect.objectContaining({ deviceId: 'device-1', deviceFolderUuid: 'd1-uuid', year: 2024, month: 1 }),
+    ]);
+    expect(calls).toContainEqual([
+      expect.objectContaining({ deviceId: 'device-1', deviceFolderUuid: 'd1-uuid', year: 2023, month: 12 }),
+    ]);
 
     fetchMonthSpy.mockRestore();
   });

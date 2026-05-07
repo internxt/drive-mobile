@@ -143,6 +143,7 @@ describe('photos slice', () => {
       deviceId: null,
       sessionTotalAssets: 0,
       sessionUploadedAssets: 0,
+      cloudFetchRevision: 0,
     };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
@@ -450,7 +451,13 @@ describe('photos slice', () => {
 
       await store.dispatch(runCloudMetadataSyncThunk());
 
-      expect(mockCloudBrowser.syncAllDevicesFromMonth).toHaveBeenCalledWith(devices, expect.any(Number), expect.any(Number), 12);
+      expect(mockCloudBrowser.syncAllDevicesFromMonth).toHaveBeenCalledWith({
+        devices,
+        fromYear: expect.any(Number),
+        fromMonth: expect.any(Number),
+        monthsBack: 12,
+        onMonthFetched: expect.any(Function),
+      });
     });
 
     test('when the cloud sync step fails during a backup cycle, then the cycle still completes without throwing', async () => {

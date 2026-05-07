@@ -33,6 +33,7 @@ export interface PhotosState {
   deviceId: string | null;
   sessionTotalAssets: number;
   sessionUploadedAssets: number;
+  cloudFetchRevision: number;
 }
 
 const initialState: PhotosState = {
@@ -49,6 +50,7 @@ const initialState: PhotosState = {
   deviceId: null,
   sessionTotalAssets: 0,
   sessionUploadedAssets: 0,
+  cloudFetchRevision: 0,
 };
 
 const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
@@ -222,7 +224,7 @@ export const runUploadThunk = createAsyncThunk<void, void, { state: RootState }>
 
 export const runCloudMetadataSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/runCloudMetadataSync',
-  async (_, { getState }) => {
+  async (_, { getState, dispatch }) => {
     const { enabled, deviceId } = getState().photos;
     if (!enabled || !deviceId) return;
 
@@ -231,7 +233,13 @@ export const runCloudMetadataSyncThunk = createAsyncThunk<void, void, { state: R
     if (devices.length === 0) return;
 
     const now = new Date();
-    await photoCloudBrowser.syncAllDevicesFromMonth(devices, now.getFullYear(), now.getMonth() + 1, 12);
+    await photoCloudBrowser.syncAllDevicesFromMonth({
+      devices,
+      fromYear: now.getFullYear(),
+      fromMonth: now.getMonth() + 1,
+      monthsBack: 12,
+      onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
+    });
   },
 );
 
@@ -336,6 +344,9 @@ export const photosSlice = createSlice({
     },
     incrementSessionUploadedAssets: (state) => {
       state.sessionUploadedAssets += 1;
+    },
+    incrementCloudFetchRevision: (state) => {
+      state.cloudFetchRevision += 1;
     },
   },
 });
