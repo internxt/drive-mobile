@@ -20,11 +20,11 @@ describe('photosLocalDB', () => {
     (photosLocalDB as any).initPromise = null;
   });
 
-  test('when the database is initialized, then it opens the database file and creates the table and index', async () => {
+  test('when the database is initialized, then it opens the database file and creates all tables and indexes', async () => {
     await photosLocalDB.init();
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(2);
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(6);
   });
 
   test('when the database is initialized a second time, then no database calls are made', async () => {
@@ -248,5 +248,157 @@ describe('photosLocalDB', () => {
     await photosLocalDB.reset();
 
     expect(mockSqlite.executeSql).toHaveBeenCalledWith('photos_sync.db', expect.stringContaining('DELETE FROM'));
+  });
+
+  test('when the database is initialized, then the cloud asset table and its three indexes are also created', async () => {
+    await photosLocalDB.init();
+
+    const statements = mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
+    const createTableCalls = statements.filter((s) => s.includes('CREATE TABLE'));
+    const createIndexCalls = statements.filter((s) => s.includes('CREATE INDEX'));
+    expect(createTableCalls).toHaveLength(2);
+    expect(createIndexCalls).toHaveLength(4);
+  });
+});
+
+describe('photosLocalDB cloud asset methods', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (photosLocalDB as any).initPromise = null;
+  });
+
+  test('when a cloud asset is upserted, then all its fields are passed to the database', async () => {
+    await photosLocalDB.upsertCloudAsset({
+      remoteFileId: 'remote-1',
+      deviceId: 'device-1',
+      createdAt: 1718000000000,
+      fileName: 'photo.jpg',
+      fileSize: 2048,
+      thumbnailPath: null,
+      thumbnailBucketId: 'bucket-1',
+      thumbnailBucketFile: 'file-1',
+      thumbnailType: 'jpg',
+      discoveredAt: 1718100000000,
+    });
+
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual([
+      'remote-1',
+      'device-1',
+      1718000000000,
+      'photo.jpg',
+      2048,
+      null,
+      'bucket-1',
+      'file-1',
+      'jpg',
+      1718100000000,
+    ]);
+  });
+
+  test('when all cloud assets are fetched, then each database row is mapped to a typed entry', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([
+      {
+        remote_file_id: 'r1',
+        device_id: 'd1',
+        created_at: 1718000000,
+        file_name: 'a.jpg',
+        file_size: 512,
+        thumbnail_path: '/local/thumb.jpg',
+        thumbnail_bucket_id: 'b1',
+        thumbnail_bucket_file: 'f1',
+        thumbnail_type: 'jpg',
+        discovered_at: 1718100000,
+      },
+    ]);
+
+    const result = await photosLocalDB.getAllCloudAssets();
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toEqual({
+      remoteFileId: 'r1',
+      deviceId: 'd1',
+      createdAt: 1718000000,
+      fileName: 'a.jpg',
+      fileSize: 512,
+      thumbnailPath: '/local/thumb.jpg',
+      thumbnailBucketId: 'b1',
+      thumbnailBucketFile: 'f1',
+      thumbnailType: 'jpg',
+      discoveredAt: 1718100000,
+    });
+  });
+
+  test('when cloud assets are fetched by range, then the from and to timestamps are passed as parameters', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+    await photosLocalDB.getCloudAssetsByRange(1000, 2000);
+
+    const [, , params] = mockSqlite.getAllAsync.mock.calls[0];
+    expect(params).toEqual([1000, 2000]);
+  });
+
+  test('when a cloud thumbnail path is set, then the path and remote file id are passed to the database', async () => {
+    await photosLocalDB.setCloudThumbnailPath('remote-1', '/path/to/thumb.jpg');
+
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual(['/path/to/thumb.jpg', 'remote-1']);
+  });
+
+  test('when a cloud asset is deleted, then its remote file id is passed to the database', async () => {
+    await photosLocalDB.deleteCloudAsset('remote-1');
+
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual(['remote-1']);
+  });
+
+  test('when there are no cloud entries for a given month, then the cache age is null', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ latest: null });
+
+    const result = await photosLocalDB.getCloudFetchCacheAge('device-1', 2024, 6);
+
+    expect(result).toBeNull();
+  });
+
+  test('when cloud entries exist for a given month, then the most recent discovered at timestamp is returned', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ latest: 1718100000000 });
+
+    const result = await photosLocalDB.getCloudFetchCacheAge('device-1', 2024, 6);
+
+    expect(result).toBe(1718100000000);
+  });
+
+  test('when fetching cache age for a month, then the correct month boundaries are passed as timestamps', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ latest: null });
+
+    await photosLocalDB.getCloudFetchCacheAge('device-1', 2024, 6);
+
+    const [, , params] = mockSqlite.getFirstAsync.mock.calls[0];
+    const expectedFrom = new Date(2024, 5, 1).getTime();
+    const expectedTo = new Date(2024, 6, 1).getTime();
+    expect(params).toEqual(['device-1', expectedFrom, expectedTo]);
+  });
+
+  test('when synced remote file ids are fetched, then the result is a set of all returned ids', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([
+      { remote_file_id: 'r1' },
+      { remote_file_id: 'r2' },
+    ]);
+
+    const result = await photosLocalDB.getSyncedRemoteFileIds();
+
+    expect(result).toEqual(new Set(['r1', 'r2']));
+  });
+
+  test('when there are no synced remote file ids, then an empty set is returned', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+    const result = await photosLocalDB.getSyncedRemoteFileIds();
+
+    expect(result).toEqual(new Set());
   });
 });

@@ -12,16 +12,12 @@ export interface AssetUploadJob {
 interface UploadQueueCallbacks {
   onAssetStart?: (assetId: string) => void;
   onAssetProgress?: (assetId: string, ratio: number) => void;
-  onAssetDone?: (assetId: string, remoteFileId: string, modificationTime: number) => void;
-  onAssetError?: (assetId: string, error: Error) => void;
+  onAssetDone?: (assetId: string, remoteFileId: string, modificationTime: number) => Promise<void> | void;
+  onAssetError?: (assetId: string, error: Error) => Promise<void> | void;
 }
 
 export const PhotoUploadQueue = {
-  async start(
-    jobs: AssetUploadJob[],
-    deviceId: string,
-    callbacks: UploadQueueCallbacks,
-  ): Promise<void> {
+  async start(jobs: AssetUploadJob[], deviceId: string, callbacks: UploadQueueCallbacks): Promise<void> {
     const limit = pLimit(UPLOAD_CONCURRENCY);
 
     await Promise.all(
@@ -37,9 +33,9 @@ export const PhotoUploadQueue = {
               : await PhotoUploadService.upload(asset, deviceId, (ratio) =>
                   callbacks.onAssetProgress?.(asset.id, ratio),
                 );
-            callbacks.onAssetDone?.(asset.id, remoteFileId, asset.modificationTime);
+            await callbacks.onAssetDone?.(asset.id, remoteFileId, asset.modificationTime);
           } catch (uploadError) {
-            callbacks.onAssetError?.(asset.id, uploadError as Error);
+            await callbacks.onAssetError?.(asset.id, uploadError as Error);
           }
         }),
       ),

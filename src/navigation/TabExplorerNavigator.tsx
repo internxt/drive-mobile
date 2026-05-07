@@ -19,7 +19,6 @@ import MoveItemsModal from '../components/modals/MoveItemsModal';
 import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
-import SignOutModal from '../components/modals/SignOutModal';
 import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import EmptyScreen from '../screens/EmptyScreen';
@@ -102,7 +101,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <RunOutOfStorageModal />
       <EmptyFileNotAllowedModal />
       <NotEnoughDeviceSpaceModal />
-      <SignOutModal />
       <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>
   );
