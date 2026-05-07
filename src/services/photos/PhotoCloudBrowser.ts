@@ -106,8 +106,8 @@ class PhotoCloudBrowserService {
     let count = 0;
 
     for (const dayFolder of dayFolders) {
-      const day = parseInt(dayFolder.plainName ?? '', 10);
-      const folderDate = new Date(year, month - 1, isNaN(day) ? 1 : day).getTime();
+      const day = Number.parseInt(dayFolder.plainName ?? '', 10);
+      const folderDate = new Date(year, month - 1, Number.isNaN(day) ? 1 : day).getTime();
 
       const files = await this.listFilesWithThumbnails(dayFolder.uuid);
       for (const file of files) {
@@ -144,13 +144,13 @@ class PhotoCloudBrowserService {
     for (const device of devices) {
       const yearFolders = await this.listAllFolders(device.uuid);
       for (const yearFolder of yearFolders) {
-        const year = parseInt(yearFolder.plainName ?? '', 10);
-        if (isNaN(year)) continue;
+        const year = Number.parseInt(yearFolder.plainName ?? '', 10);
+        if (Number.isNaN(year)) continue;
 
         const monthFolders = await this.listAllFolders(yearFolder.uuid);
         for (const monthFolder of monthFolders) {
-          const month = parseInt(monthFolder.plainName ?? '', 10);
-          if (isNaN(month) || month < 1 || month > 12) continue;
+          const month = Number.parseInt(monthFolder.plainName ?? '', 10);
+          if (Number.isNaN(month) || month < 1 || month > 12) continue;
           result.push({ deviceId: device.name, year, month, monthFolderUuid: monthFolder.uuid });
         }
       }
