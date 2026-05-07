@@ -1,8 +1,8 @@
 import * as MediaLibrary from 'expo-media-library';
+import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
 import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
 import { PhotoDateGroup, PhotoItem } from '../types';
-import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
 import {
   assetToPhotoItem,
   buildTimelineItems,
@@ -172,27 +172,27 @@ describe('getGroupSyncStatus', () => {
   const group = makeDateGroup({ photos: [makePhotoItem(), makePhotoItem()] });
 
   test('when sync status is scanning, then returns a scanning status', () => {
-    expect(getGroupSyncStatus(group, 'scanning', 0, undefined)).toEqual({ type: 'scanning' });
+    expect(getGroupSyncStatus(group, 'scanning', 0, undefined, false)).toEqual({ type: 'scanning' });
   });
 
   test('when sync status is uploading, then returns uploading with remaining count and progress', () => {
-    expect(getGroupSyncStatus(group, 'uploading', 3, 0.5)).toEqual({
+    expect(getGroupSyncStatus(group, 'uploading', 3, 0.5, false)).toEqual({
       type: 'uploading',
       count: 3,
       backupProgress: 0.5,
     });
   });
 
-  test('when sync status is fetching-cloud, then returns a fetching status', () => {
-    expect(getGroupSyncStatus(group, 'fetching-cloud', 0, undefined)).toEqual({ type: 'fetching' });
+  test('when isFetchingCloudHistory is true and sync status is idle, then returns a fetching status', () => {
+    expect(getGroupSyncStatus(group, 'idle', 0, undefined, true)).toEqual({ type: 'fetching' });
   });
 
   test('when sync status is idle, then returns a count equal to the number of photos in the group', () => {
-    expect(getGroupSyncStatus(group, 'idle', 0, undefined)).toEqual({ type: 'count', count: 2 });
+    expect(getGroupSyncStatus(group, 'idle', 0, undefined, false)).toEqual({ type: 'count', count: 2 });
   });
 
   test('when sync status is synced, then returns a count equal to the number of photos in the group', () => {
-    expect(getGroupSyncStatus(group, 'synced', 0, undefined)).toEqual({ type: 'count', count: 2 });
+    expect(getGroupSyncStatus(group, 'synced', 0, undefined, false)).toEqual({ type: 'count', count: 2 });
   });
 });
 
@@ -261,7 +261,12 @@ describe('cloudEntryToPhotoItem', () => {
 
   test('when the entry has thumbnail data, then it is preserved in the result', () => {
     const item = cloudEntryToPhotoItem(
-      makeCloudEntry({ thumbnailPath: '/cache/thumb.jpg', thumbnailBucketId: 'bucket-1', thumbnailBucketFile: 'file-1', thumbnailType: 'jpg' }),
+      makeCloudEntry({
+        thumbnailPath: '/cache/thumb.jpg',
+        thumbnailBucketId: 'bucket-1',
+        thumbnailBucketFile: 'file-1',
+        thumbnailType: 'jpg',
+      }),
     );
     expect(item.thumbnailPath).toBe('/cache/thumb.jpg');
     expect(item.thumbnailBucketId).toBe('bucket-1');

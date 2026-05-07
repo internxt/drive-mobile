@@ -43,20 +43,67 @@ class PhotoCloudBrowserService {
     year: number;
     month: number;
     onMonthFetched?: () => void;
-  }): Promise<void> {
+  }): Promise<number> {
     const { deviceId, deviceFolderUuid, year, month, onMonthFetched } = params;
     const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
-    if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return;
+    if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
 
     const yearFolder = await this.findChildFolder(deviceFolderUuid, String(year));
-    if (!yearFolder) return;
+    if (!yearFolder) return 0;
 
     const monthStr = String(month).padStart(2, '0');
     const monthFolder = await this.findChildFolder(yearFolder.uuid, monthStr);
-    if (!monthFolder) return;
+    if (!monthFolder) return 0;
 
-    const dayFolders = await this.listAllFolders(monthFolder.uuid);
+    return this.fetchMonthFromFolder({
+      deviceId,
+      monthFolderUuid: monthFolder.uuid,
+      year,
+      month,
+      onMonthFetched,
+    });
+  }
+
+  async syncAllHistory(options: { onMonthFetched?: () => void; isCancelled?: () => boolean }): Promise<void> {
+    const { onMonthFetched, isCancelled } = options;
+    const devices = await this.listDeviceFolders();
+    if (devices.length === 0) return;
+
+    const months = await this.discoverAvailableMonths(devices);
+    if (months.length === 0) return;
+
+    const CONCURRENCY = 3;
+    let cursor = 0;
+    const worker = async (): Promise<void> => {
+      while (cursor < months.length) {
+        if (isCancelled?.()) return;
+        const target = months[cursor++];
+        await this.fetchMonthFromFolder({
+          deviceId: target.deviceId,
+          monthFolderUuid: target.monthFolderUuid,
+          year: target.year,
+          month: target.month,
+          onMonthFetched,
+        });
+      }
+    };
+    await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+  }
+
+  private async fetchMonthFromFolder(params: {
+    deviceId: string;
+    monthFolderUuid: string;
+    year: number;
+    month: number;
+    onMonthFetched?: () => void;
+  }): Promise<number> {
+    const { deviceId, monthFolderUuid, year, month, onMonthFetched } = params;
+    const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
+    if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
+
+    const dayFolders = await this.listAllFolders(monthFolderUuid);
     const now = Date.now();
+    let count = 0;
 
     for (const dayFolder of dayFolders) {
       const day = parseInt(dayFolder.plainName ?? '', 10);
@@ -80,31 +127,36 @@ class PhotoCloudBrowserService {
           thumbnailType: thumb?.type ?? null,
           discoveredAt: now,
         });
+        count++;
       }
     }
 
-    onMonthFetched?.();
+    if (count > 0) {
+      onMonthFetched?.();
+    }
+    return count;
   }
 
-  async syncAllDevicesFromMonth(params: {
-    devices: { uuid: string; name: string }[];
-    fromYear: number;
-    fromMonth: number;
-    monthsBack?: number;
-    onMonthFetched?: () => void;
-  }): Promise<void> {
-    const { devices, fromYear, fromMonth, monthsBack = 12, onMonthFetched } = params;
-    for (let i = 0; i < monthsBack; i++) {
-      let year = fromYear;
-      let month = fromMonth - i;
-      while (month <= 0) {
-        month += 12;
-        year -= 1;
-      }
-      for (const device of devices) {
-        await this.fetchMonth({ deviceId: device.name, deviceFolderUuid: device.uuid, year, month, onMonthFetched });
+  private async discoverAvailableMonths(
+    devices: { uuid: string; name: string }[],
+  ): Promise<{ deviceId: string; year: number; month: number; monthFolderUuid: string }[]> {
+    const result: { deviceId: string; year: number; month: number; monthFolderUuid: string }[] = [];
+    for (const device of devices) {
+      const yearFolders = await this.listAllFolders(device.uuid);
+      for (const yearFolder of yearFolders) {
+        const year = parseInt(yearFolder.plainName ?? '', 10);
+        if (isNaN(year)) continue;
+
+        const monthFolders = await this.listAllFolders(yearFolder.uuid);
+        for (const monthFolder of monthFolders) {
+          const month = parseInt(monthFolder.plainName ?? '', 10);
+          if (isNaN(month) || month < 1 || month > 12) continue;
+          result.push({ deviceId: device.name, year, month, monthFolderUuid: monthFolder.uuid });
+        }
       }
     }
+    result.sort((a, b) => b.year - a.year || b.month - a.month);
+    return result;
   }
 
   private async findChildFolder(parentUuid: string, name: string): Promise<FetchPaginatedFolder | null> {
