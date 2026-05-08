@@ -96,7 +96,10 @@ const LocalPhotoCell = memo(
     const tailwind = useTailwind();
     const getColor = useGetColor();
 
-    const handlePress = useCallback(() => onPress?.(item.id), [onPress, item.id]);
+    const handlePress = useCallback(() => {
+      console.log('[LocalPhotoCell] press', JSON.stringify(item, null, 2));
+      onPress?.(item.id);
+    }, [onPress, item]);
     const handleLongPress = useCallback(() => onLongPress?.(item.id), [onLongPress, item.id]);
 
     if (item.backupState === 'loading' || !item.uri) {

@@ -12,6 +12,7 @@ import photosReducer, {
   checkPermissionRevocationThunk,
   disableBackupThunk,
   enableBackupThunk,
+  forceRefreshThunk,
   hydratePhotosStateThunk,
   initDeviceIdThunk,
   photosSlice,
@@ -476,6 +477,102 @@ describe('photos slice', () => {
       expect(store.getState().photos.isFetchingCloudHistory).toBe(false);
     });
 
+    test('when force is true, then syncAllHistory is called with force true', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true }));
+
+      await store.dispatch(runFullCloudHistorySyncThunk({ force: true }));
+
+      expect(mockCloudBrowser.syncAllHistory).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+    });
+  });
+
+  describe('forceRefreshThunk', () => {
+    test('when backup is disabled, then the thunk returns without dispatching cloud sync', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: false }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockCloudBrowser.syncAllHistory).not.toHaveBeenCalled();
+    });
+
+    test('when sync is already scanning, then the thunk returns without dispatching cloud sync', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, syncStatus: 'scanning' }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockCloudBrowser.syncAllHistory).not.toHaveBeenCalled();
+    });
+
+    test('when sync is already uploading, then the thunk returns without dispatching cloud sync', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, syncStatus: 'uploading' }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockCloudBrowser.syncAllHistory).not.toHaveBeenCalled();
+    });
+
+    test('when a cloud history sync is already running, then the thunk returns without starting another one', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, isFetchingCloudHistory: true }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockCloudBrowser.syncAllHistory).not.toHaveBeenCalled();
+    });
+
+    test('when the thunk runs, then cloud sync is dispatched with force true and discovery runs', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockCloudBrowser.syncAllHistory).toHaveBeenCalledWith(expect.objectContaining({ force: true }));
+      expect(mockScanner.scanAll).toHaveBeenCalled();
+    });
+
+    test('when discovery finds pending assets, then upload runs', async () => {
+      mockScanner.scanAll.mockResolvedValueOnce([{ id: 'a1' }] as never);
+      mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({
+        newAssets: [{ id: 'a1' }],
+        editedAssets: [],
+      } as never);
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+      );
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockUploadQueue.start).toHaveBeenCalled();
+    });
+
+    test('when discovery finds no pending assets, then upload does not run', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockUploadQueue.start).not.toHaveBeenCalled();
+    });
+
+    test('when the thunk completes, then lastSyncTimestamp is updated', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+      const before = store.getState().photos.lastSyncTimestamp;
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(store.getState().photos.lastSyncTimestamp).toBeGreaterThan(before ?? 0);
+    });
+  });
+
+  describe('runBackupCycleThunk', () => {
     test('when the backup cycle runs, then cloud history sync and discovery both run', async () => {
       mockPhotoDeviceId.getOrCreate.mockResolvedValue('device-id');
 

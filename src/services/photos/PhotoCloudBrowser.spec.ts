@@ -362,6 +362,27 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     expect(onMonthFetched).toHaveBeenCalledTimes(6);
   });
 
+  test('when force is true and cache is fresh, then the month is re-fetched ignoring the TTL', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m1-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    const fresh = Date.now() - 1000;
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(fresh);
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] } as never)
+      .mockResolvedValueOnce({ folders: [year] } as never)
+      .mockResolvedValueOnce({ folders: [month] } as never)
+      .mockResolvedValueOnce({ folders: [day] } as never);
+    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+
+    await photoCloudBrowser.syncAllHistory({ force: true });
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledTimes(1);
+  });
+
   test('when a discovered month has no files, then onMonthFetched is not invoked for that month', async () => {
     mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
     const device = makeFolder('d1-uuid', 'device-1');

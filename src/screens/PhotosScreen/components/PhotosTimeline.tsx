@@ -40,6 +40,8 @@ interface PhotosTimelineProps {
   selectedIds?: Set<string>;
   ListHeaderComponent?: React.ReactElement;
   onEndReached?: () => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 const getItemType = (item: FlatItem) => item.type;
@@ -61,6 +63,8 @@ const PhotosTimeline = ({
   selectedIds,
   ListHeaderComponent,
   onEndReached,
+  refreshing,
+  onRefresh,
 }: PhotosTimelineProps) => {
   const tailwind = useTailwind();
   const { items, headerIndices } = useMemo(() => {
@@ -124,6 +128,8 @@ const PhotosTimeline = ({
       showsVerticalScrollIndicator={false}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
+      refreshing={refreshing}
+      onRefresh={onRefresh}
       onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
       scrollEventThrottle={16}
     />

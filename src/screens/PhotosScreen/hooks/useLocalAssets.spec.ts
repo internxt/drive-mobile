@@ -161,6 +161,27 @@ describe('useLocalAssets', () => {
     expect(mockMediaLibrary.getAssetsAsync).toHaveBeenCalledTimes(3);
   });
 
+  test('when reload is called, then the gallery re-paginates from the start with fresh results', async () => {
+    const firstAssets = [makeAsset('a1'), makeAsset('a2')];
+    const reloadAssets = [makeAsset('a3')];
+    mockMediaLibrary.getAssetsAsync
+      .mockResolvedValueOnce(makePage(firstAssets))
+      .mockResolvedValueOnce(makePage(reloadAssets));
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      await result.current.reload();
+    });
+
+    expect(result.current.assets).toEqual(reloadAssets);
+    expect(mockMediaLibrary.getAssetsAsync).toHaveBeenCalledTimes(2);
+  });
+
   test('when sync status changes and there are assets loaded, then synced ids refresh from the database', async () => {
     mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([makeAsset('a1')]));
     mockPhotosLocalDB.getSyncedEntries.mockResolvedValue(new Map([['a1', { modificationTime: null }]]));

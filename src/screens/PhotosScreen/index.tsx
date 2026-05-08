@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { photosActions, runBackupCycleThunk } from 'src/store/slices/photos';
+import { forceRefreshThunk, photosActions, runBackupCycleThunk } from 'src/store/slices/photos';
 import { useTailwind } from 'tailwind-rn';
 import { photoPermissionService } from '../../services/photos/photoPermissionService';
 import BackupDisabledBanner from './components/BackupDisabledBanner';
@@ -19,7 +19,8 @@ const PhotosScreen = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const { enabled, permissionStatus } = useAppSelector((state) => state.photos);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const { timelineDateGroups, isLoading, loadNextPage } = usePhotosTimeline();
+  const [refreshing, setRefreshing] = useState(false);
+  const { timelineDateGroups, isLoading, loadNextPage, reloadLocal } = usePhotosTimeline();
 
   const accessState: PhotosAccessState = useMemo<PhotosAccessState>(
     () => (enabled ? { type: 'available' } : { type: 'backup-off' }),
@@ -28,6 +29,15 @@ const PhotosScreen = (): JSX.Element => {
   const handleEnableBackup = useCallback(() => setIsSheetOpen(true), []);
   const listHeader =
     accessState.type === 'backup-off' ? <BackupDisabledBanner onEnablePress={handleEnableBackup} /> : undefined;
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([reloadLocal(), dispatch(forceRefreshThunk()).unwrap()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch, reloadLocal]);
 
   const handleSelectPress = useCallback(() => undefined, []);
   const handleUpgradePress = useCallback(() => undefined, []);
@@ -60,6 +70,8 @@ const PhotosScreen = (): JSX.Element => {
           isLoading={isLoading}
           ListHeaderComponent={listHeader}
           onEndReached={loadNextPage}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
         />
         {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>
