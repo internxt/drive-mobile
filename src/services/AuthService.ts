@@ -1,6 +1,6 @@
 import { logger } from '@internxt-mobile/services/common';
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
+import { TwoFactorAuthQR } from '@internxt/sdk';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import * as bip39 from '@scure/bip39';
@@ -8,14 +8,13 @@ import { wordlist } from '@scure/bip39/wordlists/english.js';
 import EventEmitter from 'events';
 import { jwtDecode } from 'jwt-decode';
 import { NetworkCacheModule } from '../../modules/network-cache';
-import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
+import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import appService from './AppService';
 import asyncStorageService from './AsyncStorageService';
-import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
 
 enum AuthEventKey {
