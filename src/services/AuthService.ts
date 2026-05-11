@@ -59,7 +59,7 @@ class AuthService {
     }
   }
 
-  public async handleWebLogin(params: { mnemonic: string; token: string; newToken: string; privateKey?: string }) {
+  public async handleWebLogin(params: { mnemonic: string; newToken: string; privateKey?: string }) {
     try {
       const mnemonic = Buffer.from(params.mnemonic, 'base64').toString('utf-8');
       const newToken = Buffer.from(params.newToken, 'base64').toString('utf-8');

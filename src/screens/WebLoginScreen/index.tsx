@@ -31,12 +31,12 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
         return;
       }
 
-      const { mnemonic, token, newToken, privateKey } = params;
+      const { mnemonic, newToken, privateKey } = params;
 
-      if (!mnemonic || !token || !newToken) {
+      if (!mnemonic || !newToken) {
         setLoadingState('error');
         setError(strings.screens.WebLoginScreen.missingParameters);
-        logger.error('WebLoginScreen: Missing required parameters', !mnemonic || !token || !newToken);
+        logger.error('WebLoginScreen: Missing required parameters', !mnemonic || !newToken);
         setTimeout(() => navigation.replace('SignIn'), 2000);
         return;
       }
@@ -44,7 +44,6 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
       try {
         const result = await authService.handleWebLogin({
           mnemonic,
-          token,
           newToken,
           privateKey,
         });
