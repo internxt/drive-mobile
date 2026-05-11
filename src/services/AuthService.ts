@@ -59,57 +59,6 @@ class AuthService {
     }
   }
 
-  public async doLogin(email: string, password: string, tfaCode?: string) {
-    const loginResult = await this.sdk.authV2.loginWithoutKeys(
-      {
-        email,
-        password,
-        tfaCode,
-      },
-      {
-        encryptPasswordHash(password: Password, encryptedSalt: string): string {
-          const salt = decryptText(encryptedSalt);
-          const hashObj = passToHash({ password, salt });
-          return encryptText(hashObj.hash);
-        },
-        async generateKeys(): Promise<Keys> {
-          const keys = {
-            privateKeyEncrypted: '',
-            publicKey: '',
-            revocationCertificate: '',
-            ecc: {
-              privateKeyEncrypted: '',
-              publicKey: '',
-            },
-            kyber: {
-              publicKey: '',
-              privateKeyEncrypted: '',
-            },
-          };
-          return keys;
-        },
-      },
-    );
-
-    loginResult.user.mnemonic = decryptTextWithKey(loginResult.user.mnemonic, password);
-
-    if (loginResult.user.privateKey) {
-      const decryptedPrivateKey = keysService.decryptPrivateKey(loginResult.user.privateKey, password);
-      loginResult.user.privateKey = Buffer.from(decryptedPrivateKey).toString('base64');
-    }
-
-    // Get the refreshed tokens, they contain expiration, the ones returned
-    // on the login doesn't have expiration
-    const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
-
-    if (!refreshedTokens?.token || !refreshedTokens?.newToken) throw new Error('Unable to refresh auth tokens');
-    return {
-      ...loginResult,
-      token: refreshedTokens.token,
-      newToken: refreshedTokens.newToken,
-    };
-  }
-
   public async handleWebLogin(params: { mnemonic: string; token: string; newToken: string; privateKey?: string }) {
     try {
       const mnemonic = Buffer.from(params.mnemonic, 'base64').toString('utf-8');
