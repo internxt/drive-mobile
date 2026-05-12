@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { DotsThreeOutlineIcon, ExportIcon, StarIcon, TrashIcon } from 'phosphor-react-native';
-import { memo, useCallback, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { FlatList, Image, ListRenderItem, TouchableOpacity, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -116,8 +116,17 @@ export const PreviewCarousel = ({
 }: PreviewCarouselProps): JSX.Element => {
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
+  const listRef = useRef<FlatList<TimelinePhotoItem>>(null);
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
+
+  useEffect(() => {
+    const isIndexOutOfBounds = currentIndex < 0 || currentIndex >= items.length;
+    if (isIndexOutOfBounds) {
+      return;
+    }
+    listRef.current?.scrollToIndex({ index: currentIndex, animated: true, viewPosition: 0.5 });
+  }, [currentIndex, items.length]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: withTiming(visible ? 1 : 0, { duration: 150, easing: Easing.out(Easing.quad) }),
@@ -146,6 +155,7 @@ export const PreviewCarousel = ({
       >
         <View style={tailwind('items-center mb-2')}>
           <FlatList
+            ref={listRef}
             data={items}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
@@ -155,6 +165,7 @@ export const PreviewCarousel = ({
             windowSize={5}
             initialNumToRender={30}
             maxToRenderPerBatch={20}
+            onScrollToIndexFailed={() => undefined}
           />
         </View>
 
