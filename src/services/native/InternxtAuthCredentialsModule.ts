@@ -4,6 +4,7 @@ export interface InternxtAuthCredentials {
   bearerToken: string;
   userId: string;
   bridgeUser: string;
+  mnemonic: string;
   rootFolderUuid: string;
   email?: string | null;
   driveBaseUrl: string;
