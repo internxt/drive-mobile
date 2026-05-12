@@ -14,6 +14,7 @@ import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
 import DebugScreen from '../screens/DebugScreen';
 import { TrashScreen } from '../screens/common/TrashScreen';
 import { DrivePreviewScreen } from '../screens/drive/DrivePreviewScreen';
+import { PhotoPreviewScreen } from '../screens/PhotoPreviewScreen';
 import { SettingsNavigator } from './SettingsNavigator';
 import ShareExtensionView from '../shareExtension/ShareExtensionView.android';
 import { useIosPendingShareHandoff } from '../shareExtension/hooks/useIosPendingShareHandoff';
@@ -48,6 +49,11 @@ function AppNavigator({ navigationContainerRef }: Readonly<Props>): JSX.Element 
       <Stack.Screen
         name="DrivePreview"
         component={DrivePreviewScreen}
+        options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="PhotoPreview"
+        component={PhotoPreviewScreen}
         options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
       />
       {Platform.OS === 'android' && (

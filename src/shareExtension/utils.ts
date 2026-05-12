@@ -2,7 +2,6 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { File as FSFile } from 'expo-file-system';
 import mime from 'mime';
-import prettysize from 'prettysize';
 import strings from '../../assets/lang/strings';
 import { HttpUploadError } from './errors';
 import { SharedFile, UploadErrorType } from './types';
@@ -30,7 +29,7 @@ export const readSize = (uri: string): number | null => {
   }
 };
 
-export const formatBytes = (bytes: number): string => prettysize(bytes);
+export { formatBytes } from '../utils/format';
 
 export const getFileExtension = (fileName: string | null): string => {
   if (!fileName) return '';

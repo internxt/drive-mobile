@@ -47,6 +47,7 @@ export const assetToPhotoItem = (
     id: asset.id,
     type: 'local',
     uri: asset.uri,
+    createdAt: asset.creationTime,
     backupState,
     mediaType: isVideo ? 'video' : 'photo',
     duration: isVideo ? formatVideoDuration(asset.duration) : undefined,

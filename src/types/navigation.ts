@@ -3,6 +3,7 @@ import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenPara
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
 import { SharedFile } from '../shareExtension/types';
+import { TimelinePhotoItem } from '../screens/PhotosScreen/types';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
+  PhotoPreview: { initialId: string; items: TimelinePhotoItem[] };
   Settings: undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };

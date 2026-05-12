@@ -212,6 +212,12 @@ class FileSystemService {
     await RNFS.mkdir(uri);
   }
 
+  public async ensureDir(uri: string): Promise<void> {
+    if (!(await this.exists(uri))) {
+      await this.mkdir(uri);
+    }
+  }
+
   public async uriToBlob(uri: string) {
     const response = await fetch(uri);
     const blob = await response.blob();

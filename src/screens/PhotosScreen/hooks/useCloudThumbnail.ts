@@ -1,24 +1,38 @@
+import { logger } from '@internxt-mobile/services/common';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
 import { CloudPhotoItem } from '../types';
 
 export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; onImageError: () => void } => {
   const [localPath, setLocalPath] = useState<string | null>(item.thumbnailPath);
+  const [retryCount, setRetryCount] = useState(0);
   const user = useAppSelector((state) => state.auth.user);
+  const userRef = useRef(user);
+  userRef.current = user;
 
   const onImageError = useCallback(() => {
     photosLocalDB.setCloudThumbnailPath(item.id, null);
     setLocalPath(null);
+    setRetryCount((c) => c + 1);
   }, [item.id]);
 
   useEffect(() => {
     // FlashList recycles cells: reset to the new item's persisted path before checking
-    setLocalPath(item.thumbnailPath);
+    if (retryCount === 0) {
+      setLocalPath(item.thumbnailPath);
+    }
 
-    const { thumbnailPath, thumbnailBucketId, thumbnailBucketFile } = item;
-    if (thumbnailPath || !thumbnailBucketId || !thumbnailBucketFile || !user) {
+    const thumbnailBucketId = item.thumbnailBucketId;
+    const thumbnailBucketFile = item.thumbnailBucketFile;
+    const currentUser = userRef.current;
+
+    // On first mount: skip if path already persisted. On retry (image load failed): always re-fetch.
+    if (retryCount === 0 && item.thumbnailPath) {
+      return;
+    }
+    if (!thumbnailBucketId || !thumbnailBucketFile || !currentUser) {
       return;
     }
 
@@ -34,7 +48,7 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
             bucket_file: thumbnailBucketFile,
             type: item.thumbnailType ?? 'jpg',
           },
-          user,
+          currentUser,
         );
         if (cancelled) {
           return;
@@ -42,7 +56,7 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
         setLocalPath(result.uri);
         photosLocalDB.setCloudThumbnailPath(item.id, result.uri);
       } catch (error) {
-        console.error(`Failed to fetch thumbnail for cloud photo ${item.id} ${error}`);
+        logger.error(`[useCloudThumbnail] Failed to fetch thumbnail for cloud photo ${item.id}: ${error}`);
       }
     };
 
@@ -51,7 +65,7 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
     return () => {
       cancelled = true;
     };
-  }, [item.id]);
+  }, [item.id, retryCount]);
 
   return { uri: localPath, onImageError };
 };

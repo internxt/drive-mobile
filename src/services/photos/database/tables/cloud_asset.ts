@@ -8,6 +8,7 @@ const statements = {
       created_at             INTEGER NOT NULL,
       file_name              TEXT    NOT NULL,
       file_size              INTEGER,
+      file_id                TEXT,
       thumbnail_path         TEXT,
       thumbnail_bucket_id    TEXT,
       thumbnail_bucket_file  TEXT,
@@ -21,14 +22,15 @@ const statements = {
 
   upsert: `
     INSERT INTO ${TABLE_NAME} (
-      remote_file_id, device_id, created_at, file_name, file_size,
+      remote_file_id, device_id, created_at, file_name, file_size, file_id,
       thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(remote_file_id) DO UPDATE SET
       device_id              = excluded.device_id,
       created_at             = excluded.created_at,
       file_name              = excluded.file_name,
       file_size              = excluded.file_size,
+      file_id                = excluded.file_id,
       thumbnail_path         = COALESCE(${TABLE_NAME}.thumbnail_path, excluded.thumbnail_path),
       thumbnail_bucket_id    = excluded.thumbnail_bucket_id,
       thumbnail_bucket_file  = excluded.thumbnail_bucket_file,
@@ -37,18 +39,25 @@ const statements = {
   `,
 
   getAll: `
-    SELECT remote_file_id, device_id, created_at, file_name, file_size,
+    SELECT remote_file_id, device_id, created_at, file_name, file_size, file_id,
            thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
     FROM ${TABLE_NAME}
     ORDER BY created_at DESC;
   `,
 
   getByRange: `
-    SELECT remote_file_id, device_id, created_at, file_name, file_size,
+    SELECT remote_file_id, device_id, created_at, file_name, file_size, file_id,
            thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
     FROM ${TABLE_NAME}
     WHERE created_at >= ? AND created_at <= ?
     ORDER BY created_at DESC;
+  `,
+
+  getById: `
+    SELECT remote_file_id, device_id, created_at, file_name, file_size, file_id,
+           thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
+    FROM ${TABLE_NAME}
+    WHERE remote_file_id = ?;
   `,
 
   setThumbnailPath: `
