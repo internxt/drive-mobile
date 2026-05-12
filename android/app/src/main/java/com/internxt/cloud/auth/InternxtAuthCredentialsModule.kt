@@ -27,6 +27,7 @@ class InternxtAuthCredentialsModule(private val ctx: ReactApplicationContext) :
                 bearerToken = map.requireString("bearerToken"),
                 userId = map.requireString("userId"),
                 bridgeUser = map.requireString("bridgeUser"),
+                mnemonic = map.requireString("mnemonic"),
                 rootFolderUuid = map.requireString("rootFolderUuid"),
                 email = map.optString("email"),
                 driveBaseUrl = map.requireString("driveBaseUrl"),

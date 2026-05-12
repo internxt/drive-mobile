@@ -5,6 +5,9 @@ import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Bundle
 import android.os.CancellationSignal
+import android.os.Handler
+import android.os.HandlerThread
+import android.os.OperationCanceledException
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
 import android.provider.DocumentsContract.Document
@@ -16,8 +19,16 @@ import com.internxt.cloud.documents.api.InternxtApiClient
 import com.internxt.cloud.documents.api.InternxtApiException
 import com.internxt.cloud.documents.api.model.TrashItem
 import com.internxt.cloud.documents.auth.InternxtAuthManager
+import com.internxt.cloud.documents.cache.DocumentCache
+import com.internxt.cloud.documents.crypto.FileKeyDeriver
+import com.internxt.cloud.documents.download.EncryptedFileDownloader
+import com.rncrypto.util.CryptoService
+import okhttp3.OkHttpClient
+import java.io.File
 import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.Executors
 
 class InternxtDocumentsProvider : DocumentsProvider() {
@@ -38,12 +49,22 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val rows = mutableListOf<Map<String, Any?>>()
     }
     private val itemKinds = ConcurrentHashMap<String, ItemKind>()
+    private lateinit var closeHandler: Handler
+    private val downloadClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(2, TimeUnit.MINUTES)
+            .writeTimeout(2, TimeUnit.MINUTES)
+            .callTimeout(0, TimeUnit.MILLISECONDS)
+            .build()
+    }
 
     private enum class ItemKind { FILE, FOLDER }
 
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
         authManager = InternxtAuthManager.create(ctx.applicationContext) ?: return false
+        closeHandler = Handler(HandlerThread("InternxtDocsClose").apply { start() }.looper)
         return true
     }
 
@@ -341,7 +362,79 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         mode: String?,
         signal: CancellationSignal?
     ): ParcelFileDescriptor {
-        throw UnsupportedOperationException("Not implemented yet")
+        val ctx = context ?: throw FileNotFoundException("No context")
+        val id = documentId ?: throw FileNotFoundException("No document id")
+        if (mode != null && mode != "r") {
+            throw UnsupportedOperationException("Only read-only access is supported (mode=$mode)")
+        }
+
+        val cfg = authManager.loadAuthConfig() ?: throw FileNotFoundException("Not authenticated")
+        val api = InternxtApiClient(cfg)
+
+        val file = try {
+            api.getFile(id) ?: throw FileNotFoundException("File not found: $id")
+        } catch (e: InternxtApiException) {
+            throw FileNotFoundException("getFile $id failed: ${e.message}")
+        }
+        val bucket = file.bucket ?: throw FileNotFoundException("File $id has no bucket")
+        val fileId = file.fileId ?: throw FileNotFoundException("File $id has no fileId")
+        val updatedAt = file.updatedAt ?: throw FileNotFoundException("File $id has no updatedAt")
+
+        val cacheFile = DocumentCache.cacheFileFor(ctx, id, updatedAt)
+        if (cacheFile.exists() && cacheFile.length() > 0) {
+            Log.d(TAG, "openDocument cache hit id=$id")
+            return ParcelFileDescriptor.open(cacheFile, ParcelFileDescriptor.MODE_READ_ONLY)
+        }
+
+        val (tempEnc, tempDec) = DocumentCache.tempPaths(ctx, id)
+        try {
+            signal?.throwIfCanceled()
+            val links = api.getDownloadLinks(bucket, fileId)
+            EncryptedFileDownloader.download(downloadClient, links.shards, tempEnc, signal)
+
+            signal?.throwIfCanceled()
+            val key = FileKeyDeriver.deriveFileKey(cfg.mnemonic, bucket, links.index)
+            val iv = FileKeyDeriver.deriveIv(links.index)
+            decryptBlocking(tempEnc, tempDec, FileKeyDeriver.toHex(key), FileKeyDeriver.toHex(iv))
+
+            if (!tempDec.renameTo(cacheFile)) {
+                throw FileNotFoundException("Failed to promote temp file to cache for $id")
+            }
+            tempEnc.delete()
+            DocumentCache.pruneSiblings(ctx, id, cacheFile)
+
+            Log.d(TAG, "openDocument cached id=$id size=${cacheFile.length()}")
+            return ParcelFileDescriptor.open(
+                cacheFile,
+                ParcelFileDescriptor.MODE_READ_ONLY,
+                closeHandler,
+            ) { DocumentCache.deleteTempsFor(ctx, id) }
+        } catch (e: OperationCanceledException) {
+            tempEnc.delete(); tempDec.delete()
+            throw FileNotFoundException("openDocument $id cancelled").apply { initCause(e) }
+        } catch (e: Exception) {
+            tempEnc.delete(); tempDec.delete()
+            Log.w(TAG, "openDocument $id failed: ${e.javaClass.simpleName}: ${e.message}")
+            if (e is FileNotFoundException) throw e
+            throw FileNotFoundException("openDocument $id failed: ${e.message}").apply { initCause(e) }
+        }
+    }
+
+    private fun decryptBlocking(src: File, dst: File, hexKey: String, hexIv: String) {
+        val latch = CountDownLatch(1)
+        val errorRef = arrayOfNulls<Exception>(1)
+        CryptoService.getInstance().decryptFile(
+            src.absolutePath,
+            dst.absolutePath,
+            hexKey,
+            hexIv,
+            /* runInBackground = */ true,
+        ) { err ->
+            errorRef[0] = err
+            latch.countDown()
+        }
+        latch.await()
+        errorRef[0]?.let { throw it }
     }
 
     private fun resolveRootProjection(projection: Array<String>?): Array<String> =
