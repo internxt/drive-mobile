@@ -8,6 +8,31 @@ import { TimelinePhotoItem } from '../../PhotosScreen/types';
 import { usePreviewSource } from '../hooks/usePreviewSource';
 import { VideoPlaceholder } from './VideoPlaceholder';
 
+interface PageContentProps {
+  item: TimelinePhotoItem;
+  uri: string | null | undefined;
+  onTap: () => void;
+  onZoom: () => void;
+  onReset: () => void;
+}
+
+const PageContent = ({ item, uri, onTap, onZoom, onReset }: PageContentProps): JSX.Element => {
+  const tailwind = useTailwind();
+  if (item.mediaType === 'video') {
+    return <VideoPlaceholder item={item} />;
+  }
+
+  if (uri) {
+    return <ImageViewer source={uri} onTapImage={onTap} onZoomImage={onZoom} onImageViewReset={onReset} />;
+  }
+
+  return (
+    <View style={tailwind('flex-1 justify-center items-center')}>
+      <ActivityIndicator color="white" size="large" />
+    </View>
+  );
+};
+
 interface PreviewPageProps {
   item: TimelinePhotoItem;
   onTap: () => void;
@@ -53,20 +78,10 @@ export const PreviewPage = ({ item, onTap, onZoomChange, onSwipeDown }: PreviewP
     transform: [{ translateY: translateY.value }],
   }));
 
-  const isVideo = item.mediaType === 'video';
-
   return (
     <GestureDetector gesture={swipeDownGesture}>
       <Animated.View style={[tailwind('flex-1 bg-black'), { width: screenWidth }, animatedStyle]}>
-        {isVideo ? (
-          <VideoPlaceholder item={item} />
-        ) : uri ? (
-          <ImageViewer source={uri} onTapImage={onTap} onZoomImage={handleZoom} onImageViewReset={handleReset} />
-        ) : (
-          <View style={tailwind('flex-1 justify-center items-center')}>
-            <ActivityIndicator color="white" size="large" />
-          </View>
-        )}
+        <PageContent item={item} uri={uri} onTap={onTap} onZoom={handleZoom} onReset={handleReset} />
       </Animated.View>
     </GestureDetector>
   );

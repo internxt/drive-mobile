@@ -44,7 +44,7 @@ export const PreviewPager = ({
       offset: screenWidth * index,
       index,
     }),
-    [],
+    [screenWidth],
   );
 
   const onMomentumScrollEnd = useCallback(
@@ -52,7 +52,7 @@ export const PreviewPager = ({
       const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth);
       onIndexChange(index);
     },
-    [onIndexChange],
+    [screenWidth, onIndexChange],
   );
 
   return (

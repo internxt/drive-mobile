@@ -11,6 +11,39 @@ import { formatHeaderDate, formatHeaderTime } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
 
+interface TimelineInfoProps {
+  isWaitingToUpload: boolean;
+  isUploading: boolean;
+  timestamp: number | undefined;
+  hasTimeAccuracy: boolean;
+}
+
+const TimelineInfo = ({ isWaitingToUpload, isUploading, timestamp, hasTimeAccuracy }: TimelineInfoProps): JSX.Element | null => {
+  const tailwind = useTailwind();
+  if (!isWaitingToUpload && !isUploading && (!timestamp || !hasTimeAccuracy)) return null;
+  const showSeparator = (isWaitingToUpload || isUploading) && timestamp && hasTimeAccuracy;
+  return (
+    <View style={[tailwind('flex-row items-center justify-center opacity-75'), { gap: 8 }]}>
+      {timestamp && hasTimeAccuracy && (
+        <AppText style={tailwind('text-sm text-white')}>{formatHeaderTime(timestamp)}</AppText>
+      )}
+      {showSeparator && <AppText style={tailwind('text-sm text-white')}>·</AppText>}
+      {isWaitingToUpload && (
+        <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
+          <CloudSlashIcon size={16} color="white" />
+          <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.waitingToUpload}</AppText>
+        </View>
+      )}
+      {isUploading && (
+        <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
+          <ArrowUpIcon size={16} color="white" />
+          <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.uploading}</AppText>
+        </View>
+      )}
+    </View>
+  );
+};
+
 interface PreviewHeaderProps {
   visible: boolean;
   item: TimelinePhotoItem | undefined;
@@ -62,28 +95,12 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
               <AppText medium style={tailwind('text-base text-white')} numberOfLines={1}>
                 {timestamp ? formatHeaderDate(timestamp) : '-'}
               </AppText>
-              {isWaitingToUpload || isUploading || (timestamp && hasTimeAccuracy) ? (
-                <View style={[tailwind('flex-row items-center justify-center opacity-75'), { gap: 8 }]}>
-                  {timestamp && hasTimeAccuracy ? (
-                    <AppText style={tailwind('text-sm text-white')}>{formatHeaderTime(timestamp)}</AppText>
-                  ) : null}
-                  {(isWaitingToUpload || isUploading) && timestamp && hasTimeAccuracy ? (
-                    <AppText style={tailwind('text-sm text-white')}>·</AppText>
-                  ) : null}
-                  {isWaitingToUpload && (
-                    <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
-                      <CloudSlashIcon size={16} color="white" />
-                      <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.waitingToUpload}</AppText>
-                    </View>
-                  )}
-                  {isUploading && (
-                    <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
-                      <ArrowUpIcon size={16} color="white" />
-                      <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.uploading}</AppText>
-                    </View>
-                  )}
-                </View>
-              ) : null}
+              <TimelineInfo
+                isWaitingToUpload={isWaitingToUpload}
+                isUploading={isUploading}
+                timestamp={timestamp}
+                hasTimeAccuracy={hasTimeAccuracy}
+              />
             </View>
             {isUploading && (
               <View style={[tailwind('w-full overflow-hidden'), { height: 3, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.2)' }]}>
