@@ -18,7 +18,7 @@ object DocumentRowBuilder {
     )
 
     fun folderRow(uuid: String, displayName: String, lastModified: Long? = null): Map<String, Any?> = mapOf(
-        Document.COLUMN_DOCUMENT_ID to uuid,
+        Document.COLUMN_DOCUMENT_ID to DocumentId.encodeFolder(uuid),
         Document.COLUMN_MIME_TYPE to Document.MIME_TYPE_DIR,
         Document.COLUMN_DISPLAY_NAME to displayName,
         Document.COLUMN_LAST_MODIFIED to lastModified,
@@ -27,7 +27,7 @@ object DocumentRowBuilder {
     )
 
     fun fileRow(file: DriveFile): Map<String, Any?> = mapOf(
-        Document.COLUMN_DOCUMENT_ID to file.uuid,
+        Document.COLUMN_DOCUMENT_ID to DocumentId.encodeFile(file.uuid),
         Document.COLUMN_MIME_TYPE to MimeTypes.fromExtension(file.type),
         Document.COLUMN_DISPLAY_NAME to file.plainName,
         Document.COLUMN_LAST_MODIFIED to parseIsoToMillis(file.updatedAt),
