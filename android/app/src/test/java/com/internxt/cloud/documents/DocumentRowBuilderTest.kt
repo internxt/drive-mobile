@@ -22,7 +22,7 @@ class DocumentRowBuilderTest {
 
         val row = DocumentRowBuilder.folderRow(folder)
 
-        assertEquals("folder-uuid", row[Document.COLUMN_DOCUMENT_ID])
+        assertEquals("f:folder-uuid", row[Document.COLUMN_DOCUMENT_ID])
         assertEquals(Document.MIME_TYPE_DIR, row[Document.COLUMN_MIME_TYPE])
         assertEquals("Documents", row[Document.COLUMN_DISPLAY_NAME])
         assertEquals(1768089600000L, row[Document.COLUMN_LAST_MODIFIED])
@@ -46,7 +46,7 @@ class DocumentRowBuilderTest {
 
         val row = DocumentRowBuilder.fileRow(file)
 
-        assertEquals("file-uuid", row[Document.COLUMN_DOCUMENT_ID])
+        assertEquals("d:file-uuid", row[Document.COLUMN_DOCUMENT_ID])
         assertEquals("application/pdf", row[Document.COLUMN_MIME_TYPE])
         assertEquals("report.pdf", row[Document.COLUMN_DISPLAY_NAME])
         assertEquals(1768089600000L, row[Document.COLUMN_LAST_MODIFIED])
@@ -79,7 +79,7 @@ class DocumentRowBuilderTest {
     fun folderRowOverloadFields() {
         val row = DocumentRowBuilder.folderRow("root-uuid", "Internxt Drive")
 
-        assertEquals("root-uuid", row[Document.COLUMN_DOCUMENT_ID])
+        assertEquals("f:root-uuid", row[Document.COLUMN_DOCUMENT_ID])
         assertEquals(Document.MIME_TYPE_DIR, row[Document.COLUMN_MIME_TYPE])
         assertEquals("Internxt Drive", row[Document.COLUMN_DISPLAY_NAME])
         assertNull(row[Document.COLUMN_LAST_MODIFIED])

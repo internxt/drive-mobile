@@ -2,6 +2,8 @@ package com.internxt.cloud.documents
 
 import android.database.Cursor
 import android.database.MatrixCursor
+import android.net.Uri
+import android.os.Bundle
 import android.os.CancellationSignal
 import android.os.ParcelFileDescriptor
 import android.provider.DocumentsContract
@@ -13,10 +15,26 @@ import com.internxt.cloud.R
 import com.internxt.cloud.documents.api.InternxtApiClient
 import com.internxt.cloud.documents.api.InternxtApiException
 import com.internxt.cloud.documents.auth.InternxtAuthManager
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 
 class InternxtDocumentsProvider : DocumentsProvider() {
 
     private var authManager: InternxtAuthManager? = null
+
+    private val loaderExecutor = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "InternxtDocsProvider-loader").apply { isDaemon = true }
+    }
+
+    private val folderLoads = ConcurrentHashMap<String, FolderLoad>()
+
+    private enum class LoadState { LOADING, DONE, ERROR }
+
+    private class FolderLoad {
+        @Volatile var state: LoadState = LoadState.LOADING
+        @Volatile var errorMessage: String? = null
+        val rows = mutableListOf<Map<String, Any?>>()
+    }
 
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
@@ -29,11 +47,13 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val ctx = context ?: return cursor
         cursor.setNotificationUri(ctx.contentResolver, DocumentsContract.buildRootsUri(AUTHORITY))
 
-        val rootUuid = authManager?.authenticatedRootUuid() ?: return cursor
+        val rootUuid = authManager?.authenticatedRootUuid()
+        Log.d(TAG, "queryRoots: isLoggedIn=${authManager.isLoggedIn()} rootUuid=$rootUuid")
+        if (rootUuid == null) return cursor
 
         cursor.newRow().apply {
             add(Root.COLUMN_ROOT_ID, ROOT_ID)
-            add(Root.COLUMN_DOCUMENT_ID, rootUuid)
+            add(Root.COLUMN_DOCUMENT_ID, DocumentId.encodeFolder(rootUuid))
             add(Root.COLUMN_TITLE, ctx.getString(R.string.documents_provider_label))
             authManager?.userEmail()?.let { add(Root.COLUMN_SUMMARY, it) }
             add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE or Root.FLAG_SUPPORTS_IS_CHILD)
@@ -49,23 +69,30 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         cursor.setNotificationUri(ctx.contentResolver, DocumentsContract.buildDocumentUri(AUTHORITY, id))
         Log.d(TAG, "queryDocument id=$id")
 
-        if (id == authManager.authenticatedRootUuid()) {
+        val decoded = DocumentId.decode(id)
+        val uuid = decoded?.uuid ?: id
+
+        if (decoded?.kind == DocumentId.Kind.FOLDER && uuid == authManager.authenticatedRootUuid()) {
             cursor.addDocumentRow(
-                DocumentRowBuilder.folderRow(id, ctx.getString(R.string.documents_provider_label))
+                DocumentRowBuilder.folderRow(uuid, ctx.getString(R.string.documents_provider_label))
             )
             return cursor
         }
 
         val api = apiClient(op = "queryDocument")
         val row = if (api == null) null else try {
-            api.getFolder(id)?.let { DocumentRowBuilder.folderRow(it) }
-                ?: api.getFile(id)?.let { DocumentRowBuilder.fileRow(it) }
+            when (decoded?.kind) {
+                DocumentId.Kind.FOLDER -> api.getFolder(uuid)?.let { DocumentRowBuilder.folderRow(it) }
+                DocumentId.Kind.FILE -> api.getFile(uuid)?.let { DocumentRowBuilder.fileRow(it) }
+                null -> api.getFolder(uuid)?.let { DocumentRowBuilder.folderRow(it) }
+                    ?: api.getFile(uuid)?.let { DocumentRowBuilder.fileRow(it) }
+            }
         } catch (e: InternxtApiException) {
             Log.w(TAG, "queryDocument id=$id failed: ${e.javaClass.simpleName}: ${e.message}")
             null
         }
 
-        cursor.addDocumentRow(row ?: DocumentRowBuilder.folderRow(uuid = id, displayName = id))
+        cursor.addDocumentRow(row ?: DocumentRowBuilder.folderRow(uuid = uuid, displayName = uuid))
         return cursor
     }
 
@@ -77,28 +104,75 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val cursor = MatrixCursor(resolveDocumentProjection(projection))
         val ctx = context ?: return cursor
         val parent = parentDocumentId ?: return cursor
-        cursor.setNotificationUri(
-            ctx.contentResolver,
-            DocumentsContract.buildChildDocumentsUri(AUTHORITY, parent)
-        )
+        val notifyUri = DocumentsContract.buildChildDocumentsUri(AUTHORITY, parent)
+        cursor.setNotificationUri(ctx.contentResolver, notifyUri)
         Log.d(TAG, "queryChildDocuments parent=$parent")
 
-        val api = apiClient(op = "queryChildDocuments") ?: return cursor
-
-        try {
-            paginate({ offset, size -> api.listFolderFolders(parent, offset, size) }) {
-                cursor.addDocumentRow(DocumentRowBuilder.folderRow(it))
-            }
-            paginate({ offset, size -> api.listFolderFiles(parent, offset, size) }) {
-                cursor.addDocumentRow(DocumentRowBuilder.fileRow(it))
-            }
-            Log.d(TAG, "queryChildDocuments parent=$parent rows=${cursor.count}")
-        } catch (e: InternxtApiException) {
-            Log.w(TAG, "queryChildDocuments parent=$parent failed: ${e.javaClass.simpleName}: ${e.message}")
+        val decoded = DocumentId.decode(parent)
+        if (decoded?.kind == DocumentId.Kind.FILE) {
+            Log.w(TAG, "queryChildDocuments called with file id=$parent")
             return cursor
         }
+        val parentUuid = decoded?.uuid ?: parent
 
+        val load = folderLoads.computeIfAbsent(parent) {
+            FolderLoad().also { startBackgroundLoad(parentUuid, it, notifyUri) }
+        }
+
+        val snapshot: List<Map<String, Any?>>
+        val state: LoadState
+        val errorMessage: String?
+        synchronized(load) {
+            snapshot = load.rows.toList()
+            state = load.state
+            errorMessage = load.errorMessage
+        }
+        snapshot.forEach { cursor.addDocumentRow(it) }
+
+        cursor.extras = Bundle().apply {
+            putBoolean(DocumentsContract.EXTRA_LOADING, state == LoadState.LOADING)
+            if (state == LoadState.ERROR && errorMessage != null) {
+                putString(DocumentsContract.EXTRA_ERROR, errorMessage)
+            }
+        }
         return cursor
+    }
+
+    private fun startBackgroundLoad(parent: String, load: FolderLoad, notifyUri: Uri) {
+        loaderExecutor.execute {
+            val api = apiClient(op = "queryChildDocuments[bg]")
+            if (api == null) {
+                finishLoad(load, notifyUri, LoadState.ERROR, "Not authenticated")
+                return@execute
+            }
+            try {
+                streamPages({ offset, size -> api.listFolderFolders(parent, offset, size) }) { page ->
+                    appendRows(load, notifyUri, page.map { DocumentRowBuilder.folderRow(it) })
+                }
+                streamPages({ offset, size -> api.listFolderFiles(parent, offset, size) }) { page ->
+                    appendRows(load, notifyUri, page.map { DocumentRowBuilder.fileRow(it) })
+                }
+                finishLoad(load, notifyUri, LoadState.DONE, null)
+                Log.d(TAG, "queryChildDocuments parent=$parent loaded rows=${load.rows.size}")
+            } catch (e: InternxtApiException) {
+                Log.w(TAG, "queryChildDocuments parent=$parent failed: ${e.javaClass.simpleName}: ${e.message}")
+                finishLoad(load, notifyUri, LoadState.ERROR, e.message)
+            }
+        }
+    }
+
+    private fun appendRows(load: FolderLoad, notifyUri: Uri, rows: List<Map<String, Any?>>) {
+        if (rows.isEmpty()) return
+        synchronized(load) { load.rows.addAll(rows) }
+        context?.contentResolver?.notifyChange(notifyUri, null)
+    }
+
+    private fun finishLoad(load: FolderLoad, notifyUri: Uri, state: LoadState, errorMessage: String?) {
+        synchronized(load) {
+            load.state = state
+            load.errorMessage = errorMessage
+        }
+        context?.contentResolver?.notifyChange(notifyUri, null)
     }
 
     private fun apiClient(op: String): InternxtApiClient? {
@@ -110,12 +184,12 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         return InternxtApiClient(cfg)
     }
 
-    private inline fun <T> paginate(fetch: (offset: Int, size: Int) -> List<T>, onItem: (T) -> Unit) {
+    private inline fun <T> streamPages(fetch: (offset: Int, size: Int) -> List<T>, onPage: (List<T>) -> Unit) {
         val pageSize = InternxtApiClient.DEFAULT_PAGE_SIZE
         var offset = 0
         while (true) {
             val page = fetch(offset, pageSize)
-            page.forEach(onItem)
+            onPage(page)
             if (page.size < pageSize) break
             offset += pageSize
         }
