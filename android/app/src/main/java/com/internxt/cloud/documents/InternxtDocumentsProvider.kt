@@ -36,6 +36,20 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val rows = mutableListOf<Map<String, Any?>>()
     }
 
+    private val loaderExecutor = Executors.newSingleThreadExecutor { r ->
+        Thread(r, "InternxtDocsProvider-loader").apply { isDaemon = true }
+    }
+
+    private val folderLoads = ConcurrentHashMap<String, FolderLoad>()
+
+    private enum class LoadState { LOADING, DONE, ERROR }
+
+    private class FolderLoad {
+        @Volatile var state: LoadState = LoadState.LOADING
+        @Volatile var errorMessage: String? = null
+        val rows = mutableListOf<Map<String, Any?>>()
+    }
+
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
         authManager = InternxtAuthManager.create(ctx.applicationContext) ?: return false
