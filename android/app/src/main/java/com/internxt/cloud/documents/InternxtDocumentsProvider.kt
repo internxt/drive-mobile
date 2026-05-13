@@ -16,7 +16,8 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private lateinit var authManager: InternxtAuthManager
 
     override fun onCreate(): Boolean {
-        authManager = InternxtAuthManager.create(context!!.applicationContext)
+        val ctx = context ?: return false
+        authManager = InternxtAuthManager.create(ctx.applicationContext) ?: return false
         return true
     }
 

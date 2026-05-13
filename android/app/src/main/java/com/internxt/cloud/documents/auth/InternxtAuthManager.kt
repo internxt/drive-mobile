@@ -2,10 +2,13 @@ package com.internxt.cloud.documents.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import android.util.Log
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.internxt.cloud.BuildConfig
 import com.internxt.cloud.documents.api.AuthConfig
+import java.io.IOException
+import java.security.GeneralSecurityException
 
 class InternxtAuthManager(private val prefs: SharedPreferences) {
 
@@ -46,7 +49,7 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
     private fun required(key: String): String =
         prefs.getString(key, null) ?: error("$key missing after isLoggedIn() returned true")
 
-    fun saveCredentials(creds: Credentials) {
+    fun saveCredentials(creds: Credentials): Boolean =
         prefs.edit()
             .putString(KEY_BEARER_TOKEN, creds.bearerToken)
             .putString(KEY_USER_ID, creds.userId)
@@ -56,14 +59,12 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
             .putString(KEY_DRIVE_BASE_URL, creds.driveBaseUrl)
             .putString(KEY_BRIDGE_BASE_URL, creds.bridgeBaseUrl)
             .putString(KEY_DESKTOP_TOKEN, creds.desktopToken)
-            .apply()
-    }
+            .commit()
 
-    fun clear() {
-        prefs.edit().clear().apply()
-    }
+    fun clear(): Boolean = prefs.edit().clear().commit()
 
     companion object {
+        private const val TAG = "InternxtAuthManager"
         private const val PREFS_FILE = "internxt_documents_auth"
 
         private const val KEY_BEARER_TOKEN = "bearerToken"
@@ -84,18 +85,26 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
             KEY_BRIDGE_BASE_URL,
         )
 
-        fun create(context: Context): InternxtAuthManager {
-            val masterKey = MasterKey.Builder(context)
-                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-                .build()
-            val prefs = EncryptedSharedPreferences.create(
-                context,
-                PREFS_FILE,
-                masterKey,
-                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
-            )
-            return InternxtAuthManager(prefs)
+        fun create(context: Context): InternxtAuthManager? {
+            return try {
+                val masterKey = MasterKey.Builder(context)
+                    .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                    .build()
+                val prefs = EncryptedSharedPreferences.create(
+                    context,
+                    PREFS_FILE,
+                    masterKey,
+                    EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                    EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
+                )
+                InternxtAuthManager(prefs)
+            } catch (e: GeneralSecurityException) {
+                Log.e(TAG, "Keystore unavailable, SAF auth disabled", e)
+                null
+            } catch (e: IOException) {
+                Log.e(TAG, "Could not open encrypted prefs, SAF auth disabled", e)
+                null
+            }
         }
     }
 }

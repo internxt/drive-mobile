@@ -18,6 +18,10 @@ class InternxtAuthCredentialsModule(private val ctx: ReactApplicationContext) :
 
     @ReactMethod
     fun setCredentials(map: ReadableMap, promise: Promise) {
+        val manager = authManager ?: run {
+            promise.reject("E_AUTH_UNAVAILABLE", "Encrypted credential storage unavailable")
+            return
+        }
         try {
             val creds = InternxtAuthManager.Credentials(
                 bearerToken = map.requireString("bearerToken"),
@@ -29,7 +33,10 @@ class InternxtAuthCredentialsModule(private val ctx: ReactApplicationContext) :
                 bridgeBaseUrl = map.requireString("bridgeBaseUrl"),
                 desktopToken = map.optString("desktopToken"),
             )
-            authManager.saveCredentials(creds)
+            if (!manager.saveCredentials(creds)) {
+                promise.reject("E_SAVE_CREDENTIALS", "Failed to persist credentials")
+                return
+            }
             notifyRootsChanged()
             promise.resolve(null)
         } catch (e: IllegalArgumentException) {
@@ -41,8 +48,15 @@ class InternxtAuthCredentialsModule(private val ctx: ReactApplicationContext) :
 
     @ReactMethod
     fun clearCredentials(promise: Promise) {
+        val manager = authManager ?: run {
+            promise.reject("E_AUTH_UNAVAILABLE", "Encrypted credential storage unavailable")
+            return
+        }
         try {
-            authManager.clear()
+            if (!manager.clear()) {
+                promise.reject("E_CLEAR_CREDENTIALS", "Failed to clear credentials")
+                return
+            }
             notifyRootsChanged()
             promise.resolve(null)
         } catch (e: Exception) {
