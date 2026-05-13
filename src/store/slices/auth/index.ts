@@ -35,16 +35,27 @@ const initialState: AuthState = {
   sessionPassword: undefined,
 };
 
+async function ensureRootFolderUuid(user: UserSettings): Promise<UserSettings> {
+  if (user.rootFolderUuid || !user.root_folder_id) return user;
+  const meta = await SdkManager.getInstance().storageV2.getFolderMetaById(user.root_folder_id);
+  return { ...user, rootFolderUuid: meta.uuid };
+}
+
 async function syncNativeCredentials(token: string, user: UserSettings): Promise<void> {
+  if (!user.rootFolderUuid) {
+    errorService.reportError(new Error('syncNativeCredentials: missing rootFolderUuid'));
+    return;
+  }
   try {
     await setCredentials({
       bearerToken: token,
       userId: user.userId,
       bridgeUser: user.bridgeUser,
-      rootFolderUuid: user.rootFolderUuid || user.rootFolderId,
+      rootFolderUuid: user.rootFolderUuid,
       email: user.email,
       driveBaseUrl: appService.constants.DRIVE_NEW_API_URL,
       bridgeBaseUrl: appService.constants.BRIDGE_URL,
+      desktopToken: appService.constants.CLOUDFLARE_TOKEN,
     });
   } catch (err) {
     errorService.reportError(err);
@@ -117,7 +128,6 @@ export const signInThunk = createAsyncThunk<
   { user: UserSettings; token: string; newToken: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
-  const userToSave = payload.user;
   SdkManager.init({
     token: payload.token,
     newToken: payload.newToken,
@@ -128,6 +138,8 @@ export const signInThunk = createAsyncThunk<
     token: payload.token,
     newToken: payload.newToken,
   });
+
+  const userToSave = await ensureRootFolderUuid(payload.user);
 
   await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
   await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, payload.newToken); // Photos access token
