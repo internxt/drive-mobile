@@ -262,6 +262,9 @@ export const runFullCloudHistorySyncThunk = createAsyncThunk<void, { force?: boo
       dispatch(photosSlice.actions.setIsFetchingCloudHistory(false));
     }
   },
+  {
+    condition: (_, { getState }) => !getState().photos.isFetchingCloudHistory,
+  },
 );
 
 export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState }>(
