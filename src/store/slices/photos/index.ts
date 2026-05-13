@@ -143,8 +143,26 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
       const scannedAssets = await PhotoAssetScanner.scanAll();
       const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync(scannedAssets);
       await Promise.all([
-        ...newAssets.map((asset) => photosLocalDB.markPending(asset.id)),
-        ...editedAssets.map((asset) => photosLocalDB.markPendingEdit(asset.id)),
+        ...newAssets.map((asset) =>
+          photosLocalDB.markPending(asset.id, {
+            fileName: asset.filename,
+            creationTime: asset.creationTime,
+            width: asset.width,
+            height: asset.height,
+            duration: asset.duration,
+            mediaType: asset.mediaType,
+          }),
+        ),
+        ...editedAssets.map((asset) =>
+          photosLocalDB.markPendingEdit(asset.id, {
+            fileName: asset.filename,
+            creationTime: asset.creationTime,
+            width: asset.width,
+            height: asset.height,
+            duration: asset.duration,
+            mediaType: asset.mediaType,
+          }),
+        ),
       ]);
       const pendingCount = newAssets.length + editedAssets.length;
       dispatch(
@@ -251,7 +269,9 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
   async (_, { getState, dispatch }) => {
     const { enabled, syncStatus, isFetchingCloudHistory } = getState().photos;
     if (!enabled || syncStatus === 'scanning' || syncStatus === 'uploading' || isFetchingCloudHistory) {
-      logger.info(`[ForceRefresh] Skipped — enabled: ${enabled}, syncStatus: ${syncStatus}, isFetchingCloudHistory: ${isFetchingCloudHistory}`);
+      logger.info(
+        `[ForceRefresh] Skipped — enabled: ${enabled}, syncStatus: ${syncStatus}, isFetchingCloudHistory: ${isFetchingCloudHistory}`,
+      );
       return;
     }
 

@@ -1,25 +1,49 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Image, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
+import { VideoViewer } from '../../../components/photos/VideoViewer/VideoViewer';
 import { ImageViewer } from '../../../components/ui-kit/view/ImageViewer/ImageViewer';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
 import { usePreviewSource } from '../hooks/usePreviewSource';
-import { VideoPlaceholder } from './VideoPlaceholder';
 
 interface PageContentProps {
   item: TimelinePhotoItem;
   uri: string | null | undefined;
+  thumbnailUri: string | null;
   onTap: () => void;
   onZoom: () => void;
   onReset: () => void;
+  onVideoPlay: () => void;
+  onVideoPause: () => void;
 }
 
-const PageContent = ({ item, uri, onTap, onZoom, onReset }: PageContentProps): JSX.Element => {
+const PageContent = ({
+  item,
+  uri,
+  thumbnailUri,
+  onTap,
+  onZoom,
+  onReset,
+  onVideoPlay,
+  onVideoPause,
+}: PageContentProps): JSX.Element => {
   const tailwind = useTailwind();
   if (item.mediaType === 'video') {
-    return <VideoPlaceholder item={item} />;
+    if (uri) {
+      return (
+        <VideoViewer source={uri} thumbnail={thumbnailUri ?? undefined} onPlay={onVideoPlay} onPause={onVideoPause} />
+      );
+    }
+    return (
+      <View style={tailwind('flex-1 bg-black justify-center items-center')}>
+        {thumbnailUri ? (
+          <Image source={{ uri: thumbnailUri }} style={tailwind('w-full h-full')} resizeMode="contain" />
+        ) : null}
+        {uri === undefined ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
+      </View>
+    );
   }
 
   if (uri) {
@@ -43,8 +67,9 @@ interface PreviewPageProps {
 export const PreviewPage = ({ item, onTap, onZoomChange, onSwipeDown }: PreviewPageProps): JSX.Element => {
   const tailwind = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
-  const { uri } = usePreviewSource(item);
+  const { uri, thumbnailUri } = usePreviewSource(item);
   const [zoomed, setZoomed] = useState(false);
+  const [videoPlaying, setVideoPlaying] = useState(false);
   const translateY = useSharedValue(0);
 
   const handleZoom = useCallback(() => {
@@ -57,8 +82,16 @@ export const PreviewPage = ({ item, onTap, onZoomChange, onSwipeDown }: PreviewP
     onZoomChange(false);
   }, [onZoomChange]);
 
+  const playVideo = useCallback(() => {
+    setVideoPlaying(true);
+  }, []);
+
+  const pauseVideo = useCallback(() => {
+    setVideoPlaying(false);
+  }, []);
+
   const swipeDownGesture = Gesture.Pan()
-    .enabled(!zoomed)
+    .enabled(!zoomed && !videoPlaying)
     .activeOffsetY(10)
     .failOffsetX([-15, 15])
     .onUpdate((e) => {
@@ -81,7 +114,16 @@ export const PreviewPage = ({ item, onTap, onZoomChange, onSwipeDown }: PreviewP
   return (
     <GestureDetector gesture={swipeDownGesture}>
       <Animated.View style={[tailwind('flex-1 bg-black'), { width: screenWidth }, animatedStyle]}>
-        <PageContent item={item} uri={uri} onTap={onTap} onZoom={handleZoom} onReset={handleReset} />
+        <PageContent
+          item={item}
+          uri={uri}
+          thumbnailUri={thumbnailUri}
+          onTap={onTap}
+          onZoom={handleZoom}
+          onReset={handleReset}
+          onVideoPlay={playVideo}
+          onVideoPause={pauseVideo}
+        />
       </Animated.View>
     </GestureDetector>
   );

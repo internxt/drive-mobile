@@ -146,6 +146,15 @@ class PhotoCloudBrowserService {
           thumbnailBucketFile: thumb?.bucket_file ?? null,
           thumbnailType: thumb?.type ?? null,
           discoveredAt: now,
+          plainName: file.plainName ?? null,
+          extension: file.type ?? null,
+          bucket: file.bucket ?? null,
+          folderUuid: file.folderUuid ?? null,
+          creationTimeApi: file.creationTime ? new Date(file.creationTime).getTime() : null,
+          modificationTime: file.modificationTime ? new Date(file.modificationTime).getTime() : null,
+          updatedAt: file.updatedAt ? new Date(file.updatedAt).getTime() : null,
+          status: file.status ?? null,
+          encryptVersion: file.encrypt_version ?? null,
         });
         count++;
       }

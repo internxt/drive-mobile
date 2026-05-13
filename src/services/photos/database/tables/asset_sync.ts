@@ -11,23 +11,44 @@ const statements = {
       created_at        INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
       last_attempt_at   INTEGER,
       synced_at         INTEGER,
-      modification_time INTEGER
+      modification_time INTEGER,
+      file_name         TEXT,
+      file_size         INTEGER,
+      creation_time     INTEGER,
+      width             INTEGER,
+      height            INTEGER,
+      duration          INTEGER,
+      media_type        TEXT
     );
   `,
   createIndex: `CREATE INDEX IF NOT EXISTS idx_asset_sync_status ON ${TABLE_NAME}(status);`,
   dropTable: `DROP TABLE IF EXISTS ${TABLE_NAME};`,
 
   markPending: `
-    INSERT INTO ${TABLE_NAME} (asset_id, status)
-    VALUES (?, 'pending')
-    ON CONFLICT(asset_id) DO UPDATE SET status = 'pending'
+    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type)
+    VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(asset_id) DO UPDATE SET
+      status       = 'pending',
+      file_name    = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
+      creation_time = COALESCE(excluded.creation_time, ${TABLE_NAME}.creation_time),
+      width        = COALESCE(excluded.width, ${TABLE_NAME}.width),
+      height       = COALESCE(excluded.height, ${TABLE_NAME}.height),
+      duration     = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
+      media_type   = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type)
     WHERE ${TABLE_NAME}.status != 'synced';
   `,
 
   markPendingEdit: `
-    INSERT INTO ${TABLE_NAME} (asset_id, status)
-    VALUES (?, 'pending_edit')
-    ON CONFLICT(asset_id) DO UPDATE SET status = 'pending_edit'
+    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type)
+    VALUES (?, 'pending_edit', ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(asset_id) DO UPDATE SET
+      status       = 'pending_edit',
+      file_name    = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
+      creation_time = COALESCE(excluded.creation_time, ${TABLE_NAME}.creation_time),
+      width        = COALESCE(excluded.width, ${TABLE_NAME}.width),
+      height       = COALESCE(excluded.height, ${TABLE_NAME}.height),
+      duration     = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
+      media_type   = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type)
     WHERE ${TABLE_NAME}.status = 'synced';
   `,
 
@@ -53,8 +74,14 @@ const statements = {
     WHERE ${TABLE_NAME}.status != 'synced';
   `,
 
+  cacheFileSize: `
+    UPDATE ${TABLE_NAME} SET file_size = ? WHERE asset_id = ?;
+  `,
+
   getStatus: `
-    SELECT asset_id, status, remote_file_id, synced_at, error_message, attempt_count, created_at, last_attempt_at, modification_time
+    SELECT asset_id, status, remote_file_id, synced_at, error_message, attempt_count,
+           created_at, last_attempt_at, modification_time,
+           file_name, file_size, creation_time, width, height, duration, media_type
     FROM ${TABLE_NAME} WHERE asset_id = ?;
   `,
   getSyncedInList: (placeholders: string) =>

@@ -5,6 +5,7 @@ import uuid from 'react-native-uuid';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { logger } from '@internxt-mobile/services/common';
+import { stripFileUri } from '@internxt-mobile/services/common/uri/uriHelpers';
 import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
@@ -41,7 +42,7 @@ const uploadFolderFileIOS = async (
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
 ): Promise<void> => {
-  const filePath = fileNode.uri.replace('file://', '');
+  const filePath = stripFileUri(fileNode.uri);
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
   try {
     await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);

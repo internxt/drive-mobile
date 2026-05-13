@@ -2,8 +2,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
 import { StatusBar, View } from 'react-native';
 import { logger } from 'src/services/common';
+import { toFileUri } from 'src/services/common/uri/uriHelpers';
 import fileSystemService from 'src/services/FileSystemService';
-import { PhotoFullImageService } from 'src/services/photos/PhotoFullImageService';
+import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
 import { RootStackScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import { MetadataPanel } from './components/MetadataPanel';
@@ -47,11 +48,11 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
 
     const controller = new AbortController();
     try {
-      const uri = await PhotoFullImageService.getFullImageUri(item, controller.signal);
+      const uri = await PhotoAssetFetchService.fetchUri(item, controller.signal);
       if (!uri) {
         return;
       }
-      const fileUri = uri.startsWith('file://') ? uri : `file://${uri}`;
+      const fileUri = toFileUri(uri);
       await fileSystemService.shareFile({ title: '', fileUri });
     } catch (error) {
       logger.error(`[PhotoPreview] Export failed: ${error}`);

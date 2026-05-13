@@ -9,6 +9,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import FileViewer from 'react-native-file-viewer';
 import Share from 'react-native-share';
 import uuid from 'react-native-uuid';
+import { toFileUri } from './common/uri/uriHelpers';
 
 export enum AcceptedEncodings {
   Utf8 = 'utf8',
@@ -146,7 +147,7 @@ class FileSystemService {
   }
 
   public createEmptyFile(path: string): Promise<void> {
-    return this.createFile(path, '', AcceptedEncodings.Utf8);
+    return ReactNativeBlobUtil.fs.writeFile(path, '', AcceptedEncodings.Utf8);
   }
 
   public unlink(uri: string): Promise<void> {
@@ -264,7 +265,7 @@ class FileSystemService {
             showAppsToView: true,
           });
         } else {
-          await shareAsync(fileUri.startsWith('file://') ? fileUri : `file://${fileUri}`, {
+          await shareAsync(toFileUri(fileUri), {
             dialogTitle: title,
           });
         }

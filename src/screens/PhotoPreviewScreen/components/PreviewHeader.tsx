@@ -7,6 +7,7 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
+import { useItemTimestamp } from '../hooks/useItemTimestamp';
 import { formatHeaderDate, formatHeaderTime } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
@@ -18,7 +19,12 @@ interface TimelineInfoProps {
   hasTimeAccuracy: boolean;
 }
 
-const TimelineInfo = ({ isWaitingToUpload, isUploading, timestamp, hasTimeAccuracy }: TimelineInfoProps): JSX.Element | null => {
+const TimelineInfo = ({
+  isWaitingToUpload,
+  isUploading,
+  timestamp,
+  hasTimeAccuracy,
+}: TimelineInfoProps): JSX.Element | null => {
   const tailwind = useTailwind();
   if (!isWaitingToUpload && !isUploading && (!timestamp || !hasTimeAccuracy)) return null;
   const showSeparator = (isWaitingToUpload || isUploading) && timestamp && hasTimeAccuracy;
@@ -55,21 +61,20 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
 
+  const isLocalAsset = item?.type === 'local';
+  const isWaitingToUpload = isLocalAsset && item.backupState === 'not-backed';
+  // TODO: uploadProgress is never populated in the photos backup flow (PhotoUploadService does not write it to the store).
+  // To wire it up: write progress (0–1) from the upload slice into the PhotoItem, and it will render here automatically.
+  const isUploading = isLocalAsset && item.backupState === 'uploading';
+  const uploadProgress = isLocalAsset ? (item.uploadProgress ?? 0) : 0;
+  const timestamp = useItemTimestamp(item);
+  const hasTimeAccuracy = !!timestamp;
+
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: withTiming(visible ? 1 : 0, { duration: 150, easing: Easing.out(Easing.quad) }),
     transform: [{ translateY: withTiming(visible ? 0 : -20, { duration: 150, easing: Easing.out(Easing.quad) }) }],
   }));
 
-  const isWaitingToUpload = item?.type === 'local' && item.backupState === 'not-backed';
-  // TODO: uploadProgress is never populated in the photos backup flow (PhotoUploadService does not write it to the store).
-  // To wire it up: write progress (0–1) from the upload slice into the PhotoItem, and it will render here automatically.
-  const isUploading = item?.type === 'local' && item.backupState === 'uploading';
-  const uploadProgress = item?.type === 'local' ? (item.uploadProgress ?? 0) : 0;
-  const timestamp = item?.createdAt;
-  // TODO: cloud items always have createdAt at midnight (built from folder year/month/day in PhotoCloudBrowser).
-  // The SDK's file.createdAt is the upload time, not the photo capture time, so it's not a valid substitute.
-  // To fix: store original capture time on upload and populate during cloud sync.
-  const hasTimeAccuracy = item?.type === 'local';
   return (
     <Animated.View
       pointerEvents={visible ? 'auto' : 'none'}
@@ -103,7 +108,12 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
               />
             </View>
             {isUploading && (
-              <View style={[tailwind('w-full overflow-hidden'), { height: 3, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+              <View
+                style={[
+                  tailwind('w-full overflow-hidden'),
+                  { height: 3, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.2)' },
+                ]}
+              >
                 <View style={{ width: `${uploadProgress * 100}%`, height: '100%', backgroundColor: 'white' }} />
               </View>
             )}

@@ -16,6 +16,15 @@ export interface CloudAssetEntry {
   thumbnailBucketFile: string | null;
   thumbnailType: string | null;
   discoveredAt: number;
+  plainName?: string | null;
+  extension?: string | null;
+  bucket?: string | null;
+  folderUuid?: string | null;
+  creationTimeApi?: number | null;
+  modificationTime?: number | null;
+  updatedAt?: number | null;
+  status?: string | null;
+  encryptVersion?: string | null;
 }
 
 interface CloudAssetRow {
@@ -30,6 +39,15 @@ interface CloudAssetRow {
   thumbnail_bucket_file: string | null;
   thumbnail_type: string | null;
   discovered_at: number;
+  plain_name: string | null;
+  extension: string | null;
+  bucket: string | null;
+  folder_uuid: string | null;
+  creation_time_api: number | null;
+  modification_time: number | null;
+  updated_at: number | null;
+  status: string | null;
+  encrypt_version: string | null;
 }
 
 export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error';
@@ -44,6 +62,13 @@ export interface AssetSyncEntry {
   createdAt: number;
   lastAttemptAt: number | null;
   modificationTime: number | null;
+  fileName: string | null;
+  fileSize: number | null;
+  creationTime: number | null;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+  mediaType: string | null;
 }
 
 interface AssetSyncRow {
@@ -56,10 +81,26 @@ interface AssetSyncRow {
   created_at: number;
   last_attempt_at: number | null;
   modification_time: number | null;
+  file_name: string | null;
+  file_size: number | null;
+  creation_time: number | null;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+  media_type: string | null;
 }
 
 export interface SyncedAssetInfo {
   modificationTime: number | null;
+}
+
+export interface AssetMediaInfo {
+  fileName: string;
+  creationTime: number;
+  width: number;
+  height: number;
+  duration: number;
+  mediaType: string;
 }
 
 const CHUNK_SIZE = 300;
@@ -77,8 +118,36 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
     thumbnailBucketFile: row.thumbnail_bucket_file,
     thumbnailType: row.thumbnail_type,
     discoveredAt: row.discovered_at,
+    plainName: row.plain_name,
+    extension: row.extension,
+    bucket: row.bucket,
+    folderUuid: row.folder_uuid,
+    creationTimeApi: row.creation_time_api,
+    modificationTime: row.modification_time,
+    updatedAt: row.updated_at,
+    status: row.status,
+    encryptVersion: row.encrypt_version,
   };
 };
+
+const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
+  assetId: row.asset_id,
+  status: row.status,
+  remoteFileId: row.remote_file_id,
+  syncedAt: row.synced_at,
+  errorMessage: row.error_message,
+  attemptCount: row.attempt_count,
+  createdAt: row.created_at,
+  lastAttemptAt: row.last_attempt_at,
+  modificationTime: row.modification_time,
+  fileName: row.file_name,
+  fileSize: row.file_size,
+  creationTime: row.creation_time,
+  width: row.width,
+  height: row.height,
+  duration: row.duration,
+  mediaType: row.media_type,
+});
 
 class PhotosLocalDB {
   private initPromise: Promise<void> | null = null;
@@ -96,12 +165,28 @@ class PhotosLocalDB {
     return this.initPromise;
   }
 
-  async markPending(assetId: string): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPending, [assetId]);
+  async markPending(assetId: string, mediaInfo?: AssetMediaInfo): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPending, [
+      assetId,
+      mediaInfo?.fileName ?? null,
+      mediaInfo?.creationTime ?? null,
+      mediaInfo?.width ?? null,
+      mediaInfo?.height ?? null,
+      mediaInfo?.duration ?? null,
+      mediaInfo?.mediaType ?? null,
+    ]);
   }
 
-  async markPendingEdit(assetId: string): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPendingEdit, [assetId]);
+  async markPendingEdit(assetId: string, mediaInfo?: AssetMediaInfo): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPendingEdit, [
+      assetId,
+      mediaInfo?.fileName ?? null,
+      mediaInfo?.creationTime ?? null,
+      mediaInfo?.width ?? null,
+      mediaInfo?.height ?? null,
+      mediaInfo?.duration ?? null,
+      mediaInfo?.mediaType ?? null,
+    ]);
   }
 
   async markSynced(assetId: string, remoteFileId: string, modificationTime: number | null): Promise<void> {
@@ -114,6 +199,10 @@ class PhotosLocalDB {
 
   async markError(assetId: string, errorMessage?: string): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markError, [assetId, errorMessage ?? null]);
+  }
+
+  async cacheAssetFileSize(assetId: string, fileSize: number): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.cacheFileSize, [fileSize, assetId]);
   }
 
   async getSyncedEntries(assetIds: string[]): Promise<Map<string, SyncedAssetInfo>> {
@@ -148,18 +237,7 @@ class PhotosLocalDB {
     const row = await sqliteService.getFirstAsync<AssetSyncRow>(DB_NAME, assetSyncTable.statements.getStatus, [
       assetId,
     ]);
-    if (!row) return null;
-    return {
-      assetId: row.asset_id,
-      status: row.status,
-      remoteFileId: row.remote_file_id,
-      syncedAt: row.synced_at,
-      errorMessage: row.error_message,
-      attemptCount: row.attempt_count,
-      createdAt: row.created_at,
-      lastAttemptAt: row.last_attempt_at,
-      modificationTime: row.modification_time,
-    };
+    return row ? rowToAssetSyncEntry(row) : null;
   }
 
   async getPendingAssets(): Promise<Array<{ assetId: string; status: AssetSyncStatus; remoteFileId: string | null }>> {
@@ -202,6 +280,15 @@ class PhotosLocalDB {
       entry.thumbnailBucketFile ?? null,
       entry.thumbnailType ?? null,
       entry.discoveredAt,
+      entry.plainName ?? null,
+      entry.extension ?? null,
+      entry.bucket ?? null,
+      entry.folderUuid ?? null,
+      entry.creationTimeApi ?? null,
+      entry.modificationTime ?? null,
+      entry.updatedAt ?? null,
+      entry.status ?? null,
+      entry.encryptVersion ?? null,
     ]);
   }
 

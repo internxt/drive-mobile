@@ -8,6 +8,7 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
+import { stripFileUri } from '../../../services/common/uri/uriHelpers';
 import fileSystemService from '../../../services/FileSystemService';
 import { photosLocalDB } from '../../../services/photos/database/photosLocalDB';
 import { photoMediaLibraryService } from '../../../services/photos/PhotoMediaLibraryService';
@@ -70,32 +71,52 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
     const buildRows = async () => {
       if (item.type === 'local') {
         try {
+          const cached = await photosLocalDB.getStatus(item.id);
+          let fileName = cached?.fileName ?? null;
+          let creationTime = cached?.creationTime ?? null;
+          let width = cached?.width ?? null;
+          let height = cached?.height ?? null;
+          let fileSize = cached?.fileSize ?? null;
+
           const info = await photoMediaLibraryService.getAssetInfo(item.id);
-          let fileSize: number | undefined;
-          if (info.localUri) {
+          fileName ??= info.filename;
+          creationTime ??= info.creationTime;
+          const modificationTime: number | null = info.modificationTime ?? null;
+          width ??= info.width;
+          height ??= info.height;
+
+          if (!fileSize && info.localUri) {
             try {
-              const stat = await fileSystemService.stat(info.localUri.replace('file://', ''));
+              const stat = await fileSystemService.stat(stripFileUri(info.localUri));
               fileSize = stat.size;
+              photosLocalDB.cacheAssetFileSize(item.id, fileSize).catch(() => undefined);
             } catch (error) {
               console.error('Failed to get file size for', info.localUri, error);
             }
           }
 
           const built: MetadataRow[] = [
-            { label: photoPreviewStrings.metadata.info, value: info.filename },
-            { label: photoPreviewStrings.metadata.uploaded, value: formatDate(info.creationTime) },
+            { label: photoPreviewStrings.metadata.info, value: fileName ?? '-' },
+            { label: photoPreviewStrings.metadata.uploaded, value: creationTime ? formatDate(creationTime) : '-' },
             ...(fileSize ? [{ label: photoPreviewStrings.metadata.size, value: formatBytes(fileSize) }] : []),
-            { label: photoPreviewStrings.metadata.modified, value: formatDate(info.modificationTime) },
+            {
+              label: photoPreviewStrings.metadata.modified,
+              value: modificationTime ? formatDate(modificationTime) : '-',
+            },
             {
               label: photoPreviewStrings.metadata.dimensions,
-              value: info.width && info.height ? formatDimensions(info.width, info.height) : '-',
+              value: width && height ? formatDimensions(width, height) : '-',
             },
-            { label: photoPreviewStrings.metadata.format, value: formatExtension(info.filename) },
+            { label: photoPreviewStrings.metadata.format, value: fileName ? formatExtension(fileName) : '-' },
           ];
           if (mountedRef.current) {
-            setHeaderName(info.filename);
+            setHeaderName(fileName ?? '');
             setHeaderSubtitle(
-              fileSize ? `${formatBytes(fileSize)} · ${formatDate(info.creationTime)}` : formatDate(info.creationTime),
+              fileSize && creationTime
+                ? `${formatBytes(fileSize)} · ${formatDate(creationTime)}`
+                : creationTime
+                  ? formatDate(creationTime)
+                  : '',
             );
             setRows(built);
           }
@@ -103,21 +124,33 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
           if (mountedRef.current) setRows([]);
         }
       } else {
-        const built: MetadataRow[] = [
-          { label: photoPreviewStrings.metadata.info, value: item.fileName },
-          { label: photoPreviewStrings.metadata.uploaded, value: formatDate(item.createdAt) },
-          { label: photoPreviewStrings.metadata.modified, value: '-' },
-          { label: photoPreviewStrings.metadata.dimensions, value: '-' },
-          { label: photoPreviewStrings.metadata.format, value: formatExtension(item.fileName) },
-        ];
         const asset = await photosLocalDB.getCloudAssetById(item.id);
-        if (asset?.fileSize) {
-          built.splice(2, 0, { label: photoPreviewStrings.metadata.size, value: formatBytes(asset.fileSize) });
-          if (mountedRef.current) {
-            setHeaderSubtitle(`${formatBytes(asset.fileSize)} · ${formatDate(item.createdAt)}`);
-          }
+        const displayName = asset?.plainName
+          ? `${asset.plainName}${asset.extension ? `.${asset.extension}` : ''}`
+          : item.fileName;
+        const modTime = asset?.modificationTime ?? asset?.updatedAt ?? null;
+        const built: MetadataRow[] = [
+          { label: photoPreviewStrings.metadata.info, value: displayName },
+          { label: photoPreviewStrings.metadata.uploaded, value: formatDate(item.createdAt) },
+          ...(asset?.fileSize
+            ? [{ label: photoPreviewStrings.metadata.size, value: formatBytes(asset.fileSize) }]
+            : []),
+          { label: photoPreviewStrings.metadata.modified, value: modTime ? formatDate(modTime) : '-' },
+          { label: photoPreviewStrings.metadata.dimensions, value: '-' },
+          {
+            label: photoPreviewStrings.metadata.format,
+            value: asset?.extension ? asset.extension.toUpperCase() : formatExtension(item.fileName),
+          },
+        ];
+        if (mountedRef.current) {
+          setHeaderName(asset?.plainName ?? item.fileName);
+          setHeaderSubtitle(
+            asset?.fileSize
+              ? `${formatBytes(asset.fileSize)} · ${formatDate(item.createdAt)}`
+              : formatDate(item.createdAt),
+          );
+          setRows(built);
         }
-        if (mountedRef.current) setRows(built);
       }
     };
     buildRows();

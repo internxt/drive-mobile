@@ -43,7 +43,54 @@ describe('photosLocalDB', () => {
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
     expect(stmt).toContain('\'pending\'');
     expect(stmt).toContain('status != \'synced\'');
-    expect(params).toEqual(['asset-1']);
+    expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
+  });
+
+  test('when a photo is marked as pending with media info, then all media info fields are passed to the database', async () => {
+    await photosLocalDB.markPending('asset-1', {
+      fileName: 'photo.jpg',
+      creationTime: 1714000000000,
+      width: 3024,
+      height: 4032,
+      duration: 0,
+      mediaType: 'photo',
+    });
+
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual(['asset-1', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo']);
+  });
+
+  test('when a photo is marked as pending for edit, then the status is pending_edit and it never overwrites a non-synced photo', async () => {
+    await photosLocalDB.markPendingEdit('asset-1');
+
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
+    const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
+    expect(stmt).toContain('\'pending_edit\'');
+    expect(stmt).toContain('status = \'synced\'');
+    expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
+  });
+
+  test('when a photo is marked as pending for edit with media info, then all media info fields are passed to the database', async () => {
+    await photosLocalDB.markPendingEdit('asset-2', {
+      fileName: 'video.mp4',
+      creationTime: 1714000000000,
+      width: 1920,
+      height: 1080,
+      duration: 30,
+      mediaType: 'video',
+    });
+
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual(['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video']);
+  });
+
+  test('when a file size is cached for an asset, then the file size and asset id are passed to the database', async () => {
+    await photosLocalDB.cacheAssetFileSize('asset-3', 204800);
+
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
+    const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
+    expect(stmt).toContain('file_size');
+    expect(params).toEqual([204800, 'asset-3']);
   });
 
   test('when a photo is marked as synced, then it stores the remote file id and the modification time', async () => {
@@ -163,6 +210,13 @@ describe('photosLocalDB', () => {
       created_at: 1713900000000,
       last_attempt_at: null,
       modification_time: null,
+      file_name: null,
+      file_size: null,
+      creation_time: null,
+      width: null,
+      height: null,
+      duration: null,
+      media_type: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-3');
@@ -177,7 +231,45 @@ describe('photosLocalDB', () => {
       createdAt: 1713900000000,
       lastAttemptAt: null,
       modificationTime: null,
+      fileName: null,
+      fileSize: null,
+      creationTime: null,
+      width: null,
+      height: null,
+      duration: null,
+      mediaType: null,
     });
+  });
+
+  test('when checking the status of a photo that has cached media info, then all media info fields are returned', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({
+      asset_id: 'asset-4',
+      status: 'pending',
+      remote_file_id: null,
+      synced_at: null,
+      error_message: null,
+      attempt_count: 0,
+      created_at: 1713900000000,
+      last_attempt_at: null,
+      modification_time: null,
+      file_name: 'photo.jpg',
+      file_size: 204800,
+      creation_time: 1714000000000,
+      width: 3024,
+      height: 4032,
+      duration: 0,
+      media_type: 'photo',
+    });
+
+    const result = await photosLocalDB.getStatus('asset-4');
+
+    expect(result?.fileName).toBe('photo.jpg');
+    expect(result?.fileSize).toBe(204800);
+    expect(result?.creationTime).toBe(1714000000000);
+    expect(result?.width).toBe(3024);
+    expect(result?.height).toBe(4032);
+    expect(result?.duration).toBe(0);
+    expect(result?.mediaType).toBe('photo');
   });
 
   test('when checking the status of a photo that has never been seen, then null is returned', async () => {
@@ -268,6 +360,52 @@ describe('photosLocalDB cloud asset methods', () => {
     (photosLocalDB as any).initPromise = null;
   });
 
+  test('when a cloud asset is fetched by id and it exists, then all fields including the extended metadata are returned', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({
+      remote_file_id: 'remote-1',
+      device_id: 'device-1',
+      created_at: 1718000000000,
+      file_name: 'photo.jpg',
+      file_size: 2048,
+      file_id: 'bridge-file-1',
+      thumbnail_path: '/local/thumb.jpg',
+      thumbnail_bucket_id: 'b1',
+      thumbnail_bucket_file: 'f1',
+      thumbnail_type: 'jpg',
+      discovered_at: 1718100000000,
+      plain_name: 'photo',
+      extension: 'jpg',
+      bucket: 'bucket-abc',
+      folder_uuid: 'folder-uuid-1',
+      creation_time_api: 1718000000000,
+      modification_time: 1718050000000,
+      updated_at: 1718060000000,
+      status: 'EXISTS',
+      encrypt_version: 'aes-2',
+    });
+
+    const result = await photosLocalDB.getCloudAssetById('remote-1');
+
+    expect(result).not.toBeNull();
+    expect(result?.plainName).toBe('photo');
+    expect(result?.extension).toBe('jpg');
+    expect(result?.bucket).toBe('bucket-abc');
+    expect(result?.folderUuid).toBe('folder-uuid-1');
+    expect(result?.creationTimeApi).toBe(1718000000000);
+    expect(result?.modificationTime).toBe(1718050000000);
+    expect(result?.updatedAt).toBe(1718060000000);
+    expect(result?.status).toBe('EXISTS');
+    expect(result?.encryptVersion).toBe('aes-2');
+  });
+
+  test('when a cloud asset is fetched by id and it does not exist, then null is returned', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce(null);
+
+    const result = await photosLocalDB.getCloudAssetById('non-existent');
+
+    expect(result).toBeNull();
+  });
+
   test('when a cloud asset is upserted, then all its fields are passed to the database', async () => {
     await photosLocalDB.upsertCloudAsset({
       remoteFileId: 'remote-1',
@@ -297,6 +435,64 @@ describe('photosLocalDB cloud asset methods', () => {
       'file-1',
       'jpg',
       1718100000000,
+      null, // plainName
+      null, // extension
+      null, // bucket
+      null, // folderUuid
+      null, // creationTimeApi
+      null, // modificationTime
+      null, // updatedAt
+      null, // status
+      null, // encryptVersion
+    ]);
+  });
+
+  test('when a cloud asset is upserted with extended metadata, then all metadata fields are passed at the correct positions', async () => {
+    await photosLocalDB.upsertCloudAsset({
+      remoteFileId: 'remote-1',
+      deviceId: 'device-1',
+      createdAt: 1718000000000,
+      fileName: 'photo.jpg',
+      fileSize: 2048,
+      fileId: 'bridge-file-1',
+      thumbnailPath: null,
+      thumbnailBucketId: 'bucket-1',
+      thumbnailBucketFile: 'file-1',
+      thumbnailType: 'jpg',
+      discoveredAt: 1718100000000,
+      plainName: 'photo',
+      extension: 'jpg',
+      bucket: 'bucket-abc',
+      folderUuid: 'folder-uuid-1',
+      creationTimeApi: 1718000000000,
+      modificationTime: 1718050000000,
+      updatedAt: 1718060000000,
+      status: 'EXISTS',
+      encryptVersion: 'aes-2',
+    });
+
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual([
+      'remote-1',
+      'device-1',
+      1718000000000,
+      'photo.jpg',
+      2048,
+      'bridge-file-1',
+      null,
+      'bucket-1',
+      'file-1',
+      'jpg',
+      1718100000000,
+      'photo',       // plainName
+      'jpg',         // extension
+      'bucket-abc',  // bucket
+      'folder-uuid-1', // folderUuid
+      1718000000000, // creationTimeApi
+      1718050000000, // modificationTime
+      1718060000000, // updatedAt
+      'EXISTS',      // status
+      'aes-2',       // encryptVersion
     ]);
   });
 
