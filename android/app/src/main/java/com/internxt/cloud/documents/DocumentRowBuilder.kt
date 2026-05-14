@@ -18,7 +18,7 @@ object DocumentRowBuilder {
     private const val FILE_FLAGS = MUTATION_FLAGS
 
     fun folderRow(folder: DriveFolder): Map<String, Any?> = mapOf(
-        Document.COLUMN_DOCUMENT_ID to folder.uuid,
+        Document.COLUMN_DOCUMENT_ID to DocumentId.encodeFolder(folder.uuid),
         Document.COLUMN_MIME_TYPE to Document.MIME_TYPE_DIR,
         Document.COLUMN_DISPLAY_NAME to folder.plainName,
         Document.COLUMN_LAST_MODIFIED to parseIsoToMillis(folder.updatedAt),
