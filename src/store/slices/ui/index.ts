@@ -27,6 +27,7 @@ export interface UIState {
   isSharedLinkOptionsModalOpen: boolean;
   showEmptyFileNotAllowedModal: boolean;
   showNotEnoughDeviceSpaceModal: boolean;
+  isTabBarHidden: boolean;
 }
 
 const initialState: UIState = {
@@ -55,6 +56,7 @@ const initialState: UIState = {
   isSharedLinkOptionsModalOpen: false,
   showEmptyFileNotAllowedModal: false,
   showNotEnoughDeviceSpaceModal: false,
+  isTabBarHidden: false,
 };
 
 export const uiSlice = createSlice({
@@ -133,6 +135,9 @@ export const uiSlice = createSlice({
     },
     setShowNotEnoughDeviceSpaceModal: (state, action: PayloadAction<boolean>) => {
       state.showNotEnoughDeviceSpaceModal = action.payload;
+    },
+    setIsTabBarHidden: (state, action: PayloadAction<boolean>) => {
+      state.isTabBarHidden = action.payload;
     },
   },
 });

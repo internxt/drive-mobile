@@ -1,20 +1,36 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
-import { Text, TouchableWithoutFeedback, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Text, TouchableWithoutFeedback, View } from 'react-native';
 
 import { FolderSimpleIcon, HouseIcon, ImageIcon, PlusCircleIcon, UsersIcon } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 import { useLanguage } from '../../hooks/useLanguage';
-import { useAppDispatch } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
 import globalStyle from '../../styles/global';
+
+const TAB_BAR_HEIGHT = 56;
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   useLanguage();
+
+  const isHidden = useAppSelector((state) => state.ui.isTabBarHidden);
+
+  const heightAnim = useRef(new Animated.Value(isHidden ? 0 : TAB_BAR_HEIGHT)).current;
+
+  useEffect(() => {
+    Animated.timing(heightAnim, {
+      toValue: isHidden ? 0 : TAB_BAR_HEIGHT,
+      duration: 250,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [isHidden]);
 
   const tabs = {
     Home: { label: strings.tabs.Home, icon: HouseIcon },
@@ -93,18 +109,21 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     });
 
   return (
-    <View
-      style={[
-        tailwind('flex-row px-2 justify-around items-center'),
-        {
-          backgroundColor: getColor('bg-surface'),
-          borderTopWidth: 1,
-          borderTopColor: getColor('border-gray-10'),
-        },
-      ]}
-    >
-      {items}
-    </View>
+    <Animated.View style={{ height: heightAnim, overflow: 'hidden' }}>
+      <View
+        style={[
+          tailwind('flex-row px-2 justify-around items-center'),
+          {
+            height: TAB_BAR_HEIGHT,
+            backgroundColor: getColor('bg-surface'),
+            borderTopWidth: 1,
+            borderTopColor: getColor('border-gray-10'),
+          },
+        ]}
+      >
+        {items}
+      </View>
+    </Animated.View>
   );
 }
 
