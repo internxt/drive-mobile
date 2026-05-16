@@ -3,6 +3,11 @@ import { NotificationType } from '../../src/types';
 import { BiometricAccessType } from '../../src/types/app';
 import { SortType } from '../../src/types/drive/ui';
 
+const fileSizeLimitSuffix = {
+  en: 'the maximum file size allowed by your plan.',
+  es: 'el tamaño máximo permitido por tu plan.',
+};
+
 const translations = {
   en: {
     languages: {
@@ -689,7 +694,8 @@ const translations = {
       },
       FileSizeExceededModal: {
         title: 'File too large',
-        message: 'File size exceeds the maximum allowed by your plan.',
+        messageWithName: `"{0}" exceeds ${fileSizeLimitSuffix.en}`,
+        messageWithCount: `{0} files exceed ${fileSizeLimitSuffix.en}`,
       },
       ComingSoonModal: {
         title: 'Coming soon!',
@@ -1552,7 +1558,8 @@ const translations = {
       },
       FileSizeExceededModal: {
         title: 'Archivo demasiado grande',
-        message: 'El tamaño del archivo excede el máximo permitido por tu plan.',
+        messageWithName: `"{0}" excede ${fileSizeLimitSuffix.es}`,
+        messageWithCount: `{0} archivos exceden ${fileSizeLimitSuffix.es}`,
       },
       ComingSoonModal: {
         title: '¡Próximamente!',
