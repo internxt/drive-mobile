@@ -235,7 +235,11 @@ export async function uploadSingleFile(
       return;
     }
     if (e instanceof FileSizeExceededError) {
-      dispatch(uiActions.setFileSizeExceededMessage(strings.modals.FileSizeExceededModal.message));
+      dispatch(
+        uiActions.setFileSizeExceededMessage(
+          strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, file.name),
+        ),
+      );
       dispatch(driveActions.uploadFileFinished());
       return;
     }
@@ -254,4 +258,3 @@ export async function uploadSingleFile(
     dispatch(driveActions.uploadFileFinished());
   }
 }
-

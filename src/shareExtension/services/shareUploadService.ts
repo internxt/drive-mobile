@@ -356,7 +356,8 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<Sh
   };
 
   try {
-    if (maxUploadFileSize && maxUploadFileSize > 0 && fileSize > maxUploadFileSize) {
+    const isFileSizeExceeded = !!maxUploadFileSize && maxUploadFileSize > 0 && fileSize > maxUploadFileSize;
+    if (isFileSizeExceeded) {
       throw new FileSizeExceededError();
     }
 

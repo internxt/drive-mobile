@@ -41,15 +41,24 @@ const uploadFolderFileIOS = async (
   signal: AbortSignal,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
-  onFileSizeExceededSkipped: () => void,
+  onFileSizeExceededSkipped: (fileName: string) => void,
 ): Promise<void> => {
   const filePath = fileNode.uri.replace('file://', '');
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
   try {
-    await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+    await uploadAndCreateFileEntry(
+      filePath,
+      plainName,
+      extension,
+      parentUuid,
+      noopProgress,
+      undefined,
+      undefined,
+      signal,
+    );
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
-    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped();
+    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped(fileNode.name);
     throw err;
   }
 };
@@ -61,7 +70,7 @@ const uploadFolderFileAndroid = async (
   uploadId: string,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
-  onFileSizeExceededSkipped: () => void,
+  onFileSizeExceededSkipped: (fileName: string) => void,
 ): Promise<void> => {
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
   const tempPath = fileSystemService.tmpFilePath(`${uploadId}_${fileNode.name}`);
@@ -69,10 +78,19 @@ const uploadFolderFileAndroid = async (
   try {
     await StorageAccessFramework.copyAsync({ from: fileNode.uri, to: tempUri });
     if (signal.aborted) return;
-    await uploadAndCreateFileEntry(tempPath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+    await uploadAndCreateFileEntry(
+      tempPath,
+      plainName,
+      extension,
+      parentUuid,
+      noopProgress,
+      undefined,
+      undefined,
+      signal,
+    );
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
-    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped();
+    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped(fileNode.name);
     throw err;
   } finally {
     await fileSystemService.unlinkIfExists(tempPath).catch((e) => {
@@ -138,7 +156,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const usage = useAppSelector(storageSelectors.usage);
 
   const hasShownEmptyFileNoticeRef = useRef(false);
-  const hasShownFileSizeExceededNoticeRef = useRef(false);
+  const skippedOversizedNamesRef = useRef<string[]>([]);
 
   const handleEmptyFileSkipped = () => {
     if (!hasShownEmptyFileNoticeRef.current) {
@@ -150,11 +168,15 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     }
   };
 
-  const handleFileSizeExceededSkipped = () => {
-    if (!hasShownFileSizeExceededNoticeRef.current) {
-      hasShownFileSizeExceededNoticeRef.current = true;
-      dispatch(uiActions.setFileSizeExceededMessage(strings.modals.FileSizeExceededModal.message));
-    }
+  const handleFileSizeExceededSkipped = (fileName: string) => {
+    skippedOversizedNamesRef.current.push(fileName);
+    const skipped = skippedOversizedNamesRef.current;
+    const [firstSkippedName, ...remainingSkipped] = skipped;
+    const hasMultipleSkipped = remainingSkipped.length > 0;
+    const message = hasMultipleSkipped
+      ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, skipped.length)
+      : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstSkippedName);
+    dispatch(uiActions.setFileSizeExceededMessage(message));
   };
 
   const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
@@ -204,7 +226,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const handleUploadFolder = async () => {
     dispatch(uiActions.setShowUploadFileModal(false));
     hasShownEmptyFileNoticeRef.current = false;
-    hasShownFileSizeExceededNoticeRef.current = false;
+    skippedOversizedNamesRef.current = [];
     await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
 
     const uploadId = uuid.v4().toString();

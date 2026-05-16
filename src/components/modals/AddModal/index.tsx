@@ -21,7 +21,10 @@ import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'r
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
-import { EmptyFileNotAllowedError, isEmptyFilePlanError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
+import {
+  EmptyFileNotAllowedError,
+  isEmptyFilePlanError,
+} from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
 import {
   FileSizeExceededError,
   isFileSizeExceededError,
@@ -165,9 +168,13 @@ function AddModal(): JSX.Element {
     return createdFileEntry;
   }
 
-  const checkFileSizeLimitToUpload = (fileSize: number) => {
+  const checkFileSizeLimitToUpload = (fileSize: number, fileName: string) => {
     if (maxUploadFileSize > 0 && fileSize > maxUploadFileSize) {
-      dispatch(uiActions.setFileSizeExceededMessage(strings.modals.FileSizeExceededModal.message));
+      dispatch(
+        uiActions.setFileSizeExceededMessage(
+          strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, fileName),
+        ),
+      );
       throw new FileSizeExceededError();
     }
     return true;
@@ -195,7 +202,7 @@ function AddModal(): JSX.Element {
     const fileStat = await fileSystemService.stat(filePath);
     // Fix for Android, native document picker not returns the correct fileSize when file is big
     // and cannnot get the stat before we got the file in temporary path
-    checkFileSizeLimitToUpload(fileStat.size);
+    checkFileSizeLimitToUpload(fileStat.size, fileName);
 
     const fileSize = fileStat.size;
 
@@ -418,8 +425,14 @@ function AddModal(): JSX.Element {
 
     await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
     const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents, maxUploadFileSize);
-    if (filesExcluded.length > 0) {
-      dispatch(uiActions.setFileSizeExceededMessage(strings.modals.FileSizeExceededModal.message));
+    const [firstExcluded, ...remainingExcluded] = filesExcluded;
+    const hasExcluded = firstExcluded !== undefined;
+    const hasMultipleExcluded = remainingExcluded.length > 0;
+    if (hasExcluded) {
+      const message = hasMultipleExcluded
+        ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, filesExcluded.length)
+        : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstExcluded.name);
+      dispatch(uiActions.setFileSizeExceededMessage(message));
     }
 
     if (filesToUpload.length === 0) {

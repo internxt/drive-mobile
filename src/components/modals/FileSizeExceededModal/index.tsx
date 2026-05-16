@@ -33,7 +33,7 @@ function FileSizeExceededModal(): JSX.Element {
             },
           ]}
         >
-          {message ?? strings.modals.FileSizeExceededModal.message}
+          {message}
         </AppText>
         <AppButton title={strings.buttons.close} type="accept" onPress={handleClose} />
       </View>
