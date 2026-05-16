@@ -6,6 +6,7 @@ import uuid from 'react-native-uuid';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { logger } from '@internxt-mobile/services/common';
 import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
+import { FileSizeExceededError } from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from '../../../../../assets/lang/strings';
@@ -25,7 +26,7 @@ import fileSystemService from '../../../../services/FileSystemService';
 import notificationsService from '../../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { driveActions, driveThunks } from '../../../../store/slices/drive';
-import { storageSelectors } from '../../../../store/slices/storage';
+import { storageSelectors, storageThunks } from '../../../../store/slices/storage';
 import { uiActions } from '../../../../store/slices/ui';
 import { INFINITE_PLAN, NotificationType, ProgressCallback } from '../../../../types';
 import { FolderTreeNode } from '../../../../types/drive/folderUpload';
@@ -40,6 +41,7 @@ const uploadFolderFileIOS = async (
   signal: AbortSignal,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
+  onFileSizeExceededSkipped: () => void,
 ): Promise<void> => {
   const filePath = fileNode.uri.replace('file://', '');
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
@@ -47,6 +49,7 @@ const uploadFolderFileIOS = async (
     await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
+    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped();
     throw err;
   }
 };
@@ -58,6 +61,7 @@ const uploadFolderFileAndroid = async (
   uploadId: string,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
+  onFileSizeExceededSkipped: () => void,
 ): Promise<void> => {
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
   const tempPath = fileSystemService.tmpFilePath(`${uploadId}_${fileNode.name}`);
@@ -68,6 +72,7 @@ const uploadFolderFileAndroid = async (
     await uploadAndCreateFileEntry(tempPath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
+    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped();
     throw err;
   } finally {
     await fileSystemService.unlinkIfExists(tempPath).catch((e) => {
@@ -133,6 +138,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const usage = useAppSelector(storageSelectors.usage);
 
   const hasShownEmptyFileNoticeRef = useRef(false);
+  const hasShownFileSizeExceededNoticeRef = useRef(false);
 
   const handleEmptyFileSkipped = () => {
     if (!hasShownEmptyFileNoticeRef.current) {
@@ -141,6 +147,13 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         type: NotificationType.Warning,
         text1: strings.messages.emptyFileSkippedDuringFolderUpload,
       });
+    }
+  };
+
+  const handleFileSizeExceededSkipped = () => {
+    if (!hasShownFileSizeExceededNoticeRef.current) {
+      hasShownFileSizeExceededNoticeRef.current = true;
+      dispatch(uiActions.setFileSizeExceededMessage(strings.modals.FileSizeExceededModal.message));
     }
   };
 
@@ -191,6 +204,8 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const handleUploadFolder = async () => {
     dispatch(uiActions.setShowUploadFileModal(false));
     hasShownEmptyFileNoticeRef.current = false;
+    hasShownFileSizeExceededNoticeRef.current = false;
+    await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
 
     const uploadId = uuid.v4().toString();
     const abortController = new AbortController();
@@ -285,9 +300,24 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         },
         uploadFile: async (fileNode, parentUuid, signal) => {
           if (Platform.OS === 'android' && fileNode.uri.startsWith('content://')) {
-            await uploadFolderFileAndroid(fileNode, parentUuid, signal, uploadId, uploadAndCreateFileEntry, handleEmptyFileSkipped);
+            await uploadFolderFileAndroid(
+              fileNode,
+              parentUuid,
+              signal,
+              uploadId,
+              uploadAndCreateFileEntry,
+              handleEmptyFileSkipped,
+              handleFileSizeExceededSkipped,
+            );
           } else {
-            await uploadFolderFileIOS(fileNode, parentUuid, signal, uploadAndCreateFileEntry, handleEmptyFileSkipped);
+            await uploadFolderFileIOS(
+              fileNode,
+              parentUuid,
+              signal,
+              uploadAndCreateFileEntry,
+              handleEmptyFileSkipped,
+              handleFileSizeExceededSkipped,
+            );
           }
         },
       });

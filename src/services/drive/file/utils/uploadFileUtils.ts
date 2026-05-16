@@ -1,14 +1,8 @@
 import { Alert } from 'react-native';
 import uuid from 'react-native-uuid';
 import strings from '../../../../../assets/lang/strings';
-import { isValidFilename } from '../../../../helpers';
 import { driveActions } from '../../../../store/slices/drive';
-import {
-  DocumentPickerFile,
-  FileToUpload,
-  UPLOAD_FILE_SIZE_LIMIT,
-  UploadingFile,
-} from '../../../../types/drive/operations';
+import { DocumentPickerFile, FileToUpload, UploadingFile } from '../../../../types/drive/operations';
 import { checkDuplicatedFiles, File } from './checkDuplicatedFiles';
 import { prepareFilesToUpload } from './prepareFilesToUpload';
 
@@ -25,48 +19,10 @@ import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
 import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
+import { FileSizeExceededError, isFileSizeExceededError } from './fileSizeErrors';
 import { BucketNotFoundError } from './upload.errors';
 
-/**
- * Validate file names and filter out files exceeding the upload size limit.
- *
- * @param {DocumentPickerFile[]} documents - Array of selected documents.
- * @returns {{ filesToUpload: DocumentPickerFile[], filesExcluded: DocumentPickerFile[] }}
- */
-export function validateAndFilterFiles(documents: DocumentPickerFile[]) {
-  const filesToUpload: DocumentPickerFile[] = [];
-  const filesExcluded: DocumentPickerFile[] = [];
-
-  const invalidFiles = documents.filter((file) => !isValidFilename(file.name));
-
-  if (invalidFiles.length > 0) {
-    const invalidFileNames = invalidFiles.map((f) => f.name).join(', ');
-    throw new Error(`Invalid file names: ${invalidFileNames}`);
-  }
-
-  for (const file of documents) {
-    if (file.size <= UPLOAD_FILE_SIZE_LIMIT) {
-      filesToUpload.push(file);
-    } else {
-      filesExcluded.push(file);
-    }
-  }
-
-  return { filesToUpload, filesExcluded };
-}
-
-/**
- * Show an alert when some files exceed the upload size limit.
- *
- * @param {DocumentPickerFile[]} filesExcluded - Files that were excluded due to size.
- */
-export function showFileSizeAlert(filesExcluded: DocumentPickerFile[]) {
-  if (filesExcluded.length === 0) return;
-
-  const messageKey = filesExcluded.length === 1 ? strings.messages.uploadFileLimit : strings.messages.uploadFilesLimit;
-  const alertText = strings.formatString(messageKey, filesExcluded.length).toString();
-  Alert.alert(strings.messages.limitPerFile, alertText);
-}
+export { validateAndFilterFiles } from './validateAndFilterFiles';
 
 /**
  * Handle duplicate files by checking for existing files in the target folder and optionally prompting the user.
@@ -238,6 +194,7 @@ export async function createEmptyFileEntry(bucketId: string, file: UploadingFile
     return await uploadService.createFileEntry(fileEntry);
   } catch (err) {
     if (isEmptyFilePlanError(err)) throw new EmptyFileNotAllowedError();
+    if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
     throw err;
   }
 }
@@ -274,6 +231,11 @@ export async function uploadSingleFile(
   } catch (e) {
     if (e instanceof EmptyFileNotAllowedError) {
       dispatch(uiActions.setShowEmptyFileNotAllowedModal(true));
+      dispatch(driveActions.uploadFileFinished());
+      return;
+    }
+    if (e instanceof FileSizeExceededError) {
+      dispatch(uiActions.setFileSizeExceededMessage(strings.modals.FileSizeExceededModal.message));
       dispatch(driveActions.uploadFileFinished());
       return;
     }

@@ -20,6 +20,15 @@ class StorageService {
     return limit.maxSpaceBytes;
   }
 
+  public async loadMaxUploadFileSize(): Promise<number> {
+    try {
+      const res = (await this.sdk.storageV2.getFileVersionLimits()) as { maxUploadFileSize?: number };
+      return res.maxUploadFileSize ?? 0;
+    } catch {
+      return 0;
+    }
+  }
+
   public async searchItems(search: string, offset: number): Promise<SearchResultData> {
     const [searchData] = await this.sdk.storageV2.getGlobalSearchItems(search, undefined, offset);
     return searchData;

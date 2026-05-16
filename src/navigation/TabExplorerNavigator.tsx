@@ -16,6 +16,7 @@ import DriveRenameModal from '../components/modals/DriveRenameModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import EmptyFileNotAllowedModal from '../components/modals/EmptyFileNotAllowedModal';
+import FileSizeExceededModal from '../components/modals/FileSizeExceededModal';
 import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
 import SignOutModal from '../components/modals/SignOutModal';
@@ -89,6 +90,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <DriveRenameModal />
       <RunOutOfStorageModal />
       <EmptyFileNotAllowedModal />
+      <FileSizeExceededModal />
       <NotEnoughDeviceSpaceModal />
       <SignOutModal />
       <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
