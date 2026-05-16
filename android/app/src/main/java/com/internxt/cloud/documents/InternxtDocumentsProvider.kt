@@ -13,7 +13,7 @@ import com.internxt.cloud.documents.auth.InternxtAuthManager
 
 class InternxtDocumentsProvider : DocumentsProvider() {
 
-    private lateinit var authManager: InternxtAuthManager
+    private var authManager: InternxtAuthManager? = null
 
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
@@ -26,13 +26,13 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val ctx = context ?: return cursor
         cursor.setNotificationUri(ctx.contentResolver, DocumentsContract.buildRootsUri(AUTHORITY))
 
-        val rootUuid = authManager.authenticatedRootUuid() ?: return cursor
+        val rootUuid = authManager?.authenticatedRootUuid() ?: return cursor
 
         cursor.newRow().apply {
             add(Root.COLUMN_ROOT_ID, ROOT_ID)
             add(Root.COLUMN_DOCUMENT_ID, rootUuid)
             add(Root.COLUMN_TITLE, ctx.getString(R.string.documents_provider_label))
-            authManager.userEmail()?.let { add(Root.COLUMN_SUMMARY, it) }
+            authManager?.userEmail()?.let { add(Root.COLUMN_SUMMARY, it) }
             add(Root.COLUMN_FLAGS, Root.FLAG_SUPPORTS_CREATE or Root.FLAG_SUPPORTS_IS_CHILD)
             add(Root.COLUMN_ICON, R.mipmap.ic_launcher)
         }
