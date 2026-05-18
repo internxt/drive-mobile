@@ -49,12 +49,7 @@ const ActionRow = ({ icon, label, onPress, isDestructive, isLast }: ActionRowPro
       style={[tailwind('flex-row items-center px-4'), styles.row]}
       hitSlop={{ top: 2, bottom: 2 }}
     >
-      <View
-        style={[
-          styles.rowInner,
-          !isLast && { borderBottomColor: SEPARATOR_COLOR, borderBottomWidth: 1 },
-        ]}
-      >
+      <View style={[styles.rowInner, !isLast && { borderBottomColor: SEPARATOR_COLOR, borderBottomWidth: 1 }]}>
         <View style={styles.iconContainer}>{icon}</View>
         <AppText
           medium
@@ -114,6 +109,7 @@ const MoreActionsBottomSheet = ({
   const areAllSelectedItemsBacked = selectedItems.every(isItemBacked);
   const isOneItemSelected = selectedItems.length === 1;
   const hasBackedOrCloud = selectedItems.some(isItemBacked);
+  const isSinglePhoto = isOneItemSelected && selectedItems[0]?.mediaType === 'photo';
 
   const iconColor = getColor('text-gray-80');
   const actionStrings = strings.screens.photos.selection.more;
@@ -127,12 +123,13 @@ const MoreActionsBottomSheet = ({
           icon: <ExportIcon size={22} color={iconColor} />,
           onPress: onExport,
         },
-        areAllSelectedItemsBacked && {
-          key: 'copy',
-          label: actionStrings.copy,
-          icon: <CopyIcon size={22} color={iconColor} />,
-          onPress: onCopy,
-        },
+        areAllSelectedItemsBacked &&
+          isSinglePhoto && {
+            key: 'copy',
+            label: actionStrings.copy,
+            icon: <CopyIcon size={22} color={iconColor} />,
+            onPress: onCopy,
+          },
         areAllSelectedItemsBacked &&
           isOneItemSelected && {
             key: 'duplicate',
@@ -170,6 +167,7 @@ const MoreActionsBottomSheet = ({
     [
       areAllSelectedItemsBacked,
       isOneItemSelected,
+      isSinglePhoto,
       hasBackedOrCloud,
       iconColor,
       actionStrings,

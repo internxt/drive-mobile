@@ -184,7 +184,7 @@ export const PreviewCarousel = ({
 
         <View style={[tailwind('flex-row'), { paddingBottom: insets.bottom + 8 }]}>
           <ActionButton icon={<ExportIcon size={26} color="white" />} label="Export" onPress={onExport} />
-          <ActionButton icon={<StarIcon size={26} color="white" />} label="Favorite" onPress={() => undefined} />
+          {/* <ActionButton icon={<StarIcon size={26} color="white" />} label="Favorite" onPress={() => undefined} /> */}
           <ActionButton icon={<DotsThreeOutlineIcon size={26} color="white" />} label="More" onPress={onMore} />
           <ActionButton icon={<TrashIcon size={26} color="white" />} label="Delete" onPress={() => undefined} />
         </View>

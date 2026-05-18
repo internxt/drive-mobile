@@ -243,6 +243,11 @@ const translations = {
             removeFromFavorites: 'Remove from favorites',
             moveToTrash: 'Move to trash',
           },
+          actionProgress: {
+            preparing: 'Preparing…',
+            saving: 'Saving to gallery…',
+            copying: 'Copying…',
+          },
         },
       },
       forgot_password: {
@@ -1196,6 +1201,11 @@ const translations = {
             addToFavorites: 'Añadir a favoritos',
             removeFromFavorites: 'Quitar de favoritos',
             moveToTrash: 'Mover a la papelera',
+          },
+          actionProgress: {
+            preparing: 'Preparando…',
+            saving: 'Guardando en galería…',
+            copying: 'Copiando…',
           },
         },
       },

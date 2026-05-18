@@ -1,12 +1,18 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { logger } from '@internxt-mobile/services/common';
+import { toFileUri } from '@internxt-mobile/services/common/uri/uriHelpers';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import { copyAsync } from 'expo-file-system/legacy';
+import { Platform } from 'react-native';
 import { CloudPhotoItem, PhotoItem } from 'src/screens/PhotosScreen/types';
 import { photosLocalDB } from './database/photosLocalDB';
 import { photoMediaLibraryService } from './PhotoMediaLibraryService';
+import { splitFileNameAndExtension } from './PhotoUploadService.utils';
 
 const getCacheDir = () => fileSystemService.getCacheDir() + '/photo_preview/';
+const getShareTempDir = () => fileSystemService.getCacheDir() + '/photo_share/';
+const assetIdToFileName = (id: string, ext: string) => `${id.replace(/\//g, '_')}.${ext}`;
 
 const cachePathFor = (remoteFileId: string, ext: string) => `${getCacheDir()}${remoteFileId}.${ext}`;
 
@@ -71,11 +77,41 @@ const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Pr
   }
 };
 
+const copyPhAssetToSandbox = async (item: PhotoItem): Promise<string> => {
+  const info = await photoMediaLibraryService.getAssetInfo(item.id);
+  const { fileExtension: ext } = splitFileNameAndExtension(info.filename);
+
+  const cacheDir = getShareTempDir();
+  await fileSystemService.ensureDir(cacheDir);
+  const destPath = `${cacheDir}${assetIdToFileName(item.id, ext)}`;
+  if (!item.uri) {
+    throw new Error(`copyPhAssetToSandbox: asset ${item.id} has no URI`);
+  }
+
+  await copyAsync({ from: item.uri, to: toFileUri(destPath) });
+  return destPath;
+};
+
+export type ExportUri = { uri: string; cleanup?: () => void };
+
 export const PhotoAssetFetchService = {
   fetchUri: async (item: PhotoItem | CloudPhotoItem, signal: AbortSignal): Promise<string | null> => {
     if (item.type === 'local') {
       return resolveLocalUri(item);
     }
     return downloadCloudAsset(item, signal);
+  },
+
+  resolveExportUri: async (item: PhotoItem | CloudPhotoItem, signal: AbortSignal): Promise<ExportUri | null> => {
+    if (item.type === 'local' && Platform.OS === 'ios') {
+      const sandboxPath = await copyPhAssetToSandbox(item);
+      return {
+        uri: sandboxPath,
+        cleanup: () => fileSystemService.unlinkIfExists(sandboxPath).catch(() => undefined),
+      };
+    }
+
+    const uri = await PhotoAssetFetchService.fetchUri(item, signal);
+    return uri ? { uri } : null;
   },
 };

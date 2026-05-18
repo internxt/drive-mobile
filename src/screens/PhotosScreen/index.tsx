@@ -8,6 +8,7 @@ import { uiActions } from 'src/store/slices/ui';
 import { TabExplorerScreenNavigationProp } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import { photoPermissionService } from '../../services/photos/photoPermissionService';
+import ActionProgressModal from './components/ActionProgressModal';
 import BackupDisabledBanner from './components/BackupDisabledBanner';
 import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
 import PhotosHeader from './components/PhotosHeader';
@@ -16,6 +17,7 @@ import PhotosTimeline from './components/PhotosTimeline';
 import SelectionHeader from './components/SelectionHeader';
 import SelectionToolbar from './components/SelectionToolbar';
 import EnableBackupBottomSheet from './EnableBackupBottomSheet';
+import { usePhotoActions } from './hooks/usePhotoActions';
 import { usePhotoSelection } from './hooks/usePhotoSelection';
 import { usePhotosTimeline } from './hooks/usePhotosTimeline';
 import { PhotosAccessState, TimelinePhotoItem } from './types';
@@ -26,7 +28,6 @@ const PhotosScreen = (): JSX.Element => {
   const navigation = useNavigation<TabExplorerScreenNavigationProp<'Photos'>>();
   const { enabled, permissionStatus } = useAppSelector((state) => state.photos);
   const [isEnableBackupSheetOpen, setIsEnableBackupSheetOpen] = useState(false);
-  const [isMoreActionsSheetOpen, setIsMoreActionsSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { timelineDateGroups, isLoading, loadNextPage, reloadLocal } = usePhotosTimeline();
 
@@ -36,6 +37,7 @@ const PhotosScreen = (): JSX.Element => {
   );
 
   const selection = usePhotoSelection(allItems);
+  const actions = usePhotoActions(selection);
 
   const handlePhotoPress = useCallback(
     (id: string) => {
@@ -57,24 +59,13 @@ const PhotosScreen = (): JSX.Element => {
     [selection],
   );
 
-  const handleSelectPress = useCallback(() => selection.enterSelectMode(), [selection]);
-
-  const todoAction = useCallback(
-    (name: string) => () => {
-      console.log(`action:${name}`, [...selection.selectedIds]);
-      selection.exitSelectMode();
-      setIsMoreActionsSheetOpen(false);
-    },
-    [selection],
-  );
-
-  const handleMore = useCallback(() => setIsMoreActionsSheetOpen(true), []);
-  const handleMoreClose = useCallback(() => setIsMoreActionsSheetOpen(false), []);
-
-  const accessState: PhotosAccessState = useMemo<PhotosAccessState>(
+  const accessState = useMemo<PhotosAccessState>(
     () => (enabled ? { type: 'available' } : { type: 'backup-off' }),
     [enabled],
   );
+
+  const handleSelectPress = useCallback(() => selection.enterSelectMode(), [selection]);
+
   const handleEnableBackup = useCallback(() => setIsEnableBackupSheetOpen(true), []);
   const listHeader =
     accessState.type === 'backup-off' ? <BackupDisabledBanner onEnablePress={handleEnableBackup} /> : undefined;
@@ -87,8 +78,6 @@ const PhotosScreen = (): JSX.Element => {
       setRefreshing(false);
     }
   }, [dispatch, reloadLocal]);
-
-  const handleUpgradePress = useCallback(() => undefined, []);
 
   useEffect(() => {
     dispatch(uiActions.setIsTabBarHidden(selection.selectMode));
@@ -141,30 +130,32 @@ const PhotosScreen = (): JSX.Element => {
           isSelectMode={selection.selectMode}
           selectedIds={selection.selectedIds}
         />
-        {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
+        {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={() => undefined} />}
       </View>
 
       <SelectionToolbar
         visible={selection.selectMode && selection.selectedIds.size > 0}
         selectedItems={selection.selectedItems}
-        onExport={todoAction('export')}
-        onFavorite={todoAction('favorite')}
-        onMore={handleMore}
-        onDelete={todoAction('delete')}
-        onInfo={todoAction('info')}
+        onExport={actions.handleExport}
+        onFavorite={actions.todoAction('favorite')}
+        onMore={actions.handleMore}
+        onDelete={actions.todoAction('delete')}
+        onInfo={actions.todoAction('info')}
       />
 
       <MoreActionsBottomSheet
-        isOpen={isMoreActionsSheetOpen}
+        isOpen={actions.isMoreActionsSheetOpen}
         selectedItems={selection.selectedItems}
-        onClose={handleMoreClose}
-        onExport={todoAction('export')}
-        onCopy={todoAction('copy')}
-        onDuplicate={todoAction('duplicate')}
-        onSave={todoAction('save')}
-        onFavorite={todoAction('favorite')}
-        onTrash={todoAction('trash')}
+        onClose={actions.handleMoreClose}
+        onExport={actions.handleExport}
+        onCopy={actions.handleCopy}
+        onDuplicate={actions.todoAction('duplicate')}
+        onSave={actions.handleSave}
+        onFavorite={actions.todoAction('favorite')}
+        onTrash={actions.todoAction('trash')}
       />
+
+      <ActionProgressModal visible={actions.actionLabel !== null} label={actions.actionLabel ?? ''} />
 
       <EnableBackupBottomSheet isOpen={isEnableBackupSheetOpen} onClose={() => setIsEnableBackupSheetOpen(false)} />
     </AppScreen>
