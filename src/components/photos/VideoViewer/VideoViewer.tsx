@@ -40,6 +40,11 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
   const videoPlayer = useRef<VideoRef>(null);
 
   useEffect(() => {
+    setLoadError(undefined);
+    setPlaying(false);
+  }, [source]);
+
+  useEffect(() => {
     if (playing) {
       onPlay?.();
     } else {

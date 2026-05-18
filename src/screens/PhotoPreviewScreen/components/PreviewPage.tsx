@@ -52,7 +52,10 @@ const PageContent = ({
 
   return (
     <View style={tailwind('flex-1 justify-center items-center')}>
-      <ActivityIndicator color="white" size="large" />
+      {thumbnailUri ? (
+        <Image source={{ uri: thumbnailUri }} style={tailwind('w-full h-full')} resizeMode="contain" />
+      ) : null}
+      {uri === undefined ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
     </View>
   );
 };
