@@ -24,6 +24,10 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   const [isUiVisible, setIsUiVisible] = useState(true);
   const [zoomActive, setZoomActive] = useState(false);
   const [metadataOpen, setMetadataOpen] = useState(false);
+  const [hasVideoStarted, setHasVideoStarted] = useState(false);
+  const [videoResetKey, setVideoResetKey] = useState(0);
+
+  const resetVideoPlayer = useCallback(() => setVideoResetKey((key) => key + 1), []);
 
   const handleTap = useCallback(() => {
     setIsUiVisible((visible) => !visible);
@@ -39,6 +43,38 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   const handleSwipeDown = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const exitVideoMode = useCallback(() => {
+    setHasVideoStarted(false);
+    resetVideoPlayer();
+    setIsUiVisible(true);
+  }, [resetVideoPlayer]);
+
+  const closePreviewScreen = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const handleClose = useCallback(() => {
+    if (hasVideoStarted) {
+      exitVideoMode();
+    } else {
+      closePreviewScreen();
+    }
+  }, [hasVideoStarted, exitVideoMode, closePreviewScreen]);
+
+  const handleVideoPlay = useCallback(() => {
+    setHasVideoStarted(true);
+    setIsUiVisible(false);
+  }, []);
+
+  const handleVideoPause = useCallback(() => {
+    setIsUiVisible(true);
+  }, []);
+
+  const handleVideoEnd = useCallback(() => {
+    setHasVideoStarted(false);
+    setIsUiVisible(true);
+  }, []);
 
   const handleExport = useCallback(async () => {
     const item = items[currentIndex];
@@ -59,7 +95,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     }
   }, [items, currentIndex]);
 
-  const showCarousel = isUiVisible && !zoomActive;
+  const showCarousel = isUiVisible && !zoomActive && !hasVideoStarted;
   const currentItem = items[currentIndex];
 
   return (
@@ -73,11 +109,16 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
         onTap={handleTap}
         onZoomChange={handleZoomChange}
         onSwipeDown={handleSwipeDown}
+        onVideoPlay={handleVideoPlay}
+        onVideoPause={handleVideoPause}
+        onVideoEnd={handleVideoEnd}
+        videoResetKey={videoResetKey}
+        hasVideoStarted={hasVideoStarted}
       />
       <PreviewHeader
         visible={isUiVisible}
         item={currentItem}
-        onClose={handleSwipeDown}
+        onClose={handleClose}
         onMore={() => setMetadataOpen(true)}
       />
       {showCarousel && (

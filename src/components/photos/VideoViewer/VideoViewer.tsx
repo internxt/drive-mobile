@@ -1,7 +1,7 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import * as NavigationBar from 'expo-navigation-bar';
 import * as ScreenOrientation from 'expo-screen-orientation';
-import { Play } from 'phosphor-react-native';
+import { PlayIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, Platform, TouchableOpacity, View } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
@@ -12,6 +12,7 @@ interface VideoViewerProps {
   thumbnail?: string;
   onPlay?: () => void;
   onPause?: () => void;
+  onEnd?: () => void;
   onVideoLoadError?: () => void;
 }
 
@@ -33,24 +34,25 @@ const unlockOrientation = async () => {
   }
 };
 
-export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPause, thumbnail, onVideoLoadError }) => {
+export const VideoViewer: React.FC<VideoViewerProps> = ({
+  source,
+  onPlay,
+  onPause,
+  onEnd,
+  thumbnail,
+  onVideoLoadError,
+}) => {
   const tailwind = useTailwind();
   const [playing, setPlaying] = useState(false);
+  const [hasStarted, setHasStarted] = useState(false);
   const [loadError, setLoadError] = useState<unknown>();
   const videoPlayer = useRef<VideoRef>(null);
 
   useEffect(() => {
     setLoadError(undefined);
     setPlaying(false);
+    setHasStarted(false);
   }, [source]);
-
-  useEffect(() => {
-    if (playing) {
-      onPlay?.();
-    } else {
-      onPause?.();
-    }
-  }, [playing]);
 
   useEffect(() => {
     return () => {
@@ -71,7 +73,9 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
       await NavigationBar.setVisibilityAsync('hidden');
       await NavigationBar.setBehaviorAsync('overlay-swipe');
     }
+    setHasStarted(true);
     setPlaying(true);
+    onPlay?.();
   };
 
   const handleFullscreenPresent = () => {
@@ -80,7 +84,9 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
 
   const handleFullscreenWillDismiss = () => {
     if (isIOS) {
+      onEnd?.();
       setPlaying(false);
+      setHasStarted(false);
       lockToPortrait();
     } else {
       ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
@@ -99,14 +105,17 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
   };
 
   const handleEnd = () => {
+    onEnd?.();
     setPlaying(false);
+    setHasStarted(false);
+    videoPlayer.current?.seek(0);
     videoPlayer.current?.dismissFullscreenPlayer();
     lockToPortrait();
   };
 
   // On iOS the native fullscreen player covers everything, so the thumbnail can stay.
-  // On Android the video plays inline, so the thumbnail must hide to reveal the Video component.
-  const showThumbnail = isIOS || !playing;
+  // On Android hide the thumbnail once started so the paused frame stays visible.
+  const showThumbnail = isIOS || !hasStarted;
 
   return (
     <View style={tailwind('h-full')}>
@@ -121,7 +130,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
                 { backgroundColor: 'rgba(0,0,0,0.5)' },
               ]}
             >
-              <Play size={40} weight="fill" color="#fff" />
+              <PlayIcon size={40} weight="fill" color="#fff" />
             </TouchableOpacity>
           </View>
         )}
@@ -140,10 +149,20 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({ source, onPlay, onPaus
             resizeMode="contain"
             repeat={false}
             ignoreSilentSwitch="ignore"
-            controls={isAndroid && playing}
+            controls={isAndroid && hasStarted}
             style={isAndroid ? { width: '100%', height: '100%' } : undefined}
             onError={handleError}
             onEnd={handleEnd}
+            onPlaybackStateChanged={(e) => {
+              if (isAndroid && hasStarted && !e.isSeeking) {
+                setPlaying(e.isPlaying);
+                if (e.isPlaying) {
+                  onPlay?.();
+                } else {
+                  onPause?.();
+                }
+              }
+            }}
             onFullscreenPlayerWillPresent={handleFullscreenPresent}
             onFullscreenPlayerWillDismiss={handleFullscreenWillDismiss}
             onFullscreenPlayerDidDismiss={handleFullscreenDidDismiss}
