@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
+import { logger } from '../../../services/common';
 import { useCloudThumbnail } from '../../PhotosScreen/hooks/useCloudThumbnail';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
 
@@ -133,6 +134,15 @@ export const PreviewCarousel = ({
     transform: [{ translateY: withTiming(visible ? 0 : 20, { duration: 150, easing: Easing.out(Easing.quad) }) }],
   }));
 
+  const getItemLayout = useCallback(
+    (_: ArrayLike<TimelinePhotoItem> | null | undefined, index: number) => ({
+      length: THUMB_W_INACTIVE + THUMB_GAP,
+      offset: (THUMB_W_INACTIVE + THUMB_GAP) * index,
+      index,
+    }),
+    [],
+  );
+
   const renderItem: ListRenderItem<TimelinePhotoItem> = useCallback(
     ({ item, index }) => (
       <View style={{ marginRight: index < items.length - 1 ? THUMB_GAP : 0 }}>
@@ -162,10 +172,13 @@ export const PreviewCarousel = ({
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 12 }}
+            getItemLayout={getItemLayout}
             windowSize={5}
             initialNumToRender={30}
             maxToRenderPerBatch={20}
-            onScrollToIndexFailed={() => undefined}
+            onScrollToIndexFailed={(info) => {
+              logger.error('Scroll to index failed:', info);
+            }}
           />
         </View>
 
