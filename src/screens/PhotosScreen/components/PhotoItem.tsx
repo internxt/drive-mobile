@@ -1,12 +1,32 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowUpIcon, CloudSlashIcon } from 'phosphor-react-native';
-import { memo, useCallback } from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { memo, useCallback, useEffect, useRef } from 'react';
+import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Circle } from 'react-native-progress';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
 import { PhotoItem as PhotoItemType } from '../types';
+
+const SkeletonCell = (): JSX.Element => {
+  const getColor = useGetColor();
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(fadeAnim, { toValue: 0.2, duration: 1500, easing: Easing.linear, useNativeDriver: false }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 800, easing: Easing.linear, useNativeDriver: false }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
+  return (
+    <Animated.View style={[styles.container, { backgroundColor: getColor('bg-primary-10'), opacity: fadeAnim }]} />
+  );
+};
 
 interface PhotoItemProps {
   item: PhotoItemType;
@@ -22,11 +42,12 @@ const PhotoItem = memo(({ item, isSelectMode, isSelected, onPress, onLongPress }
 
   const handlePress = useCallback(() => onPress?.(item.id), [onPress, item.id]);
   const handleLongPress = useCallback(() => onLongPress?.(item.id), [onLongPress, item.id]);
-  const containerStyle = [styles.container, { backgroundColor: getColor('bg-primary-10') }];
 
   if (item.backupState === 'loading' || !item.uri) {
-    return <View style={containerStyle} />;
+    return <SkeletonCell />;
   }
+
+  const containerStyle = [styles.container, { backgroundColor: getColor('bg-gray-1') }];
 
   return (
     <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>

@@ -33,9 +33,17 @@ interface PhotosGroupHeaderProps {
 
 const GRADIENT_LOCATIONS: [number, number, number] = [0, 0.35, 1];
 
-const BackupProgressBar = ({ progress, color }: { progress: number; color: string }): JSX.Element => (
-  <View style={styles.progressTrack}>
-    <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%`, backgroundColor: color }]} />
+const BackupProgressBar = ({
+  progress,
+  fillColor,
+  trackColor,
+}: {
+  progress: number;
+  fillColor: string;
+  trackColor: string;
+}): JSX.Element => (
+  <View style={[styles.progressTrack, { backgroundColor: trackColor }]}>
+    <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%`, backgroundColor: fillColor }]} />
   </View>
 );
 
@@ -50,13 +58,16 @@ const PhotosGroupHeader = memo(
     const dangerColor = getColor('text-red');
     const gradientColors: [string, string, string] = [getColor('bg-black-50'), getColor('bg-black-40'), 'transparent'];
 
-    const backupProgress = syncStatus.type === 'uploading' ? syncStatus.backupProgress : undefined;
+    const isUploading = syncStatus.type === 'uploading';
+    const backupUploadProgress = isUploading ? (syncStatus.backupProgress ?? 0) : undefined;
+    const progressTrackColor = isSticky ? getColor('bg-white-25') : getColor('bg-primary-10');
 
     const content = (
       <View
         style={[
-          tailwind('h-16 justify-center overflow-hidden'),
+          tailwind('h-16 justify-center'),
           !isSticky && { backgroundColor: getColor('bg-surface') },
+          { overflow: 'visible' },
         ]}
       >
         {isSticky && (
@@ -67,7 +78,9 @@ const PhotosGroupHeader = memo(
           />
         )}
 
-        {backupProgress != null && <BackupProgressBar progress={backupProgress} color={primaryColor} />}
+        {backupUploadProgress != null && (
+          <BackupProgressBar progress={backupUploadProgress} fillColor={primaryColor} trackColor={progressTrackColor} />
+        )}
 
         <View style={tailwind('flex-row items-center justify-between px-4')}>
           <AppText semibold style={[tailwind('text-lg'), { color: labelColor }]}>
