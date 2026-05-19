@@ -4,7 +4,7 @@ const statements = {
   createTable: `
     CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
       asset_id          TEXT    PRIMARY KEY NOT NULL,
-      status            TEXT    NOT NULL CHECK (status IN ('pending', 'synced', 'error')),
+      status            TEXT    NOT NULL CHECK (status IN ('pending', 'pending_edit', 'synced', 'error')),
       remote_file_id    TEXT,
       error_message     TEXT,
       attempt_count     INTEGER NOT NULL DEFAULT 0,
@@ -22,6 +22,13 @@ const statements = {
     VALUES (?, 'pending')
     ON CONFLICT(asset_id) DO UPDATE SET status = 'pending'
     WHERE ${TABLE_NAME}.status != 'synced';
+  `,
+
+  markPendingEdit: `
+    INSERT INTO ${TABLE_NAME} (asset_id, status)
+    VALUES (?, 'pending_edit')
+    ON CONFLICT(asset_id) DO UPDATE SET status = 'pending_edit'
+    WHERE ${TABLE_NAME}.status = 'synced';
   `,
 
   markSynced: `
@@ -52,6 +59,7 @@ const statements = {
   `,
   getSyncedInList: (placeholders: string) =>
     `SELECT asset_id, modification_time FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status = 'synced';`,
+  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status != 'synced';`,
   reset: `DELETE FROM ${TABLE_NAME};`,
 };
 
