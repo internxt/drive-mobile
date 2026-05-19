@@ -128,11 +128,13 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
 
   return (
     <>
-      <EnableBackupBottomSheet
-        isOpen={isBackupSheetOpen}
-        onClose={() => setIsBackupSheetOpen(false)}
-        onSuccess={() => navigation.navigate('Photos')}
-      />
+      {appService.isPhotosEnabled && (
+        <EnableBackupBottomSheet
+          isOpen={isBackupSheetOpen}
+          onClose={() => setIsBackupSheetOpen(false)}
+          onSuccess={() => navigation.navigate('Photos')}
+        />
+      )}
       <AppScreen
         safeAreaTop
         safeAreaColor={getColor('bg-surface')}
@@ -321,7 +323,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
             />
 
             {/* PHOTOS */}
-            <SettingsGroup
+            {appService.isPhotosEnabled && <SettingsGroup
               title={strings.screens.SettingsScreen.photos.sectionTitle}
               items={[
                 {
@@ -392,7 +394,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                     : undefined,
                 },
               ]}
-            />
+            />}
 
             {/* INFORMATION */}
             <SettingsGroup

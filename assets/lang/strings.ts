@@ -42,6 +42,7 @@ const translations = {
       Add: 'Add',
       Shared: 'Shared',
       Photos: 'Photos',
+      Settings: 'Settings',
     },
     subscriptions: {
       free: 'Free plan',
@@ -1000,6 +1001,7 @@ const translations = {
       Add: 'Añadir',
       Shared: 'Compartido',
       Photos: 'Fotos',
+      Settings: 'Ajustes',
     },
     subscriptions: {
       free: 'Plan gratuito',

@@ -58,6 +58,10 @@ class AppService {
     logger.info(`Device is in airplane mode: ${await deviceInfo.isAirplaneMode()}`);
   }
 
+  public get isPhotosEnabled(): boolean {
+    return this.constants.ENABLE_PHOTOS ?? false;
+  }
+
   public get isDevMode() {
     return __DEV__;
   }

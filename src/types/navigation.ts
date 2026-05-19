@@ -50,6 +50,7 @@ export type TabExplorerStackParamList = {
   Add: undefined;
   Shared: undefined;
   Photos: undefined;
+  Settings: undefined;
 };
 
 export type DriveStackParamList = {
