@@ -1,14 +1,14 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { photoMediaLibraryService } from './PhotoMediaLibraryService';
+import { logger } from '@internxt-mobile/services/common';
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
-import { logger } from '@internxt-mobile/services/common';
+import { CloudPhotoItem, PhotoItem } from 'src/screens/PhotosScreen/types';
 import { photosLocalDB } from './database/photosLocalDB';
-import { PhotoItem, CloudPhotoItem } from 'src/screens/PhotosScreen/types';
+import { photoMediaLibraryService } from './PhotoMediaLibraryService';
 
-const cacheDir = () => fileSystemService.getCacheDir() + '/photo_preview/';
+const getCacheDir = () => fileSystemService.getCacheDir() + '/photo_preview/';
 
-const cachePathFor = (remoteFileId: string, ext: string) => `${cacheDir()}${remoteFileId}.${ext}`;
+const cachePathFor = (remoteFileId: string, ext: string) => `${getCacheDir()}${remoteFileId}.${ext}`;
 
 const extFromFileName = (fileName: string): string => {
   const parts = fileName.split('.');
@@ -20,12 +20,12 @@ const resolveLocalUri = async (item: PhotoItem): Promise<string | null> => {
     const info = await photoMediaLibraryService.getAssetInfo(item.id);
     return info.localUri ?? item.uri ?? null;
   } catch (error) {
-    logger.error(`[PhotoFullImageService] Failed to resolve local URI for ${item.id}: ${error}`);
+    logger.error(`[PhotoAssetFetchService] Failed to resolve local URI for ${item.id}: ${error}`);
     return item.uri ?? null;
   }
 };
 
-const downloadCloudFullImage = async (item: CloudPhotoItem, signal: AbortSignal): Promise<string | null> => {
+const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Promise<string | null> => {
   const ext = extFromFileName(item.fileName);
   const cachePath = cachePathFor(item.id, ext);
 
@@ -34,13 +34,13 @@ const downloadCloudFullImage = async (item: CloudPhotoItem, signal: AbortSignal)
 
   const asset = await photosLocalDB.getCloudAssetById(item.id);
   if (!asset?.fileId) {
-    logger.warn(`[PhotoFullImageService] No fileId for cloud asset ${item.id}, skipping full-res download`);
+    logger.warn(`[PhotoAssetFetchService] No fileId for cloud asset ${item.id}, skipping download`);
     return null;
   }
 
   const user = await asyncStorageService.getUser();
 
-  await fileSystemService.ensureDir(cacheDir());
+  await fileSystemService.ensureDir(getCacheDir());
 
   try {
     await driveFileService.downloadFile(
@@ -64,21 +64,18 @@ const downloadCloudFullImage = async (item: CloudPhotoItem, signal: AbortSignal)
     return cachePath;
   } catch (error) {
     if (!signal.aborted) {
-      logger.error(`[PhotoFullImageService] Download failed for ${item.id}: ${error}`);
+      logger.error(`[PhotoAssetFetchService] Download failed for ${item.id}: ${error}`);
     }
     await fileSystemService.unlinkIfExists(cachePath);
     return null;
   }
 };
 
-export const PhotoFullImageService = {
-  getFullImageUri: async (
-    item: PhotoItem | CloudPhotoItem,
-    signal: AbortSignal,
-  ): Promise<string | null> => {
+export const PhotoAssetFetchService = {
+  fetchUri: async (item: PhotoItem | CloudPhotoItem, signal: AbortSignal): Promise<string | null> => {
     if (item.type === 'local') {
       return resolveLocalUri(item);
     }
-    return downloadCloudFullImage(item, signal);
+    return downloadCloudAsset(item, signal);
   },
 };

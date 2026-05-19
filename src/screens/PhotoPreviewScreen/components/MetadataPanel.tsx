@@ -1,5 +1,5 @@
 import { CaretLeftIcon } from 'phosphor-react-native';
-import { useEffect, useRef, useState } from 'react';
+import { MutableRefObject, useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -8,10 +8,11 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
+import { stripFileUri } from '../../../services/common/uri/uriHelpers';
 import fileSystemService from '../../../services/FileSystemService';
 import { photosLocalDB } from '../../../services/photos/database/photosLocalDB';
 import { photoMediaLibraryService } from '../../../services/photos/PhotoMediaLibraryService';
-import { TimelinePhotoItem } from '../../PhotosScreen/types';
+import { CloudPhotoItem, PhotoItem, TimelinePhotoItem } from '../../PhotosScreen/types';
 import { formatBytes, formatDate, formatDimensions, formatExtension } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
@@ -45,6 +46,124 @@ const Row = ({ label, value, isLast }: MetadataRow & { isLast: boolean }) => {
   );
 };
 
+const formatHeaderSubtitleFromLocal = (fileSize: number | null, creationTime: number | null): string => {
+  if (fileSize && creationTime) return `${formatBytes(fileSize)} · ${formatDate(creationTime)}`;
+  if (creationTime) return formatDate(creationTime);
+  return '';
+};
+
+const formatCloudDisplayName = (
+  plainName: string | null | undefined,
+  extension: string | null | undefined,
+  fallbackFileName: string,
+): string => {
+  if (!plainName) return fallbackFileName;
+  const extensionSuffix = extension ? `.${extension}` : '';
+  return `${plainName}${extensionSuffix}`;
+};
+
+const formatCloudHeaderSubtitle = (fileSize: number | null | undefined, createdAt: number): string => {
+  if (fileSize) return `${formatBytes(fileSize)} · ${formatDate(createdAt)}`;
+  return formatDate(createdAt);
+};
+
+const resolveLocalFileSize = async (
+  assetId: string,
+  cachedFileSize: number | null,
+  localUri: string | null,
+): Promise<number | null> => {
+  if (cachedFileSize) return cachedFileSize;
+  if (!localUri) return null;
+  try {
+    const fileStat = await fileSystemService.stat(stripFileUri(localUri));
+    photosLocalDB.cacheAssetFileSize(assetId, fileStat.size).catch(() => undefined);
+    return fileStat.size;
+  } catch (error) {
+    console.error('Failed to get file size for', localUri, error);
+    return null;
+  }
+};
+
+const buildLocalMetadata = async (
+  localItem: PhotoItem,
+  mountedRef: MutableRefObject<boolean>,
+  setHeaderName: (name: string) => void,
+  setHeaderSubtitle: (subtitle: string) => void,
+  setRows: (rows: MetadataRow[]) => void,
+): Promise<void> => {
+  const cachedAssetStatus = await photosLocalDB.getStatus(localItem.id);
+  let fileName = cachedAssetStatus?.fileName ?? null;
+  let creationTime = cachedAssetStatus?.creationTime ?? null;
+  let width = cachedAssetStatus?.width ?? null;
+  let height = cachedAssetStatus?.height ?? null;
+
+  const assetInfo = await photoMediaLibraryService.getAssetInfo(localItem.id);
+  fileName ??= assetInfo.filename;
+  creationTime ??= assetInfo.creationTime;
+  const modificationTime: number | null = assetInfo.modificationTime ?? null;
+  width ??= assetInfo.width;
+  height ??= assetInfo.height;
+
+  const fileSize = await resolveLocalFileSize(
+    localItem.id,
+    cachedAssetStatus?.fileSize ?? null,
+    assetInfo.localUri ?? null,
+  );
+
+  const metadataRows: MetadataRow[] = [
+    { label: photoPreviewStrings.metadata.info, value: fileName ?? '-' },
+    { label: photoPreviewStrings.metadata.uploaded, value: creationTime ? formatDate(creationTime) : '-' },
+    ...(fileSize ? [{ label: photoPreviewStrings.metadata.size, value: formatBytes(fileSize) }] : []),
+    { label: photoPreviewStrings.metadata.modified, value: modificationTime ? formatDate(modificationTime) : '-' },
+    {
+      label: photoPreviewStrings.metadata.dimensions,
+      value: width && height ? formatDimensions(width, height) : '-',
+    },
+    { label: photoPreviewStrings.metadata.format, value: fileName ? formatExtension(fileName) : '-' },
+  ];
+
+  if (mountedRef.current) {
+    setHeaderName(fileName ?? '');
+    setHeaderSubtitle(formatHeaderSubtitleFromLocal(fileSize, creationTime));
+    setRows(metadataRows);
+  }
+};
+
+const buildCloudMetadata = async (
+  cloudItem: CloudPhotoItem,
+  mountedRef: MutableRefObject<boolean>,
+  setHeaderName: (name: string) => void,
+  setHeaderSubtitle: (subtitle: string) => void,
+  setRows: (rows: MetadataRow[]) => void,
+): Promise<void> => {
+  const cloudAsset = await photosLocalDB.getCloudAssetById(cloudItem.id);
+  const displayName = formatCloudDisplayName(cloudAsset?.plainName, cloudAsset?.extension, cloudItem.fileName);
+  const modificationTimestamp = cloudAsset?.modificationTime ?? cloudAsset?.updatedAt ?? null;
+
+  const metadataRows: MetadataRow[] = [
+    { label: photoPreviewStrings.metadata.info, value: displayName },
+    { label: photoPreviewStrings.metadata.uploaded, value: formatDate(cloudItem.createdAt) },
+    ...(cloudAsset?.fileSize
+      ? [{ label: photoPreviewStrings.metadata.size, value: formatBytes(cloudAsset.fileSize) }]
+      : []),
+    {
+      label: photoPreviewStrings.metadata.modified,
+      value: modificationTimestamp ? formatDate(modificationTimestamp) : '-',
+    },
+    { label: photoPreviewStrings.metadata.dimensions, value: '-' },
+    {
+      label: photoPreviewStrings.metadata.format,
+      value: cloudAsset?.extension ? cloudAsset.extension.toUpperCase() : formatExtension(cloudItem.fileName),
+    },
+  ];
+
+  if (mountedRef.current) {
+    setHeaderName(displayName);
+    setHeaderSubtitle(formatCloudHeaderSubtitle(cloudAsset?.fileSize, cloudItem.createdAt));
+    setRows(metadataRows);
+  }
+};
+
 interface MetadataPanelProps {
   item: TimelinePhotoItem;
   onClose: () => void;
@@ -67,60 +186,15 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
   }, []);
 
   useEffect(() => {
-    const buildRows = async () => {
-      if (item.type === 'local') {
-        try {
-          const info = await photoMediaLibraryService.getAssetInfo(item.id);
-          let fileSize: number | undefined;
-          if (info.localUri) {
-            try {
-              const stat = await fileSystemService.stat(info.localUri.replace('file://', ''));
-              fileSize = stat.size;
-            } catch (error) {
-              console.error('Failed to get file size for', info.localUri, error);
-            }
-          }
-
-          const built: MetadataRow[] = [
-            { label: photoPreviewStrings.metadata.info, value: info.filename },
-            { label: photoPreviewStrings.metadata.uploaded, value: formatDate(info.creationTime) },
-            ...(fileSize ? [{ label: photoPreviewStrings.metadata.size, value: formatBytes(fileSize) }] : []),
-            { label: photoPreviewStrings.metadata.modified, value: formatDate(info.modificationTime) },
-            {
-              label: photoPreviewStrings.metadata.dimensions,
-              value: info.width && info.height ? formatDimensions(info.width, info.height) : '-',
-            },
-            { label: photoPreviewStrings.metadata.format, value: formatExtension(info.filename) },
-          ];
-          if (mountedRef.current) {
-            setHeaderName(info.filename);
-            setHeaderSubtitle(
-              fileSize ? `${formatBytes(fileSize)} · ${formatDate(info.creationTime)}` : formatDate(info.creationTime),
-            );
-            setRows(built);
-          }
-        } catch {
-          if (mountedRef.current) setRows([]);
-        }
-      } else {
-        const built: MetadataRow[] = [
-          { label: photoPreviewStrings.metadata.info, value: item.fileName },
-          { label: photoPreviewStrings.metadata.uploaded, value: formatDate(item.createdAt) },
-          { label: photoPreviewStrings.metadata.modified, value: '-' },
-          { label: photoPreviewStrings.metadata.dimensions, value: '-' },
-          { label: photoPreviewStrings.metadata.format, value: formatExtension(item.fileName) },
-        ];
-        const asset = await photosLocalDB.getCloudAssetById(item.id);
-        if (asset?.fileSize) {
-          built.splice(2, 0, { label: photoPreviewStrings.metadata.size, value: formatBytes(asset.fileSize) });
-          if (mountedRef.current) {
-            setHeaderSubtitle(`${formatBytes(asset.fileSize)} · ${formatDate(item.createdAt)}`);
-          }
-        }
-        if (mountedRef.current) setRows(built);
-      }
-    };
-    buildRows();
+    if (item.type === 'local') {
+      buildLocalMetadata(item, mountedRef, setHeaderName, setHeaderSubtitle, setRows).catch(() => {
+        if (mountedRef.current) setRows([]);
+      });
+    } else {
+      buildCloudMetadata(item, mountedRef, setHeaderName, setHeaderSubtitle, setRows).catch(() => {
+        if (mountedRef.current) setRows([]);
+      });
+    }
   }, [item.id]);
 
   const slideIn = useSharedValue(400);

@@ -8,6 +8,8 @@ import { photoBackupFolders } from './PhotoBackupFolders';
 const HOUR_MS = 60 * 60 * 1000;
 const CACHE_TTL_MS = 24 * HOUR_MS;
 const PAGE_SIZE = 50;
+const MIN_MONTH_NUMBER = 1;
+const MAX_MONTH_NUMBER = 12;
 
 const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Promise<T[]> => {
   const all: T[] = [];
@@ -146,6 +148,15 @@ class PhotoCloudBrowserService {
           thumbnailBucketFile: thumb?.bucket_file ?? null,
           thumbnailType: thumb?.type ?? null,
           discoveredAt: now,
+          plainName: file.plainName ?? null,
+          extension: file.type ?? null,
+          bucket: file.bucket ?? null,
+          folderUuid: file.folderUuid ?? null,
+          creationTimeApi: file.creationTime ? new Date(file.creationTime).getTime() : null,
+          modificationTime: file.modificationTime ? new Date(file.modificationTime).getTime() : null,
+          updatedAt: file.updatedAt ? new Date(file.updatedAt).getTime() : null,
+          status: file.status ?? null,
+          encryptVersion: file.encrypt_version ?? null,
         });
         count++;
       }
@@ -162,26 +173,32 @@ class PhotoCloudBrowserService {
     return count;
   }
 
+  private async discoverMonthsForDevice(device: {
+    uuid: string;
+    name: string;
+  }): Promise<{ deviceId: string; year: number; month: number; monthFolderUuid: string }[]> {
+    const monthsForDevice: { deviceId: string; year: number; month: number; monthFolderUuid: string }[] = [];
+    const yearFolders = await this.listAllFolders(device.uuid);
+    for (const yearFolder of yearFolders) {
+      const year = Number.parseInt(yearFolder.plainName ?? '', 10);
+      if (Number.isNaN(year)) continue;
+      const monthFolders = await this.listAllFolders(yearFolder.uuid);
+      for (const monthFolder of monthFolders) {
+        const month = Number.parseInt(monthFolder.plainName ?? '', 10);
+        if (Number.isNaN(month) || month < MIN_MONTH_NUMBER || month > MAX_MONTH_NUMBER) continue;
+        monthsForDevice.push({ deviceId: device.name, year, month, monthFolderUuid: monthFolder.uuid });
+      }
+    }
+    return monthsForDevice;
+  }
+
   private async discoverAvailableMonths(
     devices: { uuid: string; name: string }[],
   ): Promise<{ deviceId: string; year: number; month: number; monthFolderUuid: string }[]> {
-    const result: { deviceId: string; year: number; month: number; monthFolderUuid: string }[] = [];
-    for (const device of devices) {
-      const yearFolders = await this.listAllFolders(device.uuid);
-      for (const yearFolder of yearFolders) {
-        const year = Number.parseInt(yearFolder.plainName ?? '', 10);
-        if (Number.isNaN(year)) continue;
-
-        const monthFolders = await this.listAllFolders(yearFolder.uuid);
-        for (const monthFolder of monthFolders) {
-          const month = Number.parseInt(monthFolder.plainName ?? '', 10);
-          if (Number.isNaN(month) || month < 1 || month > 12) continue;
-          result.push({ deviceId: device.name, year, month, monthFolderUuid: monthFolder.uuid });
-        }
-      }
-    }
-    result.sort((a, b) => b.year - a.year || b.month - a.month);
-    return result;
+    const monthsPerDevice = await Promise.all(devices.map((device) => this.discoverMonthsForDevice(device)));
+    const allMonths = monthsPerDevice.flat();
+    allMonths.sort((a, b) => b.year - a.year || b.month - a.month);
+    return allMonths;
   }
 
   private async findChildFolder(parentUuid: string, name: string): Promise<FetchPaginatedFolder | null> {

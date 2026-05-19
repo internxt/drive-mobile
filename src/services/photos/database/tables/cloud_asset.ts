@@ -1,5 +1,12 @@
 const TABLE_NAME = 'cloud_asset';
 
+const COLUMNS = `
+  remote_file_id, device_id, created_at, file_name, file_size, file_id,
+  thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at,
+  plain_name, extension, bucket, folder_uuid,
+  creation_time_api, modification_time, updated_at, status, encrypt_version
+`;
+
 const statements = {
   createTable: `
     CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
@@ -13,7 +20,16 @@ const statements = {
       thumbnail_bucket_id    TEXT,
       thumbnail_bucket_file  TEXT,
       thumbnail_type         TEXT,
-      discovered_at          INTEGER NOT NULL
+      discovered_at          INTEGER NOT NULL,
+      plain_name             TEXT,
+      extension              TEXT,
+      bucket                 TEXT,
+      folder_uuid            TEXT,
+      creation_time_api      INTEGER,
+      modification_time      INTEGER,
+      updated_at             INTEGER,
+      status                 TEXT,
+      encrypt_version        TEXT
     );
   `,
   createIndexCreated: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_created ON ${TABLE_NAME}(created_at DESC);`,
@@ -21,10 +37,8 @@ const statements = {
   createIndexMonth: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_month ON ${TABLE_NAME}(device_id, created_at);`,
 
   upsert: `
-    INSERT INTO ${TABLE_NAME} (
-      remote_file_id, device_id, created_at, file_name, file_size, file_id,
-      thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO ${TABLE_NAME} (${COLUMNS})
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(remote_file_id) DO UPDATE SET
       device_id              = excluded.device_id,
       created_at             = excluded.created_at,
@@ -35,27 +49,33 @@ const statements = {
       thumbnail_bucket_id    = excluded.thumbnail_bucket_id,
       thumbnail_bucket_file  = excluded.thumbnail_bucket_file,
       thumbnail_type         = excluded.thumbnail_type,
-      discovered_at          = excluded.discovered_at;
+      discovered_at          = excluded.discovered_at,
+      plain_name             = excluded.plain_name,
+      extension              = excluded.extension,
+      bucket                 = excluded.bucket,
+      folder_uuid            = excluded.folder_uuid,
+      creation_time_api      = excluded.creation_time_api,
+      modification_time      = excluded.modification_time,
+      updated_at             = excluded.updated_at,
+      status                 = excluded.status,
+      encrypt_version        = excluded.encrypt_version;
   `,
 
   getAll: `
-    SELECT remote_file_id, device_id, created_at, file_name, file_size, file_id,
-           thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
+    SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
     ORDER BY created_at DESC;
   `,
 
   getByRange: `
-    SELECT remote_file_id, device_id, created_at, file_name, file_size, file_id,
-           thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
+    SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
     WHERE created_at >= ? AND created_at <= ?
     ORDER BY created_at DESC;
   `,
 
   getById: `
-    SELECT remote_file_id, device_id, created_at, file_name, file_size, file_id,
-           thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at
+    SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
     WHERE remote_file_id = ?;
   `,
