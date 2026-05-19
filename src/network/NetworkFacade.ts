@@ -248,6 +248,7 @@ export class NetworkFacade {
         fileInfo.size,
         this.createEncryptFunction(filePath, encryptedPartPaths, options.partSize),
         uploadMultipart,
+        options.abortController,
         fileInfo.parts,
       );
     } finally {

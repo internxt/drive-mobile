@@ -90,7 +90,7 @@ const classifyError = (error: unknown): UploadErrorType => {
 
 const fetchMaxUploadFileSize = async (): Promise<number> => {
   try {
-    const res = (await ShareSdkManager.storageV2.getFileVersionLimits()) as { maxUploadFileSize?: number };
+    const res = await ShareSdkManager.storageV2.getFileVersionLimits();
     return res.maxUploadFileSize ?? 0;
   } catch {
     return 0;

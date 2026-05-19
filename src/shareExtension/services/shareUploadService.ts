@@ -298,6 +298,7 @@ const shareUploadMultipartFile = async (context: UploadFileContext): Promise<{ f
         );
         return { hash: combinedPartsHashHex, parts: completedParts };
       },
+      undefined,
       totalPartsCount,
     );
     const fileEntry = await createFileEntry(uploadedFileId, fileExtension, fileSize, fileName, bucket, folderUuid);
