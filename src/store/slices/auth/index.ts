@@ -8,8 +8,10 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import errorService from 'src/services/ErrorService';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
+import appService from '../../../services/AppService';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
+import { clearCredentials, setCredentials } from '../../../services/native/InternxtAuthCredentialsModule';
 import notificationsService from '../../../services/NotificationsService';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
@@ -32,6 +34,33 @@ const initialState: AuthState = {
   securityDetails: undefined,
   sessionPassword: undefined,
 };
+
+async function ensureRootFolderUuid(user: UserSettings): Promise<UserSettings> {
+  if (user.rootFolderUuid || !user.root_folder_id) return user;
+  const meta = await SdkManager.getInstance().storageV2.getFolderMetaById(user.root_folder_id);
+  return { ...user, rootFolderUuid: meta.uuid };
+}
+
+async function syncNativeCredentials(token: string, user: UserSettings): Promise<void> {
+  if (!user.rootFolderUuid) {
+    errorService.reportError(new Error('syncNativeCredentials: missing rootFolderUuid'));
+    return;
+  }
+  try {
+    await setCredentials({
+      bearerToken: token,
+      userId: user.userId,
+      bridgeUser: user.bridgeUser,
+      rootFolderUuid: user.rootFolderUuid,
+      email: user.email,
+      driveBaseUrl: appService.constants.DRIVE_NEW_API_URL,
+      bridgeBaseUrl: appService.constants.BRIDGE_URL,
+      desktopToken: appService.constants.CLOUDFLARE_TOKEN,
+    });
+  } catch (err) {
+    errorService.reportError(err);
+  }
+}
 
 export const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'auth/initialize',
@@ -99,7 +128,6 @@ export const signInThunk = createAsyncThunk<
   { user: UserSettings; token: string; newToken: string },
   { state: RootState }
 >('auth/signIn', async (payload, { dispatch }) => {
-  const userToSave = payload.user;
   SdkManager.init({
     token: payload.token,
     newToken: payload.newToken,
@@ -111,11 +139,16 @@ export const signInThunk = createAsyncThunk<
     newToken: payload.newToken,
   });
 
+  const userToSave = await ensureRootFolderUuid(payload.user);
+
   await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
   await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, payload.newToken); // Photos access token
   await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(userToSave));
   // Reset this, in case we logged out during the pull process
   await asyncStorageService.deleteItem(AsyncStorageKey.LastPhotoPulledDate);
+
+  await syncNativeCredentials(payload.token, userToSave);
+
   dispatch(
     authActions.setSignInData({
       token: payload.token,
@@ -154,6 +187,8 @@ export const refreshTokensThunk = createAsyncThunk<void, void, { state: RootStat
 
       // Get the current credentials
       const { credentials } = await authService.getAuthCredentials();
+
+      await syncNativeCredentials(refreshed.token, credentials.user);
 
       // Pass the new tokens to the SdkManager
       SdkManager.init({
@@ -205,6 +240,7 @@ export const signOutThunk = createAsyncThunk<
   const reason = payload.reason;
   authService.signout(reason).catch(errorService.reportError);
   drive.clear().catch(errorService.reportError);
+  clearCredentials().catch(errorService.reportError);
   dispatch(uiActions.resetState());
   dispatch(authActions.resetState());
   dispatch(driveActions.resetState());
