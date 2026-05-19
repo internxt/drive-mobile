@@ -17,6 +17,8 @@ interface PageContentProps {
   onReset: () => void;
   onVideoPlay: () => void;
   onVideoPause: () => void;
+  onVideoEnd: () => void;
+  videoResetKey?: number;
 }
 
 const PageContent = ({
@@ -28,12 +30,21 @@ const PageContent = ({
   onReset,
   onVideoPlay,
   onVideoPause,
+  onVideoEnd,
+  videoResetKey,
 }: PageContentProps): JSX.Element => {
   const tailwind = useTailwind();
   if (item.mediaType === 'video') {
     if (uri) {
       return (
-        <VideoViewer source={uri} thumbnail={thumbnailUri ?? undefined} onPlay={onVideoPlay} onPause={onVideoPause} />
+        <VideoViewer
+          key={videoResetKey}
+          source={uri}
+          thumbnail={thumbnailUri ?? undefined}
+          onPlay={onVideoPlay}
+          onPause={onVideoPause}
+          onEnd={onVideoEnd}
+        />
       );
     }
     return (
@@ -52,7 +63,10 @@ const PageContent = ({
 
   return (
     <View style={tailwind('flex-1 justify-center items-center')}>
-      <ActivityIndicator color="white" size="large" />
+      {thumbnailUri ? (
+        <Image source={{ uri: thumbnailUri }} style={tailwind('w-full h-full')} resizeMode="contain" />
+      ) : null}
+      {uri === undefined ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
     </View>
   );
 };
@@ -62,14 +76,28 @@ interface PreviewPageProps {
   onTap: () => void;
   onZoomChange: (zoomed: boolean) => void;
   onSwipeDown: () => void;
+  onVideoPlay?: () => void;
+  onVideoPause?: () => void;
+  onVideoEnd?: () => void;
+  videoResetKey?: number;
+  hasVideoStarted?: boolean;
 }
 
-export const PreviewPage = ({ item, onTap, onZoomChange, onSwipeDown }: PreviewPageProps): JSX.Element => {
+export const PreviewPage = ({
+  item,
+  onTap,
+  onZoomChange,
+  onSwipeDown,
+  onVideoPlay,
+  onVideoPause,
+  onVideoEnd,
+  videoResetKey,
+  hasVideoStarted,
+}: PreviewPageProps): JSX.Element => {
   const tailwind = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
   const { uri, thumbnailUri } = usePreviewSource(item);
   const [zoomed, setZoomed] = useState(false);
-  const [videoPlaying, setVideoPlaying] = useState(false);
   const translateY = useSharedValue(0);
 
   const handleZoom = useCallback(() => {
@@ -83,15 +111,19 @@ export const PreviewPage = ({ item, onTap, onZoomChange, onSwipeDown }: PreviewP
   }, [onZoomChange]);
 
   const playVideo = useCallback(() => {
-    setVideoPlaying(true);
-  }, []);
+    onVideoPlay?.();
+  }, [onVideoPlay]);
 
   const pauseVideo = useCallback(() => {
-    setVideoPlaying(false);
-  }, []);
+    onVideoPause?.();
+  }, [onVideoPause]);
+
+  const endVideo = useCallback(() => {
+    onVideoEnd?.();
+  }, [onVideoEnd]);
 
   const swipeDownGesture = Gesture.Pan()
-    .enabled(!zoomed && !videoPlaying)
+    .enabled(!zoomed && !hasVideoStarted)
     .activeOffsetY(10)
     .failOffsetX([-15, 15])
     .onUpdate((e) => {
@@ -123,6 +155,8 @@ export const PreviewPage = ({ item, onTap, onZoomChange, onSwipeDown }: PreviewP
           onReset={handleReset}
           onVideoPlay={playVideo}
           onVideoPause={pauseVideo}
+          onVideoEnd={endVideo}
+          videoResetKey={videoResetKey}
         />
       </Animated.View>
     </GestureDetector>

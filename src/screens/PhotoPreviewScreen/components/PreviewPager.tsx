@@ -11,6 +11,11 @@ interface PreviewPagerProps {
   onTap: () => void;
   onZoomChange: (zoomed: boolean) => void;
   onSwipeDown: () => void;
+  onVideoPlay?: () => void;
+  onVideoPause?: () => void;
+  onVideoEnd?: () => void;
+  videoResetKey?: number;
+  hasVideoStarted?: boolean;
 }
 
 export const PreviewPager = ({
@@ -21,6 +26,11 @@ export const PreviewPager = ({
   onTap,
   onZoomChange,
   onSwipeDown,
+  onVideoPlay,
+  onVideoPause,
+  onVideoEnd,
+  videoResetKey,
+  hasVideoStarted,
 }: PreviewPagerProps): JSX.Element => {
   const { width: screenWidth } = useWindowDimensions();
   const listRef = useRef<FlatList<TimelinePhotoItem>>(null);
@@ -34,8 +44,20 @@ export const PreviewPager = ({
   }, [activeIndex, items.length]);
 
   const renderItem: ListRenderItem<TimelinePhotoItem> = useCallback(
-    ({ item }) => <PreviewPage item={item} onTap={onTap} onZoomChange={onZoomChange} onSwipeDown={onSwipeDown} />,
-    [onTap, onZoomChange, onSwipeDown],
+    ({ item }) => (
+      <PreviewPage
+        item={item}
+        onTap={onTap}
+        onZoomChange={onZoomChange}
+        onSwipeDown={onSwipeDown}
+        onVideoPlay={onVideoPlay}
+        onVideoPause={onVideoPause}
+        onVideoEnd={onVideoEnd}
+        videoResetKey={videoResetKey}
+        hasVideoStarted={hasVideoStarted}
+      />
+    ),
+    [onTap, onZoomChange, onSwipeDown, onVideoPlay, onVideoPause, onVideoEnd, videoResetKey, hasVideoStarted],
   );
 
   const getItemLayout = useCallback(

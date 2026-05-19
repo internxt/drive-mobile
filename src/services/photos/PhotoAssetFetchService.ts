@@ -30,7 +30,7 @@ const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Pr
   const cachePath = cachePathFor(item.id, ext);
 
   const alreadyCached = await fileSystemService.exists(cachePath);
-  if (alreadyCached) return cachePath;
+  if (alreadyCached) return fileSystemService.pathToUri(cachePath);
 
   const asset = await photosLocalDB.getCloudAssetById(item.id);
   if (!asset?.fileId) {
@@ -61,7 +61,7 @@ const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Pr
       return null;
     }
 
-    return cachePath;
+    return fileSystemService.pathToUri(cachePath);
   } catch (error) {
     if (!signal.aborted) {
       logger.error(`[PhotoAssetFetchService] Download failed for ${item.id}: ${error}`);
