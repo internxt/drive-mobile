@@ -4,30 +4,31 @@ import { logger } from 'src/services/common';
 const PAGE_SIZE = 200;
 const MEDIA_TYPES = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video];
 
-// onAssetFetched returns true to stop pagination early
-const paginateAssets = async (
+async function* streamAssets(
   options: Omit<MediaLibrary.AssetsOptions, 'first' | 'after'>,
-  onAssetFetched: (asset: MediaLibrary.Asset) => boolean,
-): Promise<void> => {
+): AsyncGenerator<MediaLibrary.Asset> {
   let cursor: string | undefined;
   do {
     const page = await MediaLibrary.getAssetsAsync({ first: PAGE_SIZE, after: cursor, ...options });
-    for (const asset of page.assets) {
-      if (onAssetFetched(asset)) return;
-    }
+    yield* page.assets;
     cursor = page.hasNextPage ? page.endCursor : undefined;
   } while (cursor);
-};
+}
 
 export const PhotoAssetScanner = {
   async getAssetsByIds(assetIds: string[]): Promise<MediaLibrary.Asset[]> {
     const pendingIdSet = new Set(assetIds);
     const resolvedAssets: MediaLibrary.Asset[] = [];
 
-    await paginateAssets({ mediaType: MEDIA_TYPES }, (asset) => {
-      if (pendingIdSet.has(asset.id)) resolvedAssets.push(asset);
-      return resolvedAssets.length === assetIds.length;
-    });
+    for await (const asset of streamAssets({ mediaType: MEDIA_TYPES })) {
+      if (pendingIdSet.has(asset.id)) {
+        resolvedAssets.push(asset);
+      }
+      const hasFoundAllAssets = resolvedAssets.length === assetIds.length;
+      if (hasFoundAllAssets) {
+        break;
+      }
+    }
 
     return resolvedAssets;
   },
@@ -35,10 +36,12 @@ export const PhotoAssetScanner = {
   async scanAll(): Promise<MediaLibrary.Asset[]> {
     const results: MediaLibrary.Asset[] = [];
 
-    await paginateAssets({ mediaType: MEDIA_TYPES, sortBy: MediaLibrary.SortBy.modificationTime }, (asset) => {
+    for await (const asset of streamAssets({
+      mediaType: MEDIA_TYPES,
+      sortBy: MediaLibrary.SortBy.modificationTime,
+    })) {
       results.push(asset);
-      return false; // never stop early — collect all
-    });
+    }
 
     logger.info(`[PhotoAssetScanner] Scan complete — ${results.length} assets`);
     return results;

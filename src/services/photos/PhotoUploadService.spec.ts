@@ -1,13 +1,14 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
+import AppError from '@internxt/sdk/dist/shared/types/errors';
 import * as MediaLibrary from 'expo-media-library';
 import { uploadFile } from 'src/network/upload';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
 import { generateThumbnail } from 'src/services/common/media/thumbnail.generation';
 import { uploadService } from 'src/services/common/network/upload/upload.service';
-import { PhotoUploadService } from './PhotoUploadService';
 import { photoBackupFolders } from './PhotoBackupFolders';
+import { PhotoUploadService } from './PhotoUploadService';
 
 jest.mock('expo-media-library', () => ({
   getAssetInfoAsync: jest.fn(),
@@ -187,7 +188,10 @@ describe('PhotoUploadService.upload', () => {
   });
 
   test('when the thumbnail bucket upload throws, then the main upload still returns the drive file uuid', async () => {
-    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id').mockRejectedValueOnce(new Error('network error'));
+    mockUploadFile
+      .mockReset()
+      .mockResolvedValueOnce('bucket-file-id')
+      .mockRejectedValueOnce(new Error('network error'));
 
     const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID);
 
@@ -196,7 +200,10 @@ describe('PhotoUploadService.upload', () => {
   });
 
   test('when the thumbnail bucket upload throws, then the thumbnail temp file is still cleaned up', async () => {
-    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id').mockRejectedValueOnce(new Error('network error'));
+    mockUploadFile
+      .mockReset()
+      .mockResolvedValueOnce('bucket-file-id')
+      .mockRejectedValueOnce(new Error('network error'));
 
     await PhotoUploadService.upload(makeAsset(), DEVICE_ID);
 
@@ -211,9 +218,7 @@ describe('PhotoUploadService.replace', () => {
     await PhotoUploadService.replace(asset, 'existing-remote-id', DEVICE_ID);
 
     expect(mockGenerateThumbnail).toHaveBeenCalledWith(LOCAL_PATH, 'jpg');
-    expect(mockCreateThumbnailEntry).toHaveBeenCalledWith(
-      expect.objectContaining({ fileUuid: 'existing-remote-id' }),
-    );
+    expect(mockCreateThumbnailEntry).toHaveBeenCalledWith(expect.objectContaining({ fileUuid: 'existing-remote-id' }));
   });
 
   test('when replacing an asset, then the existing remote file id is returned', async () => {
@@ -228,5 +233,31 @@ describe('PhotoUploadService.replace', () => {
     const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID);
 
     expect(result).toBe('existing-remote-id');
+  });
+
+  test('when the server rejects the replace with a 400, then a new drive entry is created and its uuid is returned', async () => {
+    mockReplaceFileEntry.mockRejectedValue(new AppError('file can not be replaced', 400));
+    mockCreateFileEntry.mockResolvedValue({ uuid: 'new-drive-uuid' });
+
+    const result = await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID);
+
+    expect(mockCreateFileEntry).toHaveBeenCalledTimes(1);
+    expect(result).toBe('new-drive-uuid');
+  });
+
+  test('when the server rejects the replace with a 400 and a new entry is created, then the thumbnail is registered against the new file uuid', async () => {
+    mockReplaceFileEntry.mockRejectedValue(new AppError('file can not be replaced', 400));
+    mockCreateFileEntry.mockResolvedValue({ uuid: 'new-drive-uuid' });
+
+    await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID);
+
+    expect(mockCreateThumbnailEntry).toHaveBeenCalledWith(expect.objectContaining({ fileUuid: 'new-drive-uuid' }));
+  });
+
+  test('when the server rejects the replace with a non-400 error, then the error is propagated without creating a new entry', async () => {
+    mockReplaceFileEntry.mockRejectedValue(new AppError('internal server error', 500));
+
+    await expect(PhotoUploadService.replace(makeAsset(), 'remote-id', DEVICE_ID)).rejects.toThrow();
+    expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
 });

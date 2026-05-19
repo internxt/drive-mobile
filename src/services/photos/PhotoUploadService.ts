@@ -5,10 +5,12 @@ import { getEnvironmentConfigFromUser } from 'src/lib/network';
 import { uploadFile } from 'src/network/upload';
 import { constants } from 'src/services/AppService';
 import asyncStorageService from 'src/services/AsyncStorageService';
-import fileSystemService from 'src/services/FileSystemService';
+import { HTTP_BAD_REQUEST } from 'src/services/common/httpStatusCodes';
 import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
 import { generateThumbnail } from 'src/services/common/media/thumbnail.generation';
 import { uploadService } from 'src/services/common/network/upload/upload.service';
+import fileSystemService from 'src/services/FileSystemService';
+import { logger } from '../common';
 import { FileAlreadyExistsError } from './errors';
 import { photoBackupFolders } from './PhotoBackupFolders';
 import { photoMediaLibraryService } from './PhotoMediaLibraryService';
@@ -122,6 +124,11 @@ const uploadAssetToBucket = async (
   };
 };
 
+const isDeletedOrTrashedError = (error: unknown): boolean => {
+  const status = (error as { status?: unknown })?.status;
+  return status === HTTP_BAD_REQUEST;
+};
+
 const cleanupTempFile = async (tempPath?: string): Promise<void> => {
   if (!tempPath) return;
   await fileSystemService.unlinkIfExists(tempPath);
@@ -219,18 +226,44 @@ export const PhotoUploadService = {
     deviceId: string,
     onProgress?: (ratio: number) => void,
   ): Promise<string> {
-    const { fileId, fileSize, localFilePath, fileExtension, tempPath, credentials } = await uploadAssetToBucket(
-      asset,
-      deviceId,
-      onProgress,
-    );
+    const {
+      fileId,
+      fileSize,
+      localFilePath,
+      fileExtension,
+      tempPath,
+      credentials,
+      plainName,
+      bucketId,
+      folderUuid,
+      modificationIso,
+      creationIso,
+    } = await uploadAssetToBucket(asset, deviceId, onProgress);
 
     try {
-      await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
-
-      await uploadThumbnailForAsset(localFilePath, fileExtension, existingRemoteFileId, credentials);
-
-      return existingRemoteFileId;
+      try {
+        await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
+        await uploadThumbnailForAsset(localFilePath, fileExtension, existingRemoteFileId, credentials);
+        return existingRemoteFileId;
+      } catch (replaceError) {
+        if (!isDeletedOrTrashedError(replaceError)) {
+          logger.error(`Failed to replace file entry for ${existingRemoteFileId}:`, replaceError);
+          throw replaceError;
+        }
+        const driveFile = await uploadService.createFileEntry({
+          fileId,
+          type: fileExtension,
+          size: fileSize,
+          plainName,
+          bucket: bucketId,
+          folderUuid,
+          encryptVersion: EncryptionVersion.Aes03,
+          modificationTime: modificationIso,
+          creationTime: creationIso,
+        });
+        await uploadThumbnailForAsset(localFilePath, fileExtension, driveFile.uuid, credentials);
+        return driveFile.uuid;
+      }
     } finally {
       await cleanupTempFile(tempPath);
     }
