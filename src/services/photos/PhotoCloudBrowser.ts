@@ -140,6 +140,7 @@ class PhotoCloudBrowserService {
           createdAt,
           fileName,
           fileSize: file.size ? Number(file.size) : null,
+          fileId: file.fileId ?? null,
           thumbnailPath: null,
           thumbnailBucketId: thumb?.bucket_id ?? null,
           thumbnailBucketFile: thumb?.bucket_file ?? null,

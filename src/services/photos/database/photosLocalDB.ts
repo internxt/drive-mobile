@@ -10,6 +10,7 @@ export interface CloudAssetEntry {
   createdAt: number;
   fileName: string;
   fileSize: number | null;
+  fileId: string | null;
   thumbnailPath: string | null;
   thumbnailBucketId: string | null;
   thumbnailBucketFile: string | null;
@@ -23,6 +24,7 @@ interface CloudAssetRow {
   created_at: number;
   file_name: string;
   file_size: number | null;
+  file_id: string | null;
   thumbnail_path: string | null;
   thumbnail_bucket_id: string | null;
   thumbnail_bucket_file: string | null;
@@ -69,6 +71,7 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
     createdAt: row.created_at,
     fileName: row.file_name,
     fileSize: row.file_size,
+    fileId: row.file_id,
     thumbnailPath: row.thumbnail_path,
     thumbnailBucketId: row.thumbnail_bucket_id,
     thumbnailBucketFile: row.thumbnail_bucket_file,
@@ -193,12 +196,20 @@ class PhotosLocalDB {
       entry.createdAt,
       entry.fileName,
       entry.fileSize ?? null,
+      entry.fileId ?? null,
       entry.thumbnailPath ?? null,
       entry.thumbnailBucketId ?? null,
       entry.thumbnailBucketFile ?? null,
       entry.thumbnailType ?? null,
       entry.discoveredAt,
     ]);
+  }
+
+  async getCloudAssetById(remoteFileId: string): Promise<CloudAssetEntry | null> {
+    const row = await sqliteService.getFirstAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getById, [
+      remoteFileId,
+    ]);
+    return row ? rowToCloudAssetEntry(row) : null;
   }
 
   async getAllCloudAssets(): Promise<CloudAssetEntry[]> {

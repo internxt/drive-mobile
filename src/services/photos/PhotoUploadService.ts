@@ -1,4 +1,3 @@
-import * as RNFS from '@dr.pogodin/react-native-fs';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import * as MediaLibrary from 'expo-media-library';
 import { Platform } from 'react-native';
@@ -10,9 +9,11 @@ import { HTTP_BAD_REQUEST } from 'src/services/common/httpStatusCodes';
 import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
 import { generateThumbnail } from 'src/services/common/media/thumbnail.generation';
 import { uploadService } from 'src/services/common/network/upload/upload.service';
+import fileSystemService from 'src/services/FileSystemService';
 import { logger } from '../common';
 import { FileAlreadyExistsError } from './errors';
 import { photoBackupFolders } from './PhotoBackupFolders';
+import { photoMediaLibraryService } from './PhotoMediaLibraryService';
 import {
   ANDROID_CONTENT_URI_SCHEME,
   ICLOUD_URI_SCHEME,
@@ -47,7 +48,7 @@ interface FileUploadResult {
 
 const resolveLocalPath = async (asset: MediaLibrary.Asset): Promise<{ localPath: string; tempPath?: string }> => {
   if (Platform.OS === 'ios') {
-    const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.id, { shouldDownloadFromNetwork: false });
+    const assetInfo = await photoMediaLibraryService.getAssetInfo(asset.id, { shouldDownloadFromNetwork: false });
     const rawUri = assetInfo.localUri ?? asset.uri;
     if (!rawUri || rawUri.startsWith(ICLOUD_URI_SCHEME)) {
       throw new Error(`Asset ${asset.id} has no local URI — may be stored in iCloud`);
@@ -59,8 +60,8 @@ const resolveLocalPath = async (asset: MediaLibrary.Asset): Promise<{ localPath:
   const uri = asset.uri;
   if (uri.startsWith(ANDROID_CONTENT_URI_SCHEME)) {
     const ext = extractExtensionFromContentUri(uri);
-    const tempPath = `${RNFS.CachesDirectoryPath}/${TEMP_FILE_PREFIX}${asset.id}.${ext}`;
-    await RNFS.copyFile(uri, tempPath);
+    const tempPath = `${fileSystemService.getCacheDir()}/${TEMP_FILE_PREFIX}${asset.id}.${ext}`;
+    await fileSystemService.copyFile(uri, tempPath);
     return { localPath: tempPath, tempPath };
   }
   return { localPath: stripFileScheme(uri) };
@@ -79,7 +80,7 @@ const uploadAssetToBucket = async (
   const fileName = localFilePath.split('/').pop() ?? asset.filename;
 
   const [fileStat, user, folderUuid] = await Promise.all([
-    RNFS.stat(localFilePath),
+    fileSystemService.stat(localFilePath),
     asyncStorageService.getUser(),
     photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate),
   ]);
@@ -130,7 +131,7 @@ const isDeletedOrTrashedError = (error: unknown): boolean => {
 
 const cleanupTempFile = async (tempPath?: string): Promise<void> => {
   if (!tempPath) return;
-  await RNFS.unlink(tempPath).catch(() => null);
+  await fileSystemService.unlinkIfExists(tempPath);
 };
 
 const uploadThumbnailForAsset = async (

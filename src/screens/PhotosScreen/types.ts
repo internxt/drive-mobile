@@ -5,6 +5,7 @@ export interface PhotoItem {
   id: string;
   type: 'local';
   uri?: string;
+  createdAt: number;
   backupState: PhotoBackupState;
   mediaType: PhotoMediaType;
   duration?: string;

@@ -209,6 +209,19 @@ const translations = {
             'Internxt Photos keeps your gallery backed up and lets you share your photos privately with your family and friends',
           startButton: 'Start using Photos',
         },
+        photoPreview: {
+          back: 'Back',
+          waitingToUpload: 'Waiting to upload',
+          uploading: 'Uploading',
+          metadata: {
+            info: 'Name',
+            uploaded: 'Uploaded',
+            modified: 'Modified',
+            size: 'Size',
+            dimensions: 'Dimensions',
+            format: 'Format',
+          },
+        },
         refreshLocalError: 'Gallery could not be loaded',
         refreshCloudError: 'Cloud sync could not be completed. Check your connection and try again.',
       },
@@ -1130,8 +1143,22 @@ const translations = {
             'Internxt Photos hace copias de seguridad de tu galería y te permite compartir tus fotos de forma privada con tu familia y amigos',
           startButton: 'Empezar a usar Photos',
         },
+        photoPreview: {
+          back: 'Volver',
+          waitingToUpload: 'Pendiente de subir',
+          uploading: 'Subiendo',
+          metadata: {
+            info: 'Nombre',
+            uploaded: 'Subido',
+            modified: 'Modificado',
+            size: 'Tamaño',
+            dimensions: 'Dimensiones',
+            format: 'Formato',
+          },
+        },
         refreshLocalError: 'No se pudo cargar la galería',
-        refreshCloudError: 'No se pudo completar la sincronización con la nube. Comprueba tu conexión e inténtalo de nuevo.',
+        refreshCloudError:
+          'No se pudo completar la sincronización con la nube. Comprueba tu conexión e inténtalo de nuevo.',
       },
       forgot_password: {
         title: 'Borrar cuenta',

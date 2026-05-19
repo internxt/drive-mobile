@@ -1,9 +1,10 @@
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { forceRefreshThunk, photosActions, runBackupCycleThunk } from 'src/store/slices/photos';
+import { TabExplorerScreenNavigationProp } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import { photoPermissionService } from '../../services/photos/photoPermissionService';
@@ -15,15 +16,28 @@ import PhotosLockedOverlay from './components/PhotosLockedOverlay';
 import PhotosTimeline from './components/PhotosTimeline';
 import EnableBackupBottomSheet from './EnableBackupBottomSheet';
 import { usePhotosTimeline } from './hooks/usePhotosTimeline';
-import { PhotosAccessState } from './types';
+import { PhotosAccessState, TimelinePhotoItem } from './types';
 
 const PhotosScreen = (): JSX.Element => {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
+  const navigation = useNavigation<TabExplorerScreenNavigationProp<'Photos'>>();
   const { enabled, permissionStatus } = useAppSelector((state) => state.photos);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { timelineDateGroups, isLoading, loadNextPage, reloadLocal } = usePhotosTimeline();
+
+  const allItems = useMemo<TimelinePhotoItem[]>(
+    () => timelineDateGroups.flatMap((dateGroup) => dateGroup.group.photos),
+    [timelineDateGroups],
+  );
+
+  const handlePhotoPress = useCallback(
+    (id: string) => {
+      navigation.navigate('PhotoPreview', { initialId: id, items: allItems });
+    },
+    [navigation, allItems],
+  );
 
   const accessState: PhotosAccessState = useMemo<PhotosAccessState>(
     () => (enabled ? { type: 'available' } : { type: 'backup-off' }),
@@ -93,6 +107,7 @@ const PhotosScreen = (): JSX.Element => {
           onEndReached={loadNextPage}
           refreshing={refreshing}
           onRefresh={handleRefresh}
+          onPhotoPress={handlePhotoPress}
         />
         {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>
