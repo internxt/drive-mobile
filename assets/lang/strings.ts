@@ -250,6 +250,8 @@ const translations = {
             copying: 'Copying…',
           },
         },
+        refreshLocalError: 'Gallery could not be loaded',
+        refreshCloudError: 'Cloud sync could not be completed. Check your connection and try again.',
       },
       forgot_password: {
         title: 'Delete account',
@@ -1210,6 +1212,9 @@ const translations = {
             copying: 'Copiando…',
           },
         },
+        refreshLocalError: 'No se pudo cargar la galería',
+        refreshCloudError:
+          'No se pudo completar la sincronización con la nube. Comprueba tu conexión e inténtalo de nuevo.',
       },
       forgot_password: {
         title: 'Borrar cuenta',

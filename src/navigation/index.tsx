@@ -7,7 +7,7 @@ import LinkingConfiguration from './LinkingConfiguration';
 import RootNavigator from './RootNavigator';
 
 interface NavigationProps {
-  navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>;
+  readonly navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>;
 }
 
 export default function Navigation({ navigationRef }: NavigationProps) {
