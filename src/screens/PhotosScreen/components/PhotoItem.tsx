@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUpIcon, CloudIcon, CloudSlashIcon, ImageIcon } from 'phosphor-react-native';
+import { ArrowUpIcon, CheckIcon, CloudIcon, CloudSlashIcon, ImageIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Circle } from 'react-native-progress';
@@ -56,7 +56,6 @@ const SelectOverlay = ({
   isSelectMode,
   isSelected,
 }: Pick<CellProps, 'isSelectMode' | 'isSelected'>): JSX.Element | null => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   if (!isSelectMode && !isSelected) {
@@ -64,22 +63,16 @@ const SelectOverlay = ({
   }
 
   return (
-    <View
-      style={[
-        tailwind('absolute top-2 items-center justify-center'),
-        styles.checkbox,
-        isSelected && { backgroundColor: getColor('bg-primary'), borderColor: 'transparent' },
-      ]}
-    >
-      {isSelected && <View style={styles.checkmark} />}
-    </View>
+    <>
+      {isSelected && <View style={[StyleSheet.absoluteFillObject, styles.scrim]} />}
+      <View style={[styles.checkbox, isSelected && { backgroundColor: getColor('text-primary') }]}>
+        {isSelected && <CheckIcon size={16} color="white" weight="bold" />}
+      </View>
+    </>
   );
 };
 
-const localPhotoCellAreEqual = (
-  prev: CellProps & { item: PhotoItemType },
-  next: CellProps & { item: PhotoItemType },
-) =>
+const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next: CellProps & { item: PhotoItemType }) =>
   prev.item.id === next.item.id &&
   prev.item.backupState === next.item.backupState &&
   prev.item.uri === next.item.uri &&
@@ -97,9 +90,8 @@ const LocalPhotoCell = memo(
     const getColor = useGetColor();
 
     const handlePress = useCallback(() => {
-      console.log('[LocalPhotoCell] press', JSON.stringify(item, null, 2));
       onPress?.(item.id);
-    }, [onPress, item]);
+    }, [onPress, item.id]);
     const handleLongPress = useCallback(() => onLongPress?.(item.id), [onLongPress, item.id]);
 
     if (item.backupState === 'loading' || !item.uri) {
@@ -159,7 +151,6 @@ const CloudPhotoCell = memo(
     const { uri: thumbnailUri, onImageError } = useCloudThumbnail(item);
 
     const handlePress = useCallback(() => {
-      console.log('[CloudPhotoCell] press', JSON.stringify(item, null, 2));
       onPress?.(item.id);
     }, [onPress, item.id]);
     const handleLongPress = useCallback(() => onLongPress?.(item.id), [onLongPress, item.id]);
@@ -225,7 +216,12 @@ const styles = StyleSheet.create({
     height: 40,
     borderTopLeftRadius: 100,
   },
+  scrim: {
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
   checkbox: {
+    position: 'absolute',
+    top: 8,
     left: 8,
     width: 28,
     height: 28,
@@ -233,10 +229,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'white',
     backgroundColor: 'rgba(0,0,0,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 4,
   },
   progressRing: {
     width: 22,
@@ -245,14 +244,6 @@ const styles = StyleSheet.create({
   progressRingIcon: {
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  checkmark: {
-    width: 12,
-    height: 7,
-    borderLeftWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: 'white',
-    transform: [{ rotate: '-45deg' }, { translateY: -1 }],
   },
 });
 
