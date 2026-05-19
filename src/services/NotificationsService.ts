@@ -34,10 +34,13 @@ class NotificationsService {
     text2?: string;
     type: NotificationType;
     action?: { text: string; onActionPress: () => void };
+    autoHide?: boolean;
   }) {
+    const autoHide = options.autoHide ?? true;
     if (this.notifications.length === 0) {
       Toast.show({
         ...this.defaultShowOptions,
+        ...(autoHide ? {} : { autoHide: false, visibilityTime: undefined }),
         text1: options.text1,
         text2: options.text2,
         type: options.type,
