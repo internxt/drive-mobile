@@ -16,6 +16,7 @@ const untranspiledModulePatterns = [
   'react-native-svg',
   'react-native-blob-util',
   '@internxt/rn-crypto',
+  '@internxt/lib',
   '@scure/bip39',
   '@scure/base',
   '@noble/hashes',
@@ -35,6 +36,8 @@ const config: Config.InitialOptions = {
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   moduleNameMapper: {
     '@internxt/rn-crypto': '<rootDir>/__mocks__/@internxt/rn-crypto.ts',
+    '.*/modules/network-cache.*': '<rootDir>/__mocks__/network-cache.ts',
+    'expo-sqlite': '<rootDir>/__mocks__/expo-sqlite.ts',
   },
 };
 

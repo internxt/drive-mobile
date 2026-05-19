@@ -15,12 +15,13 @@ describe('PhotoDeduplicator', () => {
     jest.clearAllMocks();
   });
 
-  test('when no photos have been synced before, then all photos are queued for sync', async () => {
+  test('when no photos have been synced before, then all photos are queued as new', async () => {
     mockDB.getSyncedEntries.mockResolvedValueOnce(new Map());
 
-    const result = await PhotoDeduplicator.getAssetsToSync([makeAsset('a'), makeAsset('b'), makeAsset('c')]);
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a'), makeAsset('b'), makeAsset('c')]);
 
-    expect(result.map((a) => a.id)).toEqual(['a', 'b', 'c']);
+    expect(newAssets.map((a) => a.id)).toEqual(['a', 'b', 'c']);
+    expect(editedAssets).toHaveLength(0);
   });
 
   test('when all photos are already synced and unmodified, then nothing is queued', async () => {
@@ -32,29 +33,32 @@ describe('PhotoDeduplicator', () => {
       ]),
     );
 
-    const result = await PhotoDeduplicator.getAssetsToSync([makeAsset('a'), makeAsset('b'), makeAsset('c')]);
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a'), makeAsset('b'), makeAsset('c')]);
 
-    expect(result).toHaveLength(0);
+    expect(newAssets).toHaveLength(0);
+    expect(editedAssets).toHaveLength(0);
   });
 
-  test('when some photos are already synced, then only the unsynced ones are queued', async () => {
+  test('when some photos are already synced, then only the unsynced ones are queued as new', async () => {
     mockDB.getSyncedEntries.mockResolvedValueOnce(
       new Map([['b', { modificationTime: 1000 }]]),
     );
 
-    const result = await PhotoDeduplicator.getAssetsToSync([makeAsset('a'), makeAsset('b'), makeAsset('c')]);
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a'), makeAsset('b'), makeAsset('c')]);
 
-    expect(result.map((a) => a.id)).toEqual(['a', 'c']);
+    expect(newAssets.map((a) => a.id)).toEqual(['a', 'c']);
+    expect(editedAssets).toHaveLength(0);
   });
 
-  test('when a previously synced photo has been edited on the device, then it is re-queued for sync', async () => {
+  test('when a previously synced photo has been edited on the device, then it is queued as an edit', async () => {
     mockDB.getSyncedEntries.mockResolvedValueOnce(
       new Map([['a', { modificationTime: 500 }]]),
     );
 
-    const result = await PhotoDeduplicator.getAssetsToSync([makeAsset('a', 1000)]);
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a', 1000)]);
 
-    expect(result.map((asset) => asset.id)).toEqual(['a']);
+    expect(newAssets).toHaveLength(0);
+    expect(editedAssets.map((a) => a.id)).toEqual(['a']);
   });
 
   test('when a synced photo has no recorded modification time, then it is not re-queued', async () => {
@@ -62,15 +66,17 @@ describe('PhotoDeduplicator', () => {
       new Map([['a', { modificationTime: null }]]),
     );
 
-    const result = await PhotoDeduplicator.getAssetsToSync([makeAsset('a', 1000)]);
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a', 1000)]);
 
-    expect(result).toHaveLength(0);
+    expect(newAssets).toHaveLength(0);
+    expect(editedAssets).toHaveLength(0);
   });
 
   test('when there are no photos to check, then no database query is made and nothing is queued', async () => {
-    const result = await PhotoDeduplicator.getAssetsToSync([]);
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([]);
 
     expect(mockDB.getSyncedEntries).not.toHaveBeenCalled();
-    expect(result).toHaveLength(0);
+    expect(newAssets).toHaveLength(0);
+    expect(editedAssets).toHaveLength(0);
   });
 });
