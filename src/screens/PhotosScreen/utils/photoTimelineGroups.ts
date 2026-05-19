@@ -85,15 +85,15 @@ export const getGroupSyncStatus = (
   syncStatus: PhotoSyncStatus,
   remainingCount: number,
   backupProgress: number | undefined,
+  isFetchingCloudHistory: boolean,
 ): GroupSyncStatus => {
   switch (syncStatus) {
     case 'scanning':
       return { type: 'scanning' };
     case 'uploading':
       return { type: 'uploading', count: remainingCount, backupProgress };
-    case 'fetching-cloud':
-      return { type: 'fetching' };
     default:
+      if (isFetchingCloudHistory) return { type: 'fetching' };
       return { type: 'count', count: group.photos.length };
   }
 };
@@ -115,20 +115,33 @@ export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: 
   if (cloudItems.length === 0) return localGroups;
 
   const now = new Date();
-  const groupMap = new Map<string, PhotoDateGroup>(localGroups.map((g) => [g.id, { ...g, photos: [...g.photos] }]));
 
+  const cloudByKey = new Map<string, CloudPhotoItem[]>();
   for (const item of cloudItems) {
-    const date = new Date(item.createdAt);
-    const key = date.toDateString();
-    let group = groupMap.get(key);
-    if (!group) {
-      group = { id: key, label: getDateLabel(date, now), photos: [] };
-      groupMap.set(key, group);
+    const key = new Date(item.createdAt).toDateString();
+    let list = cloudByKey.get(key);
+    if (!list) {
+      list = [];
+      cloudByKey.set(key, list);
     }
-    group.photos.push(item);
+    list.push(item);
   }
 
-  return Array.from(groupMap.values()).sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
+  const processedKeys = new Set<string>();
+  const result: PhotoDateGroup[] = localGroups.map((group) => {
+    processedKeys.add(group.id);
+    const extra = cloudByKey.get(group.id);
+    if (!extra) return group; // no cloud additions — preserve reference so FlashList skips these cells
+    return { ...group, photos: [...group.photos, ...extra] };
+  });
+
+  for (const [key, photos] of cloudByKey) {
+    if (processedKeys.has(key)) continue;
+    const date = new Date(key);
+    result.push({ id: key, label: getDateLabel(date, now), photos });
+  }
+
+  return result.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
 };
 
 export type FlatItem =

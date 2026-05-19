@@ -17,7 +17,7 @@ import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
-export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'fetching-cloud' | 'synced' | 'paused' | 'error';
+export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'synced' | 'paused' | 'error';
 
 export interface PhotosState {
   enabled: boolean;
@@ -34,6 +34,7 @@ export interface PhotosState {
   sessionTotalAssets: number;
   sessionUploadedAssets: number;
   cloudFetchRevision: number;
+  isFetchingCloudHistory: boolean;
 }
 
 const initialState: PhotosState = {
@@ -51,6 +52,7 @@ const initialState: PhotosState = {
   sessionTotalAssets: 0,
   sessionUploadedAssets: 0,
   cloudFetchRevision: 0,
+  isFetchingCloudHistory: false,
 };
 
 const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
@@ -222,24 +224,23 @@ export const runUploadThunk = createAsyncThunk<void, void, { state: RootState }>
   },
 );
 
-export const runCloudMetadataSyncThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'photos/runCloudMetadataSync',
+export const runFullCloudHistorySyncThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/runFullCloudHistorySync',
   async (_, { getState, dispatch }) => {
-    const { enabled, deviceId } = getState().photos;
-    if (!enabled || !deviceId) return;
-
-    await photosLocalDB.init();
-    const devices = await photoCloudBrowser.listDeviceFolders();
-    if (devices.length === 0) return;
-
-    const now = new Date();
-    await photoCloudBrowser.syncAllDevicesFromMonth({
-      devices,
-      fromYear: now.getFullYear(),
-      fromMonth: now.getMonth() + 1,
-      monthsBack: 12,
-      onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
-    });
+    logger.info('[CloudHistorySync] Starting full cloud history sync');
+    dispatch(photosSlice.actions.setIsFetchingCloudHistory(true));
+    try {
+      await photosLocalDB.init();
+      await photoCloudBrowser.syncAllHistory({
+        onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
+        isCancelled: () => !getState().photos.enabled,
+      });
+      logger.info('[CloudHistorySync] Full history sync complete');
+    } catch (error) {
+      logger.error('[CloudHistorySync] Error during full cloud history sync', { error });
+    } finally {
+      dispatch(photosSlice.actions.setIsFetchingCloudHistory(false));
+    }
   },
 );
 
@@ -247,7 +248,7 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
   'photos/runBackupCycle',
   async (_, { getState, dispatch }) => {
     const { syncStatus } = getState().photos;
-    if (syncStatus === 'scanning' || syncStatus === 'uploading' || syncStatus === 'fetching-cloud') {
+    if (syncStatus === 'scanning' || syncStatus === 'uploading') {
       return;
     }
 
@@ -261,17 +262,7 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
       await dispatch(initDeviceIdThunk());
     }
 
-    const { syncStatus: statusBeforeCloud } = getState().photos;
-    if (statusBeforeCloud === 'scanning' || statusBeforeCloud === 'uploading') {
-      return;
-    }
-
-    dispatch(photosSlice.actions.setSyncStatus('fetching-cloud'));
-    try {
-      await dispatch(runCloudMetadataSyncThunk()).unwrap();
-    } catch (err) {
-      errorService.reportError(err);
-    }
+    dispatch(runFullCloudHistorySyncThunk());
 
     await dispatch(runDiscoveryThunk());
 
@@ -347,6 +338,9 @@ export const photosSlice = createSlice({
     },
     incrementCloudFetchRevision: (state) => {
       state.cloudFetchRevision += 1;
+    },
+    setIsFetchingCloudHistory: (state, action: PayloadAction<boolean>) => {
+      state.isFetchingCloudHistory = action.payload;
     },
   },
 });
