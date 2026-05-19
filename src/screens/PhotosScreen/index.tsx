@@ -7,7 +7,10 @@ import { forceRefreshThunk, photosActions, runBackupCycleThunk } from 'src/store
 import { uiActions } from 'src/store/slices/ui';
 import { TabExplorerScreenNavigationProp } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import strings from '../../../assets/lang/strings';
 import { photoPermissionService } from '../../services/photos/photoPermissionService';
+import notificationsService from '../../services/NotificationsService';
+import { NotificationType } from '../../types';
 import BackupDisabledBanner from './components/BackupDisabledBanner';
 import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
 import PhotosHeader from './components/PhotosHeader';
@@ -82,7 +85,25 @@ const PhotosScreen = (): JSX.Element => {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([reloadLocal(), dispatch(forceRefreshThunk()).unwrap()]);
+      const [localResult, cloudResult] = await Promise.allSettled([
+        reloadLocal(),
+        dispatch(forceRefreshThunk()).unwrap(),
+      ]);
+
+      if (localResult.status === 'rejected') {
+        notificationsService.show({
+          text1: strings.screens.photos.refreshLocalError,
+          type: NotificationType.Error,
+          autoHide: false,
+        });
+      }
+      if (cloudResult.status === 'rejected') {
+        notificationsService.show({
+          text1: strings.screens.photos.refreshCloudError,
+          type: NotificationType.Error,
+          autoHide: false,
+        });
+      }
     } finally {
       setRefreshing(false);
     }

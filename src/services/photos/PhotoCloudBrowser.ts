@@ -25,9 +25,9 @@ const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Prom
 
 class PhotoCloudBrowserService {
   constructor(
-    private backupFolders: typeof photoBackupFolders,
-    private folderService: typeof driveFolderService,
-    private localDB: typeof photosLocalDB,
+    private readonly backupFolders: typeof photoBackupFolders,
+    private readonly folderService: typeof driveFolderService,
+    private readonly localDB: typeof photosLocalDB,
   ) {}
 
   async listDeviceFolders(): Promise<{ uuid: string; name: string }[]> {
