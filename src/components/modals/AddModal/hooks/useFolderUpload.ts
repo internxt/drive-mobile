@@ -6,7 +6,6 @@ import uuid from 'react-native-uuid';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { logger } from '@internxt-mobile/services/common';
 import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
-import { FileSizeExceededError } from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from '../../../../../assets/lang/strings';
@@ -41,7 +40,6 @@ const uploadFolderFileIOS = async (
   signal: AbortSignal,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
-  onFileSizeExceededSkipped: (fileName: string) => void,
 ): Promise<void> => {
   const filePath = fileNode.uri.replace('file://', '');
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
@@ -58,7 +56,6 @@ const uploadFolderFileIOS = async (
     );
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
-    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped(fileNode.name);
     throw err;
   }
 };
@@ -70,7 +67,6 @@ const uploadFolderFileAndroid = async (
   uploadId: string,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
-  onFileSizeExceededSkipped: (fileName: string) => void,
 ): Promise<void> => {
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
   const tempPath = fileSystemService.tmpFilePath(`${uploadId}_${fileNode.name}`);
@@ -90,7 +86,6 @@ const uploadFolderFileAndroid = async (
     );
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
-    if (err instanceof FileSizeExceededError) onFileSizeExceededSkipped(fileNode.name);
     throw err;
   } finally {
     await fileSystemService.unlinkIfExists(tempPath).catch((e) => {
@@ -154,9 +149,9 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
+  const maxUploadFileSize = useAppSelector(storageSelectors.maxUploadFileSize);
 
   const hasShownEmptyFileNoticeRef = useRef(false);
-  const skippedOversizedNamesRef = useRef<string[]>([]);
 
   const handleEmptyFileSkipped = () => {
     if (!hasShownEmptyFileNoticeRef.current) {
@@ -168,16 +163,15 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     }
   };
 
-  const handleFileSizeExceededSkipped = (fileName: string) => {
-    skippedOversizedNamesRef.current.push(fileName);
-    const skipped = skippedOversizedNamesRef.current;
-    const [firstSkippedName, ...remainingSkipped] = skipped;
-    const hasMultipleSkipped = remainingSkipped.length > 0;
-    const message = hasMultipleSkipped
-      ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, skipped.length)
-      : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstSkippedName);
+  function notifyFilesExcludedBySize(excluded: FolderTreeNode[]) {
+    const [firstExcluded, ...remainingExcluded] = excluded;
+    if (firstExcluded === undefined) return;
+    const hasMultipleExcluded = remainingExcluded.length > 0;
+    const message = hasMultipleExcluded
+      ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, excluded.length)
+      : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstExcluded.name);
     dispatch(uiActions.setFileSizeExceededMessage(message));
-  };
+  }
 
   const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
   const [collisionState, setCollisionState] = useState<{
@@ -226,7 +220,6 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const handleUploadFolder = async () => {
     dispatch(uiActions.setShowUploadFileModal(false));
     hasShownEmptyFileNoticeRef.current = false;
-    skippedOversizedNamesRef.current = [];
     await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
 
     const uploadId = uuid.v4().toString();
@@ -271,6 +264,16 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       const isUnlimited = limit >= INFINITE_PLAN;
       if (!isUnlimited && usage + totalSize > limit) {
         dispatch(uiActions.setShowRunOutSpaceModal(true));
+        return;
+      }
+
+      // 4.1. Per-file size limit: block the entire upload if any file exceeds the plan's limit.
+      const hasUploadSizeLimit = maxUploadFileSize > 0;
+      const oversizedFiles = hasUploadSizeLimit
+        ? tree.files.filter((file) => file.size > maxUploadFileSize)
+        : [];
+      if (oversizedFiles.length > 0) {
+        notifyFilesExcludedBySize(oversizedFiles);
         return;
       }
 
@@ -329,7 +332,6 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
               uploadId,
               uploadAndCreateFileEntry,
               handleEmptyFileSkipped,
-              handleFileSizeExceededSkipped,
             );
           } else {
             await uploadFolderFileIOS(
@@ -338,7 +340,6 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
               signal,
               uploadAndCreateFileEntry,
               handleEmptyFileSkipped,
-              handleFileSizeExceededSkipped,
             );
           }
         },

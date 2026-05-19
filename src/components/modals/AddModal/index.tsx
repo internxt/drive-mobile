@@ -418,22 +418,24 @@ function AddModal(): JSX.Element {
     return uploadDocuments(documents);
   }
 
-  async function uploadDocuments(documents: DocumentPickerFile[]) {
+  const notifyFilesExcludedBySize = (excluded: DocumentPickerFile[]) => {
+    const [firstExcluded, ...remainingExcluded] = excluded;
+    if (firstExcluded === undefined) return;
+    const hasMultipleExcluded = remainingExcluded.length > 0;
+    const message = hasMultipleExcluded
+      ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, excluded.length)
+      : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstExcluded.name);
+    dispatch(uiActions.setFileSizeExceededMessage(message));
+  };
+
+  const uploadDocuments = async (documents: DocumentPickerFile[]) => {
     if (!focusedFolder) {
       throw new Error('No current folder found');
     }
 
     await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
     const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents, maxUploadFileSize);
-    const [firstExcluded, ...remainingExcluded] = filesExcluded;
-    const hasExcluded = firstExcluded !== undefined;
-    const hasMultipleExcluded = remainingExcluded.length > 0;
-    if (hasExcluded) {
-      const message = hasMultipleExcluded
-        ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, filesExcluded.length)
-        : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstExcluded.name);
-      dispatch(uiActions.setFileSizeExceededMessage(message));
-    }
+    notifyFilesExcludedBySize(filesExcluded);
 
     if (filesToUpload.length === 0) {
       dispatch(uiActions.setShowUploadFileModal(false));
@@ -476,7 +478,7 @@ function AddModal(): JSX.Element {
       cleanupStuckUploads(processedFileIds, formattedFiles);
       dispatch(driveActions.clearBatchFiles(batchFileIds));
     });
-  }
+  };
 
   /**
    * Upload multiple files
