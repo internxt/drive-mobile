@@ -20,6 +20,7 @@ const SKELETON_GROUP: TimelineDateGroup = {
     label: '',
     photos: Array.from({ length: 12 }, (_, i) => ({
       id: `__skeleton_${i}__`,
+      type: 'local' as const,
       backupState: 'loading' as PhotoBackupState,
       mediaType: 'photo' as const,
     })),

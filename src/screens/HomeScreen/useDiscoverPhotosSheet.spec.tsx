@@ -1,11 +1,11 @@
-import { renderHook, act } from '@testing-library/react-native';
+import * as useCases from '@internxt-mobile/useCases/drive';
 import { configureStore } from '@reduxjs/toolkit';
-import { Provider } from 'react-redux';
+import { act, renderHook } from '@testing-library/react-native';
 import React from 'react';
+import { Provider } from 'react-redux';
 import asyncStorageService from '../../services/AsyncStorageService';
 import photosReducer, { PhotosState } from '../../store/slices/photos';
 import { useDiscoverPhotosSheet } from './useDiscoverPhotosSheet';
-import * as useCases from '@internxt-mobile/useCases/drive';
 
 jest.mock('../../services/AsyncStorageService', () => ({
   __esModule: true,
@@ -26,7 +26,23 @@ const makeWrapper = (photosState?: Partial<PhotosState>) => {
   const store = configureStore({
     reducer: { photos: photosReducer },
     preloadedState: {
-      photos: { enabled: false, networkCondition: 'wifi-only', permissionStatus: 'undetermined', syncStatus: 'idle', pendingBackupAssets: 0, totalScannedAssets: 0, totalAssetsUploaded: 0, currentUploadProgress: 0, lastSyncTimestamp: null, uploadingAssetIds: [], deviceId: null, sessionTotalAssets: 0, sessionUploadedAssets: 0, ...photosState },
+      photos: {
+        enabled: false,
+        networkCondition: 'wifi-only',
+        permissionStatus: 'undetermined',
+        syncStatus: 'idle',
+        pendingBackupAssets: 0,
+        totalScannedAssets: 0,
+        totalAssetsUploaded: 0,
+        currentUploadProgress: 0,
+        lastSyncTimestamp: null,
+        uploadingAssetIds: [],
+        deviceId: null,
+        sessionTotalAssets: 0,
+        sessionUploadedAssets: 0,
+        cloudFetchRevision: 0,
+        ...photosState,
+      },
     },
   });
   return ({ children }: { children: React.ReactNode }) => <Provider store={store}>{children}</Provider>;

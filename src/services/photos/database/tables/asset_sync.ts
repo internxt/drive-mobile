@@ -61,6 +61,7 @@ const statements = {
     `SELECT asset_id, modification_time FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status = 'synced';`,
   getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status != 'synced';`,
   reset: `DELETE FROM ${TABLE_NAME};`,
+  getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE status = 'synced' AND remote_file_id IS NOT NULL;`,
 };
 
 export default { TABLE_NAME, statements };

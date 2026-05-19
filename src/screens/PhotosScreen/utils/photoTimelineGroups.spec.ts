@@ -2,13 +2,16 @@ import * as MediaLibrary from 'expo-media-library';
 import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
 import { PhotoDateGroup, PhotoItem } from '../types';
+import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
 import {
   assetToPhotoItem,
   buildTimelineItems,
+  cloudEntryToPhotoItem,
   formatVideoDuration,
   getDateLabel,
   getGroupSyncStatus,
   groupAssetsByDate,
+  mergeCloudIntoGroups,
 } from './photoTimelineGroups';
 
 jest.mock('expo-media-library', () => ({
@@ -33,6 +36,7 @@ const makeAsset = (overrides: Partial<MediaLibrary.Asset> = {}): MediaLibrary.As
 
 const makePhotoItem = (overrides: Partial<PhotoItem> = {}): PhotoItem => ({
   id: 'asset-1',
+  type: 'local',
   uri: 'file:///photo.jpg',
   backupState: 'not-backed',
   mediaType: 'photo',
@@ -159,7 +163,8 @@ describe('groupAssetsByDate', () => {
   test('when an asset is synced, then the corresponding photo item has a backed state', () => {
     const asset = makeAsset({ id: 'a1' });
     const groups = groupAssetsByDate([asset], new Set(['a1']), new Set());
-    expect(groups[0].photos[0].backupState).toBe('backed');
+    const photo = groups[0].photos[0] as import('../types').PhotoItem;
+    expect(photo.backupState).toBe('backed');
   });
 });
 
@@ -176,6 +181,10 @@ describe('getGroupSyncStatus', () => {
       count: 3,
       backupProgress: 0.5,
     });
+  });
+
+  test('when sync status is fetching-cloud, then returns a fetching status', () => {
+    expect(getGroupSyncStatus(group, 'fetching-cloud', 0, undefined)).toEqual({ type: 'fetching' });
   });
 
   test('when sync status is idle, then returns a count equal to the number of photos in the group', () => {
@@ -222,5 +231,80 @@ describe('buildTimelineItems', () => {
     const { items, headerIndices } = buildTimelineItems([]);
     expect(items).toHaveLength(0);
     expect(headerIndices).toHaveLength(0);
+  });
+});
+
+const makeCloudEntry = (overrides: Partial<CloudAssetEntry> = {}): CloudAssetEntry => ({
+  remoteFileId: 'remote-1',
+  deviceId: 'device-1',
+  createdAt: new Date('2024-06-15T12:00:00').getTime(),
+  fileName: 'photo.jpg',
+  fileSize: 1024,
+  thumbnailPath: null,
+  thumbnailBucketId: null,
+  thumbnailBucketFile: null,
+  thumbnailType: null,
+  discoveredAt: Date.now(),
+  ...overrides,
+});
+
+describe('cloudEntryToPhotoItem', () => {
+  test('when the entry has a jpg filename, then media type is photo', () => {
+    const item = cloudEntryToPhotoItem(makeCloudEntry({ fileName: 'photo.jpg' }));
+    expect(item.mediaType).toBe('photo');
+  });
+
+  test('when the entry has a video filename, then media type is video', () => {
+    const item = cloudEntryToPhotoItem(makeCloudEntry({ fileName: 'clip.mp4' }));
+    expect(item.mediaType).toBe('video');
+  });
+
+  test('when the entry has thumbnail data, then it is preserved in the result', () => {
+    const item = cloudEntryToPhotoItem(
+      makeCloudEntry({ thumbnailPath: '/cache/thumb.jpg', thumbnailBucketId: 'bucket-1', thumbnailBucketFile: 'file-1', thumbnailType: 'jpg' }),
+    );
+    expect(item.thumbnailPath).toBe('/cache/thumb.jpg');
+    expect(item.thumbnailBucketId).toBe('bucket-1');
+    expect(item.thumbnailBucketFile).toBe('file-1');
+    expect(item.thumbnailType).toBe('jpg');
+  });
+
+  test('when converted, then type is cloud-only and id matches the remote file id', () => {
+    const item = cloudEntryToPhotoItem(makeCloudEntry({ remoteFileId: 'abc-123' }));
+    expect(item.type).toBe('cloud-only');
+    expect(item.id).toBe('abc-123');
+  });
+});
+
+describe('mergeCloudIntoGroups', () => {
+  test('when there are no cloud items, then the local groups are returned unchanged', () => {
+    const localGroups = [makeDateGroup()];
+    const result = mergeCloudIntoGroups(localGroups, []);
+    expect(result).toBe(localGroups);
+  });
+
+  test('when a cloud item falls on an existing local group date, then it is added to that group', () => {
+    const createdAt = new Date('2024-06-15T12:00:00').getTime();
+    const localGroups = [makeDateGroup({ id: new Date('2024-06-15T12:00:00').toDateString() })];
+    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ createdAt }));
+    const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
+    expect(result[0].photos).toHaveLength(2);
+  });
+
+  test('when a cloud item has a date with no matching local group, then a new group is created for it', () => {
+    const createdAt = new Date('2024-05-01T12:00:00').getTime();
+    const localGroups = [makeDateGroup({ id: new Date('2024-06-15T12:00:00').toDateString() })];
+    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ createdAt }));
+    const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
+    expect(result).toHaveLength(2);
+  });
+
+  test('when merging groups from different dates, then they are sorted from newest to oldest', () => {
+    const olderAt = new Date('2024-05-01T12:00:00').getTime();
+    const newerAt = new Date('2024-06-15T12:00:00').getTime();
+    const localGroups = [makeDateGroup({ id: new Date(olderAt).toDateString() })];
+    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ createdAt: newerAt }));
+    const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
+    expect(new Date(result[0].id).getTime()).toBeGreaterThan(new Date(result[1].id).getTime());
   });
 });

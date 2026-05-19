@@ -1,23 +1,24 @@
 import { View } from 'react-native';
 
-import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { authSelectors, authThunks } from '../../../store/slices/auth';
 import { uiActions } from '../../../store/slices/ui';
-import { RootScreenNavigationProp } from '../../../types/navigation';
 import AppButton from '../../AppButton';
 import AppText from '../../AppText';
 import UserProfilePicture from '../../UserProfilePicture';
 import CenterModal from '../CenterModal';
 
-function SignOutModal(): JSX.Element {
+interface SignOutModalProps {
+  readonly onSignedOut: () => void;
+}
+
+function SignOutModal({ onSignedOut }: SignOutModalProps): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const userFullName = useAppSelector(authSelectors.userFullName);
   const user = useAppSelector((state) => state.auth.user);
-  const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const { isSignOutModalOpen } = useAppSelector((state) => state.ui);
   const onClosed = () => {
     dispatch(uiActions.setIsSignOutModalOpen(false));
@@ -27,7 +28,7 @@ function SignOutModal(): JSX.Element {
   };
   const onSignOutButtonPressed = () => {
     dispatch(authThunks.signOutThunk({ reason: 'manual' }));
-    navigation.replace('SignIn');
+    onSignedOut();
     onClosed();
   };
 

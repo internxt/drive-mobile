@@ -1,8 +1,10 @@
 import * as MediaLibrary from 'expo-media-library';
+import { isVideoExtension } from 'src/services/drive/file/utils/exifHelpers';
+import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
+import { PhotoSyncStatus } from 'src/store/slices/photos';
 import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
-import { PhotoBackupState, PhotoDateGroup, PhotoItem } from '../types';
-import { PhotoSyncStatus } from 'src/store/slices/photos';
+import { CloudPhotoItem, PhotoBackupState, PhotoDateGroup, PhotoItem, TimelinePhotoItem } from '../types';
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
@@ -43,6 +45,7 @@ export const assetToPhotoItem = (
   const isVideo = asset.mediaType === MediaLibrary.MediaType.video;
   return {
     id: asset.id,
+    type: 'local',
     uri: asset.uri,
     backupState,
     mediaType: isVideo ? 'video' : 'photo',
@@ -88,14 +91,49 @@ export const getGroupSyncStatus = (
       return { type: 'scanning' };
     case 'uploading':
       return { type: 'uploading', count: remainingCount, backupProgress };
+    case 'fetching-cloud':
+      return { type: 'fetching' };
     default:
       return { type: 'count', count: group.photos.length };
   }
 };
 
+export const cloudEntryToPhotoItem = (entry: CloudAssetEntry): CloudPhotoItem => ({
+  id: entry.remoteFileId,
+  type: 'cloud-only',
+  mediaType: isVideoExtension(entry.fileName.split('.').pop() ?? '') ? 'video' : 'photo',
+  thumbnailPath: entry.thumbnailPath,
+  thumbnailBucketId: entry.thumbnailBucketId,
+  thumbnailBucketFile: entry.thumbnailBucketFile,
+  thumbnailType: entry.thumbnailType,
+  deviceId: entry.deviceId,
+  createdAt: entry.createdAt,
+  fileName: entry.fileName,
+});
+
+export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: CloudPhotoItem[]): PhotoDateGroup[] => {
+  if (cloudItems.length === 0) return localGroups;
+
+  const now = new Date();
+  const groupMap = new Map<string, PhotoDateGroup>(localGroups.map((g) => [g.id, { ...g, photos: [...g.photos] }]));
+
+  for (const item of cloudItems) {
+    const date = new Date(item.createdAt);
+    const key = date.toDateString();
+    let group = groupMap.get(key);
+    if (!group) {
+      group = { id: key, label: getDateLabel(date, now), photos: [] };
+      groupMap.set(key, group);
+    }
+    group.photos.push(item);
+  }
+
+  return Array.from(groupMap.values()).sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
+};
+
 export type FlatItem =
   | { type: 'header'; id: string; label: string; syncStatus: GroupSyncStatus; count: number; isFirst: boolean }
-  | { type: 'photo'; photo: PhotoItem };
+  | { type: 'photo'; photo: TimelinePhotoItem };
 
 export const buildTimelineItems = (groups: TimelineDateGroup[]): { items: FlatItem[]; headerIndices: number[] } => {
   const items: FlatItem[] = [];
