@@ -6,7 +6,10 @@ import { getEnvironmentConfigFromUser } from 'src/lib/network';
 import { uploadFile } from 'src/network/upload';
 import { constants } from 'src/services/AppService';
 import asyncStorageService from 'src/services/AsyncStorageService';
+import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
+import { generateThumbnail } from 'src/services/common/media/thumbnail.generation';
 import { uploadService } from 'src/services/common/network/upload/upload.service';
+import { FileAlreadyExistsError } from './errors';
 import { photoBackupFolders } from './PhotoBackupFolders';
 import {
   ANDROID_CONTENT_URI_SCHEME,
@@ -19,8 +22,15 @@ import {
 
 const TEMP_FILE_PREFIX = 'photo_upload_';
 
-interface BucketUploadResult {
-  bucketFileId: string;
+interface UploadCredentials {
+  bucketId: string;
+  encryptionKey: string;
+  bridgeUser: string;
+  bridgePass: string;
+}
+
+interface FileUploadResult {
+  fileId: string;
   bucketId: string;
   fileSize: number;
   plainName: string;
@@ -28,6 +38,9 @@ interface BucketUploadResult {
   modificationIso: string;
   creationIso: string;
   folderUuid: string;
+  localFilePath: string;
+  tempPath?: string;
+  credentials: UploadCredentials;
 }
 
 const resolveLocalPath = async (asset: MediaLibrary.Asset): Promise<{ localPath: string; tempPath?: string }> => {
@@ -55,7 +68,7 @@ const uploadAssetToBucket = async (
   asset: MediaLibrary.Asset,
   deviceId: string,
   onProgress?: (ratio: number) => void,
-): Promise<BucketUploadResult> => {
+): Promise<FileUploadResult> => {
   const { localPath: localFilePath, tempPath } = await resolveLocalPath(asset);
 
   const createdDate = new Date(asset.creationTime);
@@ -69,10 +82,17 @@ const uploadAssetToBucket = async (
     photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate),
   ]);
   const { bucketId, encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+  const { plainName, fileExtension } = splitFileNameAndExtension(fileName);
 
-  let bucketFileId: string;
+  const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type: fileExtension }]);
+  if (existentFiles.length > 0) {
+    await cleanupTempFile(tempPath);
+    throw new FileAlreadyExistsError(`${plainName}.${fileExtension}`, existentFiles[0].uuid);
+  }
+
+  let fileId: string;
   try {
-    bucketFileId = await uploadFile(
+    fileId = await uploadFile(
       localFilePath,
       bucketId,
       encryptionKey,
@@ -81,16 +101,13 @@ const uploadAssetToBucket = async (
       { notifyProgress: onProgress },
     );
   } catch (uploadError) {
-    const msg = uploadError instanceof Error ? uploadError.message : String(uploadError);
-    throw new Error(`Bucket upload failed for ${fileName}: ${msg}`);
-  } finally {
-    if (tempPath) await RNFS.unlink(tempPath).catch(() => null);
+    await cleanupTempFile(tempPath);
+    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
+    throw new Error(`Bucket upload failed for ${fileName}: ${message}`);
   }
 
-  const { plainName, fileExtension } = splitFileNameAndExtension(fileName);
-
   return {
-    bucketFileId,
+    fileId,
     bucketId,
     fileSize: fileStat.size,
     plainName,
@@ -98,27 +115,101 @@ const uploadAssetToBucket = async (
     modificationIso,
     creationIso,
     folderUuid,
+    localFilePath,
+    tempPath,
+    credentials: { bucketId, encryptionKey, bridgeUser, bridgePass },
   };
+};
+
+const cleanupTempFile = async (tempPath?: string): Promise<void> => {
+  if (!tempPath) return;
+  await RNFS.unlink(tempPath).catch(() => null);
+};
+
+const uploadThumbnailForAsset = async (
+  localFilePath: string,
+  fileExtension: string,
+  fileUuid: string,
+  credentials: UploadCredentials,
+): Promise<void> => {
+  if (!isThumbnailSupported(fileExtension)) return;
+
+  let thumbnailPath: string | undefined;
+  try {
+    const thumbnail = await generateThumbnail(localFilePath, fileExtension);
+    thumbnailPath = thumbnail.path;
+
+    const thumbnailFileId = await uploadFile(
+      thumbnail.path,
+      credentials.bucketId,
+      credentials.encryptionKey,
+      constants.BRIDGE_URL,
+      { user: credentials.bridgeUser, pass: credentials.bridgePass },
+      {},
+    );
+
+    await uploadService.createThumbnailEntry({
+      fileUuid,
+      type: thumbnail.type,
+      size: thumbnail.size,
+      maxWidth: thumbnail.width,
+      maxHeight: thumbnail.height,
+      bucketId: credentials.bucketId,
+      bucketFile: thumbnailFileId,
+      encryptVersion: EncryptionVersion.Aes03,
+    });
+  } catch {
+    // Thumbnail is best-effort — never block the main upload result
+  } finally {
+    await cleanupTempFile(thumbnailPath);
+  }
 };
 
 export const PhotoUploadService = {
   async upload(asset: MediaLibrary.Asset, deviceId: string, onProgress?: (ratio: number) => void): Promise<string> {
-    const { bucketFileId, bucketId, fileSize, plainName, fileExtension, modificationIso, creationIso, folderUuid } =
-      await uploadAssetToBucket(asset, deviceId, onProgress);
+    let fileUploadResult: FileUploadResult;
+    try {
+      fileUploadResult = await uploadAssetToBucket(asset, deviceId, onProgress);
+    } catch (err) {
+      if (err instanceof FileAlreadyExistsError) {
+        return err.existingUuid;
+      }
+      throw err;
+    }
 
-    const driveFile = await uploadService.createFileEntry({
-      fileId: bucketFileId,
-      type: fileExtension,
-      size: fileSize,
+    const {
+      fileId,
+      bucketId,
+      fileSize,
       plainName,
-      bucket: bucketId,
+      fileExtension,
+      modificationIso,
+      creationIso,
       folderUuid,
-      encryptVersion: EncryptionVersion.Aes03,
-      modificationTime: modificationIso,
-      creationTime: creationIso,
-    });
+      localFilePath,
+      tempPath,
+      credentials,
+    } = fileUploadResult;
 
-    return driveFile.uuid;
+    try {
+      const driveFile = await uploadService.createFileEntry({
+        fileId,
+        type: fileExtension,
+        size: fileSize,
+        plainName,
+        bucket: bucketId,
+        folderUuid,
+        encryptVersion: EncryptionVersion.Aes03,
+        modificationTime: modificationIso,
+        creationTime: creationIso,
+      });
+
+      await uploadThumbnailForAsset(localFilePath, fileExtension, driveFile.uuid, credentials);
+
+      return driveFile.uuid;
+    } finally {
+      await cleanupTempFile(tempPath);
+    }
   },
 
   async replace(
@@ -127,10 +218,20 @@ export const PhotoUploadService = {
     deviceId: string,
     onProgress?: (ratio: number) => void,
   ): Promise<string> {
-    const { bucketFileId, fileSize } = await uploadAssetToBucket(asset, deviceId, onProgress);
+    const { fileId, fileSize, localFilePath, fileExtension, tempPath, credentials } = await uploadAssetToBucket(
+      asset,
+      deviceId,
+      onProgress,
+    );
 
-    await uploadService.replaceFileEntry(existingRemoteFileId, { fileId: bucketFileId, size: fileSize });
+    try {
+      await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
 
-    return existingRemoteFileId;
+      await uploadThumbnailForAsset(localFilePath, fileExtension, existingRemoteFileId, credentials);
+
+      return existingRemoteFileId;
+    } finally {
+      await cleanupTempFile(tempPath);
+    }
   },
 };

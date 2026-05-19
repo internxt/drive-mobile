@@ -280,8 +280,8 @@ describe('photos slice', () => {
 
   test('when the permission check runs and the user has limited access, then backup continues running', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
-    mockPermissionService.getStatus.mockResolvedValueOnce('granted'); // consumed by background runBackupCycleThunk
-    mockPermissionService.getStatus.mockResolvedValueOnce('limited'); // consumed by the direct checkPermissionRevocationThunk call
+    mockPermissionService.getStatus.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('limited');
 
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
