@@ -224,14 +224,16 @@ export const runUploadThunk = createAsyncThunk<void, void, { state: RootState }>
   },
 );
 
-export const runFullCloudHistorySyncThunk = createAsyncThunk<void, void, { state: RootState }>(
+export const runFullCloudHistorySyncThunk = createAsyncThunk<void, { force?: boolean } | void, { state: RootState }>(
   'photos/runFullCloudHistorySync',
-  async (_, { getState, dispatch }) => {
+  async (args, { getState, dispatch }) => {
+    const force = args?.force ?? false;
     logger.info('[CloudHistorySync] Starting full cloud history sync');
     dispatch(photosSlice.actions.setIsFetchingCloudHistory(true));
     try {
       await photosLocalDB.init();
       await photoCloudBrowser.syncAllHistory({
+        force,
         onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
         isCancelled: () => !getState().photos.enabled,
       });
@@ -241,6 +243,31 @@ export const runFullCloudHistorySyncThunk = createAsyncThunk<void, void, { state
     } finally {
       dispatch(photosSlice.actions.setIsFetchingCloudHistory(false));
     }
+  },
+);
+
+export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/forceRefresh',
+  async (_, { getState, dispatch }) => {
+    const { enabled, syncStatus, isFetchingCloudHistory } = getState().photos;
+    if (!enabled || syncStatus === 'scanning' || syncStatus === 'uploading' || isFetchingCloudHistory) {
+      logger.info(`[ForceRefresh] Skipped — enabled: ${enabled}, syncStatus: ${syncStatus}, isFetchingCloudHistory: ${isFetchingCloudHistory}`);
+      return;
+    }
+
+    logger.info('[ForceRefresh] Starting — dispatching cloud sync (force) + local discovery');
+    dispatch(runFullCloudHistorySyncThunk({ force: true }));
+
+    await dispatch(runDiscoveryThunk()).unwrap();
+    const pending = getState().photos.pendingBackupAssets;
+    if (pending > 0) {
+      logger.info(`[ForceRefresh] Discovery found ${pending} pending assets — starting upload`);
+      await dispatch(runUploadThunk()).unwrap();
+    } else {
+      logger.info('[ForceRefresh] Discovery complete — no pending assets');
+    }
+    logger.info('[ForceRefresh] Done');
+    dispatch(photosSlice.actions.setLastSyncTimestamp(Date.now()));
   },
 );
 

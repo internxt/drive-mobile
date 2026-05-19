@@ -1,5 +1,6 @@
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import { logger } from 'src/services/common';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
 import { photosLocalDB } from './database/photosLocalDB';
 import { photoBackupFolders } from './PhotoBackupFolders';
@@ -64,13 +65,26 @@ class PhotoCloudBrowserService {
     });
   }
 
-  async syncAllHistory(options: { onMonthFetched?: () => void; isCancelled?: () => boolean }): Promise<void> {
-    const { onMonthFetched, isCancelled } = options;
+  async syncAllHistory(options: {
+    onMonthFetched?: () => void;
+    isCancelled?: () => boolean;
+    force?: boolean;
+  }): Promise<void> {
+    const { onMonthFetched, isCancelled, force } = options;
     const devices = await this.listDeviceFolders();
-    if (devices.length === 0) return;
+    if (devices.length === 0) {
+      logger.info('[CloudBrowser] No device folders found — skipping sync');
+      return;
+    }
 
     const months = await this.discoverAvailableMonths(devices);
-    if (months.length === 0) return;
+    if (months.length === 0) {
+      logger.info('[CloudBrowser] Discovery found no months — skipping sync');
+      return;
+    }
+    logger.info(
+      `[CloudBrowser] Discovered ${months.length} months across ${devices.length} device(s)${force ? ' — TTL bypassed (force refresh)' : ''}`,
+    );
 
     const CONCURRENCY = 3;
     let cursor = 0;
@@ -84,6 +98,7 @@ class PhotoCloudBrowserService {
           year: target.year,
           month: target.month,
           onMonthFetched,
+          force,
         });
       }
     };
@@ -96,10 +111,13 @@ class PhotoCloudBrowserService {
     year: number;
     month: number;
     onMonthFetched?: () => void;
+    force?: boolean;
   }): Promise<number> {
-    const { deviceId, monthFolderUuid, year, month, onMonthFetched } = params;
-    const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
-    if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
+    const { deviceId, monthFolderUuid, year, month, onMonthFetched, force } = params;
+    if (!force) {
+      const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
+      if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
+    }
 
     const dayFolders = await this.listAllFolders(monthFolderUuid);
     const now = Date.now();
@@ -115,6 +133,7 @@ class PhotoCloudBrowserService {
         const fileName = file.type ? `${baseName}.${file.type}` : baseName;
         const createdAt = folderDate;
         const thumb = file.thumbnails?.[0] ?? null;
+
         await this.localDB.upsertCloudAsset({
           remoteFileId: file.uuid,
           deviceId,
@@ -132,7 +151,12 @@ class PhotoCloudBrowserService {
     }
 
     if (count > 0) {
+      logger.info(
+        `[CloudBrowser] Device "${deviceId}" ${year}/${String(month).padStart(2, '0')} — ${count} file(s) upserted`,
+      );
       onMonthFetched?.();
+    } else {
+      logger.info(`[CloudBrowser] Device "${deviceId}" ${year}/${String(month).padStart(2, '0')} — empty`);
     }
     return count;
   }

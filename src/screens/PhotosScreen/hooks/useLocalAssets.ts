@@ -1,6 +1,7 @@
 import * as MediaLibrary from 'expo-media-library';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { logger } from 'src/services/common';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
 
@@ -13,6 +14,7 @@ export interface LocalAssetsResult {
   syncedIds: Set<string>;
   uploadingIdSet: Set<string>;
   loadNextPage: () => void;
+  reload: () => Promise<void>;
 }
 
 export const useLocalAssets = (): LocalAssetsResult => {
@@ -94,6 +96,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
     hasMoreRef.current = true;
     const page = await fetchLocalPage();
     applyPage(page, { replace: true });
+    logger.info(`[LocalAssets] Reloaded from start — ${page.assets.length} assets (hasNextPage: ${page.hasNextPage})`);
   }, [fetchLocalPage, applyPage]);
 
   useEffect(() => {
@@ -128,5 +131,5 @@ export const useLocalAssets = (): LocalAssetsResult => {
     refreshSyncStatusFromDB();
   }, [refreshSyncStatusFromDB, syncStatus, sessionUploadedAssets]);
 
-  return { assets, isLoading, syncedIds, uploadingIdSet, loadNextPage };
+  return { assets, isLoading, syncedIds, uploadingIdSet, loadNextPage, reload: reloadFromStart };
 };

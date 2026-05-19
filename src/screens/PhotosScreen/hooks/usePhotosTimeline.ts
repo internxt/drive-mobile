@@ -9,10 +9,11 @@ export interface PhotosTimelineResult {
   timelineDateGroups: TimelineDateGroup[];
   isLoading: boolean;
   loadNextPage: () => void;
+  reloadLocal: () => Promise<void>;
 }
 
 export const usePhotosTimeline = (): PhotosTimelineResult => {
-  const { assets, isLoading, syncedIds, uploadingIdSet, loadNextPage } = useLocalAssets();
+  const { assets, isLoading, syncedIds, uploadingIdSet, loadNextPage, reload: reloadLocal } = useLocalAssets();
   const { cloudItems } = useCloudAssets();
 
   const { syncStatus, sessionTotalAssets, sessionUploadedAssets, isFetchingCloudHistory } = useAppSelector(
@@ -35,5 +36,5 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
     })) as TimelineDateGroup[];
   }, [mergedGroups, syncStatus, sessionTotalAssets, sessionUploadedAssets, isFetchingCloudHistory]);
 
-  return { timelineDateGroups, isLoading, loadNextPage };
+  return { timelineDateGroups, isLoading, loadNextPage, reloadLocal };
 };
