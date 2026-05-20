@@ -243,6 +243,11 @@ const translations = {
             removeFromFavorites: 'Remove from favorites',
             moveToTrash: 'Move to trash',
           },
+          actionProgress: {
+            preparing: 'Preparing…',
+            saving: 'Saving to gallery…',
+            copying: 'Copying…',
+          },
         },
         refreshLocalError: 'Gallery could not be loaded',
         refreshCloudError: 'Cloud sync could not be completed. Check your connection and try again.',
@@ -1198,6 +1203,11 @@ const translations = {
             addToFavorites: 'Añadir a favoritos',
             removeFromFavorites: 'Quitar de favoritos',
             moveToTrash: 'Mover a la papelera',
+          },
+          actionProgress: {
+            preparing: 'Preparando…',
+            saving: 'Guardando en galería…',
+            copying: 'Copiando…',
           },
         },
         refreshLocalError: 'No se pudo cargar la galería',
