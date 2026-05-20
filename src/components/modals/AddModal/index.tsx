@@ -169,13 +169,8 @@ function AddModal(): JSX.Element {
     return createdFileEntry;
   }
 
-  const checkFileSizeLimitToUpload = (fileSize: number, fileName: string) => {
+  const checkFileSizeLimitToUpload = (fileSize: number) => {
     if (maxUploadFileSize > 0 && fileSize > maxUploadFileSize) {
-      dispatch(
-        uiActions.setFileSizeExceededMessage(
-          strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, fileName),
-        ),
-      );
       throw new FileSizeExceededError();
     }
     return true;
@@ -203,7 +198,7 @@ function AddModal(): JSX.Element {
     const fileStat = await fileSystemService.stat(filePath);
     // Fix for Android, native document picker not returns the correct fileSize when file is big
     // and cannnot get the stat before we got the file in temporary path
-    checkFileSizeLimitToUpload(fileStat.size, fileName);
+    checkFileSizeLimitToUpload(fileStat.size);
 
     const fileSize = fileStat.size;
 
@@ -355,6 +350,14 @@ function AddModal(): JSX.Element {
       logger.info('File upload process finished');
       dispatch(driveActions.uploadingFileEnd(uploadingFile.id));
     } catch (error) {
+      if (error instanceof FileSizeExceededError) {
+        dispatch(
+          uiActions.setFileSizeExceededMessage(
+            strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, uploadingFile.name),
+          ),
+        );
+        throw error;
+      }
       logger.error('File upload process failed: ', JSON.stringify(error));
       errorService.reportError(error);
       throw error;

@@ -258,14 +258,15 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         return;
       }
 
-      // 4.1. Per-file size limit: block the entire upload if any file exceeds the plan's limit.
+      // 4.1. Per-file size limit: warn upfront and skip oversized files; valid files still upload.
       const hasUploadSizeLimit = maxUploadFileSize > 0;
       const oversizedFiles = hasUploadSizeLimit
         ? tree.files.filter((file) => file.size > maxUploadFileSize)
         : [];
       if (oversizedFiles.length > 0) {
         notifyFilesExcludedBySize(oversizedFiles, dispatch);
-        return;
+        tree.files = tree.files.filter((file) => file.size <= maxUploadFileSize);
+        if (tree.files.length === 0) return;
       }
 
       if (!focusedFolder?.uuid) {
@@ -350,8 +351,16 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         successRate: result.totalFiles > 0 ? result.uploadedFiles / result.totalFiles : 1,
       });
 
-      // 9. Display result
-      showFolderUploadResult(result, picked.name);
+      // 9. Display result — include files skipped by the upfront size check in the totals.
+      const preSkippedCount = oversizedFiles.length;
+      showFolderUploadResult(
+        {
+          ...result,
+          totalFiles: result.totalFiles + preSkippedCount,
+          skippedFiles: result.skippedFiles + preSkippedCount,
+        },
+        picked.name,
+      );
     } catch (err) {
       if (abortController.signal.aborted) {
         notificationsService.show({ type: NotificationType.Info, text1: strings.messages.folderUploadCancelled });
