@@ -23,6 +23,7 @@ export interface AppEnv {
   NOTIFICATIONS_URL: string;
   NODE_ENV: string;
   CLOUDFLARE_TOKEN: string;
+  ENABLE_PHOTOS: boolean;
 }
 
 export enum BiometricAccessType {

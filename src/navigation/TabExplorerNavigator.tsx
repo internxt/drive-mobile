@@ -31,6 +31,7 @@ import { uiActions } from '../store/slices/ui';
 import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
+import { SettingsNavigator } from './SettingsNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -46,7 +47,11 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
   const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
 
-  const discoverSheet = useDiscoverPhotosSheet(() => props.navigation.navigate('TabExplorer', { screen: 'Photos' }));
+  const discoverSheet = useDiscoverPhotosSheet(
+    appService.isPhotosEnabled
+      ? () => props.navigation.navigate('TabExplorer', { screen: 'Photos' })
+      : () => undefined,
+  );
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', handleOnAppStateChange);
@@ -55,7 +60,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
 
   async function handleOnAppStateChange(state: AppStateStatus) {
     if (state === 'active') {
-      dispatch(runBackupCycleThunk());
+      if (appService.isPhotosEnabled) dispatch(runBackupCycleThunk());
       try {
         await dispatch(storageThunks.loadLimitThunk()).unwrap();
       } catch {
@@ -85,14 +90,20 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
-        <Tab.Screen name="Photos" component={PhotosScreen} />
+        {appService.isPhotosEnabled ? (
+          <Tab.Screen name="Photos" component={PhotosScreen} />
+        ) : (
+          <Tab.Screen name="Settings" component={SettingsNavigator} />
+        )}
       </Tab.Navigator>
 
-      <DiscoverPhotosBottomSheet
-        isOpen={discoverSheet.isOpen}
-        onDismiss={discoverSheet.onDismiss}
-        onStartPhotos={discoverSheet.onStartPhotos}
-      />
+      {appService.isPhotosEnabled && (
+        <DiscoverPhotosBottomSheet
+          isOpen={discoverSheet.isOpen}
+          onDismiss={discoverSheet.onDismiss}
+          onStartPhotos={discoverSheet.onStartPhotos}
+        />
+      )}
       <AddModal />
       <DriveItemInfoModal />
       <SharedLinkInfoModal />

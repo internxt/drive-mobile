@@ -2,7 +2,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Text, TouchableWithoutFeedback, View } from 'react-native';
 
-import { FolderSimpleIcon, HouseIcon, ImageIcon, PlusCircleIcon, UsersIcon } from 'phosphor-react-native';
+import { FolderSimpleIcon, GearIcon, HouseIcon, ImageIcon, PlusCircleIcon, UsersIcon } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
@@ -38,6 +38,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     Add: { label: strings.tabs.Add, icon: PlusCircleIcon },
     Shared: { label: strings.tabs.Shared, icon: UsersIcon },
     Photos: { label: strings.tabs.Photos, icon: ImageIcon },
+    Settings: { label: strings.tabs.Settings, icon: GearIcon },
   };
 
   const items = props.state.routes
