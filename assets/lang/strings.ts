@@ -253,9 +253,11 @@ const translations = {
             uploadingToCloud: 'Uploading to cloud…',
           },
           deleteModal: {
-            title: 'Delete item(s)',
-            message:
-              'These photos will be deleted from Internxt Drive on all your devices. They will remain in Trash for a limited time.',
+            title: (count: number) => (count === 1 ? 'Delete item' : 'Delete items'),
+            message: (count: number) =>
+              count === 1
+                ? 'This photo will be deleted from Internxt Drive on all your devices. It will remain in Trash for a limited time.'
+                : 'These photos will be deleted from Internxt Drive on all your devices. They will remain in Trash for a limited time.',
             confirm: 'Delete',
           },
         },
@@ -1224,9 +1226,11 @@ const translations = {
             uploadingToCloud: 'Subiendo a la nube…',
           },
           deleteModal: {
-            title: 'Eliminar elemento(s)',
-            message:
-              'Estas fotos se eliminarán de Internxt Drive en todos tus dispositivos. Permanecerán en la papelera durante un tiempo limitado.',
+            title: (count: number) => (count === 1 ? 'Eliminar elemento' : 'Eliminar elementos'),
+            message: (count: number) =>
+              count === 1
+                ? 'Esta foto se eliminará de Internxt Drive en todos tus dispositivos. Permanecerá en la papelera durante un tiempo limitado.'
+                : 'Estas fotos se eliminarán de Internxt Drive en todos tus dispositivos. Permanecerán en la papelera durante un tiempo limitado.',
             confirm: 'Eliminar',
           },
         },

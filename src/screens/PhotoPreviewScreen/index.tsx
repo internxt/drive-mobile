@@ -158,8 +158,8 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
       <ConfirmModal
         isOpen={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}
-        title={strings.screens.photos.selection.deleteModal.title}
-        message={strings.screens.photos.selection.deleteModal.message}
+        title={strings.screens.photos.selection.deleteModal.title(1)}
+        message={strings.screens.photos.selection.deleteModal.message(1)}
         confirmLabel={strings.screens.photos.selection.deleteModal.confirm}
         onConfirm={handleDeleteConfirm}
         onCancel={() => setIsDeleteConfirmOpen(false)}

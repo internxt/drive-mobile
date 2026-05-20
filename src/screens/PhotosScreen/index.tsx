@@ -187,8 +187,8 @@ const PhotosScreen = (): JSX.Element => {
       <ConfirmModal
         isOpen={actions.isDeleteConfirmOpen}
         onClose={actions.handleDeleteClose}
-        title={strings.screens.photos.selection.deleteModal.title}
-        message={strings.screens.photos.selection.deleteModal.message}
+        title={strings.screens.photos.selection.deleteModal.title(selection.selectedIds.size)}
+        message={strings.screens.photos.selection.deleteModal.message(selection.selectedIds.size)}
         confirmLabel={strings.screens.photos.selection.deleteModal.confirm}
         onConfirm={actions.handleTrashConfirm}
         onCancel={actions.handleDeleteClose}
