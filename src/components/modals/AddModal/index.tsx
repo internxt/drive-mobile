@@ -28,6 +28,7 @@ import {
 import {
   FileSizeExceededError,
   isFileSizeExceededError,
+  notifyFilesExcludedBySize,
 } from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import drive from '@internxt-mobile/services/drive';
 import {
@@ -418,16 +419,6 @@ function AddModal(): JSX.Element {
     return uploadDocuments(documents);
   }
 
-  const notifyFilesExcludedBySize = (excluded: DocumentPickerFile[]) => {
-    const [firstExcluded, ...remainingExcluded] = excluded;
-    if (firstExcluded === undefined) return;
-    const hasMultipleExcluded = remainingExcluded.length > 0;
-    const message = hasMultipleExcluded
-      ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, excluded.length)
-      : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstExcluded.name);
-    dispatch(uiActions.setFileSizeExceededMessage(message));
-  };
-
   const uploadDocuments = async (documents: DocumentPickerFile[]) => {
     if (!focusedFolder) {
       throw new Error('No current folder found');
@@ -435,7 +426,7 @@ function AddModal(): JSX.Element {
 
     await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
     const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents, maxUploadFileSize);
-    notifyFilesExcludedBySize(filesExcluded);
+    notifyFilesExcludedBySize(filesExcluded, dispatch);
 
     if (filesToUpload.length === 0) {
       dispatch(uiActions.setShowUploadFileModal(false));

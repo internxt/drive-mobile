@@ -6,6 +6,7 @@ import uuid from 'react-native-uuid';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { logger } from '@internxt-mobile/services/common';
 import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
+import { notifyFilesExcludedBySize } from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from '../../../../../assets/lang/strings';
@@ -163,16 +164,6 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     }
   };
 
-  function notifyFilesExcludedBySize(excluded: FolderTreeNode[]) {
-    const [firstExcluded, ...remainingExcluded] = excluded;
-    if (firstExcluded === undefined) return;
-    const hasMultipleExcluded = remainingExcluded.length > 0;
-    const message = hasMultipleExcluded
-      ? strings.formatString(strings.modals.FileSizeExceededModal.messageWithCount, excluded.length)
-      : strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, firstExcluded.name);
-    dispatch(uiActions.setFileSizeExceededMessage(message));
-  }
-
   const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
   const [collisionState, setCollisionState] = useState<{
     isOpen: boolean;
@@ -273,7 +264,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         ? tree.files.filter((file) => file.size > maxUploadFileSize)
         : [];
       if (oversizedFiles.length > 0) {
-        notifyFilesExcludedBySize(oversizedFiles);
+        notifyFilesExcludedBySize(oversizedFiles, dispatch);
         return;
       }
 
