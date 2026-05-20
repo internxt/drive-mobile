@@ -32,7 +32,7 @@ import { driveActions, driveThunks } from '../../../../store/slices/drive';
 import { storageSelectors, storageThunks } from '../../../../store/slices/storage';
 import { uiActions } from '../../../../store/slices/ui';
 import { INFINITE_PLAN, NotificationType, ProgressCallback } from '../../../../types';
-import { FolderTreeNode } from '../../../../types/drive/folderUpload';
+import { FolderTree, FolderTreeNode } from '../../../../types/drive/folderUpload';
 import { NameCollisionAction } from '../../NameCollisionModal';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -157,7 +157,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
-  const maxUploadFileSize = useAppSelector(storageSelectors.maxUploadFileSize);
+  const maxUploadFileSize = 0;
 
   const hasShownEmptyFileNoticeRef = useRef(false);
   const backendOversizedFilesRef = useRef<{ name: string }[]>([]);
@@ -174,6 +174,44 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
 
   const handleOversizedFileSkipped = (fileName: string) => {
     backendOversizedFilesRef.current.push({ name: fileName });
+  };
+
+  const filterOversizedFromTree = (tree: FolderTree): FolderTreeNode[] => {
+    if (maxUploadFileSize <= 0) return [];
+    const oversizedFiles = tree.files.filter((file) => file.size > maxUploadFileSize);
+    if (oversizedFiles.length === 0) return [];
+    notifyFilesExcludedBySize(oversizedFiles, dispatch);
+    tree.files = tree.files.filter((file) => file.size <= maxUploadFileSize);
+    return oversizedFiles;
+  };
+
+  const uploadFolderFile = async (
+    fileNode: FolderTreeNode,
+    parentUuid: string,
+    signal: AbortSignal,
+    uploadId: string,
+  ): Promise<void> => {
+    const isAndroidContent = Platform.OS === 'android' && fileNode.uri.startsWith('content://');
+    if (isAndroidContent) {
+      await uploadFolderFileAndroid(
+        fileNode,
+        parentUuid,
+        signal,
+        uploadId,
+        uploadAndCreateFileEntry,
+        handleEmptyFileSkipped,
+        handleOversizedFileSkipped,
+      );
+      return;
+    }
+    await uploadFolderFileIOS(
+      fileNode,
+      parentUuid,
+      signal,
+      uploadAndCreateFileEntry,
+      handleEmptyFileSkipped,
+      handleOversizedFileSkipped,
+    );
   };
 
   const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
@@ -272,13 +310,8 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       }
 
       // 4.1. Per-file size limit: warn upfront and skip oversized files; valid files still upload.
-      const hasUploadSizeLimit = maxUploadFileSize > 0;
-      const oversizedFiles = hasUploadSizeLimit ? tree.files.filter((file) => file.size > maxUploadFileSize) : [];
-      if (oversizedFiles.length > 0) {
-        notifyFilesExcludedBySize(oversizedFiles, dispatch);
-        tree.files = tree.files.filter((file) => file.size <= maxUploadFileSize);
-        if (tree.files.length === 0) return;
-      }
+      const oversizedFiles = filterOversizedFromTree(tree);
+      if (oversizedFiles.length > 0 && tree.files.length === 0) return;
 
       if (!focusedFolder?.uuid) {
         throw new Error('No focused folder UUID');
@@ -326,28 +359,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
             dispatch(driveActions.updateFolderUpload({ uploadId, uploadedFiles: uploaded, failedFiles: failed }));
           }
         },
-        uploadFile: async (fileNode, parentUuid, signal) => {
-          if (Platform.OS === 'android' && fileNode.uri.startsWith('content://')) {
-            await uploadFolderFileAndroid(
-              fileNode,
-              parentUuid,
-              signal,
-              uploadId,
-              uploadAndCreateFileEntry,
-              handleEmptyFileSkipped,
-              handleOversizedFileSkipped,
-            );
-          } else {
-            await uploadFolderFileIOS(
-              fileNode,
-              parentUuid,
-              signal,
-              uploadAndCreateFileEntry,
-              handleEmptyFileSkipped,
-              handleOversizedFileSkipped,
-            );
-          }
-        },
+        uploadFile: (fileNode, parentUuid, signal) => uploadFolderFile(fileNode, parentUuid, signal, uploadId),
       });
 
       logger.info(
