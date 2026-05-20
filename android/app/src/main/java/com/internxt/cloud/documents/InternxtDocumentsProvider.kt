@@ -14,7 +14,9 @@ import android.util.Log
 import com.internxt.cloud.R
 import com.internxt.cloud.documents.api.InternxtApiClient
 import com.internxt.cloud.documents.api.InternxtApiException
+import com.internxt.cloud.documents.api.model.TrashItem
 import com.internxt.cloud.documents.auth.InternxtAuthManager
+import java.io.FileNotFoundException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -48,7 +50,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         cursor.setNotificationUri(ctx.contentResolver, DocumentsContract.buildRootsUri(AUTHORITY))
 
         val rootUuid = authManager?.authenticatedRootUuid()
-        Log.d(TAG, "queryRoots: isLoggedIn=${authManager.isLoggedIn()} rootUuid=$rootUuid")
+        Log.d(TAG, "queryRoots: isLoggedIn=${authManager?.isLoggedIn()} rootUuid=$rootUuid")
         if (rootUuid == null) return cursor
 
         cursor.newRow().apply {
@@ -72,7 +74,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val decoded = DocumentId.decode(id)
         val uuid = decoded?.uuid ?: id
 
-        if (decoded?.kind == DocumentId.Kind.FOLDER && uuid == authManager.authenticatedRootUuid()) {
+        if (decoded?.kind == DocumentId.Kind.FOLDER && uuid == authManager?.authenticatedRootUuid()) {
             cursor.addDocumentRow(
                 DocumentRowBuilder.folderRow(uuid, ctx.getString(R.string.documents_provider_label))
             )
@@ -81,12 +83,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
         val api = apiClient(op = "queryDocument")
         val row = if (api == null) null else try {
-            when (decoded?.kind) {
-                DocumentId.Kind.FOLDER -> api.getFolder(uuid)?.let { DocumentRowBuilder.folderRow(it) }
-                DocumentId.Kind.FILE -> api.getFile(uuid)?.let { DocumentRowBuilder.fileRow(it) }
-                null -> api.getFolder(uuid)?.let { DocumentRowBuilder.folderRow(it) }
-                    ?: api.getFile(uuid)?.let { DocumentRowBuilder.fileRow(it) }
-            }
+            fetchDocumentRow(api, decoded?.kind, uuid)
         } catch (e: InternxtApiException) {
             Log.w(TAG, "queryDocument id=$id failed: ${e.javaClass.simpleName}: ${e.message}")
             null
@@ -94,6 +91,17 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
         cursor.addDocumentRow(row ?: DocumentRowBuilder.folderRow(uuid = uuid, displayName = uuid))
         return cursor
+    }
+
+    private fun fetchDocumentRow(
+        api: InternxtApiClient,
+        kind: DocumentId.Kind?,
+        uuid: String,
+    ): Map<String, Any?>? = when (kind) {
+        DocumentId.Kind.FOLDER -> api.getFolder(uuid)?.let(DocumentRowBuilder::folderRow)
+        DocumentId.Kind.FILE -> api.getFile(uuid)?.let(DocumentRowBuilder::fileRow)
+        null -> api.getFolder(uuid)?.let(DocumentRowBuilder::folderRow)
+            ?: api.getFile(uuid)?.let(DocumentRowBuilder::fileRow)
     }
 
     override fun queryChildDocuments(
@@ -176,7 +184,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     }
 
     private fun apiClient(op: String): InternxtApiClient? {
-        val cfg = authManager.loadAuthConfig()
+        val cfg = authManager?.loadAuthConfig()
         if (cfg == null) {
             Log.w(TAG, "$op: loadAuthConfig() returned null")
             return null
@@ -198,6 +206,131 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun MatrixCursor.addDocumentRow(row: Map<String, Any?>) {
         val builder = newRow()
         row.forEach { (column, value) -> builder.add(column, value) }
+    }
+
+    override fun renameDocument(documentId: String, displayName: String): String? =
+        mutate("renameDocument", documentId) { api, kind, uuid ->
+            val parent = parentUuidOf(api, kind, uuid)
+            when (kind) {
+                DocumentId.Kind.FILE -> api.renameFile(uuid, displayName)
+                DocumentId.Kind.FOLDER -> api.renameFolder(uuid, displayName)
+            }
+            notifyEncodedParent(parent) { encoded ->
+                patchRowDisplayName(encoded, documentId, displayName)
+            }
+            null
+        }
+
+    override fun moveDocument(
+        sourceDocumentId: String,
+        sourceParentDocumentId: String?,
+        targetParentDocumentId: String,
+    ): String? = mutate("moveDocument", sourceDocumentId) { api, kind, uuid ->
+        val targetUuid = rawUuid(targetParentDocumentId)
+        when (kind) {
+            DocumentId.Kind.FILE -> api.moveFile(uuid, targetUuid)
+            DocumentId.Kind.FOLDER -> api.moveFolder(uuid, targetUuid)
+        }
+        sourceParentDocumentId?.let {
+            removeRow(it, sourceDocumentId)
+            notifyChildren(it)
+        }
+        invalidateChildren(targetParentDocumentId)
+        null
+    }
+
+    override fun deleteDocument(documentId: String) {
+        mutate("deleteDocument", documentId) { api, kind, uuid ->
+            val parent = parentUuidOf(api, kind, uuid)
+            api.sendToTrash(listOf(TrashItem(uuid, trashTypeOf(kind))))
+            notifyEncodedParent(parent) { encoded ->
+                removeRow(encoded, documentId)
+            }
+        }
+    }
+
+    private inline fun <R> mutate(
+        op: String,
+        documentId: String,
+        block: (api: InternxtApiClient, kind: DocumentId.Kind, uuid: String) -> R,
+    ): R {
+        val api = apiClient(op) ?: throw FileNotFoundException("No auth")
+        val kind = resolveKind(api, documentId) ?: throw FileNotFoundException("Not found: $documentId")
+        return try {
+            block(api, kind, rawUuid(documentId))
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "$op $documentId failed: ${e.javaClass.simpleName}: ${e.message}")
+            throw FileNotFoundException(e.message)
+        }
+    }
+
+    private fun parentUuidOf(api: InternxtApiClient, kind: DocumentId.Kind, uuid: String): String? =
+        when (kind) {
+            DocumentId.Kind.FILE -> api.getFile(uuid)?.folderUuid
+            DocumentId.Kind.FOLDER -> api.getFolder(uuid)?.parentUuid
+        }
+
+    private fun trashTypeOf(kind: DocumentId.Kind): TrashItem.Type = when (kind) {
+        DocumentId.Kind.FILE -> TrashItem.Type.FILE
+        DocumentId.Kind.FOLDER -> TrashItem.Type.FOLDER
+    }
+
+    private inline fun notifyEncodedParent(rawParentUuid: String?, mutateCache: (encodedParent: String) -> Unit) {
+        rawParentUuid?.let {
+            val encoded = DocumentId.encodeFolder(it)
+            mutateCache(encoded)
+            notifyChildren(encoded)
+        }
+    }
+
+    private fun rawUuid(documentId: String): String =
+        DocumentId.decode(documentId)?.uuid ?: documentId
+
+    private fun resolveKind(api: InternxtApiClient, documentId: String): DocumentId.Kind? {
+        DocumentId.decode(documentId)?.kind?.let { return it }
+        return api.getFolder(documentId)?.let { DocumentId.Kind.FOLDER }
+            ?: api.getFile(documentId)?.let { DocumentId.Kind.FILE }
+    }
+
+    private fun notifyChildren(parentDocumentId: String) {
+        context?.contentResolver?.notifyChange(
+            DocumentsContract.buildChildDocumentsUri(AUTHORITY, parentDocumentId),
+            null,
+        )
+    }
+
+    private fun invalidateChildren(parentDocumentId: String) {
+        folderLoads.remove(parentDocumentId)
+        notifyChildren(parentDocumentId)
+    }
+
+    private fun patchRowDisplayName(parentDocumentId: String, documentId: String, displayName: String) {
+        updateRows(parentDocumentId) { rows ->
+            val idx = rows.indexOfFirst { it[Document.COLUMN_DOCUMENT_ID] == documentId }
+            if (idx >= 0) rows[idx] = rows[idx] + (Document.COLUMN_DISPLAY_NAME to displayName)
+        }
+    }
+
+    private fun removeRow(parentDocumentId: String, documentId: String) {
+        updateRows(parentDocumentId) { rows ->
+            rows.removeAll { it[Document.COLUMN_DOCUMENT_ID] == documentId }
+        }
+    }
+
+    private inline fun updateRows(
+        parentDocumentId: String,
+        action: (MutableList<Map<String, Any?>>) -> Unit,
+    ) {
+        val load = folderLoads[parentDocumentId] ?: return
+        synchronized(load) { action(load.rows) }
+    }
+
+    override fun refresh(uri: Uri, args: Bundle?, cancellationSignal: CancellationSignal?): Boolean {
+        val documentId = try { DocumentsContract.getDocumentId(uri) } catch (_: Exception) { null }
+        Log.d(TAG, "refresh uri=$uri documentId=$documentId")
+        if (documentId == null) return false
+        invalidateChildren(documentId)
+        return true
     }
 
     override fun openDocument(
