@@ -2,22 +2,40 @@ import strings from 'assets/lang/strings';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { logger } from 'src/services/common';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
+import { useAppDispatch } from 'src/store/hooks';
+import { runUploadThunk } from 'src/store/slices/photos';
 import { PhotoSelection } from './usePhotoSelection';
 
 export interface UsePhotoActionsReturn {
   actionLabel: string | null;
   isMoreActionsSheetOpen: boolean;
+  isDeleteConfirmOpen: boolean;
   handleExport: () => Promise<void>;
   handleSave: () => Promise<void>;
   handleCopy: () => Promise<void>;
+  handleDelete: () => void;
+  handleTrash: () => void;
+  handleDeleteClose: () => void;
+  handleTrashConfirm: () => Promise<void>;
+  handleRestore: () => Promise<void>;
   handleMore: () => void;
   handleMoreClose: () => void;
   todoAction: (name: string) => () => void;
 }
 
-export const usePhotoActions = (selection: PhotoSelection): UsePhotoActionsReturn => {
+interface UsePhotoActionsOpts {
+  reloadLocal: () => Promise<void>;
+  reloadCloud: () => Promise<void>;
+}
+
+export const usePhotoActions = (
+  selection: PhotoSelection,
+  { reloadLocal, reloadCloud }: UsePhotoActionsOpts,
+): UsePhotoActionsReturn => {
+  const dispatch = useAppDispatch();
   const [actionLabel, setActionLabel] = useState<string | null>(null);
   const [isMoreActionsSheetOpen, setIsMoreActionsSheetOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const actionAbortRef = useRef<AbortController | null>(null);
 
   useEffect(
@@ -79,6 +97,46 @@ export const usePhotoActions = (selection: PhotoSelection): UsePhotoActionsRetur
     }
   }, [startAction, finishAction, selection.selectedItems]);
 
+  const handleDelete = useCallback(() => {
+    setIsMoreActionsSheetOpen(false);
+    setIsDeleteConfirmOpen(true);
+  }, []);
+
+  const handleTrash = useCallback(() => {
+    setIsMoreActionsSheetOpen(false);
+    setIsDeleteConfirmOpen(true);
+  }, []);
+
+  const handleDeleteClose = useCallback(() => setIsDeleteConfirmOpen(false), []);
+
+  const handleTrashConfirm = useCallback(async () => {
+    setIsDeleteConfirmOpen(false);
+    const { signal } = startAction(strings.screens.photos.selection.actionProgress.movingToTrash);
+    try {
+      await photoActionsService.trash(selection.selectedItems, signal);
+      await reloadLocal();
+      await reloadCloud();
+    } catch (error) {
+      logger.error(`[usePhotoActions] Trash error: ${error}`);
+    } finally {
+      finishAction();
+    }
+  }, [startAction, finishAction, selection.selectedItems, reloadLocal, reloadCloud]);
+
+  const handleRestore = useCallback(async () => {
+    const { signal } = startAction(strings.screens.photos.selection.actionProgress.uploadingToCloud);
+    try {
+      await photoActionsService.restoreToCloud(selection.selectedItems, signal);
+      await dispatch(runUploadThunk({ bypassEnabled: true })).unwrap();
+      await reloadLocal();
+      await reloadCloud();
+    } catch (error) {
+      logger.error(`[usePhotoActions] Restore error: ${error}`);
+    } finally {
+      finishAction();
+    }
+  }, [startAction, finishAction, selection.selectedItems, dispatch, reloadLocal, reloadCloud]);
+
   const todoAction = useCallback(
     (name: string) => () => {
       logger.info(`[usePhotoActions] action not yet implemented: ${name}`);
@@ -94,9 +152,15 @@ export const usePhotoActions = (selection: PhotoSelection): UsePhotoActionsRetur
   return {
     actionLabel,
     isMoreActionsSheetOpen,
+    isDeleteConfirmOpen,
     handleExport,
     handleSave,
     handleCopy,
+    handleDelete,
+    handleTrash,
+    handleDeleteClose,
+    handleTrashConfirm,
+    handleRestore,
     handleMore,
     handleMoreClose,
     todoAction,

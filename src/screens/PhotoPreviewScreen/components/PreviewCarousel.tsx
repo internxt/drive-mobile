@@ -105,6 +105,7 @@ interface PreviewCarouselProps {
   visible: boolean;
   onExport: () => void;
   onMore: () => void;
+  onDelete: () => void;
 }
 
 export const PreviewCarousel = ({
@@ -114,6 +115,7 @@ export const PreviewCarousel = ({
   visible,
   onExport,
   onMore,
+  onDelete,
 }: PreviewCarouselProps): JSX.Element => {
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
@@ -186,7 +188,7 @@ export const PreviewCarousel = ({
           <ActionButton icon={<ExportIcon size={26} color="white" />} label="Export" onPress={onExport} />
           {/* <ActionButton icon={<StarIcon size={26} color="white" />} label="Favorite" onPress={() => undefined} /> */}
           <ActionButton icon={<DotsThreeOutlineIcon size={26} color="white" />} label="More" onPress={onMore} />
-          <ActionButton icon={<TrashIcon size={26} color="white" />} label="Delete" onPress={() => undefined} />
+          <ActionButton icon={<TrashIcon size={26} color="white" />} label="Delete" onPress={onDelete} />
         </View>
       </LinearGradient>
     </Animated.View>

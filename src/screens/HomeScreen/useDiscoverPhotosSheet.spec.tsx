@@ -35,7 +35,6 @@ const makeWrapper = (photosState?: Partial<PhotosState>) => {
         totalScannedAssets: 0,
         totalAssetsUploaded: 0,
         currentUploadProgress: 0,
-        lastSyncTimestamp: null,
         uploadingAssetIds: [],
         deviceId: null,
         sessionTotalAssets: 0,

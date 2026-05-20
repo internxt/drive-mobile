@@ -6,11 +6,12 @@ import { cloudEntryToPhotoItem } from '../utils/photoTimelineGroups';
 
 export interface CloudAssetsResult {
   cloudItems: CloudPhotoItem[];
+  reloadCloud: () => Promise<void>;
 }
 
 export const useCloudAssets = (): CloudAssetsResult => {
   const [cloudItems, setCloudItems] = useState<CloudPhotoItem[]>([]);
-  const { lastSyncTimestamp, cloudFetchRevision } = useAppSelector((state) => state.photos);
+  const { cloudFetchRevision } = useAppSelector((state) => state.photos);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reloadCloudFromDB = useCallback(async () => {
@@ -23,10 +24,10 @@ export const useCloudAssets = (): CloudAssetsResult => {
     setCloudItems(deduplicated.map(cloudEntryToPhotoItem));
   }, []);
 
-  // Immediate reload when the backup cycle completes
+  // Initial load on mount
   useEffect(() => {
     reloadCloudFromDB();
-  }, [reloadCloudFromDB, lastSyncTimestamp]);
+  }, [reloadCloudFromDB]);
 
   // Debounced reload during cloud history sync — parallel workers can fire many
   // rapid increments; coalescing them prevents FlashList from reconciling 2000+
@@ -38,5 +39,5 @@ export const useCloudAssets = (): CloudAssetsResult => {
     };
   }, [reloadCloudFromDB, cloudFetchRevision]);
 
-  return { cloudItems };
+  return { cloudItems, reloadCloud: reloadCloudFromDB };
 };

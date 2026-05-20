@@ -1,5 +1,6 @@
 import {
   CaretLeftIcon,
+  CloudArrowUpIcon,
   CopyIcon,
   DownloadSimpleIcon,
   ExportIcon,
@@ -14,7 +15,7 @@ import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { TimelinePhotoItem } from '../types';
-import { isItemBacked } from '../utils/photoUtils';
+import { isItemBacked, isLocalItemNotBacked } from '../utils/photoUtils';
 
 interface MoreActionsBottomSheetProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ interface MoreActionsBottomSheetProps {
   onSave: () => void;
   onFavorite: () => void;
   onTrash: () => void;
+  onRestore: () => void;
 }
 
 interface ActionRowProps {
@@ -75,6 +77,7 @@ const MoreActionsBottomSheet = ({
   onSave,
   onFavorite,
   onTrash,
+  onRestore,
 }: MoreActionsBottomSheetProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -107,6 +110,7 @@ const MoreActionsBottomSheet = ({
   }, [isOpen]);
 
   const areAllSelectedItemsBacked = selectedItems.every(isItemBacked);
+  const areAllSelectedNotBacked = selectedItems.every(isLocalItemNotBacked);
   const isOneItemSelected = selectedItems.length === 1;
   const hasBackedOrCloud = selectedItems.some(isItemBacked);
   const isSinglePhoto = isOneItemSelected && selectedItems[0]?.mediaType === 'photo';
@@ -137,6 +141,12 @@ const MoreActionsBottomSheet = ({
             icon: <PlusSquareIcon size={22} color={iconColor} />,
             onPress: onDuplicate,
           },
+        areAllSelectedNotBacked && {
+          key: 'restore',
+          label: actionStrings.uploadToCloud,
+          icon: <CloudArrowUpIcon size={22} color={iconColor} />,
+          onPress: onRestore,
+        },
         hasBackedOrCloud && {
           key: 'save',
           label: actionStrings.save,
@@ -166,6 +176,7 @@ const MoreActionsBottomSheet = ({
       }[],
     [
       areAllSelectedItemsBacked,
+      areAllSelectedNotBacked,
       isOneItemSelected,
       isSinglePhoto,
       hasBackedOrCloud,
@@ -177,6 +188,7 @@ const MoreActionsBottomSheet = ({
       onSave,
       onFavorite,
       onTrash,
+      onRestore,
     ],
   );
 

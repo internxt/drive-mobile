@@ -28,7 +28,6 @@ export interface PhotosState {
   totalScannedAssets: number;
   totalAssetsUploaded: number;
   currentUploadProgress: number;
-  lastSyncTimestamp: number | null;
   uploadingAssetIds: string[];
   deviceId: string | null;
   sessionTotalAssets: number;
@@ -46,7 +45,6 @@ const initialState: PhotosState = {
   totalScannedAssets: 0,
   totalAssetsUploaded: 0,
   currentUploadProgress: 0,
-  lastSyncTimestamp: null,
   uploadingAssetIds: [],
   deviceId: null,
   sessionTotalAssets: 0,
@@ -182,11 +180,14 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
   },
 );
 
-export const runUploadThunk = createAsyncThunk<void, void, { state: RootState }>(
+export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean } | void, { state: RootState }>(
   'photos/runUpload',
-  async (_, { getState, dispatch }) => {
+  async (args, { getState, dispatch }) => {
+    const bypassEnabled = args?.bypassEnabled ?? false;
     const { enabled, permissionStatus, deviceId } = getState().photos;
-    if (!enabled || !isPermissionActive(permissionStatus) || !deviceId) return;
+    if ((!enabled && !bypassEnabled) || !isPermissionActive(permissionStatus) || !deviceId) {
+      return;
+    }
 
     const localDBPendingAssets = await photosLocalDB.getPendingAssets();
     if (localDBPendingAssets.length === 0) {
@@ -290,7 +291,6 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
       logger.info('[ForceRefresh] Discovery complete — no pending assets');
     }
     logger.info('[ForceRefresh] Done');
-    dispatch(photosSlice.actions.setLastSyncTimestamp(Date.now()));
   },
 );
 
@@ -319,8 +319,6 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
     if (getState().photos.pendingBackupAssets > 0) {
       await dispatch(runUploadThunk());
     }
-
-    dispatch(photosSlice.actions.setLastSyncTimestamp(Date.now()));
   },
 );
 
@@ -375,9 +373,6 @@ export const photosSlice = createSlice({
     },
     incrementTotalAssetsUploaded: (state) => {
       state.totalAssetsUploaded += 1;
-    },
-    setLastSyncTimestamp: (state, action: PayloadAction<number>) => {
-      state.lastSyncTimestamp = action.payload;
     },
     setSessionUploadTotalAssets: (state, action: PayloadAction<number>) => {
       state.sessionTotalAssets = action.payload;

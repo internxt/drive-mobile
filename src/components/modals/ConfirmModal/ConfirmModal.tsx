@@ -26,7 +26,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = (props) => {
   return (
     <Portal>
       <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
-        <View style={[tailwind('px-4 py-4'), { backgroundColor: getColor('bg-surface') }]}>
+        <View style={tailwind('px-4 py-4 rounded-xl overflow-hidden')}>
           <AppText medium style={[tailwind('text-xl'), { color: getColor('text-gray-100') }]}>
             {props.title}
           </AppText>
