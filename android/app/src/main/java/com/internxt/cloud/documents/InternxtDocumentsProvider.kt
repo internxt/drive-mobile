@@ -39,6 +39,10 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         Thread(r, "InternxtDocsProvider-loader").apply { isDaemon = true }
     }
 
+    private val openExecutor = Executors.newCachedThreadPool { r ->
+        Thread(r, "InternxtDocsProvider-open").apply { isDaemon = true }
+    }
+
     private val folderLoads = ConcurrentHashMap<String, FolderLoad>()
 
     private enum class LoadState { LOADING, DONE, ERROR }
@@ -368,21 +372,52 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             throw UnsupportedOperationException("Only read-only access is supported (mode=$mode)")
         }
 
-        val cfg = authManager.loadAuthConfig() ?: throw FileNotFoundException("Not authenticated")
+        val decoded = DocumentId.decode(id)
+        if (decoded?.kind != DocumentId.Kind.FILE) {
+            throw FileNotFoundException("openDocument requires a file id (got=$id)")
+        }
+        val fileUuid = decoded.uuid
+
+        val future = openExecutor.submit<ParcelFileDescriptor> {
+            openDocumentBlocking(ctx, id, mode, signal, fileUuid)
+        }
+        return try {
+            future.get()
+        } catch (e: java.util.concurrent.ExecutionException) {
+            val cause = e.cause
+            when (cause) {
+                is FileNotFoundException -> throw cause
+                is UnsupportedOperationException -> throw cause
+                null -> throw FileNotFoundException("openDocument failed: ${e.message}")
+                else -> throw FileNotFoundException("openDocument failed: ${cause.javaClass.simpleName}: ${cause.message}").apply { initCause(cause) }
+            }
+        }
+    }
+
+    private fun openDocumentBlocking(
+        ctx: android.content.Context,
+        id: String,
+        mode: String?,
+        signal: CancellationSignal?,
+        fileUuid: String,
+    ): ParcelFileDescriptor {
+        val cfg = authManager?.loadAuthConfig() ?: throw FileNotFoundException("Not authenticated")
+        if (cfg.mnemonic.isBlank()) {
+            throw FileNotFoundException("Stored credentials have no mnemonic; sign out and back in")
+        }
         val api = InternxtApiClient(cfg)
 
         val file = try {
-            api.getFile(id) ?: throw FileNotFoundException("File not found: $id")
+            api.getFile(fileUuid) ?: throw FileNotFoundException("File not found: $fileUuid")
         } catch (e: InternxtApiException) {
-            throw FileNotFoundException("getFile $id failed: ${e.message}")
+            throw FileNotFoundException("getFile $fileUuid failed: ${e.message}")
         }
-        val bucket = file.bucket ?: throw FileNotFoundException("File $id has no bucket")
-        val fileId = file.fileId ?: throw FileNotFoundException("File $id has no fileId")
-        val updatedAt = file.updatedAt ?: throw FileNotFoundException("File $id has no updatedAt")
+        val bucket = file.bucket ?: throw FileNotFoundException("File $fileUuid has no bucket")
+        val fileId = file.fileId ?: throw FileNotFoundException("File $fileUuid has no fileId")
+        val updatedAt = file.updatedAt ?: throw FileNotFoundException("File $fileUuid has no updatedAt")
 
         val cacheFile = DocumentCache.cacheFileFor(ctx, id, updatedAt)
         if (cacheFile.exists() && cacheFile.length() > 0) {
-            Log.d(TAG, "openDocument cache hit id=$id")
             return ParcelFileDescriptor.open(cacheFile, ParcelFileDescriptor.MODE_READ_ONLY)
         }
 
@@ -403,7 +438,6 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             tempEnc.delete()
             DocumentCache.pruneSiblings(ctx, id, cacheFile)
 
-            Log.d(TAG, "openDocument cached id=$id size=${cacheFile.length()}")
             return ParcelFileDescriptor.open(
                 cacheFile,
                 ParcelFileDescriptor.MODE_READ_ONLY,
@@ -414,7 +448,6 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             throw FileNotFoundException("openDocument $id cancelled").apply { initCause(e) }
         } catch (e: Exception) {
             tempEnc.delete(); tempDec.delete()
-            Log.w(TAG, "openDocument $id failed: ${e.javaClass.simpleName}: ${e.message}")
             if (e is FileNotFoundException) throw e
             throw FileNotFoundException("openDocument $id failed: ${e.message}").apply { initCause(e) }
         }

@@ -113,9 +113,37 @@ class InternxtApiClient(
     }
 
     fun getDownloadLinks(bucketId: String, fileId: String): DownloadLinks {
-        val url = bridgeUrl("buckets/$bucketId/files/$fileId/mirrors")
-        val body = executeApiRequest(bridgeRequest(url).get().build())
-        return parseDownloadLinks(body)
+        val url = bridgeUrl("buckets/$bucketId/files/$fileId/info")
+        val request = bridgeRequest(url).header("x-api-version", "2").get().build()
+        val body = executeApiRequest(request)
+
+        val index = body.optStringOrNull("index")
+            ?: throw InternxtApiException.ApiError(500, "Bridge /info response missing 'index'")
+        val version = body.optInt("version", 1)
+        if (version != 2) {
+            throw InternxtApiException.ApiError(409, "File version=$version is not supported (V2 only)")
+        }
+
+        val shardsJson = body.optJSONArray("shards") ?: JSONArray()
+        if (shardsJson.length() == 0) {
+            throw InternxtApiException.ApiError(404, "No shards returned for file $fileId")
+        }
+        val shards = shardsJson.map { obj ->
+            Shard(
+                index = obj.optInt("index"),
+                size = obj.optLongFlexible("size"),
+                hash = obj.optString("hash"),
+                url = obj.optString("url")
+            )
+        }
+
+        return DownloadLinks(
+            bucket = bucketId,
+            index = index,
+            size = body.optLongFlexible("size"),
+            version = version,
+            shards = shards
+        )
     }
 
     private fun driveRequest(url: okhttp3.HttpUrl): Request.Builder =
@@ -140,6 +168,16 @@ class InternxtApiClient(
     private fun bridgeUrl(path: String) = "${config.bridgeBaseUrl.trimEnd('/')}/$path".toHttpUrl()
 
     private fun executeApiRequest(request: Request): JSONObject {
+        val bodyStr = executeRaw(request)
+        return if (bodyStr.isBlank()) JSONObject() else JSONObject(bodyStr)
+    }
+
+    private fun executeApiRequestArray(request: Request): JSONArray {
+        val bodyStr = executeRaw(request)
+        return if (bodyStr.isBlank()) JSONArray() else JSONArray(bodyStr)
+    }
+
+    private fun executeRaw(request: Request): String {
         val response: Response = try {
             client.newCall(request).execute()
         } catch (e: IOException) {
@@ -148,7 +186,7 @@ class InternxtApiClient(
         response.use { resp ->
             val bodyStr = resp.body?.string().orEmpty()
             when (resp.code) {
-                in 200..299 -> return if (bodyStr.isBlank()) JSONObject() else JSONObject(bodyStr)
+                in 200..299 -> return bodyStr
                 401 -> throw InternxtApiException.UnauthorizedException()
                 404 -> throw InternxtApiException.NotFoundException()
                 else -> throw InternxtApiException.ApiError(resp.code, bodyStr)
@@ -177,32 +215,19 @@ class InternxtApiClient(
         fileId = obj.optStringOrNull("fileId")
     )
 
-    private fun parseDownloadLinks(obj: JSONObject): DownloadLinks {
-        val shardsJson = obj.optJSONArray("shards") ?: JSONArray()
-        val shards = shardsJson.map {
-            Shard(
-                index = it.optInt("index"),
-                size = it.optLongFlexible("size"),
-                hash = it.optString("hash"),
-                url = it.optString("url")
-            )
-        }
-        return DownloadLinks(
-            bucket = obj.optString("bucket"),
-            index = obj.optString("index"),
-            size = obj.optLongFlexible("size"),
-            version = obj.optInt("version", 1),
-            shards = shards
-        )
-    }
-
     companion object {
         const val DEFAULT_PAGE_SIZE = 50
 
         private val JSON = "application/json; charset=utf-8".toMediaType()
 
-        private fun defaultClient(): OkHttpClient = OkHttpClient.Builder()
-            .callTimeout(30, TimeUnit.SECONDS)
-            .build()
+        private val sharedClient: OkHttpClient by lazy {
+            OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .callTimeout(30, TimeUnit.SECONDS)
+                .build()
+        }
+
+        private fun defaultClient(): OkHttpClient = sharedClient
     }
 }
