@@ -19,6 +19,7 @@ class InternxtAuthManagerTest {
             bearerToken = "bearer-xyz",
             userId = "user-1",
             bridgeUser = USER_EMAIL,
+            mnemonic = "test mnemonic phrase",
             rootFolderUuid = "root-uuid",
             email = USER_EMAIL,
             driveBaseUrl = "https://drive.test/api",

@@ -34,6 +34,7 @@ class InternxtApiClientTest {
                 bearerToken = "test-token",
                 bridgeUser = "user@example.com",
                 userId = "1234567890",
+                mnemonic = "test mnemonic phrase",
                 clientName = "drive-mobile",
                 clientVersion = "v1.9.0",
                 desktopToken = "desktop-token-xyz"
@@ -148,15 +149,22 @@ class InternxtApiClientTest {
 
         val links = client.getDownloadLinks(BUCKET_ID, "file-id-1")
 
+        assertEquals(BUCKET_ID, links.bucket)
+        assertEquals("idx", links.index)
+        assertEquals(1024L, links.size)
+        assertEquals(2, links.version)
         assertEquals(1, links.shards.size)
         assertEquals("https://shard/0", links.shards[0].url)
         assertEquals(512L, links.shards[0].size)
 
-        val recorded = server.takeRequest()
+        val infoRequest = server.takeRequest()
+        assertEquals("/buckets/$BUCKET_ID/files/file-id-1/info", infoRequest.path)
+        assertEquals("2", infoRequest.getHeader("x-api-version"))
+
         val expectedPass = "c775e7b757ede630cd0aa1113bd102661ab38829ca52a6422ab782862f268646"
         val expectedAuth = "Basic " + java.util.Base64.getEncoder()
             .encodeToString("user@example.com:$expectedPass".toByteArray(Charsets.UTF_8))
-        assertEquals(expectedAuth, recorded.getHeader("Authorization"))
+        assertEquals(expectedAuth, infoRequest.getHeader("Authorization"))
     }
 
     @Test
