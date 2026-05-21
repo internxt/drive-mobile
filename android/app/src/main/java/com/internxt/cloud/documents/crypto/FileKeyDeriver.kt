@@ -29,6 +29,6 @@ object FileKeyDeriver {
     }
 
     fun deriveIv(indexHex: String): ByteArray = Hex.decodeHex(indexHex).copyOf(IV_LENGTH)
-
-    fun toHex(bytes: ByteArray): String = Hex.encodeHex(bytes, /* truncateAtFirstZero = */ false)
 }
+
+fun ByteArray.toHex(): String = Hex.encodeHex(this, /* truncateAtFirstZero = */ false)
