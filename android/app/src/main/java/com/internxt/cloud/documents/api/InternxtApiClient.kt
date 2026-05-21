@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 
 class InternxtApiClient(
     private val config: AuthConfig,
-    private val client: OkHttpClient = defaultClient()
+    private val client: OkHttpClient = sharedClient
 ) {
 
     fun listFolderFolders(parentUuid: String, offset: Int = 0, limit: Int = DEFAULT_PAGE_SIZE): List<DriveFolder> =
@@ -168,16 +168,6 @@ class InternxtApiClient(
     private fun bridgeUrl(path: String) = "${config.bridgeBaseUrl.trimEnd('/')}/$path".toHttpUrl()
 
     private fun executeApiRequest(request: Request): JSONObject {
-        val bodyStr = executeRaw(request)
-        return if (bodyStr.isBlank()) JSONObject() else JSONObject(bodyStr)
-    }
-
-    private fun executeApiRequestArray(request: Request): JSONArray {
-        val bodyStr = executeRaw(request)
-        return if (bodyStr.isBlank()) JSONArray() else JSONArray(bodyStr)
-    }
-
-    private fun executeRaw(request: Request): String {
         val response: Response = try {
             client.newCall(request).execute()
         } catch (e: IOException) {
@@ -185,8 +175,8 @@ class InternxtApiClient(
         }
         response.use { resp ->
             val bodyStr = resp.body?.string().orEmpty()
-            when (resp.code) {
-                in 200..299 -> return bodyStr
+            return when (resp.code) {
+                in 200..299 -> if (bodyStr.isBlank()) JSONObject() else JSONObject(bodyStr)
                 401 -> throw InternxtApiException.UnauthorizedException()
                 404 -> throw InternxtApiException.NotFoundException()
                 else -> throw InternxtApiException.ApiError(resp.code, bodyStr)
@@ -220,14 +210,12 @@ class InternxtApiClient(
 
         private val JSON = "application/json; charset=utf-8".toMediaType()
 
-        private val sharedClient: OkHttpClient by lazy {
+        internal val sharedClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
                 .readTimeout(15, TimeUnit.SECONDS)
                 .callTimeout(30, TimeUnit.SECONDS)
                 .build()
         }
-
-        private fun defaultClient(): OkHttpClient = sharedClient
     }
 }
