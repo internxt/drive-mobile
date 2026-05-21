@@ -1,8 +1,17 @@
 package com.internxt.cloud.documents.crypto
 
+import com.facebook.common.util.Hex
 import com.rncrypto.util.CryptoService
-import java.security.MessageDigest
 
+/**
+ * Derives the AES-CTR key/IV used to decrypt files from Internxt's network shards.
+ * Matches src/network/crypto.ts: generateFileKey.
+ *
+ *   seed      = PBKDF2(mnemonic, "mnemonic", 2048, 64)
+ *   bucketKey = SHA-512( seed || bucketId )
+ *   fileKey   = SHA-512( bucketKey[0..32] || index )[0..32]
+ *   iv        = index[0..16]
+ */
 object FileKeyDeriver {
 
     private const val PBKDF2_SALT = "mnemonic"
@@ -12,47 +21,14 @@ object FileKeyDeriver {
     private const val IV_LENGTH = 16
 
     fun deriveFileKey(mnemonic: String, bucketIdHex: String, indexHex: String): ByteArray {
-        val seed = pbkdf2Seed(mnemonic)
-        val bucketKey = sha512(seed, hexDecode(bucketIdHex))
-        val fileKey = sha512(bucketKey.copyOf(FILE_KEY_LENGTH), hexDecode(indexHex))
+        val crypto = CryptoService.getInstance()
+        val seed = crypto.pbkdf2(mnemonic, PBKDF2_SALT.toByteArray(Charsets.UTF_8), PBKDF2_ROUNDS, SEED_LENGTH)
+        val bucketKey = crypto.sha512(listOf(seed, Hex.decodeHex(bucketIdHex)))
+        val fileKey = crypto.sha512(listOf(bucketKey.copyOf(FILE_KEY_LENGTH), Hex.decodeHex(indexHex)))
         return fileKey.copyOf(FILE_KEY_LENGTH)
     }
 
-    fun deriveIv(indexHex: String): ByteArray = hexDecode(indexHex).copyOf(IV_LENGTH)
+    fun deriveIv(indexHex: String): ByteArray = Hex.decodeHex(indexHex).copyOf(IV_LENGTH)
 
-    fun toHex(bytes: ByteArray): String {
-        val sb = StringBuilder(bytes.size * 2)
-        for (b in bytes) {
-            val v = b.toInt() and 0xff
-            sb.append(HEX[v ushr 4])
-            sb.append(HEX[v and 0x0f])
-        }
-        return sb.toString()
-    }
-
-    private fun pbkdf2Seed(mnemonic: String): ByteArray =
-        CryptoService.getInstance().pbkdf2(mnemonic, PBKDF2_SALT.toByteArray(Charsets.UTF_8), PBKDF2_ROUNDS, SEED_LENGTH)
-
-    private fun sha512(key: ByteArray, data: ByteArray): ByteArray {
-        val md = MessageDigest.getInstance("SHA-512")
-        md.update(key)
-        md.update(data)
-        return md.digest()
-    }
-
-    private fun hexDecode(hex: String): ByteArray {
-        require(hex.length % 2 == 0) { "Hex string must have even length" }
-        val out = ByteArray(hex.length / 2)
-        var i = 0
-        while (i < hex.length) {
-            val hi = Character.digit(hex[i], 16)
-            val lo = Character.digit(hex[i + 1], 16)
-            require(hi >= 0 && lo >= 0) { "Invalid hex character at position $i" }
-            out[i / 2] = ((hi shl 4) or lo).toByte()
-            i += 2
-        }
-        return out
-    }
-
-    private val HEX = "0123456789abcdef".toCharArray()
+    fun toHex(bytes: ByteArray): String = Hex.encodeHex(bytes, /* truncateAtFirstZero = */ false)
 }

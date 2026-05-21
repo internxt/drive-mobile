@@ -379,17 +379,15 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val fileUuid = decoded.uuid
 
         val future = openExecutor.submit<ParcelFileDescriptor> {
-            openDocumentBlocking(ctx, id, mode, signal, fileUuid)
+            openDocumentBlocking(ctx, id, signal, fileUuid)
         }
         return try {
             future.get()
         } catch (e: java.util.concurrent.ExecutionException) {
             val cause = e.cause
-            when (cause) {
-                is FileNotFoundException -> throw cause
-                is UnsupportedOperationException -> throw cause
-                null -> throw FileNotFoundException("openDocument failed: ${e.message}")
-                else -> throw FileNotFoundException("openDocument failed: ${cause.javaClass.simpleName}: ${cause.message}").apply { initCause(cause) }
+            if (cause is FileNotFoundException) throw cause
+            throw FileNotFoundException("openDocument failed: ${cause?.message ?: e.message}").apply {
+                if (cause != null) initCause(cause)
             }
         }
     }
@@ -397,7 +395,6 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun openDocumentBlocking(
         ctx: android.content.Context,
         id: String,
-        mode: String?,
         signal: CancellationSignal?,
         fileUuid: String,
     ): ParcelFileDescriptor {
