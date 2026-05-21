@@ -11,41 +11,35 @@ object DocumentCache {
     private const val DEC_SUFFIX = ".dec"
     private const val ENC_SUFFIX = ".enc"
 
-    fun cacheFileFor(context: Context, uuid: String, updatedAt: String): File {
-        val dir = File(context.cacheDir, "$ROOT_DIR/$CACHE_DIR").apply { mkdirs() }
-        return File(dir, "${uuid}_${slugFromUpdatedAt(updatedAt)}$DEC_SUFFIX")
-    }
+    fun cacheFileFor(context: Context, uuid: String, updatedAt: String): File =
+        File(cacheDir(context), "${uuid}_${slugFromUpdatedAt(updatedAt)}$DEC_SUFFIX")
 
     fun tempPaths(context: Context, uuid: String): Pair<File, File> {
-        val dir = File(context.cacheDir, "$ROOT_DIR/$TMP_DIR").apply { mkdirs() }
+        val dir = tmpDir(context)
         val token = "${uuid}_${System.nanoTime()}"
         return File(dir, "$token$ENC_SUFFIX") to File(dir, "$token$DEC_SUFFIX")
     }
 
     fun pruneSiblings(context: Context, uuid: String, keep: File) {
-        val dir = File(context.cacheDir, "$ROOT_DIR/$CACHE_DIR")
-        val children = dir.listFiles() ?: return
-        for (file in children) {
-            if (file == keep) continue
-            if (file.name.startsWith("${uuid}_") && file.name.endsWith(DEC_SUFFIX)) {
-                file.delete()
-            }
+        deleteMatching(cacheDir(context)) {
+            it != keep && it.name.startsWith("${uuid}_") && it.name.endsWith(DEC_SUFFIX)
         }
     }
 
     fun deleteTempsFor(context: Context, uuid: String) {
-        val dir = File(context.cacheDir, "$ROOT_DIR/$TMP_DIR")
-        val children = dir.listFiles() ?: return
-        for (file in children) {
-            if (file.name.startsWith("${uuid}_")) file.delete()
-        }
+        deleteMatching(tmpDir(context)) { it.name.startsWith("${uuid}_") }
     }
 
-    fun slugFromUpdatedAt(updatedAt: String): String {
-        val sb = StringBuilder(updatedAt.length)
-        for (c in updatedAt) {
-            if (c.isLetterOrDigit()) sb.append(c)
-        }
-        return if (sb.isEmpty()) "0" else sb.toString()
+    private fun cacheDir(context: Context): File =
+        File(context.cacheDir, "$ROOT_DIR/$CACHE_DIR").apply { mkdirs() }
+
+    private fun tmpDir(context: Context): File =
+        File(context.cacheDir, "$ROOT_DIR/$TMP_DIR").apply { mkdirs() }
+
+    private inline fun deleteMatching(dir: File, predicate: (File) -> Boolean) {
+        dir.listFiles()?.forEach { if (predicate(it)) it.delete() }
     }
+
+    private fun slugFromUpdatedAt(updatedAt: String): String =
+        updatedAt.filter { it.isLetterOrDigit() }.ifEmpty { "0" }
 }

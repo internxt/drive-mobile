@@ -58,7 +58,7 @@ object EncryptedFileDownloader {
         try {
             call.execute().use { response -> writeShardResponse(shard, response, out) }
         } catch (e: IOException) {
-            if (signal?.isCanceled == true) {
+            if (signal != null && signal.isCanceled) {
                 throw OperationCanceledException("Download cancelled").apply { initCause(e) }
             }
             throw e

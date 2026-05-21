@@ -6,6 +6,7 @@ import com.internxt.cloud.documents.api.model.DriveFolder
 import com.internxt.cloud.documents.api.model.Shard
 import com.internxt.cloud.documents.api.model.TrashItem
 import com.internxt.cloud.documents.crypto.HashUtil
+import com.internxt.cloud.documents.http.HttpClients
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -16,11 +17,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.util.Base64
-import java.util.concurrent.TimeUnit
 
 class InternxtApiClient(
     private val config: AuthConfig,
-    private val client: OkHttpClient = sharedClient
+    private val client: OkHttpClient = HttpClients.api
 ) {
 
     fun listFolderFolders(parentUuid: String, offset: Int = 0, limit: Int = DEFAULT_PAGE_SIZE): List<DriveFolder> =
@@ -115,34 +115,34 @@ class InternxtApiClient(
     fun getDownloadLinks(bucketId: String, fileId: String): DownloadLinks {
         val url = bridgeUrl("buckets/$bucketId/files/$fileId/info")
         val request = bridgeRequest(url).header("x-api-version", "2").get().build()
-        val body = executeApiRequest(request)
+        return parseDownloadLinks(executeApiRequest(request), bucketId, fileId)
+    }
 
+    private fun parseDownloadLinks(body: JSONObject, bucketId: String, fileId: String): DownloadLinks {
         val index = body.optStringOrNull("index")
-            ?: throw InternxtApiException.ApiError(500, "Bridge /info response missing 'index'")
+            ?: throw InternxtApiException.MalformedResponse("Bridge /info missing 'index'")
         val version = body.optInt("version", 1)
         if (version != 2) {
-            throw InternxtApiException.ApiError(409, "File version=$version is not supported (V2 only)")
+            throw InternxtApiException.MalformedResponse("File version=$version is not supported (V2 only)")
         }
-
         val shardsJson = body.optJSONArray("shards") ?: JSONArray()
         if (shardsJson.length() == 0) {
-            throw InternxtApiException.ApiError(404, "No shards returned for file $fileId")
+            throw InternxtApiException.MalformedResponse("No shards returned for file $fileId")
         }
         val shards = shardsJson.map { obj ->
             Shard(
                 index = obj.optInt("index"),
                 size = obj.optLongFlexible("size"),
                 hash = obj.optString("hash"),
-                url = obj.optString("url")
+                url = obj.optString("url"),
             )
         }
-
         return DownloadLinks(
             bucket = bucketId,
             index = index,
             size = body.optLongFlexible("size"),
             version = version,
-            shards = shards
+            shards = shards,
         )
     }
 
@@ -209,13 +209,5 @@ class InternxtApiClient(
         const val DEFAULT_PAGE_SIZE = 50
 
         private val JSON = "application/json; charset=utf-8".toMediaType()
-
-        internal val sharedClient: OkHttpClient by lazy {
-            OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .callTimeout(30, TimeUnit.SECONDS)
-                .build()
-        }
     }
 }
