@@ -7,4 +7,5 @@ sealed class InternxtApiException(message: String, cause: Throwable? = null) : I
     class NotFoundException(message: String = "404 Not Found") : InternxtApiException(message)
     class ApiError(val code: Int, val body: String?) : InternxtApiException("HTTP $code: ${body ?: ""}")
     class NetworkException(cause: Throwable) : InternxtApiException("Network error", cause)
+    class MalformedResponse(message: String) : InternxtApiException("Malformed response: $message")
 }
