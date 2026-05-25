@@ -31,6 +31,7 @@ const makeWrapper = (photosState?: Partial<PhotosState>) => {
         networkCondition: 'wifi-only',
         permissionStatus: 'undetermined',
         syncStatus: 'idle',
+        isPaused: false,
         pendingBackupAssets: 0,
         totalScannedAssets: 0,
         totalAssetsUploaded: 0,

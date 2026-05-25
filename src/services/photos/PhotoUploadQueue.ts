@@ -16,29 +16,56 @@ interface UploadQueueCallbacks {
   onAssetError?: (assetId: string, error: Error) => Promise<void> | void;
 }
 
+let currentController: AbortController | null = null;
+
+// TODO: MAKE IT CLASS
 export const PhotoUploadQueue = {
   async start(jobs: AssetUploadJob[], deviceId: string, callbacks: UploadQueueCallbacks): Promise<void> {
-    const limit = pLimit(UPLOAD_CONCURRENCY);
+    currentController = new AbortController();
+    const { signal } = currentController;
 
-    await Promise.all(
-      jobs.map((job) =>
-        limit(async () => {
-          const { asset, existingRemoteFileId } = job;
-          callbacks.onAssetStart?.(asset.id);
-          try {
-            const remoteFileId = existingRemoteFileId
-              ? await PhotoUploadService.replace(asset, existingRemoteFileId, deviceId, (ratio) =>
-                  callbacks.onAssetProgress?.(asset.id, ratio),
-                )
-              : await PhotoUploadService.upload(asset, deviceId, (ratio) =>
-                  callbacks.onAssetProgress?.(asset.id, ratio),
-                );
-            await callbacks.onAssetDone?.(asset.id, remoteFileId, asset.modificationTime);
-          } catch (uploadError) {
-            await callbacks.onAssetError?.(asset.id, uploadError as Error);
-          }
-        }),
-      ),
-    );
+    try {
+      const limit = pLimit(UPLOAD_CONCURRENCY);
+
+      await Promise.all(
+        jobs.map((job) =>
+          limit(async () => {
+            if (signal.aborted) {
+              return;
+            }
+            const { asset, existingRemoteFileId } = job;
+            callbacks.onAssetStart?.(asset.id);
+
+            try {
+              const remoteFileId = existingRemoteFileId
+                ? await PhotoUploadService.replace(
+                    asset,
+                    existingRemoteFileId,
+                    deviceId,
+                    (ratio) => callbacks.onAssetProgress?.(asset.id, ratio),
+                    signal,
+                  )
+                : await PhotoUploadService.upload(
+                    asset,
+                    deviceId,
+                    (ratio) => callbacks.onAssetProgress?.(asset.id, ratio),
+                    signal,
+                  );
+              await callbacks.onAssetDone?.(asset.id, remoteFileId, asset.modificationTime);
+            } catch (uploadError) {
+              await callbacks.onAssetError?.(asset.id, uploadError as Error);
+            }
+          }),
+        ),
+      );
+    } finally {
+      if (currentController?.signal === signal) {
+        currentController = null;
+      }
+    }
+  },
+
+  abortAll(): void {
+    currentController?.abort();
   },
 };

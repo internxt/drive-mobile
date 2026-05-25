@@ -71,6 +71,7 @@ const uploadAssetToBucket = async (
   asset: MediaLibrary.Asset,
   deviceId: string,
   onProgress?: (ratio: number) => void,
+  signal?: AbortSignal,
 ): Promise<FileUploadResult> => {
   const { localPath: localFilePath, tempPath } = await resolveLocalPath(asset);
 
@@ -101,7 +102,7 @@ const uploadAssetToBucket = async (
       encryptionKey,
       constants.BRIDGE_URL,
       { user: bridgeUser, pass: bridgePass },
-      { notifyProgress: onProgress },
+      { notifyProgress: onProgress, signal },
     );
   } catch (uploadError) {
     await cleanupTempFile(tempPath);
@@ -167,17 +168,22 @@ const uploadThumbnailForAsset = async (
       encryptVersion: EncryptionVersion.Aes03,
     });
   } catch {
-    // Thumbnail is best-effort — never block the main upload result
+    logger.error(`Failed to upload thumbnail for file ${fileUuid}, with thumbnail path ${thumbnailPath}`);
   } finally {
     await cleanupTempFile(thumbnailPath);
   }
 };
 
 export const PhotoUploadService = {
-  async upload(asset: MediaLibrary.Asset, deviceId: string, onProgress?: (ratio: number) => void): Promise<string> {
+  async upload(
+    asset: MediaLibrary.Asset,
+    deviceId: string,
+    onProgress?: (ratio: number) => void,
+    signal?: AbortSignal,
+  ): Promise<string> {
     let fileUploadResult: FileUploadResult;
     try {
-      fileUploadResult = await uploadAssetToBucket(asset, deviceId, onProgress);
+      fileUploadResult = await uploadAssetToBucket(asset, deviceId, onProgress, signal);
     } catch (err) {
       if (err instanceof FileAlreadyExistsError) {
         return err.existingUuid;
@@ -225,6 +231,7 @@ export const PhotoUploadService = {
     existingRemoteFileId: string,
     deviceId: string,
     onProgress?: (ratio: number) => void,
+    signal?: AbortSignal,
   ): Promise<string> {
     const {
       fileId,
@@ -238,7 +245,7 @@ export const PhotoUploadService = {
       folderUuid,
       modificationIso,
       creationIso,
-    } = await uploadAssetToBucket(asset, deviceId, onProgress);
+    } = await uploadAssetToBucket(asset, deviceId, onProgress, signal);
 
     try {
       try {

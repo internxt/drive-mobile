@@ -10,6 +10,7 @@ import {
   GroupHeaderFetching,
   GroupHeaderPaused,
   GroupHeaderPausedStorageFull,
+  GroupHeaderPausing,
   GroupHeaderScanning,
   GroupHeaderUploading,
 } from './GroupHeaderStatus';
@@ -19,6 +20,7 @@ export type GroupSyncStatus =
   | { type: 'scanning' }
   | { type: 'fetching' }
   | { type: 'uploading'; count?: number; backupProgress?: number }
+  | { type: 'pausing' }
   | { type: 'paused'; count: number }
   | { type: 'paused-storage-full' }
   | { type: 'completed' }
@@ -29,6 +31,8 @@ interface PhotosGroupHeaderProps {
   syncStatus: GroupSyncStatus;
   isSticky?: boolean;
   stickyOpacity?: Animated.AnimatedInterpolation<number>;
+  onPausePress?: () => void;
+  onResumePress?: () => void;
 }
 
 const GRADIENT_LOCATIONS: [number, number, number] = [0, 0.35, 1];
@@ -48,7 +52,14 @@ const BackupProgressBar = ({
 );
 
 const PhotosGroupHeader = memo(
-  ({ label, syncStatus, isSticky, stickyOpacity }: PhotosGroupHeaderProps): JSX.Element => {
+  ({
+    label,
+    syncStatus,
+    isSticky,
+    stickyOpacity,
+    onPausePress,
+    onResumePress,
+  }: PhotosGroupHeaderProps): JSX.Element => {
     const tailwind = useTailwind();
     const getColor = useGetColor();
 
@@ -97,14 +108,17 @@ const PhotosGroupHeader = memo(
                 primaryColor={primaryColor}
                 labelColor={labelColor}
                 statusColor={statusColor}
+                onPausePress={onPausePress}
               />
             )}
+            {syncStatus.type === 'pausing' && <GroupHeaderPausing color={labelColor} />}
             {syncStatus.type === 'paused' && (
               <GroupHeaderPaused
                 count={syncStatus.count}
                 primaryColor={primaryColor}
                 labelColor={labelColor}
                 statusColor={statusColor}
+                onResumePress={onResumePress}
               />
             )}
             {syncStatus.type === 'paused-storage-full' && <GroupHeaderPausedStorageFull dangerColor={dangerColor} />}

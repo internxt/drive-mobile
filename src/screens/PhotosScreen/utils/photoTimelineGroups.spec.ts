@@ -173,11 +173,29 @@ describe('getGroupSyncStatus', () => {
   const group = makeDateGroup({ photos: [makePhotoItem(), makePhotoItem()] });
 
   test('when sync status is scanning, then returns a scanning status', () => {
-    expect(getGroupSyncStatus(group, 'scanning', 0, undefined, false)).toEqual({ type: 'scanning' });
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'scanning',
+        remainingCount: 0,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: false,
+      }),
+    ).toEqual({ type: 'scanning' });
   });
 
   test('when sync status is uploading, then returns uploading with remaining count and progress', () => {
-    expect(getGroupSyncStatus(group, 'uploading', 3, 0.5, false)).toEqual({
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'uploading',
+        remainingCount: 3,
+        backupProgress: 0.5,
+        isFetchingCloudHistory: false,
+        isPaused: false,
+      }),
+    ).toEqual({
       type: 'uploading',
       count: 3,
       backupProgress: 0.5,
@@ -185,15 +203,120 @@ describe('getGroupSyncStatus', () => {
   });
 
   test('when isFetchingCloudHistory is true and sync status is idle, then returns a fetching status', () => {
-    expect(getGroupSyncStatus(group, 'idle', 0, undefined, true)).toEqual({ type: 'fetching' });
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'idle',
+        remainingCount: 0,
+        backupProgress: undefined,
+        isFetchingCloudHistory: true,
+        isPaused: false,
+      }),
+    ).toEqual({ type: 'fetching' });
   });
 
   test('when sync status is idle, then returns a count equal to the number of photos in the group', () => {
-    expect(getGroupSyncStatus(group, 'idle', 0, undefined, false)).toEqual({ type: 'count', count: 2 });
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'idle',
+        remainingCount: 0,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: false,
+      }),
+    ).toEqual({ type: 'count', count: 2 });
   });
 
-  test('when sync status is synced, then returns a count equal to the number of photos in the group', () => {
-    expect(getGroupSyncStatus(group, 'synced', 0, undefined, false)).toEqual({ type: 'count', count: 2 });
+  test('when sync status is synced and cloud history is not fetching, then returns completed status', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'synced',
+        remainingCount: 0,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: false,
+      }),
+    ).toEqual({ type: 'completed' });
+  });
+
+  test('when sync status is synced and cloud history is fetching, then returns fetching status', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'synced',
+        remainingCount: 0,
+        backupProgress: undefined,
+        isFetchingCloudHistory: true,
+        isPaused: false,
+      }),
+    ).toEqual({ type: 'fetching' });
+  });
+
+  test('when sync status is paused, then returns paused status with remaining count', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'paused',
+        remainingCount: 5,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: false,
+      }),
+    ).toEqual({ type: 'paused', count: 5 });
+  });
+
+  test('when the backup is paused and sync status is idle, then returns paused regardless of sync status', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'idle',
+        remainingCount: 5,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: true,
+      }),
+    ).toEqual({ type: 'paused', count: 5 });
+  });
+
+  test('when the backup is paused and sync status is scanning, then returns paused regardless of sync status', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'scanning',
+        remainingCount: 5,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: true,
+      }),
+    ).toEqual({ type: 'paused', count: 5 });
+  });
+
+  test('when the backup is paused and sync status is pausing, then returns pausing', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'pausing',
+        remainingCount: 5,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: true,
+      }),
+    ).toEqual({ type: 'pausing' });
+  });
+
+  test('when the backup is paused and cloud history is fetching, then paused takes priority over fetching', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'idle',
+        remainingCount: 5,
+        backupProgress: undefined,
+        isFetchingCloudHistory: true,
+        isPaused: true,
+      }),
+    ).toEqual({ type: 'paused', count: 5 });
   });
 });
 

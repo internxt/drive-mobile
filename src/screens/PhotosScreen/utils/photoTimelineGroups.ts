@@ -81,20 +81,43 @@ export const groupAssetsByDate = (
   }));
 };
 
-export const getGroupSyncStatus = (
-  group: PhotoDateGroup,
-  syncStatus: PhotoSyncStatus,
-  remainingCount: number,
-  backupProgress: number | undefined,
-  isFetchingCloudHistory: boolean,
-): GroupSyncStatus => {
+export const getGroupSyncStatus = ({
+  group,
+  syncStatus,
+  remainingCount,
+  backupProgress,
+  isFetchingCloudHistory,
+  isPaused,
+}: {
+  group: PhotoDateGroup;
+  syncStatus: PhotoSyncStatus;
+  remainingCount: number;
+  backupProgress: number | undefined;
+  isFetchingCloudHistory: boolean;
+  isPaused: boolean;
+}): GroupSyncStatus => {
+  if (isPaused) {
+    return syncStatus === 'pausing' ? { type: 'pausing' } : { type: 'paused', count: remainingCount };
+  }
+
   switch (syncStatus) {
     case 'scanning':
       return { type: 'scanning' };
     case 'uploading':
       return { type: 'uploading', count: remainingCount, backupProgress };
+    case 'pausing':
+      return { type: 'pausing' };
+    case 'synced':
+      if (isFetchingCloudHistory) {
+        return { type: 'fetching' };
+      }
+      return { type: 'completed' };
+    case 'paused':
+      return { type: 'paused', count: remainingCount };
     default:
-      if (isFetchingCloudHistory) return { type: 'fetching' };
+      if (isFetchingCloudHistory) {
+        return { type: 'fetching' };
+      }
       return { type: 'count', count: group.photos.length };
   }
 };
@@ -132,7 +155,9 @@ export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: 
   const result: PhotoDateGroup[] = localGroups.map((group) => {
     processedKeys.add(group.id);
     const extra = cloudByKey.get(group.id);
-    if (!extra) return group; // no cloud additions — preserve reference so FlashList skips these cells
+    if (!extra) {
+      return group; // no cloud additions — preserve reference so FlashList skips these cells
+    }
     return { ...group, photos: [...group.photos, ...extra] };
   });
 

@@ -6,10 +6,12 @@ import {
   PlayCircleIcon,
   WarningCircleIcon,
 } from 'phosphor-react-native';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../../assets/lang/strings';
+
+const ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 
 interface ColorProps {
   color: string;
@@ -59,9 +61,16 @@ interface UploadingProps {
   primaryColor: string;
   labelColor: string;
   statusColor: string;
+  onPausePress?: () => void;
 }
 
-export const GroupHeaderUploading = ({ count, primaryColor, labelColor, statusColor }: UploadingProps): JSX.Element => {
+export const GroupHeaderUploading = ({
+  count,
+  primaryColor,
+  labelColor,
+  statusColor,
+  onPausePress,
+}: UploadingProps): JSX.Element => {
   const tailwind = useTailwind();
   return (
     <>
@@ -74,7 +83,21 @@ export const GroupHeaderUploading = ({ count, primaryColor, labelColor, statusCo
           {count.toLocaleString()} {strings.screens.photos.groupHeader.items}
         </AppText>
       )}
-      <PauseCircleIcon size={24} color={primaryColor} weight="fill" />
+      <TouchableOpacity onPress={onPausePress} hitSlop={ICON_HIT_SLOP}>
+        <PauseCircleIcon size={24} color={primaryColor} weight="fill" />
+      </TouchableOpacity>
+    </>
+  );
+};
+
+export const GroupHeaderPausing = ({ color }: ColorProps): JSX.Element => {
+  const tailwind = useTailwind();
+  return (
+    <>
+      <ActivityIndicator size="small" color={color} />
+      <AppText medium style={[tailwind('text-base'), { color, lineHeight: 24 }]}>
+        {strings.screens.photos.groupHeader.backupPausing}
+      </AppText>
     </>
   );
 };
@@ -84,9 +107,16 @@ interface PausedProps {
   primaryColor: string;
   labelColor: string;
   statusColor: string;
+  onResumePress?: () => void;
 }
 
-export const GroupHeaderPaused = ({ count, primaryColor, labelColor, statusColor }: PausedProps): JSX.Element => {
+export const GroupHeaderPaused = ({
+  count,
+  primaryColor,
+  labelColor,
+  statusColor,
+  onResumePress,
+}: PausedProps): JSX.Element => {
   const tailwind = useTailwind();
   return (
     <>
@@ -96,7 +126,9 @@ export const GroupHeaderPaused = ({ count, primaryColor, labelColor, statusColor
       <AppText style={[tailwind('text-sm'), { color: statusColor, lineHeight: 24 }]}>
         {count.toLocaleString()} {strings.screens.photos.groupHeader.items}
       </AppText>
-      <PlayCircleIcon size={24} color={primaryColor} weight="fill" />
+      <TouchableOpacity onPress={onResumePress} hitSlop={ICON_HIT_SLOP}>
+        <PlayCircleIcon size={24} color={primaryColor} weight="fill" />
+      </TouchableOpacity>
     </>
   );
 };

@@ -80,7 +80,13 @@ describe('PhotoUploadQueue.start', () => {
 
     await PhotoUploadQueue.start([job], DEVICE_ID, { onAssetDone });
 
-    expect(mockReplace).toHaveBeenCalledWith(asset, 'existing-remote-id', DEVICE_ID, expect.any(Function));
+    expect(mockReplace).toHaveBeenCalledWith(
+      asset,
+      'existing-remote-id',
+      DEVICE_ID,
+      expect.any(Function),
+      expect.any(AbortSignal),
+    );
     expect(mockUpload).not.toHaveBeenCalled();
     expect(onAssetDone).toHaveBeenCalledWith('a1', 'existing-remote-id', asset.modificationTime);
   });
@@ -103,5 +109,46 @@ describe('PhotoUploadQueue.start', () => {
     await PhotoUploadQueue.start(jobs, DEVICE_ID, { onAssetDone });
 
     expect(onAssetDone).toHaveBeenCalledTimes(3);
+  });
+
+  test('when upload is called, then the abort signal is passed to the upload service', async () => {
+    const asset = makeAsset('a1');
+    mockUpload.mockResolvedValue('remote-id');
+
+    await PhotoUploadQueue.start([{ asset }], DEVICE_ID, {});
+
+    expect(mockUpload).toHaveBeenCalledWith(asset, DEVICE_ID, expect.any(Function), expect.any(AbortSignal));
+  });
+});
+
+describe('PhotoUploadQueue.abortAll', () => {
+  test('when abort all is called mid run, then subsequent jobs are skipped via the abort signal', async () => {
+    const asset = makeAsset('a1');
+    mockUpload.mockImplementationOnce(async () => {
+      PhotoUploadQueue.abortAll();
+      return 'remote-id';
+    });
+
+    const onAssetStart = jest.fn();
+    const secondAsset = makeAsset('a2');
+    mockUpload.mockResolvedValueOnce('remote-id-2');
+
+    await PhotoUploadQueue.start([{ asset }, { asset: secondAsset }], DEVICE_ID, { onAssetStart });
+
+    // First job ran, second was skipped because signal was aborted after first job
+    expect(onAssetStart).toHaveBeenCalledWith('a1');
+    expect(onAssetStart).not.toHaveBeenCalledWith('a2');
+  });
+
+  test('when start is called again after abort, then a fresh abort signal is created', async () => {
+    const asset = makeAsset('a1');
+    mockUpload.mockResolvedValue('remote-id');
+
+    PhotoUploadQueue.abortAll();
+    await PhotoUploadQueue.start([{ asset }], DEVICE_ID, {});
+
+    const passedSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, AbortSignal])[3];
+    expect(passedSignal).toBeDefined();
+    expect(passedSignal.aborted).toBe(false);
   });
 });

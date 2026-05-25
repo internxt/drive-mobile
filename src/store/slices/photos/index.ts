@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
@@ -17,13 +18,14 @@ import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
-export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'synced' | 'paused' | 'error';
+export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'pausing' | 'synced' | 'paused' | 'error';
 
 export interface PhotosState {
   enabled: boolean;
   networkCondition: PhotoNetworkCondition;
   permissionStatus: PhotoPermissionStatus;
   syncStatus: PhotoSyncStatus;
+  isPaused: boolean;
   pendingBackupAssets: number;
   totalScannedAssets: number;
   totalAssetsUploaded: number;
@@ -41,6 +43,7 @@ const initialState: PhotosState = {
   networkCondition: 'wifi-only',
   permissionStatus: 'undetermined',
   syncStatus: 'idle',
+  isPaused: false,
   pendingBackupAssets: 0,
   totalScannedAssets: 0,
   totalAssetsUploaded: 0,
@@ -54,7 +57,20 @@ const initialState: PhotosState = {
 };
 
 const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
-  await asyncStorageService.saveItem(AsyncStorageKey.PhotosSettings, JSON.stringify(state));
+  const { enabled, networkCondition, permissionStatus, isPaused, deviceId, totalAssetsUploaded, pendingBackupAssets } =
+    state;
+  await asyncStorageService.saveItem(
+    AsyncStorageKey.PhotosSettings,
+    JSON.stringify({
+      enabled,
+      networkCondition,
+      permissionStatus,
+      isPaused,
+      deviceId,
+      totalAssetsUploaded,
+      pendingBackupAssets,
+    }),
+  );
 };
 
 export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: RootState }>(
@@ -65,7 +81,28 @@ export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: Roo
     if (persistedState) {
       try {
         const parsed = JSON.parse(persistedState) as Partial<PhotosState>;
-        dispatch(photosSlice.actions.setState(parsed));
+        const {
+          enabled,
+          networkCondition,
+          permissionStatus,
+          isPaused,
+          deviceId,
+          totalAssetsUploaded,
+          pendingBackupAssets,
+        } = parsed;
+        const stable = {
+          enabled,
+          networkCondition,
+          permissionStatus,
+          isPaused,
+          deviceId,
+          totalAssetsUploaded,
+          pendingBackupAssets,
+        };
+        const defined = Object.fromEntries(
+          Object.entries(stable).filter(([, v]) => v !== undefined),
+        ) as Partial<PhotosState>;
+        dispatch(photosSlice.actions.setState(defined));
       } catch (error) {
         logger.error('Failed to parse photos settings from storage', { error });
       }
@@ -162,10 +199,10 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
           }),
         ),
       ]);
-      const pendingCount = newAssets.length + editedAssets.length;
+      const allPendingAssets = await photosLocalDB.getPendingAssets();
       dispatch(
         photosSlice.actions.setDiscoveryResult({
-          pendingBackupAssets: pendingCount,
+          pendingBackupAssets: allPendingAssets.length,
           totalScannedAssets: scannedAssets.length,
         }),
       );
@@ -184,8 +221,8 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
   'photos/runUpload',
   async (args, { getState, dispatch }) => {
     const bypassEnabled = args?.bypassEnabled ?? false;
-    const { enabled, permissionStatus, deviceId } = getState().photos;
-    if ((!enabled && !bypassEnabled) || !isPermissionActive(permissionStatus) || !deviceId) {
+    const { enabled, permissionStatus, deviceId, isPaused } = getState().photos;
+    if ((!enabled && !bypassEnabled) || !isPermissionActive(permissionStatus) || !deviceId || isPaused) {
       return;
     }
 
@@ -232,14 +269,30 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         dispatch(photosSlice.actions.incrementSessionUploadedAssets());
       },
       onAssetError: async (assetId, error) => {
+        if (error.name === AbortError.errorName) {
+          logger.info(`[Upload] Asset ${assetId} aborted by user (pause)`);
+          dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
+          return;
+        }
         logger.error(`[Upload] Asset ${assetId} failed: ${error?.message ?? String(error)}`);
         await photosLocalDB.markError(assetId, error.message);
         dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
       },
     });
 
-    dispatch(photosSlice.actions.setSyncStatus('synced'));
+    const finalIsPaused = getState().photos.isPaused;
+    dispatch(photosSlice.actions.setSyncStatus(finalIsPaused ? 'paused' : 'synced'));
     dispatch(photosSlice.actions.setCurrentUploadProgress(0));
+
+    if (!finalIsPaused) {
+      const remaining = await photosLocalDB.getPendingAssets();
+      if (remaining.length > 0) {
+        // Assets remain pending (e.g. queue was aborted mid-run and user resumed while draining).
+        // runBackupCycleThunk was skipped by the 'pausing' guard — restart it now.
+        logger.info(`[Upload] ${remaining.length} pending assets remain after queue — restarting cycle`);
+        dispatch(runBackupCycleThunk());
+      }
+    }
   },
 );
 
@@ -298,7 +351,7 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
   'photos/runBackupCycle',
   async (_, { getState, dispatch }) => {
     const { syncStatus } = getState().photos;
-    if (syncStatus === 'scanning' || syncStatus === 'uploading') {
+    if (syncStatus === 'scanning' || syncStatus === 'uploading' || syncStatus === 'pausing') {
       return;
     }
 
@@ -316,9 +369,41 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
 
     await dispatch(runDiscoveryThunk());
 
-    if (getState().photos.pendingBackupAssets > 0) {
+    const { isPaused, pendingBackupAssets } = getState().photos;
+
+    if (isPaused) {
+      // Discovery sets syncStatus to 'idle'; restore 'paused' so the UI shows the play button.
+      dispatch(photosSlice.actions.setSyncStatus('paused'));
+      // Persist the updated pendingBackupAssets so the count survives the next app restart.
+      await persistPhotosSettings(getState().photos);
+      return;
+    }
+
+    if (pendingBackupAssets > 0) {
       await dispatch(runUploadThunk());
     }
+  },
+);
+
+export const pauseBackupThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/pauseBackup',
+  async (_, { getState, dispatch }) => {
+    const state = getState().photos;
+    dispatch(photosSlice.actions.setIsPaused(true));
+    dispatch(photosSlice.actions.setSyncStatus('pausing'));
+    await persistPhotosSettings({ ...state, isPaused: true });
+    PhotoUploadQueue.abortAll();
+  },
+);
+
+export const resumeBackupThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/resumeBackup',
+  async (_, { getState, dispatch }) => {
+    const state = getState().photos;
+    dispatch(photosSlice.actions.setIsPaused(false));
+    dispatch(photosSlice.actions.setSyncStatus('idle'));
+    await persistPhotosSettings({ ...state, isPaused: false });
+    dispatch(runBackupCycleThunk());
   },
 );
 
@@ -352,6 +437,9 @@ export const photosSlice = createSlice({
     },
     setSyncStatus: (state, action: PayloadAction<PhotoSyncStatus>) => {
       state.syncStatus = action.payload;
+    },
+    setIsPaused: (state, action: PayloadAction<boolean>) => {
+      state.isPaused = action.payload;
     },
     setDeviceId: (state, action: PayloadAction<string>) => {
       state.deviceId = action.payload;
