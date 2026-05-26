@@ -10,6 +10,7 @@ import {
   FileSizeExceededError,
   notifyFilesExcludedBySize,
 } from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
+import { filterOversizedFromTree } from '../../../../services/drive/folder/utils/filterOversizedFromTree';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from '../../../../../assets/lang/strings';
@@ -32,7 +33,7 @@ import { driveActions, driveThunks } from '../../../../store/slices/drive';
 import { storageSelectors, storageThunks } from '../../../../store/slices/storage';
 import { uiActions } from '../../../../store/slices/ui';
 import { INFINITE_PLAN, NotificationType, ProgressCallback } from '../../../../types';
-import { FolderTree, FolderTreeNode } from '../../../../types/drive/folderUpload';
+import { FolderTreeNode } from '../../../../types/drive/folderUpload';
 import { NameCollisionAction } from '../../NameCollisionModal';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -157,8 +158,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
-  const maxUploadFileSize = 0;
-
+  const maxUploadFileSize = useAppSelector(storageSelectors.maxUploadFileSize);
   const hasShownEmptyFileNoticeRef = useRef(false);
   const backendOversizedFilesRef = useRef<{ name: string }[]>([]);
 
@@ -174,15 +174,6 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
 
   const handleOversizedFileSkipped = (fileName: string) => {
     backendOversizedFilesRef.current.push({ name: fileName });
-  };
-
-  const filterOversizedFromTree = (tree: FolderTree): FolderTreeNode[] => {
-    if (maxUploadFileSize <= 0) return [];
-    const oversizedFiles = tree.files.filter((file) => file.size > maxUploadFileSize);
-    if (oversizedFiles.length === 0) return [];
-    notifyFilesExcludedBySize(oversizedFiles, dispatch);
-    tree.files = tree.files.filter((file) => file.size <= maxUploadFileSize);
-    return oversizedFiles;
   };
 
   const uploadFolderFile = async (
@@ -310,7 +301,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
       }
 
       // 4.1. Per-file size limit: warn upfront and skip oversized files; valid files still upload.
-      const oversizedFiles = filterOversizedFromTree(tree);
+      const oversizedFiles = filterOversizedFromTree(tree, maxUploadFileSize, dispatch);
       if (oversizedFiles.length > 0 && tree.files.length === 0) return;
 
       if (!focusedFolder?.uuid) {
