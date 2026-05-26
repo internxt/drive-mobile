@@ -100,6 +100,8 @@ export const getUploadErrorMessage = (errorType: UploadErrorType | null, rawErro
       return shareExtensionTexts.errorFileAlreadyExists;
     case 'payment_required':
       return shareExtensionTexts.errorPaymentRequired;
+    case 'file_too_large':
+      return shareExtensionTexts.errorFileTooLarge;
     case 'general':
       return extractErrorMessage(rawError) ?? shareExtensionTexts.errorGeneral;
     default:

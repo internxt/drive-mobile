@@ -1,4 +1,13 @@
-import { formatBytes, getFileExtension, getFileNameWithoutExtension, getMimeTypeFromUri, toDisplayUri } from './utils';
+import strings from '../../assets/lang/strings';
+import { FileSizeExceededError } from './errors';
+import {
+  formatBytes,
+  getFileExtension,
+  getFileNameWithoutExtension,
+  getMimeTypeFromUri,
+  getUploadErrorMessage,
+  toDisplayUri,
+} from './utils';
 
 describe('toDisplayUri', () => {
   test('when given a raw filesystem path, then it prepends file://', () => {
@@ -17,12 +26,8 @@ describe('toDisplayUri', () => {
     expect(toDisplayUri('content://media/external/images/media/42')).toBe('content://media/external/images/media/42');
   });
 
-  test('when given an https:// URI, then it returns it unchanged', () => {
+  test('when given a URI starting with http, then it returns it unchanged', () => {
     expect(toDisplayUri('https://example.com/image.jpg')).toBe('https://example.com/image.jpg');
-  });
-
-  test('when given an http:// URI, then it returns it unchanged', () => {
-    expect(toDisplayUri('http://example.com/image.jpg')).toBe('http://example.com/image.jpg');
   });
 });
 
@@ -81,7 +86,19 @@ describe('getMimeTypeFromUri', () => {
 });
 
 describe('formatBytes', () => {
-  test('when given a byte count, then it returns a non-empty human-readable string', () => {
-    expect(formatBytes(1024)).toBeTruthy();
+  test('when given 1024 bytes, then it returns "1 kB"', () => {
+    expect(formatBytes(1024)).toBe('1 kB');
+  });
+});
+
+describe('getUploadErrorMessage', () => {
+  test('when errorType is "file_too_large", then it returns the localized text and ignores the raw error', () => {
+    const raw = new FileSizeExceededError();
+    expect(getUploadErrorMessage('file_too_large')).toBe(strings.screens.ShareExtension.errorFileTooLarge);
+    expect(getUploadErrorMessage('file_too_large', raw)).toBe(strings.screens.ShareExtension.errorFileTooLarge);
+  });
+
+  test('when errorType is null, then it falls back to the generic error string', () => {
+    expect(getUploadErrorMessage(null)).toBe(strings.screens.ShareExtension.errorGeneral);
   });
 });

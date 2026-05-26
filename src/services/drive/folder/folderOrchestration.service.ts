@@ -1,5 +1,6 @@
 import { logger } from '@internxt-mobile/services/common';
 import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
+import { FileSizeExceededError } from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import pLimit from 'p-limit';
 import { AbortError } from '../../../network/errors';
 import { FolderTree, FolderTreeNode, FolderUploadResult, UploadFileCallback } from '../../../types/drive/folderUpload';
@@ -177,6 +178,9 @@ export const uploadFolderContents = async ({
           } else if (err instanceof EmptyFileNotAllowedError) {
             skippedFiles++;
             logger.info(TAG, `skipped empty file: "${file.relativePath}" (plan restriction)`);
+          } else if (err instanceof FileSizeExceededError) {
+            skippedFiles++;
+            logger.info(TAG, `skipped oversized file: "${file.relativePath}" (plan restriction)`);
           } else {
             failedFiles++;
             logger.error(TAG, `failed creation: "${file.relativePath}": ${error.message}`);

@@ -355,7 +355,7 @@ const translations = {
         errorNoInternet: 'No internet connection. Please try again.',
         errorSessionExpired: 'Session expired. Please sign in again.',
         errorPrep: 'Could not prepare the file for upload.',
-        errorFileTooLarge: 'The maximum upload size is 300 MB at a time.',
+        errorFileTooLarge: 'File size exceeds the maximum allowed by your plan.',
         errorFileAlreadyExists: 'A file with this name already exists in this folder.',
         errorPaymentRequired: 'Uploading empty files requires a paid plan.',
         uploading: 'Uploading…',
@@ -687,6 +687,11 @@ const translations = {
         message:
           'Uploading empty files is only available for some plans. Please upgrade your plan to use this feature.',
       },
+      FileSizeExceededModal: {
+        title: 'File too large',
+        messageWithName: '"{0}" exceeds the maximum file size allowed by your plan.',
+        messageWithCount: '{0} files exceed the maximum file size allowed by your plan.',
+      },
       ComingSoonModal: {
         title: 'Coming soon!',
         subtitle: 'Our fantastic devs are working on it, so stay tuned!',
@@ -750,10 +755,6 @@ const translations = {
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
       downloadLimit: 'The download limit in mobile app is 10GB.',
-      uploadFileLimit: '{0} file will not be uploaded.\nMax upload size per file is 5GB',
-      uploadFilesLimit: '{0} files will not be uploaded.\nMax upload size per file is 5GB',
-      uploadFileLimitName: '{0} will not be uploaded.\nMax upload size per file is 5GB',
-      limitPerFile: 'Max upload size per file reached',
       folderUploadCompleted: 'Successfully uploaded {0} files to "{1}"',
       folderUploadPartial: '{0} of {1} files uploaded ({2} failed)',
       folderUploadPartialWithSkipped: '{0} of {1} files uploaded ({2} failed, {3} skipped)',
@@ -1216,7 +1217,7 @@ const translations = {
         errorNoInternet: 'Sin conexión a internet. Inténtalo de nuevo.',
         errorSessionExpired: 'Sesión expirada. Inicia sesión de nuevo.',
         errorPrep: 'No se pudo preparar el archivo para la subida.',
-        errorFileTooLarge: 'El tamaño máximo de subida es de 300 MB a la vez.',
+        errorFileTooLarge: 'El tamaño del archivo excede el máximo permitido por tu plan.',
         errorFileAlreadyExists: 'Ya existe un archivo con este nombre en esta carpeta.',
         errorPaymentRequired: 'La subida de archivos vacíos requiere un plan de pago.',
         uploading: 'Subiendo…',
@@ -1550,6 +1551,11 @@ const translations = {
         message:
           'La subida de archivos vacíos solo está disponible en algunos planes. Actualiza tu plan para usar esta función.',
       },
+      FileSizeExceededModal: {
+        title: 'Archivo demasiado grande',
+        messageWithName: '"{0}" excede el tamaño máximo permitido por tu plan.',
+        messageWithCount: '{0} archivos exceden el tamaño máximo permitido por tu plan.',
+      },
       ComingSoonModal: {
         title: '¡Próximamente!',
         subtitle: 'Nuestros fantásticos programadores están trabajando en ello, así que mantente al tanto!',
@@ -1616,10 +1622,6 @@ const translations = {
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
       downloadLimit: 'El límite de descarga en la app movil son 10GB',
-      uploadFileLimit: '{0} archivo no se ha subido.\nEl tamaño máximo por archivo es de 5 GB',
-      uploadFilesLimit: '{0} archivos no se han subido.\nEl tamaño máximo por archivo es de 5 GB',
-      uploadFileLimitName: '{0} no se ha subido.\nEl tamaño máximo es de 5 GB',
-      limitPerFile: 'Tamaño máximo por archivo alcanzado',
       folderUploadCompleted: '{0} archivos subidos correctamente a "{1}"',
       folderUploadPartial: '{0} de {1} archivos subidos ({2} fallaron)',
       folderUploadPartialWithSkipped: '{0} de {1} archivos subidos ({2} fallaron, {3} omitidos)',

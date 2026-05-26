@@ -9,7 +9,14 @@ import { Platform } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import uuid from 'react-native-uuid';
 import packageJson from '../../../package.json';
-import { EmptyFileNotAllowedError, HttpUploadError, isEmptyFilePlanError, UploadNetworkError } from '../errors';
+import {
+  EmptyFileNotAllowedError,
+  FileSizeExceededError,
+  HttpUploadError,
+  isEmptyFilePlanError,
+  isFileSizeExceededError,
+  UploadNetworkError,
+} from '../errors';
 import {
   buildSdkEncryptionAdapter,
   computeRipemd160Digest,
@@ -39,6 +46,7 @@ export interface ShareUploadFileParams {
   folderUuid: string;
   credentials: ShareUploadCredentials;
   shareUploadSession?: ShareUploadSession;
+  maxUploadFileSize?: number;
   onFileResolved?: (fileSize: number) => void;
   onProgress?: (bytesUploaded: number) => void;
 }
@@ -180,17 +188,22 @@ const createFileEntry = async (
   folderUuid: string,
 ) => {
   const now = new Date().toISOString();
-  return ShareSdkManager.storageV2.createFileEntryByUuid({
-    fileId,
-    type: fileExtension,
-    size: fileSize,
-    plainName: fileName,
-    bucket,
-    folderUuid,
-    encryptVersion: EncryptionVersion.Aes03,
-    modificationTime: now,
-    creationTime: now,
-  });
+  try {
+    return await ShareSdkManager.storageV2.createFileEntryByUuid({
+      fileId,
+      type: fileExtension,
+      size: fileSize,
+      plainName: fileName,
+      bucket,
+      folderUuid,
+      encryptVersion: EncryptionVersion.Aes03,
+      modificationTime: now,
+      creationTime: now,
+    });
+  } catch (err) {
+    if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
+    throw err;
+  }
 };
 
 interface UploadFileContext {
@@ -320,8 +333,17 @@ const uploadEmptyFile = async (
 };
 
 export const shareUploadFile = async (params: ShareUploadFileParams): Promise<ShareUploadFileResult> => {
-  const { filePath, fileName, fileExtension, folderUuid, credentials, shareUploadSession, onFileResolved, onProgress } =
-    params;
+  const {
+    filePath,
+    fileName,
+    fileExtension,
+    folderUuid,
+    credentials,
+    shareUploadSession,
+    maxUploadFileSize,
+    onFileResolved,
+    onProgress,
+  } = params;
   const { mnemonic, bucket } = credentials;
 
   const { localPath, fileSize, tempPath: androidTempCopyPath } = await resolveInputFile(filePath);
@@ -334,6 +356,11 @@ export const shareUploadFile = async (params: ShareUploadFileParams): Promise<Sh
   };
 
   try {
+    const isFileSizeExceeded = !!maxUploadFileSize && maxUploadFileSize > 0 && fileSize > maxUploadFileSize;
+    if (isFileSizeExceeded) {
+      throw new FileSizeExceededError();
+    }
+
     if (fileSize === 0) {
       return await uploadEmptyFile(fileExtension, fileName, bucket, folderUuid);
     }
