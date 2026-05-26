@@ -106,6 +106,9 @@ const uploadAssetToBucket = async (
     );
   } catch (uploadError) {
     await cleanupTempFile(tempPath);
+    if (uploadError instanceof Error && uploadError.name !== 'Error') {
+      throw uploadError;
+    }
     const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
     throw new Error(`Bucket upload failed for ${fileName}: ${message}`);
   }

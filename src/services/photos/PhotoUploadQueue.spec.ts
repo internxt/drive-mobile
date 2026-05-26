@@ -122,6 +122,22 @@ describe('PhotoUploadQueue.start', () => {
 });
 
 describe('PhotoUploadQueue.abortAll', () => {
+  test('when the upload service rejects with an abort error, then onAssetError receives the original abort error and not a wrapped error', async () => {
+    const asset = makeAsset('a1');
+    const abortError = new Error('AbortError');
+    abortError.name = 'AbortError';
+    mockUpload.mockImplementationOnce(async () => {
+      PhotoUploadQueue.abortAll();
+      throw abortError;
+    });
+
+    const onAssetError = jest.fn();
+    await PhotoUploadQueue.start([{ asset }], DEVICE_ID, { onAssetError });
+
+    expect(onAssetError).toHaveBeenCalledWith('a1', abortError);
+    expect((onAssetError.mock.calls[0][1] as Error).name).toBe('AbortError');
+  });
+
   test('when abort all is called mid run, then subsequent jobs are skipped via the abort signal', async () => {
     const asset = makeAsset('a1');
     mockUpload.mockImplementationOnce(async () => {
