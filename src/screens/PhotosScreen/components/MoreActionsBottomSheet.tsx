@@ -4,7 +4,7 @@ import {
   CopyIcon,
   DownloadSimpleIcon,
   ExportIcon,
-  PlusSquareIcon,
+  InfoIcon,
   TrashIcon,
 } from 'phosphor-react-native';
 import { useEffect, useMemo, useRef } from 'react';
@@ -21,9 +21,9 @@ interface MoreActionsBottomSheetProps {
   isOpen: boolean;
   selectedItems: TimelinePhotoItem[];
   onClose: () => void;
+  onInfo?: () => void;
   onExport: () => void;
   onCopy: () => void;
-  onDuplicate: () => void;
   onSave: () => void;
   onFavorite: () => void;
   onTrash: () => void;
@@ -71,9 +71,9 @@ const MoreActionsBottomSheet = ({
   isOpen,
   selectedItems,
   onClose,
+  onInfo,
   onExport,
   onCopy,
-  onDuplicate,
   onSave,
   onFavorite,
   onTrash,
@@ -134,13 +134,6 @@ const MoreActionsBottomSheet = ({
             icon: <CopyIcon size={22} color={iconColor} />,
             onPress: onCopy,
           },
-        areAllSelectedItemsBacked &&
-          isOneItemSelected && {
-            key: 'duplicate',
-            label: actionStrings.duplicate,
-            icon: <PlusSquareIcon size={22} color={iconColor} />,
-            onPress: onDuplicate,
-          },
         areAllSelectedNotBacked && {
           key: 'restore',
           label: actionStrings.uploadToCloud,
@@ -184,7 +177,6 @@ const MoreActionsBottomSheet = ({
       actionStrings,
       onExport,
       onCopy,
-      onDuplicate,
       onSave,
       onFavorite,
       onTrash,
@@ -221,6 +213,18 @@ const MoreActionsBottomSheet = ({
             </AppText>
           </View>
         </TouchableOpacity>
+
+        {onInfo && (
+          <ActionRow
+            icon={<InfoIcon size={22} color={iconColor} />}
+            label={actionStrings.info}
+            onPress={() => {
+              onInfo();
+              onClose();
+            }}
+            isLast={visibleActions.length === 0}
+          />
+        )}
 
         {visibleActions.map((action, index) => (
           <ActionRow

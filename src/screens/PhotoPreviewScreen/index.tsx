@@ -10,6 +10,8 @@ import { photoActionsService } from 'src/services/photos/PhotoActionsService';
 import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
 import { RootStackScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
+import MoreActionsBottomSheet from '../PhotosScreen/components/MoreActionsBottomSheet';
+import { isItemBacked } from '../PhotosScreen/utils/photoUtils';
 import { MetadataPanel } from './components/MetadataPanel';
 import { PreviewCarousel } from './components/PreviewCarousel';
 import { PreviewHeader } from './components/PreviewHeader';
@@ -26,6 +28,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
 
   const [isUiVisible, setIsUiVisible] = useState(true);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isMoreActionsOpen, setIsMoreActionsOpen] = useState(false);
   const [zoomActive, setZoomActive] = useState(false);
   const [metadataOpen, setMetadataOpen] = useState(false);
   const [hasVideoStarted, setHasVideoStarted] = useState(false);
@@ -117,8 +120,51 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     }
   }, [items, currentIndex]);
 
+  const handleCopy = useCallback(async () => {
+    const item = items[currentIndex];
+    if (!item) {
+      return;
+    }
+    const controller = new AbortController();
+    setIsMoreActionsOpen(false);
+    try {
+      await photoActionsService.copyToClipboard(item, controller.signal);
+    } catch (error) {
+      logger.error(`[PhotoPreview] Copy failed: ${error}`);
+    }
+  }, [items, currentIndex]);
+
+  const handleSave = useCallback(async () => {
+    const item = items[currentIndex];
+    if (!item) {
+      return;
+    }
+    const controller = new AbortController();
+    setIsMoreActionsOpen(false);
+    try {
+      await photoActionsService.saveToDevice(item, controller.signal);
+    } catch (error) {
+      logger.error(`[PhotoPreview] Save failed: ${error}`);
+    }
+  }, [items, currentIndex]);
+
+  const handleRestore = useCallback(async () => {
+    const item = items[currentIndex];
+    if (!item || item.type !== 'local') {
+      return;
+    }
+    const controller = new AbortController();
+    setIsMoreActionsOpen(false);
+    try {
+      await photoActionsService.restoreToCloud([item], controller.signal);
+    } catch (error) {
+      logger.error(`[PhotoPreview] Restore failed: ${error}`);
+    }
+  }, [items, currentIndex]);
+
   const showCarousel = isUiVisible && !zoomActive && !hasVideoStarted;
   const currentItem = items[currentIndex];
+  const isSynced = currentItem ? isItemBacked(currentItem) : false;
 
   return (
     <View style={tailwind('flex-1 bg-black')}>
@@ -141,7 +187,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
         visible={isUiVisible}
         item={currentItem}
         onClose={handleClose}
-        onMore={() => setMetadataOpen(true)}
+        onMore={() => setIsMoreActionsOpen(true)}
       />
       {showCarousel && (
         <PreviewCarousel
@@ -150,11 +196,30 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
           onPress={setCurrentIndex}
           visible={isUiVisible}
           onExport={handleExport}
-          onMore={() => setMetadataOpen(true)}
+          onMore={() => setIsMoreActionsOpen(true)}
           onDelete={handleDeletePress}
+          isSynced={isSynced}
         />
       )}
       {metadataOpen && currentItem && <MetadataPanel item={currentItem} onClose={() => setMetadataOpen(false)} />}
+      <MoreActionsBottomSheet
+        isOpen={isMoreActionsOpen}
+        selectedItems={currentItem ? [currentItem] : []}
+        onClose={() => setIsMoreActionsOpen(false)}
+        onInfo={() => {
+          setIsMoreActionsOpen(false);
+          setMetadataOpen(true);
+        }}
+        onExport={handleExport}
+        onCopy={handleCopy}
+        onSave={handleSave}
+        onFavorite={() => {
+          logger.info('[PhotoPreview] Favorite: not implemented');
+          setIsMoreActionsOpen(false);
+        }}
+        onTrash={handleDeletePress}
+        onRestore={handleRestore}
+      />
       <ConfirmModal
         isOpen={isDeleteConfirmOpen}
         onClose={() => setIsDeleteConfirmOpen(false)}

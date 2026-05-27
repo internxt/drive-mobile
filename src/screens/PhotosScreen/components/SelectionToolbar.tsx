@@ -1,4 +1,4 @@
-import { DotsThreeIcon, ExportIcon, InfoIcon, TrashIcon } from 'phosphor-react-native';
+import { DotsThreeIcon, ExportIcon, TrashIcon } from 'phosphor-react-native';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
@@ -23,7 +23,6 @@ interface SelectionToolbarProps {
   onFavorite: () => void;
   onMore: () => void;
   onDelete: () => void;
-  onInfo: () => void;
 }
 
 interface ToolbarButtonProps {
@@ -47,7 +46,6 @@ const SelectionToolbar = ({
   onFavorite,
   onMore,
   onDelete,
-  onInfo,
 }: SelectionToolbarProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -127,12 +125,6 @@ const SelectionToolbar = ({
                 icon={<DotsThreeIcon size={26} color={iconColor} />}
                 label={toolbarTexts.more}
                 onPress={onMore}
-                color={iconColor}
-              />
-              <ToolbarButton
-                icon={<InfoIcon size={26} color={iconColor} />}
-                label={toolbarTexts.info}
-                onPress={onInfo}
                 color={iconColor}
               />
             </>

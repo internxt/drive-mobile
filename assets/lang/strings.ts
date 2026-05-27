@@ -236,10 +236,10 @@ const translations = {
             info: 'Info',
           },
           more: {
+            info: 'Info',
             back: 'Back',
             export: 'Export',
             copy: 'Copy',
-            duplicate: 'Duplicate',
             save: 'Save',
             addToFavorites: 'Add to favorites',
             removeFromFavorites: 'Remove from favorites',
@@ -1210,10 +1210,10 @@ const translations = {
             info: 'Info',
           },
           more: {
+            info: 'Info',
             back: 'Volver',
             export: 'Exportar',
             copy: 'Copiar',
-            duplicate: 'Duplicar',
             save: 'Guardar',
             addToFavorites: 'Añadir a favoritos',
             removeFromFavorites: 'Quitar de favoritos',
