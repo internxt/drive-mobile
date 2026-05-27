@@ -32,7 +32,7 @@ beforeEach(() => {
 });
 
 describe('PhotoUploadQueue.start', () => {
-  test('when a job succeeds, then onAssetStart and onAssetDone are called with the asset id and remote file id', async () => {
+  test('when a job succeeds, then the caller is notified of the start and completion with the asset id and remote file id', async () => {
     const asset = makeAsset('a1');
     mockUpload.mockResolvedValue('remote-file-id');
 
@@ -45,7 +45,7 @@ describe('PhotoUploadQueue.start', () => {
     expect(onAssetDone).toHaveBeenCalledWith('a1', 'remote-file-id', asset.modificationTime);
   });
 
-  test('when a job fails, then onAssetError is called with the asset id and the error', async () => {
+  test('when a job fails, then the caller is notified of the failure with the asset id and the error', async () => {
     const asset = makeAsset('a1');
     const error = new Error('network error');
     mockUpload.mockRejectedValue(error);
@@ -57,7 +57,7 @@ describe('PhotoUploadQueue.start', () => {
     expect(onAssetError).toHaveBeenCalledWith('a1', error);
   });
 
-  test('when one job fails and another succeeds, then both callbacks are called and the queue completes', async () => {
+  test('when one job fails and another succeeds, then both the failure and completion callbacks are called and the queue finishes', async () => {
     const a1 = makeAsset('a1');
     const a2 = makeAsset('a2');
     mockUpload.mockRejectedValueOnce(new Error('fail')).mockResolvedValueOnce('remote-id');
@@ -71,7 +71,7 @@ describe('PhotoUploadQueue.start', () => {
     expect(onAssetDone).toHaveBeenCalledWith('a2', 'remote-id', a2.modificationTime);
   });
 
-  test('when a job has an existing remote file id, then replace is called instead of upload', async () => {
+  test('when a job has an existing remote file id, then the existing cloud file is overwritten rather than creating a new one', async () => {
     const asset = makeAsset('a1');
     const job: AssetUploadJob = { asset, existingRemoteFileId: 'existing-remote-id' };
     mockReplace.mockResolvedValue('existing-remote-id');
@@ -100,7 +100,7 @@ describe('PhotoUploadQueue.start', () => {
     expect(onAssetDone).not.toHaveBeenCalled();
   });
 
-  test('when all jobs succeed, then onAssetDone is called once per job', async () => {
+  test('when all jobs succeed, then the caller is notified of completion once per job', async () => {
     const jobs = ['a1', 'a2', 'a3'].map((id) => ({ asset: makeAsset(id) }));
     mockUpload.mockResolvedValue('remote-id');
 
@@ -154,17 +154,27 @@ describe('PhotoUploadQueue.abortAll', () => {
     // First job ran, second was skipped because signal was aborted after first job
     expect(onAssetStart).toHaveBeenCalledWith('a1');
     expect(onAssetStart).not.toHaveBeenCalledWith('a2');
+    expect(mockUpload).toHaveBeenCalledTimes(1);
   });
 
-  test('when start is called again after abort, then a fresh abort signal is created', async () => {
+  test('when start is called again after abort, then a fresh abort signal is created for each run', async () => {
     const asset = makeAsset('a1');
     mockUpload.mockResolvedValue('remote-id');
 
-    PhotoUploadQueue.abortAll();
+    // First run — capture the signal that gets passed
     await PhotoUploadQueue.start([{ asset }], DEVICE_ID, {});
+    const firstSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, AbortSignal])[3];
 
-    const passedSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, AbortSignal])[3];
-    expect(passedSignal).toBeDefined();
-    expect(passedSignal.aborted).toBe(false);
+    // Abort and start a second run
+    PhotoUploadQueue.abortAll();
+    jest.clearAllMocks();
+    mockUpload.mockResolvedValue('remote-id');
+    await PhotoUploadQueue.start([{ asset }], DEVICE_ID, {});
+    const secondSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, AbortSignal])[3];
+
+    expect(secondSignal).toBeDefined();
+    expect(secondSignal.aborted).toBe(false);
+    // The second run must receive a different signal instance from the first
+    expect(secondSignal).not.toBe(firstSignal);
   });
 });

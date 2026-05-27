@@ -366,11 +366,9 @@ describe('photos slice', () => {
     expect(store.getState().photos.syncStatus).toBe('idle');
   });
 
-  test('when 10 photos are found and 3 are already synced, then 7 are reported as pending', async () => {
+  test('when discovery runs, then pending backup count reflects what the database reports as pending', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     const assets = Array.from({ length: 10 }, (_, i) => ({ id: `asset-${i}` }));
-    mockScanner.scanAll.mockResolvedValueOnce(assets as never);
-    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets.slice(3), editedAssets: [] } as never);
 
     const store = makeStore();
     await store.dispatch(enableBackupThunk());
@@ -378,11 +376,22 @@ describe('photos slice', () => {
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
     mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets.slice(3), editedAssets: [] } as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
+    // First discovery run: DB reports 7 pending
     mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce(assets.slice(3) as never);
     await store.dispatch(runDiscoveryThunk());
 
     expect(store.getState().photos.pendingBackupAssets).toBe(7);
     expect(store.getState().photos.totalScannedAssets).toBe(10);
+
+    // Second discovery run: DB now reports only 2 pending (simulating some were uploaded)
+    jest.clearAllMocks();
+    mockScanner.scanAll.mockResolvedValueOnce(assets as never);
+    mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets.slice(8), editedAssets: [] } as never);
+    mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
+    mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce(assets.slice(8) as never);
+    await store.dispatch(runDiscoveryThunk());
+
+    expect(store.getState().photos.pendingBackupAssets).toBe(2);
     expect(store.getState().photos.syncStatus).toBe('idle');
   });
 
@@ -421,7 +430,7 @@ describe('photos slice', () => {
     expect(store.getState().photos.enabled).toBe(false);
   });
 
-  test('when a backup cycle starts and all conditions are met, then photos are scanned and upload runs', async () => {
+  test('when a backup cycle starts and there are no pending assets, then the sync completes without uploading', async () => {
     const store = makeStore();
     store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
     mockPermissionService.getStatus.mockResolvedValueOnce('granted');
@@ -444,8 +453,8 @@ describe('photos slice', () => {
     expect(store.getState().photos.syncStatus).toBe('synced');
   });
 
-  describe('runFullCloudHistorySyncThunk', () => {
-    test('when the thunk runs, then syncAllHistory is invoked once', async () => {
+  describe('full cloud history sync', () => {
+    test('when the sync starts, then the cloud history is fetched exactly once', async () => {
       const store = makeStore();
       store.dispatch(photosSlice.actions.setState({ enabled: true }));
 
@@ -454,7 +463,7 @@ describe('photos slice', () => {
       expect(mockCloudBrowser.syncAllHistory).toHaveBeenCalledTimes(1);
     });
 
-    test('when syncAllHistory invokes onMonthFetched, then cloudFetchRevision increments for each call', async () => {
+    test('when the cloud history reports a fetched month, then the revision counter advances for each call', async () => {
       mockCloudBrowser.syncAllHistory.mockImplementationOnce(async ({ onMonthFetched }) => {
         onMonthFetched?.();
         onMonthFetched?.();
@@ -470,7 +479,7 @@ describe('photos slice', () => {
       expect(store.getState().photos.cloudFetchRevision).toBe(before + 3);
     });
 
-    test('when backup is disabled, then isCancelled returns true', async () => {
+    test('when backup is disabled, then the ongoing sync is cancelled', async () => {
       let capturedIsCancelled: (() => boolean) | undefined;
       mockCloudBrowser.syncAllHistory.mockImplementationOnce(async ({ isCancelled }) => {
         capturedIsCancelled = isCancelled;
@@ -484,7 +493,7 @@ describe('photos slice', () => {
       expect(capturedIsCancelled?.()).toBe(true);
     });
 
-    test('when the thunk completes, then isFetchingCloudHistory returns to false', async () => {
+    test('when the cloud sync finishes, then the fetching flag is cleared', async () => {
       const store = makeStore();
       store.dispatch(photosSlice.actions.setState({ enabled: true }));
 
@@ -504,7 +513,7 @@ describe('photos slice', () => {
       expect(store.getState().photos.isFetchingCloudHistory).toBe(false);
     });
 
-    test('when force is true, then syncAllHistory is called with force true', async () => {
+    test('when triggered as a force refresh, then the cache is bypassed', async () => {
       const store = makeStore();
       store.dispatch(photosSlice.actions.setState({ enabled: true }));
 
@@ -514,7 +523,7 @@ describe('photos slice', () => {
     });
   });
 
-  describe('forceRefreshThunk', () => {
+  describe('force refresh', () => {
     test('when backup is disabled, then the thunk returns without dispatching cloud sync', async () => {
       const store = makeStore();
       store.dispatch(photosSlice.actions.setState({ enabled: false }));
@@ -593,7 +602,7 @@ describe('photos slice', () => {
     });
   });
 
-  describe('runBackupCycleThunk', () => {
+  describe('backup cycle', () => {
     test('when the backup cycle runs, then cloud history sync and discovery both run', async () => {
       mockPhotoDeviceId.getOrCreate.mockResolvedValue('device-id');
 
@@ -630,7 +639,7 @@ describe('photos slice', () => {
     });
   });
 
-  describe('pauseBackupThunk', () => {
+  describe('pausing backup', () => {
     test('when the user pauses the backup, then is paused flag persists and sync status becomes pausing', async () => {
       const store = makeStore();
       store.dispatch(
@@ -670,7 +679,7 @@ describe('photos slice', () => {
     });
   });
 
-  describe('resumeBackupThunk', () => {
+  describe('resuming backup', () => {
     test('when the user resumes the backup, then is paused flag clears and the backup cycle is dispatched', async () => {
       mockPhotoDeviceId.getOrCreate.mockResolvedValue('device-id');
       mockPermissionService.getStatus.mockResolvedValue('granted');
@@ -694,7 +703,7 @@ describe('photos slice', () => {
     });
   });
 
-  describe('runUploadThunk', () => {
+  describe('upload execution', () => {
     test('when the upload loop finishes while paused, then sync status remains paused', async () => {
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
       mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
