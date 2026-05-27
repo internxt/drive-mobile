@@ -1,9 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
+import strings from 'assets/lang/strings';
 import { useCallback, useState } from 'react';
 import { StatusBar, View } from 'react-native';
+import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { logger } from 'src/services/common';
 import { toFileUri } from 'src/services/common/uri/uriHelpers';
 import fileSystemService from 'src/services/FileSystemService';
+import { photoActionsService } from 'src/services/photos/PhotoActionsService';
 import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
 import { RootStackScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
@@ -16,12 +19,13 @@ import { usePreviewItems } from './hooks/usePreviewItems';
 type Props = RootStackScreenProps<'PhotoPreview'>;
 
 export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
-  const { initialId, items: routeItems } = route.params;
+  const { initialId, items: routeItems, onTrashed } = route.params;
   const { items, currentIndex, setCurrentIndex } = usePreviewItems(initialId, routeItems);
   const tailwind = useTailwind();
   const navigation = useNavigation();
 
   const [isUiVisible, setIsUiVisible] = useState(true);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [zoomActive, setZoomActive] = useState(false);
   const [metadataOpen, setMetadataOpen] = useState(false);
   const [hasVideoStarted, setHasVideoStarted] = useState(false);
@@ -76,6 +80,24 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     setIsUiVisible(true);
   }, []);
 
+  const handleDeletePress = useCallback(() => setIsDeleteConfirmOpen(true), []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    setIsDeleteConfirmOpen(false);
+    const currentItem = items[currentIndex];
+    if (!currentItem) {
+      return;
+    }
+    const controller = new AbortController();
+    try {
+      await photoActionsService.trash([currentItem], controller.signal);
+      await onTrashed?.();
+      navigation.goBack();
+    } catch (error) {
+      logger.error(`[PhotoPreview] Delete failed: ${error}`);
+    }
+  }, [items, currentIndex, onTrashed, navigation]);
+
   const handleExport = useCallback(async () => {
     const item = items[currentIndex];
     if (!item) {
@@ -129,9 +151,20 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
           visible={isUiVisible}
           onExport={handleExport}
           onMore={() => setMetadataOpen(true)}
+          onDelete={handleDeletePress}
         />
       )}
       {metadataOpen && currentItem && <MetadataPanel item={currentItem} onClose={() => setMetadataOpen(false)} />}
+      <ConfirmModal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        title={strings.screens.photos.selection.deleteModal.title(1)}
+        message={strings.screens.photos.selection.deleteModal.message(1)}
+        confirmLabel={strings.screens.photos.selection.deleteModal.confirm}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setIsDeleteConfirmOpen(false)}
+        type="confirm-danger"
+      />
     </View>
   );
 };

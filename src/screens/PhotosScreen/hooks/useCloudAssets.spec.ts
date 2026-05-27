@@ -20,8 +20,7 @@ jest.mock('src/store/hooks', () => ({
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
 const mockUseAppSelector = useAppSelector as jest.Mock;
 
-const makeStoreState = (overrides: { lastSyncTimestamp?: number | null; cloudFetchRevision?: number } = {}) => ({
-  lastSyncTimestamp: overrides.lastSyncTimestamp ?? null,
+const makeStoreState = (overrides: { cloudFetchRevision?: number } = {}) => ({
   cloudFetchRevision: overrides.cloudFetchRevision ?? 0,
 });
 
@@ -60,8 +59,7 @@ describe('useCloudAssets', () => {
 
     const { result } = renderHook(() => useCloudAssets());
 
-    // Flush the immediate lastSyncTimestamp effect only — do not run timers
-    // so the debounce from cloudFetchRevision has not yet fired
+    // Flush mount effect only — do not run timers so the debounce from cloudFetchRevision has not yet fired
     await act(flushAsync);
 
     expect(result.current.cloudItems).toHaveLength(1);
@@ -107,7 +105,7 @@ describe('useCloudAssets', () => {
     expect(result.current.cloudItems[0].id).toBe('r2');
   });
 
-  test('when last sync timestamp updates, then cloud items reload from the database immediately', async () => {
+  test('when reloadCloud is called, then cloud items reload from the database immediately', async () => {
     mockPhotosLocalDB.getAllCloudAssets
       .mockResolvedValueOnce([]) // mount
       .mockResolvedValueOnce([
@@ -126,19 +124,13 @@ describe('useCloudAssets', () => {
         },
       ]);
 
-    const { result, rerender } = renderHook(() => useCloudAssets());
+    const { result } = renderHook(() => useCloudAssets());
 
     await act(flushAsync);
     expect(result.current.cloudItems).toHaveLength(0);
 
-    mockUseAppSelector.mockImplementation((selector: (s: { photos: ReturnType<typeof makeStoreState> }) => unknown) =>
-      selector({ photos: makeStoreState({ lastSyncTimestamp: Date.now() }) }),
-    );
-
-    // lastSyncTimestamp effect is immediate — no timer needed
     await act(async () => {
-      rerender({});
-      await flushAsync();
+      await result.current.reloadCloud();
     });
 
     expect(result.current.cloudItems).toHaveLength(1);

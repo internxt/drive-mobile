@@ -139,7 +139,6 @@ describe('photos slice', () => {
       totalScannedAssets: 0,
       totalAssetsUploaded: 0,
       currentUploadProgress: 0,
-      lastSyncTimestamp: null,
       uploadingAssetIds: [],
       deviceId: null,
       sessionTotalAssets: 0,
@@ -561,15 +560,6 @@ describe('photos slice', () => {
       expect(mockUploadQueue.start).not.toHaveBeenCalled();
     });
 
-    test('when the thunk completes, then lastSyncTimestamp is updated', async () => {
-      const store = makeStore();
-      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
-      const before = store.getState().photos.lastSyncTimestamp;
-
-      await store.dispatch(forceRefreshThunk());
-
-      expect(store.getState().photos.lastSyncTimestamp).toBeGreaterThan(before ?? 0);
-    });
   });
 
   describe('runBackupCycleThunk', () => {

@@ -50,13 +50,14 @@ interface CloudAssetRow {
   encrypt_version: string | null;
 }
 
-export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error';
+export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted';
 
 export interface AssetSyncEntry {
   assetId: string;
   status: AssetSyncStatus;
   remoteFileId: string | null;
   syncedAt: number | null;
+  deletedAt: number | null;
   errorMessage: string | null;
   attemptCount: number;
   createdAt: number;
@@ -76,6 +77,7 @@ interface AssetSyncRow {
   status: AssetSyncStatus;
   remote_file_id: string | null;
   synced_at: number | null;
+  deleted_at: number | null;
   error_message: string | null;
   attempt_count: number;
   created_at: number;
@@ -135,6 +137,7 @@ const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
   status: row.status,
   remoteFileId: row.remote_file_id,
   syncedAt: row.synced_at,
+  deletedAt: row.deleted_at,
   errorMessage: row.error_message,
   attemptCount: row.attempt_count,
   createdAt: row.created_at,
@@ -251,6 +254,22 @@ class PhotosLocalDB {
       status: asset.status,
       remoteFileId: asset.remote_file_id,
     }));
+  }
+
+  async markAssetDeleted(assetId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markDeleted, [assetId]);
+  }
+
+  async getDeletedAssetIds(): Promise<Set<string>> {
+    const rows = await sqliteService.getAllAsync<{ asset_id: string }>(
+      DB_NAME,
+      assetSyncTable.statements.getDeletedIds,
+    );
+    return new Set(rows.map((row) => row.asset_id));
+  }
+
+  async deleteAssetSync(assetId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.deleteById, [assetId]);
   }
 
   async reset(): Promise<void> {

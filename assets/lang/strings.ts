@@ -243,11 +243,22 @@ const translations = {
             addToFavorites: 'Add to favorites',
             removeFromFavorites: 'Remove from favorites',
             moveToTrash: 'Move to trash',
+            uploadToCloud: 'Upload to cloud',
           },
           actionProgress: {
             preparing: 'Preparing…',
             saving: 'Saving to gallery…',
             copying: 'Copying…',
+            movingToTrash: 'Moving to trash…',
+            uploadingToCloud: 'Uploading to cloud…',
+          },
+          deleteModal: {
+            title: (count: number) => (count === 1 ? 'Delete item' : 'Delete items'),
+            message: (count: number) =>
+              count === 1
+                ? 'This photo will be deleted from Internxt Drive on all your devices. It will remain in Trash for a limited time.'
+                : 'These photos will be deleted from Internxt Drive on all your devices. They will remain in Trash for a limited time.',
+            confirm: 'Delete',
           },
         },
         refreshLocalError: 'Gallery could not be loaded',
@@ -1205,11 +1216,22 @@ const translations = {
             addToFavorites: 'Añadir a favoritos',
             removeFromFavorites: 'Quitar de favoritos',
             moveToTrash: 'Mover a la papelera',
+            uploadToCloud: 'Subir a la nube',
           },
           actionProgress: {
             preparing: 'Preparando…',
             saving: 'Guardando en galería…',
             copying: 'Copiando…',
+            movingToTrash: 'Moviendo a la papelera…',
+            uploadingToCloud: 'Subiendo a la nube…',
+          },
+          deleteModal: {
+            title: (count: number) => (count === 1 ? 'Eliminar elemento' : 'Eliminar elementos'),
+            message: (count: number) =>
+              count === 1
+                ? 'Esta foto se eliminará de Internxt Drive en todos tus dispositivos. Permanecerá en la papelera durante un tiempo limitado.'
+                : 'Estas fotos se eliminarán de Internxt Drive en todos tus dispositivos. Permanecerán en la papelera durante un tiempo limitado.',
+            confirm: 'Eliminar',
           },
         },
         refreshLocalError: 'No se pudo cargar la galería',

@@ -28,7 +28,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
-  PhotoPreview: { initialId: string; items: TimelinePhotoItem[] };
+  PhotoPreview: { initialId: string; items: TimelinePhotoItem[]; onTrashed?: () => Promise<void> | void };
   Settings: undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };

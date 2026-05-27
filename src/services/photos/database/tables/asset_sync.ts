@@ -4,13 +4,14 @@ const statements = {
   createTable: `
     CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
       asset_id          TEXT    PRIMARY KEY NOT NULL,
-      status            TEXT    NOT NULL CHECK (status IN ('pending', 'pending_edit', 'synced', 'error')),
+      status            TEXT    NOT NULL CHECK (status IN ('pending', 'pending_edit', 'synced', 'error', 'deleted')),
       remote_file_id    TEXT,
       error_message     TEXT,
       attempt_count     INTEGER NOT NULL DEFAULT 0,
       created_at        INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
       last_attempt_at   INTEGER,
       synced_at         INTEGER,
+      deleted_at        INTEGER,
       modification_time INTEGER,
       file_name         TEXT,
       file_size         INTEGER,
@@ -86,7 +87,16 @@ const statements = {
   `,
   getSyncedInList: (placeholders: string) =>
     `SELECT asset_id, modification_time FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status = 'synced';`,
-  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status != 'synced';`,
+  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted');`,
+  markDeleted: `
+    INSERT INTO ${TABLE_NAME} (asset_id, status, deleted_at)
+    VALUES (?, 'deleted', (unixepoch() * 1000))
+    ON CONFLICT(asset_id) DO UPDATE SET
+      status     = 'deleted',
+      deleted_at = (unixepoch() * 1000);
+  `,
+  getDeletedIds: `SELECT asset_id FROM ${TABLE_NAME} WHERE status = 'deleted';`,
+  deleteById: `DELETE FROM ${TABLE_NAME} WHERE asset_id = ?;`,
   reset: `DELETE FROM ${TABLE_NAME};`,
   getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE status = 'synced' AND remote_file_id IS NOT NULL;`,
 };
