@@ -44,9 +44,9 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain("'pending'");
+    expect(stmt).toContain('\'pending\'');
     expect(stmt).toContain('ON CONFLICT');
-    expect(stmt).toContain("status != 'synced'");
+    expect(stmt).toContain('status != \'synced\'');
     expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
   });
 
@@ -69,8 +69,8 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain("'pending_edit'");
-    expect(stmt).toContain("status = 'synced'");
+    expect(stmt).toContain('\'pending_edit\'');
+    expect(stmt).toContain('status = \'synced\'');
     expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
   });
 
@@ -102,7 +102,7 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain("'synced'");
+    expect(stmt).toContain('\'synced\'');
     expect(stmt).toContain('unixepoch()');
     expect(params).toEqual(['asset-1', 'remote-file-id', 1714000000]);
   });
@@ -119,7 +119,7 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain("'error'");
+    expect(stmt).toContain('\'error\'');
     expect(params).toEqual(['asset-2', null]);
   });
 
@@ -136,7 +136,7 @@ describe('photosLocalDB', () => {
     const [, stmt] = mockSqlite.executeSql.mock.calls[0];
     expect(stmt).toContain('attempt_count + 1');
     expect(stmt).toContain('ON CONFLICT');
-    expect(stmt).toContain("status != 'synced'");
+    expect(stmt).toContain('status != \'synced\'');
   });
 
   test('when looking up synced photos, then both synced and cloud_deleted statuses are queried', async () => {
@@ -145,7 +145,7 @@ describe('photosLocalDB', () => {
     await photosLocalDB.getSyncedEntries(['asset-1']);
 
     const [, stmt] = mockSqlite.getAllAsync.mock.calls[0];
-    expect(stmt).toContain("status IN ('synced', 'cloud_deleted')");
+    expect(stmt).toContain('status IN (\'synced\', \'cloud_deleted\')');
   });
 
   test('when looking up 300 photos at once, then a single database query is made with all ids', async () => {

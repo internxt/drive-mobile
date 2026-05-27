@@ -411,7 +411,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
 
     await photoCloudBrowser.syncAllHistory({});
 
@@ -434,7 +434,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
 
     await photoCloudBrowser.syncAllHistory({});
 
@@ -475,7 +475,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [] });
 
     await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-1' });
 
@@ -497,7 +497,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [] });
 
     await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-other' });
 
@@ -519,7 +519,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [] });
 
     await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-1' });
 
@@ -547,7 +547,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
 
     await photoCloudBrowser.syncAllHistory({});
 
@@ -579,7 +579,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
 
     await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-1' });
 
@@ -622,7 +622,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
       .mockResolvedValueOnce({ folders: [year] })
       .mockResolvedValueOnce({ folders: [month] })
       .mockResolvedValueOnce({ folders: [day] });
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
 
     await photoCloudBrowser.syncAllHistory({});
 
