@@ -71,8 +71,9 @@ class PhotoCloudBrowserService {
     onMonthFetched?: () => void;
     isCancelled?: () => boolean;
     force?: boolean;
+    currentDeviceId?: string;
   }): Promise<void> {
-    const { onMonthFetched, isCancelled, force } = options;
+    const { onMonthFetched, isCancelled, force, currentDeviceId } = options;
     const devices = await this.listDeviceFolders();
     if (devices.length === 0) {
       logger.info('[CloudBrowser] No device folders found — skipping sync');
@@ -80,31 +81,36 @@ class PhotoCloudBrowserService {
     }
 
     const months = await this.discoverAvailableMonths(devices);
-    if (months.length === 0) {
-      logger.info('[CloudBrowser] Discovery found no months — skipping sync');
-      return;
-    }
-    logger.info(
-      `[CloudBrowser] Discovered ${months.length} months across ${devices.length} device(s)${force ? ' — TTL bypassed (force refresh)' : ''}`,
-    );
 
-    const CONCURRENCY = 3;
-    let cursor = 0;
-    const worker = async (): Promise<void> => {
-      while (cursor < months.length) {
-        if (isCancelled?.()) return;
-        const target = months[cursor++];
-        await this.fetchMonthFromFolder({
-          deviceId: target.deviceId,
-          monthFolderUuid: target.monthFolderUuid,
-          year: target.year,
-          month: target.month,
-          onMonthFetched,
-          force,
-        });
-      }
-    };
-    await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+    if (months.length === 0) {
+      logger.info('[CloudBrowser] Discovery found no months in cloud');
+    } else {
+      logger.info(
+        `[CloudBrowser] Discovered ${months.length} months across ${devices.length} device(s)${force ? ' — TTL bypassed (force refresh)' : ''}`,
+      );
+      const CONCURRENCY = 3;
+      let cursor = 0;
+      const worker = async (): Promise<void> => {
+        while (cursor < months.length) {
+          if (isCancelled?.()) {
+            return;
+          }
+          const target = months[cursor++];
+          await this.fetchMonthFromFolder({
+            deviceId: target.deviceId,
+            monthFolderUuid: target.monthFolderUuid,
+            year: target.year,
+            month: target.month,
+            onMonthFetched,
+            force,
+            currentDeviceId,
+          });
+        }
+      };
+      await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+    }
+
+    await this.reconcileDeletedMonths({ devices, discoveredMonths: months, currentDeviceId });
   }
 
   private async fetchMonthFromFolder(params: {
@@ -114,8 +120,9 @@ class PhotoCloudBrowserService {
     month: number;
     onMonthFetched?: () => void;
     force?: boolean;
+    currentDeviceId?: string;
   }): Promise<number> {
-    const { deviceId, monthFolderUuid, year, month, onMonthFetched, force } = params;
+    const { deviceId, monthFolderUuid, year, month, onMonthFetched, force, currentDeviceId } = params;
     if (!force) {
       const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
       if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
@@ -124,6 +131,7 @@ class PhotoCloudBrowserService {
     const dayFolders = await this.listAllFolders(monthFolderUuid);
     const now = Date.now();
     let count = 0;
+    const foundIds = new Set<string>();
 
     for (const dayFolder of dayFolders) {
       const day = Number.parseInt(dayFolder.plainName ?? '', 10);
@@ -131,6 +139,7 @@ class PhotoCloudBrowserService {
 
       const files = await this.listFilesWithThumbnails(dayFolder.uuid);
       for (const file of files) {
+        if (file.status && file.status.toLowerCase() !== 'exists') continue;
         const baseName = file.plainName ?? file.name;
         const fileName = file.type ? `${baseName}.${file.type}` : baseName;
         const createdAt = folderDate;
@@ -158,9 +167,12 @@ class PhotoCloudBrowserService {
           status: file.status ?? null,
           encryptVersion: file.encrypt_version ?? null,
         });
+        foundIds.add(file.uuid);
         count++;
       }
     }
+
+    await this.reconcileCloudDeletions({ deviceId, year, month, foundIds, currentDeviceId });
 
     if (count > 0) {
       logger.info(
@@ -171,6 +183,67 @@ class PhotoCloudBrowserService {
       logger.info(`[CloudBrowser] Device "${deviceId}" ${year}/${String(month).padStart(2, '0')} — empty`);
     }
     return count;
+  }
+
+  private async reconcileCloudDeletions(params: {
+    deviceId: string;
+    year: number;
+    month: number;
+    foundIds: Set<string>;
+    currentDeviceId?: string;
+  }): Promise<void> {
+    const { deviceId, year, month, foundIds, currentDeviceId } = params;
+    const knownFromCloud = await this.localDB.getCloudAssetRemoteIdsByDeviceAndMonth(deviceId, year, month);
+    const knownIds = new Set(knownFromCloud);
+
+    if (currentDeviceId && deviceId === currentDeviceId) {
+      const knownFromSync = await this.localDB.getSyncedRemoteIdsByCreationMonth(year, month);
+      for (const id of knownFromSync) knownIds.add(id);
+    }
+
+    let removedCount = 0;
+    for (const knownId of knownIds) {
+      if (!foundIds.has(knownId)) {
+        await this.localDB.markCloudDeleted(knownId);
+        await this.localDB.deleteCloudAsset(knownId);
+        removedCount++;
+      }
+    }
+    if (removedCount > 0) {
+      logger.info(
+        `[CloudBrowser] Device "${deviceId}" ${year}/${String(month).padStart(2, '0')} — ${removedCount} file(s) cloud_deleted`,
+      );
+    }
+  }
+
+  private async reconcileDeletedMonths(params: {
+    devices: { uuid: string; name: string }[];
+    discoveredMonths: { deviceId: string; year: number; month: number; monthFolderUuid: string }[];
+    currentDeviceId?: string;
+  }): Promise<void> {
+    const { devices, discoveredMonths, currentDeviceId } = params;
+    const discoveredSet = new Set(discoveredMonths.map((m) => `${m.deviceId}:${m.year}:${m.month}`));
+
+    for (const device of devices) {
+      const deviceId = device.name;
+      const cloudMonths = await this.localDB.getCloudAssetMonthsByDevice(deviceId);
+      const monthSet = new Set(cloudMonths.map((m) => `${m.year}:${m.month}`));
+
+      if (currentDeviceId && deviceId === currentDeviceId) {
+        const syncedMonths = await this.localDB.getSyncedMonths();
+        for (const m of syncedMonths) monthSet.add(`${m.year}:${m.month}`);
+      }
+
+      for (const key of monthSet) {
+        const [year, month] = key.split(':').map(Number);
+        if (!discoveredSet.has(`${deviceId}:${year}:${month}`)) {
+          logger.info(
+            `[CloudBrowser] Device "${deviceId}" ${year}/${String(month).padStart(2, '0')} — month no longer in cloud`,
+          );
+          await this.reconcileCloudDeletions({ deviceId, year, month, foundIds: new Set(), currentDeviceId });
+        }
+      }
+    }
   }
 
   private async discoverMonthsForDevice(device: {

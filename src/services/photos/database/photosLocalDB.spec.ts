@@ -25,6 +25,9 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(6);
+    const statements = mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
+    expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS asset_sync'))).toBe(true);
+    expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS cloud_asset'))).toBe(true);
   });
 
   test('when the database is initialized a second time, then no database calls are made', async () => {
@@ -41,8 +44,9 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'pending\'');
-    expect(stmt).toContain('status != \'synced\'');
+    expect(stmt).toContain("'pending'");
+    expect(stmt).toContain('ON CONFLICT');
+    expect(stmt).toContain("status != 'synced'");
     expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
   });
 
@@ -65,8 +69,8 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'pending_edit\'');
-    expect(stmt).toContain('status = \'synced\'');
+    expect(stmt).toContain("'pending_edit'");
+    expect(stmt).toContain("status = 'synced'");
     expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
   });
 
@@ -98,7 +102,7 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'synced\'');
+    expect(stmt).toContain("'synced'");
     expect(stmt).toContain('unixepoch()');
     expect(params).toEqual(['asset-1', 'remote-file-id', 1714000000]);
   });
@@ -115,7 +119,7 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'error\'');
+    expect(stmt).toContain("'error'");
     expect(params).toEqual(['asset-2', null]);
   });
 
@@ -131,34 +135,41 @@ describe('photosLocalDB', () => {
 
     const [, stmt] = mockSqlite.executeSql.mock.calls[0];
     expect(stmt).toContain('attempt_count + 1');
-    expect(stmt).toContain('status != \'synced\'');
+    expect(stmt).toContain('ON CONFLICT');
+    expect(stmt).toContain("status != 'synced'");
   });
 
-  test('when looking up synced photos, then only photos with synced status are queried', async () => {
+  test('when looking up synced photos, then both synced and cloud_deleted statuses are queried', async () => {
     mockSqlite.getAllAsync.mockResolvedValueOnce([]);
 
     await photosLocalDB.getSyncedEntries(['asset-1']);
 
     const [, stmt] = mockSqlite.getAllAsync.mock.calls[0];
-    expect(stmt).toContain('status = \'synced\'');
+    expect(stmt).toContain("status IN ('synced', 'cloud_deleted')");
   });
 
-  test('when looking up 300 photos at once, then a single database query is made', async () => {
+  test('when looking up 300 photos at once, then a single database query is made with all ids', async () => {
     const ids = Array.from({ length: 300 }, (_, i) => `asset-${i}`);
     mockSqlite.getAllAsync.mockResolvedValue([]);
 
     await photosLocalDB.getSyncedEntries(ids);
 
     expect(mockSqlite.getAllAsync).toHaveBeenCalledTimes(1);
+    const allPassedIds = mockSqlite.getAllAsync.mock.calls.flatMap((call) => call[2] as string[]);
+    expect(allPassedIds).toEqual(expect.arrayContaining(ids));
+    expect(allPassedIds).toHaveLength(300);
   });
 
-  test('when looking up 301 photos at once, then two database queries are made', async () => {
+  test('when looking up 301 photos at once, then two database queries are made covering all ids', async () => {
     const ids = Array.from({ length: 301 }, (_, i) => `asset-${i}`);
     mockSqlite.getAllAsync.mockResolvedValue([]);
 
     await photosLocalDB.getSyncedEntries(ids);
 
     expect(mockSqlite.getAllAsync).toHaveBeenCalledTimes(2);
+    const allPassedIds = mockSqlite.getAllAsync.mock.calls.flatMap((call) => call[2] as string[]);
+    expect(allPassedIds).toEqual(expect.arrayContaining(ids));
+    expect(allPassedIds).toHaveLength(301);
   });
 
   test('when looking up synced photos, then each result includes the modification time', async () => {
@@ -190,13 +201,16 @@ describe('photosLocalDB', () => {
     expect(result).toEqual(new Map());
   });
 
-  test('when looking up 650 photos at once, then three database queries are made', async () => {
+  test('when looking up 650 photos at once, then three database queries are made covering all ids', async () => {
     const ids = Array.from({ length: 650 }, (_, i) => `asset-${i}`);
     mockSqlite.getAllAsync.mockResolvedValue([]);
 
     await photosLocalDB.getSyncedEntries(ids);
 
     expect(mockSqlite.getAllAsync).toHaveBeenCalledTimes(3);
+    const allPassedIds = mockSqlite.getAllAsync.mock.calls.flatMap((call) => call[2] as string[]);
+    expect(allPassedIds).toEqual(expect.arrayContaining(ids));
+    expect(allPassedIds).toHaveLength(650);
   });
 
   test('when checking the status of a pending photo, then the full pending record is returned', async () => {
@@ -484,15 +498,15 @@ describe('photosLocalDB cloud asset methods', () => {
       'file-1',
       'jpg',
       1718100000000,
-      'photo',       // plainName
-      'jpg',         // extension
-      'bucket-abc',  // bucket
+      'photo', // plainName
+      'jpg', // extension
+      'bucket-abc', // bucket
       'folder-uuid-1', // folderUuid
       1718000000000, // creationTimeApi
       1718050000000, // modificationTime
       1718060000000, // updatedAt
-      'EXISTS',      // status
-      'aes-2',       // encryptVersion
+      'EXISTS', // status
+      'aes-2', // encryptVersion
     ]);
   });
 
@@ -584,10 +598,7 @@ describe('photosLocalDB cloud asset methods', () => {
   });
 
   test('when synced remote file ids are fetched, then the result is a set of all returned ids', async () => {
-    mockSqlite.getAllAsync.mockResolvedValueOnce([
-      { remote_file_id: 'r1' },
-      { remote_file_id: 'r2' },
-    ]);
+    mockSqlite.getAllAsync.mockResolvedValueOnce([{ remote_file_id: 'r1' }, { remote_file_id: 'r2' }]);
 
     const result = await photosLocalDB.getSyncedRemoteFileIds();
 
