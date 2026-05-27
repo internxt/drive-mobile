@@ -219,16 +219,9 @@ describe('PhotoUploadService.upload', () => {
     expect(mockRnfsUnlink).toHaveBeenCalledWith('/tmp/thumb.jpg');
   });
 
-  test('when the asset is stored in iCloud and has not been downloaded to the device, then the upload fails with a clear error', async () => {
-    // The iCloud check only runs on iOS — Platform.OS is not 'ios' in the Jest test environment,
-    // so the null localUri guard in resolveLocalPath is not reached here.
-    // On a real iOS device this path throws: "Asset X has no local URI — may be stored in iCloud"
-    // The test below verifies that the guard exists in the implementation.
+  test('when the asset has no local URI, then the upload still proceeds using the asset URI as fallback', async () => {
     mockGetAssetInfoAsync.mockResolvedValue({ localUri: null });
 
-    // In the Jest (non-iOS) environment, the asset.uri is used as the fallback path and
-    // the upload proceeds without error. The iCloud guard is tested at the implementation level.
-    // Snapshot: resolved (not rejected) — this is expected under non-iOS test environment.
     const result = PhotoUploadService.upload(makeAsset(), DEVICE_ID);
     await expect(result).resolves.toBeDefined();
   });
