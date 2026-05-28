@@ -1,10 +1,15 @@
 package com.internxt.cloud.documents.api
 
+import com.internxt.cloud.documents.api.model.CreateFileEntry
 import com.internxt.cloud.documents.api.model.DownloadLinks
 import com.internxt.cloud.documents.api.model.DriveFile
 import com.internxt.cloud.documents.api.model.DriveFolder
+import com.internxt.cloud.documents.api.model.FinishUploadShard
 import com.internxt.cloud.documents.api.model.Shard
 import com.internxt.cloud.documents.api.model.TrashItem
+import com.internxt.cloud.documents.api.model.UploadFinishResponse
+import com.internxt.cloud.documents.api.model.UploadSlot
+import com.internxt.cloud.documents.api.model.UploadStartResponse
 import com.internxt.cloud.documents.crypto.HashUtil
 import com.internxt.cloud.documents.http.HttpClients
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -110,6 +115,104 @@ class InternxtApiClient(
             .post(payload.toString().toRequestBody(JSON))
             .build()
         executeApiRequest(req)
+    }
+
+    fun startUpload(bucketId: String, encryptedSize: Long, parts: Int = 1): UploadStartResponse {
+        require(parts >= 1) { "parts must be >= 1" }
+        val payload = JSONObject().put(
+            "uploads",
+            JSONArray().put(
+                JSONObject()
+                    .put("index", 0)
+                    .put("size", encryptedSize)
+            )
+        )
+        val url = bridgeUrl("v2/buckets/$bucketId/files/start")
+            .newBuilder()
+            .addQueryParameter("multiparts", parts.toString())
+            .build()
+        val req = bridgeRequest(url)
+            .post(payload.toString().toRequestBody(JSON))
+            .build()
+        return parseUploadStart(executeApiRequest(req))
+    }
+
+    fun finishUpload(
+        bucketId: String,
+        indexHex: String,
+        shards: List<FinishUploadShard>,
+    ): UploadFinishResponse {
+        require(shards.isNotEmpty()) { "shards cannot be empty" }
+        val shardsJson = JSONArray()
+        for (shard in shards) {
+            val obj = JSONObject()
+                .put("uuid", shard.uuid)
+                .put("hash", shard.hash)
+            if (shard.uploadId != null) obj.put("UploadId", shard.uploadId)
+            if (shard.parts != null) {
+                val parts = JSONArray()
+                shard.parts.sortedBy { it.partNumber }.forEach { part ->
+                    parts.put(
+                        JSONObject()
+                            .put("PartNumber", part.partNumber)
+                            .put("ETag", part.etag)
+                    )
+                }
+                obj.put("parts", parts)
+            }
+            shardsJson.put(obj)
+        }
+        val payload = JSONObject()
+            .put("index", indexHex)
+            .put("shards", shardsJson)
+        val req = bridgeRequest(bridgeUrl("v2/buckets/$bucketId/files/finish"))
+            .post(payload.toString().toRequestBody(JSON))
+            .build()
+        val body = executeApiRequest(req)
+        val id = body.optStringOrNull("id")
+            ?: throw InternxtApiException.MalformedResponse("Bridge /finish missing 'id'")
+        return UploadFinishResponse(id = id, bucket = body.optStringOrNull("bucket"))
+    }
+
+    fun createFileEntry(entry: CreateFileEntry): DriveFile {
+        val payload = JSONObject()
+            .put("fileId", entry.fileId)
+            .put("type", entry.type)
+            .put("size", entry.size)
+            .put("plainName", entry.plainName)
+            .put("bucket", entry.bucket)
+            .put("folderUuid", entry.folderUuid)
+            .put("encryptVersion", entry.encryptVersion)
+        entry.modificationTime?.let { payload.put("modificationTime", it) }
+        entry.creationTime?.let { payload.put("creationTime", it) }
+        val req = driveRequest(driveUrl("files"))
+            .post(payload.toString().toRequestBody(JSON))
+            .build()
+        return parseFile(executeApiRequest(req))
+    }
+
+    private fun parseUploadStart(body: JSONObject): UploadStartResponse {
+        val uploadsJson = body.optJSONArray("uploads")
+            ?: throw InternxtApiException.MalformedResponse("Bridge /start missing 'uploads'")
+        return UploadStartResponse(uploads = uploadsJson.map(::parseUploadSlot))
+    }
+
+    private fun parseUploadSlot(obj: JSONObject): UploadSlot {
+        val index = obj.optInt("index")
+        val uuid = obj.requireString("uuid")
+        return when (val urlsArr = obj.optJSONArray("urls")) {
+            null -> UploadSlot.Single(
+                index = index,
+                uuid = uuid,
+                url = obj.requireString("url"),
+            )
+            else -> UploadSlot.Multipart(
+                index = index,
+                uuid = uuid,
+                urls = urlsArr.toStringList(),
+                uploadId = obj.requireString("UploadId"),
+            )
+        }
     }
 
     fun getDownloadLinks(bucketId: String, fileId: String): DownloadLinks {
