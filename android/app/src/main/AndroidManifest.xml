@@ -12,6 +12,9 @@
   <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
   <queries>
     <intent>
       <action android:name="android.intent.action.VIEW"/>
@@ -58,6 +61,13 @@
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
     </activity>
+    <service
+      android:name="com.internxt.cloud.documents.upload.UploadForegroundService"
+      android:foregroundServiceType="dataSync"
+      android:exported="false"/>
+    <receiver
+      android:name="com.internxt.cloud.documents.upload.CancelUploadReceiver"
+      android:exported="false"/>
     <provider
       android:name="com.internxt.cloud.documents.InternxtDocumentsProvider"
       android:authorities="com.internxt.cloud.documents"

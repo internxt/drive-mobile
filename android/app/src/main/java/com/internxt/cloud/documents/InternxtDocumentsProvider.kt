@@ -33,6 +33,7 @@ import com.internxt.cloud.documents.download.EncryptedFileDownloader
 import com.internxt.cloud.documents.http.HttpClients
 import com.internxt.cloud.documents.upload.EncryptedFileUploader
 import com.internxt.cloud.documents.upload.PendingUpload
+import com.internxt.cloud.documents.upload.UploadForegroundService
 import com.rncrypto.util.CryptoService
 import java.io.File
 import java.io.FileNotFoundException
@@ -605,13 +606,17 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         signal: CancellationSignal?,
     ) {
         val temps = uploadTempsFor(ctx, token)
+        val uploadSignal = CancellationSignal()
+        signal?.setOnCancelListener { uploadSignal.cancel() }
+        UploadForegroundService.start(ctx, token, pending.plainName, uploadSignal)
+
         var failure: Throwable? = null
         try {
             val api = InternxtApiClient(cfg)
             val bucketId = resolveBucket(api, pending.parentUuid)
             val crypto = prepareEncryption(cfg.mnemonic, bucketId)
-            val encrypted = encryptInputToTemp(temps, readEnd, crypto, signal)
-            val outcome = uploadEncryptedFile(api, temps.enc, bucketId, encrypted, signal)
+            val encrypted = encryptInputToTemp(token, temps, readEnd, crypto, uploadSignal)
+            val outcome = uploadEncryptedFile(token, api, temps.enc, bucketId, encrypted, uploadSignal)
             finalizeAndRecordFile(api, pending, bucketId, crypto.indexHex, encrypted.size, outcome)
             invalidateChildren(DocumentId.encodeFolder(pending.parentUuid))
         } catch (t: Throwable) {
@@ -624,6 +629,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             deleteTempQuietly(temps.plain)
             deleteTempQuietly(temps.enc)
             pendingUploads.remove(token)
+            notifyServiceOfOutcome(ctx, token, failure)
         }
     }
 
@@ -653,16 +659,22 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     }
 
     private fun encryptInputToTemp(
+        token: String,
         temps: UploadTemps,
         readEnd: ParcelFileDescriptor,
         crypto: EncryptionContext,
-        signal: CancellationSignal?,
+        signal: CancellationSignal,
     ): EncryptedFileUploader.Encrypted {
         // Phase 1: drain the pipe into a plaintext file on disk — CryptoService is
-        // path-based, so we must materialize before encrypting. Cancellation lives here
-        // because this is the long-running streaming phase.
-        drainPipeToFile(readEnd, temps.plain, signal)
-        signal?.throwIfCanceled()
+        // path-based, so we must materialize before encrypting. Cancellation + per-byte
+        // progress live here because this is the long-running streaming phase.
+        val onProgress = throttledProgress { bytes ->
+            UploadForegroundService.reportProgress(
+                token, UploadForegroundService.Phase.ENCRYPTING, bytes, 0L,
+            )
+        }
+        drainPipeToFile(readEnd, temps.plain, signal, onProgress)
+        signal.throwIfCanceled()
         // Phase 2: hand the plaintext file to the official rn-crypto CryptoService — same
         // call the RN side makes from NetworkFacade.ts, identical AES-CTR pipeline.
         return EncryptedFileUploader.encryptFile(temps.plain, temps.enc, crypto.key, crypto.iv)
@@ -671,19 +683,23 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun drainPipeToFile(
         readEnd: ParcelFileDescriptor,
         target: File,
-        signal: CancellationSignal?,
+        signal: CancellationSignal,
+        onProgress: (Long) -> Unit,
     ) {
         val buffer = ByteArray(EncryptedFileUploader.COPY_BUFFER_SIZE)
+        var written = 0L
         // dup() so the InputStream owns its own FD; the original `readEnd` survives for
         // the eventual close()/closeWithError() in `runUpload`'s finally.
         readEnd.dup().use { dup ->
             ParcelFileDescriptor.AutoCloseInputStream(dup).use { source ->
                 target.outputStream().use { sink ->
                     while (true) {
-                        signal?.throwIfCanceled()
+                        signal.throwIfCanceled()
                         val n = source.read(buffer)
                         if (n == -1) break
                         sink.write(buffer, 0, n)
+                        written += n
+                        onProgress(written)
                     }
                     sink.flush()
                 }
@@ -692,11 +708,12 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     }
 
     private fun uploadEncryptedFile(
+        token: String,
         api: InternxtApiClient,
         tempEnc: File,
         bucketId: String,
         encrypted: EncryptedFileUploader.Encrypted,
-        signal: CancellationSignal?,
+        signal: CancellationSignal,
     ): UploadOutcome {
         val partsCount = if (encrypted.size >= MULTIPART_THRESHOLD) {
             ((encrypted.size + MULTIPART_PART_SIZE - 1) / MULTIPART_PART_SIZE).toInt().coerceAtLeast(1)
@@ -705,15 +722,23 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val slot = api.startUpload(bucketId, encrypted.size, partsCount).uploads.firstOrNull()
             ?: throw IOException("Bridge /start returned no upload slot")
 
+        val onProgress = throttledProgress { bytes ->
+            UploadForegroundService.reportProgress(
+                token, UploadForegroundService.Phase.UPLOADING, bytes, encrypted.size,
+            )
+        }
+
         return when (slot) {
             is UploadSlot.Single -> {
-                EncryptedFileUploader.uploadSingle(HttpClients.upload, tempEnc, slot.url, signal)
+                EncryptedFileUploader.uploadSingle(
+                    HttpClients.upload, tempEnc, slot.url, signal, onProgress,
+                )
                 UploadOutcome.Single(slot.uuid, listOf(encrypted.wholeSha256Hex))
             }
             is UploadSlot.Multipart -> {
                 val partHashes = EncryptedFileUploader.computePartSha256(tempEnc, MULTIPART_PART_SIZE)
                 val parts = EncryptedFileUploader.uploadMultipart(
-                    HttpClients.upload, tempEnc, slot.urls, MULTIPART_PART_SIZE, signal,
+                    HttpClients.upload, tempEnc, slot.urls, MULTIPART_PART_SIZE, signal, onProgress,
                 )
                 UploadOutcome.Multipart(slot.uuid, partHashes, parts, slot.uploadId)
             }
@@ -771,6 +796,45 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun deleteTempQuietly(tempEnc: File) {
         if (!tempEnc.delete() && tempEnc.exists()) {
             Log.w(TAG, "Failed to delete temp upload file: ${tempEnc.absolutePath}")
+        }
+    }
+
+    private fun notifyServiceOfOutcome(ctx: Context, token: String, failure: Throwable?) {
+        when {
+            failure == null -> UploadForegroundService.complete(token)
+            failure is OperationCanceledException -> UploadForegroundService.complete(token)
+            else -> UploadForegroundService.fail(token, friendlyUploadError(ctx, failure))
+        }
+    }
+
+    private fun friendlyUploadError(ctx: Context, t: Throwable): String {
+        if (t is InternxtApiException.ApiError) {
+            val body = t.body.orEmpty()
+            if (t.code == 420 || body.contains("Max space used", ignoreCase = true)) {
+                return ctx.getString(R.string.upload_error_storage_full)
+            }
+            if (t.code == 413) return ctx.getString(R.string.upload_error_too_large)
+            if (t.code in 500..599) return ctx.getString(R.string.upload_error_server)
+        }
+        if (t is InternxtApiException.UnauthorizedException) {
+            return ctx.getString(R.string.upload_error_signed_out)
+        }
+        if (t is InternxtApiException.NetworkException) {
+            return ctx.getString(R.string.upload_error_network)
+        }
+        return ctx.getString(R.string.upload_error_generic)
+    }
+
+    private fun throttledProgress(emit: (Long) -> Unit): (Long) -> Unit {
+        var lastEmittedMs = 0L
+        var lastEmittedBytes = -1L
+        return { bytes ->
+            val now = System.currentTimeMillis()
+            if (bytes != lastEmittedBytes && now - lastEmittedMs >= PROGRESS_THROTTLE_MS) {
+                lastEmittedMs = now
+                lastEmittedBytes = bytes
+                emit(bytes)
+            }
         }
     }
 
@@ -832,6 +896,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
         private const val MULTIPART_THRESHOLD = 100L * 1024L * 1024L
         private const val MULTIPART_PART_SIZE = 30L * 1024L * 1024L
+        private const val PROGRESS_THROTTLE_MS = 300L
         private const val MAX_SUFFIX_ATTEMPTS = 1000
         private const val PENDING_UPLOAD_TTL_MS = 60L * 60L * 1000L
         private const val NOT_AUTHENTICATED = "Not authenticated"
