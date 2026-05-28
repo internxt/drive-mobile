@@ -7,6 +7,7 @@ import { stripFileUri, toFileUri } from 'src/services/common/uri/uriHelpers';
 import { driveTrashService } from 'src/services/drive/trash/driveTrash.service';
 import fileSystemService from 'src/services/FileSystemService';
 import { photosLocalDB } from './database/photosLocalDB';
+import { SavePermissionDeniedError } from './errors';
 import { PhotoAssetFetchService } from './PhotoAssetFetchService';
 
 type CleanupItem = { type: 'cloud'; assetId: string } | { type: 'local-backed'; assetId: string; remoteFileId: string };
@@ -32,6 +33,7 @@ class PhotoActionsService {
         await fileSystemService.shareFile({ title: '', fileUri: toFileUri(result.uri) });
       } catch (error) {
         logger.error(`[PhotoActionsService] export failed for ${item.id}: ${error}`);
+        throw error;
       } finally {
         result?.cleanup?.();
       }
@@ -42,7 +44,7 @@ class PhotoActionsService {
     const { status } = await MediaLibrary.requestPermissionsAsync(true);
     if (status !== 'granted') {
       logger.warn(`[PhotoActionsService] saveToDevice — permission not granted (status: ${status})`);
-      return;
+      throw new SavePermissionDeniedError();
     }
 
     const uri = await PhotoAssetFetchService.fetchUri(item, signal);
@@ -114,8 +116,12 @@ class PhotoActionsService {
 
   async restoreToCloud(items: TimelinePhotoItem[], signal: AbortSignal): Promise<void> {
     for (const item of items) {
-      if (signal.aborted) return;
-      if (item.type !== 'local') continue;
+      if (signal.aborted) {
+        return;
+      }
+      if (item.type !== 'local') {
+        continue;
+      }
       await photosLocalDB.markPending(item.id);
     }
   }

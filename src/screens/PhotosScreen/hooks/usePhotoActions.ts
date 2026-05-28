@@ -1,9 +1,12 @@
 import strings from 'assets/lang/strings';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { logger } from 'src/services/common';
+import { notifications } from 'src/services/NotificationsService';
+import { SavePermissionDeniedError } from 'src/services/photos/errors';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
 import { useAppDispatch } from 'src/store/hooks';
 import { runUploadThunk } from 'src/store/slices/photos';
+import { getSavedNotificationMessage, getTrashNotificationMessage } from '../utils/photoUtils';
 import { PhotoSelection } from './usePhotoSelection';
 
 export interface UsePhotoActionsReturn {
@@ -64,6 +67,7 @@ export const usePhotoActions = (
       await photoActionsService.exportItems(selection.selectedItems, signal);
     } catch (error) {
       logger.error(`[usePhotoActions] Export error: ${error}`);
+      notifications.error(strings.screens.photos.notifications.exportError);
     } finally {
       finishAction();
     }
@@ -74,10 +78,18 @@ export const usePhotoActions = (
     try {
       for (const item of selection.selectedItems) {
         await photoActionsService.saveToDevice(item, signal);
-        if (signal.aborted) break;
+        if (signal.aborted) {
+          break;
+        }
+        notifications.success(getSavedNotificationMessage(item));
       }
     } catch (error) {
       logger.error(`[usePhotoActions] Save error: ${error}`);
+      if (error instanceof SavePermissionDeniedError) {
+        notifications.error(strings.screens.photos.notifications.saveErrorNoPermission);
+      } else {
+        notifications.error(strings.screens.photos.notifications.saveError);
+      }
     } finally {
       finishAction();
     }
@@ -85,12 +97,16 @@ export const usePhotoActions = (
 
   const handleCopy = useCallback(async () => {
     const item = selection.selectedItems[0];
-    if (!item) return;
+    if (!item) {
+      return;
+    }
     const { signal } = startAction(strings.screens.photos.selection.actionProgress.copying);
     try {
       await photoActionsService.copyToClipboard(item, signal);
+      notifications.success(strings.screens.photos.notifications.photoCopied);
     } catch (error) {
       logger.error(`[usePhotoActions] Copy error: ${error}`);
+      notifications.error(strings.screens.photos.notifications.copyError);
     } finally {
       finishAction();
     }
@@ -110,13 +126,16 @@ export const usePhotoActions = (
 
   const handleTrashConfirm = useCallback(async () => {
     setIsDeleteConfirmOpen(false);
+    const selectedItemsLength = selection.selectedItems.length;
     const { signal } = startAction(strings.screens.photos.selection.actionProgress.movingToTrash);
     try {
       await photoActionsService.trash(selection.selectedItems, signal);
       await reloadLocal();
       await reloadCloud();
+      notifications.success(getTrashNotificationMessage(selectedItemsLength));
     } catch (error) {
       logger.error(`[usePhotoActions] Trash error: ${error}`);
+      notifications.error(strings.screens.photos.notifications.trashError);
     } finally {
       finishAction();
     }
@@ -129,8 +148,10 @@ export const usePhotoActions = (
       await dispatch(runUploadThunk({ bypassEnabled: true })).unwrap();
       await reloadLocal();
       await reloadCloud();
+      notifications.info(strings.screens.photos.notifications.restoreStarted);
     } catch (error) {
       logger.error(`[usePhotoActions] Restore error: ${error}`);
+      notifications.error(strings.screens.photos.notifications.restoreError);
     } finally {
       finishAction();
     }

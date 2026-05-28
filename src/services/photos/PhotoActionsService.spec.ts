@@ -127,7 +127,7 @@ describe('exportItems', () => {
     mockResolveExportUri.mockResolvedValue({ uri: '/cache/photo_share/asset-1.jpg', cleanup });
     mockShareFile.mockRejectedValue(new Error('share failed'));
 
-    await photoActionsService.exportItems([makeLocalItem()], makeSignal());
+    await expect(photoActionsService.exportItems([makeLocalItem()], makeSignal())).rejects.toThrow('share failed');
 
     expect(cleanup).toHaveBeenCalled();
   });
@@ -141,8 +141,9 @@ describe('exportItems', () => {
     expect(mockResolveExportUri).not.toHaveBeenCalled();
   });
 
-  test('when processing multiple items, then each item is exported in sequence', async () => {
+  test('when processing multiple items and all succeed, then shareFile is called for each item', async () => {
     const items = [makeLocalItem('a'), makeLocalItem('b')];
+    mockShareFile.mockResolvedValue(undefined);
     mockResolveExportUri.mockResolvedValueOnce({ uri: '/cache/a.jpg' }).mockResolvedValueOnce({ uri: '/cache/b.jpg' });
 
     await photoActionsService.exportItems(items, makeSignal());
@@ -152,11 +153,12 @@ describe('exportItems', () => {
 });
 
 describe('saveToDevice', () => {
-  test('when media library permission is denied, then saveToLibraryAsync is not called', async () => {
+  test('when media library permission is denied, then saveToLibraryAsync is not called and an error is thrown', async () => {
     mockRequestPermissions.mockResolvedValue({ status: 'denied' });
 
-    await photoActionsService.saveToDevice(makeLocalItem(), makeSignal());
-
+    await expect(photoActionsService.saveToDevice(makeLocalItem(), makeSignal())).rejects.toThrow(
+      'Media library permission not granted',
+    );
     expect(mockSaveToLibrary).not.toHaveBeenCalled();
   });
 

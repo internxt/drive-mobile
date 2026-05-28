@@ -6,12 +6,14 @@ import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { logger } from 'src/services/common';
 import { toFileUri } from 'src/services/common/uri/uriHelpers';
 import fileSystemService from 'src/services/FileSystemService';
+import { notifications } from 'src/services/NotificationsService';
+import { SavePermissionDeniedError } from 'src/services/photos/errors';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
 import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
 import { RootStackScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import MoreActionsBottomSheet from '../PhotosScreen/components/MoreActionsBottomSheet';
-import { isItemBacked } from '../PhotosScreen/utils/photoUtils';
+import { getSavedNotificationMessage, isItemBacked } from '../PhotosScreen/utils/photoUtils';
 import { MetadataPanel } from './components/MetadataPanel';
 import { PreviewCarousel } from './components/PreviewCarousel';
 import { PreviewHeader } from './components/PreviewHeader';
@@ -94,10 +96,12 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     const controller = new AbortController();
     try {
       await photoActionsService.trash([currentItem], controller.signal);
+      notifications.success(strings.screens.photos.notifications.itemMovedToTrash);
       await onTrashed?.();
       navigation.goBack();
     } catch (error) {
       logger.error(`[PhotoPreview] Delete failed: ${error}`);
+      notifications.error(strings.screens.photos.notifications.trashError);
     }
   }, [items, currentIndex, onTrashed, navigation]);
 
@@ -117,6 +121,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
       await fileSystemService.shareFile({ title: '', fileUri });
     } catch (error) {
       logger.error(`[PhotoPreview] Export failed: ${error}`);
+      notifications.error(strings.screens.photos.notifications.exportError);
     }
   }, [items, currentIndex]);
 
@@ -129,8 +134,10 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     setIsMoreActionsOpen(false);
     try {
       await photoActionsService.copyToClipboard(item, controller.signal);
+      notifications.success(strings.screens.photos.notifications.photoCopied);
     } catch (error) {
       logger.error(`[PhotoPreview] Copy failed: ${error}`);
+      notifications.error(strings.screens.photos.notifications.copyError);
     }
   }, [items, currentIndex]);
 
@@ -143,8 +150,14 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     setIsMoreActionsOpen(false);
     try {
       await photoActionsService.saveToDevice(item, controller.signal);
+      notifications.success(getSavedNotificationMessage(item));
     } catch (error) {
       logger.error(`[PhotoPreview] Save failed: ${error}`);
+      if (error instanceof SavePermissionDeniedError) {
+        notifications.error(strings.screens.photos.notifications.saveErrorNoPermission);
+      } else {
+        notifications.error(strings.screens.photos.notifications.saveError);
+      }
     }
   }, [items, currentIndex]);
 
@@ -157,8 +170,10 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     setIsMoreActionsOpen(false);
     try {
       await photoActionsService.restoreToCloud([item], controller.signal);
+      notifications.info(strings.screens.photos.notifications.restoreStarted);
     } catch (error) {
       logger.error(`[PhotoPreview] Restore failed: ${error}`);
+      notifications.error(strings.screens.photos.notifications.restoreError);
     }
   }, [items, currentIndex]);
 
