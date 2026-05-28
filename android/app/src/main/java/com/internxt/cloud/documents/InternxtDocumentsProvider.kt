@@ -1,5 +1,6 @@
 package com.internxt.cloud.documents
 
+import android.content.Context
 import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
@@ -15,19 +16,30 @@ import android.provider.DocumentsContract.Root
 import android.provider.DocumentsProvider
 import android.util.Log
 import com.internxt.cloud.R
+import com.internxt.cloud.documents.api.AuthConfig
 import com.internxt.cloud.documents.api.InternxtApiClient
 import com.internxt.cloud.documents.api.InternxtApiException
+import com.internxt.cloud.documents.api.model.CreateFileEntry
+import com.internxt.cloud.documents.api.model.FinishUploadShard
 import com.internxt.cloud.documents.api.model.TrashItem
+import com.internxt.cloud.documents.api.model.UploadSlot
+import com.internxt.cloud.documents.api.model.UploadedPart
 import com.internxt.cloud.documents.auth.InternxtAuthManager
 import com.internxt.cloud.documents.cache.DocumentCache
 import com.internxt.cloud.documents.crypto.FileKeyDeriver
+import com.internxt.cloud.documents.crypto.awaitCryptoService
 import com.internxt.cloud.documents.crypto.toHex
 import com.internxt.cloud.documents.download.EncryptedFileDownloader
 import com.internxt.cloud.documents.http.HttpClients
+import com.internxt.cloud.documents.upload.EncryptedFileUploader
+import com.internxt.cloud.documents.upload.PendingUpload
 import com.rncrypto.util.CryptoService
 import java.io.File
 import java.io.FileNotFoundException
-import java.util.concurrent.CompletableFuture
+import java.io.IOException
+import java.security.SecureRandom
+import java.time.Instant
+import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 
@@ -44,6 +56,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     }
 
     private val folderLoads = ConcurrentHashMap<String, FolderLoad>()
+    private val pendingUploads = ConcurrentHashMap<String, PendingUpload>()
 
     private enum class LoadState { LOADING, DONE, ERROR }
 
@@ -91,6 +104,13 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val id = documentId ?: return cursor
         cursor.setNotificationUri(ctx.contentResolver, DocumentsContract.buildDocumentUri(AUTHORITY, id))
         Log.d(TAG, "queryDocument id=$id")
+
+        if (DocumentId.isUploadToken(id)) {
+            pendingUploads[DocumentId.decodeUpload(id)]?.let { pending ->
+                cursor.addDocumentRow(pendingUploadRow(id, pending))
+            }
+            return cursor
+        }
 
         val decoded = DocumentId.decode(id)
         val uuid = decoded?.uuid ?: id
@@ -171,7 +191,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         loaderExecutor.execute {
             val api = apiClient(op = "queryChildDocuments[bg]")
             if (api == null) {
-                finishLoad(load, notifyUri, LoadState.ERROR, "Not authenticated")
+                finishLoad(load, notifyUri, LoadState.ERROR, NOT_AUTHENTICATED)
                 return@execute
             }
             try {
@@ -361,8 +381,12 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     ): ParcelFileDescriptor {
         val ctx = context ?: throw FileNotFoundException("No context")
         val id = documentId ?: throw FileNotFoundException("No document id")
-        if (mode != null && mode != "r") {
-            throw UnsupportedOperationException("Only read-only access is supported (mode=$mode)")
+        val effectiveMode = mode ?: "r"
+        if (effectiveMode.contains('w')) {
+            return openForWrite(ctx, id, signal)
+        }
+        if (effectiveMode != "r") {
+            throw UnsupportedOperationException("Unsupported mode=$effectiveMode")
         }
 
         val decoded = DocumentId.decode(id)
@@ -386,12 +410,12 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     }
 
     private fun openDocumentBlocking(
-        ctx: android.content.Context,
+        ctx: Context,
         id: String,
         signal: CancellationSignal?,
         fileUuid: String,
     ): ParcelFileDescriptor {
-        val cfg = authManager?.loadAuthConfig() ?: throw FileNotFoundException("Not authenticated")
+        val cfg = authManager?.loadAuthConfig() ?: throw FileNotFoundException(NOT_AUTHENTICATED)
         if (cfg.mnemonic.isBlank()) {
             throw FileNotFoundException("Stored credentials have no mnemonic; sign out and back in")
         }
@@ -431,7 +455,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     }
 
     private fun materializeIntoCache(
-        ctx: android.content.Context,
+        ctx: Context,
         id: String,
         api: InternxtApiClient,
         mnemonic: String,
@@ -468,28 +492,330 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         }
     }
 
-    private fun openCached(ctx: android.content.Context, id: String, cacheFile: File): ParcelFileDescriptor =
+    private fun openCached(ctx: Context, id: String, cacheFile: File): ParcelFileDescriptor =
         ParcelFileDescriptor.open(
             cacheFile,
             ParcelFileDescriptor.MODE_READ_ONLY,
             closeHandler,
         ) { DocumentCache.deleteTempsFor(ctx, id) }
 
-    private fun decryptBlocking(src: File, dst: File, hexKey: String, hexIv: String) {
-        val done = CompletableFuture<Unit>()
-        CryptoService.getInstance().decryptFile(
-            src.absolutePath,
-            dst.absolutePath,
-            hexKey,
-            hexIv,
-            /* runInBackground = */ true,
-        ) { err ->
-            if (err != null) done.completeExceptionally(err) else done.complete(Unit)
-        }
+    override fun createDocument(parentDocumentId: String, mimeType: String, displayName: String): String {
+        val api = apiClient("createDocument") ?: throw FileNotFoundException(NOT_AUTHENTICATED)
+        val parentUuid = rawUuid(parentDocumentId)
         try {
-            done.get()
-        } catch (e: java.util.concurrent.ExecutionException) {
-            throw e.cause ?: e
+            api.getFolder(parentUuid) ?: throw FileNotFoundException("Parent not found: $parentDocumentId")
+        } catch (e: InternxtApiException) {
+            throw FileNotFoundException("Parent lookup failed: ${e.message}")
+        }
+
+        val normalized = collapseRedundantExtensions(displayName, mimeType)
+        val resolvedName = pickUniqueName(api, parentUuid, normalized)
+        evictStalePendingUploads()
+        val token = UUID.randomUUID().toString()
+        pendingUploads[token] = PendingUpload(parentUuid, resolvedName, mimeType)
+        return DocumentId.encodeUpload(token)
+    }
+
+    private fun evictStalePendingUploads() {
+        val cutoff = System.currentTimeMillis() - PENDING_UPLOAD_TTL_MS
+        pendingUploads.entries.removeAll { it.value.createdAtMillis < cutoff }
+    }
+
+    private fun collapseRedundantExtensions(displayName: String, mimeType: String): String {
+        val canonicalExt = android.webkit.MimeTypeMap.getSingleton()
+            .getExtensionFromMimeType(mimeType)?.lowercase()
+        if (canonicalExt.isNullOrBlank()) return displayName
+        val suffix = ".$canonicalExt"
+        var name = displayName
+        while (name.length > suffix.length && name.endsWith(suffix, ignoreCase = true)) {
+            val candidate = name.dropLast(suffix.length)
+            if (candidate.endsWith(suffix, ignoreCase = true)) {
+                name = candidate
+            } else {
+                break
+            }
+        }
+        return name
+    }
+
+    private fun pickUniqueName(api: InternxtApiClient, parentUuid: String, requested: String): String {
+        val existing = HashSet<String>()
+        try {
+            streamPages({ offset, size -> api.listFolderFiles(parentUuid, offset, size) }) { page ->
+                page.forEach { existing.add(joinNameType(it.plainName, it.type)) }
+            }
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "pickUniqueName: listing failed, using requested name. ${e.message}")
+            return requested
+        }
+        if (requested !in existing) return requested
+        val (base, ext) = splitNameExt(requested)
+        for (i in 1..MAX_SUFFIX_ATTEMPTS) {
+            val candidate = "$base ($i)$ext"
+            if (candidate !in existing) return candidate
+        }
+        // Backstop for the (practically impossible) case where 1..1000 are all taken —
+        // the backend permits duplicate names, so a UUID-suffixed name is always safe.
+        return "$base (${UUID.randomUUID()})$ext"
+    }
+
+    private fun splitNameExt(name: String): Pair<String, String> {
+        val dot = name.lastIndexOf('.')
+        val hasExt = dot > 0 && dot < name.length - 1
+        return if (hasExt) name.substring(0, dot) to name.substring(dot) else name to ""
+    }
+
+    private fun joinNameType(plainName: String, type: String?): String =
+        if (type.isNullOrBlank()) plainName else "$plainName.$type"
+
+    private fun openForWrite(
+        ctx: Context,
+        documentId: String,
+        signal: CancellationSignal?,
+    ): ParcelFileDescriptor {
+        val token = DocumentId.decodeUpload(documentId)
+            ?: throw FileNotFoundException("Write only supported on pending uploads: $documentId")
+        val pending = pendingUploads[token]
+            ?: throw FileNotFoundException("Unknown upload token: $token")
+
+        try {
+            val cfg = authManager?.loadAuthConfig() ?: throw FileNotFoundException(NOT_AUTHENTICATED)
+            if (cfg.mnemonic.isBlank()) {
+                throw FileNotFoundException("Stored credentials have no mnemonic; sign out and back in")
+            }
+            val pipe = ParcelFileDescriptor.createReliablePipe()
+            val readEnd = pipe[0]
+            val writeEnd = pipe[1]
+            openExecutor.execute {
+                runUpload(ctx, token, pending, cfg, readEnd, signal)
+            }
+            return writeEnd
+        } catch (t: Throwable) {
+            pendingUploads.remove(token)
+            throw t
+        }
+    }
+
+    private fun runUpload(
+        ctx: Context,
+        token: String,
+        pending: PendingUpload,
+        cfg: AuthConfig,
+        readEnd: ParcelFileDescriptor,
+        signal: CancellationSignal?,
+    ) {
+        val temps = uploadTempsFor(ctx, token)
+        var failure: Throwable? = null
+        try {
+            val api = InternxtApiClient(cfg)
+            val bucketId = resolveBucket(api, pending.parentUuid)
+            val crypto = prepareEncryption(cfg.mnemonic, bucketId)
+            val encrypted = encryptInputToTemp(temps, readEnd, crypto, signal)
+            val outcome = uploadEncryptedFile(api, temps.enc, bucketId, encrypted, signal)
+            finalizeAndRecordFile(api, pending, bucketId, crypto.indexHex, encrypted.size, outcome)
+            invalidateChildren(DocumentId.encodeFolder(pending.parentUuid))
+        } catch (t: Throwable) {
+            if (t !is OperationCanceledException) {
+                Log.w(TAG, "upload failed token=$token: ${t.javaClass.simpleName}: ${t.message}")
+            }
+            failure = t
+        } finally {
+            closePipeEnd(readEnd, failure)
+            deleteTempQuietly(temps.plain)
+            deleteTempQuietly(temps.enc)
+            pendingUploads.remove(token)
+        }
+    }
+
+    /** `tempEnc` holds the ciphertext PUT to bridge; `plain` holds the pipe's plaintext
+     *  while we hand it to CryptoService (which only accepts file paths). */
+    private data class UploadTemps(val plain: File, val enc: File)
+
+    private fun uploadTempsFor(ctx: Context, token: String): UploadTemps {
+        val (enc, plain) = DocumentCache.tempPaths(ctx, token)
+        return UploadTemps(plain = plain, enc = enc)
+    }
+
+    private fun resolveBucket(api: InternxtApiClient, parentUuid: String): String {
+        val parent = api.getFolder(parentUuid)
+            ?: throw IOException("Parent folder not found: $parentUuid")
+        return parent.bucket
+            ?: throw IOException("Parent folder $parentUuid has no bucket")
+    }
+
+    private fun prepareEncryption(mnemonic: String, bucketId: String): EncryptionContext {
+        val indexHex = ByteArray(32).also { SecureRandom().nextBytes(it) }.toHex()
+        return EncryptionContext(
+            key = FileKeyDeriver.deriveFileKey(mnemonic, bucketId, indexHex),
+            iv = FileKeyDeriver.deriveIv(indexHex),
+            indexHex = indexHex,
+        )
+    }
+
+    private fun encryptInputToTemp(
+        temps: UploadTemps,
+        readEnd: ParcelFileDescriptor,
+        crypto: EncryptionContext,
+        signal: CancellationSignal?,
+    ): EncryptedFileUploader.Encrypted {
+        // Phase 1: drain the pipe into a plaintext file on disk — CryptoService is
+        // path-based, so we must materialize before encrypting. Cancellation lives here
+        // because this is the long-running streaming phase.
+        drainPipeToFile(readEnd, temps.plain, signal)
+        signal?.throwIfCanceled()
+        // Phase 2: hand the plaintext file to the official rn-crypto CryptoService — same
+        // call the RN side makes from NetworkFacade.ts, identical AES-CTR pipeline.
+        return EncryptedFileUploader.encryptFile(temps.plain, temps.enc, crypto.key, crypto.iv)
+    }
+
+    private fun drainPipeToFile(
+        readEnd: ParcelFileDescriptor,
+        target: File,
+        signal: CancellationSignal?,
+    ) {
+        val buffer = ByteArray(EncryptedFileUploader.COPY_BUFFER_SIZE)
+        // dup() so the InputStream owns its own FD; the original `readEnd` survives for
+        // the eventual close()/closeWithError() in `runUpload`'s finally.
+        readEnd.dup().use { dup ->
+            ParcelFileDescriptor.AutoCloseInputStream(dup).use { source ->
+                target.outputStream().use { sink ->
+                    while (true) {
+                        signal?.throwIfCanceled()
+                        val n = source.read(buffer)
+                        if (n == -1) break
+                        sink.write(buffer, 0, n)
+                    }
+                    sink.flush()
+                }
+            }
+        }
+    }
+
+    private fun uploadEncryptedFile(
+        api: InternxtApiClient,
+        tempEnc: File,
+        bucketId: String,
+        encrypted: EncryptedFileUploader.Encrypted,
+        signal: CancellationSignal?,
+    ): UploadOutcome {
+        val partsCount = if (encrypted.size >= MULTIPART_THRESHOLD) {
+            ((encrypted.size + MULTIPART_PART_SIZE - 1) / MULTIPART_PART_SIZE).toInt().coerceAtLeast(1)
+        } else 1
+
+        val slot = api.startUpload(bucketId, encrypted.size, partsCount).uploads.firstOrNull()
+            ?: throw IOException("Bridge /start returned no upload slot")
+
+        return when (slot) {
+            is UploadSlot.Single -> {
+                EncryptedFileUploader.uploadSingle(HttpClients.upload, tempEnc, slot.url, signal)
+                UploadOutcome.Single(slot.uuid, listOf(encrypted.wholeSha256Hex))
+            }
+            is UploadSlot.Multipart -> {
+                val partHashes = EncryptedFileUploader.computePartSha256(tempEnc, MULTIPART_PART_SIZE)
+                val parts = EncryptedFileUploader.uploadMultipart(
+                    HttpClients.upload, tempEnc, slot.urls, MULTIPART_PART_SIZE, signal,
+                )
+                UploadOutcome.Multipart(slot.uuid, partHashes, parts, slot.uploadId)
+            }
+        }
+    }
+
+    private fun finalizeAndRecordFile(
+        api: InternxtApiClient,
+        pending: PendingUpload,
+        bucketId: String,
+        indexHex: String,
+        encryptedSize: Long,
+        outcome: UploadOutcome,
+    ) {
+        val hash = EncryptedFileUploader.computeShardHash(outcome.partHashes)
+        val shard = when (outcome) {
+            is UploadOutcome.Single -> FinishUploadShard(uuid = outcome.slotUuid, hash = hash)
+            is UploadOutcome.Multipart -> FinishUploadShard(
+                uuid = outcome.slotUuid,
+                hash = hash,
+                uploadId = outcome.uploadId,
+                parts = outcome.parts,
+            )
+        }
+        val finish = api.finishUpload(bucketId, indexHex, listOf(shard))
+
+        val nowIso = Instant.now().toString()
+        val (basePlain, ext) = splitNameExt(pending.plainName)
+        api.createFileEntry(
+            CreateFileEntry(
+                fileId = finish.id,
+                type = ext.removePrefix("."),
+                size = encryptedSize,
+                plainName = basePlain,
+                bucket = bucketId,
+                folderUuid = pending.parentUuid,
+                modificationTime = nowIso,
+                creationTime = nowIso,
+            )
+        )
+    }
+
+    private fun closePipeEnd(readEnd: ParcelFileDescriptor, failure: Throwable?) {
+        try {
+            if (failure != null) {
+                readEnd.closeWithError(failure.message ?: "Upload failed")
+            } else {
+                readEnd.close()
+            }
+        } catch (e: IOException) {
+            Log.w(TAG, "closing readEnd failed: ${e.message}")
+        }
+    }
+
+    private fun deleteTempQuietly(tempEnc: File) {
+        if (!tempEnc.delete() && tempEnc.exists()) {
+            Log.w(TAG, "Failed to delete temp upload file: ${tempEnc.absolutePath}")
+        }
+    }
+
+    private data class EncryptionContext(
+        val key: ByteArray,
+        val iv: ByteArray,
+        val indexHex: String,
+    )
+
+    private sealed class UploadOutcome {
+        abstract val slotUuid: String
+        abstract val partHashes: List<String>
+
+        data class Single(
+            override val slotUuid: String,
+            override val partHashes: List<String>,
+        ) : UploadOutcome()
+
+        data class Multipart(
+            override val slotUuid: String,
+            override val partHashes: List<String>,
+            val parts: List<UploadedPart>,
+            val uploadId: String,
+        ) : UploadOutcome()
+    }
+
+    private fun pendingUploadRow(documentId: String, pending: PendingUpload): Map<String, Any?> = mapOf(
+        Document.COLUMN_DOCUMENT_ID to documentId,
+        Document.COLUMN_MIME_TYPE to pending.mimeType,
+        Document.COLUMN_DISPLAY_NAME to pending.plainName,
+        Document.COLUMN_LAST_MODIFIED to null,
+        Document.COLUMN_FLAGS to 0,
+        Document.COLUMN_SIZE to null,
+    )
+
+    private fun decryptBlocking(src: File, dst: File, hexKey: String, hexIv: String) {
+        awaitCryptoService("Decryption failed") { cb ->
+            CryptoService.getInstance().decryptFile(
+                src.absolutePath,
+                dst.absolutePath,
+                hexKey,
+                hexIv,
+                /* runInBackground = */ false,
+                cb,
+            )
         }
     }
 
@@ -503,6 +829,12 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         const val AUTHORITY = "com.internxt.cloud.documents"
         private const val ROOT_ID = "internxt-root"
         private const val TAG = "InternxtDocsProvider"
+
+        private const val MULTIPART_THRESHOLD = 100L * 1024L * 1024L
+        private const val MULTIPART_PART_SIZE = 30L * 1024L * 1024L
+        private const val MAX_SUFFIX_ATTEMPTS = 1000
+        private const val PENDING_UPLOAD_TTL_MS = 60L * 60L * 1000L
+        private const val NOT_AUTHENTICATED = "Not authenticated"
 
         private val DEFAULT_ROOT_PROJECTION = arrayOf(
             Root.COLUMN_ROOT_ID,
