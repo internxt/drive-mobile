@@ -13,12 +13,14 @@ object HttpClients {
             .build()
     }
 
-    val download: OkHttpClient by lazy {
+    val download: OkHttpClient by lazy { largeTransferClient(writeTimeoutMinutes = 2L) }
+    val upload: OkHttpClient by lazy { largeTransferClient(writeTimeoutMinutes = 0L) }
+
+    private fun largeTransferClient(writeTimeoutMinutes: Long): OkHttpClient =
         OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(2, TimeUnit.MINUTES)
-            .writeTimeout(2, TimeUnit.MINUTES)
+            .writeTimeout(writeTimeoutMinutes, TimeUnit.MINUTES)
             .callTimeout(0, TimeUnit.MILLISECONDS)
             .build()
-    }
 }
