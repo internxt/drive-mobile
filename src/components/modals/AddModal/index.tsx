@@ -46,7 +46,7 @@ import { isValidFilename } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
-import { constants } from '../../../services/AppService';
+import appService, { constants } from '../../../services/AppService';
 import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
 import {
   createUploadingFiles,
@@ -141,6 +141,17 @@ function AddModal(): JSX.Element {
         Alert.alert('Can not upload files. Grant permissions to upload files');
         throw new Error('Storage permissions not granted');
       }
+    }
+
+    // Android 13+ requires runtime permission for POST_NOTIFICATIONS.
+    // Fire-and-forget: a denial only hides the progress UI, the upload itself still runs.
+    if (appService.isAndroidApiAtLeast(33)) {
+      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS, {
+        title: 'Notifications Permission',
+        message: 'Internxt needs to show notifications to display upload progress',
+        buttonNegative: strings.buttons.cancel,
+        buttonPositive: strings.buttons.grant,
+      });
     }
     const fileExtension = fileToUpload.type;
 
