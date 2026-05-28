@@ -1,19 +1,16 @@
 import { useNavigation } from '@react-navigation/native';
 import strings from 'assets/lang/strings';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StatusBar, View } from 'react-native';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { logger } from 'src/services/common';
-import { toFileUri } from 'src/services/common/uri/uriHelpers';
-import fileSystemService from 'src/services/FileSystemService';
-import { notifications } from 'src/services/NotificationsService';
-import { SavePermissionDeniedError } from 'src/services/photos/errors';
-import { photoActionsService } from 'src/services/photos/PhotoActionsService';
-import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
+import { useAppDispatch } from 'src/store/hooks';
+import { runUploadThunk } from 'src/store/slices/photos';
 import { RootStackScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import MoreActionsBottomSheet from '../PhotosScreen/components/MoreActionsBottomSheet';
-import { getSavedNotificationMessage, isItemBacked } from '../PhotosScreen/utils/photoUtils';
+import { usePhotoActionHandlers } from '../PhotosScreen/hooks/usePhotoActionHandlers';
+import { isItemBacked } from '../PhotosScreen/utils/photoUtils';
 import { MetadataPanel } from './components/MetadataPanel';
 import { PreviewCarousel } from './components/PreviewCarousel';
 import { PreviewHeader } from './components/PreviewHeader';
@@ -23,10 +20,11 @@ import { usePreviewItems } from './hooks/usePreviewItems';
 type Props = RootStackScreenProps<'PhotoPreview'>;
 
 export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
-  const { initialId, items: routeItems, onTrashed } = route.params;
+  const { initialId, items: routeItems, onItemChanged } = route.params;
   const { items, currentIndex, setCurrentIndex } = usePreviewItems(initialId, routeItems);
   const tailwind = useTailwind();
   const navigation = useNavigation();
+  const dispatch = useAppDispatch();
 
   const [isUiVisible, setIsUiVisible] = useState(true);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -85,100 +83,32 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     setIsUiVisible(true);
   }, []);
 
+  const currentItem = items[currentIndex];
+  const actionItems = useMemo(() => (currentItem ? [currentItem] : []), [currentItem]);
+
+  const { handleExport, handleSave, handleCopy, handleTrashConfirm, handleRestore } = usePhotoActionHandlers({
+    items: actionItems,
+    onActionEnd: useCallback(() => setIsMoreActionsOpen(false), []),
+    onAfterSave: useCallback(async () => {
+      await onItemChanged?.();
+    }, [onItemChanged]),
+    onAfterTrash: useCallback(async () => {
+      await onItemChanged?.();
+      navigation.goBack();
+    }, [onItemChanged, navigation]),
+    onAfterRestore: useCallback(async () => {
+      await dispatch(runUploadThunk({ bypassEnabled: true })).unwrap();
+    }, [dispatch]),
+  });
+
   const handleDeletePress = useCallback(() => setIsDeleteConfirmOpen(true), []);
 
   const handleDeleteConfirm = useCallback(async () => {
     setIsDeleteConfirmOpen(false);
-    const currentItem = items[currentIndex];
-    if (!currentItem) {
-      return;
-    }
-    const controller = new AbortController();
-    try {
-      await photoActionsService.trash([currentItem], controller.signal);
-      notifications.success(strings.screens.photos.notifications.itemMovedToTrash);
-      await onTrashed?.();
-      navigation.goBack();
-    } catch (error) {
-      logger.error(`[PhotoPreview] Delete failed: ${error}`);
-      notifications.error(strings.screens.photos.notifications.trashError);
-    }
-  }, [items, currentIndex, onTrashed, navigation]);
-
-  const handleExport = useCallback(async () => {
-    const item = items[currentIndex];
-    if (!item) {
-      return;
-    }
-
-    const controller = new AbortController();
-    try {
-      const uri = await PhotoAssetFetchService.fetchUri(item, controller.signal);
-      if (!uri) {
-        return;
-      }
-      const fileUri = toFileUri(uri);
-      await fileSystemService.shareFile({ title: '', fileUri });
-    } catch (error) {
-      logger.error(`[PhotoPreview] Export failed: ${error}`);
-      notifications.error(strings.screens.photos.notifications.exportError);
-    }
-  }, [items, currentIndex]);
-
-  const handleCopy = useCallback(async () => {
-    const item = items[currentIndex];
-    if (!item) {
-      return;
-    }
-    const controller = new AbortController();
-    setIsMoreActionsOpen(false);
-    try {
-      await photoActionsService.copyToClipboard(item, controller.signal);
-      notifications.success(strings.screens.photos.notifications.photoCopied);
-    } catch (error) {
-      logger.error(`[PhotoPreview] Copy failed: ${error}`);
-      notifications.error(strings.screens.photos.notifications.copyError);
-    }
-  }, [items, currentIndex]);
-
-  const handleSave = useCallback(async () => {
-    const item = items[currentIndex];
-    if (!item) {
-      return;
-    }
-    const controller = new AbortController();
-    setIsMoreActionsOpen(false);
-    try {
-      await photoActionsService.saveToDevice(item, controller.signal);
-      notifications.success(getSavedNotificationMessage(item));
-    } catch (error) {
-      logger.error(`[PhotoPreview] Save failed: ${error}`);
-      if (error instanceof SavePermissionDeniedError) {
-        notifications.error(strings.screens.photos.notifications.saveErrorNoPermission);
-      } else {
-        notifications.error(strings.screens.photos.notifications.saveError);
-      }
-    }
-  }, [items, currentIndex]);
-
-  const handleRestore = useCallback(async () => {
-    const item = items[currentIndex];
-    if (!item || item.type !== 'local') {
-      return;
-    }
-    const controller = new AbortController();
-    setIsMoreActionsOpen(false);
-    try {
-      await photoActionsService.restoreToCloud([item], controller.signal);
-      notifications.info(strings.screens.photos.notifications.restoreStarted);
-    } catch (error) {
-      logger.error(`[PhotoPreview] Restore failed: ${error}`);
-      notifications.error(strings.screens.photos.notifications.restoreError);
-    }
-  }, [items, currentIndex]);
+    await handleTrashConfirm();
+  }, [handleTrashConfirm]);
 
   const showCarousel = isUiVisible && !zoomActive && !hasVideoStarted;
-  const currentItem = items[currentIndex];
   const isSynced = currentItem ? isItemBacked(currentItem) : false;
 
   return (
@@ -219,7 +149,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
       {metadataOpen && currentItem && <MetadataPanel item={currentItem} onClose={() => setMetadataOpen(false)} />}
       <MoreActionsBottomSheet
         isOpen={isMoreActionsOpen}
-        selectedItems={currentItem ? [currentItem] : []}
+        selectedItems={actionItems}
         onClose={() => setIsMoreActionsOpen(false)}
         onInfo={() => {
           setIsMoreActionsOpen(false);

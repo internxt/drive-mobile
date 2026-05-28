@@ -1,9 +1,9 @@
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { TimelinePhotoItem } from '../screens/PhotosScreen/types';
 import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
 import { SharedFile } from '../shareExtension/types';
-import { TimelinePhotoItem } from '../screens/PhotosScreen/types';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -28,7 +28,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
-  PhotoPreview: { initialId: string; items: TimelinePhotoItem[]; onTrashed?: () => Promise<void> | void };
+  PhotoPreview: { initialId: string; items: TimelinePhotoItem[]; onItemChanged?: () => Promise<void> | void };
   Settings: undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };
