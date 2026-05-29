@@ -22,7 +22,7 @@ class StorageService {
 
   public async loadMaxUploadFileSize(): Promise<number> {
     try {
-      const res = (await this.sdk.storageV2.getFileVersionLimits()) as { maxUploadFileSize?: number };
+      const res = await this.sdk.storageV2.getFileVersionLimits();
       return res.maxUploadFileSize ?? 0;
     } catch {
       return 0;

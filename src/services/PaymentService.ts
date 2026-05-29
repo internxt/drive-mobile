@@ -1,7 +1,6 @@
 import { SdkManager } from '@internxt-mobile/services/common';
 import packageJson from '../../package.json';
 import {
-  CreatePaymentSessionPayload,
   DisplayPrice,
   Invoice,
   PaymentMethod,
@@ -19,10 +18,6 @@ class PaymentService {
   private sdk: SdkManager;
   constructor(sdkManager: SdkManager) {
     this.sdk = sdkManager;
-  }
-
-  public async createSession(payload: CreatePaymentSessionPayload): Promise<{ id: string }> {
-    return this.sdk.payments.createSession(payload);
   }
 
   async createSetupIntent(): Promise<{ clientSecret: string }> {
