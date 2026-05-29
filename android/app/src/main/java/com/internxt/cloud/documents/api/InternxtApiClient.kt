@@ -29,6 +29,16 @@ class InternxtApiClient(
     fun listFolderFiles(parentUuid: String, offset: Int = 0, limit: Int = DEFAULT_PAGE_SIZE): List<DriveFile> =
         listChildren(parentUuid, kind = "files", jsonKey = "files", offset, limit, ::parseFile)
 
+    fun getFolder(uuid: String): DriveFolder? = getMeta("folders/$uuid/meta", ::parseFolder)
+
+    fun getFile(uuid: String): DriveFile? = getMeta("files/$uuid/meta", ::parseFile)
+
+    private fun <T> getMeta(path: String, parse: (JSONObject) -> T): T? = try {
+        parse(executeApiRequest(driveRequest(driveUrl(path)).get().build()))
+    } catch (_: InternxtApiException.NotFoundException) {
+        null
+    }
+
     private fun <T> listChildren(
         parentUuid: String,
         kind: String,
