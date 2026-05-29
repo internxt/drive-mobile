@@ -179,6 +179,7 @@ const translations = {
         groupHeader: {
           items: 'items',
           backingUp: 'Backing up',
+          backupPausing: 'Pausing backup',
           backupPaused: 'Backup paused',
           storageFull: 'Storage is full',
           backupCompleted: 'Backup completed',
@@ -1152,6 +1153,7 @@ const translations = {
         groupHeader: {
           items: 'elementos',
           backingUp: 'Guardando copia',
+          backupPausing: 'Pausando backup',
           backupPaused: 'Backup pausado',
           storageFull: 'Almacenamiento lleno',
           backupCompleted: 'Backup completado',

@@ -17,9 +17,14 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
   const { assets, isLoading, syncedIds, uploadingIdSet, loadNextPage, reload: reloadLocal } = useLocalAssets();
   const { cloudItems, reloadCloud } = useCloudAssets();
 
-  const { syncStatus, sessionTotalAssets, sessionUploadedAssets, isFetchingCloudHistory } = useAppSelector(
-    (state) => state.photos,
-  );
+  const {
+    syncStatus,
+    sessionTotalAssets,
+    sessionUploadedAssets,
+    isFetchingCloudHistory,
+    isPaused,
+    pendingBackupAssets,
+  } = useAppSelector((state) => state.photos);
 
   const localGroups = useMemo(
     () => groupAssetsByDate(assets, syncedIds, uploadingIdSet),
@@ -29,13 +34,30 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
   const mergedGroups = useMemo(() => mergeCloudIntoGroups(localGroups, cloudItems), [localGroups, cloudItems]);
 
   const timelineDateGroups = useMemo(() => {
-    const remainingCount = Math.max(0, sessionTotalAssets - sessionUploadedAssets);
+    const sessionRemaining = Math.max(0, sessionTotalAssets - sessionUploadedAssets);
+    const pausedFromColdStart = isPaused && sessionTotalAssets === 0 && sessionUploadedAssets === 0;
+    const remainingCount = pausedFromColdStart ? pendingBackupAssets : sessionRemaining;
     const backupProgress = sessionTotalAssets > 0 ? sessionUploadedAssets / sessionTotalAssets : undefined;
     return mergedGroups.map((group) => ({
       group,
-      syncStatus: getGroupSyncStatus(group, syncStatus, remainingCount, backupProgress, isFetchingCloudHistory),
+      syncStatus: getGroupSyncStatus({
+        group,
+        syncStatus,
+        remainingCount,
+        backupProgress,
+        isFetchingCloudHistory,
+        isPaused,
+      }),
     })) as TimelineDateGroup[];
-  }, [mergedGroups, syncStatus, sessionTotalAssets, sessionUploadedAssets, isFetchingCloudHistory]);
+  }, [
+    mergedGroups,
+    syncStatus,
+    sessionTotalAssets,
+    sessionUploadedAssets,
+    isFetchingCloudHistory,
+    isPaused,
+    pendingBackupAssets,
+  ]);
 
   return { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud };
 };

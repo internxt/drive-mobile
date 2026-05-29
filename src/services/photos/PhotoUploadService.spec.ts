@@ -2,6 +2,7 @@ import * as RNFS from '@dr.pogodin/react-native-fs';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import AppError from '@internxt/sdk/dist/shared/types/errors';
 import * as MediaLibrary from 'expo-media-library';
+import { AbortError } from 'src/network/errors';
 import { uploadFile } from 'src/network/upload';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
@@ -158,10 +159,18 @@ describe('PhotoUploadService.upload', () => {
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
 
-  test('when the main file upload fails, then the error is propagated to the caller', async () => {
+  test('when the network layer throws an abort error, then the abort error propagates with its name intact and is not wrapped', async () => {
+    mockUploadFile.mockReset().mockRejectedValueOnce(new AbortError());
+
+    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID)).rejects.toMatchObject({
+      name: AbortError.errorName,
+    });
+  });
+
+  test('when the network layer throws a generic error, then it is wrapped with bucket upload context', async () => {
     mockUploadFile.mockReset().mockRejectedValueOnce(new Error('network timeout'));
 
-    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID)).rejects.toThrow('network timeout');
+    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID)).rejects.toThrow('Bucket upload failed');
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
 

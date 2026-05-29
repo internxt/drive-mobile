@@ -43,6 +43,8 @@ interface PhotosTimelineProps {
   onEndReached?: () => void;
   refreshing?: boolean;
   onRefresh?: () => void;
+  onPausePress?: () => void;
+  onResumePress?: () => void;
 }
 
 const getItemType = (item: FlatItem) => item.type;
@@ -66,6 +68,8 @@ const PhotosTimeline = ({
   onEndReached,
   refreshing,
   onRefresh,
+  onPausePress,
+  onResumePress,
 }: PhotosTimelineProps) => {
   const tailwind = useTailwind();
   const { items, headerIndices } = useMemo(() => {
@@ -73,11 +77,17 @@ const PhotosTimeline = ({
     return buildTimelineItems(effectiveGroups);
   }, [assetsGroupsByDate, isLoading]);
 
-  const extraData = useMemo(() => ({ isSelectMode, selectedIds }), [isSelectMode, selectedIds]);
+  const extraData = useMemo(
+    () => ({ isSelectMode, selectedIds, onPausePress, onResumePress }),
+    [isSelectMode, selectedIds, onPausePress, onResumePress],
+  );
 
   const scrollY = useRef(new Animated.Value(0)).current;
+  // UIKit refuses to deliver touches to views with alpha < 0.01 (the internal threshold).
+  // Using 0.02 as the floor keeps the sticky header visually invisible at scrollY=0 while
+  // staying above the threshold, so pause/resume buttons are always touchable.
   const stickyOpacity = useMemo(
-    () => scrollY.interpolate({ inputRange: [0, 24], outputRange: [0, 1], extrapolate: 'clamp' }),
+    () => scrollY.interpolate({ inputRange: [0, 24], outputRange: [0.02, 1], extrapolate: 'clamp' }),
     [scrollY],
   );
 
@@ -92,6 +102,8 @@ const PhotosTimeline = ({
             syncStatus={showSyncStatus ? item.syncStatus : { type: 'count', count: item.count }}
             isSticky={isSticky}
             stickyOpacity={isSticky ? stickyOpacity : undefined}
+            onPausePress={onPausePress}
+            onResumePress={onResumePress}
           />
         );
       }
@@ -107,7 +119,7 @@ const PhotosTimeline = ({
         </View>
       );
     },
-    [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, stickyOpacity],
+    [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, stickyOpacity, onPausePress, onResumePress],
   );
 
   const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
