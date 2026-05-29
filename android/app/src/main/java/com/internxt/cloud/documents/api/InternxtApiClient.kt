@@ -68,20 +68,20 @@ class InternxtApiClient(
         return parseFolder(executeApiRequest(req))
     }
 
-    fun renameFile(fileUuid: String, newName: String): DriveFile {
-        val payload = JSONObject().put("name", newName)
-        val req = driveRequest(driveUrl("files/$fileUuid"))
-            .patch(payload.toString().toRequestBody(JSON))
-            .build()
-        return parseFile(executeApiRequest(req))
-    }
-
-    fun renameFolder(folderUuid: String, newName: String): DriveFolder {
-        val payload = JSONObject().put("name", newName)
-        val req = driveRequest(driveUrl("folders/$folderUuid"))
+    fun renameFile(fileUuid: String, newName: String) {
+        val payload = JSONObject().put("plainName", newName)
+        val req = driveRequest(driveUrl("files/$fileUuid/meta"))
             .put(payload.toString().toRequestBody(JSON))
             .build()
-        return parseFolder(executeApiRequest(req))
+        executeApiRequest(req)
+    }
+
+    fun renameFolder(folderUuid: String, newName: String) {
+        val payload = JSONObject().put("plainName", newName)
+        val req = driveRequest(driveUrl("folders/$folderUuid/meta"))
+            .put(payload.toString().toRequestBody(JSON))
+            .build()
+        executeApiRequest(req)
     }
 
     fun moveFile(fileUuid: String, destinationFolderUuid: String): DriveFile {
