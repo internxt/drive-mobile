@@ -1564,9 +1564,10 @@
   dependencies:
     uuid "^11.1.0"
 
-"@internxt/mobile-sdk@https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz":
+"@internxt/mobile-sdk@^0.3.1":
   version "0.3.1"
-  resolved "https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz#bc618a913f1d703dcce6f52a545701a6089a9722"
+  resolved "https://registry.yarnpkg.com/@internxt/mobile-sdk/-/mobile-sdk-0.3.1.tgz#f173132a1045546a8f534f72e6c93114881522b3"
+  integrity sha512-QcVw/KLjOUodSB4tfawE6QsAFZT7JIsrby15JLUku6bR1/IqukhIaMp6cl/IGKwdt1aso/Haq4S4zH9KEL4jQg==
 
 "@internxt/prettier-config@^1.0.2":
   version "1.0.2"
@@ -1582,8 +1583,8 @@
 
 "@internxt/sdk@1.16.4":
   version "1.16.4"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.16.4/7e85d8c945960867ed9c27898c8fb7af480273b0#7e85d8c945960867ed9c27898c8fb7af480273b0"
-  integrity sha512-X7TR5w3yc9tz2RASyb9psfA/ujnmpJqGFAlYsZV3nPHFTbiAPlNJ53wCAefrOOQxOx8ZGWtP0cVerTroNOKBGQ==
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.16.4.tgz#1dad7c3fe1581cfb62f9720b6a6470b7c52d7f34"
+  integrity sha512-L4UG7SvNAlldCqx43f5EWt/oVOleqssBb67y1ZUqCcGh3h/wC9mpvkuz80lsGmkzO/ZSZZ0beUzWFlk0LmWM6g==
   dependencies:
     axios "^1.16.0"
 
@@ -4903,7 +4904,7 @@ flow-enums-runtime@^0.0.6:
   resolved "https://registry.yarnpkg.com/flow-enums-runtime/-/flow-enums-runtime-0.0.6.tgz#5bb0cd1b0a3e471330f4d109039b7eba5cb3e787"
   integrity sha512-3PYnM29RFXwvAN6Pc/scUfkI7RwhQ/xqyLUyPNlXUp9S40zI8nup9tUSrTLSVnWGBN38FNiGWbwZOB6uR4OGdw==
 
-follow-redirects@^1.15.11:
+follow-redirects@^1.16.0:
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.0.tgz#28474a159d3b9d11ef62050a14ed60e4df6d61bc"
   integrity sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==
@@ -7503,11 +7504,6 @@ property-expr@^2.0.5:
   resolved "https://registry.yarnpkg.com/property-expr/-/property-expr-2.0.6.tgz#f77bc00d5928a6c748414ad12882e83f24aec1e8"
   integrity sha512-SVtmxhRE/CGkn3eZY1T6pC8Nln6Fr/lu1mKSgRud0eC73whjGfoAogbn78LkD8aFL0zz3bAFerKSnOl7NlErBA==
 
-proxy-from-env@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
-  integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
-
 proxy-from-env@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-2.1.0.tgz#a7487568adad577cfaaa7e88c49cab3ab3081aba"
@@ -9319,11 +9315,6 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
-
-uuid@13.0.0:
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-13.0.0.tgz#263dc341b19b4d755eb8fe36b78d95a6b65707e8"
-  integrity sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==
 
 uuid@^11.1.0:
   version "11.1.0"
