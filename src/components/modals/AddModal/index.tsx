@@ -134,6 +134,7 @@ function AddModal(): JSX.Element {
     progressCallback: ProgressCallback,
   ) {
     const name = fileToUpload.name || drive.file.getNameFromUri(fileToUpload.uri);
+    const fileExtension = fileToUpload.type;
     const destPath = fileSystemService.tmpFilePath(name);
 
     await fileSystemService.copyFile(fileToUpload.uri, destPath);
@@ -151,7 +152,6 @@ function AddModal(): JSX.Element {
         throw new Error('Storage permissions not granted');
       }
     }
-    const fileExtension = fileToUpload.type;
 
     const createdFileEntry = await uploadAndCreateFileEntry(
       destPath,
