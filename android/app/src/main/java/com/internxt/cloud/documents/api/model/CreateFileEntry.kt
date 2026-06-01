@@ -1,6 +1,6 @@
 package com.internxt.cloud.documents.api.model
 
-const val ENCRYPT_VERSION_AES03 = "Aes03"
+const val ENCRYPT_VERSION_AES03 = "03-aes"
 
 data class CreateFileEntry(
     val fileId: String,
