@@ -396,7 +396,12 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             throw FileNotFoundException("Stored credentials have no mnemonic; sign out and back in")
         }
         val api = InternxtApiClient(cfg)
-        val file = requireFileMetadata(api, fileUuid)
+        val file = try {
+            requireFileMetadata(api, fileUuid)
+        } catch (e: FileNotFoundException) {
+            DocumentCache.existingCacheFor(ctx, id)?.let { return openCached(ctx, id, it) }
+            throw e
+        }
 
         val cacheFile = DocumentCache.cacheFileFor(ctx, id, file.updatedAt)
         if (cacheFile.exists() && cacheFile.length() > 0) {

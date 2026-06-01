@@ -14,6 +14,11 @@ object DocumentCache {
     fun cacheFileFor(context: Context, uuid: String, updatedAt: String): File =
         File(cacheDir(context), "${uuid}_${slugFromUpdatedAt(updatedAt)}$DEC_SUFFIX")
 
+    fun existingCacheFor(context: Context, uuid: String): File? =
+        cacheDir(context).listFiles()
+            ?.filter { it.name.startsWith("${uuid}_") && it.name.endsWith(DEC_SUFFIX) && it.length() > 0 }
+            ?.maxByOrNull { it.lastModified() }
+
     fun tempPaths(context: Context, uuid: String): Pair<File, File> {
         val dir = tmpDir(context)
         val token = "${uuid}_${System.nanoTime()}"
