@@ -42,6 +42,7 @@ const makeWrapper = (photosState?: Partial<PhotosState>) => {
         sessionUploadedAssets: 0,
         cloudFetchRevision: 0,
         isFetchingCloudHistory: false,
+        disabledReason: null,
         ...photosState,
       },
     },

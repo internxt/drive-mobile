@@ -6,7 +6,7 @@ import {
   PlayCircleIcon,
   WarningCircleIcon,
 } from 'phosphor-react-native';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../../assets/lang/strings';
@@ -140,15 +140,17 @@ interface PausedStorageFullProps {
 export const GroupHeaderPausedStorageFull = ({ dangerColor }: PausedStorageFullProps): JSX.Element => {
   const tailwind = useTailwind();
   return (
-    <>
-      <AppText medium style={[tailwind('text-base'), { color: dangerColor }]}>
-        {strings.screens.photos.groupHeader.backupPaused}
-      </AppText>
-      <AppText style={[tailwind('text-sm'), { color: dangerColor }]}>
-        {strings.screens.photos.groupHeader.storageFull}
-      </AppText>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8, flexShrink: 1 }}>
+        <AppText medium style={[tailwind('text-base'), { color: dangerColor, flexShrink: 0 }]}>
+          {strings.screens.photos.groupHeader.backupPaused}
+        </AppText>
+        <AppText style={[tailwind('text-sm'), { color: dangerColor, flexShrink: 1 }]}>
+          {strings.screens.photos.groupHeader.storageFull}
+        </AppText>
+      </View>
       <WarningCircleIcon size={24} color={dangerColor} weight="fill" />
-    </>
+    </View>
   );
 };
 

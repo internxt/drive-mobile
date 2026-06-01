@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
+import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
@@ -16,9 +17,11 @@ import {
 import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
+import { storageSelectors } from '../storage';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
 export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'pausing' | 'synced' | 'paused' | 'error';
+export type PhotosDisabledReason = 'quota-exceeded' | null;
 
 export interface PhotosState {
   enabled: boolean;
@@ -36,6 +39,7 @@ export interface PhotosState {
   sessionUploadedAssets: number;
   cloudFetchRevision: number;
   isFetchingCloudHistory: boolean;
+  disabledReason: PhotosDisabledReason;
 }
 
 const initialState: PhotosState = {
@@ -54,6 +58,7 @@ const initialState: PhotosState = {
   sessionUploadedAssets: 0,
   cloudFetchRevision: 0,
   isFetchingCloudHistory: false,
+  disabledReason: null,
 };
 
 const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
@@ -226,6 +231,13 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       return;
     }
 
+    const availableStorage = storageSelectors.availableStorage(getState());
+    if (availableStorage <= 0) {
+      dispatch(photosSlice.actions.pauseForQuotaExceeded());
+      return;
+    }
+    dispatch(photosSlice.actions.setDisabledReason(null));
+
     const localDBPendingAssets = await photosLocalDB.getPendingAssets();
     if (localDBPendingAssets.length === 0) {
       dispatch(photosSlice.actions.setSyncStatus('synced'));
@@ -269,6 +281,14 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         dispatch(photosSlice.actions.incrementSessionUploadedAssets());
       },
       onAssetError: async (assetId, error) => {
+        const isQuotaError = (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
+        if (isQuotaError) {
+          dispatch(photosSlice.actions.pauseForQuotaExceeded());
+          dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
+          PhotoUploadQueue.abortAll();
+          return;
+        }
+
         if (error.name === AbortError.errorName) {
           logger.info(`[Upload] Asset ${assetId} aborted by user (pause)`);
           dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
@@ -280,11 +300,11 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       },
     });
 
-    const finalIsPaused = getState().photos.isPaused;
-    dispatch(photosSlice.actions.setSyncStatus(finalIsPaused ? 'paused' : 'synced'));
+    const { isPaused: finalIsPaused, disabledReason: finalDisabledReason } = getState().photos;
+    dispatch(photosSlice.actions.setSyncStatus(finalIsPaused || finalDisabledReason !== null ? 'paused' : 'synced'));
     dispatch(photosSlice.actions.setCurrentUploadProgress(0));
 
-    if (!finalIsPaused) {
+    if (!finalIsPaused && finalDisabledReason === null) {
       const remaining = await photosLocalDB.getPendingAssets();
       if (remaining.length > 0) {
         // Assets remain pending (e.g. queue was aborted mid-run and user resumed while draining).
@@ -475,6 +495,13 @@ export const photosSlice = createSlice({
     },
     setIsFetchingCloudHistory: (state, action: PayloadAction<boolean>) => {
       state.isFetchingCloudHistory = action.payload;
+    },
+    setDisabledReason: (state, action: PayloadAction<PhotosDisabledReason>) => {
+      state.disabledReason = action.payload;
+    },
+    pauseForQuotaExceeded: (state) => {
+      state.syncStatus = 'paused';
+      state.disabledReason = 'quota-exceeded';
     },
   },
 });
