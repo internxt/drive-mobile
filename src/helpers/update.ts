@@ -29,6 +29,7 @@ export const getRemoteUpdateIfAvailable = async () => {
     }
     await Updates.reloadAsync();
   } catch (e) {
+    logger.warn(`Failed to check for remote updates (runtimeVersion: ${Updates.runtimeVersion}): ${e}`);
     errorService.reportError(e, {
       extra: {
         currentRuntimeVersion: Updates.runtimeVersion,

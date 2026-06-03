@@ -15,6 +15,7 @@ import AddModal from '../components/modals/AddModal';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
 import EmptyFileNotAllowedModal from '../components/modals/EmptyFileNotAllowedModal';
+import FileSizeExceededModal from '../components/modals/FileSizeExceededModal';
 import MoveItemsModal from '../components/modals/MoveItemsModal';
 import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
@@ -48,9 +49,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
 
   const discoverSheet = useDiscoverPhotosSheet(
-    appService.isPhotosEnabled
-      ? () => props.navigation.navigate('TabExplorer', { screen: 'Photos' })
-      : () => undefined,
+    appService.isPhotosEnabled ? () => props.navigation.navigate('TabExplorer', { screen: 'Photos' }) : () => undefined,
   );
 
   useEffect(() => {
@@ -111,6 +110,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <DriveRenameModal />
       <RunOutOfStorageModal />
       <EmptyFileNotAllowedModal />
+      <FileSizeExceededModal />
       <NotEnoughDeviceSpaceModal />
       <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>

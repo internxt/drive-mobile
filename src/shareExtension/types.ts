@@ -32,6 +32,7 @@ export type UploadErrorType =
   | 'session_expired'
   | 'prep_failed'
   | 'file_already_exists'
+  | 'file_too_large'
   | 'payment_required';
 
 export interface UploadProgress {
