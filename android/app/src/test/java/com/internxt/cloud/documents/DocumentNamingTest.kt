@@ -23,12 +23,12 @@ class DocumentNamingTest {
 
     @Test
     fun uniqueNamePreservesFileExtension() {
-        assertEquals("report (1).pdf", DocumentNaming.uniqueName("report.pdf", setOf("report.pdf")))
+        assertEquals("report (1).pdf", DocumentNaming.uniqueName(REPORT_PDF, setOf(REPORT_PDF)))
     }
 
     @Test
     fun uniqueNameForFolderHasNoExtension() {
-        assertEquals("My Folder (1)", DocumentNaming.uniqueName("My Folder", setOf("My Folder")))
+        assertEquals("$FOLDER_NAME (1)", DocumentNaming.uniqueName(FOLDER_NAME, setOf(FOLDER_NAME)))
     }
 
     @Test
@@ -38,7 +38,7 @@ class DocumentNamingTest {
 
     @Test
     fun splitNameExtNoExtension() {
-        assertEquals("My Folder" to "", DocumentNaming.splitNameExt("My Folder"))
+        assertEquals(FOLDER_NAME to "", DocumentNaming.splitNameExt(FOLDER_NAME))
     }
 
     @Test
@@ -53,12 +53,17 @@ class DocumentNamingTest {
 
     @Test
     fun joinNameTypeAppendsType() {
-        assertEquals("report.pdf", DocumentNaming.joinNameType("report", "pdf"))
+        assertEquals(REPORT_PDF, DocumentNaming.joinNameType("report", "pdf"))
     }
 
     @Test
     fun joinNameTypeWithoutTypeReturnsName() {
         assertEquals("report", DocumentNaming.joinNameType("report", null))
         assertEquals("report", DocumentNaming.joinNameType("report", ""))
+    }
+
+    companion object {
+        private const val FOLDER_NAME = "My Folder"
+        private const val REPORT_PDF = "report.pdf"
     }
 }
