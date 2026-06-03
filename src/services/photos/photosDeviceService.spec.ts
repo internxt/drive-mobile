@@ -25,7 +25,7 @@ const existingDevice = {
 };
 
 const mockFetch = (status: number, body: unknown): void => {
-  global.fetch = jest.fn().mockResolvedValue({
+  globalThis.fetch = jest.fn().mockResolvedValue({
     ok: status >= 200 && status < 300,
     status,
     json: jest.fn().mockResolvedValue(body),
@@ -44,7 +44,7 @@ describe('photosDeviceService.listDevices', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual(existingDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/photos/devices'),
       expect.objectContaining({ method: 'GET' }),
     );
@@ -64,7 +64,7 @@ describe('photosDeviceService.createDevice', () => {
     const result = await photosDeviceService.createDevice('Internxt iPhone');
 
     expect(result).toEqual(existingDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/photos/devices'),
       expect.objectContaining({
         method: 'POST',
@@ -93,7 +93,7 @@ describe('photosDeviceService.getDevice', () => {
     const result = await photosDeviceService.getDevice('device-uuid-1');
 
     expect(result).toEqual(existingDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/photos/devices/device-uuid-1'),
       expect.objectContaining({ method: 'GET' }),
     );
@@ -119,7 +119,7 @@ describe('photosDeviceService.deleteDevice', () => {
     mockFetch(200, {});
 
     await expect(photosDeviceService.deleteDevice('device-uuid-1')).resolves.toBeUndefined();
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/photos/devices/device-uuid-1'),
       expect.objectContaining({ method: 'DELETE' }),
     );
@@ -140,7 +140,7 @@ describe('photosDeviceService.renameDevice', () => {
     const result = await photosDeviceService.renameDevice('device-uuid-1', 'New name');
 
     expect(result).toEqual(updatedDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       expect.stringContaining('/photos/devices/device-uuid-1'),
       expect.objectContaining({
         method: 'PATCH',

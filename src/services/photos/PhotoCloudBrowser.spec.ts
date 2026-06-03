@@ -514,7 +514,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth
       .mockResolvedValueOnce(new Set(['file-a']))
       .mockResolvedValueOnce(new Set(['file-b']));
-    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never); // no year folders
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] }); // no year folders
 
     await photoCloudBrowser.syncAllHistory({});
 
