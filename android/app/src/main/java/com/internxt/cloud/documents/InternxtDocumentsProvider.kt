@@ -579,10 +579,6 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             it.plainName
         }
 
-    /**
-     * Resolves [requested] to a name that does not collide with the parent's existing children
-     * (listed via [listPage], named via [nameOf]). Falls back to [requested] if the listing fails.
-     */
     private inline fun <T> uniqueChildName(
         op: String,
         requested: String,
