@@ -3,7 +3,7 @@ import { FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
 import { logger } from 'src/services/common';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
 import { photosLocalDB } from './database/photosLocalDB';
-import { photoBackupFolders } from './PhotoBackupFolders';
+import { photosDeviceService } from './photosDeviceService';
 
 const HOUR_MS = 60 * 60 * 1000;
 const CACHE_TTL_MS = 24 * HOUR_MS;
@@ -25,19 +25,15 @@ const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Prom
 
 class PhotoCloudBrowserService {
   constructor(
-    private readonly backupFolders: typeof photoBackupFolders,
     private readonly folderService: typeof driveFolderService,
     private readonly localDB: typeof photosLocalDB,
   ) {}
 
-  async listDeviceFolders(): Promise<{ uuid: string; name: string }[]> {
-    const rootUuid = await this.backupFolders.getRootFolderUuid();
-    if (!rootUuid) return [];
-
-    const folders = await fetchAllPages((offset) =>
-      this.folderService.getFolderFolders(rootUuid, offset, PAGE_SIZE).then((r) => r.folders),
-    );
-    return folders.map((f) => ({ uuid: f.uuid, name: f.plainName ?? '' }));
+  async listDeviceFolders(): Promise<{ uuid: string }[]> {
+    const devices = await photosDeviceService.listDevices();
+    return devices
+      .filter((device) => device.status === 'EXISTS')
+      .map((device) => ({ uuid: device.uuid }));
   }
 
   async fetchMonth(params: {
@@ -217,7 +213,7 @@ class PhotoCloudBrowserService {
   }
 
   private async reconcileDeletedMonths(params: {
-    devices: { uuid: string; name: string }[];
+    devices: { uuid: string }[];
     discoveredMonths: { deviceId: string; year: number; month: number; monthFolderUuid: string }[];
     currentDeviceId?: string;
   }): Promise<void> {
@@ -225,7 +221,7 @@ class PhotoCloudBrowserService {
     const discoveredSet = new Set(discoveredMonths.map((m) => `${m.deviceId}:${m.year}:${m.month}`));
 
     for (const device of devices) {
-      const deviceId = device.name;
+      const deviceId = device.uuid;
       const cloudMonths = await this.localDB.getCloudAssetMonthsByDevice(deviceId);
       const monthSet = new Set(cloudMonths.map((m) => `${m.year}:${m.month}`));
 
@@ -248,7 +244,6 @@ class PhotoCloudBrowserService {
 
   private async discoverMonthsForDevice(device: {
     uuid: string;
-    name: string;
   }): Promise<{ deviceId: string; year: number; month: number; monthFolderUuid: string }[]> {
     const monthsForDevice: { deviceId: string; year: number; month: number; monthFolderUuid: string }[] = [];
     const yearFolders = await this.listAllFolders(device.uuid);
@@ -259,14 +254,14 @@ class PhotoCloudBrowserService {
       for (const monthFolder of monthFolders) {
         const month = Number.parseInt(monthFolder.plainName ?? '', 10);
         if (Number.isNaN(month) || month < MIN_MONTH_NUMBER || month > MAX_MONTH_NUMBER) continue;
-        monthsForDevice.push({ deviceId: device.name, year, month, monthFolderUuid: monthFolder.uuid });
+        monthsForDevice.push({ deviceId: device.uuid, year, month, monthFolderUuid: monthFolder.uuid });
       }
     }
     return monthsForDevice;
   }
 
   private async discoverAvailableMonths(
-    devices: { uuid: string; name: string }[],
+    devices: { uuid: string }[],
   ): Promise<{ deviceId: string; year: number; month: number; monthFolderUuid: string }[]> {
     const monthsPerDevice = await Promise.all(devices.map((device) => this.discoverMonthsForDevice(device)));
     const allMonths = monthsPerDevice.flat();
@@ -293,4 +288,4 @@ class PhotoCloudBrowserService {
   }
 }
 
-export const photoCloudBrowser = new PhotoCloudBrowserService(photoBackupFolders, driveFolderService, photosLocalDB);
+export const photoCloudBrowser = new PhotoCloudBrowserService(driveFolderService, photosLocalDB);
