@@ -1,157 +1,140 @@
+import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
+import { SdkManager } from 'src/services/common/sdk/SdkManager';
 import { PhotoDeviceNameConflictError } from './errors';
 import { photosDeviceService } from './photosDeviceService';
 
 jest.mock('src/services/common/sdk/SdkManager', () => ({
   SdkManager: {
     getInstance: jest.fn().mockReturnValue({
-      getApiSecurity: jest.fn().mockReturnValue({ newToken: 'test-token' }),
+      photos: {
+        listDevices: jest.fn(),
+        createDevice: jest.fn(),
+        getDevice: jest.fn(),
+        deleteDevice: jest.fn(),
+        renameDevice: jest.fn(),
+      },
     }),
   },
 }));
 
-jest.mock('src/services/AppService', () => ({
-  constants: { DRIVE_NEW_API_URL: 'https://api.test.com/drive' },
-}));
-
-jest.mock('src/helpers/headers', () => ({
-  getHeaders: jest.fn().mockResolvedValue(new Headers({ Authorization: 'Bearer test-token' })),
-}));
+const { photos: mockPhotos } = SdkManager.getInstance() as unknown as { photos: Record<string, jest.Mock> };
 
 const existingDevice = {
   uuid: 'device-uuid-1',
   plainName: 'Internxt iPhone',
   bucket: 'photos-bucket',
-  status: 'EXISTS',
+  status: 'EXISTS' as const,
 };
 
-const mockFetch = (status: number, body: unknown): void => {
-  global.fetch = jest.fn().mockResolvedValue({
-    ok: status >= 200 && status < 300,
+const makeAxiosError = (status: number) =>
+  new AxiosResponseError('error', 'GET /photos/devices', {
     status,
-    json: jest.fn().mockResolvedValue(body),
+    data: {},
+    headers: {},
+    config: {} as never,
+    statusText: '',
   });
-};
 
 beforeEach(() => {
   jest.clearAllMocks();
 });
 
 describe('photosDeviceService.listDevices', () => {
-  test('when the server returns a list of devices, then they are parsed and returned', async () => {
-    mockFetch(200, [existingDevice]);
+  test('when the server returns a list of devices, then they are returned', async () => {
+    mockPhotos.listDevices.mockResolvedValue([existingDevice]);
 
     const result = await photosDeviceService.listDevices();
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual(existingDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices'),
-      expect.objectContaining({ method: 'GET' }),
-    );
+    expect(result).toEqual([existingDevice]);
+    expect(mockPhotos.listDevices).toHaveBeenCalledTimes(1);
   });
 
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
+  test('when the SDK throws, then the error propagates', async () => {
+    mockPhotos.listDevices.mockRejectedValue(new Error('network error'));
 
-    await expect(photosDeviceService.listDevices()).rejects.toThrow('listDevices failed');
+    await expect(photosDeviceService.listDevices()).rejects.toThrow('network error');
   });
 });
 
 describe('photosDeviceService.createDevice', () => {
   test('when a device is created successfully, then the created device is returned', async () => {
-    mockFetch(200, existingDevice);
+    mockPhotos.createDevice.mockResolvedValue(existingDevice);
 
     const result = await photosDeviceService.createDevice('Internxt iPhone');
 
     expect(result).toEqual(existingDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices'),
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ deviceName: 'Internxt iPhone' }),
-      }),
-    );
+    expect(mockPhotos.createDevice).toHaveBeenCalledWith('Internxt iPhone');
   });
 
   test('when the server returns 409, then a PhotoDeviceNameConflictError is thrown', async () => {
-    mockFetch(409, {});
+    mockPhotos.createDevice.mockRejectedValue(makeAxiosError(409));
 
     await expect(photosDeviceService.createDevice('Internxt iPhone')).rejects.toThrow(PhotoDeviceNameConflictError);
   });
 
-  test('when the server returns another error, then a generic error is thrown', async () => {
-    mockFetch(500, {});
+  test('when the server returns another error, then it propagates unchanged', async () => {
+    mockPhotos.createDevice.mockRejectedValue(makeAxiosError(500));
 
-    await expect(photosDeviceService.createDevice('Internxt iPhone')).rejects.toThrow('createDevice failed');
+    await expect(photosDeviceService.createDevice('Internxt iPhone')).rejects.toBeInstanceOf(AxiosResponseError);
   });
 });
 
 describe('photosDeviceService.getDevice', () => {
   test('when the device is found, then it is returned', async () => {
-    mockFetch(200, existingDevice);
+    mockPhotos.getDevice.mockResolvedValue(existingDevice);
 
     const result = await photosDeviceService.getDevice('device-uuid-1');
 
     expect(result).toEqual(existingDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices/device-uuid-1'),
-      expect.objectContaining({ method: 'GET' }),
-    );
+    expect(mockPhotos.getDevice).toHaveBeenCalledWith('device-uuid-1');
   });
 
   test('when the device is not found, then null is returned', async () => {
-    mockFetch(404, {});
+    mockPhotos.getDevice.mockRejectedValue(makeAxiosError(404));
 
     const result = await photosDeviceService.getDevice('device-uuid-missing');
 
     expect(result).toBeNull();
   });
 
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
+  test('when the server returns a non-404 error, then it propagates', async () => {
+    mockPhotos.getDevice.mockRejectedValue(makeAxiosError(500));
 
-    await expect(photosDeviceService.getDevice('device-uuid-1')).rejects.toThrow('getDevice failed');
+    await expect(photosDeviceService.getDevice('device-uuid-1')).rejects.toBeInstanceOf(AxiosResponseError);
   });
 });
 
 describe('photosDeviceService.deleteDevice', () => {
   test('when the device is deleted successfully, then the call resolves without error', async () => {
-    mockFetch(200, {});
+    mockPhotos.deleteDevice.mockResolvedValue(undefined);
 
     await expect(photosDeviceService.deleteDevice('device-uuid-1')).resolves.toBeUndefined();
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices/device-uuid-1'),
-      expect.objectContaining({ method: 'DELETE' }),
-    );
+    expect(mockPhotos.deleteDevice).toHaveBeenCalledWith('device-uuid-1');
   });
 
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
+  test('when the server returns an error, then it propagates', async () => {
+    mockPhotos.deleteDevice.mockRejectedValue(makeAxiosError(500));
 
-    await expect(photosDeviceService.deleteDevice('device-uuid-1')).rejects.toThrow('deleteDevice failed');
+    await expect(photosDeviceService.deleteDevice('device-uuid-1')).rejects.toBeInstanceOf(AxiosResponseError);
   });
 });
 
 describe('photosDeviceService.renameDevice', () => {
   test('when the device is renamed successfully, then the updated device is returned', async () => {
     const updatedDevice = { ...existingDevice, plainName: 'New name' };
-    mockFetch(200, updatedDevice);
+    mockPhotos.renameDevice.mockResolvedValue(updatedDevice);
 
     const result = await photosDeviceService.renameDevice('device-uuid-1', 'New name');
 
     expect(result).toEqual(updatedDevice);
-    expect(global.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices/device-uuid-1'),
-      expect.objectContaining({
-        method: 'PATCH',
-        body: JSON.stringify({ deviceName: 'New name' }),
-      }),
-    );
+    expect(mockPhotos.renameDevice).toHaveBeenCalledWith('device-uuid-1', 'New name');
   });
 
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
+  test('when the server returns an error, then it propagates', async () => {
+    mockPhotos.renameDevice.mockRejectedValue(makeAxiosError(500));
 
-    await expect(photosDeviceService.renameDevice('device-uuid-1', 'New name')).rejects.toThrow('renameDevice failed');
+    await expect(photosDeviceService.renameDevice('device-uuid-1', 'New name')).rejects.toBeInstanceOf(
+      AxiosResponseError,
+    );
   });
 });

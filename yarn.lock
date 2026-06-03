@@ -1581,10 +1581,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.16.4":
-  version "1.16.4"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.16.4.tgz#1dad7c3fe1581cfb62f9720b6a6470b7c52d7f34"
-  integrity sha512-L4UG7SvNAlldCqx43f5EWt/oVOleqssBb67y1ZUqCcGh3h/wC9mpvkuz80lsGmkzO/ZSZZ0beUzWFlk0LmWM6g==
+"@internxt/sdk@1.17.3":
+  version "1.17.3"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.17.3.tgz#8cf9538c0d6f12313ed16f2bdd74409267ee9301"
+  integrity sha512-NI80kM1u751OFRZ4J1goZLEW166bnHBHx4N2odVxOMkKhlNxgc+EywQShMwZQDbS9bm+y7iRZzLL/DIc3XFJLg==
   dependencies:
     axios "^1.16.0"
 

@@ -1,89 +1,45 @@
-import { getHeaders } from 'src/helpers/headers';
-import { constants } from 'src/services/AppService';
+import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 import { HTTP_CONFLICT, HTTP_NOT_FOUND } from 'src/services/common/httpStatusCodes';
 import { SdkManager } from 'src/services/common/sdk/SdkManager';
-import { PhotoDevice } from 'src/types/photos';
+import { PhotoDevice } from '@internxt/sdk/dist/drive/photos';
 import { PhotoDeviceNameConflictError } from './errors';
 
-const BASE_URL = `${constants.DRIVE_NEW_API_URL}/photos/devices`;
+class PhotosDeviceService {
+  constructor(private readonly sdk: SdkManager) {}
 
-const headers = async (): Promise<Headers> => {
-  const token = SdkManager.getInstance().getApiSecurity().newToken;
-  return getHeaders(token);
-};
-
-const parseDevice = (raw: Record<string, unknown>): PhotoDevice => ({
-  uuid: raw.uuid as string,
-  plainName: raw.plainName as string,
-  bucket: raw.bucket as string,
-  status: raw.status as PhotoDevice['status'],
-});
-
-// TODO: pending use sdk
-export const photosDeviceService = {
-  async listDevices(): Promise<PhotoDevice[]> {
-    const response = await fetch(BASE_URL, {
-      method: 'GET',
-      headers: await headers(),
-    });
-    if (!response.ok) {
-      throw new Error(`[photosDeviceService] listDevices failed: ${response.status}`);
-    }
-    const data: Record<string, unknown>[] = await response.json();
-    return data.map(parseDevice);
-  },
+  listDevices(): Promise<PhotoDevice[]> {
+    return this.sdk.photos.listDevices();
+  }
 
   async createDevice(deviceName: string): Promise<PhotoDevice> {
-    const response = await fetch(BASE_URL, {
-      method: 'POST',
-      headers: await headers(),
-      body: JSON.stringify({ deviceName }),
-    });
-    if (response.status === HTTP_CONFLICT) {
-      throw new PhotoDeviceNameConflictError(deviceName);
+    try {
+      return await this.sdk.photos.createDevice(deviceName);
+    } catch (err) {
+      if (err instanceof AxiosResponseError && err.status === HTTP_CONFLICT) {
+        throw new PhotoDeviceNameConflictError(deviceName);
+      }
+      throw err;
     }
-    if (!response.ok) {
-      throw new Error(`[photosDeviceService] createDevice failed: ${response.status}`);
-    }
-    const data: Record<string, unknown> = await response.json();
-    return parseDevice(data);
-  },
+  }
 
   async getDevice(uuid: string): Promise<PhotoDevice | null> {
-    const response = await fetch(`${BASE_URL}/${uuid}`, {
-      method: 'GET',
-      headers: await headers(),
-    });
-    if (response.status === HTTP_NOT_FOUND) {
-      return null;
+    try {
+      return await this.sdk.photos.getDevice(uuid);
+    } catch (err) {
+      if (err instanceof AxiosResponseError && err.status === HTTP_NOT_FOUND) {
+        return null;
+      }
+      throw err;
     }
-    if (!response.ok) {
-      throw new Error(`[photosDeviceService] getDevice failed: ${response.status}`);
-    }
-    const data: Record<string, unknown> = await response.json();
-    return parseDevice(data);
-  },
+  }
 
-  async deleteDevice(uuid: string): Promise<void> {
-    const response = await fetch(`${BASE_URL}/${uuid}`, {
-      method: 'DELETE',
-      headers: await headers(),
-    });
-    if (!response.ok) {
-      throw new Error(`[photosDeviceService] deleteDevice failed: ${response.status}`);
-    }
-  },
+  deleteDevice(uuid: string): Promise<void> {
+    return this.sdk.photos.deleteDevice(uuid);
+  }
 
-  async renameDevice(uuid: string, deviceName: string): Promise<PhotoDevice> {
-    const response = await fetch(`${BASE_URL}/${uuid}`, {
-      method: 'PATCH',
-      headers: await headers(),
-      body: JSON.stringify({ deviceName }),
-    });
-    if (!response.ok) {
-      throw new Error(`[photosDeviceService] renameDevice failed: ${response.status}`);
-    }
-    const data: Record<string, unknown> = await response.json();
-    return parseDevice(data);
-  },
-};
+  renameDevice(uuid: string, deviceName: string): Promise<PhotoDevice> {
+    return this.sdk.photos.renameDevice(uuid, deviceName);
+  }
+}
+
+export const photosDeviceService = new PhotosDeviceService(SdkManager.getInstance());
