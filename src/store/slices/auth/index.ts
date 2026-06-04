@@ -51,6 +51,7 @@ async function syncNativeCredentials(token: string, user: UserSettings): Promise
       bearerToken: token,
       userId: user.userId,
       bridgeUser: user.bridgeUser,
+      mnemonic: user.mnemonic,
       rootFolderUuid: user.rootFolderUuid,
       email: user.email,
       driveBaseUrl: appService.constants.DRIVE_NEW_API_URL,

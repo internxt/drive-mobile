@@ -16,6 +16,7 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
         val bearerToken: String,
         val userId: String,
         val bridgeUser: String,
+        val mnemonic: String,
         val rootFolderUuid: String,
         val email: String?,
         val driveBaseUrl: String,
@@ -40,6 +41,7 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
             bearerToken = required(KEY_BEARER_TOKEN),
             bridgeUser = required(KEY_BRIDGE_USER),
             userId = required(KEY_USER_ID),
+            mnemonic = required(KEY_MNEMONIC),
             clientName = BuildConfig.INTERNXT_CLIENT_NAME,
             clientVersion = BuildConfig.INTERNXT_CLIENT_VERSION,
             desktopToken = prefs.getString(KEY_DESKTOP_TOKEN, null)?.takeIf { it.isNotBlank() },
@@ -54,6 +56,7 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
             .putString(KEY_BEARER_TOKEN, creds.bearerToken)
             .putString(KEY_USER_ID, creds.userId)
             .putString(KEY_BRIDGE_USER, creds.bridgeUser)
+            .putString(KEY_MNEMONIC, creds.mnemonic)
             .putString(KEY_ROOT_FOLDER_UUID, creds.rootFolderUuid)
             .putString(KEY_EMAIL, creds.email)
             .putString(KEY_DRIVE_BASE_URL, creds.driveBaseUrl)
@@ -70,6 +73,7 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
         private const val KEY_BEARER_TOKEN = "bearerToken"
         private const val KEY_USER_ID = "userId"
         private const val KEY_BRIDGE_USER = "bridgeUser"
+        private const val KEY_MNEMONIC = "mnemonic"
         private const val KEY_ROOT_FOLDER_UUID = "rootFolderUuid"
         private const val KEY_EMAIL = "email"
         private const val KEY_DRIVE_BASE_URL = "driveBaseUrl"
@@ -80,6 +84,7 @@ class InternxtAuthManager(private val prefs: SharedPreferences) {
             KEY_BEARER_TOKEN,
             KEY_USER_ID,
             KEY_BRIDGE_USER,
+            KEY_MNEMONIC,
             KEY_ROOT_FOLDER_UUID,
             KEY_DRIVE_BASE_URL,
             KEY_BRIDGE_BASE_URL,
