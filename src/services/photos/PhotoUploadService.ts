@@ -42,11 +42,14 @@ interface FileUploadResult {
   creationIso: string;
   folderUuid: string;
   localFilePath: string;
+  thumbnailSource: string;
   tempPath?: string;
   credentials: UploadCredentials;
 }
 
-const resolveLocalPath = async (asset: MediaLibrary.Asset): Promise<{ localPath: string; tempPath?: string }> => {
+const resolveLocalPath = async (
+  asset: MediaLibrary.Asset,
+): Promise<{ localPath: string; tempPath?: string; thumbnailUri?: string }> => {
   if (Platform.OS === 'ios') {
     const assetInfo = await photoMediaLibraryService.getAssetInfo(asset.id, { shouldDownloadFromNetwork: false });
     const rawUri = assetInfo.localUri ?? asset.uri;
@@ -54,7 +57,10 @@ const resolveLocalPath = async (asset: MediaLibrary.Asset): Promise<{ localPath:
       throw new Error(`Asset ${asset.id} has no local URI — may be stored in iCloud`);
     }
 
-    return { localPath: stripFileSchemeAndFragment(rawUri) };
+    // Videos in the Photos Library are only accessible via PHAsset URI (ph://) for
+    // AVFoundation-based operations like thumbnail generation. Direct /var/mobile/Media/DCIM/
+    // paths fail with NSCocoaErrorDomain 257 (no permission) when passed to AVAssetImageGenerator.
+    return { localPath: stripFileSchemeAndFragment(rawUri), thumbnailUri: asset.uri };
   }
 
   const uri = asset.uri;
@@ -74,7 +80,7 @@ const uploadAssetToBucket = async (
   onProgress?: (ratio: number) => void,
   signal?: AbortSignal,
 ): Promise<FileUploadResult> => {
-  const { localPath: localFilePath, tempPath } = await resolveLocalPath(asset);
+  const { localPath: localFilePath, tempPath, thumbnailUri } = await resolveLocalPath(asset);
 
   const createdDate = new Date(asset.creationTime);
   const creationIso = createdDate.toISOString();
@@ -125,6 +131,7 @@ const uploadAssetToBucket = async (
     creationIso,
     folderUuid,
     localFilePath,
+    thumbnailSource: thumbnailUri ?? localFilePath,
     tempPath,
     credentials: { bucketId, encryptionKey, bridgeUser, bridgePass },
   };
@@ -172,8 +179,8 @@ const uploadThumbnailForAsset = async (
       bucketFile: thumbnailFileId,
       encryptVersion: EncryptionVersion.Aes03,
     });
-  } catch {
-    logger.error(`Failed to upload thumbnail for file ${fileUuid}, with thumbnail path ${thumbnailPath}`);
+  } catch (err) {
+    logger.error(`Failed to upload thumbnail for file ${fileUuid} (ext=${fileExtension}, path=${localFilePath}):`, err);
   } finally {
     await cleanupTempFile(thumbnailPath);
   }
@@ -236,6 +243,7 @@ export const PhotoUploadService = {
       creationIso,
       folderUuid,
       localFilePath,
+      thumbnailSource,
       tempPath,
       credentials,
     } = fileUploadResult;
@@ -252,7 +260,7 @@ export const PhotoUploadService = {
         creationTime: creationIso,
       });
 
-      await uploadThumbnailForAsset(localFilePath, fileExtension, fileUuid, credentials);
+      await uploadThumbnailForAsset(thumbnailSource, fileExtension, fileUuid, credentials);
 
       return fileUuid;
     } finally {
@@ -272,6 +280,7 @@ export const PhotoUploadService = {
       fileId,
       fileSize,
       localFilePath,
+      thumbnailSource,
       fileExtension,
       tempPath,
       credentials,
@@ -285,7 +294,7 @@ export const PhotoUploadService = {
     try {
       try {
         await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
-        await uploadThumbnailForAsset(localFilePath, fileExtension, existingRemoteFileId, credentials);
+        await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials);
         return existingRemoteFileId;
       } catch (replaceError) {
         if (!isDeletedOrTrashedError(replaceError)) {
@@ -303,7 +312,7 @@ export const PhotoUploadService = {
           modificationTime: modificationIso,
           creationTime: creationIso,
         });
-        await uploadThumbnailForAsset(localFilePath, fileExtension, driveFile.uuid, credentials);
+        await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
         return driveFile.uuid;
       }
     } finally {

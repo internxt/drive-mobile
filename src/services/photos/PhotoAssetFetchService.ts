@@ -43,6 +43,10 @@ const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Pr
     logger.warn(`[PhotoAssetFetchService] No fileId for cloud asset ${item.id}, skipping download`);
     return null;
   }
+  if (!asset.bucket) {
+    logger.warn(`[PhotoAssetFetchService] No bucket for cloud asset ${item.id}, skipping download`);
+    return null;
+  }
 
   const user = await asyncStorageService.getUser();
 
@@ -51,7 +55,7 @@ const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Pr
   try {
     await driveFileService.downloadFile(
       user,
-      user.bucket,
+      asset.bucket,
       asset.fileId,
       {
         downloadPath: cachePath,

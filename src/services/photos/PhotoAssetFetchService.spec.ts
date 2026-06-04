@@ -132,20 +132,30 @@ describe('fetchUri — cloud item', () => {
     expect(result).toBeNull();
   });
 
-  test('when asset is not cached and has a fileId, then downloadFile is called and the cache path is returned', async () => {
-    mockGetCloudAssetById.mockResolvedValue({ fileId: 'file-id-123', fileSize: 500_000 });
+  test('when asset is not cached and has a fileId, then downloadFile is called with the asset bucket and the cache path is returned', async () => {
+    mockGetCloudAssetById.mockResolvedValue({ fileId: 'file-id-123', fileSize: 500_000, bucket: 'photos-bucket' });
+    mockGetUser.mockResolvedValue({ bucket: 'drive-root-bucket', mnemonic: 'mnemonic' });
     (fileSystemService.pathToUri as jest.Mock).mockReturnValue('file:///cache/photo_preview/cloud-uuid-1.jpg');
 
     const result = await PhotoAssetFetchService.fetchUri(makeCloudItem(), makeSignal());
 
     expect(mockDownloadFile).toHaveBeenCalledWith(
       expect.anything(),
-      'bucket-id',
+      'photos-bucket',
       'file-id-123',
       expect.objectContaining({ downloadPath: '/cache/photo_preview/cloud-uuid-1.jpg' }),
       500_000,
     );
     expect(result).toBe('file:///cache/photo_preview/cloud-uuid-1.jpg');
+  });
+
+  test('when asset is not cached but has no bucket, then null is returned without downloading', async () => {
+    mockGetCloudAssetById.mockResolvedValue({ fileId: 'file-id-123', fileSize: 500_000, bucket: null });
+
+    const result = await PhotoAssetFetchService.fetchUri(makeCloudItem(), makeSignal());
+
+    expect(mockDownloadFile).not.toHaveBeenCalled();
+    expect(result).toBeNull();
   });
 });
 

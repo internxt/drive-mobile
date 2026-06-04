@@ -272,6 +272,18 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markCloudDeleted, [remoteFileId]);
   }
 
+  async getDistinctCloudAssetDeviceIds(): Promise<string[]> {
+    const rows = await sqliteService.getAllAsync<{ device_id: string }>(
+      DB_NAME,
+      cloudAssetTable.statements.getDistinctDeviceIds,
+    );
+    return rows.map((r) => r.device_id);
+  }
+
+  async deleteCloudAssetsByDevice(deviceId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.deleteByDevice, [deviceId]);
+  }
+
   async getCloudAssetMonthsByDevice(deviceId: string): Promise<{ year: number; month: number }[]> {
     return sqliteService.getAllAsync<{ year: number; month: number }>(
       DB_NAME,
