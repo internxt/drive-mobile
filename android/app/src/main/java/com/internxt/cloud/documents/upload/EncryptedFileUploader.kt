@@ -126,12 +126,11 @@ object EncryptedFileUploader {
             require(length > 0) { "Computed empty part for index $index" }
             val body = fileRangeBody(tempEnc, offset, length, onProgress, baseSent = offset)
             val request = Request.Builder().url(url).put(body).build()
-            var etag: String? = null
-            runCall(client, request, signal, active) { response ->
-                etag = response.header("ETag") ?: response.header("Etag")
+            val etag = runCall(client, request, signal, active) { response ->
+                response.header("ETag") ?: response.header("Etag")
                     ?: throw IOException("Part ${index + 1} missing ETag in response")
             }
-            parts.add(UploadedPart(partNumber = index + 1, etag = etag!!))
+            parts.add(UploadedPart(partNumber = index + 1, etag = etag))
             offset += length
         }
         return parts
@@ -147,17 +146,17 @@ object EncryptedFileUploader {
         return Ripemd160.digest(hexDecode(concatenated)).toHex()
     }
 
-    private inline fun runCall(
+    private inline fun <T> runCall(
         client: OkHttpClient,
         request: Request,
         signal: CancellationSignal?,
         active: AtomicReference<Call?>,
-        onResponse: (okhttp3.Response) -> Unit,
-    ) {
+        onResponse: (okhttp3.Response) -> T,
+    ): T {
         val call = client.newCall(request)
         active.set(call)
         try {
-            call.execute().use { response ->
+            return call.execute().use { response ->
                 if (!response.isSuccessful) {
                     throw IOException("PUT failed HTTP ${response.code}")
                 }
