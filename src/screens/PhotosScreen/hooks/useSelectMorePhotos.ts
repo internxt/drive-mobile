@@ -22,8 +22,8 @@ const useSelectMorePhotos = (reloadLocal: () => Promise<void>): (() => Promise<v
 
   return useCallback(async () => {
     if (Platform.OS === 'android') {
-      const { status, accessPrivileges } = await MediaLibrary.requestPermissionsAsync();
-      const newStatus = accessPrivileges === 'limited' ? 'limited' : status === 'granted' ? 'granted' : 'denied';
+      await MediaLibrary.requestPermissionsAsync();
+      const newStatus = await photoPermissionService.getStatus();
       dispatch(photosActions.setPermissionStatus(newStatus));
       await reloadLocal();
       dispatch(runBackupCycleThunk());
