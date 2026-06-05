@@ -17,45 +17,51 @@ const loadWrapper = (platformOS: 'android' | 'ios', nativeModule: unknown): { wr
   return { wrapper };
 };
 
+/**
+ * Builds a native bridge mock and loads the wrapper against it, returning the spy so each
+ * test only states the platform and asserts the resulting behaviour.
+ */
+const arrangePresentNative = (platformOS: 'android' | 'ios') => {
+  const native = jest.fn().mockResolvedValue(undefined);
+  const { wrapper } = loadWrapper(platformOS, { notifyParentChanged: native });
+  return { wrapper, native };
+};
+
 describe('InternxtSignalingModule wrapper', () => {
   afterEach(() => {
     jest.resetModules();
   });
 
   it('when on Android with a valid uuid, then it invokes the native module with that uuid', async () => {
-    const notifyParentChangedNative = jest.fn().mockResolvedValue(undefined);
-    const { wrapper } = loadWrapper('android', { notifyParentChanged: notifyParentChangedNative });
+    const { wrapper, native } = arrangePresentNative('android');
 
     await wrapper.notifyParentChanged('folder-uuid-123');
 
-    expect(notifyParentChangedNative).toHaveBeenCalledWith('folder-uuid-123');
+    expect(native).toHaveBeenCalledWith('folder-uuid-123');
   });
 
   it('when on iOS, then it resolves without invoking the native module', async () => {
-    const notifyParentChangedNative = jest.fn().mockResolvedValue(undefined);
-    const { wrapper } = loadWrapper('ios', { notifyParentChanged: notifyParentChangedNative });
+    const { wrapper, native } = arrangePresentNative('ios');
 
     await expect(wrapper.notifyParentChanged('folder-uuid-123')).resolves.toBeUndefined();
 
-    expect(notifyParentChangedNative).not.toHaveBeenCalled();
+    expect(native).not.toHaveBeenCalled();
   });
 
   it('when the uuid is empty, then it resolves without invoking the native module', async () => {
-    const notifyParentChangedNative = jest.fn().mockResolvedValue(undefined);
-    const { wrapper } = loadWrapper('android', { notifyParentChanged: notifyParentChangedNative });
+    const { wrapper, native } = arrangePresentNative('android');
 
     await expect(wrapper.notifyParentChanged('')).resolves.toBeUndefined();
 
-    expect(notifyParentChangedNative).not.toHaveBeenCalled();
+    expect(native).not.toHaveBeenCalled();
   });
 
   it('when the uuid is not a string, then it resolves without invoking the native module', async () => {
-    const notifyParentChangedNative = jest.fn().mockResolvedValue(undefined);
-    const { wrapper } = loadWrapper('android', { notifyParentChanged: notifyParentChangedNative });
+    const { wrapper, native } = arrangePresentNative('android');
 
     await expect(wrapper.notifyParentChanged(undefined as unknown as string)).resolves.toBeUndefined();
 
-    expect(notifyParentChangedNative).not.toHaveBeenCalled();
+    expect(native).not.toHaveBeenCalled();
   });
 
   it('when the native module is absent, then it resolves without throwing', async () => {
