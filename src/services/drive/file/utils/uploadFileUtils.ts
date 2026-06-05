@@ -23,6 +23,7 @@ import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
+import { notifyParentChanged } from '../../../native/InternxtSignalingModule';
 import { BucketNotFoundError } from './upload.errors';
 
 /**
@@ -264,6 +265,7 @@ export async function uploadSingleFile(
       await uploadFile(file, 'document');
     }
     uploadSuccess(file);
+    void notifyParentChanged(file.parentUuid).catch(() => undefined);
   } catch (e) {
     const err = e as Error;
     errorService.reportError(err, {

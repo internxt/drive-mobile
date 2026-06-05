@@ -76,7 +76,13 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         authManager = InternxtAuthManager.create(ctx.applicationContext) ?: return false
         // Process-scoped: ContentProvider has no shutdown hook, so the thread lives until the process dies.
         closeHandler = Handler(HandlerThread("InternxtDocsClose").apply { start() }.looper)
+        activeInstance = this
         return true
+    }
+
+    override fun shutdown() {
+        if (activeInstance === this) activeInstance = null
+        super.shutdown()
     }
 
     override fun queryRoots(projection: Array<String>?): Cursor {
@@ -919,6 +925,20 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         const val AUTHORITY = "com.internxt.cloud.documents"
         private const val ROOT_ID = "internxt-root"
         private const val TAG = "InternxtDocsProvider"
+
+        @Volatile
+        private var activeInstance: InternxtDocumentsProvider? = null
+
+        /**
+         * Entry point for the React Native app to signal that a folder's children changed
+         * (e.g. after uploading a file or creating a folder from the app UI). Reuses the same
+         * cache invalidation + notifyChange path as in-picker mutations. No-op if the provider
+         * is not currently alive in this process.
+         */
+        fun signalParentChanged(folderUuid: String) {
+            if (folderUuid.isBlank()) return
+            activeInstance?.invalidateChildren(DocumentId.encodeFolder(folderUuid))
+        }
 
         private const val MULTIPART_THRESHOLD = 100L * 1024L * 1024L
         private const val MULTIPART_PART_SIZE = 30L * 1024L * 1024L
