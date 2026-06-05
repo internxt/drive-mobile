@@ -65,28 +65,22 @@ describe('uploadSingleFile — picker signaling', () => {
   });
 
   it('when a file upload succeeds, then it signals the destination folder uuid', async () => {
-    // given
     const file = buildUploadingFile({ parentUuid: 'destination-folder-uuid' });
     const uploadFile = jest.fn().mockResolvedValue(undefined);
     const uploadSuccess = jest.fn();
 
-    // when
     await uploadSingleFile(file, dispatch, uploadFile, uploadSuccess);
 
-    // then
     expect(mockNotifyParentChanged).toHaveBeenCalledWith('destination-folder-uuid');
   });
 
   it('when the file upload fails, then it does not signal the file picker', async () => {
-    // given
     const file = buildUploadingFile();
     const uploadFile = jest.fn().mockRejectedValue(new Error('network down'));
     const uploadSuccess = jest.fn();
 
-    // when
     await expect(uploadSingleFile(file, dispatch, uploadFile, uploadSuccess)).rejects.toThrow('network down');
 
-    // then
     expect(mockNotifyParentChanged).not.toHaveBeenCalled();
   });
 });

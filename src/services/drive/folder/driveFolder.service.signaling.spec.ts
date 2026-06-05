@@ -24,21 +24,16 @@ describe('driveFolderService.createFolder — picker signaling', () => {
   });
 
   it('when a folder is created, then it signals the parent folder uuid', async () => {
-    // given
     mockCreateFolderByUuid.mockReturnValue([Promise.resolve({ uuid: 'new-folder', name: 'docs' })]);
 
-    // when
     await driveFolderService.createFolder('parent-folder-uuid', 'docs');
 
-    // then
     expect(mockNotifyParentChanged).toHaveBeenCalledWith('parent-folder-uuid');
   });
 
   it('when the SDK returns no result, then it rejects and does not signal', async () => {
-    // given
     mockCreateFolderByUuid.mockReturnValue(undefined);
 
-    // when / then
     await expect(driveFolderService.createFolder('parent-folder-uuid', 'docs')).rejects.toBeDefined();
     expect(mockNotifyParentChanged).not.toHaveBeenCalled();
   });
