@@ -34,7 +34,7 @@ class DriveFolderService {
       plainName: folderName,
     });
     if (!sdkResult) {
-      return Promise.reject('createFolder Sdk method did not return a valid result');
+      throw new Error('Sdk method did not return a valid result');
     }
     const folder = await sdkResult[0];
     void notifyParentChanged(parentFolderId).catch(() => undefined);
