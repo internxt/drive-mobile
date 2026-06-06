@@ -2,25 +2,25 @@ package com.internxt.cloud.documents.crypto
 
 import com.rncrypto.util.OnlyErrorCallback
 import java.io.IOException
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutionException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 /**
- * Bridges `CryptoService.encryptFile` / `decryptFile` (callback-based) to a blocking call.
- * Pass `runInBackground = false` to those methods — the caller is already on a background
- * executor thread, so there's no point bouncing onto the rn-crypto thread pool just to
- * block on it. Any [Throwable] surfaced by the callback is rethrown as [IOException]
- * preserving the original cause.
+ * Suspends until `CryptoService.encryptFile` / `decryptFile` (callback-based) reports an
+ * outcome via [OnlyErrorCallback]. No thread is blocked waiting for the callback: the rn-crypto
+ * callback resumes the coroutine. Any non-null error is surfaced as [IOException] preserving the
+ * original cause.
  */
-internal inline fun awaitCryptoService(
+internal suspend inline fun awaitCryptoService(
     failureMessage: String,
-    invoke: (OnlyErrorCallback) -> Unit,
-) {
-    val done = CompletableFuture<Unit>()
-    invoke { err -> if (err != null) done.completeExceptionally(err) else done.complete(Unit) }
-    try {
-        done.get()
-    } catch (e: ExecutionException) {
-        throw (e.cause as? IOException) ?: IOException(failureMessage, e.cause)
+    crossinline invoke: (OnlyErrorCallback) -> Unit,
+) = suspendCancellableCoroutine { continuation ->
+    invoke { err ->
+        if (err != null) {
+            continuation.resumeWithException((err as? IOException) ?: IOException(failureMessage, err))
+        } else {
+            continuation.resume(Unit)
+        }
     }
 }
