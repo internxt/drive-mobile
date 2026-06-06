@@ -229,7 +229,7 @@ export async function uploadSingleFile(
       await uploadFile(file, 'document');
     }
     uploadSuccess(file);
-    void notifyParentChanged(file.parentUuid).catch(() => undefined);
+    void notifyParentChanged(file.parentUuid);
   } catch (e) {
     if (e instanceof EmptyFileNotAllowedError) {
       dispatch(uiActions.setShowEmptyFileNotAllowedModal(true));
