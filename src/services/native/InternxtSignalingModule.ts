@@ -1,11 +1,11 @@
 import { NativeModules, Platform } from 'react-native';
+import { logger } from '../common';
 
 interface NativeBridge {
   notifyParentChanged(parentFolderUuid: string): Promise<void>;
 }
 
-const bridge: NativeBridge | undefined =
-  Platform.OS === 'android' ? NativeModules.InternxtSignalingModule : undefined;
+const bridge: NativeBridge | undefined = Platform.OS === 'android' ? NativeModules.InternxtSignalingModule : undefined;
 
 /**
  * Signals the Android file picker (SAF DocumentsProvider) that a folder's children changed
@@ -18,5 +18,9 @@ const bridge: NativeBridge | undefined =
 export async function notifyParentChanged(parentFolderUuid: string): Promise<void> {
   if (!bridge) return;
   if (typeof parentFolderUuid !== 'string' || parentFolderUuid.length === 0) return;
-  await bridge.notifyParentChanged(parentFolderUuid);
+  try {
+    await bridge.notifyParentChanged(parentFolderUuid);
+  } catch (error) {
+    logger.warn('InternxtSignalingModule.notifyParentChanged failed', error);
+  }
 }

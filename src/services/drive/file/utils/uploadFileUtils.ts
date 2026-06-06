@@ -265,7 +265,7 @@ export async function uploadSingleFile(
       await uploadFile(file, 'document');
     }
     uploadSuccess(file);
-    void notifyParentChanged(file.parentUuid).catch(() => undefined);
+    void notifyParentChanged(file.parentUuid);
   } catch (e) {
     const err = e as Error;
     errorService.reportError(err, {

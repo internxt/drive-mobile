@@ -1,3 +1,9 @@
+const mockLoggerWarn = jest.fn();
+
+jest.mock('../common', () => ({
+  logger: { info: jest.fn(), warn: mockLoggerWarn, error: jest.fn() },
+}));
+
 type Wrapper = typeof import('./InternxtSignalingModule');
 
 /**
@@ -30,6 +36,7 @@ const arrangePresentNative = (platformOS: 'android' | 'ios') => {
 describe('InternxtSignalingModule wrapper', () => {
   afterEach(() => {
     jest.resetModules();
+    mockLoggerWarn.mockReset();
   });
 
   it('when on Android with a valid uuid, then it invokes the native module with that uuid', async () => {
@@ -68,5 +75,14 @@ describe('InternxtSignalingModule wrapper', () => {
     const { wrapper } = loadWrapper('android', undefined);
 
     await expect(wrapper.notifyParentChanged('folder-uuid-123')).resolves.toBeUndefined();
+  });
+
+  it('when the native module rejects, then it resolves without throwing', async () => {
+    const { wrapper, native } = arrangePresentNative('android');
+    native.mockRejectedValueOnce(new Error('E_INVALID_FOLDER'));
+
+    await expect(wrapper.notifyParentChanged('folder-uuid-123')).resolves.toBeUndefined();
+
+    expect(mockLoggerWarn).toHaveBeenCalledTimes(1);
   });
 });
