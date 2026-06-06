@@ -19,7 +19,7 @@ class CryptoServiceAwaitTest {
         val original = IOException("boom")
 
         val thrown = runCatching {
-            awaitCryptoService("crypto failed") { cb -> cb.onComplete(original) }
+            awaitCryptoService(CRYPTO_FAILED_MESSAGE) { cb -> cb.onComplete(original) }
         }.exceptionOrNull()
 
         val io = thrown as? IOException ?: return@runTest fail("expected IOException but got $thrown")
@@ -31,11 +31,11 @@ class CryptoServiceAwaitTest {
         val original = IllegalStateException("nope")
 
         val thrown = runCatching {
-            awaitCryptoService("crypto failed") { cb -> cb.onComplete(original) }
+            awaitCryptoService(CRYPTO_FAILED_MESSAGE) { cb -> cb.onComplete(original) }
         }.exceptionOrNull()
 
         val io = thrown as? IOException ?: return@runTest fail("expected IOException but got $thrown")
-        assertEquals("crypto failed", io.message)
+        assertEquals(CRYPTO_FAILED_MESSAGE, io.message)
         assertTrue("original cause not preserved in chain", io.hasCauseWithMessage("nope"))
     }
 
@@ -46,5 +46,9 @@ class CryptoServiceAwaitTest {
             current = current.cause
         }
         return false
+    }
+
+    companion object {
+        private const val CRYPTO_FAILED_MESSAGE = "crypto failed"
     }
 }
