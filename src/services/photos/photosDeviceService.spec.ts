@@ -32,126 +32,130 @@ const mockFetch = (status: number, body: unknown): void => {
   });
 };
 
-beforeEach(() => {
-  jest.clearAllMocks();
-});
-
-describe('photosDeviceService.listDevices', () => {
-  test('when the server returns a list of devices, then they are parsed and returned', async () => {
-    mockFetch(200, [existingDevice]);
-
-    const result = await photosDeviceService.listDevices();
-
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual(existingDevice);
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices'),
-      expect.objectContaining({ method: 'GET' }),
-    );
+describe('photosDeviceService', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
+  describe('listDevices', () => {
+    test('when the server returns a list of devices, then they are parsed and returned', async () => {
+      mockFetch(200, [existingDevice]);
 
-    await expect(photosDeviceService.listDevices()).rejects.toThrow('listDevices failed');
-  });
-});
+      const result = await photosDeviceService.listDevices();
 
-describe('photosDeviceService.createDevice', () => {
-  test('when a device is created successfully, then the created device is returned', async () => {
-    mockFetch(200, existingDevice);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toEqual(existingDevice);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/photos/devices'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
 
-    const result = await photosDeviceService.createDevice('Internxt iPhone');
+    test('when the server returns an error, then an error is thrown', async () => {
+      mockFetch(500, {});
 
-    expect(result).toEqual(existingDevice);
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices'),
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ deviceName: 'Internxt iPhone' }),
-      }),
-    );
+      await expect(photosDeviceService.listDevices()).rejects.toThrow('listDevices failed');
+    });
   });
 
-  test('when the server returns 409, then a PhotoDeviceNameConflictError is thrown', async () => {
-    mockFetch(409, {});
+  describe('createDevice', () => {
+    test('when a device is created successfully, then the created device is returned', async () => {
+      mockFetch(200, existingDevice);
 
-    await expect(photosDeviceService.createDevice('Internxt iPhone')).rejects.toThrow(PhotoDeviceNameConflictError);
+      const result = await photosDeviceService.createDevice('Internxt iPhone');
+
+      expect(result).toEqual(existingDevice);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/photos/devices'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ deviceName: 'Internxt iPhone' }),
+        }),
+      );
+    });
+
+    test('when the server returns 409, then a PhotoDeviceNameConflictError is thrown', async () => {
+      mockFetch(409, {});
+
+      await expect(photosDeviceService.createDevice('Internxt iPhone')).rejects.toThrow(PhotoDeviceNameConflictError);
+    });
+
+    test('when the server returns another error, then a generic error is thrown', async () => {
+      mockFetch(500, {});
+
+      await expect(photosDeviceService.createDevice('Internxt iPhone')).rejects.toThrow('createDevice failed');
+    });
   });
 
-  test('when the server returns another error, then a generic error is thrown', async () => {
-    mockFetch(500, {});
+  describe('getDevice', () => {
+    test('when the device is found, then it is returned', async () => {
+      mockFetch(200, existingDevice);
 
-    await expect(photosDeviceService.createDevice('Internxt iPhone')).rejects.toThrow('createDevice failed');
-  });
-});
+      const result = await photosDeviceService.getDevice('device-uuid-1');
 
-describe('photosDeviceService.getDevice', () => {
-  test('when the device is found, then it is returned', async () => {
-    mockFetch(200, existingDevice);
+      expect(result).toEqual(existingDevice);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/photos/devices/device-uuid-1'),
+        expect.objectContaining({ method: 'GET' }),
+      );
+    });
 
-    const result = await photosDeviceService.getDevice('device-uuid-1');
+    test('when the device is not found, then null is returned', async () => {
+      mockFetch(404, {});
 
-    expect(result).toEqual(existingDevice);
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices/device-uuid-1'),
-      expect.objectContaining({ method: 'GET' }),
-    );
-  });
+      const result = await photosDeviceService.getDevice('device-uuid-missing');
 
-  test('when the device is not found, then null is returned', async () => {
-    mockFetch(404, {});
+      expect(result).toBeNull();
+    });
 
-    const result = await photosDeviceService.getDevice('device-uuid-missing');
+    test('when the server returns an error, then an error is thrown', async () => {
+      mockFetch(500, {});
 
-    expect(result).toBeNull();
-  });
-
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
-
-    await expect(photosDeviceService.getDevice('device-uuid-1')).rejects.toThrow('getDevice failed');
-  });
-});
-
-describe('photosDeviceService.deleteDevice', () => {
-  test('when the device is deleted successfully, then the call resolves without error', async () => {
-    mockFetch(200, {});
-
-    await expect(photosDeviceService.deleteDevice('device-uuid-1')).resolves.toBeUndefined();
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices/device-uuid-1'),
-      expect.objectContaining({ method: 'DELETE' }),
-    );
+      await expect(photosDeviceService.getDevice('device-uuid-1')).rejects.toThrow('getDevice failed');
+    });
   });
 
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
+  describe('deleteDevice', () => {
+    test('when the device is deleted successfully, then the call resolves without error', async () => {
+      mockFetch(200, {});
 
-    await expect(photosDeviceService.deleteDevice('device-uuid-1')).rejects.toThrow('deleteDevice failed');
-  });
-});
+      await expect(photosDeviceService.deleteDevice('device-uuid-1')).resolves.toBeUndefined();
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/photos/devices/device-uuid-1'),
+        expect.objectContaining({ method: 'DELETE' }),
+      );
+    });
 
-describe('photosDeviceService.renameDevice', () => {
-  test('when the device is renamed successfully, then the updated device is returned', async () => {
-    const updatedDevice = { ...existingDevice, plainName: 'New name' };
-    mockFetch(200, updatedDevice);
+    test('when the server returns an error, then an error is thrown', async () => {
+      mockFetch(500, {});
 
-    const result = await photosDeviceService.renameDevice('device-uuid-1', 'New name');
-
-    expect(result).toEqual(updatedDevice);
-    expect(globalThis.fetch).toHaveBeenCalledWith(
-      expect.stringContaining('/photos/devices/device-uuid-1'),
-      expect.objectContaining({
-        method: 'PATCH',
-        body: JSON.stringify({ deviceName: 'New name' }),
-      }),
-    );
+      await expect(photosDeviceService.deleteDevice('device-uuid-1')).rejects.toThrow('deleteDevice failed');
+    });
   });
 
-  test('when the server returns an error, then an error is thrown', async () => {
-    mockFetch(500, {});
+  describe('renameDevice', () => {
+    test('when the device is renamed successfully, then the updated device is returned', async () => {
+      const updatedDevice = { ...existingDevice, plainName: 'New name' };
+      mockFetch(200, updatedDevice);
 
-    await expect(photosDeviceService.renameDevice('device-uuid-1', 'New name')).rejects.toThrow('renameDevice failed');
+      const result = await photosDeviceService.renameDevice('device-uuid-1', 'New name');
+
+      expect(result).toEqual(updatedDevice);
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/photos/devices/device-uuid-1'),
+        expect.objectContaining({
+          method: 'PATCH',
+          body: JSON.stringify({ deviceName: 'New name' }),
+        }),
+      );
+    });
+
+    test('when the server returns an error, then an error is thrown', async () => {
+      mockFetch(500, {});
+
+      await expect(photosDeviceService.renameDevice('device-uuid-1', 'New name')).rejects.toThrow(
+        'renameDevice failed',
+      );
+    });
   });
 });
