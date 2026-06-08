@@ -9,6 +9,7 @@ import { PhotoDeviceId } from 'src/services/photos/PhotoDeviceId';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
+import { storageSelectors } from 'src/store/slices/storage';
 import photosReducer, {
   checkPermissionRevocationThunk,
   disableBackupThunk,
@@ -69,6 +70,12 @@ jest.mock('src/services/photos/PhotoCloudBrowser', () => ({
   },
 }));
 
+jest.mock('src/store/slices/storage', () => ({
+  storageSelectors: {
+    availableStorage: jest.fn().mockReturnValue(1_000_000_000), // plenty of space by default
+  },
+}));
+
 jest.mock('src/services/photos/database/photosLocalDB', () => ({
   photosLocalDB: {
     init: jest.fn().mockResolvedValue(undefined),
@@ -80,6 +87,7 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
   },
 }));
 
+const mockStorageSelectors = storageSelectors as jest.Mocked<typeof storageSelectors>;
 const mockAsyncStorage = asyncStorageService as jest.Mocked<typeof asyncStorageService>;
 const mockCloudBrowser = photoCloudBrowser as jest.Mocked<typeof photoCloudBrowser>;
 const mockPermissionService = photoPermissionService as jest.Mocked<typeof photoPermissionService>;
@@ -150,6 +158,7 @@ describe('photos slice', () => {
       sessionUploadedAssets: 0,
       cloudFetchRevision: 0,
       isFetchingCloudHistory: false,
+      disabledReason: null,
     };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
@@ -704,6 +713,10 @@ describe('photos slice', () => {
   });
 
   describe('upload execution', () => {
+    const quotaError = { message: 'Request failed with status code 420', name: 'Error', status: 420 } as Error & {
+      status: number;
+    };
+
     test('when the upload loop finishes while paused, then sync status remains paused', async () => {
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
       mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
@@ -737,6 +750,107 @@ describe('photos slice', () => {
       await store.dispatch(runUploadThunk());
 
       expect(mockPhotosLocalDB.markError).not.toHaveBeenCalled();
+    });
+
+    test('when an asset fails with a quota exceeded error from the backend, then the backup is paused and the asset is not marked as failed in the database', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+        await callbacks.onAssetError?.('a1', quotaError);
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.syncStatus).toBe('paused');
+      expect(store.getState().photos.disabledReason).toBe('quota-exceeded');
+      expect(mockPhotosLocalDB.markError).not.toHaveBeenCalled();
+    });
+
+    test('when an asset fails with a quota exceeded error from the backend, then the upload queue is aborted to prevent further attempts', async () => {
+      jest.spyOn(mockUploadQueue, 'abortAll');
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+        await callbacks.onAssetError?.('a1', quotaError);
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(mockUploadQueue.abortAll).toHaveBeenCalledTimes(1);
+    });
+
+    test('when an asset fails with a quota exceeded error from the backend, then the backup cycle is not restarted', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+        await callbacks.onAssetError?.('a1', quotaError);
+      });
+      const remainingAssets = Array.from({ length: 5 }, (_, i) => ({ assetId: `asset-${i}`, status: 'pending' }));
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce(remainingAssets as never);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(mockScanner.scanAll).not.toHaveBeenCalled();
+    });
+
+    test('when available storage is zero, then the upload is paused and the storage full reason is set', async () => {
+      mockStorageSelectors.availableStorage.mockReturnValueOnce(0);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(mockPhotosLocalDB.getPendingAssets).not.toHaveBeenCalled();
+      expect(store.getState().photos.syncStatus).toBe('paused');
+      expect(store.getState().photos.disabledReason).toBe('quota-exceeded');
+    });
+
+    test('when available storage is negative, then the upload is paused and the storage full reason is set', async () => {
+      mockStorageSelectors.availableStorage.mockReturnValueOnce(-100);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.syncStatus).toBe('paused');
+      expect(store.getState().photos.disabledReason).toBe('quota-exceeded');
+    });
+
+    test('when available storage is positive, then the storage full reason is cleared and the upload proceeds', async () => {
+      mockStorageSelectors.availableStorage.mockReturnValueOnce(500_000_000);
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([]);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          disabledReason: 'quota-exceeded',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.disabledReason).toBeNull();
     });
   });
 });

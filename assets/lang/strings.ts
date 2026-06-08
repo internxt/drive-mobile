@@ -1167,7 +1167,7 @@ const translations = {
           items: 'elementos',
           backingUp: 'Guardando copia',
           backupPausing: 'Pausando backup',
-          backupPaused: 'Backup pausado',
+          backupPaused: 'Copia de seguridad pausada',
           storageFull: 'Almacenamiento lleno',
           backupCompleted: 'Backup completado',
           gettingPhotos: 'Obteniendo fotos de la nube',

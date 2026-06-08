@@ -24,6 +24,7 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
     isFetchingCloudHistory,
     isPaused,
     pendingBackupAssets,
+    disabledReason,
   } = useAppSelector((state) => state.photos);
 
   const localGroups = useMemo(
@@ -47,6 +48,7 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
         backupProgress,
         isFetchingCloudHistory,
         isPaused,
+        disabledReason,
       }),
     })) as TimelineDateGroup[];
   }, [
@@ -57,6 +59,7 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
     isFetchingCloudHistory,
     isPaused,
     pendingBackupAssets,
+    disabledReason,
   ]);
 
   return { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud };

@@ -181,6 +181,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: false,
         isPaused: false,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'scanning' });
   });
@@ -194,6 +195,7 @@ describe('group sync status', () => {
         backupProgress: 0.5,
         isFetchingCloudHistory: false,
         isPaused: false,
+        disabledReason: null,
       }),
     ).toEqual({
       type: 'uploading',
@@ -211,6 +213,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: true,
         isPaused: false,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'fetching' });
   });
@@ -224,6 +227,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: false,
         isPaused: false,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'count', count: 2 });
   });
@@ -237,6 +241,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: false,
         isPaused: false,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'completed' });
   });
@@ -250,6 +255,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: true,
         isPaused: false,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'fetching' });
   });
@@ -263,6 +269,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: false,
         isPaused: false,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'paused', count: 5 });
   });
@@ -276,6 +283,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: false,
         isPaused: true,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'paused', count: 5 });
   });
@@ -289,6 +297,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: false,
         isPaused: true,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'paused', count: 5 });
   });
@@ -302,6 +311,7 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: false,
         isPaused: true,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'pausing' });
   });
@@ -315,8 +325,37 @@ describe('group sync status', () => {
         backupProgress: undefined,
         isFetchingCloudHistory: true,
         isPaused: true,
+        disabledReason: null,
       }),
     ).toEqual({ type: 'paused', count: 5 });
+  });
+
+  test('when storage is full, then returns storage full status regardless of sync status', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'uploading',
+        remainingCount: 3,
+        backupProgress: 0.5,
+        isFetchingCloudHistory: false,
+        isPaused: false,
+        disabledReason: 'quota-exceeded',
+      }),
+    ).toEqual({ type: 'paused-storage-full' });
+  });
+
+  test('when storage is full and backup is also manually paused, then storage full status takes priority', () => {
+    expect(
+      getGroupSyncStatus({
+        group,
+        syncStatus: 'paused',
+        remainingCount: 5,
+        backupProgress: undefined,
+        isFetchingCloudHistory: false,
+        isPaused: true,
+        disabledReason: 'quota-exceeded',
+      }),
+    ).toEqual({ type: 'paused-storage-full' });
   });
 });
 

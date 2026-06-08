@@ -93,12 +93,12 @@ const PhotosGroupHeader = memo(
           <BackupProgressBar progress={backupUploadProgress} fillColor={primaryColor} trackColor={progressTrackColor} />
         )}
 
-        <View style={tailwind('flex-row items-center justify-between px-4')}>
-          <AppText semibold style={[tailwind('text-lg'), { color: labelColor }]}>
+        <View style={tailwind('flex-row items-center px-4')}>
+          <AppText semibold style={[tailwind('text-lg'), { color: labelColor, flex: 1 }]}>
             {label}
           </AppText>
 
-          <View style={[tailwind('flex-row items-center overflow-hidden'), { maxWidth: 226, gap: 8 }]}>
+          <View style={[tailwind('flex-row items-center'), { gap: 8, maxWidth: 250 }]}>
             {syncStatus.type === 'count' && <GroupHeaderCount count={syncStatus.count} color={statusColor} />}
             {syncStatus.type === 'scanning' && <GroupHeaderScanning color={statusColor} />}
             {syncStatus.type === 'fetching' && <GroupHeaderFetching color={statusColor} />}

@@ -1,7 +1,7 @@
 import * as MediaLibrary from 'expo-media-library';
 import { isVideoExtension } from 'src/services/drive/file/utils/exifHelpers';
 import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
-import { PhotoSyncStatus } from 'src/store/slices/photos';
+import { PhotosDisabledReason, PhotoSyncStatus } from 'src/store/slices/photos';
 import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
 import { CloudPhotoItem, PhotoBackupState, PhotoDateGroup, PhotoItem, TimelinePhotoItem } from '../types';
@@ -88,6 +88,7 @@ export const getGroupSyncStatus = ({
   backupProgress,
   isFetchingCloudHistory,
   isPaused,
+  disabledReason,
 }: {
   group: PhotoDateGroup;
   syncStatus: PhotoSyncStatus;
@@ -95,7 +96,12 @@ export const getGroupSyncStatus = ({
   backupProgress: number | undefined;
   isFetchingCloudHistory: boolean;
   isPaused: boolean;
+  disabledReason: PhotosDisabledReason;
 }): GroupSyncStatus => {
+  if (disabledReason === 'quota-exceeded') {
+    return { type: 'paused-storage-full' };
+  }
+
   if (isPaused) {
     return syncStatus === 'pausing' ? { type: 'pausing' } : { type: 'paused', count: remainingCount };
   }
