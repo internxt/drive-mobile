@@ -16,7 +16,7 @@ import LinkCopiedModal from './components/modals/LinkCopiedModal';
 
 import { DriveContextProvider } from './contexts/Drive';
 import { ThemeProvider, useTheme } from './contexts/Theme';
-import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
+import { useLoadFonts } from './helpers';
 import useGetColor from './hooks/useColor';
 import { useScreenProtection } from './hooks/useScreenProtection';
 import { useSecurity } from './hooks/useSecurity';
@@ -148,24 +148,14 @@ function AppContent(): JSX.Element {
 
       await dispatch(appThunks.initializeLanguageThunk()).unwrap();
 
-      // 1. Get remote updates
-      await getRemoteUpdateIfAvailable();
-
-      // 2. Check for updates every time the app becomes active, doesn't trigger when setted
-      appService.onAppStateChange(async (state) => {
-        if (state === 'active') {
-          await getRemoteUpdateIfAvailable();
-        }
-      });
-
-      // 3. Prepare the filesystem
+      // 1. Prepare the filesystem
       await fileSystemService.prepareFileSystem();
 
-      // 4. Initialize all the services we need at start time
+      // 2. Initialize all the services we need at start time
       const initializeOperations = [authService.init(), appService.logAppInfo()];
 
       await Promise.all(initializeOperations);
-      // 5. Silent SignIn only if token is still valid
+      // 3. Silent SignIn only if token is still valid
       await silentSignIn();
     } catch (err) {
       setLoadError((err as Error).message);
