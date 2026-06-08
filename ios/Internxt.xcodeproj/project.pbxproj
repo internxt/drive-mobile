@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 70;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -19,6 +19,9 @@
 		DE1D47432F87A94000E14783 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE1D47422F87A94000E14783 /* UniformTypeIdentifiers.framework */; };
 		DE1D474F2F87A94000E14783 /* InternxtFileProvider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		DE1D47562F87AB4000E14783 /* InternxtSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = DE1D47552F87AB4000E14783 /* InternxtSwiftCore */; };
+		DE1D47602F87A94000E14783 /* FileProviderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47632F87A94000E14783 /* FileProviderExtension.swift */; };
+		DE1D47612F87A94000E14783 /* FileProviderEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */; };
+		DE1D47622F87A94000E14783 /* FileProviderItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47652F87A94000E14783 /* FileProviderItem.swift */; };
 		DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */; };
 		DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
@@ -91,6 +94,12 @@
 		DAE15E8DB4DF4E048E04B0E0 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = InternxtFileProvider.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DE1D47422F87A94000E14783 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
+		DE1D47632F87A94000E14783 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
+		DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderEnumerator.swift; sourceTree = "<group>"; };
+		DE1D47652F87A94000E14783 /* FileProviderItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderItem.swift; sourceTree = "<group>"; };
+		DE1D47662F87A94000E14783 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DE1D47672F87A94000E14783 /* InternxtFileProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = InternxtFileProvider.entitlements; sourceTree = "<group>"; };
+		DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = InternxtFileProvider.plist; sourceTree = "<group>"; };
 		DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppGroupPendingShareModule.m; path = Internxt/AppGroupPendingShareModule.m; sourceTree = "<group>"; };
 		DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppGroupPendingShareModule.swift; path = Internxt/AppGroupPendingShareModule.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
@@ -98,20 +107,6 @@
 		F11748442D0722820044C1D9 /* Internxt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Internxt-Bridging-Header.h"; path = "Internxt/Internxt-Bridging-Header.h"; sourceTree = "<group>"; };
 		FDEA9EEAEC8CE666D14877B2 /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		DE1D47522F87A94000E14783 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = DE1D47402F87A94000E14783 /* InternxtFileProvider */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		DE1D47442F87A94000E14783 /* InternxtFileProvider */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (DE1D47522F87A94000E14783 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = InternxtFileProvider; sourceTree = "<group>"; };
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		13B07F8C1A680F5B00A75B9A /* Frameworks */ = {
@@ -262,6 +257,19 @@
 			name = InternxtShareExtension;
 			sourceTree = "<group>";
 		};
+		DE1D47442F87A94000E14783 /* InternxtFileProvider */ = {
+			isa = PBXGroup;
+			children = (
+				DE1D47632F87A94000E14783 /* FileProviderExtension.swift */,
+				DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */,
+				DE1D47652F87A94000E14783 /* FileProviderItem.swift */,
+				DE1D47662F87A94000E14783 /* Info.plist */,
+				DE1D47672F87A94000E14783 /* InternxtFileProvider.entitlements */,
+				DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */,
+			);
+			path = InternxtFileProvider;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -325,9 +333,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				DE1D47442F87A94000E14783 /* InternxtFileProvider */,
 			);
 			name = InternxtFileProvider;
 			packageProductDependencies = (
@@ -709,6 +714,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DE1D47602F87A94000E14783 /* FileProviderExtension.swift in Sources */,
+				DE1D47612F87A94000E14783 /* FileProviderEnumerator.swift in Sources */,
+				DE1D47622F87A94000E14783 /* FileProviderItem.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
