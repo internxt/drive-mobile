@@ -1,7 +1,7 @@
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
 import { photosLocalDB } from './database/photosLocalDB';
-import { photosDeviceService } from './photosDeviceService';
 import { photoCloudBrowser } from './PhotoCloudBrowser';
+import { photosDeviceService } from './photosDeviceService';
 
 jest.mock('src/services/drive/folder/driveFolder.service', () => ({
   driveFolderService: {
@@ -78,10 +78,7 @@ describe('PhotoCloudBrowser.listDeviceFolders', () => {
 
     const result = await photoCloudBrowser.listDeviceFolders();
 
-    expect(result).toEqual([
-      { uuid: 'd1-uuid' },
-      { uuid: 'd2-uuid' },
-    ]);
+    expect(result).toEqual([{ uuid: 'd1-uuid' }, { uuid: 'd2-uuid' }]);
   });
 
   test('when the device service returns a deleted device, then it is excluded from the list', async () => {
@@ -123,9 +120,9 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     const file = makeFile('file-uuid', 'IMG_20240615_120000.jpg');
 
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthFolder] } as never)
-      .mockResolvedValueOnce({ folders: [dayFolder] } as never);
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthFolder] })
+      .mockResolvedValueOnce({ folders: [dayFolder] });
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
@@ -152,7 +149,7 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
   test('when there is no cache entry for the month, then the drive folder tree is traversed', async () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
 
-    mockFolderService.getFolderFolders.mockResolvedValue({ folders: [] } as never);
+    mockFolderService.getFolderFolders.mockResolvedValue({ folders: [] });
 
     await photoCloudBrowser.fetchMonth({
       deviceId: 'd1-uuid',
@@ -166,7 +163,7 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
 
   test('when the year folder does not exist in drive, then no assets are upserted', async () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
-    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] });
 
     await photoCloudBrowser.fetchMonth({
       deviceId: 'd1-uuid',
@@ -187,9 +184,9 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     const fileB = makeFile('file-b', 'photo-b.jpg');
 
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthFolder] } as never)
-      .mockResolvedValueOnce({ folders: [dayFolder] } as never);
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthFolder] })
+      .mockResolvedValueOnce({ folders: [dayFolder] });
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [fileA, fileB] } as never);
 
