@@ -218,6 +218,13 @@ describe('PhotoUploadService.upload', () => {
 
     expect(mockRnfsUnlink).toHaveBeenCalledWith('/tmp/thumb.jpg');
   });
+
+  test('when the asset has no local URI, then the upload still proceeds using the asset URI as fallback', async () => {
+    mockGetAssetInfoAsync.mockResolvedValue({ localUri: null });
+
+    const result = PhotoUploadService.upload(makeAsset(), DEVICE_ID);
+    await expect(result).resolves.toBeDefined();
+  });
 });
 
 describe('PhotoUploadService.replace', () => {
