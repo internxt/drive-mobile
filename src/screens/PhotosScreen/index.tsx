@@ -5,7 +5,13 @@ import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
-import { forceRefreshThunk, pauseBackupThunk, photosActions, resumeBackupThunk, runBackupCycleThunk } from 'src/store/slices/photos';
+import {
+  forceRefreshThunk,
+  pauseBackupThunk,
+  photosActions,
+  resumeBackupThunk,
+  runBackupCycleThunk,
+} from 'src/store/slices/photos';
 import { uiActions } from 'src/store/slices/ui';
 import { TabExplorerScreenNavigationProp } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
@@ -43,7 +49,7 @@ const PhotosScreen = (): JSX.Element => {
   const selection = usePhotoSelection(allItems);
   const actions = usePhotoActions(selection, { reloadLocal, reloadCloud });
 
-  const handleTrashedFromPreview = useCallback(async () => {
+  const handleItemChangedFromPreview = useCallback(async () => {
     await Promise.all([reloadLocal(), reloadCloud()]);
   }, [reloadLocal, reloadCloud]);
 
@@ -53,9 +59,13 @@ const PhotosScreen = (): JSX.Element => {
         selection.toggleSelect(id);
         return;
       }
-      navigation.navigate('PhotoPreview', { initialId: id, items: allItems, onTrashed: handleTrashedFromPreview });
+      navigation.navigate('PhotoPreview', {
+        initialId: id,
+        items: allItems,
+        onItemChanged: handleItemChangedFromPreview,
+      });
     },
-    [selection, navigation, allItems, handleTrashedFromPreview],
+    [selection, navigation, allItems, handleItemChangedFromPreview],
   );
 
   const handlePhotoLongPress = useCallback(
@@ -78,8 +88,12 @@ const PhotosScreen = (): JSX.Element => {
   const listHeader =
     accessState.type === 'backup-off' ? <BackupDisabledBanner onEnablePress={handleEnableBackup} /> : undefined;
 
-  const handlePausePress = useCallback(() => { dispatch(pauseBackupThunk()); }, [dispatch]);
-  const handleResumePress = useCallback(() => { dispatch(resumeBackupThunk()); }, [dispatch]);
+  const handlePausePress = useCallback(() => {
+    dispatch(pauseBackupThunk());
+  }, [dispatch]);
+  const handleResumePress = useCallback(() => {
+    dispatch(resumeBackupThunk());
+  }, [dispatch]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
