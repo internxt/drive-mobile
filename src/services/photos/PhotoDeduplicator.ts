@@ -36,6 +36,10 @@ export const PhotoDeduplicator = {
       const syncedInfo = syncedEntries.get(asset.id);
       if (!syncedInfo) {
         newAssets.push(asset);
+      } else if (syncedInfo.status === 'cloud_deleted') {
+        if (hasBeenEdited(asset, syncedInfo.modificationTime)) {
+          newAssets.push(asset);
+        }
       } else if (hasBeenEdited(asset, syncedInfo.modificationTime)) {
         editedAssets.push(asset);
       }

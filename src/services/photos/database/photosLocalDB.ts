@@ -50,7 +50,7 @@ interface CloudAssetRow {
   encrypt_version: string | null;
 }
 
-export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted';
+export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted' | 'cloud_deleted';
 
 export interface AssetSyncEntry {
   assetId: string;
@@ -94,6 +94,7 @@ interface AssetSyncRow {
 
 export interface SyncedAssetInfo {
   modificationTime: number | null;
+  status: 'synced' | 'cloud_deleted';
 }
 
 export interface AssetMediaInfo {
@@ -219,18 +220,18 @@ class PhotosLocalDB {
     const results = await Promise.all(
       chunks.map((chunk) => {
         const placeholders = chunk.map(() => '?').join(', ');
-        return sqliteService.getAllAsync<{ asset_id: string; modification_time: number | null }>(
-          DB_NAME,
-          assetSyncTable.statements.getSyncedInList(placeholders),
-          chunk,
-        );
+        return sqliteService.getAllAsync<{
+          asset_id: string;
+          modification_time: number | null;
+          status: 'synced' | 'cloud_deleted';
+        }>(DB_NAME, assetSyncTable.statements.getSyncedInList(placeholders), chunk);
       }),
     );
 
     const synced = new Map<string, SyncedAssetInfo>();
     for (const chunk of results) {
       for (const row of chunk) {
-        synced.set(row.asset_id, { modificationTime: row.modification_time });
+        synced.set(row.asset_id, { modificationTime: row.modification_time, status: row.status });
       }
     }
     return synced;
@@ -254,6 +255,47 @@ class PhotosLocalDB {
       status: asset.status,
       remoteFileId: asset.remote_file_id,
     }));
+  }
+
+  async getSyncedRemoteIdsByCreationMonth(year: number, month: number): Promise<Set<string>> {
+    const startMs = new Date(year, month - 1, 1).getTime();
+    const endMs = new Date(year, month, 1).getTime();
+    const rows = await sqliteService.getAllAsync<{ remote_file_id: string }>(
+      DB_NAME,
+      assetSyncTable.statements.getSyncedRemoteIdsByCreationMonth,
+      [startMs, endMs],
+    );
+    return new Set(rows.map((r) => r.remote_file_id));
+  }
+
+  async markCloudDeleted(remoteFileId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markCloudDeleted, [remoteFileId]);
+  }
+
+  async getCloudAssetMonthsByDevice(deviceId: string): Promise<{ year: number; month: number }[]> {
+    return sqliteService.getAllAsync<{ year: number; month: number }>(
+      DB_NAME,
+      cloudAssetTable.statements.getMonthsByDevice,
+      [deviceId],
+    );
+  }
+
+  async getSyncedMonths(): Promise<{ year: number; month: number }[]> {
+    return sqliteService.getAllAsync<{ year: number; month: number }>(
+      DB_NAME,
+      assetSyncTable.statements.getSyncedMonths,
+    );
+  }
+
+  async getCloudAssetRemoteIdsByDeviceAndMonth(deviceId: string, year: number, month: number): Promise<Set<string>> {
+    const startMs = new Date(year, month - 1, 1).getTime();
+    const endMs = new Date(year, month, 1).getTime();
+    const rows = await sqliteService.getAllAsync<{ remote_file_id: string }>(
+      DB_NAME,
+      cloudAssetTable.statements.getRemoteIdsByDeviceAndMonth,
+      [deviceId, startMs, endMs],
+    );
+    return new Set(rows.map((r) => r.remote_file_id));
   }
 
   async markAssetDeleted(assetId: string): Promise<void> {

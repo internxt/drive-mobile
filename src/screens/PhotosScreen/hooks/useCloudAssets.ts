@@ -11,7 +11,7 @@ export interface CloudAssetsResult {
 
 export const useCloudAssets = (): CloudAssetsResult => {
   const [cloudItems, setCloudItems] = useState<CloudPhotoItem[]>([]);
-  const { cloudFetchRevision } = useAppSelector((state) => state.photos);
+  const { cloudFetchRevision, sessionUploadedAssets } = useAppSelector((state) => state.photos);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reloadCloudFromDB = useCallback(async () => {
@@ -24,7 +24,6 @@ export const useCloudAssets = (): CloudAssetsResult => {
     setCloudItems(deduplicated.map(cloudEntryToPhotoItem));
   }, []);
 
-  // Initial load on mount
   useEffect(() => {
     reloadCloudFromDB();
   }, [reloadCloudFromDB]);
@@ -37,7 +36,7 @@ export const useCloudAssets = (): CloudAssetsResult => {
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [reloadCloudFromDB, cloudFetchRevision]);
+  }, [reloadCloudFromDB, cloudFetchRevision, sessionUploadedAssets]);
 
   return { cloudItems, reloadCloud: reloadCloudFromDB };
 };

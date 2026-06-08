@@ -4,7 +4,7 @@ const statements = {
   createTable: `
     CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
       asset_id          TEXT    PRIMARY KEY NOT NULL,
-      status            TEXT    NOT NULL CHECK (status IN ('pending', 'pending_edit', 'synced', 'error', 'deleted')),
+      status            TEXT    NOT NULL CHECK (status IN ('pending', 'pending_edit', 'synced', 'error', 'deleted', 'cloud_deleted')),
       remote_file_id    TEXT,
       error_message     TEXT,
       attempt_count     INTEGER NOT NULL DEFAULT 0,
@@ -86,8 +86,15 @@ const statements = {
     FROM ${TABLE_NAME} WHERE asset_id = ?;
   `,
   getSyncedInList: (placeholders: string) =>
-    `SELECT asset_id, modification_time FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status = 'synced';`,
-  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted');`,
+    `SELECT asset_id, modification_time, status FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status IN ('synced', 'cloud_deleted');`,
+  getSyncedRemoteIdsByCreationMonth: `
+    SELECT remote_file_id FROM ${TABLE_NAME}
+    WHERE status = 'synced'
+      AND remote_file_id IS NOT NULL
+      AND creation_time >= ?
+      AND creation_time < ?;
+  `,
+  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted', 'cloud_deleted');`,
   markDeleted: `
     INSERT INTO ${TABLE_NAME} (asset_id, status, deleted_at)
     VALUES (?, 'deleted', (unixepoch() * 1000))
@@ -96,9 +103,20 @@ const statements = {
       deleted_at = (unixepoch() * 1000);
   `,
   getDeletedIds: `SELECT asset_id FROM ${TABLE_NAME} WHERE status = 'deleted';`,
+  markCloudDeleted: `UPDATE ${TABLE_NAME} SET status = 'cloud_deleted' WHERE remote_file_id = ?;`,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE asset_id = ?;`,
   reset: `DELETE FROM ${TABLE_NAME};`,
   getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE status = 'synced' AND remote_file_id IS NOT NULL;`,
+
+  getSyncedMonths: `
+    SELECT DISTINCT
+      CAST(strftime('%Y', creation_time / 1000, 'unixepoch') AS INTEGER) AS year,
+      CAST(strftime('%m', creation_time / 1000, 'unixepoch') AS INTEGER) AS month
+    FROM ${TABLE_NAME}
+    WHERE status = 'synced'
+      AND creation_time IS NOT NULL
+      AND remote_file_id IS NOT NULL;
+  `,
 };
 
 export default { TABLE_NAME, statements };

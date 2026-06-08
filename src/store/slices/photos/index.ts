@@ -308,6 +308,7 @@ export const runFullCloudHistorySyncThunk = createAsyncThunk<void, { force?: boo
         force,
         onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
         isCancelled: () => !getState().photos.enabled,
+        currentDeviceId: getState().photos.deviceId ?? undefined,
       });
       logger.info('[CloudHistorySync] Full history sync complete');
     } catch (error) {

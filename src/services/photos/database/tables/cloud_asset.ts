@@ -87,12 +87,25 @@ const statements = {
   delete: `DELETE FROM ${TABLE_NAME} WHERE remote_file_id = ?;`,
   reset: `DELETE FROM ${TABLE_NAME};`,
 
+  getRemoteIdsByDeviceAndMonth: `
+    SELECT remote_file_id FROM ${TABLE_NAME}
+    WHERE device_id = ? AND created_at >= ? AND created_at < ?;
+  `,
+
   getLatestDiscoveredAt: `
     SELECT MAX(discovered_at) AS latest
     FROM ${TABLE_NAME}
     WHERE device_id = ?
       AND created_at >= ?
       AND created_at <  ?;
+  `,
+
+  getMonthsByDevice: `
+    SELECT DISTINCT
+      CAST(strftime('%Y', created_at / 1000, 'unixepoch') AS INTEGER) AS year,
+      CAST(strftime('%m', created_at / 1000, 'unixepoch') AS INTEGER) AS month
+    FROM ${TABLE_NAME}
+    WHERE device_id = ?;
   `,
 };
 

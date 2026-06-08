@@ -20,6 +20,12 @@ jest.mock('./database/photosLocalDB', () => ({
   photosLocalDB: {
     getCloudFetchCacheAge: jest.fn(),
     upsertCloudAsset: jest.fn(),
+    getCloudAssetRemoteIdsByDeviceAndMonth: jest.fn(),
+    getSyncedRemoteIdsByCreationMonth: jest.fn(),
+    markCloudDeleted: jest.fn(),
+    deleteCloudAsset: jest.fn(),
+    getCloudAssetMonthsByDevice: jest.fn(),
+    getSyncedMonths: jest.fn(),
   },
 }));
 
@@ -40,6 +46,12 @@ const makeFile = (uuid: string, plainName: string) =>
 beforeEach(() => {
   jest.clearAllMocks();
   mockPhotosLocalDB.upsertCloudAsset.mockResolvedValue(undefined);
+  mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set());
+  mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth.mockResolvedValue(new Set());
+  mockPhotosLocalDB.markCloudDeleted.mockResolvedValue(undefined);
+  mockPhotosLocalDB.deleteCloudAsset.mockResolvedValue(undefined);
+  mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([]);
+  mockPhotosLocalDB.getSyncedMonths.mockResolvedValue([]);
 });
 
 describe('PhotoCloudBrowser.listDeviceFolders', () => {
@@ -66,18 +78,18 @@ describe('PhotoCloudBrowser.listDeviceFolders', () => {
     ]);
   });
 
-  test('when the root has exactly 50 device folders, then a second page is fetched to check for more', async () => {
+  test('when the root has exactly 50 device folders and a second page has more, then all folders from both pages are returned', async () => {
     mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
     const firstBatch = Array.from({ length: 50 }, (_, i) => makeFolder(`d${i}`, `device-${i}`));
-    const secondBatch: never[] = [];
+    const secondBatch = [makeFolder('d50', 'device-50'), makeFolder('d51', 'device-51')];
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: firstBatch } as never)
-      .mockResolvedValueOnce({ folders: secondBatch } as never);
+      .mockResolvedValueOnce({ folders: firstBatch })
+      .mockResolvedValueOnce({ folders: secondBatch });
 
     const result = await photoCloudBrowser.listDeviceFolders();
 
     expect(mockFolderService.getFolderFolders).toHaveBeenCalledTimes(2);
-    expect(result).toHaveLength(50);
+    expect(result).toHaveLength(52);
   });
 });
 
@@ -107,9 +119,9 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     const file = makeFile('file-uuid', 'IMG_20240615_120000.jpg');
 
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthFolder] } as never)
-      .mockResolvedValueOnce({ folders: [dayFolder] } as never);
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthFolder] })
+      .mockResolvedValueOnce({ folders: [dayFolder] });
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
@@ -136,7 +148,7 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
   test('when there is no cache entry for the month, then the drive folder tree is traversed', async () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
 
-    mockFolderService.getFolderFolders.mockResolvedValue({ folders: [] } as never);
+    mockFolderService.getFolderFolders.mockResolvedValue({ folders: [] });
 
     await photoCloudBrowser.fetchMonth({
       deviceId: 'device-1',
@@ -150,7 +162,7 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
 
   test('when the year folder does not exist in drive, then no assets are upserted', async () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
-    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] });
 
     await photoCloudBrowser.fetchMonth({
       deviceId: 'device-1',
@@ -171,9 +183,9 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     const file = makeFile('file-uuid', 'photo.jpg');
 
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthFolder] } as never)
-      .mockResolvedValueOnce({ folders: [dayFolder] } as never);
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthFolder] })
+      .mockResolvedValueOnce({ folders: [dayFolder] });
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
@@ -206,7 +218,7 @@ describe('PhotoCloudBrowser.fetchMonth — return value', () => {
 
   test('when the year folder does not exist, then zero is returned', async () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
-    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] });
 
     const result = await photoCloudBrowser.fetchMonth({
       deviceId: 'device-1',
@@ -228,9 +240,9 @@ describe('PhotoCloudBrowser.fetchMonth — return value', () => {
     const fileB = makeFile('file-b', 'photo-b.jpg');
 
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthFolder] } as never)
-      .mockResolvedValueOnce({ folders: [dayFolder] } as never);
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthFolder] })
+      .mockResolvedValueOnce({ folders: [dayFolder] });
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [fileA, fileB] } as never);
 
@@ -265,11 +277,11 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     const file = makeFile('file-uuid', 'photo.jpg');
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [device] } as never)
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthA, monthB] } as never)
-      .mockResolvedValueOnce({ folders: [day] } as never)
-      .mockResolvedValueOnce({ folders: [day] } as never);
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthA, monthB] })
+      .mockResolvedValueOnce({ folders: [day] })
+      .mockResolvedValueOnce({ folders: [day] });
     mockFolderService.getFolderContentByUuid.mockResolvedValue({ files: [file] } as never);
 
     await photoCloudBrowser.syncAllHistory({});
@@ -286,11 +298,11 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     const m3_2024 = makeFolder('m3-24', '03');
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [device] } as never)
-      .mockResolvedValueOnce({ folders: [year2023, year2024] } as never)
-      .mockResolvedValueOnce({ folders: [m6_2023] } as never)
-      .mockResolvedValueOnce({ folders: [m3_2024] } as never)
-      .mockResolvedValue({ folders: [] } as never);
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year2023, year2024] })
+      .mockResolvedValueOnce({ folders: [m6_2023] })
+      .mockResolvedValueOnce({ folders: [m3_2024] })
+      .mockResolvedValue({ folders: [] });
 
     await photoCloudBrowser.syncAllHistory({});
 
@@ -307,10 +319,10 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     const m3 = makeFolder('m3', '04');
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [device] } as never)
-      .mockResolvedValueOnce({ folders: [year] } as never)
-      .mockResolvedValueOnce({ folders: [m1, m2, m3] } as never)
-      .mockResolvedValue({ folders: [] } as never);
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [m1, m2, m3] })
+      .mockResolvedValue({ folders: [] });
 
     await photoCloudBrowser.syncAllHistory({ isCancelled: () => true });
 
@@ -329,10 +341,10 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     const fresh = Date.now() - 1000;
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(fresh).mockResolvedValueOnce(null);
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [device] } as never)
-      .mockResolvedValueOnce({ folders: [year] } as never)
-      .mockResolvedValueOnce({ folders: [m1, m2] } as never)
-      .mockResolvedValueOnce({ folders: [day] } as never);
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [m1, m2] })
+      .mockResolvedValueOnce({ folders: [day] });
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
     await photoCloudBrowser.syncAllHistory({});
@@ -341,7 +353,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     expect(mockFolderService.getFolderFolders).toHaveBeenCalledTimes(4);
   });
 
-  test('when six months each have files, then onMonthFetched is invoked six times', async () => {
+  test('when six months each have files, then the caller is notified once per month', async () => {
     mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
     const device = makeFolder('d1-uuid', 'device-1');
     const year = makeFolder('y-uuid', '2024');
@@ -350,10 +362,10 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     const file = makeFile('file-uuid', 'photo.jpg');
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [device] } as never)
-      .mockResolvedValueOnce({ folders: [year] } as never)
-      .mockResolvedValueOnce({ folders: months } as never)
-      .mockResolvedValue({ folders: [day] } as never);
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: months })
+      .mockResolvedValue({ folders: [day] });
     mockFolderService.getFolderContentByUuid.mockResolvedValue({ files: [file] } as never);
 
     const onMonthFetched = jest.fn();
@@ -372,10 +384,10 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     const fresh = Date.now() - 1000;
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(fresh);
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [device] } as never)
-      .mockResolvedValueOnce({ folders: [year] } as never)
-      .mockResolvedValueOnce({ folders: [month] } as never)
-      .mockResolvedValueOnce({ folders: [day] } as never);
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
     await photoCloudBrowser.syncAllHistory({ force: true });
@@ -383,7 +395,242 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledTimes(1);
   });
 
-  test('when a discovered month has no files, then onMonthFetched is not invoked for that month', async () => {
+  test('when a month fetch finds a previously known file missing from the cloud, then it is marked as cloud_deleted', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(
+      new Set(['file-uuid', 'deleted-file-uuid']),
+    );
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('deleted-file-uuid');
+    expect(mockPhotosLocalDB.deleteCloudAsset).toHaveBeenCalledWith('deleted-file-uuid');
+  });
+
+  test('when a month fetch finds all previously known files still present, then no file is marked as cloud_deleted', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set(['file-uuid']));
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
+  });
+
+  test('when a month becomes empty in the cloud, then all previously known files are marked as cloud_deleted', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set(['file-a', 'file-b']));
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [] });
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledTimes(2);
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('file-a');
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('file-b');
+  });
+
+  test('when the current device has a synced asset whose remote file is no longer in the cloud folder, then it is marked as cloud_deleted', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set());
+    mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth.mockResolvedValue(new Set(['synced-remote-uuid']));
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [] });
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-1' });
+
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('synced-remote-uuid');
+    expect(mockPhotosLocalDB.deleteCloudAsset).toHaveBeenCalledWith('synced-remote-uuid');
+  });
+
+  test('when synced assets from a different device are missing from that device cloud folder, then they are not looked up via asset_sync', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set());
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [] });
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-other' });
+
+    expect(mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
+  });
+
+  test('when the current device matches the folder being synced, then synced remote ids are looked up to detect cloud deletions', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set());
+    mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth.mockResolvedValue(new Set());
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [] });
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-1' });
+
+    expect(mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth).toHaveBeenCalled();
+  });
+
+  test('when a month known in the DB is no longer present in the cloud, then all its files are marked as cloud_deleted', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    // Drive has only 2024/06; DB also knows 2024/04 (deleted month)
+    mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([
+      { year: 2024, month: 6 },
+      { year: 2024, month: 4 },
+    ]);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth
+      .mockResolvedValueOnce(new Set(['file-uuid'])) // 2024/06 — present
+      .mockResolvedValueOnce(new Set(['deleted-a', 'deleted-b'])); // 2024/04 — absent
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledTimes(2);
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('deleted-a');
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('deleted-b');
+  });
+
+  test('when the current device has synced assets in a month with no cloud folder, then those assets are marked as cloud_deleted', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    // cloud_asset knows nothing about 2024/04, but asset_sync does (uploaded from this device)
+    mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([{ year: 2024, month: 6 }]);
+    mockPhotosLocalDB.getSyncedMonths.mockResolvedValue([
+      { year: 2024, month: 6 },
+      { year: 2024, month: 4 },
+    ]);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set());
+    mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth
+      .mockResolvedValueOnce(new Set()) // 2024/06 fetchMonthFromFolder
+      .mockResolvedValueOnce(new Set(['synced-april-uuid'])); // 2024/04 reconcileDeletedMonths
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'device-1' });
+
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('synced-april-uuid');
+  });
+
+  test('when the cloud has no months at all and the DB has known months, then every known month is reconciled', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([
+      { year: 2024, month: 6 },
+      { year: 2024, month: 5 },
+    ]);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth
+      .mockResolvedValueOnce(new Set(['file-a']))
+      .mockResolvedValueOnce(new Set(['file-b']));
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [] }); // no year folders
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledTimes(2);
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('file-a');
+    expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('file-b');
+  });
+
+  test('when every month in the DB is still present in the cloud, then no extra reconciliation runs for deleted months', async () => {
+    mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
+    const device = makeFolder('d1-uuid', 'device-1');
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([{ year: 2024, month: 6 }]);
+    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set(['file-uuid']));
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [month] })
+      .mockResolvedValueOnce({ folders: [day] });
+    (mockFolderService.getFolderContentByUuid as jest.Mock).mockResolvedValueOnce({ files: [file] });
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    // Only the file-level reconciliation for 2024/06 runs — no extra calls for deleted months
+    expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
+  });
+
+  test('when a discovered month has no files, then the caller is not notified for that month', async () => {
     mockBackupFolders.getRootFolderUuid.mockResolvedValueOnce('root-uuid');
     const device = makeFolder('d1-uuid', 'device-1');
     const year = makeFolder('y-uuid', '2024');
@@ -393,11 +640,11 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     const file = makeFile('file-uuid', 'photo.jpg');
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [device] } as never)
-      .mockResolvedValueOnce({ folders: [year] } as never)
-      .mockResolvedValueOnce({ folders: [monthWithFiles, monthEmpty] } as never)
-      .mockResolvedValueOnce({ folders: [day] } as never)
-      .mockResolvedValueOnce({ folders: [] } as never);
+      .mockResolvedValueOnce({ folders: [device] })
+      .mockResolvedValueOnce({ folders: [year] })
+      .mockResolvedValueOnce({ folders: [monthWithFiles, monthEmpty] })
+      .mockResolvedValueOnce({ folders: [day] })
+      .mockResolvedValueOnce({ folders: [] });
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
     const onMonthFetched = jest.fn();

@@ -56,7 +56,7 @@ const makeTimelineGroup = (
   syncStatus: GroupSyncStatus = { type: 'count', count: group.photos.length },
 ): TimelineDateGroup => ({ group, syncStatus });
 
-describe('formatVideoDuration', () => {
+describe('video duration formatter', () => {
   test('when the video is shorter than a minute, then formats seconds with a zero-padded two-digit field', () => {
     expect(formatVideoDuration(45)).toBe('0:45');
   });
@@ -78,7 +78,7 @@ describe('formatVideoDuration', () => {
   });
 });
 
-describe('getDateLabel', () => {
+describe('date label formatting', () => {
   const now = new Date('2024-06-15T12:00:00');
 
   test('when the date is the same day as now, then returns Today', () => {
@@ -103,7 +103,7 @@ describe('getDateLabel', () => {
   });
 });
 
-describe('assetToPhotoItem', () => {
+describe('local asset to photo item conversion', () => {
   test('when the asset is not synced and not uploading, then its backup state is not-backed', () => {
     const asset = makeAsset();
     const item = assetToPhotoItem(asset, new Set(), new Set());
@@ -137,7 +137,7 @@ describe('assetToPhotoItem', () => {
   });
 });
 
-describe('groupAssetsByDate', () => {
+describe('grouping assets by date', () => {
   test('when all assets are on the same day, then a single group is returned', () => {
     const assets = [
       makeAsset({ id: 'a1', creationTime: new Date('2024-06-15T08:00:00').getTime() }),
@@ -169,7 +169,7 @@ describe('groupAssetsByDate', () => {
   });
 });
 
-describe('getGroupSyncStatus', () => {
+describe('group sync status', () => {
   const group = makeDateGroup({ photos: [makePhotoItem(), makePhotoItem()] });
 
   test('when sync status is scanning, then returns a scanning status', () => {
@@ -320,7 +320,7 @@ describe('getGroupSyncStatus', () => {
   });
 });
 
-describe('buildTimelineItems', () => {
+describe('building flat timeline item list', () => {
   test('when a single group with two photos is provided, then three items are produced', () => {
     const group = makeDateGroup({ photos: [makePhotoItem({ id: 'p1' }), makePhotoItem({ id: 'p2' })] });
     const { items } = buildTimelineItems([makeTimelineGroup(group)]);
@@ -373,7 +373,7 @@ const makeCloudEntry = (overrides: Partial<CloudAssetEntry> = {}): CloudAssetEnt
   ...overrides,
 });
 
-describe('cloudEntryToPhotoItem', () => {
+describe('cloud entry to photo item conversion', () => {
   test('when the entry has a jpg filename, then media type is photo', () => {
     const item = cloudEntryToPhotoItem(makeCloudEntry({ fileName: 'photo.jpg' }));
     expect(item.mediaType).toBe('photo');
@@ -406,7 +406,7 @@ describe('cloudEntryToPhotoItem', () => {
   });
 });
 
-describe('mergeCloudIntoGroups', () => {
+describe('merging cloud items into local groups', () => {
   test('when there are no cloud items, then the local groups are returned unchanged', () => {
     const localGroups = [makeDateGroup()];
     const result = mergeCloudIntoGroups(localGroups, []);

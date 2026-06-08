@@ -12,6 +12,7 @@ export interface LocalAssetsResult {
   assets: MediaLibrary.Asset[];
   isLoading: boolean;
   syncedIds: Set<string>;
+  cloudDeletedIds: Set<string>;
   uploadingIdSet: Set<string>;
   loadNextPage: () => void;
   reload: () => Promise<void>;
@@ -21,13 +22,17 @@ export const useLocalAssets = (): LocalAssetsResult => {
   const [assets, setAssets] = useState<MediaLibrary.Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [syncedIds, setSyncedIds] = useState<Set<string>>(new Set());
+  // TODO: Reserved for show a distinct icon for cloud-deleted vs never-backed assets. Remove if finally will be the same.
+  const [cloudDeletedIds, setCloudDeletedIds] = useState<Set<string>>(new Set());
 
   const cursorRef = useRef<string | undefined>(undefined);
   const hasMoreRef = useRef(true);
   const isLoadingMoreRef = useRef(false);
   const appStateRef = useRef(AppState.currentState);
 
-  const { syncStatus, uploadingAssetIds, sessionUploadedAssets } = useAppSelector((state) => state.photos);
+  const { syncStatus, uploadingAssetIds, sessionUploadedAssets, isFetchingCloudHistory } = useAppSelector(
+    (state) => state.photos,
+  );
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
 
@@ -88,7 +93,17 @@ export const useLocalAssets = (): LocalAssetsResult => {
     const assetIds = assets.map((a) => a.id);
     await photosLocalDB.init();
     const entries = await photosLocalDB.getSyncedEntries(assetIds);
-    setSyncedIds(new Set(entries.keys()));
+    const synced = new Set<string>();
+    const cloudDeleted = new Set<string>();
+    for (const [id, info] of entries) {
+      if (info.status === 'cloud_deleted') {
+        cloudDeleted.add(id);
+      } else {
+        synced.add(id);
+      }
+    }
+    setSyncedIds(synced);
+    setCloudDeletedIds(cloudDeleted);
   }, [assets]);
 
   const reloadFromStart = useCallback(async () => {
@@ -129,7 +144,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
 
   useEffect(() => {
     refreshSyncStatusFromDB();
-  }, [refreshSyncStatusFromDB, syncStatus, sessionUploadedAssets]);
+  }, [refreshSyncStatusFromDB, syncStatus, sessionUploadedAssets, isFetchingCloudHistory]);
 
-  return { assets, isLoading, syncedIds, uploadingIdSet, loadNextPage, reload: reloadFromStart };
+  return { assets, isLoading, syncedIds, cloudDeletedIds, uploadingIdSet, loadNextPage, reload: reloadFromStart };
 };

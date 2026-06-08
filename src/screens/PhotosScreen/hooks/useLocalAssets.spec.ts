@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { AppState } from 'react-native';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
+import { useAppSelector } from 'src/store/hooks';
 import { useLocalAssets } from './useLocalAssets';
 
 jest.mock('expo-media-library', () => ({
@@ -22,11 +23,13 @@ jest.mock('src/store/hooks', () => ({
     syncStatus: 'idle',
     uploadingAssetIds: [],
     sessionUploadedAssets: 0,
+    isFetchingCloudHistory: false,
   }),
 }));
 
 const mockMediaLibrary = MediaLibrary as jest.Mocked<typeof MediaLibrary>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
+const mockUseAppSelector = useAppSelector as jest.Mock;
 
 const makeAsset = (id: string): MediaLibrary.Asset =>
   ({ id, uri: `file://${id}.jpg`, creationTime: 1000, mediaType: 'photo' }) as never;
@@ -54,18 +57,6 @@ describe('useLocalAssets', () => {
     });
 
     expect(result.current.assets).toEqual(assets);
-    expect(result.current.isLoading).toBe(false);
-  });
-
-  test('when the first page loads, then loading is set to false', async () => {
-    mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([]));
-
-    const { result } = renderHook(() => useLocalAssets());
-
-    await act(async () => {
-      await Promise.resolve();
-    });
-
     expect(result.current.isLoading).toBe(false);
   });
 
@@ -184,7 +175,9 @@ describe('useLocalAssets', () => {
 
   test('when sync status changes and there are assets loaded, then synced ids refresh from the database', async () => {
     mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([makeAsset('a1')]));
-    mockPhotosLocalDB.getSyncedEntries.mockResolvedValue(new Map([['a1', { modificationTime: null }]]));
+    mockPhotosLocalDB.getSyncedEntries.mockResolvedValue(
+      new Map([['a1', { modificationTime: null, status: 'synced' as const }]]),
+    );
 
     const { result } = renderHook(() => useLocalAssets());
 
@@ -194,5 +187,59 @@ describe('useLocalAssets', () => {
 
     expect(mockPhotosLocalDB.getSyncedEntries).toHaveBeenCalledWith(['a1']);
     expect(result.current.syncedIds.has('a1')).toBe(true);
+    expect(result.current.cloudDeletedIds.has('a1')).toBe(false);
+  });
+
+  test('when the cloud history sync finishes, then synced ids refresh so cloud-deleted assets are reflected immediately', async () => {
+    mockMediaLibrary.getAssetsAsync.mockResolvedValue(makePage([makeAsset('a1')]));
+    mockPhotosLocalDB.getSyncedEntries
+      .mockResolvedValueOnce(new Map([['a1', { modificationTime: null, status: 'synced' as const }]]))
+      .mockResolvedValueOnce(new Map([['a1', { modificationTime: null, status: 'cloud_deleted' as const }]]));
+
+    mockUseAppSelector.mockReturnValue({
+      syncStatus: 'idle',
+      uploadingAssetIds: [],
+      sessionUploadedAssets: 0,
+      isFetchingCloudHistory: true,
+    });
+
+    const { result, rerender } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.syncedIds.has('a1')).toBe(true);
+
+    mockUseAppSelector.mockReturnValue({
+      syncStatus: 'idle',
+      uploadingAssetIds: [],
+      sessionUploadedAssets: 0,
+      isFetchingCloudHistory: false,
+    });
+
+    await act(async () => {
+      rerender({});
+      await Promise.resolve();
+    });
+
+    expect(result.current.syncedIds.has('a1')).toBe(false);
+    expect(result.current.cloudDeletedIds.has('a1')).toBe(true);
+  });
+
+  test('when an asset is cloud deleted, then it appears in cloudDeletedIds and not in syncedIds', async () => {
+    mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([makeAsset('a1')]));
+    mockPhotosLocalDB.getSyncedEntries.mockResolvedValue(
+      new Map([['a1', { modificationTime: null, status: 'cloud_deleted' as const }]]),
+    );
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.cloudDeletedIds.has('a1')).toBe(true);
+    expect(result.current.syncedIds.has('a1')).toBe(false);
   });
 });
