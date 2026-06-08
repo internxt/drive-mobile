@@ -168,10 +168,9 @@ const PhotosScreen = (): JSX.Element => {
         visible={selection.selectMode && selection.selectedIds.size > 0}
         selectedItems={selection.selectedItems}
         onExport={actions.handleExport}
-        onFavorite={actions.todoAction('favorite')}
+        onFavorite={() => undefined}
         onMore={actions.handleMore}
         onDelete={actions.handleDelete}
-        onInfo={actions.todoAction('info')}
       />
 
       <MoreActionsBottomSheet
@@ -180,9 +179,8 @@ const PhotosScreen = (): JSX.Element => {
         onClose={actions.handleMoreClose}
         onExport={actions.handleExport}
         onCopy={actions.handleCopy}
-        onDuplicate={actions.todoAction('duplicate')}
         onSave={actions.handleSave}
-        onFavorite={actions.todoAction('favorite')}
+        onFavorite={() => undefined}
         onTrash={actions.handleTrash}
         onRestore={actions.handleRestore}
       />

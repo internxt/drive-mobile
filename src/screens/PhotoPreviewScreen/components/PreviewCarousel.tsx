@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { DotsThreeOutlineIcon, ExportIcon, StarIcon, TrashIcon } from 'phosphor-react-native';
+import { DotsThreeOutlineIcon, ExportIcon, TrashIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { FlatList, Image, ListRenderItem, TouchableOpacity, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
@@ -86,12 +86,18 @@ interface ActionButtonProps {
   icon: JSX.Element;
   label: string;
   onPress: () => void;
+  disabled?: boolean;
 }
 
-const ActionButton = ({ icon, label, onPress }: ActionButtonProps) => {
+const ActionButton = ({ icon, label, onPress, disabled }: ActionButtonProps) => {
   const tailwind = useTailwind();
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.7} style={[tailwind('flex-1 items-center py-2'), { gap: 4 }]}>
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      activeOpacity={0.7}
+      style={[tailwind('flex-1 items-center py-2'), { gap: 4, opacity: disabled ? 0.35 : 1 }]}
+    >
       {icon}
       <AppText style={tailwind('text-white text-supporting-2')}>{label}</AppText>
     </TouchableOpacity>
@@ -106,6 +112,7 @@ interface PreviewCarouselProps {
   onExport: () => void;
   onMore: () => void;
   onDelete: () => void;
+  isSynced: boolean;
 }
 
 export const PreviewCarousel = ({
@@ -116,6 +123,7 @@ export const PreviewCarousel = ({
   onExport,
   onMore,
   onDelete,
+  isSynced,
 }: PreviewCarouselProps): JSX.Element => {
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
@@ -185,10 +193,20 @@ export const PreviewCarousel = ({
         </View>
 
         <View style={[tailwind('flex-row'), { paddingBottom: insets.bottom + 8 }]}>
-          <ActionButton icon={<ExportIcon size={26} color="white" />} label="Export" onPress={onExport} />
+          <ActionButton
+            icon={<ExportIcon size={26} color="white" />}
+            label="Export"
+            onPress={onExport}
+            disabled={!isSynced}
+          />
           {/* <ActionButton icon={<StarIcon size={26} color="white" />} label="Favorite" onPress={() => undefined} /> */}
           <ActionButton icon={<DotsThreeOutlineIcon size={26} color="white" />} label="More" onPress={onMore} />
-          <ActionButton icon={<TrashIcon size={26} color="white" />} label="Delete" onPress={onDelete} />
+          <ActionButton
+            icon={<TrashIcon size={26} color="white" />}
+            label="Delete"
+            onPress={onDelete}
+            disabled={!isSynced}
+          />
         </View>
       </LinearGradient>
     </Animated.View>

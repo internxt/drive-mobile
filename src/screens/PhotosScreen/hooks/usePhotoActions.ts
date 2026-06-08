@@ -20,7 +20,6 @@ export interface UsePhotoActionsReturn {
   handleRestore: () => Promise<void>;
   handleMore: () => void;
   handleMoreClose: () => void;
-  todoAction: (name: string) => () => void;
 }
 
 interface UsePhotoActionsOpts {
@@ -137,15 +136,6 @@ export const usePhotoActions = (
     }
   }, [startAction, finishAction, selection.selectedItems, dispatch, reloadLocal, reloadCloud]);
 
-  const todoAction = useCallback(
-    (name: string) => () => {
-      logger.info(`[usePhotoActions] action not yet implemented: ${name}`);
-      selection.exitSelectMode();
-      setIsMoreActionsSheetOpen(false);
-    },
-    [selection],
-  );
-
   const handleMore = useCallback(() => setIsMoreActionsSheetOpen(true), []);
   const handleMoreClose = useCallback(() => setIsMoreActionsSheetOpen(false), []);
 
@@ -163,6 +153,5 @@ export const usePhotoActions = (
     handleRestore,
     handleMore,
     handleMoreClose,
-    todoAction,
   };
 };
