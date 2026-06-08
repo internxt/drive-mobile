@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import * as Network from 'expo-network';
 import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
@@ -20,7 +21,15 @@ import { RootState } from '../../index';
 import { storageSelectors } from '../storage';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
-export type PhotoSyncStatus = 'idle' | 'scanning' | 'uploading' | 'pausing' | 'synced' | 'paused' | 'error';
+export type PhotoSyncStatus =
+  | 'idle'
+  | 'scanning'
+  | 'uploading'
+  | 'pausing'
+  | 'synced'
+  | 'paused'
+  | 'paused-no-wifi'
+  | 'error';
 export type PhotosDisabledReason = 'quota-exceeded' | null;
 
 export interface PhotosState {
@@ -64,8 +73,16 @@ const initialState: PhotosState = {
 };
 
 const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
-  const { enabled, networkCondition, permissionStatus, isPaused, deviceId, totalAssetsUploaded, pendingBackupAssets } =
-    state;
+  const {
+    enabled,
+    networkCondition,
+    permissionStatus,
+    isPaused,
+    deviceId,
+    photosBucket,
+    totalAssetsUploaded,
+    pendingBackupAssets,
+  } = state;
   await asyncStorageService.saveItem(
     AsyncStorageKey.PhotosSettings,
     JSON.stringify({
@@ -74,6 +91,7 @@ const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
       permissionStatus,
       isPaused,
       deviceId,
+      photosBucket,
       totalAssetsUploaded,
       pendingBackupAssets,
     }),
@@ -94,6 +112,7 @@ export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: Roo
           permissionStatus,
           isPaused,
           deviceId,
+          photosBucket,
           totalAssetsUploaded,
           pendingBackupAssets,
         } = parsed;
@@ -103,6 +122,7 @@ export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: Roo
           permissionStatus,
           isPaused,
           deviceId,
+          photosBucket,
           totalAssetsUploaded,
           pendingBackupAssets,
         };
@@ -236,7 +256,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
   'photos/runUpload',
   async (args, { getState, dispatch }) => {
     const bypassEnabled = args?.bypassEnabled ?? false;
-    const { enabled, permissionStatus, deviceId, photosBucket, isPaused } = getState().photos;
+    const { enabled, permissionStatus, deviceId, photosBucket, isPaused, networkCondition } = getState().photos;
     if (
       (!enabled && !bypassEnabled) ||
       !isPermissionActive(permissionStatus) ||
@@ -245,6 +265,20 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       isPaused
     ) {
       return;
+    }
+    let wifiSubscription: ReturnType<typeof Network.addNetworkStateListener> | null = null;
+    if (networkCondition === 'wifi-only') {
+      const networkState = await Network.getNetworkStateAsync();
+      if (networkState.type !== Network.NetworkStateType.WIFI) {
+        dispatch(photosSlice.actions.setSyncStatus('paused-no-wifi'));
+        return;
+      }
+      wifiSubscription = Network.addNetworkStateListener((state) => {
+        if (state.type !== Network.NetworkStateType.WIFI) {
+          dispatch(photosSlice.actions.setSyncStatus('paused-no-wifi'));
+          PhotoUploadQueue.abortAll();
+        }
+      });
     }
 
     const availableStorage = storageSelectors.availableStorage(getState());
@@ -283,40 +317,52 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     dispatch(photosSlice.actions.setSyncStatus('uploading'));
     dispatch(photosSlice.actions.setSessionUploadTotalAssets(uploadAssetJobs.length));
 
-    await PhotoUploadQueue.start(uploadAssetJobs, deviceId, photosBucket, {
-      onAssetStart: (assetId) => {
-        dispatch(photosSlice.actions.addUploadingAssetId(assetId));
-      },
-      onAssetProgress: (_, ratio) => {
-        dispatch(photosSlice.actions.setCurrentUploadProgress(ratio));
-      },
-      onAssetDone: async (assetId, remoteFileId, modificationTime) => {
-        await photosLocalDB.markSynced(assetId, remoteFileId, modificationTime);
-        dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-        dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
-        dispatch(photosSlice.actions.incrementSessionUploadedAssets());
-      },
-      onAssetError: async (assetId, error) => {
-        const isQuotaError = (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
-        if (isQuotaError) {
-          dispatch(photosSlice.actions.pauseForQuotaExceeded());
+    try {
+      await PhotoUploadQueue.start(uploadAssetJobs, deviceId, photosBucket, {
+        onAssetStart: (assetId) => {
+          dispatch(photosSlice.actions.addUploadingAssetId(assetId));
+        },
+        onAssetProgress: (_, ratio) => {
+          dispatch(photosSlice.actions.setCurrentUploadProgress(ratio));
+        },
+        onAssetDone: async (assetId, remoteFileId, modificationTime) => {
+          await photosLocalDB.markSynced(assetId, remoteFileId, modificationTime);
           dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-          PhotoUploadQueue.abortAll();
-          return;
-        }
+          dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
+          dispatch(photosSlice.actions.incrementSessionUploadedAssets());
+        },
+        onAssetError: async (assetId, error) => {
+          const isQuotaError = (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
+          if (isQuotaError) {
+            dispatch(photosSlice.actions.pauseForQuotaExceeded());
+            dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
+            PhotoUploadQueue.abortAll();
+            return;
+          }
 
-        if (error.name === AbortError.errorName) {
-          logger.info(`[Upload] Asset ${assetId} aborted by user (pause)`);
+          if (error.name === AbortError.errorName) {
+            logger.info(`[Upload] Asset ${assetId} aborted (pause or wifi loss)`);
+            dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
+            return;
+          }
+          logger.error(`[Upload] Asset ${assetId} failed: ${error?.message ?? String(error)}`);
+          await photosLocalDB.markError(assetId, error.message);
           dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-          return;
-        }
-        logger.error(`[Upload] Asset ${assetId} failed: ${error?.message ?? String(error)}`);
-        await photosLocalDB.markError(assetId, error.message);
-        dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-      },
-    });
+        },
+      });
+    } finally {
+      wifiSubscription?.remove();
+    }
 
-    const { isPaused: finalIsPaused, disabledReason: finalDisabledReason } = getState().photos;
+    const {
+      isPaused: finalIsPaused,
+      disabledReason: finalDisabledReason,
+      syncStatus: finalSyncStatus,
+    } = getState().photos;
+
+    if (finalSyncStatus === 'paused-no-wifi') {
+      return;
+    }
     dispatch(photosSlice.actions.setSyncStatus(finalIsPaused || finalDisabledReason !== null ? 'paused' : 'synced'));
     dispatch(photosSlice.actions.setCurrentUploadProgress(0));
 
@@ -393,12 +439,12 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
     }
 
     await dispatch(checkPermissionRevocationThunk());
-    const { enabled, permissionStatus, deviceId } = getState().photos;
+    const { enabled, permissionStatus, deviceId, photosBucket } = getState().photos;
     if (!enabled || !isPermissionActive(permissionStatus)) {
       return;
     }
 
-    if (!deviceId) {
+    if (!deviceId || !photosBucket) {
       await dispatch(initDeviceIdThunk());
     }
 
@@ -450,6 +496,13 @@ export const setNetworkConditionThunk = createAsyncThunk<void, PhotoNetworkCondi
     const state = getState().photos;
     dispatch(photosSlice.actions.setNetworkCondition(value));
     await persistPhotosSettings({ ...state, networkCondition: value });
+    if (value === 'wifi-only' && state.syncStatus === 'uploading') {
+      const networkState = await Network.getNetworkStateAsync();
+      if (networkState.type !== Network.NetworkStateType.WIFI) {
+        dispatch(photosSlice.actions.setSyncStatus('paused-no-wifi'));
+        PhotoUploadQueue.abortAll();
+      }
+    }
   },
 );
 

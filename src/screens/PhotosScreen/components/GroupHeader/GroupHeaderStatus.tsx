@@ -4,6 +4,7 @@ import {
   DeviceMobileIcon,
   PauseCircleIcon,
   PlayCircleIcon,
+  WifiSlashIcon,
   WarningCircleIcon,
 } from 'phosphor-react-native';
 import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
@@ -136,6 +137,18 @@ export const GroupHeaderPaused = ({
 interface PausedStorageFullProps {
   dangerColor: string;
 }
+
+export const GroupHeaderPausedNoWifi = ({ color }: ColorProps): JSX.Element => {
+  const tailwind = useTailwind();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <AppText medium style={[tailwind('text-base'), { color }]}>
+        {strings.screens.photos.groupHeader.waitingForWifi}
+      </AppText>
+      <WifiSlashIcon size={24} color={color} />
+    </View>
+  );
+};
 
 export const GroupHeaderPausedStorageFull = ({ dangerColor }: PausedStorageFullProps): JSX.Element => {
   const tailwind = useTailwind();
