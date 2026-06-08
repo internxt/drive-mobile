@@ -29,6 +29,7 @@ export type PhotoSyncStatus =
   | 'synced'
   | 'paused'
   | 'paused-no-wifi'
+  | 'paused-no-connection'
   | 'error';
 export type PhotosDisabledReason = 'quota-exceeded' | null;
 
@@ -252,6 +253,22 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
   },
 );
 
+type NetworkPauseStatus = 'paused-no-connection' | 'paused-no-wifi' | null;
+
+const evaluateNetworkPause = (
+  state: Network.NetworkState,
+  networkCondition: PhotoNetworkCondition,
+): NetworkPauseStatus => {
+  const hasConnection = state.isConnected !== false && state.type !== Network.NetworkStateType.NONE;
+  if (!hasConnection) {
+    return 'paused-no-connection';
+  }
+  if (networkCondition === 'wifi-only' && state.type !== Network.NetworkStateType.WIFI) {
+    return 'paused-no-wifi';
+  }
+  return null;
+};
+
 export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean } | void, { state: RootState }>(
   'photos/runUpload',
   async (args, { getState, dispatch }) => {
@@ -266,20 +283,19 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     ) {
       return;
     }
-    let wifiSubscription: ReturnType<typeof Network.addNetworkStateListener> | null = null;
-    if (networkCondition === 'wifi-only') {
-      const networkState = await Network.getNetworkStateAsync();
-      if (networkState.type !== Network.NetworkStateType.WIFI) {
-        dispatch(photosSlice.actions.setSyncStatus('paused-no-wifi'));
-        return;
-      }
-      wifiSubscription = Network.addNetworkStateListener((state) => {
-        if (state.type !== Network.NetworkStateType.WIFI) {
-          dispatch(photosSlice.actions.setSyncStatus('paused-no-wifi'));
-          PhotoUploadQueue.abortAll();
-        }
-      });
+    const initialNetworkState = await Network.getNetworkStateAsync();
+    const pauseStatus = evaluateNetworkPause(initialNetworkState, networkCondition);
+    if (pauseStatus) {
+      dispatch(photosSlice.actions.setSyncStatus(pauseStatus));
+      return;
     }
+    const networkSubscription = Network.addNetworkStateListener((state) => {
+      const pauseStatusSub = evaluateNetworkPause(state, networkCondition);
+      if (pauseStatusSub) {
+        dispatch(photosSlice.actions.setSyncStatus(pauseStatusSub));
+        PhotoUploadQueue.abortAll();
+      }
+    });
 
     const availableStorage = storageSelectors.availableStorage(getState());
     if (availableStorage <= 0) {
@@ -351,7 +367,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         },
       });
     } finally {
-      wifiSubscription?.remove();
+      networkSubscription.remove();
     }
 
     const {
@@ -360,7 +376,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       syncStatus: finalSyncStatus,
     } = getState().photos;
 
-    if (finalSyncStatus === 'paused-no-wifi') {
+    if (finalSyncStatus === 'paused-no-wifi' || finalSyncStatus === 'paused-no-connection') {
       return;
     }
     dispatch(photosSlice.actions.setSyncStatus(finalIsPaused || finalDisabledReason !== null ? 'paused' : 'synced'));

@@ -1,6 +1,7 @@
 import {
   CheckCircleIcon,
   CloudArrowDownIcon,
+  CloudSlashIcon,
   DeviceMobileIcon,
   PauseCircleIcon,
   PlayCircleIcon,
@@ -146,6 +147,18 @@ export const GroupHeaderPausedNoWifi = ({ color }: ColorProps): JSX.Element => {
         {strings.screens.photos.groupHeader.waitingForWifi}
       </AppText>
       <WifiSlashIcon size={24} color={color} />
+    </View>
+  );
+};
+
+export const GroupHeaderPausedNoConnection = ({ color }: ColorProps): JSX.Element => {
+  const tailwind = useTailwind();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <AppText medium style={[tailwind('text-base'), { color }]}>
+        {strings.screens.photos.groupHeader.noConnection}
+      </AppText>
+      <CloudSlashIcon size={24} color={color} />
     </View>
   );
 };

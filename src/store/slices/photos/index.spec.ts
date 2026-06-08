@@ -934,5 +934,58 @@ describe('photos slice', () => {
 
       expect(store.getState().photos.disabledReason).toBeNull();
     });
+
+    test('when there is no network connection at the start of the upload, then the sync status is set to paused with no connection', async () => {
+      (Network.getNetworkStateAsync as jest.Mock).mockResolvedValueOnce({
+        type: Network.NetworkStateType.NONE,
+        isConnected: false,
+        isInternetReachable: false,
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.syncStatus).toBe('paused-no-connection');
+      expect(mockUploadQueue.start).not.toHaveBeenCalled();
+    });
+
+    test('when the network connection drops during an upload, then the upload is aborted and the sync status is set to paused with no connection', async () => {
+      jest.spyOn(mockUploadQueue, 'abortAll');
+      let networkListener: ((state: Network.NetworkState) => void) | null = null;
+      (Network.addNetworkStateListener as jest.Mock).mockImplementationOnce((listener) => {
+        networkListener = listener;
+        return { remove: jest.fn() };
+      });
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async () => {
+        networkListener?.({ type: Network.NetworkStateType.NONE, isConnected: false, isInternetReachable: false });
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.syncStatus).toBe('paused-no-connection');
+      expect(mockUploadQueue.abortAll).toHaveBeenCalled();
+    });
   });
 });

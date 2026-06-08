@@ -9,6 +9,7 @@ import {
   GroupHeaderCount,
   GroupHeaderFetching,
   GroupHeaderPaused,
+  GroupHeaderPausedNoConnection,
   GroupHeaderPausedNoWifi,
   GroupHeaderPausedStorageFull,
   GroupHeaderPausing,
@@ -25,6 +26,7 @@ export type GroupSyncStatus =
   | { type: 'paused'; count: number }
   | { type: 'paused-storage-full' }
   | { type: 'paused-no-wifi' }
+  | { type: 'paused-no-connection' }
   | { type: 'completed' }
   | { type: 'none' };
 
@@ -125,6 +127,7 @@ const PhotosGroupHeader = memo(
             )}
             {syncStatus.type === 'paused-storage-full' && <GroupHeaderPausedStorageFull dangerColor={dangerColor} />}
             {syncStatus.type === 'paused-no-wifi' && <GroupHeaderPausedNoWifi color={statusColor} />}
+            {syncStatus.type === 'paused-no-connection' && <GroupHeaderPausedNoConnection color={statusColor} />}
             {syncStatus.type === 'completed' && <GroupHeaderCompleted color={labelColor} />}
           </View>
         </View>

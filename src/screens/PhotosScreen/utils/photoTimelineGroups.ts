@@ -122,6 +122,8 @@ export const getGroupSyncStatus = ({
       return { type: 'paused', count: remainingCount };
     case 'paused-no-wifi':
       return { type: 'paused-no-wifi' };
+    case 'paused-no-connection':
+      return { type: 'paused-no-connection' };
     default:
       if (isFetchingCloudHistory) {
         return { type: 'fetching' };
