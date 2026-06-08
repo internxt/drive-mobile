@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0BF8BD03596D167E534E4B02 /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 55EA068F694B454131066FDC /* libPods-Internxt.a */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		1818AB341F31CC033FFF750B /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD55E1E535AECF7719BDD772 /* ExpoModulesProvider.swift */; };
 		18D7DE9587FA2B2314575ED6 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4921399A370F5CE6EE7EA0F /* ExpoModulesProvider.swift */; };
@@ -24,9 +25,18 @@
 		DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */; };
 		DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		F2C595E5ECBAD697016C9410 /* libPods-InternxtShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0A0CA179360CA52F0B5054A /* libPods-InternxtShareExtension.a */; };
+		FEB260B2B281D37EEABD1ECA /* libPods-InternxtFileProvider.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20957EE3E4797FBBC2BD3192 /* libPods-InternxtFileProvider.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		DE1D474D2F87A94000E14783 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DE1D47402F87A94000E14783;
+			remoteInfo = InternxtFileProvider;
+		};
 		DEA227B339134920AF95B704 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
@@ -43,6 +53,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				DE1D474F2F87A94000E14783 /* InternxtFileProvider.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -61,9 +72,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0512BC474AAE3164D3544B18 /* Pods-InternxtShareExtension.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.debug.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.debug.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Internxt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Internxt.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Internxt/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Internxt/Info.plist; sourceTree = "<group>"; };
+		20957EE3E4797FBBC2BD3192 /* libPods-InternxtFileProvider.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtFileProvider.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		30C3C55FF8AE435F8A82A9BC /* InternxtShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = InternxtShareExtension.entitlements; sourceTree = "<group>"; };
 		37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Internxt/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = ShareExtensionViewController.swift; sourceTree = "<group>"; };
@@ -78,15 +91,25 @@
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Internxt/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BD55E1E535AECF7719BDD772 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		D0A0CA179360CA52F0B5054A /* libPods-InternxtShareExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtShareExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D330686328BD4286AB778B88 /* PHAssetExportModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PHAssetExportModule.m; path = Internxt/PHAssetExportModule.m; sourceTree = "<group>"; };
 		D83881814DD0A20237F63249 /* Pods-Internxt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.release.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.release.xcconfig"; sourceTree = "<group>"; };
 		DAE15E8DB4DF4E048E04B0E0 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = InternxtFileProvider.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE1D47422F87A94000E14783 /* UniformTypeIdentifiers.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UniformTypeIdentifiers.framework; path = System/Library/Frameworks/UniformTypeIdentifiers.framework; sourceTree = SDKROOT; };
+		DE1D47632F87A94000E14783 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
+		DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderEnumerator.swift; sourceTree = "<group>"; };
+		DE1D47652F87A94000E14783 /* FileProviderItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderItem.swift; sourceTree = "<group>"; };
+		DE1D47662F87A94000E14783 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DE1D47672F87A94000E14783 /* InternxtFileProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = InternxtFileProvider.entitlements; sourceTree = "<group>"; };
+		DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = InternxtFileProvider.plist; sourceTree = "<group>"; };
 		DE74E3972FACD7205D98C2BD /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 		DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppGroupPendingShareModule.m; path = Internxt/AppGroupPendingShareModule.m; sourceTree = "<group>"; };
 		DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppGroupPendingShareModule.swift; path = Internxt/AppGroupPendingShareModule.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Internxt/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* Internxt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Internxt-Bridging-Header.h"; path = "Internxt/Internxt-Bridging-Header.h"; sourceTree = "<group>"; };
+		FDEA9EEAEC8CE666D14877B2 /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 		F2CA5C712E32AED3D806BBC6 /* libPods-Internxt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Internxt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -181,6 +204,7 @@
 			children = (
 				13B07FAE1A68108700A75B9A /* Internxt */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				DE1D47442F87A94000E14783 /* InternxtFileProvider */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				7151A997BCA04521BD294E7B /* InternxtShareExtension */,
@@ -197,6 +221,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* Internxt.app */,
 				7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */,
+				DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -227,6 +252,19 @@
 			name = InternxtShareExtension;
 			sourceTree = "<group>";
 		};
+		DE1D47442F87A94000E14783 /* InternxtFileProvider */ = {
+			isa = PBXGroup;
+			children = (
+				DE1D47632F87A94000E14783 /* FileProviderExtension.swift */,
+				DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */,
+				DE1D47652F87A94000E14783 /* FileProviderItem.swift */,
+				DE1D47662F87A94000E14783 /* Info.plist */,
+				DE1D47672F87A94000E14783 /* InternxtFileProvider.entitlements */,
+				DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */,
+			);
+			path = InternxtFileProvider;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -249,6 +287,7 @@
 			);
 			dependencies = (
 				03ED76FE58CE4782913172E7 /* PBXTargetDependency */,
+				DE1D474E2F87A94000E14783 /* PBXTargetDependency */,
 			);
 			name = Internxt;
 			productName = Internxt;
@@ -277,12 +316,34 @@
 			productReference = 7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		DE1D47402F87A94000E14783 /* InternxtFileProvider */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DE1D47532F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProvider" */;
+			buildPhases = (
+				04C47D43FAB17BFF5826C486 /* [CP] Check Pods Manifest.lock */,
+				DE1D473D2F87A94000E14783 /* Sources */,
+				DE1D473E2F87A94000E14783 /* Frameworks */,
+				DE1D473F2F87A94000E14783 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = InternxtFileProvider;
+			packageProductDependencies = (
+				DE1D47552F87AB4000E14783 /* InternxtSwiftCore */,
+			);
+			productName = InternxtFileProvider;
+			productReference = DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
@@ -295,6 +356,9 @@
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
 					};
+					DE1D47402F87A94000E14783 = {
+						CreatedOnToolsVersion = 26.4;
+					};
 				};
 			};
 			buildConfigurationList = 83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "Internxt" */;
@@ -306,12 +370,16 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Internxt */,
 				573EC8782D084646801534FA /* InternxtShareExtension */,
+				DE1D47402F87A94000E14783 /* InternxtFileProvider */,
 			);
 		};
 /* End PBXProject section */
@@ -329,6 +397,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2F5766E756C84914803E7082 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE1D473F2F87A94000E14783 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -620,6 +695,16 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DE1D473D2F87A94000E14783 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE1D47602F87A94000E14783 /* FileProviderExtension.swift in Sources */,
+				DE1D47612F87A94000E14783 /* FileProviderEnumerator.swift in Sources */,
+				DE1D47622F87A94000E14783 /* FileProviderItem.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -627,6 +712,11 @@
 			isa = PBXTargetDependency;
 			target = 573EC8782D084646801534FA /* InternxtShareExtension */;
 			targetProxy = DEA227B339134920AF95B704 /* PBXContainerItemProxy */;
+		};
+		DE1D474E2F87A94000E14783 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DE1D47402F87A94000E14783 /* InternxtFileProvider */;
+			targetProxy = DE1D474D2F87A94000E14783 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -878,6 +968,103 @@
 			};
 			name = Release;
 		};
+		DE1D47502F87A94000E14783 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AC8B28CC3C9A8FDF21A8C1E7 /* Pods-InternxtFileProvider.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = InternxtFileProvider/InternxtFileProvider.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = JR4S3SY396;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = InternxtFileProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = InternxtFileProvider;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProvider;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DE1D47512F87A94000E14783 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 8C48FB43821216C363EBF3FC /* Pods-InternxtFileProvider.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = InternxtFileProvider/InternxtFileProvider.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = JR4S3SY396;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = InternxtFileProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = InternxtFileProvider;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.0;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProvider;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -908,7 +1095,35 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		DE1D47532F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProvider" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE1D47502F87A94000E14783 /* Debug */,
+				DE1D47512F87A94000E14783 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/internxt/swift-core";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DE1D47552F87AB4000E14783 /* InternxtSwiftCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */;
+			productName = InternxtSwiftCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }
