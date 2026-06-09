@@ -1,6 +1,6 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import strings from 'assets/lang/strings';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
@@ -24,7 +24,7 @@ import LimitedAccessBanner from './components/LimitedAccessBanner';
 import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
 import PhotosHeader from './components/PhotosHeader';
 import PhotosLockedOverlay from './components/PhotosLockedOverlay';
-import PhotosTimeline from './components/PhotosTimeline';
+import PhotosTimeline, { PhotosTimelineHandle } from './components/PhotosTimeline';
 import SelectionHeader from './components/SelectionHeader';
 import SelectionToolbar from './components/SelectionToolbar';
 import EnableBackupBottomSheet from './EnableBackupBottomSheet';
@@ -43,6 +43,9 @@ const PhotosScreen = (): JSX.Element => {
   const [refreshing, setRefreshing] = useState(false);
   const { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud } = usePhotosTimeline();
 
+  const timelineRef = useRef<PhotosTimelineHandle>(null);
+  const lastViewedIdRef = useRef<string | null>(null);
+
   const allItems = useMemo<TimelinePhotoItem[]>(
     () => timelineDateGroups.flatMap((dateGroup) => dateGroup.group.photos),
     [timelineDateGroups],
@@ -55,6 +58,10 @@ const PhotosScreen = (): JSX.Element => {
     await Promise.all([reloadLocal(), reloadCloud()]);
   }, [reloadLocal, reloadCloud]);
 
+  const handleCurrentItemChange = useCallback((itemId: string) => {
+    lastViewedIdRef.current = itemId;
+  }, []);
+
   const handlePhotoPress = useCallback(
     (id: string) => {
       if (selection.selectMode) {
@@ -65,9 +72,10 @@ const PhotosScreen = (): JSX.Element => {
         initialId: id,
         items: allItems,
         onItemChanged: handleItemChangedFromPreview,
+        onCurrentItemChange: handleCurrentItemChange,
       });
     },
-    [selection, navigation, allItems, handleItemChangedFromPreview],
+    [selection, navigation, allItems, handleItemChangedFromPreview, handleCurrentItemChange],
   );
 
   const handlePhotoLongPress = useCallback(
@@ -157,6 +165,12 @@ const PhotosScreen = (): JSX.Element => {
       if (enabled) {
         dispatch(runBackupCycleThunk());
       }
+
+      const id = lastViewedIdRef.current;
+      if (id) {
+        lastViewedIdRef.current = null;
+        timelineRef.current?.scrollToAssetId(id);
+      }
     }, [enabled]),
   );
 
@@ -170,6 +184,7 @@ const PhotosScreen = (): JSX.Element => {
 
       <View style={tailwind('flex-1')}>
         <PhotosTimeline
+          ref={timelineRef}
           assetsGroupsByDate={timelineDateGroups}
           isLoading={isLoading}
           ListHeaderComponent={listHeader}

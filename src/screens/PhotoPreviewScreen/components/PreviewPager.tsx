@@ -7,6 +7,7 @@ interface PreviewPagerProps {
   items: TimelinePhotoItem[];
   initialIndex: number;
   activeIndex: number;
+  isScrubbing: boolean;
   onIndexChange: (index: number) => void;
   onTap: () => void;
   onZoomChange: (zoomed: boolean) => void;
@@ -22,6 +23,7 @@ export const PreviewPager = ({
   items,
   initialIndex,
   activeIndex,
+  isScrubbing,
   onIndexChange,
   onTap,
   onZoomChange,
@@ -34,19 +36,25 @@ export const PreviewPager = ({
 }: PreviewPagerProps): JSX.Element => {
   const { width: screenWidth } = useWindowDimensions();
   const listRef = useRef<FlatList<TimelinePhotoItem>>(null);
+  // Use a ref so the effect only re-runs on index changes, not on isScrubbing changes.
+  // This prevents a spurious animated scroll (and its onMomentumScrollEnd) every time
+  // scrubbing ends, which was causing an oscillation loop.
+  const isScrubbingRef = useRef(isScrubbing);
+  isScrubbingRef.current = isScrubbing;
 
   useEffect(() => {
     const isIndexOutOfBounds = activeIndex < 0 || activeIndex >= items.length;
     if (isIndexOutOfBounds) {
       return;
     }
-    listRef.current?.scrollToIndex({ index: activeIndex, animated: true });
+    listRef.current?.scrollToIndex({ index: activeIndex, animated: !isScrubbingRef.current });
   }, [activeIndex, items.length]);
 
   const renderItem: ListRenderItem<TimelinePhotoItem> = useCallback(
     ({ item }) => (
       <PreviewPage
         item={item}
+        isScrubbing={isScrubbing}
         onTap={onTap}
         onZoomChange={onZoomChange}
         onSwipeDown={onSwipeDown}
@@ -57,7 +65,7 @@ export const PreviewPager = ({
         hasVideoStarted={hasVideoStarted}
       />
     ),
-    [onTap, onZoomChange, onSwipeDown, onVideoPlay, onVideoPause, onVideoEnd, videoResetKey, hasVideoStarted],
+    [isScrubbing, onTap, onZoomChange, onSwipeDown, onVideoPlay, onVideoPause, onVideoEnd, videoResetKey, hasVideoStarted],
   );
 
   const getItemLayout = useCallback(

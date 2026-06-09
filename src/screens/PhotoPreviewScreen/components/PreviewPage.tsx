@@ -10,8 +10,9 @@ import { usePreviewSource } from '../hooks/usePreviewSource';
 
 interface PageContentProps {
   item: TimelinePhotoItem;
-  uri: string | null | undefined;
+  uri: string | null;
   thumbnailUri: string | null;
+  isLoading: boolean;
   onTap: () => void;
   onZoom: () => void;
   onReset: () => void;
@@ -25,6 +26,7 @@ const PageContent = ({
   item,
   uri,
   thumbnailUri,
+  isLoading,
   onTap,
   onZoom,
   onReset,
@@ -52,7 +54,7 @@ const PageContent = ({
         {thumbnailUri ? (
           <Image source={{ uri: thumbnailUri }} style={tailwind('w-full h-full')} resizeMode="contain" />
         ) : null}
-        {uri === undefined ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
+        {isLoading ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
       </View>
     );
   }
@@ -66,13 +68,14 @@ const PageContent = ({
       {thumbnailUri ? (
         <Image source={{ uri: thumbnailUri }} style={tailwind('w-full h-full')} resizeMode="contain" />
       ) : null}
-      {uri === undefined ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
+      {isLoading ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
     </View>
   );
 };
 
 interface PreviewPageProps {
   item: TimelinePhotoItem;
+  isScrubbing: boolean;
   onTap: () => void;
   onZoomChange: (zoomed: boolean) => void;
   onSwipeDown: () => void;
@@ -85,6 +88,7 @@ interface PreviewPageProps {
 
 export const PreviewPage = ({
   item,
+  isScrubbing,
   onTap,
   onZoomChange,
   onSwipeDown,
@@ -96,7 +100,7 @@ export const PreviewPage = ({
 }: PreviewPageProps): JSX.Element => {
   const tailwind = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
-  const { uri, thumbnailUri } = usePreviewSource(item);
+  const { uri, thumbnailUri, isLoading } = usePreviewSource(item, isScrubbing);
   const [zoomed, setZoomed] = useState(false);
   const translateY = useSharedValue(0);
 
@@ -150,6 +154,7 @@ export const PreviewPage = ({
           item={item}
           uri={uri}
           thumbnailUri={thumbnailUri}
+          isLoading={isLoading}
           onTap={onTap}
           onZoom={handleZoom}
           onReset={handleReset}

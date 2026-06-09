@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { DotsThreeOutlineIcon, ExportIcon, TrashIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
-import { FlatList, Image, ListRenderItem, TouchableOpacity, View } from 'react-native';
+import { FlatList, Image, ListRenderItem, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -15,6 +15,8 @@ const THUMB_W_INACTIVE = 17;
 const THUMB_W_ACTIVE = 26;
 const THUMB_H = 26;
 const THUMB_GAP = 4;
+const THUMB_ACTIVE_MARGIN = 4;
+const THUMB_ITEM_WIDTH = THUMB_W_INACTIVE + THUMB_GAP;
 
 const CarouselThumb = ({
   uri,
@@ -59,7 +61,7 @@ const CloudCarouselItem = ({
     <CarouselThumb
       uri={uri}
       width={isActive ? THUMB_W_ACTIVE : THUMB_W_INACTIVE}
-      marginHorizontal={isActive ? 4 : 0}
+      marginHorizontal={isActive ? THUMB_ACTIVE_MARGIN : 0}
       onPress={onPress}
       onError={onImageError}
     />
@@ -75,7 +77,7 @@ const CarouselItem = memo(
       <CarouselThumb
         uri={item.uri}
         width={isActive ? THUMB_W_ACTIVE : THUMB_W_INACTIVE}
-        marginHorizontal={isActive ? 4 : 0}
+        marginHorizontal={isActive ? THUMB_ACTIVE_MARGIN : 0}
         onPress={onPress}
       />
     );
@@ -108,6 +110,9 @@ interface PreviewCarouselProps {
   items: TimelinePhotoItem[];
   currentIndex: number;
   onPress: (index: number) => void;
+  onScrub: (index: number) => void;
+  onScrubStart: () => void;
+  onScrubEnd: () => void;
   visible: boolean;
   onExport: () => void;
   onMore: () => void;
@@ -119,6 +124,9 @@ export const PreviewCarousel = ({
   items,
   currentIndex,
   onPress,
+  onScrub,
+  onScrubStart,
+  onScrubEnd,
   visible,
   onExport,
   onMore,
@@ -127,17 +135,76 @@ export const PreviewCarousel = ({
 }: PreviewCarouselProps): JSX.Element => {
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   const listRef = useRef<FlatList<TimelinePhotoItem>>(null);
   const currentIndexRef = useRef(currentIndex);
   currentIndexRef.current = currentIndex;
 
+  // True from onScrollBeginDrag until onMomentumScrollEnd (or timer fallback).
+  // Stays true during momentum so handleScroll keeps tracking the final settled position.
+  const isUserScrollingRef = useRef(false);
+  const endScrubTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirstRenderRef = useRef(true);
+
+  const filmstripPadding = Math.round(screenWidth / 2 - (THUMB_W_ACTIVE / 2 + THUMB_ACTIVE_MARGIN));
+
   useEffect(() => {
-    const isIndexOutOfBounds = currentIndex < 0 || currentIndex >= items.length;
-    if (isIndexOutOfBounds) {
+    if (currentIndex < 0 || currentIndex >= items.length) {
       return;
     }
-    listRef.current?.scrollToIndex({ index: currentIndex, animated: true, viewPosition: 0.5 });
+    if (isUserScrollingRef.current) {
+      return;
+    }
+
+    const animateAutoScroll = !isFirstRenderRef.current;
+    isFirstRenderRef.current = false;
+    listRef.current?.scrollToOffset({
+      offset: Math.max(0, currentIndex * THUMB_ITEM_WIDTH),
+      animated: animateAutoScroll,
+    });
   }, [currentIndex, items.length]);
+
+  const endScrub = useCallback(() => {
+    if (endScrubTimerRef.current) {
+      clearTimeout(endScrubTimerRef.current);
+      endScrubTimerRef.current = null;
+    }
+    isUserScrollingRef.current = false;
+    onScrubEnd();
+  }, [onScrubEnd]);
+
+  const handleScrollBeginDrag = useCallback(() => {
+    if (endScrubTimerRef.current) {
+      clearTimeout(endScrubTimerRef.current);
+      endScrubTimerRef.current = null;
+    }
+    isUserScrollingRef.current = true;
+    onScrubStart();
+  }, [onScrubStart]);
+
+  const handleScrollEndDrag = useCallback(() => {
+    // Don't end scrub yet — momentum may continue. Short fallback for the case
+    // where the user releases on an exact snap point (no momentum, onMomentumScrollEnd won't fire).
+    endScrubTimerRef.current = setTimeout(endScrub, 150);
+  }, [endScrub]);
+
+  const handleMomentumScrollEnd = useCallback(() => {
+    endScrub();
+  }, [endScrub]);
+
+  const handleScroll = useCallback(
+    (event: { nativeEvent: { contentOffset: { x: number } } }) => {
+      if (!isUserScrollingRef.current) {
+        return;
+      }
+      const contentOffsetX = event.nativeEvent.contentOffset.x;
+      const index = Math.round(Math.max(0, Math.min(items.length - 1, contentOffsetX / THUMB_ITEM_WIDTH)));
+      if (index !== currentIndexRef.current) {
+        onScrub(index);
+      }
+    },
+    [items.length, onScrub],
+  );
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: withTiming(visible ? 1 : 0, { duration: 150, easing: Easing.out(Easing.quad) }),
@@ -146,8 +213,8 @@ export const PreviewCarousel = ({
 
   const getItemLayout = useCallback(
     (_: ArrayLike<TimelinePhotoItem> | null | undefined, index: number) => ({
-      length: THUMB_W_INACTIVE + THUMB_GAP,
-      offset: (THUMB_W_INACTIVE + THUMB_GAP) * index,
+      length: THUMB_ITEM_WIDTH,
+      offset: THUMB_ITEM_WIDTH * index,
       index,
     }),
     [],
@@ -181,11 +248,18 @@ export const PreviewCarousel = ({
             renderItem={renderItem}
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 12 }}
+            contentContainerStyle={{ paddingHorizontal: filmstripPadding }}
             getItemLayout={getItemLayout}
             windowSize={5}
             initialNumToRender={30}
             maxToRenderPerBatch={20}
+            scrollEventThrottle={16}
+            decelerationRate="normal"
+            snapToInterval={THUMB_ITEM_WIDTH}
+            onScroll={handleScroll}
+            onScrollBeginDrag={handleScrollBeginDrag}
+            onScrollEndDrag={handleScrollEndDrag}
+            onMomentumScrollEnd={handleMomentumScrollEnd}
             onScrollToIndexFailed={(info) => {
               logger.error('Scroll to index failed:', info);
             }}
