@@ -49,7 +49,13 @@ enum SharedAuthKeychain {
       kSecAttrGeneric as String: Data(sharedKey.utf8),
       kSecAttrAccount as String: Data(sharedKey.utf8),
       kSecAttrAccessGroup as String: accessGroup,
-      kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked,
+      // These credentials are read by the File Provider extension in the
+      // background with no UI, so a user-authentication gate (SecAccessControl /
+      // .userPresence) is intentionally NOT used — it would block every
+      // background read. `AfterFirstUnlock` keeps the item readable once the
+      // device has been unlocked after boot while still protecting it before
+      // first unlock at boot.
+      kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
       kSecValueData as String: value,
     ]
     SecItemAdd(query as CFDictionary, nil)
@@ -100,15 +106,28 @@ enum SharedAuthKeychain {
     }
 
     copyFromPrivate(privateKey: "photosToken", sharedKey: photosTokenKey)
-    copyFromPrivate(privateKey: "xUser_mnemonic", sharedKey: mnemonicKey)
-    copyFromPrivate(privateKey: "xUser_rootFolderId", sharedKey: rootFolderIdKey)
+    copyFromPrivate(privateKey: "xUser_mnemonic", sharedKey: mnemonicKey, isJSONEncoded: true)
+    copyFromPrivate(privateKey: "xUser_rootFolderId", sharedKey: rootFolderIdKey, isJSONEncoded: true)
     copyFromPrivate(privateKey: "xUser_bucket", sharedKey: bucketKey)
     copyFromPrivate(privateKey: "xUser_bridgeUser", sharedKey: bridgeUserKey)
     copyFromPrivate(privateKey: "xUser_userId", sharedKey: userIdKey)
   }
 
-  private static func copyFromPrivate(privateKey: String, sharedKey: String) {
+  private static func copyFromPrivate(privateKey: String, sharedKey: String, isJSONEncoded: Bool = false) {
     guard let data = readPrivate(privateKey) else { return }
-    write(data, for: sharedKey)
+    write(isJSONEncoded ? jsonDecoded(data) : data, for: sharedKey)
+  }
+
+  private static func jsonDecoded(_ data: Data) -> Data {
+    guard let object = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) else {
+      return data
+    }
+    if let string = object as? String {
+      return Data(string.utf8)
+    }
+    if let number = object as? NSNumber {
+      return Data(number.stringValue.utf8)
+    }
+    return data
   }
 }
