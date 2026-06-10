@@ -5,4 +5,15 @@
   <string name="expo_runtime_version">1.8.7</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
+  <string name="upload_notification_channel_name">Internxt uploads</string>
+  <string name="upload_notification_encrypting">Encrypting %1$s</string>
+  <string name="upload_notification_uploading">Uploading %1$s</string>
+  <string name="upload_notification_failed">Upload failed: %1$s</string>
+  <string name="upload_notification_cancel">Cancel</string>
+  <string name="upload_error_storage_full">Your Internxt Drive is full. Free up space or upgrade your plan.</string>
+  <string name="upload_error_signed_out">You\'ve been signed out. Open Internxt to sign in again.</string>
+  <string name="upload_error_too_large">This file is too large to upload.</string>
+  <string name="upload_error_server">Internxt is having trouble right now. Please try again in a moment.</string>
+  <string name="upload_error_network">No internet connection. The upload will not complete until you reconnect.</string>
+  <string name="upload_error_generic">Couldn\'t upload the file. Please try again.</string>
 </resources>

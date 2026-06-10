@@ -69,6 +69,10 @@ class AppService {
   public get isIOS() {
     return Platform.OS === 'ios';
   }
+
+  public isAndroidApiAtLeast(api: number): boolean {
+    return this.isAndroid && (Platform.Version as number) >= api;
+  }
 }
 
 const appService = new AppService();
