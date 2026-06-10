@@ -10,26 +10,32 @@ import InternxtSwiftCore
 
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     required init(domain: NSFileProviderDomain) {
-        // TODO: The containing application must create a domain using `NSFileProviderManager.add(_:, completionHandler:)`. The system will then launch the application extension process, call `FileProviderExtension.init(domain:)` to instantiate the extension for that domain, and call methods on the instance.
         super.init()
     }
-    
+
+    private func currentAuthToken() -> String? {
+        guard let data = SharedAuthKeychain.read(SharedAuthKeychain.photosTokenKey) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
     func invalidate() {
         // TODO: cleanup any resources
     }
-    
+
     func item(for identifier: NSFileProviderItemIdentifier, request: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
-        // resolve the given identifier to a record in the model
-        
-        // TODO: implement the actual lookup
+        _ = currentAuthToken()
+
+        // TODO: implement the actual lookup using the auth token
 
         completionHandler(FileProviderItem(identifier: identifier), nil)
         return Progress()
     }
-    
+
     func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version requestedVersion: NSFileProviderItemVersion?, request: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
+        _ = currentAuthToken()
+
         // TODO: implement fetching of the contents for the itemIdentifier at the specified version
-        
+
         completionHandler(nil, nil, NSError(domain: NSCocoaErrorDomain, code: NSFeatureUnsupportedError, userInfo:[:]))
         return Progress()
     }
