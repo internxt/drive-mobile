@@ -147,7 +147,7 @@ describe('PhotoUploadService.upload', () => {
 
   test('when uploading a supported image, then the drive file uuid is returned', async () => {
     const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
-    expect(result).toBe('drive-file-uuid');
+    expect(result.photoUuid).toBe('drive-file-uuid');
   });
 
   test('when the photo already exists in Drive, then its existing uuid is returned without uploading again', async () => {
@@ -155,7 +155,7 @@ describe('PhotoUploadService.upload', () => {
 
     const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
-    expect(result).toBe('existing-uuid');
+    expect(result.photoUuid).toBe('existing-uuid');
     expect(mockUploadFile).not.toHaveBeenCalled();
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
@@ -185,7 +185,7 @@ describe('PhotoUploadService.upload', () => {
 
     expect(mockGenerateThumbnail).not.toHaveBeenCalled();
     expect(mockCreateThumbnailEntry).not.toHaveBeenCalled();
-    expect(result).toBe('drive-file-uuid');
+    expect(result.photoUuid).toBe('drive-file-uuid');
   });
 
   test('when thumbnail generation throws, then the upload still returns the drive file uuid', async () => {
@@ -195,7 +195,7 @@ describe('PhotoUploadService.upload', () => {
 
     const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
-    expect(result).toBe('drive-file-uuid');
+    expect(result.photoUuid).toBe('drive-file-uuid');
     expect(mockCreateThumbnailEntry).not.toHaveBeenCalled();
   });
 
@@ -207,7 +207,7 @@ describe('PhotoUploadService.upload', () => {
 
     const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
-    expect(result).toBe('drive-file-uuid');
+    expect(result.photoUuid).toBe('drive-file-uuid');
     expect(mockCreateThumbnailEntry).not.toHaveBeenCalled();
   });
 
@@ -231,7 +231,7 @@ describe('PhotoUploadService.upload', () => {
 
     const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
-    expect(result).toBe('recovered-uuid');
+    expect(result.photoUuid).toBe('recovered-uuid');
   });
 
   test('when createFileEntry returns a 409 conflict and checkFileExistence finds nothing, then the original error is rethrown', async () => {
@@ -272,7 +272,7 @@ describe('PhotoUploadService.replace', () => {
 
   test('when replacing an asset, then the existing remote file id is returned', async () => {
     const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
-    expect(result).toBe('existing-remote-id');
+    expect(result.photoUuid).toBe('existing-remote-id');
   });
 
   test('when thumbnail generation fails during a replace, then the replace still returns the existing remote file id', async () => {
@@ -281,7 +281,7 @@ describe('PhotoUploadService.replace', () => {
 
     const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
 
-    expect(result).toBe('existing-remote-id');
+    expect(result.photoUuid).toBe('existing-remote-id');
   });
 
   test('when the server rejects the replace with a 400, then a new drive entry is created and its uuid is returned', async () => {
@@ -291,7 +291,7 @@ describe('PhotoUploadService.replace', () => {
     const result = await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID, PHOTOS_BUCKET);
 
     expect(mockCreateFileEntry).toHaveBeenCalledTimes(1);
-    expect(result).toBe('new-drive-uuid');
+    expect(result.photoUuid).toBe('new-drive-uuid');
   });
 
   test('when the server rejects the replace with a 400 and a new entry is created, then the thumbnail is registered against the new file uuid', async () => {

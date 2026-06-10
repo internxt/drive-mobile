@@ -1,6 +1,7 @@
 import * as MediaLibrary from 'expo-media-library';
 import { isVideoExtension } from 'src/services/drive/file/utils/exifHelpers';
 import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
+import { isLivePhotoAsset } from 'src/services/photos/livePhoto.constants';
 import { PhotosDisabledReason, PhotoSyncStatus } from 'src/store/slices/photos';
 import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
@@ -51,6 +52,7 @@ export const assetToPhotoItem = (
     backupState,
     mediaType: isVideo ? 'video' : 'photo',
     duration: isVideo ? formatVideoDuration(asset.duration) : undefined,
+    isLivePhoto: isLivePhotoAsset(asset),
   };
 };
 
@@ -143,6 +145,8 @@ export const cloudEntryToPhotoItem = (entry: CloudAssetEntry): CloudPhotoItem =>
   deviceId: entry.deviceId,
   createdAt: entry.createdAt,
   fileName: entry.fileName,
+  isLivePhoto: entry.isLivePhoto,
+  pairedVideoRemoteFileId: entry.pairedRemoteFileId ?? undefined,
 });
 
 export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: CloudPhotoItem[]): PhotoDateGroup[] => {

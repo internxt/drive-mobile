@@ -1,13 +1,15 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import * as Clipboard from 'expo-clipboard';
 import * as MediaLibrary from 'expo-media-library';
-import { TimelinePhotoItem } from 'src/screens/PhotosScreen/types';
+import { Platform } from 'react-native';
+import { CloudPhotoItem, TimelinePhotoItem } from 'src/screens/PhotosScreen/types';
 import { logger } from 'src/services/common';
 import { stripFileUri, toFileUri } from 'src/services/common/uri/uriHelpers';
 import { driveTrashService } from 'src/services/drive/trash/driveTrash.service';
 import fileSystemService from 'src/services/FileSystemService';
 import { photosLocalDB } from './database/photosLocalDB';
 import { SavePermissionDeniedError } from './errors';
+import { saveLivePhotoToLibrary } from './LivePhotoNativeModule';
 import { PhotoAssetFetchService } from './PhotoAssetFetchService';
 
 type CleanupItem = { type: 'cloud'; assetId: string } | { type: 'local-backed'; assetId: string; remoteFileId: string };
@@ -47,6 +49,11 @@ class PhotoActionsService {
       throw new SavePermissionDeniedError();
     }
 
+    if (Platform.OS === 'ios' && item.type === 'cloud-only' && item.isLivePhoto && item.pairedVideoRemoteFileId) {
+      await this.saveLivePhotoToDevice(item, signal);
+      return;
+    }
+
     const uri = await PhotoAssetFetchService.fetchUri(item, signal);
     if (!uri) {
       logger.warn(`[PhotoActionsService] saveToDevice — no URI resolved for ${item.id}`);
@@ -62,6 +69,26 @@ class PhotoActionsService {
     } catch (error) {
       logger.error(`[PhotoActionsService] saveToDevice failed for ${item.id}: ${error}`);
       throw error;
+    }
+  }
+
+  private async saveLivePhotoToDevice(item: CloudPhotoItem, signal: AbortSignal): Promise<void> {
+    const livePhotoComponents = await PhotoAssetFetchService.fetchLivePhotoComponents(item, signal);
+    if (!livePhotoComponents || signal.aborted) {
+      logger.warn(`[PhotoActionsService] saveLivePhotoToDevice — could not fetch components for ${item.id}`);
+      return;
+    }
+
+    try {
+      await saveLivePhotoToLibrary(livePhotoComponents.photoPath, livePhotoComponents.videoPath);
+      logger.info(`[PhotoActionsService] saveLivePhotoToDevice — Live Photo saved for ${item.id}`);
+    } catch (err) {
+      logger.error(`[PhotoActionsService] saveLivePhotoToDevice — native save failed for ${item.id}: ${err}`);
+      logger.warn(`[PhotoActionsService] saveLivePhotoToDevice — falling back to photo-only save for ${item.id}`);
+      const uri = await PhotoAssetFetchService.fetchUri(item, signal);
+      if (uri) {
+        await MediaLibrary.saveToLibraryAsync(toFileUri(uri));
+      }
     }
   }
 
@@ -83,6 +110,11 @@ class PhotoActionsService {
       if (item.type === 'cloud-only') {
         trashPayload.push({ id: item.id, type: 'file', uuid: item.id });
         cleanupItems.push({ type: 'cloud', assetId: item.id });
+
+        if (item.pairedVideoRemoteFileId) {
+          trashPayload.push({ id: item.pairedVideoRemoteFileId, type: 'file', uuid: item.pairedVideoRemoteFileId });
+          cleanupItems.push({ type: 'cloud', assetId: item.pairedVideoRemoteFileId });
+        }
       } else if (item.type === 'local' && item.backupState === 'backed') {
         const itemDbEntry = await photosLocalDB.getStatus(item.id);
 
@@ -90,6 +122,14 @@ class PhotoActionsService {
           const { remoteFileId } = itemDbEntry;
           trashPayload.push({ id: remoteFileId, type: 'file', uuid: remoteFileId });
           cleanupItems.push({ type: 'local-backed', assetId: item.id, remoteFileId });
+          if (itemDbEntry.pairedVideoRemoteFileId) {
+            trashPayload.push({
+              id: itemDbEntry.pairedVideoRemoteFileId,
+              type: 'file',
+              uuid: itemDbEntry.pairedVideoRemoteFileId,
+            });
+            cleanupItems.push({ type: 'cloud', assetId: itemDbEntry.pairedVideoRemoteFileId });
+          }
         } else {
           logger.info(`[PhotoActionsService] trash — local-backed ${item.id} has no remoteFileId, skipping`);
         }

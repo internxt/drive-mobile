@@ -20,7 +20,9 @@ export const useCloudAssets = (): CloudAssetsResult => {
       photosLocalDB.getAllCloudAssets(),
       photosLocalDB.getSyncedRemoteFileIds(),
     ]);
-    const deduplicated = allCloud.filter((cloudEntry) => !syncedRemoteIds.has(cloudEntry.remoteFileId));
+    const deduplicated = allCloud.filter(
+      (cloudEntry) => !syncedRemoteIds.has(cloudEntry.remoteFileId) && cloudEntry.livePhotoRole !== 'paired_video',
+    );
     setCloudItems(deduplicated.map(cloudEntryToPhotoItem));
   }, []);
 

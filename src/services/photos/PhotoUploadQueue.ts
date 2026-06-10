@@ -1,6 +1,6 @@
 import * as MediaLibrary from 'expo-media-library';
 import pLimit from 'p-limit';
-import { PhotoUploadService } from './PhotoUploadService';
+import { PhotoUploadResult, PhotoUploadService } from './PhotoUploadService';
 
 const UPLOAD_CONCURRENCY = 3;
 
@@ -12,7 +12,7 @@ export interface AssetUploadJob {
 interface UploadQueueCallbacks {
   onAssetStart?: (assetId: string) => void;
   onAssetProgress?: (assetId: string, ratio: number) => void;
-  onAssetDone?: (assetId: string, remoteFileId: string, modificationTime: number) => Promise<void> | void;
+  onAssetDone?: (assetId: string, result: PhotoUploadResult, modificationTime: number) => Promise<void> | void;
   onAssetError?: (assetId: string, error: Error) => Promise<void> | void;
 }
 
@@ -42,7 +42,7 @@ export const PhotoUploadQueue = {
             callbacks.onAssetStart?.(asset.id);
 
             try {
-              const remoteFileId = existingRemoteFileId
+              const photoUploadResult = existingRemoteFileId
                 ? await PhotoUploadService.replace(
                     asset,
                     existingRemoteFileId,
@@ -58,7 +58,7 @@ export const PhotoUploadQueue = {
                     (ratio) => callbacks.onAssetProgress?.(asset.id, ratio),
                     signal,
                   );
-              await callbacks.onAssetDone?.(asset.id, remoteFileId, asset.modificationTime);
+              await callbacks.onAssetDone?.(asset.id, photoUploadResult, asset.modificationTime);
             } catch (uploadError) {
               await callbacks.onAssetError?.(asset.id, uploadError as Error);
             }

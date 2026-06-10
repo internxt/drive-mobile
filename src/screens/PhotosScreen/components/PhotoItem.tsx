@@ -96,6 +96,26 @@ const VideoBadge = ({ duration }: { duration?: string }): JSX.Element => {
   );
 };
 
+const LiveBadge = (): JSX.Element => {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
+
+  return (
+    <View style={[tailwind('absolute justify-center items-start'), { top: 8, left: 8 }]} pointerEvents="none">
+      <LinearGradient
+        colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.08)', 'transparent']}
+        locations={[0, 0.3, 0.6, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.liveBadgeShadow}
+      />
+      <AppText medium style={[tailwind('text-xs'), { color: getColor('text-white'), letterSpacing: 0.5 }]}>
+        LIVE
+      </AppText>
+    </View>
+  );
+};
+
 const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next: CellProps & { item: PhotoItemType }) =>
   prev.item.id === next.item.id &&
   prev.item.backupState === next.item.backupState &&
@@ -103,6 +123,7 @@ const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next:
   prev.item.uploadProgress === next.item.uploadProgress &&
   prev.item.mediaType === next.item.mediaType &&
   prev.item.duration === next.item.duration &&
+  prev.item.isLivePhoto === next.item.isLivePhoto &&
   prev.isSelectMode === next.isSelectMode &&
   prev.isSelected === next.isSelected &&
   prev.onPress === next.onPress &&
@@ -147,6 +168,7 @@ const LocalPhotoCell = memo(
         )}
 
         {item.mediaType === 'video' && <VideoBadge duration={item.duration} />}
+        {item.isLivePhoto && <LiveBadge />}
 
         <SelectOverlay isSelectMode={isSelectMode} isSelected={isSelected} />
       </TouchableOpacity>
@@ -188,6 +210,7 @@ const CloudPhotoCell = memo(
         </View>
 
         {item.mediaType === 'video' && <VideoBadge />}
+        {item.isLivePhoto && <LiveBadge />}
 
         <SelectOverlay isSelectMode={isSelectMode} isSelected={isSelected} />
       </TouchableOpacity>
@@ -220,6 +243,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 40,
     borderTopRightRadius: 100,
+  },
+  liveBadgeShadow: {
+    position: 'absolute',
+    top: -20,
+    left: -20,
+    width: 80,
+    height: 40,
+    borderBottomRightRadius: 100,
   },
   durationShadow: {
     position: 'absolute',

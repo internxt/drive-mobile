@@ -7,6 +7,7 @@ import { copyAsync } from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { CloudPhotoItem, PhotoItem } from 'src/screens/PhotosScreen/types';
 import { photosLocalDB } from './database/photosLocalDB';
+import { LIVE_PHOTO_VIDEO_TYPE } from './livePhoto.constants';
 import { photoMediaLibraryService } from './PhotoMediaLibraryService';
 import { splitFileNameAndExtension } from './PhotoUploadService.utils';
 
@@ -96,6 +97,50 @@ const copyPhAssetToSandbox = async (item: PhotoItem): Promise<string> => {
   return destPath;
 };
 
+const downloadPairedVideo = async (pairedVideoRemoteFileId: string, signal: AbortSignal): Promise<string | null> => {
+  const asset = await photosLocalDB.getCloudAssetById(pairedVideoRemoteFileId);
+  if (!asset?.fileId || !asset.bucket) {
+    logger.warn(`[PhotoAssetFetchService] No fileId/bucket for paired video ${pairedVideoRemoteFileId}`);
+    return null;
+  }
+  const cachePath = cachePathFor(pairedVideoRemoteFileId, asset.extension ?? LIVE_PHOTO_VIDEO_TYPE);
+  const alreadyCached = await fileSystemService.exists(cachePath);
+  if (alreadyCached) {
+    return cachePath;
+  }
+
+  const user = await asyncStorageService.getUser();
+  await fileSystemService.ensureDir(getCacheDir());
+
+  try {
+    await driveFileService.downloadFile(
+      user,
+      asset.bucket,
+      asset.fileId,
+      {
+        downloadPath: cachePath,
+        downloadProgressCallback: () => undefined,
+        decryptionProgressCallback: () => undefined,
+        signal,
+      },
+      asset.fileSize ?? 0,
+    );
+
+    if (signal.aborted) {
+      await fileSystemService.unlinkIfExists(cachePath);
+      return null;
+    }
+
+    return cachePath;
+  } catch (error) {
+    if (!signal.aborted) {
+      logger.error(`[PhotoAssetFetchService] Paired video download failed for ${pairedVideoRemoteFileId}: ${error}`);
+    }
+    await fileSystemService.unlinkIfExists(cachePath);
+    return null;
+  }
+};
+
 export type ExportUri = { uri: string; cleanup?: () => void };
 
 export const PhotoAssetFetchService = {
@@ -104,6 +149,29 @@ export const PhotoAssetFetchService = {
       return resolveLocalUri(item);
     }
     return downloadCloudAsset(item, signal);
+  },
+
+  fetchLivePhotoComponents: async (
+    item: CloudPhotoItem,
+    signal: AbortSignal,
+  ): Promise<{ photoPath: string; videoPath: string } | null> => {
+    if (!item.pairedVideoRemoteFileId) {
+      logger.warn('[PhotoAssetFetchService] fetchLivePhotoComponents called on item without pairedVideoRemoteFileId');
+      return null;
+    }
+
+    const [photoUri, videoPath] = await Promise.all([
+      downloadCloudAsset(item, signal),
+      downloadPairedVideo(item.pairedVideoRemoteFileId, signal),
+    ]);
+
+    if (!photoUri || !videoPath || signal.aborted) {
+      return null;
+    }
+
+    // downloadCloudAsset returns a file:// URI; strip it for the native module (saveLivePhotoToLibrary function)
+    const photoPath = photoUri.startsWith('file://') ? photoUri.slice('file://'.length) : photoUri;
+    return { photoPath, videoPath };
   },
 
   resolveExportUri: async (item: PhotoItem | CloudPhotoItem, signal: AbortSignal): Promise<ExportUri | null> => {

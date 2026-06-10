@@ -4,6 +4,8 @@ import cloudAssetTable from './tables/cloud_asset';
 
 const DB_NAME = 'photos_sync.db';
 
+export type LivePhotoRole = 'photo' | 'paired_video';
+
 export interface CloudAssetEntry {
   remoteFileId: string;
   deviceId: string;
@@ -25,6 +27,9 @@ export interface CloudAssetEntry {
   updatedAt?: number | null;
   status?: string | null;
   encryptVersion?: string | null;
+  isLivePhoto?: boolean;
+  livePhotoRole?: LivePhotoRole | null;
+  pairedRemoteFileId?: string | null;
 }
 
 interface CloudAssetRow {
@@ -48,9 +53,13 @@ interface CloudAssetRow {
   updated_at: number | null;
   status: string | null;
   encrypt_version: string | null;
+  is_live_photo: number;
+  live_photo_role: LivePhotoRole | null;
+  paired_remote_file_id: string | null;
 }
 
 export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted' | 'cloud_deleted';
+export type PairedVideoStatus = 'synced' | 'error';
 
 export interface AssetSyncEntry {
   assetId: string;
@@ -70,6 +79,9 @@ export interface AssetSyncEntry {
   height: number | null;
   duration: number | null;
   mediaType: string | null;
+  isLivePhoto: boolean;
+  pairedVideoRemoteFileId: string | null;
+  pairedVideoStatus: PairedVideoStatus | null;
 }
 
 interface AssetSyncRow {
@@ -90,6 +102,9 @@ interface AssetSyncRow {
   height: number | null;
   duration: number | null;
   media_type: string | null;
+  is_live_photo: number;
+  paired_video_remote_file_id: string | null;
+  paired_video_status: PairedVideoStatus | null;
 }
 
 export interface SyncedAssetInfo {
@@ -104,6 +119,7 @@ export interface AssetMediaInfo {
   height: number;
   duration: number;
   mediaType: string;
+  isLivePhoto?: boolean;
 }
 
 const CHUNK_SIZE = 300;
@@ -130,6 +146,9 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
     updatedAt: row.updated_at,
     status: row.status,
     encryptVersion: row.encrypt_version,
+    isLivePhoto: row.is_live_photo === 1,
+    livePhotoRole: row.live_photo_role,
+    pairedRemoteFileId: row.paired_remote_file_id,
   };
 };
 
@@ -151,6 +170,9 @@ const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
   height: row.height,
   duration: row.duration,
   mediaType: row.media_type,
+  isLivePhoto: row.is_live_photo === 1,
+  pairedVideoRemoteFileId: row.paired_video_remote_file_id,
+  pairedVideoStatus: row.paired_video_status,
 });
 
 class PhotosLocalDB {
@@ -165,6 +187,7 @@ class PhotosLocalDB {
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexCreated);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexDevice);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexMonth);
+      await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexRole);
     })();
     return this.initPromise;
   }
@@ -178,6 +201,7 @@ class PhotosLocalDB {
       mediaInfo?.height ?? null,
       mediaInfo?.duration ?? null,
       mediaInfo?.mediaType ?? null,
+      mediaInfo?.isLivePhoto ? 1 : 0,
     ]);
   }
 
@@ -190,6 +214,7 @@ class PhotosLocalDB {
       mediaInfo?.height ?? null,
       mediaInfo?.duration ?? null,
       mediaInfo?.mediaType ?? null,
+      mediaInfo?.isLivePhoto ? 1 : 0,
     ]);
   }
 
@@ -198,6 +223,22 @@ class PhotosLocalDB {
       assetId,
       remoteFileId,
       modificationTime,
+    ]);
+  }
+
+  async markSyncedLivePhoto(
+    assetId: string,
+    remoteFileId: string,
+    modificationTime: number | null,
+    pairedVideoRemoteFileId: string | null,
+    pairedVideoStatus: PairedVideoStatus,
+  ): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSyncedLivePhoto, [
+      assetId,
+      remoteFileId,
+      modificationTime,
+      pairedVideoRemoteFileId,
+      pairedVideoStatus,
     ]);
   }
 
@@ -362,6 +403,9 @@ class PhotosLocalDB {
       entry.updatedAt ?? null,
       entry.status ?? null,
       entry.encryptVersion ?? null,
+      entry.isLivePhoto ? 1 : 0,
+      entry.livePhotoRole ?? null,
+      entry.pairedRemoteFileId ?? null,
     ]);
   }
 

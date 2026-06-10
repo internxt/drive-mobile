@@ -4,7 +4,8 @@ const COLUMNS = `
   remote_file_id, device_id, created_at, file_name, file_size, file_id,
   thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at,
   plain_name, extension, bucket, folder_uuid,
-  creation_time_api, modification_time, updated_at, status, encrypt_version
+  creation_time_api, modification_time, updated_at, status, encrypt_version,
+  is_live_photo, live_photo_role, paired_remote_file_id
 `;
 
 const statements = {
@@ -29,16 +30,20 @@ const statements = {
       modification_time      INTEGER,
       updated_at             INTEGER,
       status                 TEXT,
-      encrypt_version        TEXT
+      encrypt_version        TEXT,
+      is_live_photo          INTEGER NOT NULL DEFAULT 0,
+      live_photo_role        TEXT,
+      paired_remote_file_id  TEXT
     );
   `,
   createIndexCreated: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_created ON ${TABLE_NAME}(created_at DESC);`,
   createIndexDevice: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_device ON ${TABLE_NAME}(device_id);`,
   createIndexMonth: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_month ON ${TABLE_NAME}(device_id, created_at);`,
+  createIndexRole: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_role ON ${TABLE_NAME}(live_photo_role);`,
 
   upsert: `
     INSERT INTO ${TABLE_NAME} (${COLUMNS})
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(remote_file_id) DO UPDATE SET
       device_id              = excluded.device_id,
       created_at             = excluded.created_at,
@@ -58,10 +63,20 @@ const statements = {
       modification_time      = excluded.modification_time,
       updated_at             = excluded.updated_at,
       status                 = excluded.status,
-      encrypt_version        = excluded.encrypt_version;
+      encrypt_version        = excluded.encrypt_version,
+      is_live_photo          = excluded.is_live_photo,
+      live_photo_role        = excluded.live_photo_role,
+      paired_remote_file_id  = excluded.paired_remote_file_id;
   `,
 
   getAll: `
+    SELECT ${COLUMNS}
+    FROM ${TABLE_NAME}
+    WHERE live_photo_role IS NULL OR live_photo_role != 'paired_video'
+    ORDER BY created_at DESC;
+  `,
+
+  getAllIncludingPaired: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
     ORDER BY created_at DESC;
@@ -70,7 +85,8 @@ const statements = {
   getByRange: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
-    WHERE created_at >= ? AND created_at <= ?
+    WHERE (created_at >= ? AND created_at <= ?)
+      AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
     ORDER BY created_at DESC;
   `,
 
