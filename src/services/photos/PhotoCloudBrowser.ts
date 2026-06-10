@@ -317,7 +317,6 @@ class PhotoCloudBrowserService {
       let pairedRemoteFileId: string | null = null;
 
       if (isPairedVideoPlainName(baseName, type)) {
-        // *.livephoto.mov — look for its photo sibling; if missing, treat as an orphan normal file.
         const photoPlainName = getPhotoPlainNameFromPairedVideo(baseName).toLowerCase();
         const photoUuid = plainNameIndex.get(photoPlainName);
         if (photoUuid) {
@@ -325,7 +324,6 @@ class PhotoCloudBrowserService {
           pairedRemoteFileId = photoUuid;
         }
       } else {
-        // Regular photo — check whether a paired video exists in the same folder.
         const pairedVideoPlainName = `${baseName}.livephoto`.toLowerCase();
         const pairedVideoUuid = plainNameIndex.get(pairedVideoPlainName);
         if (pairedVideoUuid) {

@@ -88,9 +88,9 @@ class PHAssetExportModule: NSObject {
     let photoDest = FileManager.default.temporaryDirectory
       .appendingPathComponent("\(UUID().uuidString).\(photoExt)")
 
-    PHAssetResourceManager.default().writeData(for: photoResource, toFile: photoDest, options: options) { [weak self] photoError in
-      guard self != nil else { return }
+    PHAssetResourceManager.default().writeData(for: photoResource, toFile: photoDest, options: options) { photoError in
       if let photoError = photoError {
+        try? FileManager.default.removeItem(at: photoDest)
         rejecter("PHOTO_EXPORT_FAILED", photoError.localizedDescription, photoError as NSError)
         return
       }

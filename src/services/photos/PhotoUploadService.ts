@@ -335,8 +335,6 @@ export const PhotoUploadService = {
       try {
         components = await exportLivePhotoComponents(asset.id);
       } catch (livePhotoErr) {
-        // Native module not available (not yet rebuilt, or older binary) — fall back to standard
-        // photo-only upload so the photo is not lost and the asset does not loop forever.
         logger.warn(
           `[PhotoUploadService] exportLivePhotoComponents failed, falling back to photo-only upload: ${livePhotoErr}`,
         );
@@ -392,7 +390,6 @@ export const PhotoUploadService = {
           await cleanupTempFile(videoLocalPath);
         }
       }
-      // components === null: fall through to standard upload path below
     }
 
     let fileUploadResult: FileUploadResult;
@@ -533,7 +530,6 @@ export const PhotoUploadService = {
           await cleanupTempFile(videoLocalPath);
         }
       }
-      // components === null: fall through to standard replace path below
     }
 
     const {
