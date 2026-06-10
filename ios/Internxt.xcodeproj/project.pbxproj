@@ -17,6 +17,11 @@
 		5EECD9AA8FE2941A3CB8B8EF /* libPods-InternxtShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 92F299358DE5ADDA8D13CA27 /* libPods-InternxtShareExtension.a */; };
 		7D373856C83A43879BFBE604 /* InternxtShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */; };
 		8F8148045BC14A539BD1917D /* ShareExtensionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */; };
+		AA0100012F87A94000E14783 /* SharedAuthKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */; };
+		AA0100032F87A94000E14783 /* FileProviderDomainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */; };
+		AA0100052F87A94000E14783 /* InternxtAuthCredentialsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */; };
+		AA0100072F87A94000E14783 /* InternxtAuthCredentialsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */; };
+		AA0100082F87A94000E14783 /* SharedAuthKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */; };
 		9DB4D633CA40422A956585FD /* PHAssetExportModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D330686328BD4286AB778B88 /* PHAssetExportModule.m */; };
 		A1B2C3D4E5F601234567890A /* PHBurstExportModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6012345678901 /* PHBurstExportModule.swift */; };
 		A1B2C3D4E5F601234567890B /* PHBurstExportModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6012345678902 /* PHBurstExportModule.m */; };
@@ -88,6 +93,10 @@
 		A1B2C3D4E5F6012345678901 /* PHBurstExportModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PHBurstExportModule.swift; path = Internxt/PHBurstExportModule.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6012345678902 /* PHBurstExportModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PHBurstExportModule.m; path = Internxt/PHBurstExportModule.m; sourceTree = "<group>"; };
 		A4921399A370F5CE6EE7EA0F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-InternxtShareExtension/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedAuthKeychain.swift; path = Internxt/SharedAuthKeychain.swift; sourceTree = "<group>"; };
+		AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileProviderDomainManager.swift; path = Internxt/FileProviderDomainManager.swift; sourceTree = "<group>"; };
+		AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InternxtAuthCredentialsModule.swift; path = Internxt/InternxtAuthCredentialsModule.swift; sourceTree = "<group>"; };
+		AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = InternxtAuthCredentialsModule.m; path = Internxt/InternxtAuthCredentialsModule.m; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Internxt/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BD55E1E535AECF7719BDD772 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
@@ -138,6 +147,10 @@
 			children = (
 				DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */,
 				DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */,
+				AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */,
+				AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */,
+				AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */,
+				AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */,
 				D330686328BD4286AB778B88 /* PHAssetExportModule.m */,
 				9949B2A33B5D4CA2BD828B67 /* PHAssetExportModule.swift */,
 				A1B2C3D4E5F6012345678902 /* PHBurstExportModule.m */,
@@ -347,7 +360,6 @@
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = JR4S3SY396;
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
 					};
@@ -679,6 +691,10 @@
 				1818AB341F31CC033FFF750B /* ExpoModulesProvider.swift in Sources */,
 				DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */,
 				DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */,
+				AA0100012F87A94000E14783 /* SharedAuthKeychain.swift in Sources */,
+				AA0100032F87A94000E14783 /* FileProviderDomainManager.swift in Sources */,
+				AA0100052F87A94000E14783 /* InternxtAuthCredentialsModule.swift in Sources */,
+				AA0100072F87A94000E14783 /* InternxtAuthCredentialsModule.m in Sources */,
 				1A3E7803EDA342F39787DC8F /* PHAssetExportModule.swift in Sources */,
 				9DB4D633CA40422A956585FD /* PHAssetExportModule.m in Sources */,
 				A1B2C3D4E5F601234567890A /* PHBurstExportModule.swift in Sources */,
@@ -702,6 +718,7 @@
 				DE1D47602F87A94000E14783 /* FileProviderExtension.swift in Sources */,
 				DE1D47612F87A94000E14783 /* FileProviderEnumerator.swift in Sources */,
 				DE1D47622F87A94000E14783 /* FileProviderItem.swift in Sources */,
+				AA0100082F87A94000E14783 /* SharedAuthKeychain.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -999,7 +1016,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.9.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
@@ -1049,7 +1066,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.9.0;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProvider;
