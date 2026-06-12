@@ -509,8 +509,38 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             throw FileNotFoundException("Parent lookup failed: ${e.message}")
         }
 
+        return if (mimeType == Document.MIME_TYPE_DIR) {
+            createFolderDocument(api, parentDocumentId, parentUuid, displayName)
+        } else {
+            createPendingFileDocument(api, parentUuid, mimeType, displayName)
+        }
+    }
+
+    private fun createFolderDocument(
+        api: InternxtApiClient,
+        parentDocumentId: String,
+        parentUuid: String,
+        displayName: String,
+    ): String {
+        val resolvedName = uniqueFolderName(api, parentUuid, displayName)
+        val folder = try {
+            api.createFolder(parentUuid, resolvedName)
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "createDocument folder failed parent=$parentDocumentId: ${e.javaClass.simpleName}: ${e.message}")
+            throw FileNotFoundException("Folder creation failed: ${e.message}")
+        }
+        invalidateChildren(parentDocumentId)
+        return DocumentId.encodeFolder(folder.uuid)
+    }
+
+    private fun createPendingFileDocument(
+        api: InternxtApiClient,
+        parentUuid: String,
+        mimeType: String,
+        displayName: String,
+    ): String {
         val normalized = collapseRedundantExtensions(displayName, mimeType)
-        val resolvedName = pickUniqueName(api, parentUuid, normalized)
+        val resolvedName = uniqueFileName(api, parentUuid, normalized)
         evictStalePendingUploads()
         val token = UUID.randomUUID().toString()
         pendingUploads[token] = PendingUpload(parentUuid, resolvedName, mimeType)
@@ -539,35 +569,31 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         return name
     }
 
-    private fun pickUniqueName(api: InternxtApiClient, parentUuid: String, requested: String): String {
+    private fun uniqueFileName(api: InternxtApiClient, parentUuid: String, requested: String): String =
+        uniqueChildName("uniqueFileName", requested, { offset, size -> api.listFolderFiles(parentUuid, offset, size) }) {
+            DocumentNaming.joinNameType(it.plainName, it.type)
+        }
+
+    private fun uniqueFolderName(api: InternxtApiClient, parentUuid: String, requested: String): String =
+        uniqueChildName("uniqueFolderName", requested, { offset, size -> api.listFolderFolders(parentUuid, offset, size) }) {
+            it.plainName
+        }
+
+    private inline fun <T> uniqueChildName(
+        op: String,
+        requested: String,
+        listPage: (offset: Int, size: Int) -> List<T>,
+        nameOf: (T) -> String,
+    ): String {
         val existing = HashSet<String>()
         try {
-            streamPages({ offset, size -> api.listFolderFiles(parentUuid, offset, size) }) { page ->
-                page.forEach { existing.add(joinNameType(it.plainName, it.type)) }
-            }
+            streamPages(listPage) { page -> page.forEach { existing.add(nameOf(it)) } }
         } catch (e: InternxtApiException) {
-            Log.w(TAG, "pickUniqueName: listing failed, using requested name. ${e.message}")
+            Log.w(TAG, "$op: listing failed, using requested name. ${e.message}")
             return requested
         }
-        if (requested !in existing) return requested
-        val (base, ext) = splitNameExt(requested)
-        for (i in 1..MAX_SUFFIX_ATTEMPTS) {
-            val candidate = "$base ($i)$ext"
-            if (candidate !in existing) return candidate
-        }
-        // Backstop for the (practically impossible) case where 1..1000 are all taken —
-        // the backend permits duplicate names, so a UUID-suffixed name is always safe.
-        return "$base (${UUID.randomUUID()})$ext"
+        return DocumentNaming.uniqueName(requested, existing)
     }
-
-    private fun splitNameExt(name: String): Pair<String, String> {
-        val dot = name.lastIndexOf('.')
-        val hasExt = dot > 0 && dot < name.length - 1
-        return if (hasExt) name.substring(0, dot) to name.substring(dot) else name to ""
-    }
-
-    private fun joinNameType(plainName: String, type: String?): String =
-        if (type.isNullOrBlank()) plainName else "$plainName.$type"
 
     private fun openForWrite(
         ctx: Context,
@@ -766,7 +792,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val finish = api.finishUpload(bucketId, indexHex, listOf(shard))
 
         val nowIso = Instant.now().toString()
-        val (basePlain, ext) = splitNameExt(pending.plainName)
+        val (basePlain, ext) = DocumentNaming.splitNameExt(pending.plainName)
         api.createFileEntry(
             CreateFileEntry(
                 fileId = finish.id,
@@ -897,7 +923,6 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         private const val MULTIPART_THRESHOLD = 100L * 1024L * 1024L
         private const val MULTIPART_PART_SIZE = 30L * 1024L * 1024L
         private const val PROGRESS_THROTTLE_MS = 300L
-        private const val MAX_SUFFIX_ATTEMPTS = 1000
         private const val PENDING_UPLOAD_TTL_MS = 60L * 60L * 1000L
         private const val NOT_AUTHENTICATED = "Not authenticated"
 
