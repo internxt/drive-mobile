@@ -65,18 +65,106 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         }
     }
 
+    private static let offlineURLErrorCodes: Set<URLError.Code> = [
+        .notConnectedToInternet,
+        .networkConnectionLost,
+        .timedOut,
+        .cannotConnectToHost,
+        .dataNotAllowed,
+        .cannotFindHost
+    ]
+
+    private static let offlineErrorCodes: Set<ErrorCode> = [
+        .networkNoConnection,
+        .networkConnectionLost,
+        .networkTimeout,
+        .networkCannotConnect
+    ]
+
     private func lookupError(from error: Error) -> Error {
-        if let apiError = error as? APIClientError, apiError.statusCode == 401 {
+        if isUnauthorized(error) {
             return NSFileProviderError(.notAuthenticated)
+        }
+        if isOffline(error) {
+            return NSFileProviderError(.serverUnreachable)
         }
         return error
     }
 
-    func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version requestedVersion: NSFileProviderItemVersion?, request: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
-        // TODO: implement fetching of the contents for the itemIdentifier at the specified version
+    private func isUnauthorized(_ error: Error) -> Bool {
+        if let enriched = error as? EnrichedError {
+            if enriched.code == .apiUnauthorized {
+                return true
+            }
+            if let cause = enriched.cause {
+                return isUnauthorized(cause)
+            }
+            return false
+        }
+        if let apiError = error as? APIClientError {
+            return apiError.statusCode == 401
+        }
+        return false
+    }
 
-        completionHandler(nil, nil, NSError(domain: NSCocoaErrorDomain, code: NSFeatureUnsupportedError, userInfo:[:]))
-        return Progress()
+    private func isOffline(_ error: Error) -> Bool {
+        if let enriched = error as? EnrichedError {
+            if Self.offlineErrorCodes.contains(enriched.code) {
+                return true
+            }
+            if let cause = enriched.cause {
+                return isOffline(cause)
+            }
+            return false
+        }
+        if let urlError = error as? URLError {
+            return Self.offlineURLErrorCodes.contains(urlError.code)
+        }
+        if let apiError = error as? APIClientError {
+            return apiError.statusCode <= 0
+        }
+        return false
+    }
+
+    func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version requestedVersion: NSFileProviderItemVersion?, request: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
+        guard let decoded = FileProviderItemID.decode(itemIdentifier), decoded.kind == .file else {
+            completionHandler(nil, nil, NSFileProviderError(.noSuchItem))
+            return Progress()
+        }
+
+        guard let driveAPI = DriveAPIFactory.make(), let networkFacade = NetworkFacadeFactory.make() else {
+            completionHandler(nil, nil, NSFileProviderError(.notAuthenticated))
+            return Progress()
+        }
+
+        let progress = Progress(totalUnitCount: 100)
+        Task {
+            let encryptedTmp = Self.temporaryFileURL()
+            let plainTmp = Self.temporaryFileURL()
+            defer { try? FileManager.default.removeItem(at: encryptedTmp) }
+
+            do {
+                let meta = try await driveAPI.getFileMetaByUuid(uuid: decoded.uuid)
+                _ = try await networkFacade.downloadFile(
+                    bucketId: meta.bucket,
+                    fileId: meta.fileId,
+                    encryptedFileDestination: encryptedTmp,
+                    destinationURL: plainTmp,
+                    progressHandler: { fraction in
+                        progress.completedUnitCount = Int64(fraction * 100)
+                    }
+                )
+                let item = FileProviderItem(fileMeta: meta, identifier: itemIdentifier)
+                completionHandler(plainTmp, item, nil)
+            } catch {
+                completionHandler(nil, nil, lookupError(from: error))
+            }
+        }
+        return progress
+    }
+
+    private static func temporaryFileURL() -> URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     }
     
     func createItem(basedOn itemTemplate: NSFileProviderItem, fields: NSFileProviderItemFields, contents url: URL?, options: NSFileProviderCreateItemOptions = [], request: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
