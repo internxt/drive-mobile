@@ -15,10 +15,11 @@ enum SharedAuthKeychain {
   static let bridgeUserKey = "shared_bridgeUser"
   static let userIdKey = "shared_userId"
   static let driveBaseUrlKey = "shared_driveBaseUrl"
+  static let bridgeBaseUrlKey = "shared_bridgeBaseUrl"
 
   static let allKeys = [
     photosTokenKey, mnemonicKey, rootFolderIdKey, bucketKey, bridgeUserKey, userIdKey,
-    driveBaseUrlKey,
+    driveBaseUrlKey, bridgeBaseUrlKey,
   ]
 
   static var accessGroup: String? {
@@ -111,8 +112,8 @@ enum SharedAuthKeychain {
     copyFromPrivate(privateKey: "xUser_mnemonic", sharedKey: mnemonicKey, isJSONEncoded: true)
     copyFromPrivate(privateKey: "xUser_rootFolderId", sharedKey: rootFolderIdKey, isJSONEncoded: true)
     copyFromPrivate(privateKey: "xUser_bucket", sharedKey: bucketKey)
-    copyFromPrivate(privateKey: "xUser_bridgeUser", sharedKey: bridgeUserKey)
-    copyFromPrivate(privateKey: "xUser_userId", sharedKey: userIdKey)
+    copyFromPrivate(privateKey: "xUser_bridgeUser", sharedKey: bridgeUserKey, isJSONEncoded: true)
+    copyFromPrivate(privateKey: "xUser_userId", sharedKey: userIdKey, isJSONEncoded: true)
   }
 
   private static func copyFromPrivate(privateKey: String, sharedKey: String, isJSONEncoded: Bool = false) {
