@@ -543,9 +543,9 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         } catch (e: Exception) {
             tempEnc.delete()
             tempDec.delete()
-            throw when (e) {
-                is FileNotFoundException -> e
-                is CancellationException -> e
+            throw when {
+                e is FileNotFoundException -> e
+                isCancellation(e) -> e
                 else ->
                     FileNotFoundException("openDocument $id failed: ${e.message}").apply { initCause(e) }
             }
