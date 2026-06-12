@@ -22,6 +22,8 @@
 		AA0100082F87A94000E14783 /* SharedAuthKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */; };
 		AB1D47702F87A94000E14783 /* FileProviderItemIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */; };
 		AB1D47712F87A94000E14783 /* DriveAPIFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */; };
+		AB1D47802F87A94000E14783 /* NetworkFacadeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */; };
+		AB1D47812F87A94000E14783 /* SharedKeychainCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		DE1D47432F87A94000E14783 /* UniformTypeIdentifiers.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE1D47422F87A94000E14783 /* UniformTypeIdentifiers.framework */; };
 		DE1D474F2F87A94000E14783 /* InternxtFileProvider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -99,6 +101,8 @@
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Internxt/SplashScreen.storyboard; sourceTree = "<group>"; };
 		AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderItemIdentifier.swift; sourceTree = "<group>"; };
 		AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveAPIFactory.swift; sourceTree = "<group>"; };
+		AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkFacadeFactory.swift; sourceTree = "<group>"; };
+		AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedKeychainCredentials.swift; sourceTree = "<group>"; };
 		AC8B28CC3C9A8FDF21A8C1E7 /* Pods-InternxtFileProvider.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtFileProvider.debug.xcconfig"; path = "Target Support Files/Pods-InternxtFileProvider/Pods-InternxtFileProvider.debug.xcconfig"; sourceTree = "<group>"; };
 		B8AF05FC3A0730CCBD5A3D8F /* Pods-InternxtShareExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.release.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.release.xcconfig"; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
@@ -282,6 +286,8 @@
 				DE1D47652F87A94000E14783 /* FileProviderItem.swift */,
 				AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */,
 				AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */,
+				AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */,
+				AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */,
 				DE1D47662F87A94000E14783 /* Info.plist */,
 				DE1D47672F87A94000E14783 /* InternxtFileProvider.entitlements */,
 				DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */,
@@ -741,6 +747,8 @@
 				DE1D47622F87A94000E14783 /* FileProviderItem.swift in Sources */,
 				AB1D47702F87A94000E14783 /* FileProviderItemIdentifier.swift in Sources */,
 				AB1D47712F87A94000E14783 /* DriveAPIFactory.swift in Sources */,
+				AB1D47802F87A94000E14783 /* NetworkFacadeFactory.swift in Sources */,
+				AB1D47812F87A94000E14783 /* SharedKeychainCredentials.swift in Sources */,
 				AA0100082F87A94000E14783 /* SharedAuthKeychain.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
