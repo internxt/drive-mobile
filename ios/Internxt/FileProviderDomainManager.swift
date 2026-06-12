@@ -22,6 +22,20 @@ enum FileProviderDomainManager {
     }
   }
 
+  static func signalEnumeration(completion: @escaping (Error?) -> Void) {
+    guard let manager = NSFileProviderManager(for: domain) else {
+      completion(NSError(
+        domain: "FileProviderDomainManager",
+        code: -1,
+        userInfo: [NSLocalizedDescriptionKey: "No NSFileProviderManager for domain \(domainIdentifier.rawValue)"]
+      ))
+      return
+    }
+    manager.signalEnumerator(for: .workingSet) { error in
+      completion(error)
+    }
+  }
+
   private static func isAlreadyExists(_ error: Error?) -> Bool {
     guard let error = error as NSError? else { return false }
     return error.domain == NSCocoaErrorDomain && error.code == NSFileWriteFileExistsError

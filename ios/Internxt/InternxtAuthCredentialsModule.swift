@@ -26,7 +26,12 @@ class InternxtAuthCredentialsModule: NSObject {
         rejecter("E_REGISTER_DOMAIN", error.localizedDescription, error as NSError)
         return
       }
-      resolver(nil)
+      FileProviderDomainManager.signalEnumeration { signalError in
+        if let signalError = signalError {
+          NSLog("InternxtAuthCredentialsModule: signalEnumeration failed (ignored): \(signalError.localizedDescription)")
+        }
+        resolver(nil)
+      }
     }
   }
 
