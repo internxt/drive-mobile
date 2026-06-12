@@ -65,7 +65,7 @@ export const PhotoDeviceManager = {
 
     if (storedUuid) {
       const existingDevice = await photosDeviceService.getDevice(storedUuid);
-      if (existingDevice && existingDevice.status === 'EXISTS') {
+      if (existingDevice?.status === 'EXISTS') {
         logger.info(
           TAG,
           `Reusing device folder uuid=${existingDevice.uuid} key="${existingDevice.plainName}" bucket=${existingDevice.bucket}`,
