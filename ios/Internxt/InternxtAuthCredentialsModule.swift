@@ -26,7 +26,12 @@ class InternxtAuthCredentialsModule: NSObject {
         rejecter("E_REGISTER_DOMAIN", error.localizedDescription, error as NSError)
         return
       }
-      resolver(nil)
+      FileProviderDomainManager.signalEnumeration { signalError in
+        if let signalError = signalError {
+          NSLog("InternxtAuthCredentialsModule: signalEnumeration failed (ignored): \(signalError.localizedDescription)")
+        }
+        resolver(nil)
+      }
     }
   }
 
@@ -56,6 +61,7 @@ class InternxtAuthCredentialsModule: NSObject {
     writeIfPresent(creds["rootFolderUuid"], to: SharedAuthKeychain.rootFolderIdKey)
     writeIfPresent(creds["bridgeUser"], to: SharedAuthKeychain.bridgeUserKey)
     writeIfPresent(creds["userId"], to: SharedAuthKeychain.userIdKey)
+    writeIfPresent(creds["driveBaseUrl"], to: SharedAuthKeychain.driveBaseUrlKey)
   }
 
   private func writeIfPresent(_ value: Any?, to sharedKey: String) {

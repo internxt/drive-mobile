@@ -45,6 +45,14 @@ describe('InternxtAuthCredentialsModule wrapper', () => {
     expect(setCredentials).toHaveBeenCalledWith(credentials);
   });
 
+  it('when on iOS with the module present, then setCredentials forwards driveBaseUrl to the native module', async () => {
+    const { wrapper, setCredentials } = arrangePresentNative('ios');
+
+    await wrapper.setCredentials(credentials);
+
+    expect(setCredentials.mock.calls[0][0]).toMatchObject({ driveBaseUrl: 'https://drive.example' });
+  });
+
   it('when on iOS with the module present, then clearCredentials delegates to the native module', async () => {
     const { wrapper, clearCredentials } = arrangePresentNative('ios');
 
