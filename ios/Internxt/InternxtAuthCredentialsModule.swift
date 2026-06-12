@@ -62,6 +62,7 @@ class InternxtAuthCredentialsModule: NSObject {
     writeIfPresent(creds["bridgeUser"], to: SharedAuthKeychain.bridgeUserKey)
     writeIfPresent(creds["userId"], to: SharedAuthKeychain.userIdKey)
     writeIfPresent(creds["driveBaseUrl"], to: SharedAuthKeychain.driveBaseUrlKey)
+    writeIfPresent(creds["bridgeBaseUrl"], to: SharedAuthKeychain.bridgeBaseUrlKey)
   }
 
   private func writeIfPresent(_ value: Any?, to sharedKey: String) {

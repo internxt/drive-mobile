@@ -37,7 +37,7 @@ describe('InternxtAuthCredentialsModule wrapper', () => {
     jest.resetModules();
   });
 
-  it('when on iOS with the module present, then setCredentials delegates with the credentials', async () => {
+  test('when on iOS with the module present, then setCredentials delegates with the credentials', async () => {
     const { wrapper, setCredentials } = arrangePresentNative('ios');
 
     await wrapper.setCredentials(credentials);
@@ -45,7 +45,7 @@ describe('InternxtAuthCredentialsModule wrapper', () => {
     expect(setCredentials).toHaveBeenCalledWith(credentials);
   });
 
-  it('when on iOS with the module present, then setCredentials forwards driveBaseUrl to the native module', async () => {
+  test('when on iOS with the module present, then setCredentials forwards driveBaseUrl to the native module', async () => {
     const { wrapper, setCredentials } = arrangePresentNative('ios');
 
     await wrapper.setCredentials(credentials);
@@ -53,7 +53,15 @@ describe('InternxtAuthCredentialsModule wrapper', () => {
     expect(setCredentials.mock.calls[0][0]).toMatchObject({ driveBaseUrl: 'https://drive.example' });
   });
 
-  it('when on iOS with the module present, then clearCredentials delegates to the native module', async () => {
+  test('when on iOS with the module present, then setCredentials forwards bridgeBaseUrl to the native module', async () => {
+    const { wrapper, setCredentials } = arrangePresentNative('ios');
+
+    await wrapper.setCredentials(credentials);
+
+    expect(setCredentials.mock.calls[0][0]).toMatchObject({ bridgeBaseUrl: 'https://bridge.example' });
+  });
+
+  test('when on iOS with the module present, then clearCredentials delegates to the native module', async () => {
     const { wrapper, clearCredentials } = arrangePresentNative('ios');
 
     await wrapper.clearCredentials();
@@ -61,7 +69,7 @@ describe('InternxtAuthCredentialsModule wrapper', () => {
     expect(clearCredentials).toHaveBeenCalledTimes(1);
   });
 
-  it('when on Android with the module present, then setCredentials delegates with the credentials', async () => {
+  test('when on Android with the module present, then setCredentials delegates with the credentials', async () => {
     const { wrapper, setCredentials } = arrangePresentNative('android');
 
     await wrapper.setCredentials(credentials);
@@ -69,13 +77,13 @@ describe('InternxtAuthCredentialsModule wrapper', () => {
     expect(setCredentials).toHaveBeenCalledWith(credentials);
   });
 
-  it('when the native module is absent, then setCredentials resolves without throwing', async () => {
+  test('when the native module is absent, then setCredentials resolves without throwing', async () => {
     const wrapper = loadWrapper('ios', undefined);
 
     await expect(wrapper.setCredentials(credentials)).resolves.toBeUndefined();
   });
 
-  it('when the native module is absent, then clearCredentials resolves without throwing', async () => {
+  test('when the native module is absent, then clearCredentials resolves without throwing', async () => {
     const wrapper = loadWrapper('ios', undefined);
 
     await expect(wrapper.clearCredentials()).resolves.toBeUndefined();
