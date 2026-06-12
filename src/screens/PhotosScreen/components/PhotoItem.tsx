@@ -1,5 +1,14 @@
+import strings from 'assets/lang/strings';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUpIcon, CheckIcon, CloudIcon, CloudSlashIcon, ImageIcon, PlayIcon } from 'phosphor-react-native';
+import {
+  ArrowUpIcon,
+  CheckIcon,
+  CloudIcon,
+  CloudSlashIcon,
+  ImageIcon,
+  PlayIcon,
+  WarningIcon,
+} from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Circle } from 'react-native-progress';
@@ -116,6 +125,29 @@ const LiveBadge = (): JSX.Element => {
   );
 };
 
+const BurstBadge = ({ isBurstIncomplete }: { isBurstIncomplete?: boolean }): JSX.Element => {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
+
+  return (
+    <View style={[tailwind('absolute justify-center items-start'), { top: 8, left: 8 }]} pointerEvents="none">
+      <LinearGradient
+        colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.08)', 'transparent']}
+        locations={[0, 0.3, 0.6, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.liveBadgeShadow}
+      />
+      <View style={tailwind('flex-row items-center')}>
+        <AppText medium style={[tailwind('text-xs'), { color: getColor('text-white'), letterSpacing: 0.5 }]}>
+          {strings.screens.photos.photoPreview.burstBadge}
+        </AppText>
+        {isBurstIncomplete && <WarningIcon size={10} weight="fill" color="#F59E0B" style={{ marginLeft: 2 }} />}
+      </View>
+    </View>
+  );
+};
+
 const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next: CellProps & { item: PhotoItemType }) =>
   prev.item.id === next.item.id &&
   prev.item.backupState === next.item.backupState &&
@@ -124,6 +156,8 @@ const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next:
   prev.item.mediaType === next.item.mediaType &&
   prev.item.duration === next.item.duration &&
   prev.item.isLivePhoto === next.item.isLivePhoto &&
+  prev.item.isBurst === next.item.isBurst &&
+  prev.item.isBurstUploadIncomplete === next.item.isBurstUploadIncomplete &&
   prev.isSelectMode === next.isSelectMode &&
   prev.isSelected === next.isSelected &&
   prev.onPress === next.onPress &&
@@ -169,6 +203,7 @@ const LocalPhotoCell = memo(
 
         {item.mediaType === 'video' && <VideoBadge duration={item.duration} />}
         {item.isLivePhoto && <LiveBadge />}
+        {item.isBurst && <BurstBadge isBurstIncomplete={item.isBurstUploadIncomplete} />}
 
         <SelectOverlay isSelectMode={isSelectMode} isSelected={isSelected} />
       </TouchableOpacity>
@@ -211,7 +246,7 @@ const CloudPhotoCell = memo(
 
         {item.mediaType === 'video' && <VideoBadge />}
         {item.isLivePhoto && <LiveBadge />}
-
+        {item.isBurst && <BurstBadge />}
         <SelectOverlay isSelectMode={isSelectMode} isSelected={isSelected} />
       </TouchableOpacity>
     );

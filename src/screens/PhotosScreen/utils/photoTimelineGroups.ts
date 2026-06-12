@@ -33,6 +33,8 @@ export const assetToPhotoItem = (
   asset: MediaLibrary.Asset,
   syncedIds: Set<string>,
   uploadingIdSet: Set<string>,
+  burstRepresentativeIdSet?: Set<string>,
+  incompleteBurstIdSet?: Set<string>,
 ): PhotoItem => {
   let backupState: PhotoBackupState;
   if (uploadingIdSet.has(asset.id)) {
@@ -53,6 +55,8 @@ export const assetToPhotoItem = (
     mediaType: isVideo ? 'video' : 'photo',
     duration: isVideo ? formatVideoDuration(asset.duration) : undefined,
     isLivePhoto: isLivePhotoAsset(asset),
+    isBurst: burstRepresentativeIdSet?.has(asset.id) ?? false,
+    isBurstUploadIncomplete: incompleteBurstIdSet?.has(asset.id) ?? false,
   };
 };
 
@@ -60,6 +64,8 @@ export const groupAssetsByDate = (
   assets: MediaLibrary.Asset[],
   syncedIds: Set<string>,
   uploadingIdSet: Set<string>,
+  burstRepresentativeIdSet?: Set<string>,
+  incompleteBurstIdSet?: Set<string>,
 ): PhotoDateGroup[] => {
   const now = new Date();
   const groupMap = new Map<string, { label: string; photos: PhotoItem[] }>();
@@ -73,7 +79,9 @@ export const groupAssetsByDate = (
       group = { label: getDateLabel(date, now), photos: [] };
       groupMap.set(groupKey, group);
     }
-    group.photos.push(assetToPhotoItem(asset, syncedIds, uploadingIdSet));
+    group.photos.push(
+      assetToPhotoItem(asset, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet),
+    );
   }
 
   return Array.from(groupMap.entries()).map(([key, { label, photos }]) => ({
@@ -147,6 +155,8 @@ export const cloudEntryToPhotoItem = (entry: CloudAssetEntry): CloudPhotoItem =>
   fileName: entry.fileName,
   isLivePhoto: entry.isLivePhoto,
   pairedVideoRemoteFileId: entry.pairedRemoteFileId ?? undefined,
+  isBurst: entry.burstRole === 'representative',
+  burstGroupId: entry.burstGroupId ?? undefined,
 });
 
 export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: CloudPhotoItem[]): PhotoDateGroup[] => {

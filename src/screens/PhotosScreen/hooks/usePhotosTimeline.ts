@@ -14,7 +14,16 @@ export interface PhotosTimelineResult {
 }
 
 export const usePhotosTimeline = (): PhotosTimelineResult => {
-  const { assets, isLoading, syncedIds, uploadingIdSet, loadNextPage, reload: reloadLocal } = useLocalAssets();
+  const {
+    assets,
+    isLoading,
+    syncedIds,
+    uploadingIdSet,
+    burstRepresentativeIdSet,
+    incompleteUploadBurstIdSet: incompleteBurstIdSet,
+    loadNextPage,
+    reload: reloadLocal,
+  } = useLocalAssets();
   const { cloudItems, reloadCloud } = useCloudAssets();
 
   const {
@@ -28,8 +37,8 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
   } = useAppSelector((state) => state.photos);
 
   const localGroups = useMemo(
-    () => groupAssetsByDate(assets, syncedIds, uploadingIdSet),
-    [assets, syncedIds, uploadingIdSet],
+    () => groupAssetsByDate(assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet),
+    [assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet],
   );
 
   const mergedGroups = useMemo(() => mergeCloudIntoGroups(localGroups, cloudItems), [localGroups, cloudItems]);

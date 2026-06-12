@@ -11,6 +11,7 @@ import { useTailwind } from 'tailwind-rn';
 import MoreActionsBottomSheet from '../PhotosScreen/components/MoreActionsBottomSheet';
 import { usePhotoActionHandlers } from '../PhotosScreen/hooks/usePhotoActionHandlers';
 import { isItemBacked } from '../PhotosScreen/utils/photoUtils';
+import { BurstIncompleteBanner } from './components/BurstIncompleteBanner';
 import { MetadataPanel } from './components/MetadataPanel';
 import { PreviewCarousel } from './components/PreviewCarousel';
 import { PreviewHeader } from './components/PreviewHeader';
@@ -120,6 +121,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
 
   const showCarousel = isUiVisible && !zoomActive && !hasVideoStarted;
   const isSynced = currentItem ? isItemBacked(currentItem) : false;
+  const isBurstIncomplete = currentItem?.type === 'local' && currentItem?.isBurstUploadIncomplete === true;
 
   return (
     <View style={tailwind('flex-1 bg-black')}>
@@ -160,6 +162,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
           isSynced={isSynced}
         />
       )}
+      <BurstIncompleteBanner visible={isUiVisible && isBurstIncomplete} />
       {metadataOpen && currentItem && <MetadataPanel item={currentItem} onClose={() => setMetadataOpen(false)} />}
       <MoreActionsBottomSheet
         isOpen={isMoreActionsOpen}

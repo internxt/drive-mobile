@@ -7,6 +7,7 @@ import { logger } from 'src/services/common';
 import { stripFileUri, toFileUri } from 'src/services/common/uri/uriHelpers';
 import { driveTrashService } from 'src/services/drive/trash/driveTrash.service';
 import fileSystemService from 'src/services/FileSystemService';
+import { BurstFetchService } from './burst/BurstFetchService';
 import { photosLocalDB } from './database/photosLocalDB';
 import { SavePermissionDeniedError } from './errors';
 import { saveLivePhotoToLibrary } from './LivePhotoNativeModule';
@@ -52,6 +53,17 @@ class PhotoActionsService {
     if (Platform.OS === 'ios' && item.type === 'cloud-only' && item.isLivePhoto && item.pairedVideoRemoteFileId) {
       await this.saveLivePhotoToDevice(item, signal);
       return;
+    }
+
+    if (Platform.OS === 'ios' && item.type === 'cloud-only' && item.isBurst && item.burstGroupId) {
+      const saved = await BurstFetchService.saveBurstToDevice(item, signal);
+      if (saved) {
+        logger.info(`[PhotoActionsService] saveToDevice — burst saved for ${item.id}`);
+        return;
+      }
+      logger.warn(
+        `[PhotoActionsService] saveToDevice — burst save incomplete for ${item.id}, falling through to single save`,
+      );
     }
 
     const uri = await PhotoAssetFetchService.fetchUri(item, signal);
@@ -114,6 +126,14 @@ class PhotoActionsService {
         if (item.pairedVideoRemoteFileId) {
           trashPayload.push({ id: item.pairedVideoRemoteFileId, type: 'file', uuid: item.pairedVideoRemoteFileId });
           cleanupItems.push({ type: 'cloud', assetId: item.pairedVideoRemoteFileId });
+        }
+
+        if (item.isBurst && item.burstGroupId) {
+          const members = await photosLocalDB.getBurstMembers(item.burstGroupId);
+          for (const member of members) {
+            trashPayload.push({ id: member.remoteFileId, type: 'file', uuid: member.remoteFileId });
+            cleanupItems.push({ type: 'cloud', assetId: member.remoteFileId });
+          }
         }
       } else if (item.type === 'local' && item.backupState === 'backed') {
         const itemDbEntry = await photosLocalDB.getStatus(item.id);

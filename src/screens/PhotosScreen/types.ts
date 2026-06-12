@@ -11,6 +11,8 @@ export interface PhotoItem {
   duration?: string;
   uploadProgress?: number;
   isLivePhoto?: boolean;
+  isBurst?: boolean;
+  isBurstUploadIncomplete?: boolean;
 }
 
 export interface CloudPhotoItem {
@@ -27,6 +29,8 @@ export interface CloudPhotoItem {
   isLivePhoto?: boolean;
   // uuid of the paired .mov cloud asset (only present when isLivePhoto = true and on cloud-only items)
   pairedVideoRemoteFileId?: string;
+  isBurst?: boolean;
+  burstGroupId?: string;
 }
 
 export type TimelinePhotoItem = PhotoItem | CloudPhotoItem;
