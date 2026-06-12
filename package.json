@@ -162,7 +162,7 @@
     "jest-expo": "~54.0.16",
     "patch-package": "^8.0.1",
     "path": "^0.12.7",
-    "postcss": "^8.5.6",
+    "postcss": "^8.5.10",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^3.7.4",
     "react-native-svg-transformer": "1.5.2",
