@@ -14,9 +14,11 @@ enum SharedAuthKeychain {
   static let bucketKey = "shared_bucket"
   static let bridgeUserKey = "shared_bridgeUser"
   static let userIdKey = "shared_userId"
+  static let driveBaseUrlKey = "shared_driveBaseUrl"
 
   static let allKeys = [
     photosTokenKey, mnemonicKey, rootFolderIdKey, bucketKey, bridgeUserKey, userIdKey,
+    driveBaseUrlKey,
   ]
 
   static var accessGroup: String? {
