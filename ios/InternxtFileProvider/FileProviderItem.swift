@@ -6,40 +6,188 @@
 //
 
 import FileProvider
+import InternxtSwiftCore
 import UniformTypeIdentifiers
 
 class FileProviderItem: NSObject, NSFileProviderItem {
 
-    // TODO: implement an initializer to create an item from your extension's backing model
-    // TODO: implement the accessors to return the values from your extension's backing model
-    
-    private let identifier: NSFileProviderItemIdentifier
-    
-    init(identifier: NSFileProviderItemIdentifier) {
-        self.identifier = identifier
+  private let identifier: NSFileProviderItemIdentifier
+  private let parent: NSFileProviderItemIdentifier
+  private let name: String
+  private let kind: DriveItemKind
+  private let fileExtension: String?
+  private let updatedAt: String?
+  private let createdAt: String?
+  private let sizeInBytes: String?
+
+  private init(
+    identifier: NSFileProviderItemIdentifier,
+    parent: NSFileProviderItemIdentifier,
+    name: String,
+    kind: DriveItemKind,
+    fileExtension: String?,
+    createdAt: String?,
+    updatedAt: String?,
+    sizeInBytes: String?
+  ) {
+    self.identifier = identifier
+    self.parent = parent
+    self.name = name
+    self.kind = kind
+    self.fileExtension = fileExtension
+    self.createdAt = createdAt
+    self.updatedAt = updatedAt
+    self.sizeInBytes = sizeInBytes
+  }
+
+  convenience init(folder: GetFolderFoldersResult, parent: NSFileProviderItemIdentifier) {
+    self.init(
+      identifier: FileProviderItemID.encode(.folder, uuid: folder.uuid ?? ""),
+      parent: parent,
+      name: folder.plainName ?? folder.name,
+      kind: .folder,
+      fileExtension: nil,
+      createdAt: folder.createdAt,
+      updatedAt: folder.updatedAt,
+      sizeInBytes: nil
+    )
+  }
+
+  convenience init(file: GetFolderFilesResultV2, parent: NSFileProviderItemIdentifier) {
+    self.init(
+      identifier: FileProviderItemID.encode(.file, uuid: file.uuid),
+      parent: parent,
+      name: file.plainName ?? file.name ?? file.uuid,
+      kind: .file,
+      fileExtension: file.type,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
+      sizeInBytes: file.size
+    )
+  }
+
+  static func root(displayName: String) -> FileProviderItem {
+    FileProviderItem(
+      identifier: .rootContainer,
+      parent: .rootContainer,
+      name: displayName,
+      kind: .folder,
+      fileExtension: nil,
+      createdAt: nil,
+      updatedAt: nil,
+      sizeInBytes: nil
+    )
+  }
+
+  convenience init(folderMeta: GetFolderMetaByIdResponse, identifier: NSFileProviderItemIdentifier) {
+    self.init(
+      identifier: identifier,
+      parent: FileProviderItemID.parentIdentifier(folderUuid: folderMeta.parentUuid),
+      name: folderMeta.plainName ?? folderMeta.name ?? identifier.rawValue,
+      kind: .folder,
+      fileExtension: nil,
+      createdAt: folderMeta.createdAt,
+      updatedAt: folderMeta.updatedAt,
+      sizeInBytes: nil
+    )
+  }
+
+  convenience init(fileMeta: GetFileMetaByIdResponse, identifier: NSFileProviderItemIdentifier) {
+    self.init(
+      identifier: identifier,
+      parent: FileProviderItemID.parentIdentifier(folderUuid: fileMeta.folderUuid),
+      name: fileMeta.plainName ?? fileMeta.name,
+      kind: .file,
+      fileExtension: fileMeta.type,
+      createdAt: fileMeta.createdAt,
+      updatedAt: fileMeta.updatedAt,
+      sizeInBytes: fileMeta.size
+    )
+  }
+
+  var itemIdentifier: NSFileProviderItemIdentifier {
+    identifier
+  }
+
+  var parentItemIdentifier: NSFileProviderItemIdentifier {
+    parent
+  }
+
+  var capabilities: NSFileProviderItemCapabilities {
+    switch kind {
+    case .folder:
+      return [.allowsReading, .allowsContentEnumerating]
+    case .file:
+      return [.allowsReading]
     }
-    
-    var itemIdentifier: NSFileProviderItemIdentifier {
-        return identifier
+  }
+
+  var itemVersion: NSFileProviderItemVersion {
+    let version = Data((updatedAt ?? identifier.rawValue).utf8)
+    return NSFileProviderItemVersion(contentVersion: version, metadataVersion: version)
+  }
+
+  var filename: String {
+    guard kind == .file, let fileExtension = fileExtension, !fileExtension.isEmpty else {
+      return name
     }
-    
-    var parentItemIdentifier: NSFileProviderItemIdentifier {
-        return .rootContainer
+    return "\(name).\(fileExtension)"
+  }
+
+  var contentType: UTType {
+    guard kind == .file else { return .folder }
+    if let fileExtension = fileExtension, !fileExtension.isEmpty,
+       let type = UTType(filenameExtension: fileExtension) {
+      return type
     }
-    
-    var capabilities: NSFileProviderItemCapabilities {
-        return [.allowsReading, .allowsWriting, .allowsRenaming, .allowsReparenting, .allowsTrashing, .allowsDeleting]
+    return .data
+  }
+
+  var documentSize: NSNumber? {
+    guard kind == .file, let sizeInBytes = sizeInBytes,
+          let bytes = Int64(sizeInBytes) else {
+      return nil
     }
-    
-    var itemVersion: NSFileProviderItemVersion {
-        NSFileProviderItemVersion(contentVersion: "a content version".data(using: .utf8)!, metadataVersion: "a metadata version".data(using: .utf8)!)
+    return NSNumber(value: bytes)
+  }
+
+  private var isFolder: Bool {
+    kind == .folder
+  }
+
+  var isUploaded: Bool {
+    true
+  }
+
+  var isDownloaded: Bool {
+    isFolder
+  }
+
+  var isMostRecentVersionDownloaded: Bool {
+    isFolder
+  }
+
+  var creationDate: Date? {
+    Self.parseISO8601(createdAt)
+  }
+
+  var contentModificationDate: Date? {
+    Self.parseISO8601(updatedAt)
+  }
+
+  private static let iso8601Formatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
+
+  private static func parseISO8601(_ value: String?) -> Date? {
+    guard let value = value, !value.isEmpty else { return nil }
+    if let date = iso8601Formatter.date(from: value) {
+      return date
     }
-    
-    var filename: String {
-        return identifier.rawValue
-    }
-    
-    var contentType: UTType {
-        return identifier == NSFileProviderItemIdentifier.rootContainer ? .folder : .plainText
-    }
+    let fallback = ISO8601DateFormatter()
+    fallback.formatOptions = [.withInternetDateTime]
+    return fallback.date(from: value)
+  }
 }
