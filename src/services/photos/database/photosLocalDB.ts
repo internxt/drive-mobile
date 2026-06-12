@@ -5,6 +5,8 @@ import cloudAssetTable from './tables/cloud_asset';
 const DB_NAME = 'photos_sync.db';
 
 export type LivePhotoRole = 'photo' | 'paired_video';
+// BURST:
+export type BurstRole = 'representative' | 'member';
 
 export interface CloudAssetEntry {
   remoteFileId: string;
@@ -30,6 +32,8 @@ export interface CloudAssetEntry {
   isLivePhoto?: boolean;
   livePhotoRole?: LivePhotoRole | null;
   pairedRemoteFileId?: string | null;
+  burstRole?: BurstRole | null;
+  burstGroupId?: string | null;
 }
 
 interface CloudAssetRow {
@@ -56,6 +60,8 @@ interface CloudAssetRow {
   is_live_photo: number;
   live_photo_role: LivePhotoRole | null;
   paired_remote_file_id: string | null;
+  burst_role: BurstRole | null;
+  burst_group_id: string | null;
 }
 
 export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted' | 'cloud_deleted';
@@ -82,6 +88,10 @@ export interface AssetSyncEntry {
   isLivePhoto: boolean;
   pairedVideoRemoteFileId: string | null;
   pairedVideoStatus: PairedVideoStatus | null;
+  isBurst: boolean;
+  burstId: string | null;
+  burstMemberRemoteFileIds: string[] | null;
+  burstMemberCount: number | null;
 }
 
 interface AssetSyncRow {
@@ -105,11 +115,23 @@ interface AssetSyncRow {
   is_live_photo: number;
   paired_video_remote_file_id: string | null;
   paired_video_status: PairedVideoStatus | null;
+  is_burst: number;
+  burst_id: string | null;
+  burst_member_remote_file_ids: string | null;
+  burst_member_count: number | null;
 }
 
 export interface SyncedAssetInfo {
   modificationTime: number | null;
   status: 'synced' | 'cloud_deleted';
+}
+
+export interface IncompleteBurstAsset {
+  assetId: string;
+  remoteFileId: string | null;
+  fileName: string | null;
+  creationTime: number | null;
+  modificationTime: number | null;
 }
 
 export interface AssetMediaInfo {
@@ -120,6 +142,8 @@ export interface AssetMediaInfo {
   duration: number;
   mediaType: string;
   isLivePhoto?: boolean;
+  isBurst?: boolean;
+  burstId?: string | null;
 }
 
 const CHUNK_SIZE = 300;
@@ -149,6 +173,8 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
     isLivePhoto: row.is_live_photo === 1,
     livePhotoRole: row.live_photo_role,
     pairedRemoteFileId: row.paired_remote_file_id,
+    burstRole: row.burst_role,
+    burstGroupId: row.burst_group_id,
   };
 };
 
@@ -173,6 +199,10 @@ const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
   isLivePhoto: row.is_live_photo === 1,
   pairedVideoRemoteFileId: row.paired_video_remote_file_id,
   pairedVideoStatus: row.paired_video_status,
+  isBurst: row.is_burst === 1,
+  burstId: row.burst_id,
+  burstMemberRemoteFileIds: row.burst_member_remote_file_ids ? JSON.parse(row.burst_member_remote_file_ids) : null,
+  burstMemberCount: row.burst_member_count,
 });
 
 class PhotosLocalDB {
@@ -188,6 +218,7 @@ class PhotosLocalDB {
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexDevice);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexMonth);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexRole);
+      await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexBurstGroup);
     })();
     return this.initPromise;
   }
@@ -202,6 +233,7 @@ class PhotosLocalDB {
       mediaInfo?.duration ?? null,
       mediaInfo?.mediaType ?? null,
       mediaInfo?.isLivePhoto ? 1 : 0,
+      mediaInfo?.isBurst ? 1 : 0,
     ]);
   }
 
@@ -215,6 +247,7 @@ class PhotosLocalDB {
       mediaInfo?.duration ?? null,
       mediaInfo?.mediaType ?? null,
       mediaInfo?.isLivePhoto ? 1 : 0,
+      mediaInfo?.isBurst ? 1 : 0,
     ]);
   }
 
@@ -406,6 +439,9 @@ class PhotosLocalDB {
       entry.isLivePhoto ? 1 : 0,
       entry.livePhotoRole ?? null,
       entry.pairedRemoteFileId ?? null,
+      // BURST:
+      entry.burstRole ?? null,
+      entry.burstGroupId ?? null,
     ]);
   }
 
@@ -439,6 +475,71 @@ class PhotosLocalDB {
 
   async resetCloudAssets(): Promise<void> {
     await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.reset);
+  }
+
+  /**
+   * Marks a burst representative as synced, storing the uploaded member UUIDs as JSON.
+   *
+   * @param assetId - Local device asset ID of the representative.
+   * @param remoteFileId - Remote file ID assigned after upload.
+   * @param modificationTime - Last modification timestamp of the asset, or `null` if unavailable.
+   * @param burstId - Native burst identifier used to group member photos on device.
+   * @param memberUuids - Remote file IDs of the member photos uploaded in this cycle.
+   * @param memberCount - Total number of member photos in the burst group, or `null` if the group
+   *   is incomplete (e.g. limited photo access prevented uploading all members). A `null` value
+   *   signals the retry pass in `runUploadThunk` to re-attempt member upload on a later cycle.
+   */
+  async markSyncedBurst(
+    assetId: string,
+    remoteFileId: string,
+    modificationTime: number | null,
+    burstId: string,
+    memberUuids: string[],
+    memberCount: number | null,
+  ): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSyncedBurst, [
+      assetId,
+      remoteFileId,
+      modificationTime,
+      burstId,
+      JSON.stringify(memberUuids),
+      memberCount,
+    ]);
+  }
+
+  /**
+   * Returns all member photos for a burst group (used for download and cascade delete).
+   *
+   * @param burstGroupId - The native burst identifier used to group members on device.
+   * @returns A promise resolving to an array of cloud asset entries for the burst members.
+   */
+  async getBurstMembers(burstGroupId: string): Promise<CloudAssetEntry[]> {
+    const rows = await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getBurstMembers, [
+      burstGroupId,
+    ]);
+    return rows.map(rowToCloudAssetEntry);
+  }
+
+  /**
+   * Returns burst representatives whose members haven't been uploaded yet.
+   *
+   * @returns A promise resolving to an array of incomplete burst assets.
+   */
+  async getIncompleteBurstAssets(): Promise<IncompleteBurstAsset[]> {
+    const rows = await sqliteService.getAllAsync<{
+      asset_id: string;
+      remote_file_id: string | null;
+      file_name: string | null;
+      creation_time: number | null;
+      modification_time: number | null;
+    }>(DB_NAME, assetSyncTable.statements.getIncompleteBurstAssets);
+    return rows.map((r) => ({
+      assetId: r.asset_id,
+      remoteFileId: r.remote_file_id,
+      fileName: r.file_name,
+      creationTime: r.creation_time,
+      modificationTime: r.modification_time,
+    }));
   }
 
   async getCloudFetchCacheAge(deviceId: string, year: number, month: number): Promise<number | null> {

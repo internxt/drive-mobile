@@ -11,6 +11,7 @@ import { generateThumbnail } from 'src/services/common/media/thumbnail.generatio
 import { uploadService } from 'src/services/common/network/upload/upload.service';
 import fileSystemService from 'src/services/FileSystemService';
 import { logger } from '../common';
+import { uploadBurstMembersForExistingRepresentative, uploadBurstMembersIfBurst } from './burst/BurstUploadHandler';
 import { FileAlreadyExistsError } from './errors';
 import { getPairedVideoPlainNameFromPhoto, isLivePhotoAsset } from './livePhoto.constants';
 import { exportLivePhotoComponents } from './LivePhotoNativeModule';
@@ -27,7 +28,7 @@ import {
 
 const TEMP_FILE_PREFIX = 'photo_upload_';
 
-interface UploadCredentials {
+export interface UploadCredentials {
   bucketId: string;
   encryptionKey: string;
   bridgeUser: string;
@@ -52,6 +53,7 @@ interface FileUploadResult {
 export interface PhotoUploadResult {
   photoUuid: string;
   pairedVideoUuid?: string;
+  burst?: { burstId: string; memberUuids: string[] };
 }
 
 const resolveLocalPath = async (
@@ -80,7 +82,7 @@ const resolveLocalPath = async (
   return { localPath: stripFileScheme(uri) };
 };
 
-const uploadSingleFile = async (params: {
+export const uploadSingleFile = async (params: {
   localFilePath: string;
   folderUuid: string;
   plainName: string;
@@ -398,7 +400,17 @@ export const PhotoUploadService = {
       fileUploadResult = await uploadAssetToBucket(asset, deviceId, photosBucket, onProgress, signal);
     } catch (err) {
       if (err instanceof FileAlreadyExistsError) {
-        return { photoUuid: err.existingUuid };
+        logger.info(
+          `[PhotoUploadService] FileAlreadyExists path — assetId=${asset.id} existingUuid=${err.existingUuid}`,
+        );
+        const burst = await uploadBurstMembersForExistingRepresentative({
+          asset,
+          deviceId,
+          photosBucket,
+          signal,
+          uploadMember: uploadSingleFile,
+        });
+        return { photoUuid: err.existingUuid, ...(burst ? { burst } : {}) };
       }
       throw err;
     }
@@ -431,7 +443,19 @@ export const PhotoUploadService = {
 
       await uploadThumbnailForAsset(thumbnailSource, fileExtension, photoUuid, credentials);
 
-      return { photoUuid };
+      logger.info(`[PhotoUploadService] BURST block reached — assetId=${asset.id} plainName=${plainName}`);
+      const burst = await uploadBurstMembersIfBurst({
+        assetId: asset.id,
+        representativePlainName: plainName,
+        folderUuid,
+        creationIso,
+        modificationIso,
+        credentials,
+        signal,
+        uploadMember: uploadSingleFile,
+      });
+
+      return { photoUuid, ...(burst ? { burst } : {}) };
     } finally {
       await cleanupTempFile(tempPath);
     }
@@ -572,7 +596,19 @@ export const PhotoUploadService = {
         await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
         photoUuid = driveFile.uuid;
       }
-      return { photoUuid };
+
+      const burst = await uploadBurstMembersIfBurst({
+        assetId: asset.id,
+        representativePlainName: plainName,
+        folderUuid,
+        creationIso,
+        modificationIso,
+        credentials,
+        signal,
+        uploadMember: uploadSingleFile,
+      });
+
+      return { photoUuid, ...(burst ? { burst } : {}) };
     } finally {
       await cleanupTempFile(tempPath);
     }

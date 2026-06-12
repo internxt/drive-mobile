@@ -68,6 +68,12 @@ jest.mock('./PhotoBackupFolders', () => ({
   },
 }));
 
+jest.mock('./database/photosLocalDB', () => ({
+  photosLocalDB: {
+    getStatus: jest.fn().mockResolvedValue(null),
+  },
+}));
+
 const mockGetAssetInfoAsync = MediaLibrary.getAssetInfoAsync as jest.Mock;
 const mockRnfsStat = RNFS.stat as jest.Mock;
 const mockRnfsUnlink = RNFS.unlink as jest.Mock;

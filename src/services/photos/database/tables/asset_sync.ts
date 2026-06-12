@@ -22,15 +22,20 @@ const statements = {
       media_type                  TEXT,
       is_live_photo               INTEGER NOT NULL DEFAULT 0,
       paired_video_remote_file_id TEXT,
-      paired_video_status         TEXT
+      paired_video_status         TEXT,
+      -- BURST: burst photo columns (iOS only). Clean install required when adding these.
+      is_burst                    INTEGER NOT NULL DEFAULT 0,
+      burst_id                    TEXT,
+      burst_member_remote_file_ids TEXT,
+      burst_member_count          INTEGER
     );
   `,
   createIndex: `CREATE INDEX IF NOT EXISTS idx_asset_sync_status ON ${TABLE_NAME}(status);`,
   dropTable: `DROP TABLE IF EXISTS ${TABLE_NAME};`,
 
   markPending: `
-    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type, is_live_photo)
-    VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type, is_live_photo, is_burst)
+    VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(asset_id) DO UPDATE SET
       status        = 'pending',
       file_name     = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
@@ -39,13 +44,15 @@ const statements = {
       height        = COALESCE(excluded.height, ${TABLE_NAME}.height),
       duration      = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
       media_type    = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type),
-      is_live_photo = excluded.is_live_photo
+      is_live_photo = excluded.is_live_photo,
+      -- BURST: persist burst flag from discovery so the upload pass can detect incomplete bursts.
+      is_burst      = excluded.is_burst
     WHERE ${TABLE_NAME}.status != 'synced';
   `,
 
   markPendingEdit: `
-    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type, is_live_photo)
-    VALUES (?, 'pending_edit', ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type, is_live_photo, is_burst)
+    VALUES (?, 'pending_edit', ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(asset_id) DO UPDATE SET
       status        = 'pending_edit',
       file_name     = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
@@ -54,7 +61,9 @@ const statements = {
       height        = COALESCE(excluded.height, ${TABLE_NAME}.height),
       duration      = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
       media_type    = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type),
-      is_live_photo = excluded.is_live_photo
+      is_live_photo = excluded.is_live_photo,
+      -- BURST:
+      is_burst      = excluded.is_burst
     WHERE ${TABLE_NAME}.status = 'synced';
   `,
 
@@ -84,6 +93,23 @@ const statements = {
       paired_video_status         = excluded.paired_video_status;
   `,
 
+  // BURST: marks a burst representative as synced with its member uuids (iOS only).
+  markSyncedBurst: `
+    INSERT INTO ${TABLE_NAME} (asset_id, status, remote_file_id, synced_at, last_attempt_at, modification_time,
+                               is_burst, burst_id, burst_member_remote_file_ids, burst_member_count)
+    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?, ?)
+    ON CONFLICT(asset_id) DO UPDATE SET
+      status                       = 'synced',
+      remote_file_id               = excluded.remote_file_id,
+      synced_at                    = excluded.synced_at,
+      last_attempt_at              = excluded.last_attempt_at,
+      modification_time            = excluded.modification_time,
+      is_burst                     = 1,
+      burst_id                     = excluded.burst_id,
+      burst_member_remote_file_ids = excluded.burst_member_remote_file_ids,
+      burst_member_count           = excluded.burst_member_count;
+  `,
+
   markError: `
     INSERT INTO ${TABLE_NAME} (asset_id, status, error_message, attempt_count, last_attempt_at)
     VALUES (?, 'error', ?, 1, (unixepoch() * 1000))
@@ -103,7 +129,8 @@ const statements = {
     SELECT asset_id, status, remote_file_id, synced_at, error_message, attempt_count,
            created_at, last_attempt_at, modification_time,
            file_name, file_size, creation_time, width, height, duration, media_type,
-           is_live_photo, paired_video_remote_file_id, paired_video_status
+           is_live_photo, paired_video_remote_file_id, paired_video_status,
+           is_burst, burst_id, burst_member_remote_file_ids, burst_member_count
     FROM ${TABLE_NAME} WHERE asset_id = ?;
   `,
   getSyncedInList: (placeholders: string) =>
@@ -137,6 +164,14 @@ const statements = {
     WHERE status = 'synced'
       AND creation_time IS NOT NULL
       AND remote_file_id IS NOT NULL;
+  `,
+
+  getIncompleteBurstAssets: `
+    SELECT asset_id, remote_file_id, file_name, creation_time, modification_time
+    FROM ${TABLE_NAME}
+    WHERE status = 'synced'
+      AND is_burst = 1
+      AND burst_member_count IS NULL;
   `,
 };
 
