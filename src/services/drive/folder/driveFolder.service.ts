@@ -5,6 +5,7 @@ import { FolderAncestor as SdkFolderAncestor } from '@internxt/sdk/dist/drive/st
 import { getHeaders } from '../../../helpers/headers';
 import { ModifiedFolder } from '../../../types/drive/folder';
 import { constants } from '../../AppService';
+import { notifyParentChanged } from '../../native/InternxtSignalingModule';
 
 export type FolderAncestor = SdkFolderAncestor & { parentUuid: string | null };
 
@@ -32,7 +33,12 @@ class DriveFolderService {
       parentFolderUuid: parentFolderId,
       plainName: folderName,
     });
-    return sdkResult ? sdkResult[0] : Promise.reject('createFolder Sdk method did not return a valid result');
+    if (!sdkResult) {
+      throw new Error('Sdk method did not return a valid result');
+    }
+    const folder = await sdkResult[0];
+    void notifyParentChanged(parentFolderId);
+    return folder;
   }
 
   public async checkDuplicatedFolders(parentFolderUuid: string, folderNamesList: string[]) {
