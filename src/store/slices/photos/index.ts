@@ -1,14 +1,14 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import * as Network from 'expo-network';
-import { AbortError } from 'src/network/errors';
+import { Platform } from 'react-native';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
-import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
 import { PhotoDeviceManager } from 'src/services/photos/PhotoDeviceId';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
+import { BurstNativeModule } from 'src/services/photos/burst/BurstNativeModule';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import {
   isPermissionActive,
@@ -18,7 +18,8 @@ import {
 import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
-import { storageSelectors } from '../storage';
+import { runUploadThunk } from './thunks/upload';
+export { runUploadThunk };
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
 export type PhotoSyncStatus =
@@ -213,6 +214,12 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
       await photosLocalDB.init();
       const scannedAssets = await PhotoAssetScanner.scanAll();
       const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync(scannedAssets);
+
+      // BURST: detect which pending assets are burst representatives (iOS only, one batched native call).
+      const allPendingIds = [...newAssets, ...editedAssets].map((a) => a.id);
+      const burstRepresentativeIds = await BurstNativeModule.getBurstRepresentativeIds(allPendingIds);
+      const burstIdSet = new Set(burstRepresentativeIds);
+
       await Promise.all([
         ...newAssets.map((asset) =>
           photosLocalDB.markPending(asset.id, {
@@ -223,6 +230,8 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
             duration: asset.duration,
             mediaType: asset.mediaType,
             isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
+            // BURST:
+            isBurst: burstIdSet.has(asset.id),
           }),
         ),
         ...editedAssets.map((asset) =>
@@ -234,6 +243,8 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
             duration: asset.duration,
             mediaType: asset.mediaType,
             isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
+            // BURST:
+            isBurst: burstIdSet.has(asset.id),
           }),
         ),
       ]);
@@ -251,159 +262,6 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
     } catch (error) {
       logger.error('[Discovery] Failed', { error });
       dispatch(photosSlice.actions.setSyncStatus('error'));
-    }
-  },
-);
-
-type NetworkPauseStatus = 'paused-no-connection' | 'paused-no-wifi' | null;
-
-const evaluateNetworkPause = (
-  state: Network.NetworkState,
-  networkCondition: PhotoNetworkCondition,
-): NetworkPauseStatus => {
-  const hasConnection = state.isConnected !== false && state.type !== Network.NetworkStateType.NONE;
-  if (!hasConnection) {
-    return 'paused-no-connection';
-  }
-  if (networkCondition === 'wifi-only' && state.type !== Network.NetworkStateType.WIFI) {
-    return 'paused-no-wifi';
-  }
-  return null;
-};
-
-export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean } | void, { state: RootState }>(
-  'photos/runUpload',
-  async (args, { getState, dispatch }) => {
-    const bypassEnabled = args?.bypassEnabled ?? false;
-    const { enabled, permissionStatus, deviceId, photosBucket, isPaused, networkCondition } = getState().photos;
-    if (
-      (!enabled && !bypassEnabled) ||
-      !isPermissionActive(permissionStatus) ||
-      !deviceId ||
-      !photosBucket ||
-      isPaused
-    ) {
-      return;
-    }
-    const initialNetworkState = await Network.getNetworkStateAsync();
-    const pauseStatus = evaluateNetworkPause(initialNetworkState, networkCondition);
-    if (pauseStatus) {
-      dispatch(photosSlice.actions.setSyncStatus(pauseStatus));
-      return;
-    }
-    const networkSubscription = Network.addNetworkStateListener((state) => {
-      const pauseStatusSub = evaluateNetworkPause(state, networkCondition);
-      if (pauseStatusSub) {
-        dispatch(photosSlice.actions.setSyncStatus(pauseStatusSub));
-        PhotoUploadQueue.abortAll();
-      }
-    });
-
-    const availableStorage = storageSelectors.availableStorage(getState());
-    if (availableStorage <= 0) {
-      dispatch(photosSlice.actions.pauseForQuotaExceeded());
-      return;
-    }
-    dispatch(photosSlice.actions.setDisabledReason(null));
-
-    const localDBPendingAssets = await photosLocalDB.getPendingAssets();
-    if (localDBPendingAssets.length === 0) {
-      dispatch(photosSlice.actions.setSyncStatus('synced'));
-      return;
-    }
-
-    const pendingAssetIds = localDBPendingAssets.map((asset) => asset.assetId);
-    const resolvedAssets = await PhotoAssetScanner.getAssetsByIds(pendingAssetIds);
-    const assetById = new Map(resolvedAssets.map((a) => [a.id, a]));
-
-    const uploadAssetJobs = localDBPendingAssets.flatMap((dbAsset) => {
-      const asset = assetById.get(dbAsset.assetId);
-      if (!asset) return [];
-      if (dbAsset.status === 'pending_edit') {
-        // TODO: this is temporary, maybe we should store the hash
-        // of the content in the servers to have a more reliable way to
-        // detect edits and avoid re-uploads of edited assets that haven't changed in content
-        if (!dbAsset.remoteFileId)
-          throw new Error(
-            `[Upload] Asset ${dbAsset.assetId} is pending_edit but has no remote_file_id — DB may be corrupted`,
-          );
-        return [{ asset, existingRemoteFileId: dbAsset.remoteFileId }];
-      }
-      return [{ asset }];
-    });
-
-    dispatch(photosSlice.actions.setSyncStatus('uploading'));
-    dispatch(photosSlice.actions.setSessionUploadTotalAssets(uploadAssetJobs.length));
-
-    try {
-      await PhotoUploadQueue.start(uploadAssetJobs, deviceId, photosBucket, {
-        onAssetStart: (assetId) => {
-          dispatch(photosSlice.actions.addUploadingAssetId(assetId));
-        },
-        onAssetProgress: (_, ratio) => {
-          dispatch(photosSlice.actions.setCurrentUploadProgress(ratio));
-        },
-        onAssetDone: async (assetId, result, modificationTime) => {
-          if (result.pairedVideoUuid !== undefined) {
-            await photosLocalDB.markSyncedLivePhoto(
-              assetId,
-              result.photoUuid,
-              modificationTime,
-              result.pairedVideoUuid,
-              'synced',
-            );
-          } else if (result.pairedVideoUuid === undefined && (await photosLocalDB.getStatus(assetId))?.isLivePhoto) {
-            await photosLocalDB.markSyncedLivePhoto(assetId, result.photoUuid, modificationTime, null, 'error');
-          } else {
-            await photosLocalDB.markSynced(assetId, result.photoUuid, modificationTime);
-          }
-          dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-          dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
-          dispatch(photosSlice.actions.incrementSessionUploadedAssets());
-        },
-        onAssetError: async (assetId, error) => {
-          const isQuotaError = (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
-          if (isQuotaError) {
-            dispatch(photosSlice.actions.pauseForQuotaExceeded());
-            dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-            PhotoUploadQueue.abortAll();
-            return;
-          }
-
-          if (error.name === AbortError.errorName) {
-            logger.info(`[Upload] Asset ${assetId} aborted (pause or wifi loss)`);
-            dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-            return;
-          }
-          logger.error(`[Upload] Asset ${assetId} failed: ${error?.message ?? String(error)}`);
-          await photosLocalDB.markError(assetId, error.message);
-          dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-        },
-      });
-    } finally {
-      networkSubscription.remove();
-    }
-
-    const {
-      isPaused: finalIsPaused,
-      disabledReason: finalDisabledReason,
-      syncStatus: finalSyncStatus,
-    } = getState().photos;
-
-    if (finalSyncStatus === 'paused-no-wifi' || finalSyncStatus === 'paused-no-connection') {
-      return;
-    }
-    dispatch(photosSlice.actions.setSyncStatus(finalIsPaused || finalDisabledReason !== null ? 'paused' : 'synced'));
-    dispatch(photosSlice.actions.setCurrentUploadProgress(0));
-
-    if (!finalIsPaused && finalDisabledReason === null) {
-      const remaining = await photosLocalDB.getPendingAssets();
-      if (remaining.length > 0) {
-        // Assets remain pending (e.g. queue was aborted mid-run and user resumed while draining).
-        // runBackupCycleThunk was skipped by the 'pausing' guard — restart it now.
-        logger.info(`[Upload] ${remaining.length} pending assets remain after queue — restarting cycle`);
-        dispatch(runBackupCycleThunk());
-      }
     }
   },
 );
@@ -450,8 +308,11 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
 
     await dispatch(runDiscoveryThunk()).unwrap();
     const pending = getState().photos.pendingBackupAssets;
-    if (pending > 0) {
-      logger.info(`[ForceRefresh] Discovery found ${pending} pending assets — starting upload`);
+    const incompleteBursts = Platform.OS === 'ios' ? await photosLocalDB.getIncompleteBurstAssets() : [];
+    if (pending > 0 || incompleteBursts.length > 0) {
+      logger.info(
+        `[ForceRefresh] Discovery found ${pending} pending assets, ${incompleteBursts.length} incomplete bursts — starting upload`,
+      );
       await dispatch(runUploadThunk()).unwrap();
     } else {
       logger.info('[ForceRefresh] Discovery complete — no pending assets');
