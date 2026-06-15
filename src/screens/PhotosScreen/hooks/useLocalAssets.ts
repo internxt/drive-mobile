@@ -35,9 +35,10 @@ export const useLocalAssets = (): LocalAssetsResult => {
   const isLoadingMoreRef = useRef(false);
   const appStateRef = useRef(AppState.currentState);
 
-  const { syncStatus, uploadingAssetIds, sessionUploadedAssets, isFetchingCloudHistory } = useAppSelector(
-    (state) => state.photos,
-  );
+  const syncStatus = useAppSelector((state) => state.photos.syncStatus);
+  const uploadingAssetIds = useAppSelector((state) => state.photos.uploadingAssetIds);
+  const sessionUploadedAssets = useAppSelector((state) => state.photos.sessionUploadedAssets);
+  const isFetchingCloudHistory = useAppSelector((state) => state.photos.isFetchingCloudHistory);
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
 

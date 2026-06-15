@@ -9,7 +9,6 @@ export interface PhotoItem {
   backupState: PhotoBackupState;
   mediaType: PhotoMediaType;
   duration?: string;
-  uploadProgress?: number;
   isLivePhoto?: boolean;
   isBurst?: boolean;
   isBurstUploadIncomplete?: boolean;

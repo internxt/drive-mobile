@@ -55,7 +55,8 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const { isEnabled: isScreenProtectionEnabled, setScreenProtection } = useScreenProtection();
   useLanguage();
 
-  const { enabled: photosEnabled, networkCondition } = useAppSelector((state) => state.photos);
+  const photosEnabled = useAppSelector((state) => state.photos.enabled);
+  const networkCondition = useAppSelector((state) => state.photos.networkCondition);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
   const profileAvatar = useProfileAvatar();

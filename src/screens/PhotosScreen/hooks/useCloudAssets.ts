@@ -11,7 +11,8 @@ export interface CloudAssetsResult {
 
 export const useCloudAssets = (): CloudAssetsResult => {
   const [cloudItems, setCloudItems] = useState<CloudPhotoItem[]>([]);
-  const { cloudFetchRevision, sessionUploadedAssets } = useAppSelector((state) => state.photos);
+  const cloudFetchRevision = useAppSelector((state) => state.photos.cloudFetchRevision);
+  const sessionUploadedAssets = useAppSelector((state) => state.photos.sessionUploadedAssets);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const reloadCloudFromDB = useCallback(async () => {

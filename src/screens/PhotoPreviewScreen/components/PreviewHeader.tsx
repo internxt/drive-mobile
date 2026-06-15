@@ -8,6 +8,7 @@ import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
 import { useItemTimestamp } from '../hooks/useItemTimestamp';
+import { useLiveBackupStatus } from '../hooks/useLiveBackupStatus';
 import { formatHeaderDate, formatHeaderTime } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
@@ -61,12 +62,7 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
 
-  const isLocalAsset = item?.type === 'local';
-  const isWaitingToUpload = isLocalAsset && item.backupState === 'not-backed';
-  // TODO: uploadProgress is never populated in the photos backup flow (PhotoUploadService does not write it to the store).
-  // To wire it up: write progress (0–1) from the upload slice into the PhotoItem, and it will render here automatically.
-  const isUploading = isLocalAsset && item.backupState === 'uploading';
-  const uploadProgress = isLocalAsset ? (item.uploadProgress ?? 0) : 0;
+  const { isWaitingToUpload, isUploading, progress: uploadProgress } = useLiveBackupStatus(item);
   const timestamp = useItemTimestamp(item);
   const hasTimeAccuracy = !!timestamp;
 

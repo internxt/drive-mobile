@@ -38,7 +38,8 @@ const PhotosScreen = (): JSX.Element => {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<TabExplorerScreenNavigationProp<'Photos'>>();
-  const { enabled, permissionStatus } = useAppSelector((state) => state.photos);
+  const enabled = useAppSelector((state) => state.photos.enabled);
+  const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
   const [isEnableBackupSheetOpen, setIsEnableBackupSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud } = usePhotosTimeline();
