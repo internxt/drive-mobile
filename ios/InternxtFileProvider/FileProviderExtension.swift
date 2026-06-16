@@ -93,7 +93,9 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         let parentIdentifier = itemTemplate.parentItemIdentifier
         let uploadService = FileProviderUploadService(driveAPI: driveAPI, networkFacade: networkFacade)
 
-        if itemTemplate.contentType?.conforms(to: .folder) == true {
+        let isFolder = itemTemplate.contentType?.conforms(to: .folder) == true
+
+        if isFolder {
             return createFolder(
                 name: itemTemplate.filename,
                 parentUuid: parentUuid,
@@ -180,23 +182,14 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     }
 
     func modifyItem(_ item: NSFileProviderItem, baseVersion version: NSFileProviderItemVersion, changedFields: NSFileProviderItemFields, contents newContents: URL?, options: NSFileProviderModifyItemOptions = [], request: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
-        if changedFields.contains(.contents) || changedFields.contains(.parentItemIdentifier) {
+        let shouldRename = changedFields.contains(.filename)
+        let shouldMove = changedFields.contains(.parentItemIdentifier)
+
+        guard shouldRename || shouldMove else {
             completionHandler(item, [], false, nil)
             return Progress()
         }
 
-        if changedFields.contains(.filename) {
-            return renameItem(item, completionHandler: completionHandler)
-        }
-
-        completionHandler(item, [], false, nil)
-        return Progress()
-    }
-
-    private func renameItem(
-        _ item: NSFileProviderItem,
-        completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void
-    ) -> Progress {
         guard let driveAPI = DriveAPIFactory.make() else {
             completionHandler(nil, [], false, NSFileProviderError(.notAuthenticated))
             return Progress()
@@ -207,15 +200,31 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             return Progress()
         }
 
+        var destinationFolderUuid: String?
+        if shouldMove {
+            guard let resolved = FileProviderItemID.folderUuid(for: item.parentItemIdentifier) else {
+                completionHandler(nil, [], false, NSFileProviderError(.noSuchItem))
+                return Progress()
+            }
+            destinationFolderUuid = resolved
+        }
+
         let mutationService = FileProviderMutationService(driveAPI: driveAPI)
         let newFilename = item.filename
         let progress = Progress(totalUnitCount: 1)
         Task {
             do {
-                try await mutationService.rename(decoded, to: newFilename)
+                if shouldRename {
+                    try await mutationService.rename(decoded, to: newFilename)
+                }
+                if let destinationFolderUuid {
+                    try await mutationService.move(decoded, toParentUuid: destinationFolderUuid)
+                }
                 progress.completedUnitCount = 1
-                let renamed = FileProviderItem.renamed(from: item, newFilename: newFilename) ?? item
-                completionHandler(renamed, [], false, nil)
+                let modified = shouldRename
+                    ? (FileProviderItem.renamed(from: item, newFilename: newFilename) ?? item)
+                    : item
+                completionHandler(modified, [], false, nil)
             } catch {
                 completionHandler(nil, [], false, FileProviderErrorMapper.lookupError(from: error))
             }
@@ -224,10 +233,28 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     }
 
     func deleteItem(identifier: NSFileProviderItemIdentifier, baseVersion version: NSFileProviderItemVersion, options: NSFileProviderDeleteItemOptions = [], request: NSFileProviderRequest, completionHandler: @escaping (Error?) -> Void) -> Progress {
-        // TODO: an item was deleted on disk, process the item's deletion
+        guard let driveAPI = DriveAPIFactory.make(), let trashAPI = DriveAPIFactory.makeTrash() else {
+            completionHandler(NSFileProviderError(.notAuthenticated))
+            return Progress()
+        }
 
-        completionHandler(NSError(domain: NSCocoaErrorDomain, code: NSFeatureUnsupportedError, userInfo:[:]))
-        return Progress()
+        guard let decoded = FileProviderItemID.decode(identifier) else {
+            completionHandler(NSFileProviderError(.noSuchItem))
+            return Progress()
+        }
+
+        let mutationService = FileProviderMutationService(driveAPI: driveAPI, trashAPI: trashAPI)
+        let progress = Progress(totalUnitCount: 1)
+        Task {
+            do {
+                try await mutationService.trash(decoded)
+                progress.completedUnitCount = 1
+                completionHandler(nil)
+            } catch {
+                completionHandler(FileProviderErrorMapper.lookupError(from: error))
+            }
+        }
+        return progress
     }
 
     func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier, request: NSFileProviderRequest) throws -> NSFileProviderEnumerator {

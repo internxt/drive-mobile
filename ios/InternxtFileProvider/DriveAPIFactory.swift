@@ -15,4 +15,18 @@ enum DriveAPIFactory {
       clientVersion: SharedKeychainCredentials.clientVersion
     )
   }
+
+  static func makeTrash() -> TrashAPI? {
+    guard let authToken = SharedKeychainCredentials.string(SharedAuthKeychain.photosTokenKey),
+          let baseUrl = SharedKeychainCredentials.string(SharedAuthKeychain.driveBaseUrlKey) else {
+      return nil
+    }
+
+    return TrashAPI(
+      baseUrl: baseUrl,
+      authToken: authToken,
+      clientName: SharedKeychainCredentials.clientName,
+      clientVersion: SharedKeychainCredentials.clientVersion
+    )
+  }
 }
