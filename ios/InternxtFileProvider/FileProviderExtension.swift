@@ -12,36 +12,9 @@ import UniformTypeIdentifiers
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     private let rootDisplayName: String
 
-    private enum FriendlyError {
-        static let offlineDescription = "No internet connection"
-        static let offlineReason = "Connect to the internet and try again to upload to Internxt Drive."
-        static let notAuthenticatedDescription = "Sign in required"
-        static let notAuthenticatedReason = "Open the Internxt app and sign in to continue."
-        static let genericDescription = "Couldn’t complete the operation"
-        static let genericReason = "Something went wrong with Internxt Drive. Please try again."
-    }
-
     required init(domain: NSFileProviderDomain) {
         self.rootDisplayName = domain.displayName
         super.init()
-    }
-
-    private static func fileProviderError(_ code: NSFileProviderError.Code, description: String, reason: String? = nil) -> NSError {
-        var userInfo: [String: Any] = [NSLocalizedDescriptionKey: description]
-        userInfo[NSLocalizedFailureReasonErrorKey] = reason ?? description
-        return NSError(domain: NSFileProviderError.errorDomain, code: code.rawValue, userInfo: userInfo)
-    }
-
-    private static var offlineError: NSError {
-        fileProviderError(.serverUnreachable, description: FriendlyError.offlineDescription, reason: FriendlyError.offlineReason)
-    }
-
-    private static var notAuthenticatedError: NSError {
-        fileProviderError(.notAuthenticated, description: FriendlyError.notAuthenticatedDescription, reason: FriendlyError.notAuthenticatedReason)
-    }
-
-    private static var noSuchItemError: NSError {
-        fileProviderError(.noSuchItem, description: FriendlyError.genericDescription, reason: FriendlyError.genericReason)
     }
 
     func invalidate() {
@@ -56,12 +29,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         }
 
         guard let decoded = FileProviderItemID.decode(identifier) else {
-            completionHandler(nil, Self.noSuchItemError)
+            completionHandler(nil, NSFileProviderError(.noSuchItem))
             return Progress()
         }
 
         guard let driveAPI = DriveAPIFactory.make() else {
-            completionHandler(nil, Self.notAuthenticatedError)
+            completionHandler(nil, NSFileProviderError(.notAuthenticated))
             return Progress()
         }
 
@@ -111,12 +84,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
 
     private func lookupError(from error: Error) -> Error {
         if isUnauthorized(error) {
-            return Self.notAuthenticatedError
+            return NSFileProviderError(.notAuthenticated)
         }
         if isOffline(error) {
-            return Self.offlineError
+            return NSFileProviderError(.serverUnreachable)
         }
-        return Self.noSuchItemError
+        return NSFileProviderError(.noSuchItem)
     }
 
     private func isUnauthorized(_ error: Error) -> Bool {
@@ -156,12 +129,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
 
     func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version requestedVersion: NSFileProviderItemVersion?, request: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
         guard let decoded = FileProviderItemID.decode(itemIdentifier), decoded.kind == .file else {
-            completionHandler(nil, nil, Self.noSuchItemError)
+            completionHandler(nil, nil, NSFileProviderError(.noSuchItem))
             return Progress()
         }
 
         guard let driveAPI = DriveAPIFactory.make(), let networkFacade = NetworkFacadeFactory.make() else {
-            completionHandler(nil, nil, Self.notAuthenticatedError)
+            completionHandler(nil, nil, NSFileProviderError(.notAuthenticated))
             return Progress()
         }
 
@@ -197,12 +170,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     
     func createItem(basedOn itemTemplate: NSFileProviderItem, fields: NSFileProviderItemFields, contents url: URL?, options: NSFileProviderCreateItemOptions = [], request: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
         guard let driveAPI = DriveAPIFactory.make(), let networkFacade = NetworkFacadeFactory.make() else {
-            completionHandler(nil, [], false, Self.notAuthenticatedError)
+            completionHandler(nil, [], false, NSFileProviderError(.notAuthenticated))
             return Progress()
         }
 
         guard let parentUuid = FileProviderItemID.folderUuid(for: itemTemplate.parentItemIdentifier) else {
-            completionHandler(nil, [], false, Self.noSuchItemError)
+            completionHandler(nil, [], false, NSFileProviderError(.noSuchItem))
             return Progress()
         }
 
@@ -219,7 +192,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         }
 
         guard let contentsURL = url else {
-            completionHandler(nil, [], false, Self.noSuchItemError)
+            completionHandler(nil, [], false, NSFileProviderError(.noSuchItem))
             return Progress()
         }
 
@@ -272,11 +245,11 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             do {
                 let meta = try await driveAPI.getFolderMetaByUuid(uuid: parentUuid)
                 guard let bucket = try await Self.resolveBucket(parentMeta: meta, driveAPI: driveAPI) else {
-                    completionHandler(nil, [], false, Self.notAuthenticatedError)
+                    completionHandler(nil, [], false, NSFileProviderError(.notAuthenticated))
                     return
                 }
                 guard let input = InputStream(url: contentsURL) else {
-                    completionHandler(nil, [], false, Self.noSuchItemError)
+                    completionHandler(nil, [], false, NSFileProviderError(.noSuchItem))
                     return
                 }
 
@@ -351,12 +324,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void
     ) -> Progress {
         guard let driveAPI = DriveAPIFactory.make() else {
-            completionHandler(nil, [], false, Self.notAuthenticatedError)
+            completionHandler(nil, [], false, NSFileProviderError(.notAuthenticated))
             return Progress()
         }
 
         guard let decoded = FileProviderItemID.decode(item.itemIdentifier) else {
-            completionHandler(nil, [], false, Self.noSuchItemError)
+            completionHandler(nil, [], false, NSFileProviderError(.noSuchItem))
             return Progress()
         }
 
