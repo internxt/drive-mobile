@@ -26,13 +26,32 @@ enum FileProviderErrorMapper {
     ]
 
     static func lookupError(from error: Error) -> Error {
+        if let alreadyMapped = error as? NSFileProviderError {
+            return alreadyMapped
+        }
         if isUnauthorized(error) {
             return NSFileProviderError(.notAuthenticated)
         }
         if isOffline(error) {
             return NSFileProviderError(.serverUnreachable)
         }
+        if isNameCollision(error) {
+            return NSFileProviderError(.filenameCollision)
+        }
         return NSFileProviderError(.noSuchItem)
+    }
+
+    static func isNameCollision(_ error: Error) -> Bool {
+        if let enriched = error as? EnrichedError {
+            if let cause = enriched.cause {
+                return isNameCollision(cause)
+            }
+            return false
+        }
+        if let apiError = error as? APIClientError {
+            return apiError.statusCode == 409
+        }
+        return false
     }
 
     static func isUnauthorized(_ error: Error) -> Bool {
