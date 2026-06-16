@@ -66,6 +66,63 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     )
   }
 
+  convenience init(folder: CreateFolderResponseNew, parent: NSFileProviderItemIdentifier) {
+    self.init(
+      identifier: FileProviderItemID.encode(.folder, uuid: folder.uuid),
+      parent: parent,
+      name: folder.plainName ?? folder.name,
+      kind: .folder,
+      fileExtension: nil,
+      createdAt: folder.createdAt,
+      updatedAt: folder.updatedAt,
+      sizeInBytes: nil
+    )
+  }
+
+  convenience init(file: CreateFileResponseNew, parent: NSFileProviderItemIdentifier) {
+    self.init(
+      identifier: FileProviderItemID.encode(.file, uuid: file.uuid),
+      parent: parent,
+      name: file.plain_name,
+      kind: .file,
+      fileExtension: file.type,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
+      sizeInBytes: file.size
+    )
+  }
+
+  static func renamed(from item: NSFileProviderItem, newFilename: String) -> FileProviderItem? {
+    guard let decoded = FileProviderItemID.decode(item.itemIdentifier) else { return nil }
+    let (baseName, newExtension) = splitNameExtension(newFilename, kind: decoded.kind)
+    return FileProviderItem(
+      identifier: item.itemIdentifier,
+      parent: item.parentItemIdentifier,
+      name: baseName,
+      kind: decoded.kind,
+      fileExtension: newExtension,
+      createdAt: iso8601String(from: item.creationDate ?? nil),
+      updatedAt: iso8601String(from: item.contentModificationDate ?? nil),
+      sizeInBytes: (item.documentSize ?? nil)?.stringValue
+    )
+  }
+
+  private static func iso8601String(from date: Date?) -> String? {
+    guard let date = date else { return nil }
+    return iso8601Formatter.string(from: date)
+  }
+
+  static func splitNameExtension(_ filename: String, kind: DriveItemKind) -> (base: String, fileExtension: String?) {
+    guard kind == .file else { return (filename, nil) }
+    let url = URL(fileURLWithPath: filename)
+    let fileExtension = url.pathExtension
+    let base = url.deletingPathExtension().lastPathComponent
+    if fileExtension.isEmpty || base.isEmpty {
+      return (filename, nil)
+    }
+    return (base, fileExtension)
+  }
+
   static func root(displayName: String) -> FileProviderItem {
     FileProviderItem(
       identifier: .rootContainer,
@@ -116,9 +173,9 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   var capabilities: NSFileProviderItemCapabilities {
     switch kind {
     case .folder:
-      return [.allowsReading, .allowsContentEnumerating]
+      return [.allowsReading, .allowsContentEnumerating, .allowsAddingSubItems, .allowsRenaming]
     case .file:
-      return [.allowsReading]
+      return [.allowsReading, .allowsRenaming]
     }
   }
 
