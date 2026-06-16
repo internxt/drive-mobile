@@ -26,6 +26,10 @@
 		AB1D47712F87A94000E14783 /* DriveAPIFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */; };
 		AB1D47802F87A94000E14783 /* NetworkFacadeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */; };
 		AB1D47812F87A94000E14783 /* SharedKeychainCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */; };
+		AB1D47902F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */; };
+		AB1D47922F87A94000E14783 /* FileProviderUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47932F87A94000E14783 /* FileProviderUploadService.swift */; };
+		AB1D47942F87A94000E14783 /* FileProviderDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47952F87A94000E14783 /* FileProviderDownloadService.swift */; };
+		AB1D47962F87A94000E14783 /* FileProviderMutationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47972F87A94000E14783 /* FileProviderMutationService.swift */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
 		DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */; };
 		DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
@@ -102,6 +106,10 @@
 		AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveAPIFactory.swift; sourceTree = "<group>"; };
 		AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkFacadeFactory.swift; sourceTree = "<group>"; };
 		AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedKeychainCredentials.swift; sourceTree = "<group>"; };
+		AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderErrorMapper.swift; sourceTree = "<group>"; };
+		AB1D47932F87A94000E14783 /* FileProviderUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderUploadService.swift; sourceTree = "<group>"; };
+		AB1D47952F87A94000E14783 /* FileProviderDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderDownloadService.swift; sourceTree = "<group>"; };
+		AB1D47972F87A94000E14783 /* FileProviderMutationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderMutationService.swift; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BD55E1E535AECF7719BDD772 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		D0A0CA179360CA52F0B5054A /* libPods-InternxtShareExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtShareExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -267,6 +275,10 @@
 				DE1D47632F87A94000E14783 /* FileProviderExtension.swift */,
 				DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */,
 				DE1D47652F87A94000E14783 /* FileProviderItem.swift */,
+				AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */,
+				AB1D47932F87A94000E14783 /* FileProviderUploadService.swift */,
+				AB1D47952F87A94000E14783 /* FileProviderDownloadService.swift */,
+				AB1D47972F87A94000E14783 /* FileProviderMutationService.swift */,
 				AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */,
 				AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */,
 				AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */,
@@ -706,6 +718,10 @@
 				DE1D47602F87A94000E14783 /* FileProviderExtension.swift in Sources */,
 				DE1D47612F87A94000E14783 /* FileProviderEnumerator.swift in Sources */,
 				DE1D47622F87A94000E14783 /* FileProviderItem.swift in Sources */,
+				AB1D47902F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */,
+				AB1D47922F87A94000E14783 /* FileProviderUploadService.swift in Sources */,
+				AB1D47942F87A94000E14783 /* FileProviderDownloadService.swift in Sources */,
+				AB1D47962F87A94000E14783 /* FileProviderMutationService.swift in Sources */,
 				AB1D47702F87A94000E14783 /* FileProviderItemIdentifier.swift in Sources */,
 				AB1D47712F87A94000E14783 /* DriveAPIFactory.swift in Sources */,
 				AB1D47802F87A94000E14783 /* NetworkFacadeFactory.swift in Sources */,
