@@ -173,9 +173,9 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   var capabilities: NSFileProviderItemCapabilities {
     switch kind {
     case .folder:
-      return [.allowsReading, .allowsContentEnumerating, .allowsAddingSubItems, .allowsRenaming]
+      return [.allowsReading, .allowsContentEnumerating, .allowsAddingSubItems, .allowsRenaming, .allowsReparenting, .allowsDeleting]
     case .file:
-      return [.allowsReading, .allowsRenaming]
+      return [.allowsReading, .allowsRenaming, .allowsReparenting, .allowsDeleting]
     }
   }
 
