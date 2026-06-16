@@ -32,27 +32,27 @@ final class FileProviderErrorMapperTests: XCTestCase {
         XCTAssertEqual(mapped.code, expected.rawValue, file: file, line: line)
     }
 
-    func test_whenEnrichedApiUnauthorized_thenNotAuthenticated() {
+    func testWhenEnrichedApiUnauthorizedThenNotAuthenticated() {
         assertCode(enriched(.apiUnauthorized), .notAuthenticated)
     }
 
-    func test_whenApiClientError401_thenNotAuthenticated() {
+    func testWhenApiClientError401ThenNotAuthenticated() {
         assertCode(apiError(statusCode: 401), .notAuthenticated)
     }
 
-    func test_whenEnrichedCauseIsUnauthorized_thenNotAuthenticated() {
+    func testWhenEnrichedCauseIsUnauthorizedThenNotAuthenticated() {
         let nested = enriched(.downloadInfoFailed, cause: apiError(statusCode: 401))
         assertCode(nested, .notAuthenticated)
     }
 
-    func test_whenDeeplyNestedCauseIsUnauthorized_thenNotAuthenticated() {
+    func testWhenDeeplyNestedCauseIsUnauthorizedThenNotAuthenticated() {
         let leaf = enriched(.apiUnauthorized)
         let middle = enriched(.downloadMirrorsFailed, cause: leaf)
         let root = enriched(.downloadFailed, cause: middle)
         assertCode(root, .notAuthenticated)
     }
 
-    func test_whenEnrichedNetworkCodes_thenServerUnreachable() {
+    func testWhenEnrichedNetworkCodesThenServerUnreachable() {
         let offlineCodes: [ErrorCode] = [
             .networkNoConnection,
             .networkConnectionLost,
@@ -64,13 +64,13 @@ final class FileProviderErrorMapperTests: XCTestCase {
         }
     }
 
-    func test_whenApiClientErrorStatusCodeZeroOrNegative_thenServerUnreachable() {
+    func testWhenApiClientErrorStatusCodeZeroOrNegativeThenServerUnreachable() {
         for statusCode in [0, -1, -2] {
             assertCode(apiError(statusCode: statusCode), .serverUnreachable)
         }
     }
 
-    func test_whenURLErrorOfflineCodes_thenServerUnreachable() {
+    func testWhenURLErrorOfflineCodesThenServerUnreachable() {
         let offlineURLCodes: [URLError.Code] = [
             .notConnectedToInternet,
             .networkConnectionLost,
@@ -84,20 +84,20 @@ final class FileProviderErrorMapperTests: XCTestCase {
         }
     }
 
-    func test_whenEnrichedCauseIsOfflineURLError_thenServerUnreachable() {
+    func testWhenEnrichedCauseIsOfflineURLErrorThenServerUnreachable() {
         let nested = enriched(.downloadInfoFailed, cause: URLError(.notConnectedToInternet))
         assertCode(nested, .serverUnreachable)
     }
 
-    func test_whenUnknownEnrichedCodeWithoutCause_thenNoSuchItem() {
+    func testWhenUnknownEnrichedCodeWithoutCauseThenNoSuchItem() {
         assertCode(enriched(.apiNotFound), .noSuchItem)
     }
 
-    func test_whenApiClientErrorNonAuthPositiveStatus_thenNoSuchItem() {
+    func testWhenApiClientErrorNonAuthPositiveStatusThenNoSuchItem() {
         assertCode(apiError(statusCode: 500), .noSuchItem)
     }
 
-    func test_whenUnrelatedError_thenNoSuchItem() {
+    func testWhenUnrelatedErrorThenNoSuchItem() {
         assertCode(URLError(.badURL), .noSuchItem)
     }
 }
