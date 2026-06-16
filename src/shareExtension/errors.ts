@@ -1,4 +1,5 @@
 export { EmptyFileNotAllowedError, isEmptyFilePlanError } from '../services/drive/file/utils/emptyFileErrors';
+export { FileSizeExceededError, isFileSizeExceededError } from '../services/drive/file/utils/fileSizeErrors';
 
 export class HttpUploadError extends Error {
   constructor(

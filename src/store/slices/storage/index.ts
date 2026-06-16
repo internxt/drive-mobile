@@ -8,12 +8,18 @@ import { driveThunks } from '../drive';
 export interface StorageState {
   limit: number;
   totalUsage: number;
+  maxUploadFileSize: number;
+  maxUploadFileSizeFetchedAt: number;
 }
 
 const initialState: StorageState = {
   limit: 0,
   totalUsage: 0,
+  maxUploadFileSize: 0,
+  maxUploadFileSizeFetchedAt: 0,
 };
+
+const MAX_UPLOAD_FILE_SIZE_TTL_MS = 60_000;
 
 const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
   'storage/initialize',
@@ -23,6 +29,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     if (user) {
       dispatch(loadLimitThunk());
       dispatch(loadStorageUsageThunk());
+      dispatch(loadMaxUploadFileSizeThunk());
     }
   },
 );
@@ -30,6 +37,22 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
 const loadLimitThunk = createAsyncThunk<number, void, { state: RootState }>('storage/loadLimit', async () => {
   return storageService.loadLimit();
 });
+
+const loadMaxUploadFileSizeThunk = createAsyncThunk<number, void, { state: RootState }>(
+  'storage/loadMaxUploadFileSize',
+  async () => {
+    return storageService.loadMaxUploadFileSize();
+  },
+);
+
+const ensureMaxUploadFileSizeFresh = createAsyncThunk<void, void, { state: RootState }>(
+  'storage/ensureMaxUploadFileSizeFresh',
+  async (_, { dispatch, getState }) => {
+    const { maxUploadFileSizeFetchedAt } = getState().storage;
+    if (Date.now() - maxUploadFileSizeFetchedAt < MAX_UPLOAD_FILE_SIZE_TTL_MS) return;
+    await dispatch(loadMaxUploadFileSizeThunk()).unwrap();
+  },
+);
 
 const loadStorageUsageThunk = createAsyncThunk<void, void, { state: RootState }>(
   'storage/loadUsage',
@@ -73,6 +96,10 @@ export const storageSlice = createSlice({
     builder.addCase(loadLimitThunk.fulfilled, (state, action) => {
       state.limit = action.payload;
     });
+    builder.addCase(loadMaxUploadFileSizeThunk.fulfilled, (state, action) => {
+      state.maxUploadFileSize = action.payload;
+      state.maxUploadFileSizeFetchedAt = Date.now();
+    });
   },
 });
 
@@ -82,6 +109,7 @@ export const storageSelectors = {
     return state.storage.limit - state.drive.usage;
   },
   usagePercent: (state: RootState) => Math.round((state.drive.usage / state.storage.limit) * 100),
+  maxUploadFileSize: (state: RootState) => state.storage.maxUploadFileSize,
 };
 
 export const storageActions = storageSlice.actions;
@@ -90,6 +118,8 @@ export const storageThunks = {
   initializeThunk,
   loadLimitThunk,
   loadStorageUsageThunk,
+  loadMaxUploadFileSizeThunk,
+  ensureMaxUploadFileSizeFresh,
 };
 
 export default storageSlice.reducer;

@@ -21,7 +21,15 @@ import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'r
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
-import { EmptyFileNotAllowedError, isEmptyFilePlanError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
+import {
+  EmptyFileNotAllowedError,
+  isEmptyFilePlanError,
+} from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
+import {
+  FileSizeExceededError,
+  isFileSizeExceededError,
+  notifyFilesExcludedBySize,
+} from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import drive from '@internxt-mobile/services/drive';
 import {
   generateFileName,
@@ -40,7 +48,7 @@ import {
 } from 'phosphor-react-native';
 import uuid from 'react-native-uuid';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
-import { storageSelectors } from 'src/store/slices/storage';
+import { storageSelectors, storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { isValidFilename } from '../../../helpers';
@@ -54,7 +62,6 @@ import {
   handleDuplicateFiles,
   initializeUploads,
   prepareUploadFiles,
-  showFileSizeAlert,
   uploadSingleFile,
   validateAndFilterFiles,
 } from '../../../services/drive/file/utils/uploadFileUtils';
@@ -67,7 +74,7 @@ import { NotificationType, ProgressCallback } from '../../../types';
 import { DriveEventKey } from '../../../types/drive/events';
 import { useFolderUpload } from './hooks/useFolderUpload';
 
-import { DocumentPickerFile, UPLOAD_FILE_SIZE_LIMIT, UploadingFile } from '../../../types/drive/operations';
+import { DocumentPickerFile, UploadingFile } from '../../../types/drive/operations';
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 import CreateFolderModal from '../CreateFolderModal';
@@ -86,6 +93,7 @@ function AddModal(): JSX.Element {
 
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
+  const maxUploadFileSize = useAppSelector(storageSelectors.maxUploadFileSize);
   const user = useAppSelector((state) => state.auth.user);
   const { handleUploadFolder, nameCollisionModal } = useFolderUpload({ uploadAndCreateFileEntry });
 
@@ -126,6 +134,7 @@ function AddModal(): JSX.Element {
     progressCallback: ProgressCallback,
   ) {
     const name = fileToUpload.name || drive.file.getNameFromUri(fileToUpload.uri);
+    const fileExtension = fileToUpload.type;
     const destPath = fileSystemService.tmpFilePath(name);
 
     await fileSystemService.copyFile(fileToUpload.uri, destPath);
@@ -143,7 +152,6 @@ function AddModal(): JSX.Element {
         throw new Error('Storage permissions not granted');
       }
     }
-    const fileExtension = fileToUpload.type;
 
     const createdFileEntry = await uploadAndCreateFileEntry(
       destPath,
@@ -161,13 +169,9 @@ function AddModal(): JSX.Element {
     return createdFileEntry;
   }
 
-  const checkFileSizeLimitToUpload = (fileSize: number, fileName: string) => {
-    if (fileSize >= UPLOAD_FILE_SIZE_LIMIT) {
-      const messageKey = strings.messages.uploadFileLimitName;
-
-      const alertText = strings.formatString(messageKey, fileName).toString();
-      Alert.alert(strings.messages.limitPerFile, alertText);
-      throw new Error(`File ${fileName} exceeds upload size limit`);
+  const checkFileSizeLimitToUpload = (fileSize: number) => {
+    if (maxUploadFileSize > 0 && fileSize > maxUploadFileSize) {
+      throw new FileSizeExceededError();
     }
     return true;
   };
@@ -194,7 +198,7 @@ function AddModal(): JSX.Element {
     const fileStat = await fileSystemService.stat(filePath);
     // Fix for Android, native document picker not returns the correct fileSize when file is big
     // and cannnot get the stat before we got the file in temporary path
-    checkFileSizeLimitToUpload(fileStat.size, fileName);
+    checkFileSizeLimitToUpload(fileStat.size);
 
     const fileSize = fileStat.size;
 
@@ -220,6 +224,7 @@ function AddModal(): JSX.Element {
         return { ...entry, thumbnails: [] } as DriveFileData;
       } catch (err) {
         if (isEmptyFilePlanError(err)) throw new EmptyFileNotAllowedError();
+        if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
         throw err;
       }
     }
@@ -259,7 +264,13 @@ function AddModal(): JSX.Element {
     };
 
     let uploadedThumbnail: Thumbnail | null = null;
-    const generatedDriveItem = await uploadService.createFileEntry(fileEntryByUuid);
+    let generatedDriveItem: DriveFileData;
+    try {
+      generatedDriveItem = await uploadService.createFileEntry(fileEntryByUuid);
+    } catch (err) {
+      if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
+      throw err;
+    }
 
     // If thumbnail generation fails, don't block the upload, we can
     // try thumbnail generation later
@@ -339,6 +350,14 @@ function AddModal(): JSX.Element {
       logger.info('File upload process finished');
       dispatch(driveActions.uploadingFileEnd(uploadingFile.id));
     } catch (error) {
+      if (error instanceof FileSizeExceededError) {
+        dispatch(
+          uiActions.setFileSizeExceededMessage(
+            strings.formatString(strings.modals.FileSizeExceededModal.messageWithName, uploadingFile.name),
+          ),
+        );
+        throw error;
+      }
       logger.error('File upload process failed: ', JSON.stringify(error));
       errorService.reportError(error);
       throw error;
@@ -403,13 +422,14 @@ function AddModal(): JSX.Element {
     return uploadDocuments(documents);
   }
 
-  async function uploadDocuments(documents: DocumentPickerFile[]) {
+  const uploadDocuments = async (documents: DocumentPickerFile[]) => {
     if (!focusedFolder) {
       throw new Error('No current folder found');
     }
 
-    const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents);
-    showFileSizeAlert(filesExcluded);
+    await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
+    const { filesToUpload, filesExcluded } = validateAndFilterFiles(documents, maxUploadFileSize);
+    notifyFilesExcludedBySize(filesExcluded, dispatch);
 
     if (filesToUpload.length === 0) {
       dispatch(uiActions.setShowUploadFileModal(false));
@@ -452,7 +472,7 @@ function AddModal(): JSX.Element {
       cleanupStuckUploads(processedFileIds, formattedFiles);
       dispatch(driveActions.clearBatchFiles(batchFileIds));
     });
-  }
+  };
 
   /**
    * Upload multiple files
@@ -733,6 +753,7 @@ function AddModal(): JSX.Element {
       if (!focusedFolder) {
         throw new Error('No current folder found');
       }
+      await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
       try {
         const result = await launchCameraAsync({
           mediaTypes: MediaTypeOptions.All,
@@ -793,6 +814,7 @@ function AddModal(): JSX.Element {
           }
         }
       } catch (error) {
+        if (error instanceof FileSizeExceededError) return;
         logger.error('Error on handleTakePhotoAndUpload function:', JSON.stringify(error));
         const castedError = errorService.castError(error, 'upload');
         notificationsService.show({

@@ -29,8 +29,7 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   userInterfaceStyle: 'automatic',
 
   updates: {
-    url: 'https://u.expo.dev/680f4feb-6315-4a50-93ec-36dcd0b831d2',
-    fallbackToCacheTimeout: 0,
+    enabled: false,
   },
 
   assetBundlePatterns: ['**/*'],

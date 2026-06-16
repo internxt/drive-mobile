@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 
+import { stripFileUri, toFileUri } from '../uri/uriHelpers';
 import {
   IMAGE_THUMBNAIL_EXTENSIONS,
   PDF_THUMBNAIL_QUALITY,
@@ -14,8 +15,6 @@ import {
 } from './thumbnail.constants';
 import type { GeneratedThumbnail } from './thumbnail.types';
 
-const toFileUri = (path: string): string => (path.startsWith('file://') ? path : `file://${path}`);
-
 const statSize = async (path: string): Promise<number> => Number((await RNFS.stat(path)).size);
 
 const generateImageThumbnailAndroid = async (sourcePath: string): Promise<GeneratedThumbnail> => {
@@ -25,7 +24,7 @@ const generateImageThumbnailAndroid = async (sourcePath: string): Promise<Genera
   const result = await imageRef.saveAsync({ format: SaveFormat.JPEG, compress: THUMBNAIL_JPEG_COMPRESS });
   imageRef.release();
   imageManipulatorContext.release();
-  const path = result.uri.replace('file://', '');
+  const path = stripFileUri(result.uri);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 
@@ -36,7 +35,7 @@ const generateMediaThumbnail = async (sourcePath: string): Promise<GeneratedThum
     maxWidth: THUMBNAIL_MAX_WIDTH,
     maxHeight: THUMBNAIL_MAX_WIDTH,
   });
-  const path = result.path.replace('file://', '');
+  const path = stripFileUri(result.path);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 
@@ -51,7 +50,7 @@ export const generateVideoThumbnail = (sourcePath: string): Promise<GeneratedThu
 
 export const generatePdfThumbnail = async (sourcePath: string): Promise<GeneratedThumbnail> => {
   const result = await PdfThumbnail.generate(toFileUri(sourcePath), 0, PDF_THUMBNAIL_QUALITY);
-  const path = result.uri.replace('file://', '');
+  const path = stripFileUri(result.uri);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 

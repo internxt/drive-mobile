@@ -6,6 +6,11 @@ import uuid from 'react-native-uuid';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { logger } from '@internxt-mobile/services/common';
 import { EmptyFileNotAllowedError } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
+import {
+  FileSizeExceededError,
+  notifyFilesExcludedBySize,
+} from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
+import { filterOversizedFromTree } from '../../../../services/drive/folder/utils/filterOversizedFromTree';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import strings from '../../../../../assets/lang/strings';
@@ -25,7 +30,7 @@ import fileSystemService from '../../../../services/FileSystemService';
 import notificationsService from '../../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { driveActions, driveThunks } from '../../../../store/slices/drive';
-import { storageSelectors } from '../../../../store/slices/storage';
+import { storageSelectors, storageThunks } from '../../../../store/slices/storage';
 import { uiActions } from '../../../../store/slices/ui';
 import { INFINITE_PLAN, NotificationType, ProgressCallback } from '../../../../types';
 import { FolderTreeNode } from '../../../../types/drive/folderUpload';
@@ -40,13 +45,24 @@ const uploadFolderFileIOS = async (
   signal: AbortSignal,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
+  onOversizedFileSkipped: (fileName: string) => void,
 ): Promise<void> => {
   const filePath = fileNode.uri.replace('file://', '');
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
   try {
-    await uploadAndCreateFileEntry(filePath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+    await uploadAndCreateFileEntry(
+      filePath,
+      plainName,
+      extension,
+      parentUuid,
+      noopProgress,
+      undefined,
+      undefined,
+      signal,
+    );
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
+    else if (err instanceof FileSizeExceededError) onOversizedFileSkipped(fileNode.name);
     throw err;
   }
 };
@@ -58,6 +74,7 @@ const uploadFolderFileAndroid = async (
   uploadId: string,
   uploadAndCreateFileEntry: UploadFileEntryFn,
   onEmptyFileSkipped: () => void,
+  onOversizedFileSkipped: (fileName: string) => void,
 ): Promise<void> => {
   const { extension, plainName } = getFileExtensionAndPlainName(fileNode.name);
   const tempPath = fileSystemService.tmpFilePath(`${uploadId}_${fileNode.name}`);
@@ -65,9 +82,19 @@ const uploadFolderFileAndroid = async (
   try {
     await StorageAccessFramework.copyAsync({ from: fileNode.uri, to: tempUri });
     if (signal.aborted) return;
-    await uploadAndCreateFileEntry(tempPath, plainName, extension, parentUuid, noopProgress, undefined, undefined, signal);
+    await uploadAndCreateFileEntry(
+      tempPath,
+      plainName,
+      extension,
+      parentUuid,
+      noopProgress,
+      undefined,
+      undefined,
+      signal,
+    );
   } catch (err) {
     if (err instanceof EmptyFileNotAllowedError) onEmptyFileSkipped();
+    else if (err instanceof FileSizeExceededError) onOversizedFileSkipped(fileNode.name);
     throw err;
   } finally {
     await fileSystemService.unlinkIfExists(tempPath).catch((e) => {
@@ -131,8 +158,9 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
   const { limit } = useAppSelector((state) => state.storage);
   const usage = useAppSelector(storageSelectors.usage);
-
+  const maxUploadFileSize = useAppSelector(storageSelectors.maxUploadFileSize);
   const hasShownEmptyFileNoticeRef = useRef(false);
+  const backendOversizedFilesRef = useRef<{ name: string }[]>([]);
 
   const handleEmptyFileSkipped = () => {
     if (!hasShownEmptyFileNoticeRef.current) {
@@ -142,6 +170,39 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         text1: strings.messages.emptyFileSkippedDuringFolderUpload,
       });
     }
+  };
+
+  const handleOversizedFileSkipped = (fileName: string) => {
+    backendOversizedFilesRef.current.push({ name: fileName });
+  };
+
+  const uploadFolderFile = async (
+    fileNode: FolderTreeNode,
+    parentUuid: string,
+    signal: AbortSignal,
+    uploadId: string,
+  ): Promise<void> => {
+    const isAndroidContent = Platform.OS === 'android' && fileNode.uri.startsWith('content://');
+    if (isAndroidContent) {
+      await uploadFolderFileAndroid(
+        fileNode,
+        parentUuid,
+        signal,
+        uploadId,
+        uploadAndCreateFileEntry,
+        handleEmptyFileSkipped,
+        handleOversizedFileSkipped,
+      );
+      return;
+    }
+    await uploadFolderFileIOS(
+      fileNode,
+      parentUuid,
+      signal,
+      uploadAndCreateFileEntry,
+      handleEmptyFileSkipped,
+      handleOversizedFileSkipped,
+    );
   };
 
   const collisionResolverRef = useRef<((action: NameCollisionAction | null) => void) | null>(null);
@@ -191,6 +252,8 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
   const handleUploadFolder = async () => {
     dispatch(uiActions.setShowUploadFileModal(false));
     hasShownEmptyFileNoticeRef.current = false;
+    backendOversizedFilesRef.current = [];
+    await dispatch(storageThunks.ensureMaxUploadFileSizeFresh()).unwrap();
 
     const uploadId = uuid.v4().toString();
     const abortController = new AbortController();
@@ -236,6 +299,10 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         dispatch(uiActions.setShowRunOutSpaceModal(true));
         return;
       }
+
+      // 4.1. Per-file size limit: warn upfront and skip oversized files; valid files still upload.
+      const oversizedFiles = filterOversizedFromTree(tree, maxUploadFileSize, dispatch);
+      if (oversizedFiles.length > 0 && tree.files.length === 0) return;
 
       if (!focusedFolder?.uuid) {
         throw new Error('No focused folder UUID');
@@ -283,13 +350,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
             dispatch(driveActions.updateFolderUpload({ uploadId, uploadedFiles: uploaded, failedFiles: failed }));
           }
         },
-        uploadFile: async (fileNode, parentUuid, signal) => {
-          if (Platform.OS === 'android' && fileNode.uri.startsWith('content://')) {
-            await uploadFolderFileAndroid(fileNode, parentUuid, signal, uploadId, uploadAndCreateFileEntry, handleEmptyFileSkipped);
-          } else {
-            await uploadFolderFileIOS(fileNode, parentUuid, signal, uploadAndCreateFileEntry, handleEmptyFileSkipped);
-          }
-        },
+        uploadFile: (fileNode, parentUuid, signal) => uploadFolderFile(fileNode, parentUuid, signal, uploadId),
       });
 
       logger.info(
@@ -306,8 +367,24 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
         successRate: result.totalFiles > 0 ? result.uploadedFiles / result.totalFiles : 1,
       });
 
-      // 9. Display result
-      showFolderUploadResult(result, picked.name);
+      // 9. If the backend rejected any files for exceeding the size limit (e.g. the
+      // upfront check used a stale limit), surface the same modal used by the pre-filter,
+      const backendOversizedFiles = backendOversizedFilesRef.current;
+      if (backendOversizedFiles.length > 0) {
+        const allOversizedFiles = [...oversizedFiles, ...backendOversizedFiles];
+        notifyFilesExcludedBySize(allOversizedFiles, dispatch);
+      }
+
+      // 10. Display result — include files skipped by the upfront size check in the totals.
+      const preSkippedCount = oversizedFiles.length;
+      showFolderUploadResult(
+        {
+          ...result,
+          totalFiles: result.totalFiles + preSkippedCount,
+          skippedFiles: result.skippedFiles + preSkippedCount,
+        },
+        picked.name,
+      );
     } catch (err) {
       if (abortController.signal.aborted) {
         notificationsService.show({ type: NotificationType.Info, text1: strings.messages.folderUploadCancelled });

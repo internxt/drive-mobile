@@ -75,6 +75,4 @@ export interface DownloadingFile {
 /**
  * CONSTANTS
  */
-const GB = 1024 * 1024 * 1024;
-export const UPLOAD_FILE_SIZE_LIMIT = 5 * GB;
 export const DRIVE_DB_NAME = 'drive.db';

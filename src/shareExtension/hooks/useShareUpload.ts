@@ -1,13 +1,20 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import { useCallback, useRef, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
-import { EmptyFileNotAllowedError, HttpUploadError, MissingFileUriError, UploadNetworkError } from '../errors';
+import {
+  EmptyFileNotAllowedError,
+  FileSizeExceededError,
+  HttpUploadError,
+  MissingFileUriError,
+  UploadNetworkError,
+} from '../errors';
 import {
   ShareUploadCredentials,
   ShareUploadSession,
   createShareUploadSession,
   shareUploadFile,
 } from '../services/shareUploadService';
+import ShareSdkManager from '../services/ShareSdkManager';
 import {
   CollisionState,
   NameCollisionAction,
@@ -69,6 +76,7 @@ interface FailedFile {
 }
 
 const classifyError = (error: unknown): UploadErrorType => {
+  if (error instanceof FileSizeExceededError) return 'file_too_large';
   if (error instanceof EmptyFileNotAllowedError) return 'payment_required';
   if (error instanceof HttpUploadError) {
     if (error.status === HTTP_STATUS.UNAUTHORIZED || error.status === HTTP_STATUS.FORBIDDEN) return 'session_expired';
@@ -78,6 +86,15 @@ const classifyError = (error: unknown): UploadErrorType => {
   if (error instanceof MissingFileUriError) return 'prep_failed';
   if (error instanceof UploadNetworkError) return 'no_internet';
   return 'general';
+};
+
+const fetchMaxUploadFileSize = async (): Promise<number> => {
+  try {
+    const res = await ShareSdkManager.storageV2.getFileVersionLimits();
+    return res.maxUploadFileSize ?? 0;
+  } catch {
+    return 0;
+  }
 };
 
 const buildProgressState =
@@ -96,6 +113,7 @@ interface ProcessFileParams {
   folderUuid: string;
   credentials: ShareUploadCredentials;
   shareUploadSession: ShareUploadSession;
+  maxUploadFileSize: number;
 }
 
 interface ProcessFileCallbacks {
@@ -123,6 +141,7 @@ const uploadFile = async (
     folderUuid,
     credentials,
     shareUploadSession,
+    maxUploadFileSize,
   }: ProcessFileParams,
   { onProgress, onFileUploaded }: ProcessFileCallbacks,
 ): Promise<string | null> => {
@@ -146,6 +165,7 @@ const uploadFile = async (
     folderUuid,
     credentials,
     shareUploadSession,
+    maxUploadFileSize,
     onFileResolved: (resolvedFileSize) => onProgress({ currentFileSize: resolvedFileSize, bytesUploaded: 0 }),
     onProgress: (bytesUploaded) => onProgress({ bytesUploaded }),
   });
@@ -195,6 +215,7 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
       try {
         const isSingleFile = files.length === 1;
         const shareUploadSession = createShareUploadSession(credentials);
+        const maxUploadFileSize = await fetchMaxUploadFileSize();
 
         const renameMap = await resolveCollisions(files, folderUuid, isSingleFile, renamedFileName);
         if (renameMap === null) {
@@ -222,6 +243,7 @@ export const useShareUpload = ({ onFileUploaded }: UseShareUploadOptions = {}): 
                 folderUuid,
                 credentials,
                 shareUploadSession,
+                maxUploadFileSize,
               },
               {
                 onProgress: (fields: Partial<UploadProgress>) => setProgress(buildProgressState(fields)),

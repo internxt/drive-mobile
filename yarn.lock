@@ -1549,9 +1549,9 @@
   integrity sha512-93zYdMES/c1D69yZiKDBj0V24vqNzB/koF26KPaagAfd3P/4gUlh3Dys5ogAK+Exi9QyzlD8x/08Zt7wIKcDcA==
 
 "@internxt/eslint-config-internxt@^1.0.9":
-  version "1.0.9"
-  resolved "https://npm.pkg.github.com/download/@internxt/eslint-config-internxt/1.0.9/d2dddb6a5809873ce717507f8d9dbc5964f6d0f4#d2dddb6a5809873ce717507f8d9dbc5964f6d0f4"
-  integrity sha512-e1VCBhXnGcaWZq4viz2MJ1jsgLObw4BgDKMF7F4oDEktOybe+4Bty69+oezuj+q3LAf2M7JZSgkhpLBiP7vrpw==
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@internxt/eslint-config-internxt/-/eslint-config-internxt-1.0.10.tgz#19025c479f84617a59484660f2f9c983ff3bc4ec"
+  integrity sha512-58fMjE/ro/eK/b4v1UBwpDtK0PvUo6o7yULRU5LVrqe4gCE4pgruI4RUJfLJ/WprfAFDQxUgJbyQMc5TtUVjiw==
   dependencies:
     "@typescript-eslint/eslint-plugin" "^5.4.0"
     "@typescript-eslint/parser" "^5.4.0"
@@ -1559,34 +1559,34 @@
 
 "@internxt/lib@^1.4.1":
   version "1.4.1"
-  resolved "https://npm.pkg.github.com/download/@internxt/lib/1.4.1/215ee72e49c238e13d40ec9033296f70c8279f88#215ee72e49c238e13d40ec9033296f70c8279f88"
-  integrity sha512-0Nv+/V4z+bwCt9r+XMKWMSxwdnTCD7YHEeNMtMQKtyOzNVElDjGoDuYP8UrQ5TC5wVsP/yyQ/kM2ugZjueH6Mg==
+  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.4.1.tgz#dd4974cb49ab6bba118cf218434e69e95cc4a481"
+  integrity sha512-sWNp57IKCk0HjzTdPSuxOgZWvrSDWGYrzNOq90LIZTzr1HwkxObicUaZqSzmw4uDKrJhsdFdzwdywk3g8gwDDA==
   dependencies:
     uuid "^11.1.0"
 
-"@internxt/mobile-sdk@https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz":
+"@internxt/mobile-sdk@^0.3.1":
   version "0.3.1"
-  resolved "https://github.com/internxt/mobile-sdk/releases/download/v0.3.1/internxt-mobile-sdk-v0.3.1_.tgz#bc618a913f1d703dcce6f52a545701a6089a9722"
+  resolved "https://registry.yarnpkg.com/@internxt/mobile-sdk/-/mobile-sdk-0.3.1.tgz#f173132a1045546a8f534f72e6c93114881522b3"
+  integrity sha512-QcVw/KLjOUodSB4tfawE6QsAFZT7JIsrby15JLUku6bR1/IqukhIaMp6cl/IGKwdt1aso/Haq4S4zH9KEL4jQg==
 
-"@internxt/prettier-config@^1.0.2":
-  version "1.0.2"
-  resolved "https://npm.pkg.github.com/download/@internxt/prettier-config/1.0.2/5bd220b8de76734448db5475b3e0c01f9d22c19b#5bd220b8de76734448db5475b3e0c01f9d22c19b"
-  integrity sha512-t4HiqvCbC7XgQepwWlIaFJe3iwW7HCf6xOSU9nKTV0tiGqOPz7xMtIgLEloQrDA34Cx4PkOYBXrvFPV6RxSFAA==
+"@internxt/prettier-config@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@internxt/prettier-config/-/prettier-config-2.0.1.tgz#a25e7a16f62a990aed2bd1804e04140cc8c33e77"
+  integrity sha512-sCnOMX7GR7BYDJ5OH1RiV/JaOBLE3uhL6QN6tYhMKi7QXK/cnM/77qmDlIEBlhTNIFEMLFljSkc0vZEvf6m2xA==
 
 "@internxt/rn-crypto@0.1.15":
   version "0.1.15"
-  resolved "https://npm.pkg.github.com/download/@internxt/rn-crypto/0.1.15/314531ddb17f2edaadc8ab18c876dacdaac38452#314531ddb17f2edaadc8ab18c876dacdaac38452"
-  integrity sha512-RApd7JHMQ6EhjpY65s7DRdS3R3Jm8dFmeomWyDWVquGVjb7PgE4OXq4Zz6JS33zp197HkPBcUdlOf0N3Ky3Ygw==
+  resolved "https://registry.yarnpkg.com/@internxt/rn-crypto/-/rn-crypto-0.1.15.tgz#3373de015ed882c5b837eae86b9539c92a22ebfa"
+  integrity sha512-SIoGAy1SKK9tQUaqPNxlCsNql5TXyXbVeQTrOvnqfxJJ+agnJ0do0fGFtXO0KMPKPHTTh1YEkd7kVuBnWFDlGg==
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.13.2":
-  version "1.13.2"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.13.2/058ce3a1600b0517a6ad1214eceb0e8eeea2b4b0#058ce3a1600b0517a6ad1214eceb0e8eeea2b4b0"
-  integrity sha512-7WMFkjiF8DSwPlQ7qI4QizBNvT4J0pCEPo1WO+q3MCEvm+eNA3BxxpvXTwTPRroX+O74oE8MFfWtlE9CDSYLkw==
+"@internxt/sdk@1.16.4":
+  version "1.16.4"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.16.4.tgz#1dad7c3fe1581cfb62f9720b6a6470b7c52d7f34"
+  integrity sha512-L4UG7SvNAlldCqx43f5EWt/oVOleqssBb67y1ZUqCcGh3h/wC9mpvkuz80lsGmkzO/ZSZZ0beUzWFlk0LmWM6g==
   dependencies:
-    axios "1.13.5"
-    uuid "13.0.0"
+    axios "^1.16.0"
 
 "@isaacs/balanced-match@^4.0.1":
   version "4.0.1"
@@ -2871,22 +2871,14 @@ await-lock@^2.2.2:
   resolved "https://registry.yarnpkg.com/await-lock/-/await-lock-2.2.2.tgz#a95a9b269bfd2f69d22b17a321686f551152bcef"
   integrity sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==
 
-axios@1.13.5:
-  version "1.13.5"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.13.5.tgz#5e464688fa127e11a660a2c49441c009f6567a43"
-  integrity sha512-cz4ur7Vb0xS4/KUN0tPWe44eqxrIu31me+fbang3ijiNscE129POzipJJA6zniq2C/Z6sJCjMimjS8Lc/GAs8Q==
+axios@^1.16.0, axios@^1.16.1:
+  version "1.16.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.16.1.tgz#517e29291d19d6e8cf919ff264f4fe157261ba12"
+  integrity sha512-caYkukvroVPO8KrzuJEb50Hm07KwfBZPEC3VeFHTsqWHvKTsy54hjJz9BS/cdaypROE2rH6xvm9mHX4fgWkr3A==
   dependencies:
-    follow-redirects "^1.15.11"
+    follow-redirects "^1.16.0"
     form-data "^4.0.5"
-    proxy-from-env "^1.1.0"
-
-axios@^1.15.2:
-  version "1.15.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.15.2.tgz#eb8fb6d30349abace6ade5b4cb4d9e8a0dc23e5b"
-  integrity sha512-wLrXxPtcrPTsNlJmKjkPnNPK2Ihe0hn0wGSaTEiHRPxwjvJwT3hKmXF4dpqxmPO9SoNb2FsYXj/xEo0gHN+D5A==
-  dependencies:
-    follow-redirects "^1.15.11"
-    form-data "^4.0.5"
+    https-proxy-agent "^5.0.1"
     proxy-from-env "^2.1.0"
 
 babel-jest@^29.2.1, babel-jest@^29.7.0:
@@ -4912,7 +4904,7 @@ flow-enums-runtime@^0.0.6:
   resolved "https://registry.yarnpkg.com/flow-enums-runtime/-/flow-enums-runtime-0.0.6.tgz#5bb0cd1b0a3e471330f4d109039b7eba5cb3e787"
   integrity sha512-3PYnM29RFXwvAN6Pc/scUfkI7RwhQ/xqyLUyPNlXUp9S40zI8nup9tUSrTLSVnWGBN38FNiGWbwZOB6uR4OGdw==
 
-follow-redirects@^1.15.11:
+follow-redirects@^1.16.0:
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.16.0.tgz#28474a159d3b9d11ef62050a14ed60e4df6d61bc"
   integrity sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw==
@@ -7512,11 +7504,6 @@ property-expr@^2.0.5:
   resolved "https://registry.yarnpkg.com/property-expr/-/property-expr-2.0.6.tgz#f77bc00d5928a6c748414ad12882e83f24aec1e8"
   integrity sha512-SVtmxhRE/CGkn3eZY1T6pC8Nln6Fr/lu1mKSgRud0eC73whjGfoAogbn78LkD8aFL0zz3bAFerKSnOl7NlErBA==
 
-proxy-from-env@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-1.1.0.tgz#e102f16ca355424865755d2c9e8ea4f24d58c3e2"
-  integrity sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==
-
 proxy-from-env@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/proxy-from-env/-/proxy-from-env-2.1.0.tgz#a7487568adad577cfaaa7e88c49cab3ab3081aba"
@@ -7695,7 +7682,7 @@ react-native-capture-protection@2.4.0:
   resolved "https://registry.yarnpkg.com/react-native-capture-protection/-/react-native-capture-protection-2.4.0.tgz#3a448361747c5d9ffdb3497f020b52a1bb12c8cf"
   integrity sha512-nipLYnXorytj2Ynk6npRTL6EG3DVby4mpOd3ywG3HOBFqniLly05awqRQCbJY7knQvYFoDuVauKaV08lBwNBNw==
 
-react-native-create-thumbnail@^2.2.0:
+react-native-create-thumbnail@2.2.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/react-native-create-thumbnail/-/react-native-create-thumbnail-2.2.0.tgz#d5c99c97c02cd5c51a57983f5d79088e58e986bb"
   integrity sha512-zrwVYWMpeMEGIYO1jgwUMBpSpIzMR7Z2gkSANVlf9BFZLRw017k7CfjttvDhCHjsxNNDb7+V8uJaNwIGdTpz/g==
@@ -9328,11 +9315,6 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
-
-uuid@13.0.0:
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-13.0.0.tgz#263dc341b19b4d755eb8fe36b78d95a6b65707e8"
-  integrity sha512-XQegIaBTVUjSHliKqcnFqYypAd4S+WCYt5NIeRs6w/UAry7z8Y9j5ZwRRL4kzq9U3sD6v+85er9FvkEaBpji2w==
 
 uuid@^11.1.0:
   version "11.1.0"
