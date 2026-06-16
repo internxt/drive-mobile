@@ -39,6 +39,9 @@
 		DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 		F2C595E5ECBAD697016C9410 /* libPods-InternxtShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D0A0CA179360CA52F0B5054A /* libPods-InternxtShareExtension.a */; };
+		FB1D480012F87A94000E14783 /* FileProviderErrorMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB1D480112F87A94000E14783 /* FileProviderErrorMapperTests.swift */; };
+		FB1D480212F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */; };
+		FB1D480312F87A94000E14783 /* InternxtSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = FB1D480412F87A94000E14783 /* InternxtSwiftCore */; };
 		FEB260B2B281D37EEABD1ECA /* libPods-InternxtFileProvider.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 20957EE3E4797FBBC2BD3192 /* libPods-InternxtFileProvider.a */; };
 /* End PBXBuildFile section */
 
@@ -130,6 +133,8 @@
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Internxt/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* Internxt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Internxt-Bridging-Header.h"; path = "Internxt/Internxt-Bridging-Header.h"; sourceTree = "<group>"; };
+		FB1D480112F87A94000E14783 /* FileProviderErrorMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderErrorMapperTests.swift; sourceTree = "<group>"; };
+		FB1D480512F87A94000E14783 /* InternxtFileProviderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InternxtFileProviderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FDEA9EEAEC8CE666D14877B2 /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -157,6 +162,14 @@
 				DE1D47432F87A94000E14783 /* UniformTypeIdentifiers.framework in Frameworks */,
 				DE1D47562F87AB4000E14783 /* InternxtSwiftCore in Frameworks */,
 				FEB260B2B281D37EEABD1ECA /* libPods-InternxtFileProvider.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FB1D480612F87A94000E14783 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB1D480312F87A94000E14783 /* InternxtSwiftCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -239,6 +252,7 @@
 				13B07FAE1A68108700A75B9A /* Internxt */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				DE1D47442F87A94000E14783 /* InternxtFileProvider */,
+				FB1D480712F87A94000E14783 /* InternxtFileProviderTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				7151A997BCA04521BD294E7B /* InternxtShareExtension */,
@@ -256,6 +270,7 @@
 				13B07F961A680F5B00A75B9A /* Internxt.app */,
 				7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */,
 				DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */,
+				FB1D480512F87A94000E14783 /* InternxtFileProviderTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -305,6 +320,14 @@
 				DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */,
 			);
 			path = InternxtFileProvider;
+			sourceTree = "<group>";
+		};
+		FB1D480712F87A94000E14783 /* InternxtFileProviderTests */ = {
+			isa = PBXGroup;
+			children = (
+				FB1D480112F87A94000E14783 /* FileProviderErrorMapperTests.swift */,
+			);
+			path = InternxtFileProviderTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -379,6 +402,25 @@
 			productReference = DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		FB1D480812F87A94000E14783 /* InternxtFileProviderTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB1D480912F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProviderTests" */;
+			buildPhases = (
+				FB1D480A12F87A94000E14783 /* Sources */,
+				FB1D480612F87A94000E14783 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = InternxtFileProviderTests;
+			packageProductDependencies = (
+				FB1D480412F87A94000E14783 /* InternxtSwiftCore */,
+			);
+			productName = InternxtFileProviderTests;
+			productReference = FB1D480512F87A94000E14783 /* InternxtFileProviderTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -398,6 +440,9 @@
 						ProvisioningStyle = Automatic;
 					};
 					DE1D47402F87A94000E14783 = {
+						CreatedOnToolsVersion = 26.4;
+					};
+					FB1D480812F87A94000E14783 = {
 						CreatedOnToolsVersion = 26.4;
 					};
 				};
@@ -421,6 +466,7 @@
 				13B07F861A680F5B00A75B9A /* Internxt */,
 				573EC8782D084646801534FA /* InternxtShareExtension */,
 				DE1D47402F87A94000E14783 /* InternxtFileProvider */,
+				FB1D480812F87A94000E14783 /* InternxtFileProviderTests */,
 			);
 		};
 /* End PBXProject section */
@@ -766,6 +812,15 @@
 				AB1D47802F87A94000E14783 /* NetworkFacadeFactory.swift in Sources */,
 				AB1D47812F87A94000E14783 /* SharedKeychainCredentials.swift in Sources */,
 				AA0100082F87A94000E14783 /* SharedAuthKeychain.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FB1D480A12F87A94000E14783 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB1D480012F87A94000E14783 /* FileProviderErrorMapperTests.swift in Sources */,
+				FB1D480212F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1129,6 +1184,57 @@
 			};
 			name = Release;
 		};
+		FB1D480B12F87A94000E14783 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProviderTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FB1D480C12F87A94000E14783 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProviderTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1168,6 +1274,15 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		FB1D480912F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProviderTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FB1D480B12F87A94000E14783 /* Debug */,
+				FB1D480C12F87A94000E14783 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
@@ -1183,6 +1298,11 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		DE1D47552F87AB4000E14783 /* InternxtSwiftCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */;
+			productName = InternxtSwiftCore;
+		};
+		FB1D480412F87A94000E14783 /* InternxtSwiftCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */;
 			productName = InternxtSwiftCore;
