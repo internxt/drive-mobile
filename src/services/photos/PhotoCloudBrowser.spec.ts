@@ -28,6 +28,7 @@ jest.mock('./database/photosLocalDB', () => ({
     getSyncedMonths: jest.fn(),
     getDistinctCloudAssetDeviceIds: jest.fn().mockResolvedValue([]),
     deleteCloudAssetsByDevice: jest.fn(),
+    resetSyncedToPending: jest.fn(),
   },
 }));
 
@@ -60,6 +61,8 @@ beforeEach(() => {
   mockPhotosLocalDB.deleteCloudAsset.mockResolvedValue(undefined);
   mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([]);
   mockPhotosLocalDB.getSyncedMonths.mockResolvedValue([]);
+  mockPhotosLocalDB.getDistinctCloudAssetDeviceIds.mockResolvedValue([]);
+  mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
 });
 
 describe('PhotoCloudBrowser.listDeviceFolders', () => {
@@ -410,22 +413,23 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     expect(mockPhotosLocalDB.deleteCloudAsset).toHaveBeenCalledWith('synced-remote-uuid');
   });
 
-  test('when synced assets from a different device are missing from that device cloud folder, then they are not looked up via asset_sync', async () => {
+  test('when the current device id does not match any device in Drive, then no folders are fetched and synced assets are reset to pending', async () => {
     mockDeviceService.listDevices.mockResolvedValueOnce([makeDevice('d1-uuid', 'Internxt iPhone')]);
-    const year = makeFolder('y-uuid', '2024');
-    const month = makeFolder('m-uuid', '06');
-    const day = makeFolder('day-uuid', '15');
-    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
-    mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set());
-    mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [year] } as never)
-      .mockResolvedValueOnce({ folders: [month] } as never)
-      .mockResolvedValueOnce({ folders: [day] } as never);
-    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [] } as never);
 
-    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'other-device-uuid' });
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'unknown-device-uuid' });
 
-    expect(mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth).not.toHaveBeenCalled();
+    expect(mockFolderService.getFolderFolders).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledTimes(1);
+  });
+
+  test('when the current device no longer exists in Drive, then synced assets are reset to pending for re-upload', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([]);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'deleted-device-uuid' });
+
+    expect(mockFolderService.getFolderFolders).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledTimes(1);
     expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
   });
 
@@ -502,6 +506,22 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'd1-uuid' });
 
     expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('synced-april-uuid');
+  });
+
+  test('when the current device has no cloud history at all but the local DB has synced months, then those assets are reset to pending instead of cloud_deleted', async () => {
+    // Simulates the device folder having been deleted and recreated with a new identity: the
+    // (new) device folder exists and is reachable, but cloud_asset has zero rows for it — while
+    // asset_sync (local) still has 'synced' rows left over from before the deletion.
+    mockDeviceService.listDevices.mockResolvedValueOnce([makeDevice('d1-uuid', 'Internxt iPhone')]);
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([]);
+    mockPhotosLocalDB.getSyncedMonths.mockResolvedValue([{ year: 2024, month: 6 }]);
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'd1-uuid' });
+
+    expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
   });
 
   test('when the cloud has no months at all and the DB has known months, then every known month is reconciled', async () => {
@@ -583,5 +603,73 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     await photoCloudBrowser.syncAllHistory({});
 
     expect(mockPhotosLocalDB.deleteCloudAssetsByDevice).not.toHaveBeenCalled();
+  });
+
+  test('when the current device id is provided and multiple devices exist, then only months from the current device are fetched', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([
+      makeDevice('current-uuid', 'Internxt iPhone'),
+      makeDevice('other-uuid', 'Internxt iPad'),
+    ]);
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [year] } as never)
+      .mockResolvedValueOnce({ folders: [month] } as never)
+      .mockResolvedValueOnce({ folders: [day] } as never);
+    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'current-uuid' });
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ deviceId: 'current-uuid' }),
+    );
+  });
+
+  test('when the current device id is provided and the local DB has rows from another device, then those rows are purged', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([
+      makeDevice('current-uuid', 'Internxt iPhone'),
+      makeDevice('other-uuid', 'Internxt iPad'),
+    ]);
+    mockPhotosLocalDB.getDistinctCloudAssetDeviceIds.mockResolvedValue(['current-uuid', 'other-uuid']);
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(Infinity);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'current-uuid' });
+
+    expect(mockPhotosLocalDB.deleteCloudAssetsByDevice).toHaveBeenCalledWith('other-uuid');
+    expect(mockPhotosLocalDB.deleteCloudAssetsByDevice).not.toHaveBeenCalledWith('current-uuid');
+  });
+
+  test('when no current device id is provided, then all devices are synced', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([
+      makeDevice('d1-uuid', 'Internxt iPhone'),
+      makeDevice('d2-uuid', 'Internxt iPad'),
+    ]);
+    const yearD1 = makeFolder('y1-uuid', '2024');
+    const yearD2 = makeFolder('y2-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('file-uuid', 'photo.jpg');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    // discoverAvailableMonths runs Promise.all([discoverD1, discoverD2]) so calls happen in this order:
+    // CALL#1: getFolderFolders(d1-uuid) — year folders for d1
+    // CALL#2: getFolderFolders(d2-uuid) — year folders for d2 (concurrent, before CALL#1 resolves)
+    // CALL#3: getFolderFolders(y1-uuid) — month folders for d1's 2024 folder
+    // CALL#4: getFolderFolders(y2-uuid) — month folders for d2's 2024 folder
+    // CALL#5+: default — day folders for each month
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [yearD1] } as never)
+      .mockResolvedValueOnce({ folders: [yearD2] } as never)
+      .mockResolvedValueOnce({ folders: [month] } as never)
+      .mockResolvedValueOnce({ folders: [month] } as never)
+      .mockResolvedValue({ folders: [day] } as never);
+    mockFolderService.getFolderContentByUuid.mockResolvedValue({ files: [file] } as never);
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledTimes(2);
   });
 });

@@ -318,16 +318,28 @@ class PhotosLocalDB {
     return row ? rowToAssetSyncEntry(row) : null;
   }
 
-  async getPendingAssets(): Promise<Array<{ assetId: string; status: AssetSyncStatus; remoteFileId: string | null }>> {
+  async getPendingAssets(): Promise<
+    Array<{
+      assetId: string;
+      status: AssetSyncStatus;
+      remoteFileId: string | null;
+      isBurst: boolean;
+      burstMemberCount: number | null;
+    }>
+  > {
     const pendingAssets = await sqliteService.getAllAsync<{
       asset_id: string;
       status: AssetSyncStatus;
       remote_file_id: string | null;
+      is_burst: number;
+      burst_member_count: number | null;
     }>(DB_NAME, assetSyncTable.statements.getPendingAssets);
     return pendingAssets.map((asset) => ({
       assetId: asset.asset_id,
       status: asset.status,
       remoteFileId: asset.remote_file_id,
+      isBurst: asset.is_burst === 1,
+      burstMemberCount: asset.burst_member_count,
     }));
   }
 
@@ -344,6 +356,10 @@ class PhotosLocalDB {
 
   async markCloudDeleted(remoteFileId: string): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markCloudDeleted, [remoteFileId]);
+  }
+
+  async resetSyncedToPending(): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.resetSyncedToPending);
   }
 
   async getDistinctCloudAssetDeviceIds(): Promise<string[]> {

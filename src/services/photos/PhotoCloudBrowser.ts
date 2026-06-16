@@ -93,9 +93,16 @@ class PhotoCloudBrowserService {
     logger.info(
       `[CloudBrowser] syncAllHistory — currentDeviceId=${currentDeviceId ?? 'none'}, force=${force ?? false}`,
     );
-    const devices = await this.listDeviceFolders();
+    const allDevices = await this.listDeviceFolders();
+    const devices = currentDeviceId ? allDevices.filter((device) => device.uuid === currentDeviceId) : allDevices;
     if (devices.length === 0) {
       logger.info('[CloudBrowser] No device folders found — skipping sync');
+      if (currentDeviceId) {
+        // Own device folder gone from cloud — every remote reference is stale. Reset synced
+        // assets to pending (not cloud_deleted) so the next upload cycle restores the backup.
+        await this.purgeDeletedDevices(devices, onMonthFetched);
+        await this.localDB.resetSyncedToPending();
+      }
       return;
     }
     logger.info(`[CloudBrowser] Syncing ${devices.length} device(s): ${devices.map((d) => d.uuid).join(', ')}`);
@@ -261,6 +268,14 @@ class PhotoCloudBrowserService {
 
       if (currentDeviceId && deviceId === currentDeviceId) {
         const syncedMonths = await this.localDB.getSyncedMonths();
+        const isRecreatedDeviceFolder = cloudMonths.length === 0 && syncedMonths.length > 0;
+        if (isRecreatedDeviceFolder) {
+          logger.info(
+            `[CloudBrowser] Device "${deviceId}" has no cloud history but local DB has synced months — resetting to pending for re-upload`,
+          );
+          await this.localDB.resetSyncedToPending();
+          continue;
+        }
         for (const m of syncedMonths) monthSet.add(`${m.year}:${m.month}`);
       }
 

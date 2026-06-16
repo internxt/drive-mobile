@@ -56,6 +56,19 @@ export interface PhotoUploadResult {
   burst?: { burstId: string; memberUuids: string[] };
 }
 
+/**
+ * Domain events emitted during an upload, opaque to PhotoUploadQueue. Lets sub-features (burst,
+ * paired video, ...) report progress without growing the queue/service interfaces with feature-named
+ * callbacks.
+ */
+export type PhotoUploadEvent = { type: 'burst-member-total'; total: number } | { type: 'burst-member-uploaded' };
+
+interface UploadOptions {
+  onProgress?: (ratio: number) => void;
+  signal?: AbortSignal;
+  onEvent?: (event: PhotoUploadEvent) => void;
+}
+
 const resolveLocalPath = async (
   asset: MediaLibrary.Asset,
 ): Promise<{ localPath: string; tempPath?: string; thumbnailUri?: string }> => {
@@ -327,9 +340,9 @@ export const PhotoUploadService = {
     asset: MediaLibrary.Asset,
     deviceId: string,
     photosBucket: string,
-    onProgress?: (ratio: number) => void,
-    signal?: AbortSignal,
+    options: UploadOptions = {},
   ): Promise<PhotoUploadResult> {
+    const { onProgress, signal, onEvent } = options;
     const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
 
     if (livePhoto) {
@@ -409,6 +422,7 @@ export const PhotoUploadService = {
           photosBucket,
           signal,
           uploadMember: uploadSingleFile,
+          onEvent,
         });
         return { photoUuid: err.existingUuid, ...(burst ? { burst } : {}) };
       }
@@ -453,6 +467,7 @@ export const PhotoUploadService = {
         credentials,
         signal,
         uploadMember: uploadSingleFile,
+        onEvent,
       });
 
       return { photoUuid, ...(burst ? { burst } : {}) };
@@ -466,9 +481,9 @@ export const PhotoUploadService = {
     existingRemoteFileId: string,
     deviceId: string,
     photosBucket: string,
-    onProgress?: (ratio: number) => void,
-    signal?: AbortSignal,
+    options: UploadOptions = {},
   ): Promise<PhotoUploadResult> {
+    const { onProgress, signal, onEvent } = options;
     const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
 
     if (livePhoto) {
@@ -606,6 +621,7 @@ export const PhotoUploadService = {
         credentials,
         signal,
         uploadMember: uploadSingleFile,
+        onEvent,
       });
 
       return { photoUuid, ...(burst ? { burst } : {}) };

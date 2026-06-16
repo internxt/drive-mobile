@@ -1,6 +1,6 @@
 import * as MediaLibrary from 'expo-media-library';
 import pLimit from 'p-limit';
-import { PhotoUploadResult, PhotoUploadService } from './PhotoUploadService';
+import { PhotoUploadEvent, PhotoUploadResult, PhotoUploadService } from './PhotoUploadService';
 
 const UPLOAD_CONCURRENCY = 3;
 
@@ -14,6 +14,7 @@ interface UploadQueueCallbacks {
   onAssetProgress?: (assetId: string, ratio: number) => void;
   onAssetDone?: (assetId: string, result: PhotoUploadResult, modificationTime: number) => Promise<void> | void;
   onAssetError?: (assetId: string, error: Error) => Promise<void> | void;
+  onAssetEvent?: (assetId: string, event: PhotoUploadEvent) => void;
 }
 
 let currentController: AbortController | null = null;
@@ -42,22 +43,14 @@ export const PhotoUploadQueue = {
             callbacks.onAssetStart?.(asset.id);
 
             try {
+              const uploadOptions = {
+                onProgress: (ratio: number) => callbacks.onAssetProgress?.(asset.id, ratio),
+                signal,
+                onEvent: (event: PhotoUploadEvent) => callbacks.onAssetEvent?.(asset.id, event),
+              };
               const photoUploadResult = existingRemoteFileId
-                ? await PhotoUploadService.replace(
-                    asset,
-                    existingRemoteFileId,
-                    deviceId,
-                    photosBucket,
-                    (ratio) => callbacks.onAssetProgress?.(asset.id, ratio),
-                    signal,
-                  )
-                : await PhotoUploadService.upload(
-                    asset,
-                    deviceId,
-                    photosBucket,
-                    (ratio) => callbacks.onAssetProgress?.(asset.id, ratio),
-                    signal,
-                  );
+                ? await PhotoUploadService.replace(asset, existingRemoteFileId, deviceId, photosBucket, uploadOptions)
+                : await PhotoUploadService.upload(asset, deviceId, photosBucket, uploadOptions);
               await callbacks.onAssetDone?.(asset.id, photoUploadResult, asset.modificationTime);
             } catch (uploadError) {
               await callbacks.onAssetError?.(asset.id, uploadError as Error);

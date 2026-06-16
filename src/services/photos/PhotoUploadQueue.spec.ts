@@ -66,7 +66,10 @@ describe('PhotoUploadQueue.start', () => {
     const onAssetDone = jest.fn();
     const onAssetError = jest.fn();
 
-    await PhotoUploadQueue.start([{ asset: a1 }, { asset: a2 }], DEVICE_ID, PHOTOS_BUCKET, { onAssetDone, onAssetError });
+    await PhotoUploadQueue.start([{ asset: a1 }, { asset: a2 }], DEVICE_ID, PHOTOS_BUCKET, {
+      onAssetDone,
+      onAssetError,
+    });
 
     expect(onAssetError).toHaveBeenCalledWith('a1', expect.any(Error));
     expect(onAssetDone).toHaveBeenCalledWith('a2', 'remote-id', a2.modificationTime);
@@ -86,8 +89,7 @@ describe('PhotoUploadQueue.start', () => {
       'existing-remote-id',
       DEVICE_ID,
       PHOTOS_BUCKET,
-      expect.any(Function),
-      expect.any(AbortSignal),
+      expect.objectContaining({ onProgress: expect.any(Function), signal: expect.any(AbortSignal) }),
     );
     expect(mockUpload).not.toHaveBeenCalled();
     expect(onAssetDone).toHaveBeenCalledWith('a1', 'existing-remote-id', asset.modificationTime);
@@ -97,7 +99,9 @@ describe('PhotoUploadQueue.start', () => {
     const onAssetStart = jest.fn();
     const onAssetDone = jest.fn();
 
-    await expect(PhotoUploadQueue.start([], DEVICE_ID, PHOTOS_BUCKET, { onAssetStart, onAssetDone })).resolves.toBeUndefined();
+    await expect(
+      PhotoUploadQueue.start([], DEVICE_ID, PHOTOS_BUCKET, { onAssetStart, onAssetDone }),
+    ).resolves.toBeUndefined();
     expect(onAssetStart).not.toHaveBeenCalled();
     expect(onAssetDone).not.toHaveBeenCalled();
   });
@@ -119,7 +123,12 @@ describe('PhotoUploadQueue.start', () => {
 
     await PhotoUploadQueue.start([{ asset }], DEVICE_ID, PHOTOS_BUCKET, {});
 
-    expect(mockUpload).toHaveBeenCalledWith(asset, DEVICE_ID, PHOTOS_BUCKET, expect.any(Function), expect.any(AbortSignal));
+    expect(mockUpload).toHaveBeenCalledWith(
+      asset,
+      DEVICE_ID,
+      PHOTOS_BUCKET,
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    );
   });
 });
 
@@ -165,14 +174,14 @@ describe('PhotoUploadQueue.abortAll', () => {
 
     // First run — capture the signal that gets passed
     await PhotoUploadQueue.start([{ asset }], DEVICE_ID, PHOTOS_BUCKET, {});
-    const firstSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, unknown, AbortSignal])[4];
+    const firstSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, { signal: AbortSignal }])[3].signal;
 
     // Abort and start a second run
     PhotoUploadQueue.abortAll();
     jest.clearAllMocks();
     mockUpload.mockResolvedValue('remote-id');
     await PhotoUploadQueue.start([{ asset }], DEVICE_ID, PHOTOS_BUCKET, {});
-    const secondSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, unknown, AbortSignal])[4];
+    const secondSignal = (mockUpload.mock.calls[0] as [unknown, unknown, unknown, { signal: AbortSignal }])[3].signal;
 
     expect(secondSignal).toBeDefined();
     expect(secondSignal.aborted).toBe(false);
