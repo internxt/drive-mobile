@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { Image, StyleSheet, View } from 'react-native';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
@@ -7,7 +8,6 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 
 import illustrationImg from '../../../assets/images/photos-discover-illustration.png';
-import tabbarImg from '../../../assets/images/photos-discover-tabbar.png';
 
 interface DiscoverPhotosBottomSheetProps {
   isOpen: boolean;
@@ -23,14 +23,17 @@ const DiscoverPhotosBottomSheet = ({
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const discoverSheetStrings = strings.screens.photos.discoverSheet;
+  const surfaceColor = getColor('bg-surface');
+  const surfaceColorTransparent = surfaceColor.replace('rgb(', 'rgba(').replace(')', ', 0)');
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onDismiss} topDecoration backdropPressToClose ignoreSafeAreaTop>
       <View style={tailwind('pb-6')}>
-        <View style={styles.illustrationContainer}>
-          <Image source={illustrationImg} style={styles.illustration} resizeMode="cover" />
-          <View style={[styles.illustrationFade, { backgroundColor: getColor('bg-white') }]} />
-          <Image source={tabbarImg} style={styles.tabbar} resizeMode="contain" />
+        <View style={styles.illustrationWrapper}>
+          <View style={styles.illustrationContainer}>
+            <Image source={illustrationImg} style={styles.illustration} resizeMode="cover" />
+            <LinearGradient colors={[surfaceColor, surfaceColorTransparent]} style={styles.illustrationFade} />
+          </View>
         </View>
 
         <View style={[tailwind('px-6'), { gap: 32 }]}>
@@ -54,30 +57,29 @@ const DiscoverPhotosBottomSheet = ({
 };
 
 const styles = StyleSheet.create({
-  illustrationContainer: {
-    height: 160,
+  illustrationWrapper: {
+    width: '100%',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
+    paddingTop: 24,
     marginBottom: 32,
+  },
+  illustrationContainer: {
+    height: 128,
+    width: 288,
+    overflow: 'hidden',
   },
   illustration: {
     position: 'absolute',
-    top: 0,
     width: 288,
-    height: 580,
+    height: 585,
+    top: -457,
   },
   illustrationFade: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    height: 80,
-    opacity: 0.95,
-  },
-  tabbar: {
-    width: 288,
-    height: 40,
+    height: 57,
   },
 });
 

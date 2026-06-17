@@ -120,6 +120,8 @@ class AsyncStorageService {
         AsyncStorageKey.LastScreenLock,
         AsyncStorageKey.ThemePreference,
         AsyncStorageKey.Language,
+        AsyncStorageKey.PhotosSettings,
+        AsyncStorageKey.PhotosDiscoverSeen,
       ];
 
       await AsyncStorage.multiRemove(nonSensitiveKeys);
