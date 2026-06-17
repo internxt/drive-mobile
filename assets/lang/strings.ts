@@ -195,7 +195,7 @@ const translations = {
         photosLocked: {
           title: 'Photos is locked',
           body: 'Automatically back up, organize, and protect your photos in one private space.',
-          upgradeLine: 'Upgrade to Ultimate to unlock Photos.',
+          upgradeLine: 'Upgrade to unlock Photos.',
           upgradeCta: 'Upgrade',
         },
         enableSheet: {
@@ -1192,7 +1192,7 @@ const translations = {
         photosLocked: {
           title: 'Photos está bloqueado',
           body: 'Haz copias de seguridad, organiza y protege tus fotos automáticamente en un espacio privado.',
-          upgradeLine: 'Actualiza a Ultimate para desbloquear Fotos.',
+          upgradeLine: 'Actualiza para desbloquear Fotos.',
           upgradeCta: 'Mejorar plan',
         },
         enableSheet: {

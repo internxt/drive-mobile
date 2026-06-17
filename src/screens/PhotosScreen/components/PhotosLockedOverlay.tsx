@@ -1,6 +1,7 @@
-import { ImageIcon, LockSimpleIcon } from 'phosphor-react-native';
+import { ImageIcon } from 'phosphor-react-native';
 import { StyleSheet, View } from 'react-native';
 import AppButton from 'src/components/AppButton';
+import LockBadgeIcon from './LockBadgeIcon';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
@@ -20,13 +21,13 @@ const PhotosLockedOverlay = ({ onUpgradePress }: PhotosLockedOverlayProps): JSX.
         <View
           style={[styles.iconTile, { backgroundColor: getColor('bg-gray-1'), borderColor: getColor('border-gray-10') }]}
         >
-          <ImageIcon size={40} color={getColor('text-primary')} weight="regular" />
+          <ImageIcon size={64} color={getColor('text-primary')} weight="regular" />
           <View style={styles.lockBadge}>
-            <LockSimpleIcon size={20} color={getColor('text-gray-60')} weight="fill" />
+            <LockBadgeIcon size={32} />
           </View>
         </View>
 
-        <View style={tailwind('items-center gap-y-2 w-full')}>
+        <View style={tailwind('items-center w-full')}>
           <AppText semibold style={[tailwind('text-xl text-center'), { color: getColor('text-gray-100') }]}>
             {strings.screens.photos.photosLocked.title}
           </AppText>
@@ -75,8 +76,8 @@ const styles = StyleSheet.create({
   },
   lockBadge: {
     position: 'absolute',
-    bottom: -6,
-    right: -6,
+    bottom: -8,
+    left: -16,
   },
 });
 

@@ -32,6 +32,7 @@ import appService from '../../services/AppService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
 import { disableBackupThunk, setNetworkConditionThunk } from '../../store/slices/photos';
+import { hasPhotosFeatureAccess } from '../../store/slices/photos/selectors';
 import { uiActions } from '../../store/slices/ui';
 import { SettingsScreenProps } from '../../types/navigation';
 
@@ -56,6 +57,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   useLanguage();
 
   const photosEnabled = useAppSelector((state) => state.photos.enabled);
+  const hasPhotosAccess = useAppSelector(hasPhotosFeatureAccess);
   const networkCondition = useAppSelector((state) => state.photos.networkCondition);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
@@ -352,6 +354,10 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                     </View>
                   ),
                   onPress: () => {
+                    if (!hasPhotosAccess) {
+                      navigation.navigate('Plan');
+                      return;
+                    }
                     if (photosEnabled) {
                       dispatch(disableBackupThunk());
                     } else {

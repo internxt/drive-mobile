@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { paymentsThunks } from 'src/store/slices/payments';
 import {
   forceRefreshThunk,
   pauseBackupThunk,
@@ -12,6 +13,7 @@ import {
   resumeBackupThunk,
   runBackupCycleThunk,
 } from 'src/store/slices/photos';
+import { hasPhotosFeatureAccess } from 'src/store/slices/photos/selectors';
 import { uiActions } from 'src/store/slices/ui';
 import { TabExplorerScreenNavigationProp } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
@@ -39,6 +41,7 @@ const PhotosScreen = (): JSX.Element => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation<TabExplorerScreenNavigationProp<'Photos'>>();
   const enabled = useAppSelector((state) => state.photos.enabled);
+  const hasAccess = useAppSelector(hasPhotosFeatureAccess);
   const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
   const [isEnableBackupSheetOpen, setIsEnableBackupSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -88,10 +91,17 @@ const PhotosScreen = (): JSX.Element => {
     [selection],
   );
 
-  const accessState = useMemo<PhotosAccessState>(
-    () => (enabled ? { type: 'available' } : { type: 'backup-off' }),
-    [enabled],
-  );
+  const accessState = useMemo<PhotosAccessState>(() => {
+    if (!hasAccess) {
+      return { type: 'photos-locked' };
+    }
+    if (enabled) {
+      return { type: 'available' };
+    }
+    return { type: 'backup-off' };
+  }, [hasAccess, enabled]);
+
+  const handleUpgradePress = useCallback(() => navigation.navigate('Settings'), [navigation]);
 
   const handleSelectPress = useCallback(() => selection.enterSelectMode(), [selection]);
 
@@ -100,8 +110,13 @@ const PhotosScreen = (): JSX.Element => {
   const handleSelectMorePhotos = useSelectMorePhotos(reloadLocal);
 
   const listHeader = useMemo(() => {
-    if (accessState.type === 'backup-off') return <BackupDisabledBanner onEnablePress={handleEnableBackup} />;
-    if (permissionStatus === 'limited') return <LimitedAccessBanner onSelectMorePress={handleSelectMorePhotos} />;
+    if (accessState.type === 'backup-off') {
+      return <BackupDisabledBanner onEnablePress={handleEnableBackup} />;
+    }
+    if (permissionStatus === 'limited') {
+      return <LimitedAccessBanner onSelectMorePress={handleSelectMorePhotos} />;
+    }
+
     return undefined;
   }, [accessState.type, permissionStatus, handleEnableBackup, handleSelectMorePhotos]);
 
@@ -163,6 +178,8 @@ const PhotosScreen = (): JSX.Element => {
 
   useFocusEffect(
     useCallback(() => {
+      dispatch(paymentsThunks.loadFileLimitsThunk());
+
       if (enabled) {
         dispatch(runBackupCycleThunk());
       }
@@ -199,7 +216,7 @@ const PhotosScreen = (): JSX.Element => {
           onPausePress={handlePausePress}
           onResumePress={handleResumePress}
         />
-        {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={() => undefined} />}
+        {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>
 
       <SelectionToolbar

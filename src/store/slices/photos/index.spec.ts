@@ -11,6 +11,7 @@ import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
 import { storageSelectors } from 'src/store/slices/storage';
+import { hasPhotosFeatureAccess } from './selectors';
 import photosReducer, {
   checkPermissionRevocationThunk,
   disableBackupThunk,
@@ -85,6 +86,10 @@ jest.mock('src/store/slices/storage', () => ({
   },
 }));
 
+jest.mock('./selectors', () => ({
+  hasPhotosFeatureAccess: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('src/services/photos/database/photosLocalDB', () => ({
   photosLocalDB: {
     init: jest.fn().mockResolvedValue(undefined),
@@ -101,6 +106,7 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
 }));
 
 const mockStorageSelectors = storageSelectors as jest.Mocked<typeof storageSelectors>;
+const mockHasPhotosFeatureAccess = hasPhotosFeatureAccess as jest.MockedFunction<typeof hasPhotosFeatureAccess>;
 const mockAsyncStorage = asyncStorageService as jest.Mocked<typeof asyncStorageService>;
 const mockCloudBrowser = photoCloudBrowser as jest.Mocked<typeof photoCloudBrowser>;
 const mockPermissionService = photoPermissionService as jest.Mocked<typeof photoPermissionService>;
@@ -149,6 +155,7 @@ describe('photos slice', () => {
     mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
     mockPermissionService.getStatus.mockResolvedValue('granted');
+    mockHasPhotosFeatureAccess.mockReturnValue(true);
     (Network.getNetworkStateAsync as jest.Mock).mockResolvedValue({
       type: Network.NetworkStateType.WIFI,
       isConnected: true,
@@ -245,6 +252,17 @@ describe('photos slice', () => {
     await store.dispatch(hydratePhotosStateThunk());
 
     expect(store.getState().photos.enabled).toBe(false);
+  });
+
+  test('when the user tries to enable backup but their plan does not include access, then backup is denied without requesting permission', async () => {
+    mockHasPhotosFeatureAccess.mockReturnValue(false);
+    const store = makeStore();
+
+    const result = await store.dispatch(enableBackupThunk()).unwrap();
+
+    expect(result.isGranted).toBe(false);
+    expect(store.getState().photos.enabled).toBe(false);
+    expect(mockPermissionService.requestPermission).not.toHaveBeenCalled();
   });
 
   test('when the user enables backup and grants permission, then backup is turned on and saved', async () => {
@@ -710,6 +728,40 @@ describe('photos slice', () => {
       expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalledTimes(1);
       expect(store.getState().photos.deviceId).toBe('recreated-device-id');
       expect(store.getState().photos.photosBucket).toBe('recreated-bucket');
+    });
+
+    test('when the user does not have plan access and backup is active, then backup is disabled and the reason is set to plan-restricted', async () => {
+      mockHasPhotosFeatureAccess.mockReturnValue(false);
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
+      await store.dispatch(runBackupCycleThunk());
+
+      expect(store.getState().photos.enabled).toBe(false);
+      expect(store.getState().photos.disabledReason).toBe('plan-restricted');
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).not.toHaveBeenCalled();
+    });
+
+    test('when the user does not have plan access and backup is already off, then the thunk exits without re-disabling', async () => {
+      mockHasPhotosFeatureAccess.mockReturnValue(false);
+      const store = makeStore();
+
+      await store.dispatch(runBackupCycleThunk());
+
+      expect(store.getState().photos.enabled).toBe(false);
+      expect(store.getState().photos.disabledReason).toBeNull();
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).not.toHaveBeenCalled();
+    });
+
+    test('when the user has plan access, then the backup cycle runs without interruption', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+      mockPermissionService.getStatus.mockResolvedValue('granted');
+
+      await store.dispatch(runBackupCycleThunk());
+
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalled();
+      expect(mockCloudBrowser.syncAllHistory).toHaveBeenCalled();
     });
 
     test('when the backup cycle runs while paused, then discovery runs but the upload is skipped and sync status is paused', async () => {
