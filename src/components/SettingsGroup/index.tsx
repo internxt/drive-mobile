@@ -21,24 +21,25 @@ interface SettingsGroupProps extends ViewProps {
   items: SettingsGroupItemWithKey[];
 }
 
+const SettingsGroupItem = (props: SettingsGroupItemProps) => {
+  const getColor = useGetColor();
+  return (
+    <TouchableHighlight
+      disabled={!props.onPress || props.loading}
+      underlayColor={getColor('bg-gray-5')}
+      onPress={(event) => {
+        props.onPress && props.onPress(event);
+      }}
+      style={{ backgroundColor: getColor('bg-surface') }}
+    >
+      {props.template}
+    </TouchableHighlight>
+  );
+};
+
 function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupProps) {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-
-  const SettingsGroupItem = (props: SettingsGroupItemProps) => {
-    return (
-      <TouchableHighlight
-        disabled={!props.onPress || props.loading}
-        underlayColor={getColor('bg-gray-5')}
-        onPress={(event) => {
-          props.onPress && props.onPress(event);
-        }}
-        style={{ backgroundColor: getColor('bg-surface') }}
-      >
-        {props.template}
-      </TouchableHighlight>
-    );
-  };
 
   const renderItems = () =>
     items.map((i, index) => {
