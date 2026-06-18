@@ -521,6 +521,7 @@ export const photosActions = photosSlice.actions;
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/signOut',
   async (_, { dispatch }) => {
+    PhotoUploadQueue.abortAll();
     await Promise.all([photosLocalDB.reset(), photosLocalDB.resetCloudAssets()]).catch(errorService.reportError);
     dispatch(photosActions.resetState());
   },

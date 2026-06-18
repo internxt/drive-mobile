@@ -722,4 +722,14 @@ describe('photosLocalDB cloud asset methods', () => {
 
     expect(result).toEqual(new Set());
   });
+
+  test('when fetching remote file ids, then assets with cloud deleted or deleted status are excluded from the query', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+    await photosLocalDB.getSyncedRemoteFileIds();
+
+    const [, sql] = mockSqlite.getAllAsync.mock.calls[0];
+    expect(sql).toContain('status NOT IN (\'cloud_deleted\', \'deleted\')');
+    expect(sql).not.toContain('status = \'synced\'');
+  });
 });

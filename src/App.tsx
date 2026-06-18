@@ -16,6 +16,7 @@ import LinkCopiedModal from './components/modals/LinkCopiedModal';
 import SignOutModal from './components/modals/SignOutModal';
 
 import { useNavigationContainerRef } from '@react-navigation/native';
+import { useKeepAwake } from 'expo-keep-awake';
 import { DriveContextProvider } from './contexts/Drive';
 import { ThemeProvider, useTheme } from './contexts/Theme';
 import { getRemoteUpdateIfAvailable, useLoadFonts } from './helpers';
@@ -53,6 +54,7 @@ function AppContent(): JSX.Element {
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const { performPeriodicSecurityCheck } = useSecurity();
 
+  useKeepAwake();
   useScreenProtection();
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
@@ -71,6 +73,7 @@ function AppContent(): JSX.Element {
     await dispatch(authThunks.silentSignInThunk());
     await dispatch(authThunks.refreshTokensThunk());
     dispatch(hydratePhotosStateThunk());
+    await dispatch(paymentsThunks.loadFileLimitsThunk());
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));

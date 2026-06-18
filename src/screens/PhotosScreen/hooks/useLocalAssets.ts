@@ -1,12 +1,13 @@
 import * as MediaLibrary from 'expo-media-library';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import useDebouncedValue from 'src/hooks/useDebouncedValue';
 import { logger } from 'src/services/common';
 import { BurstNativeModule } from 'src/services/photos/burst/BurstNativeModule';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
 
-const PAGE_SIZE = 200;
+const PAGE_SIZE = 1000;
 const MEDIA_TYPES = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video];
 
 export interface LocalAssetsResult {
@@ -116,14 +117,15 @@ export const useLocalAssets = (): LocalAssetsResult => {
   }, [assets]);
 
   const assetIds = useMemo(() => assets.map((asset) => asset.id), [assets]);
+  const debouncedAssetIds = useDebouncedValue(assetIds, 400);
   useEffect(() => {
-    if (assetIds.length === 0) {
+    if (debouncedAssetIds.length === 0) {
       return;
     }
-    BurstNativeModule.getBurstRepresentativeIds(assetIds)
+    BurstNativeModule.getBurstRepresentativeIds(debouncedAssetIds)
       .then((ids) => setBurstRepresentativeIdSet(new Set(ids)))
       .catch((err) => logger.error(`[LocalAssets] getBurstRepresentativeIds failed: ${err}`));
-  }, [assetIds]);
+  }, [debouncedAssetIds]);
 
   const reloadFromStart = useCallback(async () => {
     cursorRef.current = undefined;
@@ -131,7 +133,10 @@ export const useLocalAssets = (): LocalAssetsResult => {
     const page = await fetchLocalPage();
     applyPage(page, { replace: true });
     logger.info(`[LocalAssets] Reloaded from start — ${page.assets.length} assets (hasNextPage: ${page.hasNextPage})`);
-  }, [fetchLocalPage, applyPage]);
+    if (page.hasNextPage) {
+      loadAllRemainingPages();
+    }
+  }, [fetchLocalPage, applyPage, loadAllRemainingPages]);
 
   useEffect(() => {
     const loadFirstPage = async () => {

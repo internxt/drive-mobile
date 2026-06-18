@@ -1,7 +1,7 @@
 import * as MediaLibrary from 'expo-media-library';
 import { logger } from 'src/services/common';
 
-const PAGE_SIZE = 200;
+const PAGE_SIZE = 1000;
 const MEDIA_TYPES = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video];
 
 async function* streamAssets(
