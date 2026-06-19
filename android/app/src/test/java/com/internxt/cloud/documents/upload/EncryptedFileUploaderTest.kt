@@ -2,13 +2,20 @@ package com.internxt.cloud.documents.upload
 
 import com.internxt.cloud.documents.crypto.Ripemd160
 import com.internxt.cloud.documents.crypto.toHex
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import okhttp3.OkHttpClient
+import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.File
@@ -17,6 +24,7 @@ import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Encryption itself is exercised by the `@internxt/rn-crypto` package's own test suite
@@ -60,7 +68,7 @@ class EncryptedFileUploaderTest {
         File(tempDir, name).apply { writeBytes(controlEncrypt(plain)) }
 
     @Test
-    fun uploadSinglePutsTempFileContentsAndReportsCorrectHash() {
+    fun uploadSinglePutsTempFileContentsAndReportsCorrectHash() = runTest {
         val plain = ByteArray(8_000) { it.toByte() }
         val tempEnc = writeEncrypted("single.enc", plain)
         val encBytes = tempEnc.readBytes()
@@ -68,7 +76,7 @@ class EncryptedFileUploaderTest {
 
         server.enqueue(MockResponse().setResponseCode(200))
         val url = server.url("/upload").toString()
-        EncryptedFileUploader.uploadSingle(client, tempEnc, url, signal = null)
+        EncryptedFileUploader.uploadSingle(client, tempEnc, url)
 
         val recorded = server.takeRequest()
         assertEquals("PUT", recorded.method)
@@ -81,7 +89,7 @@ class EncryptedFileUploaderTest {
     }
 
     @Test
-    fun uploadMultipartCollectsEtagsAndPartHashesMatchSlices() {
+    fun uploadMultipartCollectsEtagsAndPartHashesMatchSlices() = runTest {
         val partSize = 4_000L
         val plain = ByteArray(13_000) { it.toByte() }
         val tempEnc = writeEncrypted("multi.enc", plain)
@@ -97,7 +105,6 @@ class EncryptedFileUploaderTest {
             tempEnc = tempEnc,
             urls = urls,
             partSize = partSize,
-            signal = null,
         )
 
         assertEquals(listOf(1, 2, 3, 4), parts.map { it.partNumber })
@@ -129,6 +136,40 @@ class EncryptedFileUploaderTest {
         val computed = EncryptedFileUploader.computeShardHash(expected)
         val expectedHash = Ripemd160.digest(hexDecode(expected.joinToString(""))).toHex()
         assertEquals(expectedHash, computed)
+    }
+
+    @Test
+    fun `when the upload coroutine is cancelled mid PUT, then it raises cancellation not a failure`() {
+        val requestReceived = CompletableDeferred<Unit>()
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                requestReceived.complete(Unit)
+                Thread.sleep(2_000)
+                return MockResponse().setResponseCode(200)
+            }
+        }
+        val tempEnc = writeEncrypted("cancel.enc", ByteArray(8_000) { it.toByte() })
+        val url = server.url("/slow").toString()
+        val thrown = CompletableDeferred<Throwable>()
+
+        runBlocking {
+            val job = launch(Dispatchers.IO) {
+                try {
+                    EncryptedFileUploader.uploadSingle(client, tempEnc, url)
+                } catch (t: Throwable) {
+                    thrown.complete(t)
+                    throw t
+                }
+            }
+            requestReceived.await()
+            job.cancel()
+            job.join()
+        }
+
+        assertTrue(
+            "expected cancellation but got ${thrown.getCompleted().javaClass.name}",
+            thrown.getCompleted() is CancellationException,
+        )
     }
 
     private fun hexDecode(hex: String): ByteArray {

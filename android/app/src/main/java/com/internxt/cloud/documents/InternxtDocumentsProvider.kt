@@ -43,6 +43,14 @@ import java.time.Instant
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlin.coroutines.coroutineContext
 
 class InternxtDocumentsProvider : DocumentsProvider() {
 
@@ -52,9 +60,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         Thread(r, "InternxtDocsProvider-loader").apply { isDaemon = true }
     }
 
-    private val openExecutor = Executors.newCachedThreadPool { r ->
-        Thread(r, "InternxtDocsProvider-open").apply { isDaemon = true }
-    }
+    private val uploadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val folderLoads = ConcurrentHashMap<String, FolderLoad>()
     private val pendingUploads = ConcurrentHashMap<String, PendingUpload>()
@@ -64,6 +70,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private class FolderLoad {
         @Volatile var state: LoadState = LoadState.LOADING
         @Volatile var errorMessage: String? = null
+        @Volatile var isRevalidating: Boolean = false
         val rows = mutableListOf<Map<String, Any?>>()
     }
     private val itemKinds = ConcurrentHashMap<String, ItemKind>()
@@ -82,6 +89,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
     override fun shutdown() {
         if (activeInstance === this) activeInstance = null
+        uploadScope.cancel()
         super.shutdown()
     }
 
@@ -377,8 +385,57 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         val documentId = try { DocumentsContract.getDocumentId(uri) } catch (_: Exception) { null }
         Log.d(TAG, "refresh uri=$uri documentId=$documentId")
         if (documentId == null) return false
-        invalidateChildren(documentId)
+        revalidateChildren(documentId)
         return true
+    }
+
+    private fun revalidateChildren(parentDocumentId: String) {
+        val load = folderLoads[parentDocumentId]
+        if (load == null) {
+            notifyChildren(parentDocumentId)
+            return
+        }
+        synchronized(load) {
+            if (load.state == LoadState.LOADING || load.isRevalidating) return
+            load.isRevalidating = true
+        }
+        val parentUuid = rawUuid(parentDocumentId)
+        val notifyUri = DocumentsContract.buildChildDocumentsUri(AUTHORITY, parentDocumentId)
+        loaderExecutor.execute { revalidate(parentUuid, load, notifyUri) }
+    }
+
+    private fun revalidate(parentUuid: String, load: FolderLoad, notifyUri: Uri) {
+        val api = apiClient(op = "refresh[bg]")
+        if (api == null) {
+            synchronized(load) { load.isRevalidating = false }
+            return
+        }
+        try {
+            val fresh = fetchAllRows(api, parentUuid)
+            synchronized(load) {
+                load.rows.clear()
+                load.rows.addAll(fresh)
+                load.state = LoadState.DONE
+                load.errorMessage = null
+                load.isRevalidating = false
+            }
+            context?.contentResolver?.notifyChange(notifyUri, null)
+            Log.d(TAG, "refresh parent=$parentUuid revalidated rows=${fresh.size}")
+        } catch (e: InternxtApiException) {
+            synchronized(load) { load.isRevalidating = false }
+            Log.w(TAG, "refresh parent=$parentUuid revalidation failed: ${e.javaClass.simpleName}: ${e.message}")
+        }
+    }
+
+    private fun fetchAllRows(api: InternxtApiClient, parentUuid: String): List<Map<String, Any?>> {
+        val rows = mutableListOf<Map<String, Any?>>()
+        streamPages({ offset, size -> api.listFolderFolders(parentUuid, offset, size) }) { page ->
+            rows.addAll(page.map { DocumentRowBuilder.folderRow(it) })
+        }
+        streamPages({ offset, size -> api.listFolderFiles(parentUuid, offset, size) }) { page ->
+            rows.addAll(page.map { DocumentRowBuilder.fileRow(it) })
+        }
+        return rows
     }
 
     override fun openDocument(
@@ -402,24 +459,24 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         }
         val fileUuid = decoded.uuid
 
-        val future = openExecutor.submit<ParcelFileDescriptor> {
-            openDocumentBlocking(ctx, id, signal, fileUuid)
-        }
         return try {
-            future.get()
-        } catch (e: java.util.concurrent.ExecutionException) {
-            val cause = e.cause
-            if (cause is FileNotFoundException) throw cause
-            throw FileNotFoundException("openDocument failed: ${cause?.message ?: e.message}").apply {
-                if (cause != null) initCause(cause)
+            runBlockingIo {
+                signal?.setOnCancelListener { coroutineContext.cancel() }
+                openDocumentSuspending(ctx, id, fileUuid)
             }
+        } catch (e: FileNotFoundException) {
+            throw e
+        } catch (e: CancellationException) {
+            throw FileNotFoundException("openDocument $id cancelled").apply { initCause(e) }
+        } catch (e: Exception) {
+            Log.w(TAG, "openDocument $id failed", e)
+            throw FileNotFoundException("openDocument failed: ${e.message}").apply { initCause(e) }
         }
     }
 
-    private fun openDocumentBlocking(
+    private suspend fun openDocumentSuspending(
         ctx: Context,
         id: String,
-        signal: CancellationSignal?,
         fileUuid: String,
     ): ParcelFileDescriptor {
         val cfg = authManager?.loadAuthConfig() ?: throw FileNotFoundException(NOT_AUTHENTICATED)
@@ -438,7 +495,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         if (cacheFile.exists() && cacheFile.length() > 0) {
             return openCached(ctx, id, cacheFile)
         }
-        materializeIntoCache(ctx, id, api, cfg.mnemonic, file, cacheFile, signal)
+        materializeIntoCache(ctx, id, api, cfg.mnemonic, file, cacheFile)
         return openCached(ctx, id, cacheFile)
     }
 
@@ -461,25 +518,22 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         )
     }
 
-    private fun materializeIntoCache(
+    private suspend fun materializeIntoCache(
         ctx: Context,
         id: String,
         api: InternxtApiClient,
         mnemonic: String,
         file: FileMetadata,
         cacheFile: File,
-        signal: CancellationSignal?,
     ) {
         val (tempEnc, tempDec) = DocumentCache.tempPaths(ctx, id)
         try {
-            signal?.throwIfCanceled()
             val links = api.getDownloadLinks(file.bucket, file.fileId)
-            EncryptedFileDownloader.download(HttpClients.download, links.shards, tempEnc, signal)
+            EncryptedFileDownloader.download(HttpClients.download, links.shards, tempEnc)
 
-            signal?.throwIfCanceled()
             val key = FileKeyDeriver.deriveFileKey(mnemonic, file.bucket, links.index)
             val iv = FileKeyDeriver.deriveIv(links.index)
-            decryptBlocking(tempEnc, tempDec, key.toHex(), iv.toHex())
+            decryptFile(tempEnc, tempDec, key.toHex(), iv.toHex())
 
             if (!tempDec.renameTo(cacheFile)) {
                 throw FileNotFoundException("Failed to promote temp file to cache for $id")
@@ -489,10 +543,9 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         } catch (e: Exception) {
             tempEnc.delete()
             tempDec.delete()
-            throw when (e) {
-                is FileNotFoundException -> e
-                is OperationCanceledException ->
-                    FileNotFoundException("openDocument $id cancelled").apply { initCause(e) }
+            throw when {
+                e is FileNotFoundException -> e
+                isCancellation(e) -> e
                 else ->
                     FileNotFoundException("openDocument $id failed: ${e.message}").apply { initCause(e) }
             }
@@ -619,9 +672,10 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             val pipe = ParcelFileDescriptor.createReliablePipe()
             val readEnd = pipe[0]
             val writeEnd = pipe[1]
-            openExecutor.execute {
-                runUpload(ctx, token, pending, cfg, readEnd, signal)
+            val job: Job = uploadScope.launch {
+                runUpload(ctx, token, pending, cfg, readEnd)
             }
+            signal?.setOnCancelListener { job.cancel() }
             return writeEnd
         } catch (t: Throwable) {
             pendingUploads.remove(token)
@@ -629,17 +683,17 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         }
     }
 
-    private fun runUpload(
+    private suspend fun runUpload(
         ctx: Context,
         token: String,
         pending: PendingUpload,
         cfg: AuthConfig,
         readEnd: ParcelFileDescriptor,
-        signal: CancellationSignal?,
     ) {
         val temps = uploadTempsFor(ctx, token)
+        val uploadJob = coroutineContext[Job]
         val uploadSignal = CancellationSignal()
-        signal?.setOnCancelListener { uploadSignal.cancel() }
+        uploadSignal.setOnCancelListener { uploadJob?.cancel() }
         UploadForegroundService.start(ctx, token, pending.plainName, uploadSignal)
 
         var failure: Throwable? = null
@@ -648,11 +702,11 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             val bucketId = resolveBucket(api, pending.parentUuid)
             val crypto = prepareEncryption(cfg.mnemonic, bucketId)
             val encrypted = encryptInputToTemp(token, temps, readEnd, crypto, uploadSignal)
-            val outcome = uploadEncryptedFile(token, api, temps.enc, bucketId, encrypted, uploadSignal)
+            val outcome = uploadEncryptedFile(token, api, temps.enc, bucketId, encrypted)
             finalizeAndRecordFile(api, pending, bucketId, crypto.indexHex, encrypted.size, outcome)
             invalidateChildren(DocumentId.encodeFolder(pending.parentUuid))
         } catch (t: Throwable) {
-            if (t !is OperationCanceledException) {
+            if (!isCancellation(t)) {
                 Log.w(TAG, "upload failed token=$token: ${t.javaClass.simpleName}: ${t.message}")
             }
             failure = t
@@ -664,6 +718,9 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             notifyServiceOfOutcome(ctx, token, failure)
         }
     }
+
+    private fun isCancellation(t: Throwable): Boolean =
+        t is OperationCanceledException || t is CancellationException
 
     /** `tempEnc` holds the ciphertext PUT to bridge; `plain` holds the pipe's plaintext
      *  while we hand it to CryptoService (which only accepts file paths). */
@@ -690,7 +747,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         )
     }
 
-    private fun encryptInputToTemp(
+    private suspend fun encryptInputToTemp(
         token: String,
         temps: UploadTemps,
         readEnd: ParcelFileDescriptor,
@@ -739,13 +796,12 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         }
     }
 
-    private fun uploadEncryptedFile(
+    private suspend fun uploadEncryptedFile(
         token: String,
         api: InternxtApiClient,
         tempEnc: File,
         bucketId: String,
         encrypted: EncryptedFileUploader.Encrypted,
-        signal: CancellationSignal,
     ): UploadOutcome {
         val partsCount = if (encrypted.size >= MULTIPART_THRESHOLD) {
             ((encrypted.size + MULTIPART_PART_SIZE - 1) / MULTIPART_PART_SIZE).toInt().coerceAtLeast(1)
@@ -763,14 +819,14 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         return when (slot) {
             is UploadSlot.Single -> {
                 EncryptedFileUploader.uploadSingle(
-                    HttpClients.upload, tempEnc, slot.url, signal, onProgress,
+                    HttpClients.upload, tempEnc, slot.url, onProgress,
                 )
                 UploadOutcome.Single(slot.uuid, listOf(encrypted.wholeSha256Hex))
             }
             is UploadSlot.Multipart -> {
                 val partHashes = EncryptedFileUploader.computePartSha256(tempEnc, MULTIPART_PART_SIZE)
                 val parts = EncryptedFileUploader.uploadMultipart(
-                    HttpClients.upload, tempEnc, slot.urls, MULTIPART_PART_SIZE, signal, onProgress,
+                    HttpClients.upload, tempEnc, slot.urls, MULTIPART_PART_SIZE, onProgress,
                 )
                 UploadOutcome.Multipart(slot.uuid, partHashes, parts, slot.uploadId)
             }
@@ -834,7 +890,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun notifyServiceOfOutcome(ctx: Context, token: String, failure: Throwable?) {
         when {
             failure == null -> UploadForegroundService.complete(token)
-            failure is OperationCanceledException -> UploadForegroundService.complete(token)
+            isCancellation(failure) -> UploadForegroundService.complete(token)
             else -> UploadForegroundService.fail(token, friendlyUploadError(ctx, failure))
         }
     }
@@ -902,7 +958,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         Document.COLUMN_SIZE to null,
     )
 
-    private fun decryptBlocking(src: File, dst: File, hexKey: String, hexIv: String) {
+    private suspend fun decryptFile(src: File, dst: File, hexKey: String, hexIv: String) {
         awaitCryptoService("Decryption failed") { cb ->
             CryptoService.getInstance().decryptFile(
                 src.absolutePath,

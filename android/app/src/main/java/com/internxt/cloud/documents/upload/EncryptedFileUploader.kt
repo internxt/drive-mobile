@@ -1,13 +1,11 @@
 package com.internxt.cloud.documents.upload
 
-import android.os.CancellationSignal
-import android.os.OperationCanceledException
 import com.internxt.cloud.documents.api.model.UploadedPart
 import com.internxt.cloud.documents.crypto.Ripemd160
 import com.internxt.cloud.documents.crypto.awaitCryptoService
 import com.internxt.cloud.documents.crypto.toHex
+import com.internxt.cloud.documents.http.await
 import com.rncrypto.util.CryptoService
-import okhttp3.Call
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -19,7 +17,8 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.RandomAccessFile
 import java.security.MessageDigest
-import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.ensureActive
+import kotlin.coroutines.coroutineContext
 
 object EncryptedFileUploader {
 
@@ -37,7 +36,7 @@ object EncryptedFileUploader {
      * package does not return a digest, so SHA-256 over the ciphertext is computed here
      * by streaming the produced file back through MessageDigest.
      */
-    fun encryptFile(plain: File, tempEnc: File, key: ByteArray, iv: ByteArray): Encrypted {
+    suspend fun encryptFile(plain: File, tempEnc: File, key: ByteArray, iv: ByteArray): Encrypted {
         prepareTarget(tempEnc)
         awaitCryptoService("Encryption failed") { cb ->
             CryptoService.getInstance().encryptFile(
@@ -91,42 +90,36 @@ object EncryptedFileUploader {
         return hashes
     }
 
-    fun uploadSingle(
+    suspend fun uploadSingle(
         client: OkHttpClient,
         tempEnc: File,
         url: String,
-        signal: CancellationSignal?,
         onProgress: ((Long) -> Unit)? = null,
     ) {
-        val active = AtomicReference<Call?>(null)
-        signal?.setOnCancelListener { active.get()?.cancel() }
         val body = fileRangeBody(tempEnc, 0L, tempEnc.length(), onProgress, baseSent = 0L)
         val request = Request.Builder().url(url).put(body).build()
-        runCall(client, request, signal, active) { /* ETag not needed for single */ }
+        runCall(client, request) { /* ETag not needed for single */ }
     }
 
-    fun uploadMultipart(
+    suspend fun uploadMultipart(
         client: OkHttpClient,
         tempEnc: File,
         urls: List<String>,
         partSize: Long,
-        signal: CancellationSignal?,
         onProgress: ((Long) -> Unit)? = null,
     ): List<UploadedPart> {
         require(urls.isNotEmpty()) { "urls cannot be empty" }
         val total = tempEnc.length()
-        val active = AtomicReference<Call?>(null)
-        signal?.setOnCancelListener { active.get()?.cancel() }
 
         val parts = ArrayList<UploadedPart>(urls.size)
         var offset = 0L
         urls.forEachIndexed { index, url ->
-            signal?.throwIfCanceled()
+            coroutineContext.ensureActive()
             val length = (total - offset).coerceAtMost(partSize)
             require(length > 0) { "Computed empty part for index $index" }
             val body = fileRangeBody(tempEnc, offset, length, onProgress, baseSent = offset)
             val request = Request.Builder().url(url).put(body).build()
-            val etag = runCall(client, request, signal, active) { response ->
+            val etag = runCall(client, request) { response ->
                 response.header("ETag") ?: response.header("Etag")
                     ?: throw IOException("Part ${index + 1} missing ETag in response")
             }
@@ -146,30 +139,15 @@ object EncryptedFileUploader {
         return Ripemd160.digest(hexDecode(concatenated)).toHex()
     }
 
-    private inline fun <T> runCall(
+    private suspend fun <T> runCall(
         client: OkHttpClient,
         request: Request,
-        signal: CancellationSignal?,
-        active: AtomicReference<Call?>,
         onResponse: (okhttp3.Response) -> T,
-    ): T {
-        val call = client.newCall(request)
-        active.set(call)
-        try {
-            return call.execute().use { response ->
-                if (!response.isSuccessful) {
-                    throw IOException("PUT failed HTTP ${response.code}")
-                }
-                onResponse(response)
-            }
-        } catch (e: IOException) {
-            if (signal != null && signal.isCanceled) {
-                throw OperationCanceledException("Upload cancelled").apply { initCause(e) }
-            }
-            throw e
-        } finally {
-            active.set(null)
+    ): T = client.newCall(request).await().use { response ->
+        if (!response.isSuccessful) {
+            throw IOException("PUT failed HTTP ${response.code}")
         }
+        onResponse(response)
     }
 
     private fun fileRangeBody(
