@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import strings from 'assets/lang/strings';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar, View } from 'react-native';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { logger } from 'src/services/common';
@@ -20,7 +20,7 @@ import { usePreviewItems } from './hooks/usePreviewItems';
 type Props = RootStackScreenProps<'PhotoPreview'>;
 
 export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
-  const { initialId, items: routeItems, onItemChanged } = route.params;
+  const { initialId, items: routeItems, onItemChanged, onCurrentItemChange } = route.params;
   const { items, currentIndex, setCurrentIndex } = usePreviewItems(initialId, routeItems);
   const tailwind = useTailwind();
   const navigation = useNavigation();
@@ -33,6 +33,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   const [metadataOpen, setMetadataOpen] = useState(false);
   const [hasVideoStarted, setHasVideoStarted] = useState(false);
   const [videoResetKey, setVideoResetKey] = useState(0);
+  const [isScrubbing, setIsScrubbing] = useState(false);
 
   const resetVideoPlayer = useCallback(() => setVideoResetKey((key) => key + 1), []);
 
@@ -83,8 +84,17 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     setIsUiVisible(true);
   }, []);
 
+  const handleScrubStart = useCallback(() => setIsScrubbing(true), []);
+  const handleScrubEnd = useCallback(() => setIsScrubbing(false), []);
+
   const currentItem = items[currentIndex];
   const actionItems = useMemo(() => (currentItem ? [currentItem] : []), [currentItem]);
+
+  useEffect(() => {
+    if (currentItem) {
+      onCurrentItemChange?.(currentItem.id);
+    }
+  }, [currentIndex, currentItem, onCurrentItemChange]);
 
   const { handleExport, handleSave, handleCopy, handleTrashConfirm, handleRestore } = usePhotoActionHandlers({
     items: actionItems,
@@ -118,6 +128,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
         items={items}
         initialIndex={currentIndex}
         activeIndex={currentIndex}
+        isScrubbing={isScrubbing}
         onIndexChange={setCurrentIndex}
         onTap={handleTap}
         onZoomChange={handleZoomChange}
@@ -139,6 +150,9 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
           items={items}
           currentIndex={currentIndex}
           onPress={setCurrentIndex}
+          onScrub={setCurrentIndex}
+          onScrubStart={handleScrubStart}
+          onScrubEnd={handleScrubEnd}
           visible={isUiVisible}
           onExport={handleExport}
           onMore={() => setIsMoreActionsOpen(true)}
