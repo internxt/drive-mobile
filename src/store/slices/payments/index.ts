@@ -26,6 +26,7 @@ export interface PaymentsState {
   sessionId: string;
   invoices: Invoice[] | null;
   defaultPaymentMethod: DefaultPaymentMethod | null;
+  photosAccess?: boolean;
 }
 
 const initialState: PaymentsState = {
@@ -52,6 +53,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
         dispatch(loadInvoicesThunk());
         dispatch(loadDefaultPaymentMethodThunk());
         dispatch(checkShouldDisplayBilling());
+        dispatch(loadFileLimitsThunk());
       }
     } catch (err) {
       // Pass
@@ -96,6 +98,13 @@ const checkShouldDisplayBilling = createAsyncThunk<boolean, void, { state: RootS
   },
 );
 
+const loadFileLimitsThunk = createAsyncThunk<{ photosAccess: boolean } | null, void, { state: RootState }>(
+  'payments/loadFileLimits',
+  async () => {
+    return paymentService.getFileLimits();
+  },
+);
+
 const cancelSubscriptionThunk = createAsyncThunk<void, void, { state: RootState }>(
   'payments/cancelSubscription',
   async () => {
@@ -112,6 +121,9 @@ export const paymentsSlice = createSlice({
     },
     setSubscriptionAsFree: (state) => {
       state.subscription = { type: 'free' };
+    },
+    setPhotosAccess: (state, action: PayloadAction<boolean>) => {
+      state.photosAccess = action.payload;
     },
   },
   extraReducers(builder) {
@@ -148,6 +160,12 @@ export const paymentsSlice = createSlice({
       state.showBilling = false;
     });
 
+    builder.addCase(loadFileLimitsThunk.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.photosAccess = action.payload.photosAccess;
+      }
+    });
+
     builder.addCase(cancelSubscriptionThunk.rejected, () => {
       notificationsService.show({ type: NotificationType.Error, text1: strings.errors.cancelSubscription });
     });
@@ -162,6 +180,7 @@ export const paymentsSelectors = {
   hasSubscription: (state: RootState) => state.payments.subscription.type === 'subscription',
   hasLifetime: (state: RootState) => state.payments.subscription.type === 'lifetime',
   shouldShowBilling: (state: RootState) => state.payments.showBilling,
+  hasPhotosAccess: (state: RootState) => state.payments.photosAccess ?? false,
 };
 
 export const paymentsThunks = {
@@ -169,6 +188,7 @@ export const paymentsThunks = {
   loadPricesThunk,
   loadUserSubscriptionThunk,
   loadInvoicesThunk,
+  loadFileLimitsThunk,
   cancelSubscriptionThunk,
   checkShouldDisplayBilling,
 };

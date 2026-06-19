@@ -1,4 +1,7 @@
+import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { HTTP_PAYMENT_REQUIRED } from 'src/services/common/httpStatusCodes';
+import { paymentsActions } from 'src/store/slices/payments';
 import * as Network from 'expo-network';
 import { Platform } from 'react-native';
 import asyncStorageService from 'src/services/AsyncStorageService';
@@ -19,6 +22,7 @@ import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 import { runUploadThunk } from './thunks/upload';
+import { hasPhotosFeatureAccess } from './selectors';
 export { runUploadThunk };
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
@@ -32,7 +36,7 @@ export type PhotoSyncStatus =
   | 'paused-no-wifi'
   | 'paused-no-connection'
   | 'error';
-export type PhotosDisabledReason = 'quota-exceeded' | null;
+export type PhotosDisabledReason = 'quota-exceeded' | 'plan-restricted' | null;
 
 export interface PhotosState {
   enabled: boolean;
@@ -148,6 +152,10 @@ export const enableBackupThunk = createAsyncThunk<
   void,
   { state: RootState }
 >('photos/enableBackup', async (_, { getState, dispatch }) => {
+  if (!hasPhotosFeatureAccess(getState())) {
+    return { isGranted: false, permissionStatus: getState().photos.permissionStatus };
+  }
+
   const currentStatus = await photoPermissionService.getStatus();
 
   let permissionStatus: PhotoPermissionStatus;
@@ -199,10 +207,17 @@ export const checkPermissionRevocationThunk = createAsyncThunk<void, void, { sta
 export const initDeviceIdThunk = createAsyncThunk<string, void, { state: RootState }>(
   'photos/initDeviceId',
   async (_, { dispatch }) => {
-    const { deviceId, bucket } = await PhotoDeviceManager.ensureDeviceFolder();
-    dispatch(photosSlice.actions.setDeviceId(deviceId));
-    dispatch(photosSlice.actions.setPhotosBucket(bucket));
-    return deviceId;
+    try {
+      const { deviceId, bucket } = await PhotoDeviceManager.ensureDeviceFolder();
+      dispatch(photosSlice.actions.setDeviceId(deviceId));
+      dispatch(photosSlice.actions.setPhotosBucket(bucket));
+      return deviceId;
+    } catch (err) {
+      if (err instanceof AxiosResponseError && err.status === HTTP_PAYMENT_REQUIRED) {
+        dispatch(paymentsActions.setPhotosAccess(false));
+      }
+      throw err;
+    }
   },
 );
 
@@ -331,6 +346,14 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
   async (_, { getState, dispatch }) => {
     const { syncStatus } = getState().photos;
     if (syncStatus === 'scanning' || syncStatus === 'uploading' || syncStatus === 'pausing') {
+      return;
+    }
+
+    if (!hasPhotosFeatureAccess(getState())) {
+      if (getState().photos.enabled) {
+        await dispatch(disableBackupThunk());
+        dispatch(photosSlice.actions.setDisabledReason('plan-restricted'));
+      }
       return;
     }
 

@@ -1,5 +1,4 @@
 import { SdkManager } from '@internxt-mobile/services/common';
-import packageJson from '../../package.json';
 import {
   DisplayPrice,
   Invoice,
@@ -7,6 +6,7 @@ import {
   UserSubscription,
   UserType,
 } from '@internxt/sdk/dist/drive/payments/types/types';
+import packageJson from '../../package.json';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -77,6 +77,16 @@ class PaymentService {
     await AsyncStorage.setItem('tmpCheckoutSessionId', sessionId);
 
     Linking.openURL(link);
+  }
+
+  async getFileLimits(): Promise<{ photosAccess: boolean } | null> {
+    try {
+      const limits = (await this.sdk.storageV2.getFileVersionLimits()) as { photosAccess?: boolean };
+      return { photosAccess: limits.photosAccess ?? false };
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+      return null;
+    }
   }
 
   async getUserSubscription(): Promise<UserSubscription> {
