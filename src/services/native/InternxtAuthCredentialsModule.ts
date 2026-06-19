@@ -18,7 +18,7 @@ interface NativeBridge {
 }
 
 const bridge: NativeBridge | undefined =
-  Platform.OS === 'android' ? NativeModules.InternxtAuthCredentialsModule : undefined;
+  Platform.OS === 'android' || Platform.OS === 'ios' ? NativeModules.InternxtAuthCredentialsModule : undefined;
 
 export async function setCredentials(creds: InternxtAuthCredentials): Promise<void> {
   if (!bridge) return;
