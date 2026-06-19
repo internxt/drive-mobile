@@ -5,7 +5,8 @@ const COLUMNS = `
   thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at,
   plain_name, extension, bucket, folder_uuid,
   creation_time_api, modification_time, updated_at, status, encrypt_version,
-  is_live_photo, live_photo_role, paired_remote_file_id
+  is_live_photo, live_photo_role, paired_remote_file_id,
+  burst_role, burst_group_id
 `;
 
 const statements = {
@@ -33,17 +34,21 @@ const statements = {
       encrypt_version        TEXT,
       is_live_photo          INTEGER NOT NULL DEFAULT 0,
       live_photo_role        TEXT,
-      paired_remote_file_id  TEXT
+      paired_remote_file_id  TEXT,
+      -- BURST: burst photo columns (iOS only). Clean install required when adding these.
+      burst_role             TEXT,
+      burst_group_id         TEXT
     );
   `,
   createIndexCreated: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_created ON ${TABLE_NAME}(created_at DESC);`,
   createIndexDevice: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_device ON ${TABLE_NAME}(device_id);`,
   createIndexMonth: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_month ON ${TABLE_NAME}(device_id, created_at);`,
   createIndexRole: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_role ON ${TABLE_NAME}(live_photo_role);`,
+  createIndexBurstGroup: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_burst_group ON ${TABLE_NAME}(burst_group_id);`,
 
   upsert: `
     INSERT INTO ${TABLE_NAME} (${COLUMNS})
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(remote_file_id) DO UPDATE SET
       device_id              = excluded.device_id,
       created_at             = excluded.created_at,
@@ -66,13 +71,16 @@ const statements = {
       encrypt_version        = excluded.encrypt_version,
       is_live_photo          = excluded.is_live_photo,
       live_photo_role        = excluded.live_photo_role,
-      paired_remote_file_id  = excluded.paired_remote_file_id;
+      paired_remote_file_id  = excluded.paired_remote_file_id,
+      burst_role             = COALESCE(excluded.burst_role, ${TABLE_NAME}.burst_role),
+      burst_group_id         = COALESCE(excluded.burst_group_id, ${TABLE_NAME}.burst_group_id);
   `,
 
   getAll: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
-    WHERE live_photo_role IS NULL OR live_photo_role != 'paired_video'
+    WHERE (live_photo_role IS NULL OR live_photo_role != 'paired_video')
+      AND (burst_role IS NULL OR burst_role != 'member')
     ORDER BY created_at DESC;
   `,
 
@@ -87,7 +95,14 @@ const statements = {
     FROM ${TABLE_NAME}
     WHERE (created_at >= ? AND created_at <= ?)
       AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
+      AND (burst_role IS NULL OR burst_role != 'member')
     ORDER BY created_at DESC;
+  `,
+
+  getBurstMembers: `
+    SELECT ${COLUMNS}
+    FROM ${TABLE_NAME}
+    WHERE burst_group_id = ? AND burst_role = 'member';
   `,
 
   getById: `

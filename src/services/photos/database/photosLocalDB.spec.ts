@@ -24,7 +24,7 @@ describe('photosLocalDB', () => {
     await photosLocalDB.init();
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(7);
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(8);
     const statements = mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS asset_sync'))).toBe(true);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS cloud_asset'))).toBe(true);
@@ -44,10 +44,10 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'pending\'');
+    expect(stmt).toContain("'pending'");
     expect(stmt).toContain('ON CONFLICT');
-    expect(stmt).toContain('status != \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0]);
+    expect(stmt).toContain("status != 'synced'");
+    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0, 0]);
   });
 
   test('when a photo is marked as pending with media info, then all media info fields are passed to the database', async () => {
@@ -61,7 +61,7 @@ describe('photosLocalDB', () => {
     });
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-1', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo', 0]);
+    expect(params).toEqual(['asset-1', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo', 0, 0]);
   });
 
   test('when a photo is marked as pending for edit, then the status is pending_edit and it never overwrites a non-synced photo', async () => {
@@ -69,9 +69,9 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'pending_edit\'');
-    expect(stmt).toContain('status = \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0]);
+    expect(stmt).toContain("'pending_edit'");
+    expect(stmt).toContain("status = 'synced'");
+    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0, 0]);
   });
 
   test('when a photo is marked as pending for edit with media info, then all media info fields are passed to the database', async () => {
@@ -85,7 +85,7 @@ describe('photosLocalDB', () => {
     });
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video', 0]);
+    expect(params).toEqual(['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video', 0, 0]);
   });
 
   test('when a file size is cached for an asset, then the file size and asset id are passed to the database', async () => {
@@ -102,7 +102,7 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'synced\'');
+    expect(stmt).toContain("'synced'");
     expect(stmt).toContain('unixepoch()');
     expect(params).toEqual(['asset-1', 'remote-file-id', 1714000000]);
   });
@@ -119,7 +119,7 @@ describe('photosLocalDB', () => {
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
-    expect(stmt).toContain('\'error\'');
+    expect(stmt).toContain("'error'");
     expect(params).toEqual(['asset-2', null]);
   });
 
@@ -136,7 +136,7 @@ describe('photosLocalDB', () => {
     const [, stmt] = mockSqlite.executeSql.mock.calls[0];
     expect(stmt).toContain('attempt_count + 1');
     expect(stmt).toContain('ON CONFLICT');
-    expect(stmt).toContain('status != \'synced\'');
+    expect(stmt).toContain("status != 'synced'");
   });
 
   test('when looking up synced photos, then both synced and cloud_deleted statuses are queried', async () => {
@@ -145,7 +145,7 @@ describe('photosLocalDB', () => {
     await photosLocalDB.getSyncedEntries(['asset-1']);
 
     const [, stmt] = mockSqlite.getAllAsync.mock.calls[0];
-    expect(stmt).toContain('status IN (\'synced\', \'cloud_deleted\')');
+    expect(stmt).toContain("status IN ('synced', 'cloud_deleted')");
   });
 
   test('when looking up 300 photos at once, then a single database query is made with all ids', async () => {
@@ -235,6 +235,10 @@ describe('photosLocalDB', () => {
       is_live_photo: 0,
       paired_video_remote_file_id: null,
       paired_video_status: null,
+      is_burst: 0,
+      burst_id: null,
+      burst_member_remote_file_ids: null,
+      burst_member_count: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-3');
@@ -260,6 +264,10 @@ describe('photosLocalDB', () => {
       isLivePhoto: false,
       pairedVideoRemoteFileId: null,
       pairedVideoStatus: null,
+      isBurst: false,
+      burstId: null,
+      burstMemberRemoteFileIds: null,
+      burstMemberCount: null,
     });
   });
 
@@ -324,6 +332,10 @@ describe('photosLocalDB', () => {
       is_live_photo: 0,
       paired_video_remote_file_id: null,
       paired_video_status: null,
+      is_burst: 0,
+      burst_id: null,
+      burst_member_remote_file_ids: null,
+      burst_member_count: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-1');
@@ -349,6 +361,10 @@ describe('photosLocalDB', () => {
       isLivePhoto: false,
       pairedVideoRemoteFileId: null,
       pairedVideoStatus: null,
+      isBurst: false,
+      burstId: null,
+      burstMemberRemoteFileIds: null,
+      burstMemberCount: null,
     });
   });
 
@@ -374,6 +390,10 @@ describe('photosLocalDB', () => {
       is_live_photo: 0,
       paired_video_remote_file_id: null,
       paired_video_status: null,
+      is_burst: 0,
+      burst_id: null,
+      burst_member_remote_file_ids: null,
+      burst_member_count: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-2');
@@ -399,6 +419,10 @@ describe('photosLocalDB', () => {
       isLivePhoto: false,
       pairedVideoRemoteFileId: null,
       pairedVideoStatus: null,
+      isBurst: false,
+      burstId: null,
+      burstMemberRemoteFileIds: null,
+      burstMemberCount: null,
     });
   });
 
@@ -415,7 +439,7 @@ describe('photosLocalDB', () => {
     const createTableCalls = statements.filter((s) => s.includes('CREATE TABLE'));
     const createIndexCalls = statements.filter((s) => s.includes('CREATE INDEX'));
     expect(createTableCalls).toHaveLength(2);
-    expect(createIndexCalls).toHaveLength(5);
+    expect(createIndexCalls).toHaveLength(6);
   });
 });
 
@@ -510,9 +534,11 @@ describe('photosLocalDB cloud asset methods', () => {
       null, // updatedAt
       null, // status
       null, // encryptVersion
-      0,    // is_live_photo
+      0, // is_live_photo
       null, // live_photo_role
       null, // paired_remote_file_id
+      null, // burst_role
+      null, // burst_group_id
     ]);
   });
 
@@ -562,9 +588,11 @@ describe('photosLocalDB cloud asset methods', () => {
       1718060000000, // updatedAt
       'EXISTS', // status
       'aes-2', // encryptVersion
-      0,       // is_live_photo
-      null,    // live_photo_role
-      null,    // paired_remote_file_id
+      0, // is_live_photo
+      null, // live_photo_role
+      null, // paired_remote_file_id
+      null, // burst_role
+      null, // burst_group_id
     ]);
   });
 
