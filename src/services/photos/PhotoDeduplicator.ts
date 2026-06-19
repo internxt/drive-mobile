@@ -40,6 +40,8 @@ export const PhotoDeduplicator = {
         if (hasBeenEdited(asset, syncedInfo.modificationTime)) {
           newAssets.push(asset);
         }
+      } else if (syncedInfo.status === 'error') {
+        // already tracked; retry is governed by the backoff in getPendingAssets
       } else if (hasBeenEdited(asset, syncedInfo.modificationTime)) {
         editedAssets.push(asset);
       }

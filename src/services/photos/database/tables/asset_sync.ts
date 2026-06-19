@@ -134,7 +134,7 @@ const statements = {
     FROM ${TABLE_NAME} WHERE asset_id = ?;
   `,
   getSyncedInList: (placeholders: string) =>
-    `SELECT asset_id, modification_time, status FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status IN ('synced', 'cloud_deleted');`,
+    `SELECT asset_id, modification_time, status FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status IN ('synced', 'cloud_deleted', 'error');`,
   getSyncedRemoteIdsByCreationMonth: `
     SELECT remote_file_id FROM ${TABLE_NAME}
     WHERE status = 'synced'
@@ -142,7 +142,22 @@ const statements = {
       AND creation_time >= ?
       AND creation_time < ?;
   `,
-  getPendingAssets: `SELECT asset_id, status, remote_file_id, is_burst, burst_member_count FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted', 'cloud_deleted') ORDER BY creation_time DESC NULLS LAST;`,
+  getPendingAssets: `
+    SELECT asset_id, status, remote_file_id, is_burst, burst_member_count FROM ${TABLE_NAME}
+    WHERE status IN ('pending', 'pending_edit')
+       OR (
+         status = 'error'
+         AND attempt_count < 5
+         AND last_attempt_at IS NOT NULL
+         AND last_attempt_at < (unixepoch() * 1000) - CASE
+           WHEN attempt_count <= 1 THEN  300000
+           WHEN attempt_count <= 2 THEN  900000
+           WHEN attempt_count <= 3 THEN 3600000
+           ELSE                        14400000
+         END
+       )
+    ORDER BY creation_time DESC NULLS LAST;
+  `,
   markDeleted: `
     INSERT INTO ${TABLE_NAME} (asset_id, status, deleted_at)
     VALUES (?, 'deleted', (unixepoch() * 1000))
@@ -163,6 +178,12 @@ const statements = {
       paired_video_status = NULL
     WHERE status = 'synced';
   `,
+  resetErrorsToPending: `
+    UPDATE ${TABLE_NAME}
+    SET status = 'pending', last_attempt_at = NULL
+    WHERE status = 'error';
+  `,
+  getAssetUploadErroredCount: `SELECT COUNT(*) AS count FROM ${TABLE_NAME} WHERE status = 'error';`,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE asset_id = ?;`,
   reset: `DELETE FROM ${TABLE_NAME};`,
   getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE remote_file_id IS NOT NULL AND status NOT IN ('cloud_deleted', 'deleted');`,

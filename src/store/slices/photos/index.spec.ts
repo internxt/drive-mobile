@@ -103,6 +103,8 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     getStatus: jest.fn().mockResolvedValue(null),
     getIncompleteBurstAssets: jest.fn().mockResolvedValue([]),
     cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
+    resetErrorsToPending: jest.fn().mockResolvedValue(undefined),
+    getAssetUploadErroredCount: jest.fn().mockResolvedValue(0),
   },
 }));
 
@@ -195,6 +197,7 @@ describe('photos slice', () => {
       isFetchingCloudHistory: false,
       disabledReason: null,
       sessionCompletedAssetIds: [],
+      assetUploadErroredCount: 0,
     };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
