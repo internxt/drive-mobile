@@ -151,6 +151,20 @@ export const PhotoAssetFetchService = {
     return downloadCloudAsset(item, signal);
   },
 
+  /**
+   * Returns the URI to use for **playback** (react-native-video / image viewer).
+   * On iOS, local videos must use the canonical `ph://` URI so AVFoundation can load the
+   * asset via PHCachingImageManager.requestAVAsset. Direct `file:///var/mobile/…` paths into
+   * the Photos library fail with NSCocoaErrorDomain 257 (no permission). For every other
+   * combination (photos, Android, cloud) this delegates to `fetchUri` as usual.
+   */
+  fetchPlaybackUri: async (item: PhotoItem | CloudPhotoItem, signal: AbortSignal): Promise<string | null> => {
+    if (Platform.OS === 'ios' && item.type === 'local' && item.mediaType === 'video') {
+      return item.uri ?? null;
+    }
+    return PhotoAssetFetchService.fetchUri(item, signal);
+  },
+
   fetchLivePhotoComponents: async (
     item: CloudPhotoItem,
     signal: AbortSignal,

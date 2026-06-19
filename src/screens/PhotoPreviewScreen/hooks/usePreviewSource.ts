@@ -28,7 +28,7 @@ export const usePreviewSource = (item: TimelinePhotoItem, isScrubbing: boolean):
     setIsLoading(true);
     logger.info(`[usePreviewSource] fetching asset — id: ${item.id}, type: ${item.type}, mediaType: ${item.mediaType}`);
 
-    PhotoAssetFetchService.fetchUri(item, controller.signal).then((fullUri) => {
+    PhotoAssetFetchService.fetchPlaybackUri(item, controller.signal).then((fullUri) => {
       if (!controller.signal.aborted) {
         logger.info(`[usePreviewSource] asset ready — id: ${item.id}, uri: ${fullUri ?? 'null'}`);
         setUri(fullUri ?? null);

@@ -159,6 +159,49 @@ describe('fetchUri — cloud item', () => {
   });
 });
 
+describe('fetchPlaybackUri — iOS local video', () => {
+  test('when a local video is requested on iOS, then ph:// is returned without calling getAssetInfo', async () => {
+    Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true });
+    const item = makeLocalItem({ mediaType: 'video', uri: 'ph://ABCD-1234/L0/001' });
+
+    const result = await PhotoAssetFetchService.fetchPlaybackUri(item, makeSignal());
+
+    expect(result).toBe('ph://ABCD-1234/L0/001');
+    expect(mockGetAssetInfo).not.toHaveBeenCalled();
+  });
+
+  test('when a local video has no uri on iOS, then null is returned', async () => {
+    Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true });
+    const item = makeLocalItem({ mediaType: 'video', uri: undefined });
+
+    const result = await PhotoAssetFetchService.fetchPlaybackUri(item, makeSignal());
+
+    expect(result).toBeNull();
+  });
+
+  test('when a local photo is requested on iOS, then fetchUri is used and getAssetInfo is called', async () => {
+    Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true });
+    mockGetAssetInfo.mockResolvedValue({ localUri: 'file:///var/mobile/IMG_1234.JPG', filename: 'IMG_1234.JPG' });
+    const item = makeLocalItem({ mediaType: 'photo' });
+
+    const result = await PhotoAssetFetchService.fetchPlaybackUri(item, makeSignal());
+
+    expect(result).toBe('file:///var/mobile/IMG_1234.JPG');
+    expect(mockGetAssetInfo).toHaveBeenCalledTimes(1);
+  });
+
+  test('when a local video is requested on Android, then fetchUri is used and getAssetInfo is called', async () => {
+    Object.defineProperty(Platform, 'OS', { get: () => 'android', configurable: true });
+    mockGetAssetInfo.mockResolvedValue({ localUri: 'file:///sdcard/DCIM/video.mp4', filename: 'video.mp4' });
+    const item = makeLocalItem({ mediaType: 'video', uri: 'content://media/video/123' });
+
+    const result = await PhotoAssetFetchService.fetchPlaybackUri(item, makeSignal());
+
+    expect(result).toBe('file:///sdcard/DCIM/video.mp4');
+    expect(mockGetAssetInfo).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('resolveExportUri', () => {
   test('when item is local and platform is iOS, then the asset is copied to sandbox and a cleanup is returned', async () => {
     Object.defineProperty(Platform, 'OS', { get: () => 'ios', configurable: true });

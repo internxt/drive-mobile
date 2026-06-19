@@ -1,17 +1,15 @@
+import { FILE_URI_PREFIX, stripUriFragment } from 'src/services/common/uri/uriHelpers';
+
 const ICLOUD_URI_SCHEME = 'ph://';
-const FILE_URI_SCHEME = 'file://';
 const ANDROID_CONTENT_URI_SCHEME = 'content://';
 const FALLBACK_EXTENSION = 'tmp';
 
 export { ANDROID_CONTENT_URI_SCHEME, ICLOUD_URI_SCHEME };
 
-export const stripFileSchemeAndFragment = (uri: string): string =>
-  decodeURIComponent(
-    uri.startsWith(FILE_URI_SCHEME) ? uri.slice(FILE_URI_SCHEME.length).split('#')[0] : uri.split('#')[0],
-  );
-
 export const stripFileScheme = (uri: string): string =>
-  decodeURIComponent(uri.startsWith(FILE_URI_SCHEME) ? uri.slice(FILE_URI_SCHEME.length) : uri);
+  decodeURIComponent(uri.startsWith(FILE_URI_PREFIX) ? uri.slice(FILE_URI_PREFIX.length) : uri);
+
+export const stripFileSchemeAndFragment = (uri: string): string => stripFileScheme(stripUriFragment(uri));
 
 export const extractExtensionFromContentUri = (uri: string): string => {
   const segment = uri.split('/').pop()?.split('?')[0] ?? '';
