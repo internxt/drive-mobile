@@ -1,5 +1,6 @@
 import { photoPermissionService } from '@internxt-mobile/services/photos/photoPermissionService';
 import { configureStore } from '@reduxjs/toolkit';
+import * as Network from 'expo-network';
 import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
@@ -27,6 +28,12 @@ import photosReducer, {
   runUploadThunk,
   setNetworkConditionThunk,
 } from './index';
+
+jest.mock('expo-network', () => ({
+  NetworkStateType: { WIFI: 'WIFI', CELLULAR: 'CELLULAR', NONE: 'NONE', UNKNOWN: 'UNKNOWN' },
+  getNetworkStateAsync: jest.fn().mockResolvedValue({ type: 'WIFI', isConnected: true, isInternetReachable: true }),
+  addNetworkStateListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+}));
 
 jest.mock('src/services/AsyncStorageService', () => ({
   __esModule: true,
@@ -136,6 +143,8 @@ describe('photos slice', () => {
     mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
     mockPermissionService.getStatus.mockResolvedValue('granted');
+    (Network.getNetworkStateAsync as jest.Mock).mockResolvedValue({ type: Network.NetworkStateType.WIFI, isConnected: true, isInternetReachable: true });
+    (Network.addNetworkStateListener as jest.Mock).mockReturnValue({ remove: jest.fn() });
   });
 
   test('when the app starts for the first time, then backup is disabled and set to wifi-only with no permission yet', () => {
@@ -396,12 +405,10 @@ describe('photos slice', () => {
   });
 
   test('when discovery runs, then pending backup count reflects what the database reports as pending', async () => {
-    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
     const assets = Array.from({ length: 10 }, (_, i) => ({ id: `asset-${i}` }));
 
     const store = makeStore();
-    await store.dispatch(enableBackupThunk());
-    jest.clearAllMocks();
+    store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
     mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets.slice(3), editedAssets: [] } as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
@@ -926,6 +933,59 @@ describe('photos slice', () => {
       await store.dispatch(runUploadThunk());
 
       expect(store.getState().photos.disabledReason).toBeNull();
+    });
+
+    test('when there is no network connection at the start of the upload, then the sync status is set to paused with no connection', async () => {
+      (Network.getNetworkStateAsync as jest.Mock).mockResolvedValueOnce({
+        type: Network.NetworkStateType.NONE,
+        isConnected: false,
+        isInternetReachable: false,
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.syncStatus).toBe('paused-no-connection');
+      expect(mockUploadQueue.start).not.toHaveBeenCalled();
+    });
+
+    test('when the network connection drops during an upload, then the upload is aborted and the sync status is set to paused with no connection', async () => {
+      jest.spyOn(mockUploadQueue, 'abortAll');
+      let networkListener: ((state: Network.NetworkState) => void) | null = null;
+      (Network.addNetworkStateListener as jest.Mock).mockImplementationOnce((listener) => {
+        networkListener = listener;
+        return { remove: jest.fn() };
+      });
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async () => {
+        networkListener?.({ type: Network.NetworkStateType.NONE, isConnected: false, isInternetReachable: false });
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.syncStatus).toBe('paused-no-connection');
+      expect(mockUploadQueue.abortAll).toHaveBeenCalled();
     });
   });
 });
