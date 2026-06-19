@@ -102,6 +102,7 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     markError: jest.fn().mockResolvedValue(undefined),
     getStatus: jest.fn().mockResolvedValue(null),
     getIncompleteBurstAssets: jest.fn().mockResolvedValue([]),
+    cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
   },
 }));
 
