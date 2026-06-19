@@ -93,8 +93,10 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     markPendingEdit: jest.fn().mockResolvedValue(undefined),
     markSynced: jest.fn().mockResolvedValue(undefined),
     markSyncedLivePhoto: jest.fn().mockResolvedValue(undefined),
+    markSyncedBurst: jest.fn().mockResolvedValue(undefined),
     markError: jest.fn().mockResolvedValue(undefined),
     getStatus: jest.fn().mockResolvedValue(null),
+    getIncompleteBurstAssets: jest.fn().mockResolvedValue([]),
   },
 }));
 
@@ -140,7 +142,9 @@ describe('photos slice', () => {
     mockPhotosLocalDB.markPending.mockResolvedValue(undefined);
     mockPhotosLocalDB.markPendingEdit.mockResolvedValue(undefined);
     mockPhotosLocalDB.markSynced.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markSyncedBurst.mockResolvedValue(undefined);
     mockPhotosLocalDB.markError.mockResolvedValue(undefined);
+    mockPhotosLocalDB.getIncompleteBurstAssets.mockResolvedValue([]);
     mockCloudBrowser.listDeviceFolders.mockResolvedValue([]);
     mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
