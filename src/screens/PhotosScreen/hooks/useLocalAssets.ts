@@ -109,8 +109,11 @@ export const useLocalAssets = (): LocalAssetsResult => {
     for (const [id, info] of entries) {
       if (info.status === 'cloud_deleted') {
         cloudDeleted.add(id);
-      } else {
+      } else if (info.status === 'synced') {
         synced.add(id);
+      } else if (info.status === 'error') {
+        // to not mark as synced, but still track as known asset
+        // leave this to fill if we add a Icon for error state in the future
       }
     }
     setSyncedIds(synced);

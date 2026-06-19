@@ -333,6 +333,7 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
     await dispatch(initDeviceIdThunk());
     dispatch(runFullCloudHistorySyncThunk({ force: true }));
 
+    await photosLocalDB.resetErrorsToPending();
     await dispatch(runDiscoveryThunk()).unwrap();
     const pending = getState().photos.pendingBackupAssets;
     const incompleteBursts = Platform.OS === 'ios' ? await photosLocalDB.getIncompleteBurstAssets() : [];
