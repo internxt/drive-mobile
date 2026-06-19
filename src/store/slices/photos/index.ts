@@ -1,11 +1,10 @@
 import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { HTTP_PAYMENT_REQUIRED } from 'src/services/common/httpStatusCodes';
-import { paymentsActions } from 'src/store/slices/payments';
 import * as Network from 'expo-network';
 import { Platform } from 'react-native';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
+import { HTTP_PAYMENT_REQUIRED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
@@ -18,11 +17,12 @@ import {
   photoPermissionService,
   PhotoPermissionStatus,
 } from 'src/services/photos/photoPermissionService';
+import { paymentsActions } from 'src/store/slices/payments';
 import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
-import { runUploadThunk } from './thunks/upload';
 import { hasPhotosFeatureAccess } from './selectors';
+import { runUploadThunk } from './thunks/upload';
 export { runUploadThunk };
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
@@ -113,6 +113,7 @@ export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: Roo
   async (_, { dispatch }) => {
     await photosLocalDB.init();
     const persistedState = await asyncStorageService.getItem(AsyncStorageKey.PhotosSettings);
+
     if (persistedState) {
       try {
         const parsed = JSON.parse(persistedState) as Partial<PhotosState>;
