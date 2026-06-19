@@ -177,6 +177,7 @@ describe('photos slice', () => {
       totalScannedAssets: 0,
       totalAssetsUploaded: 0,
       uploadProgressById: {},
+      burstUploadProgressById: {},
       uploadingAssetIds: [],
       deviceId: null,
       photosBucket: null,
@@ -619,6 +620,18 @@ describe('photos slice', () => {
       expect(mockScanner.scanAll).toHaveBeenCalled();
     });
 
+    test('when the thunk runs, then the device folder is re-validated before cloud sync starts', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalledTimes(1);
+      const ensureCallOrder = mockPhotoDeviceManager.ensureDeviceFolder.mock.invocationCallOrder[0];
+      const syncCallOrder = mockCloudBrowser.syncAllHistory.mock.invocationCallOrder[0];
+      expect(ensureCallOrder).toBeLessThan(syncCallOrder);
+    });
+
     test('when discovery finds pending assets, then upload runs', async () => {
       mockScanner.scanAll.mockResolvedValueOnce([{ id: 'a1' }] as never);
       mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({
@@ -672,6 +685,31 @@ describe('photos slice', () => {
 
       expect(mockCloudBrowser.syncAllHistory).toHaveBeenCalled();
       expect(mockScanner.scanAll).toHaveBeenCalled();
+    });
+
+    test('when a backup cycle runs and a device id is already stored, then the device folder is still re-validated', async () => {
+      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({
+        deviceId: 'recreated-device-id',
+        plainName: 'Device',
+        bucket: 'recreated-bucket',
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'stale-device-id',
+          photosBucket: 'stale-bucket',
+        }),
+      );
+      mockPermissionService.getStatus.mockResolvedValue('granted');
+
+      await store.dispatch(runBackupCycleThunk());
+
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalledTimes(1);
+      expect(store.getState().photos.deviceId).toBe('recreated-device-id');
+      expect(store.getState().photos.photosBucket).toBe('recreated-bucket');
     });
 
     test('when the backup cycle runs while paused, then discovery runs but the upload is skipped and sync status is paused', async () => {

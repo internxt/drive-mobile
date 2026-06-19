@@ -8,7 +8,7 @@ import { stripFileUri } from 'src/services/common/uri/uriHelpers';
 import fileSystemService from 'src/services/FileSystemService';
 import { photosLocalDB } from '../database/photosLocalDB';
 import { photoBackupFolders } from '../PhotoBackupFolders';
-import { UploadCredentials } from '../PhotoUploadService';
+import { PhotoUploadEvent, UploadCredentials } from '../PhotoUploadService';
 import { splitFileNameAndExtension } from '../PhotoUploadService.utils';
 import { getBurstMemberPlainName } from './burst.constants';
 import { BurstMember, BurstNativeModule } from './BurstNativeModule';
@@ -39,6 +39,7 @@ interface MaybeUploadMembersParams {
   credentials: UploadCredentials;
   signal?: AbortSignal;
   uploadMember: (params: UploadMemberParams) => Promise<string>;
+  onEvent?: (event: PhotoUploadEvent) => void;
 }
 
 /**
@@ -59,6 +60,7 @@ export const uploadBurstMembers = async (params: MaybeUploadMembersParams): Prom
     credentials,
     signal,
     uploadMember,
+    onEvent,
   } = params;
 
   logger.info(`[BurstUpload] exportBurstMembers start — assetId=${assetId}`);
@@ -73,6 +75,7 @@ export const uploadBurstMembers = async (params: MaybeUploadMembersParams): Prom
   if (members.length === 0) {
     return null;
   }
+  onEvent?.({ type: 'burst-member-total', total: members.length });
 
   const memberUuids: string[] = [];
   const tempPaths: string[] = [];
@@ -107,6 +110,7 @@ export const uploadBurstMembers = async (params: MaybeUploadMembersParams): Prom
       });
 
       memberUuids.push(uuid);
+      onEvent?.({ type: 'burst-member-uploaded' });
     }
   } finally {
     for (const path of tempPaths) {
@@ -119,22 +123,25 @@ export const uploadBurstMembers = async (params: MaybeUploadMembersParams): Prom
 };
 
 /**
- * Retries member uploads for burst representatives that were previously marked synced but incomplete,
- * typically because limited photo access prevented the native export.
+ * Reads burst representatives marked synced but incomplete (members never uploaded, typically
+ * because limited photo access prevented the native export) and retries exporting and uploading
+ * their members. On success, marks the representative as fully synced. The representative itself
+ * is never re-uploaded — only its members.
  *
- * Called on every upload cycle before the main queue. If access is still limited the representative
- * stays incomplete and will be retried again next cycle. The representative is never re-uploaded.
+ * Idempotent: if a previous attempt uploaded some members before failing (e.g. a network error),
+ * those `.burst.N` files already exist in Drive and `uploadSingleFile`'s existence check skips them.
  *
- * Idempotent: if a previous cycle uploaded some members before a network failure, those `.burst.N`
- * files already exist in Drive and `uploadSingleFile`'s existence check skips them.
- *
- * @returns The number of burst groups fully completed in this cycle.
+ * @param params.onBurstEvent Forwards the `PhotoUploadEvent`s emitted per burst group (member count,
+ *   member uploaded) to the caller, scoped to the representative's assetId — used to drive the live
+ *   `Burst · n/m` progress shown while access is still limited.
+ * @returns The number of burst groups fully completed in this call.
  */
 export const retryIncompleteBursts = async (params: {
   deviceId: string;
   photosBucket: string;
   signal?: AbortSignal;
   uploadMember: (params: UploadMemberParams) => Promise<string>;
+  onBurstEvent?: (assetId: string, event: PhotoUploadEvent) => void;
 }): Promise<number> => {
   const { deviceId, photosBucket, signal, uploadMember } = params;
 
@@ -164,6 +171,7 @@ export const retryIncompleteBursts = async (params: {
         credentials,
         signal,
         uploadMember,
+        onEvent: (event) => params.onBurstEvent?.(burst.assetId, event),
       });
 
       if (result) {
@@ -201,6 +209,7 @@ export const uploadBurstMembersIfBurst = async (params: {
   credentials: UploadCredentials;
   signal?: AbortSignal;
   uploadMember: (params: UploadMemberParams) => Promise<string>;
+  onEvent?: (event: PhotoUploadEvent) => void;
 }): Promise<BurstUploadResult | undefined> => {
   if (Platform.OS !== 'ios') {
     return undefined;
@@ -227,6 +236,7 @@ export const uploadBurstMembersForExistingRepresentative = async (params: {
   photosBucket: string;
   signal?: AbortSignal;
   uploadMember: (params: UploadMemberParams) => Promise<string>;
+  onEvent?: (event: PhotoUploadEvent) => void;
 }): Promise<BurstUploadResult | undefined> => {
   const { asset, deviceId, photosBucket, signal, uploadMember } = params;
 
@@ -255,6 +265,7 @@ export const uploadBurstMembersForExistingRepresentative = async (params: {
     credentials,
     signal,
     uploadMember,
+    onEvent: params.onEvent,
   });
   return result ?? undefined;
 };

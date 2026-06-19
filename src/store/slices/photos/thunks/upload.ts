@@ -6,7 +6,7 @@ import { AbortError } from 'src/network/errors';
 import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { AssetUploadJob, PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
-import { PhotoUploadResult, uploadSingleFile } from 'src/services/photos/PhotoUploadService';
+import { PhotoUploadEvent, PhotoUploadResult, uploadSingleFile } from 'src/services/photos/PhotoUploadService';
 import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
 import { AssetSyncStatus, photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { isPermissionActive } from 'src/services/photos/photoPermissionService';
@@ -19,6 +19,7 @@ import { photosSlice, runBackupCycleThunk } from '../index';
 type NetworkPauseStatus = 'paused-no-connection' | 'paused-no-wifi' | null;
 
 const PROGRESS_STEP = 0.02;
+const REPRESENTATIVE_ASSET_COUNT = 1;
 
 const evaluateNetworkPause = (
   state: Network.NetworkState,
@@ -133,6 +134,14 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       dispatch(photosSlice.actions.setDisabledReason(null));
 
       const localDBPendingAssets = await photosLocalDB.getPendingAssets();
+
+      // Bursts trusted enough to suppress the representative's progress below (else the bar fills
+      // to 100% then drops). Untrusted when access is 'limited' and there's no prior member count.
+      const knownBurstAssetIds = new Set(
+        localDBPendingAssets
+          .filter((asset) => asset.isBurst && (asset.burstMemberCount != null || permissionStatus !== 'limited'))
+          .map((asset) => asset.assetId),
+      );
       const incompleteBurstAssets = isIOS ? await photosLocalDB.getIncompleteBurstAssets() : [];
       logger.info(`[Upload] pending=${localDBPendingAssets.length} incompleteBursts=${incompleteBurstAssets.length}`);
       if (localDBPendingAssets.length === 0 && incompleteBurstAssets.length === 0) {
@@ -149,6 +158,32 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       dispatch(photosSlice.actions.setSyncStatus('uploading'));
       dispatch(photosSlice.actions.setSessionUploadTotalAssets(uploadAssetJobs.length + incompleteBurstAssets.length));
 
+      const applyBurstEvent = (assetId: string, event: PhotoUploadEvent) => {
+        switch (event.type) {
+          case 'burst-member-total': {
+            const totalFiles = event.total + REPRESENTATIVE_ASSET_COUNT;
+            dispatch(photosSlice.actions.setBurstUploadTotal({ assetId, total: event.total }));
+            dispatch(
+              photosSlice.actions.setAssetUploadProgress({
+                assetId,
+                progress: REPRESENTATIVE_ASSET_COUNT / totalFiles,
+              }),
+            );
+            break;
+          }
+          case 'burst-member-uploaded': {
+            dispatch(photosSlice.actions.incrementBurstMemberUploaded({ assetId }));
+            const burstProgress = getState().photos.burstUploadProgressById[assetId];
+            if (burstProgress) {
+              const uploadedFiles = burstProgress.uploaded + REPRESENTATIVE_ASSET_COUNT;
+              const totalFiles = burstProgress.total + REPRESENTATIVE_ASSET_COUNT;
+              dispatch(photosSlice.actions.setAssetUploadProgress({ assetId, progress: uploadedFiles / totalFiles }));
+            }
+            break;
+          }
+        }
+      };
+
       // BURST: retry incomplete burst members before the main queue so the user sees the result
       // immediately (e.g. after granting full Photos access), without waiting for all pending assets.
       if (isIOS && !getState().photos.isPaused) {
@@ -156,6 +191,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
           deviceId,
           photosBucket,
           uploadMember: uploadSingleFile,
+          onBurstEvent: applyBurstEvent,
         });
         for (let i = 0; i < completedBursts; i++) {
           dispatch(photosSlice.actions.incrementSessionUploadedAssets());
@@ -170,6 +206,9 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
           dispatch(photosSlice.actions.addUploadingAssetId(assetId));
         },
         onAssetProgress: (assetId, ratio) => {
+          if (knownBurstAssetIds.has(assetId)) {
+            return;
+          }
           const progressStep = Math.floor(ratio / PROGRESS_STEP);
           if (lastDispatchedUploadProgressStep.get(assetId) === progressStep) {
             return;
@@ -185,6 +224,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
           dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
           dispatch(photosSlice.actions.incrementSessionUploadedAssets());
         },
+        onAssetEvent: applyBurstEvent,
         onAssetError: async (assetId, error) => {
           lastDispatchedUploadProgressStep.delete(assetId);
           const isQuotaError = (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;

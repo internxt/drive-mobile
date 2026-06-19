@@ -223,6 +223,7 @@ const translations = {
           uploading: 'Uploading',
           burstBadge: 'Burst',
           burstIncomplete: 'Burst not fully backed up. Grant full Photos access to back up all burst photos.',
+          burstPhotosUnit: 'photos',
           metadata: {
             info: 'Name',
             uploaded: 'Uploaded',
@@ -1220,6 +1221,7 @@ const translations = {
           burstBadge: 'Ráfaga',
           burstIncomplete:
             'Ráfaga incompleta. Para respaldar todas las fotos de la ráfaga, concede acceso completo a Fotos.',
+          burstPhotosUnit: 'fotos',
           metadata: {
             info: 'Nombre',
             uploaded: 'Subido',

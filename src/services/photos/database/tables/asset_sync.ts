@@ -142,7 +142,7 @@ const statements = {
       AND creation_time >= ?
       AND creation_time < ?;
   `,
-  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted', 'cloud_deleted') ORDER BY creation_time DESC NULLS LAST;`,
+  getPendingAssets: `SELECT asset_id, status, remote_file_id, is_burst, burst_member_count FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted', 'cloud_deleted') ORDER BY creation_time DESC NULLS LAST;`,
   markDeleted: `
     INSERT INTO ${TABLE_NAME} (asset_id, status, deleted_at)
     VALUES (?, 'deleted', (unixepoch() * 1000))
@@ -152,6 +152,17 @@ const statements = {
   `,
   getDeletedIds: `SELECT asset_id FROM ${TABLE_NAME} WHERE status = 'deleted';`,
   markCloudDeleted: `UPDATE ${TABLE_NAME} SET status = 'cloud_deleted' WHERE remote_file_id = ?;`,
+  resetSyncedToPending: `
+    UPDATE ${TABLE_NAME} SET
+      status = 'pending',
+      remote_file_id = NULL,
+      synced_at = NULL,
+      burst_member_remote_file_ids = NULL,
+      burst_member_count = NULL,
+      paired_video_remote_file_id = NULL,
+      paired_video_status = NULL
+    WHERE status = 'synced';
+  `,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE asset_id = ?;`,
   reset: `DELETE FROM ${TABLE_NAME};`,
   getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE status = 'synced' AND remote_file_id IS NOT NULL;`,

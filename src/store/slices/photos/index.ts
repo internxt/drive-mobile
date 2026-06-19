@@ -44,6 +44,7 @@ export interface PhotosState {
   totalScannedAssets: number;
   totalAssetsUploaded: number;
   uploadProgressById: Record<string, number>;
+  burstUploadProgressById: Record<string, { uploaded: number; total: number }>;
   uploadingAssetIds: string[];
   sessionCompletedAssetIds: string[];
   deviceId: string | null;
@@ -65,6 +66,7 @@ const initialState: PhotosState = {
   totalScannedAssets: 0,
   totalAssetsUploaded: 0,
   uploadProgressById: {},
+  burstUploadProgressById: {},
   uploadingAssetIds: [],
   sessionCompletedAssetIds: [],
   deviceId: null,
@@ -306,6 +308,7 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
     }
 
     logger.info('[ForceRefresh] Starting — dispatching cloud sync (force) + local discovery');
+    await dispatch(initDeviceIdThunk());
     dispatch(runFullCloudHistorySyncThunk({ force: true }));
 
     await dispatch(runDiscoveryThunk()).unwrap();
@@ -332,14 +335,11 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
     }
 
     await dispatch(checkPermissionRevocationThunk());
-    const { enabled, permissionStatus, deviceId, photosBucket } = getState().photos;
+    const { enabled, permissionStatus } = getState().photos;
     if (!enabled || !isPermissionActive(permissionStatus)) {
       return;
     }
-
-    if (!deviceId || !photosBucket) {
-      await dispatch(initDeviceIdThunk());
-    }
+    await dispatch(initDeviceIdThunk());
 
     dispatch(runFullCloudHistorySyncThunk());
 
@@ -442,6 +442,7 @@ export const photosSlice = createSlice({
     removeUploadingAssetId: (state, action: PayloadAction<string>) => {
       state.uploadingAssetIds = state.uploadingAssetIds.filter((id) => id !== action.payload);
       delete state.uploadProgressById[action.payload];
+      delete state.burstUploadProgressById[action.payload];
     },
     setAssetUploadProgress: (state, action: PayloadAction<{ assetId: string; progress: number }>) => {
       state.uploadProgressById[action.payload.assetId] = action.payload.progress;
@@ -451,8 +452,18 @@ export const photosSlice = createSlice({
         state.sessionCompletedAssetIds.push(action.payload);
       }
     },
+    setBurstUploadTotal: (state, action: PayloadAction<{ assetId: string; total: number }>) => {
+      state.burstUploadProgressById[action.payload.assetId] = { uploaded: 0, total: action.payload.total };
+    },
+    incrementBurstMemberUploaded: (state, action: PayloadAction<{ assetId: string }>) => {
+      const entry = state.burstUploadProgressById[action.payload.assetId];
+      if (entry) {
+        entry.uploaded += 1;
+      }
+    },
     clearUploadProgress: (state) => {
       state.uploadProgressById = {};
+      state.burstUploadProgressById = {};
       state.sessionCompletedAssetIds = [];
     },
     incrementTotalAssetsUploaded: (state) => {

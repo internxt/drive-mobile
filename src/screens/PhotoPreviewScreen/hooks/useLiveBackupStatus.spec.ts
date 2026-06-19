@@ -1,4 +1,5 @@
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
 import { CloudPhotoItem, PhotoItem } from '../../PhotosScreen/types';
 import { useLiveBackupStatus } from './useLiveBackupStatus';
@@ -7,11 +8,19 @@ jest.mock('src/store/hooks', () => ({
   useAppSelector: jest.fn(),
 }));
 
+jest.mock('src/services/photos/database/photosLocalDB', () => ({
+  photosLocalDB: {
+    getStatus: jest.fn().mockResolvedValue(null),
+  },
+}));
+
 const mockUseAppSelector = useAppSelector as jest.Mock;
+const mockGetStatus = photosLocalDB.getStatus as jest.Mock;
 
 const photosState = {
   uploadingAssetIds: [] as string[],
   uploadProgressById: {} as Record<string, number>,
+  burstUploadProgressById: {} as Record<string, { uploaded: number; total: number }>,
   sessionCompletedAssetIds: [] as string[],
 };
 
@@ -40,7 +49,9 @@ beforeEach(() => {
   jest.clearAllMocks();
   photosState.uploadingAssetIds = [];
   photosState.uploadProgressById = {};
+  photosState.burstUploadProgressById = {};
   photosState.sessionCompletedAssetIds = [];
+  mockGetStatus.mockResolvedValue(null);
   mockUseAppSelector.mockImplementation((selector: (state: { photos: typeof photosState }) => unknown) =>
     selector({ photos: photosState }),
   );
@@ -130,5 +141,39 @@ describe('useLiveBackupStatus', () => {
     expect(result.current.isUploading).toBe(false);
     expect(result.current.isWaitingToUpload).toBe(false);
     expect(result.current.progress).toBe(0);
+  });
+
+  test('when a burst is uploading, then live member progress is reported', () => {
+    photosState.uploadingAssetIds = ['b1'];
+    photosState.uploadProgressById = { b1: 0.6 };
+    photosState.burstUploadProgressById = { b1: { uploaded: 3, total: 5 } };
+
+    const item: PhotoItem = { id: 'b1', type: 'local', createdAt: 1000, backupState: 'not-backed', mediaType: 'photo', isBurst: true };
+    const { result } = renderHook(() => useLiveBackupStatus(item));
+
+    expect(result.current.isBurst).toBe(true);
+    expect(result.current.isUploading).toBe(true);
+    expect(result.current.burstLiveProgress).toEqual({ uploaded: 3, total: 5 });
+    expect(result.current.burstTotal).toBe(5);
+  });
+
+  test('when a burst is backed, then the member count from the database is reported as total', async () => {
+    mockGetStatus.mockResolvedValue({ burstMemberCount: 4 });
+
+    const item: PhotoItem = { id: 'b2', type: 'local', createdAt: 1000, backupState: 'backed', mediaType: 'photo', isBurst: true };
+    const { result } = renderHook(() => useLiveBackupStatus(item));
+
+    await waitFor(() => expect(result.current.burstTotal).toBe(5)); // 4 members + 1 representative
+
+    expect(result.current.isBurst).toBe(true);
+    expect(result.current.burstLiveProgress).toBeNull();
+  });
+
+  test('when the item is not a burst, then no burst info is reported', () => {
+    const { result } = renderHook(() => useLiveBackupStatus(makeLocalItem('a1', 'backed')));
+
+    expect(result.current.isBurst).toBe(false);
+    expect(result.current.burstLiveProgress).toBeNull();
+    expect(result.current.burstTotal).toBeNull();
   });
 });

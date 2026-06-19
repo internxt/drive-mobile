@@ -13,9 +13,33 @@ import { formatHeaderDate, formatHeaderTime } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
 
+const REPRESENTATIVE_PHOTO_COUNT = 1;
+
+const getUploadingLabel = (isBurst: boolean, burstLiveProgress: { uploaded: number; total: number } | null): string => {
+  if (isBurst && burstLiveProgress) {
+    const uploaded = burstLiveProgress.uploaded + REPRESENTATIVE_PHOTO_COUNT;
+    const total = burstLiveProgress.total + REPRESENTATIVE_PHOTO_COUNT;
+    return `${photoPreviewStrings.burstBadge} · ${uploaded}/${total}`;
+  }
+  if (isBurst) {
+    return photoPreviewStrings.burstBadge;
+  }
+  return photoPreviewStrings.uploading;
+};
+
+const getBackedBurstLabel = (isBurst: boolean, isUploading: boolean, burstTotal: number | null): string | null => {
+  if (isBurst && !isUploading && burstTotal != null) {
+    return `${photoPreviewStrings.burstBadge} · ${burstTotal} ${photoPreviewStrings.burstPhotosUnit}`;
+  }
+  return null;
+};
+
 interface TimelineInfoProps {
   isWaitingToUpload: boolean;
   isUploading: boolean;
+  isBurst: boolean;
+  burstLiveProgress: { uploaded: number; total: number } | null;
+  burstTotal: number | null;
   timestamp: number | undefined;
   hasTimeAccuracy: boolean;
 }
@@ -23,12 +47,23 @@ interface TimelineInfoProps {
 const TimelineInfo = ({
   isWaitingToUpload,
   isUploading,
+  isBurst,
+  burstLiveProgress,
+  burstTotal,
   timestamp,
   hasTimeAccuracy,
 }: TimelineInfoProps): JSX.Element | null => {
   const tailwind = useTailwind();
-  if (!isWaitingToUpload && !isUploading && (!timestamp || !hasTimeAccuracy)) return null;
-  const showSeparator = (isWaitingToUpload || isUploading) && timestamp && hasTimeAccuracy;
+
+  const uploadLabel = getUploadingLabel(isBurst, burstLiveProgress);
+  const backedBurstLabel = getBackedBurstLabel(isBurst, isUploading, burstTotal);
+
+  const showUploadRow = isWaitingToUpload || isUploading;
+  if (!showUploadRow && !backedBurstLabel && (!timestamp || !hasTimeAccuracy)) {
+    return null;
+  }
+  const showSeparator = showUploadRow && timestamp && hasTimeAccuracy;
+
   return (
     <View style={[tailwind('flex-row items-center justify-center opacity-75'), { gap: 8 }]}>
       {timestamp && hasTimeAccuracy && (
@@ -44,8 +79,11 @@ const TimelineInfo = ({
       {isUploading && (
         <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
           <ArrowUpIcon size={16} color="white" />
-          <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.uploading}</AppText>
+          <AppText style={tailwind('text-sm text-white')}>{uploadLabel}</AppText>
         </View>
+      )}
+      {backedBurstLabel && !showUploadRow && (
+        <AppText style={tailwind('text-sm text-white')}>{backedBurstLabel}</AppText>
       )}
     </View>
   );
@@ -62,7 +100,14 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
 
-  const { isWaitingToUpload, isUploading, progress: uploadProgress } = useLiveBackupStatus(item);
+  const {
+    isWaitingToUpload,
+    isUploading,
+    progress: uploadProgress,
+    isBurst,
+    burstLiveProgress,
+    burstTotal,
+  } = useLiveBackupStatus(item);
   const timestamp = useItemTimestamp(item);
   const hasTimeAccuracy = !!timestamp;
 
@@ -99,6 +144,9 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
               <TimelineInfo
                 isWaitingToUpload={isWaitingToUpload}
                 isUploading={isUploading}
+                isBurst={isBurst}
+                burstLiveProgress={burstLiveProgress}
+                burstTotal={burstTotal}
                 timestamp={timestamp}
                 hasTimeAccuracy={hasTimeAccuracy}
               />
