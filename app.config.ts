@@ -34,7 +34,9 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   },
 
   assetBundlePatterns: ['**/*'],
-  runtimeVersion: packageVersion,
+  runtimeVersion: {
+    policy: 'fingerprint',
+  },
   ios: {
     jsEngine: 'hermes',
     icon: './assets/icon-ios.png',

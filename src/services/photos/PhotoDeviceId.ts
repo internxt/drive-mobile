@@ -5,7 +5,7 @@ import uuid from 'react-native-uuid';
 import { logger } from 'src/services/common';
 import secureStorageService from 'src/services/SecureStorageService';
 import { AsyncStorageKey } from 'src/types';
-import { PhotoDevice } from 'src/types/photos';
+import { PhotoDevice } from '@internxt/sdk/dist/drive/photos';
 import { PhotoDeviceNameConflictError } from './errors';
 import { photosDeviceService } from './photosDeviceService';
 

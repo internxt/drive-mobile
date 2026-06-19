@@ -1,4 +1,4 @@
-import { FILE_URI_PREFIX, stripFileUri, toFileUri } from './uriHelpers';
+import { stripFileUri, toFileUri } from './uriHelpers';
 
 describe('toFileUri', () => {
   test('when path has no prefix, then file:// is prepended', () => {
@@ -9,8 +9,12 @@ describe('toFileUri', () => {
     expect(toFileUri('file:///var/tmp/photo.jpg')).toBe('file:///var/tmp/photo.jpg');
   });
 
-  test('when path is empty string, then file:// prefix is added', () => {
-    expect(toFileUri('')).toBe(FILE_URI_PREFIX);
+  test('when path is relative without leading slash, then a leading slash is added and file:// is prepended', () => {
+    expect(toFileUri('var/tmp/photo.jpg')).toBe('file:///var/tmp/photo.jpg');
+  });
+
+  test('when path contains spaces, then they are percent-encoded in the resulting URI', () => {
+    expect(toFileUri('/var/tmp/my photo.jpg')).toBe('file:///var/tmp/my%20photo.jpg');
   });
 });
 

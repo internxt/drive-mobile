@@ -1,6 +1,6 @@
 import { logger } from '@internxt-mobile/services/common';
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
-import { Keys, Password, TwoFactorAuthQR } from '@internxt/sdk';
+import { TwoFactorAuthQR } from '@internxt/sdk';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import * as bip39 from '@scure/bip39';
@@ -8,14 +8,13 @@ import { wordlist } from '@scure/bip39/wordlists/english.js';
 import EventEmitter from 'events';
 import { jwtDecode } from 'jwt-decode';
 import { NetworkCacheModule } from '../../modules/network-cache';
-import { decryptText, decryptTextWithKey, encryptText, encryptTextWithKey, passToHash } from '../helpers';
+import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';
 import { getHeaders } from '../helpers/headers';
 import { AsyncStorageKey } from '../types';
 import analytics, { AnalyticsEventKey } from './AnalyticsService';
 import appService from './AppService';
 import asyncStorageService from './AsyncStorageService';
-import { keysService } from './common/keys';
 import { SdkManager } from './common/sdk/SdkManager';
 
 enum AuthEventKey {
@@ -59,58 +58,7 @@ class AuthService {
     }
   }
 
-  public async doLogin(email: string, password: string, tfaCode?: string) {
-    const loginResult = await this.sdk.authV2.loginWithoutKeys(
-      {
-        email,
-        password,
-        tfaCode,
-      },
-      {
-        encryptPasswordHash(password: Password, encryptedSalt: string): string {
-          const salt = decryptText(encryptedSalt);
-          const hashObj = passToHash({ password, salt });
-          return encryptText(hashObj.hash);
-        },
-        async generateKeys(): Promise<Keys> {
-          const keys = {
-            privateKeyEncrypted: '',
-            publicKey: '',
-            revocationCertificate: '',
-            ecc: {
-              privateKeyEncrypted: '',
-              publicKey: '',
-            },
-            kyber: {
-              publicKey: '',
-              privateKeyEncrypted: '',
-            },
-          };
-          return keys;
-        },
-      },
-    );
-
-    loginResult.user.mnemonic = decryptTextWithKey(loginResult.user.mnemonic, password);
-
-    if (loginResult.user.privateKey) {
-      const decryptedPrivateKey = keysService.decryptPrivateKey(loginResult.user.privateKey, password);
-      loginResult.user.privateKey = Buffer.from(decryptedPrivateKey).toString('base64');
-    }
-
-    // Get the refreshed tokens, they contain expiration, the ones returned
-    // on the login doesn't have expiration
-    const refreshedTokens = await this.refreshAuthToken(loginResult.newToken);
-
-    if (!refreshedTokens?.token || !refreshedTokens?.newToken) throw new Error('Unable to refresh auth tokens');
-    return {
-      ...loginResult,
-      token: refreshedTokens.token,
-      newToken: refreshedTokens.newToken,
-    };
-  }
-
-  public async handleWebLogin(params: { mnemonic: string; token: string; newToken: string; privateKey?: string }) {
+  public async handleWebLogin(params: { mnemonic: string; newToken: string; privateKey?: string }) {
     try {
       const mnemonic = Buffer.from(params.mnemonic, 'base64').toString('utf-8');
       const newToken = Buffer.from(params.newToken, 'base64').toString('utf-8');
