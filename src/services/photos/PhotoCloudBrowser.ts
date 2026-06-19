@@ -2,8 +2,14 @@ import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
 import { logger } from 'src/services/common';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
-import { CloudAssetEntry, LivePhotoRole, photosLocalDB } from './database/photosLocalDB';
-import { getPhotoPlainNameFromPairedVideo, isPairedVideoPlainName } from './livePhoto.constants';
+import { buildBurstBaseSet, linkBurst } from './burst/BurstCloudLinker';
+import { isBurstMemberPlainName } from './burst/burst.constants';
+import { BurstRole, CloudAssetEntry, LivePhotoRole, photosLocalDB } from './database/photosLocalDB';
+import {
+  getPairedVideoPlainNameFromPhoto,
+  getPhotoPlainNameFromPairedVideo,
+  isPairedVideoPlainName,
+} from './livePhoto.constants';
 import { photosDeviceService } from './photosDeviceService';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -11,6 +17,21 @@ const CACHE_TTL_MS = 24 * HOUR_MS;
 const PAGE_SIZE = 50;
 const MIN_MONTH_NUMBER = 1;
 const MAX_MONTH_NUMBER = 12;
+
+const resolveBurstFields = (
+  baseName: string | null,
+  fileUuid: string,
+  plainNameIndex: Map<string, string>,
+  burstBaseSet: Set<string>,
+): { burstRole?: BurstRole; burstGroupId?: string } => {
+  const burstLink = linkBurst(baseName, fileUuid, plainNameIndex, burstBaseSet);
+  if (!burstLink && baseName && isBurstMemberPlainName(baseName)) {
+    logger.warn(
+      `[CloudBrowser] .burst member ${baseName} has no representative in the same day-folder — cross-day burst detected`,
+    );
+  }
+  return burstLink ? { burstRole: burstLink.burstRole, burstGroupId: burstLink.burstGroupId } : {};
+};
 
 const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Promise<T[]> => {
   const all: T[] = [];
@@ -305,6 +326,7 @@ class PhotoCloudBrowserService {
     now: number;
   }): CloudAssetEntry[] {
     const entries: CloudAssetEntry[] = [];
+    const burstBaseSet = buildBurstBaseSet(files.map((f) => f.plainName ?? f.name ?? null));
 
     for (const file of files) {
       const baseName = file.plainName ?? file.name;
@@ -324,7 +346,7 @@ class PhotoCloudBrowserService {
           pairedRemoteFileId = photoUuid;
         }
       } else {
-        const pairedVideoPlainName = `${baseName}.livephoto`.toLowerCase();
+        const pairedVideoPlainName = getPairedVideoPlainNameFromPhoto(baseName).toLowerCase();
         const pairedVideoUuid = plainNameIndex.get(pairedVideoPlainName);
         if (pairedVideoUuid) {
           isLivePhoto = true;
@@ -357,6 +379,7 @@ class PhotoCloudBrowserService {
         isLivePhoto,
         livePhotoRole,
         pairedRemoteFileId,
+        ...resolveBurstFields(baseName, file.uuid, plainNameIndex, burstBaseSet),
       });
     }
 

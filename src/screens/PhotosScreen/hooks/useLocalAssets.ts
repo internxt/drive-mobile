@@ -2,6 +2,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { logger } from 'src/services/common';
+import { BurstNativeModule } from 'src/services/photos/burst/BurstNativeModule';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
 
@@ -14,6 +15,8 @@ export interface LocalAssetsResult {
   syncedIds: Set<string>;
   cloudDeletedIds: Set<string>;
   uploadingIdSet: Set<string>;
+  burstRepresentativeIdSet: Set<string>;
+  incompleteUploadBurstIdSet: Set<string>;
   loadNextPage: () => void;
   reload: () => Promise<void>;
 }
@@ -24,6 +27,8 @@ export const useLocalAssets = (): LocalAssetsResult => {
   const [syncedIds, setSyncedIds] = useState<Set<string>>(new Set());
   // TODO: Reserved for show a distinct icon for cloud-deleted vs never-backed assets. Remove if finally will be the same.
   const [cloudDeletedIds, setCloudDeletedIds] = useState<Set<string>>(new Set());
+  const [burstRepresentativeIdSet, setBurstRepresentativeIdSet] = useState<Set<string>>(new Set());
+  const [incompleteUploadBurstIdSet, setIncompleteUploadBurstIdSet] = useState<Set<string>>(new Set());
 
   const cursorRef = useRef<string | undefined>(undefined);
   const hasMoreRef = useRef(true);
@@ -104,7 +109,20 @@ export const useLocalAssets = (): LocalAssetsResult => {
     }
     setSyncedIds(synced);
     setCloudDeletedIds(cloudDeleted);
+
+    const incompleteBursts = await photosLocalDB.getIncompleteBurstAssets();
+    setIncompleteUploadBurstIdSet(new Set(incompleteBursts.map((burst) => burst.assetId)));
   }, [assets]);
+
+  const assetIds = useMemo(() => assets.map((asset) => asset.id), [assets]);
+  useEffect(() => {
+    if (assetIds.length === 0) {
+      return;
+    }
+    BurstNativeModule.getBurstRepresentativeIds(assetIds)
+      .then((ids) => setBurstRepresentativeIdSet(new Set(ids)))
+      .catch((err) => logger.error(`[LocalAssets] getBurstRepresentativeIds failed: ${err}`));
+  }, [assetIds]);
 
   const reloadFromStart = useCallback(async () => {
     cursorRef.current = undefined;
@@ -146,5 +164,15 @@ export const useLocalAssets = (): LocalAssetsResult => {
     refreshSyncStatusFromDB();
   }, [refreshSyncStatusFromDB, syncStatus, sessionUploadedAssets, isFetchingCloudHistory]);
 
-  return { assets, isLoading, syncedIds, cloudDeletedIds, uploadingIdSet, loadNextPage, reload: reloadFromStart };
+  return {
+    assets,
+    isLoading,
+    syncedIds,
+    cloudDeletedIds,
+    uploadingIdSet,
+    burstRepresentativeIdSet,
+    incompleteUploadBurstIdSet: incompleteUploadBurstIdSet,
+    loadNextPage,
+    reload: reloadFromStart,
+  };
 };
