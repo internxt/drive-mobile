@@ -183,6 +183,7 @@ const statements = {
     SET status = 'pending', last_attempt_at = NULL
     WHERE status = 'error';
   `,
+  getAssetUploadErroredCount: `SELECT COUNT(*) AS count FROM ${TABLE_NAME} WHERE status = 'error';`,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE asset_id = ?;`,
   reset: `DELETE FROM ${TABLE_NAME};`,
   getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE remote_file_id IS NOT NULL AND status NOT IN ('cloud_deleted', 'deleted');`,

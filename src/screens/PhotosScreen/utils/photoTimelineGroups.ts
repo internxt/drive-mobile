@@ -99,6 +99,7 @@ export const getGroupSyncStatus = ({
   isFetchingCloudHistory,
   isPaused,
   disabledReason,
+  assetUploadErroredCount,
 }: {
   group: PhotoDateGroup;
   syncStatus: PhotoSyncStatus;
@@ -107,6 +108,7 @@ export const getGroupSyncStatus = ({
   isFetchingCloudHistory: boolean;
   isPaused: boolean;
   disabledReason: PhotosDisabledReason;
+  assetUploadErroredCount: number;
 }): GroupSyncStatus => {
   if (disabledReason === 'quota-exceeded') {
     return { type: 'paused-storage-full' };
@@ -127,6 +129,9 @@ export const getGroupSyncStatus = ({
       if (isFetchingCloudHistory) {
         return { type: 'fetching' };
       }
+      if (assetUploadErroredCount > 0) {
+        return { type: 'upload-error', count: assetUploadErroredCount };
+      }
       return { type: 'completed' };
     case 'paused':
       return { type: 'paused', count: remainingCount };
@@ -137,6 +142,9 @@ export const getGroupSyncStatus = ({
     default:
       if (isFetchingCloudHistory) {
         return { type: 'fetching' };
+      }
+      if (assetUploadErroredCount > 0) {
+        return { type: 'upload-error', count: assetUploadErroredCount };
       }
       return { type: 'count', count: group.photos.length };
   }

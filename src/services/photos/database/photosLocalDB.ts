@@ -283,6 +283,11 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markError, [assetId, errorMessage ?? null]);
   }
 
+  async getAssetUploadErroredCount(): Promise<number> {
+    const rows = await sqliteService.getAllAsync<{ count: number }>(DB_NAME, assetSyncTable.statements.getAssetUploadErroredCount);
+    return rows[0]?.count ?? 0;
+  }
+
   async cacheAssetFileSize(assetId: string, fileSize: number): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.cacheFileSize, [fileSize, assetId]);
   }

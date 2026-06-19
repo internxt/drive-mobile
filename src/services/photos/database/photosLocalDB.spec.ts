@@ -740,7 +740,7 @@ describe('photosLocalDB cloud asset methods', () => {
       await photosLocalDB.getPendingAssets();
 
       const [, sql] = mockSqlite.getAllAsync.mock.calls[0];
-      expect(sql).toContain("status IN ('pending', 'pending_edit')");
+      expect(sql).toContain('status IN (\'pending\', \'pending_edit\')');
     });
 
     test('when pending assets are fetched, then error assets beyond the maximum attempt count are excluded', async () => {
@@ -782,9 +782,9 @@ describe('photosLocalDB cloud asset methods', () => {
       await photosLocalDB.getPendingAssets();
 
       const [, sql] = mockSqlite.getAllAsync.mock.calls[0];
-      expect(sql).not.toContain("'synced'");
-      expect(sql).not.toContain("'deleted'");
-      expect(sql).not.toContain("'cloud_deleted'");
+      expect(sql).not.toContain('\'synced\'');
+      expect(sql).not.toContain('\'deleted\'');
+      expect(sql).not.toContain('\'cloud_deleted\'');
     });
 
     test('when all remaining assets have failed and are within the backoff window, then no pending assets are returned', async () => {
@@ -812,9 +812,37 @@ describe('photosLocalDB cloud asset methods', () => {
       await photosLocalDB.resetErrorsToPending();
 
       const [, sql] = mockSqlite.executeSql.mock.calls[0];
-      expect(sql).toContain("status = 'pending'");
-      expect(sql).toContain("WHERE status = 'error'");
+      expect(sql).toContain('status = \'pending\'');
+      expect(sql).toContain('WHERE status = \'error\'');
       expect(sql).toContain('last_attempt_at = NULL');
+    });
+  });
+
+  describe('when counting assets with errors', () => {
+    test('when there are assets in error status, then the count reflects all of them regardless of attempt count', async () => {
+      mockSqlite.getAllAsync.mockResolvedValueOnce([{ count: 3 }]);
+
+      const result = await photosLocalDB.getAssetUploadErroredCount();
+
+      expect(result).toBe(3);
+      const [, sql] = mockSqlite.getAllAsync.mock.calls[0];
+      expect(sql).toContain('status = \'error\'');
+    });
+
+    test('when there are no assets in error status, then the count is zero', async () => {
+      mockSqlite.getAllAsync.mockResolvedValueOnce([{ count: 0 }]);
+
+      const result = await photosLocalDB.getAssetUploadErroredCount();
+
+      expect(result).toBe(0);
+    });
+
+    test('when the database returns an empty result, then the count defaults to zero', async () => {
+      mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+      const result = await photosLocalDB.getAssetUploadErroredCount();
+
+      expect(result).toBe(0);
     });
   });
 });

@@ -257,6 +257,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       }
       dispatch(photosSlice.actions.setSyncStatus(finalIsPaused || finalDisabledReason !== null ? 'paused' : 'synced'));
       dispatch(photosSlice.actions.clearUploadProgress());
+      dispatch(photosSlice.actions.setAssetUploadErroredCount(await photosLocalDB.getAssetUploadErroredCount()));
 
       if (!finalIsPaused && finalDisabledReason === null && (await hasRemainingAssets(isIOS))) {
         logger.info('[Upload] Work remains after this cycle — restarting');
