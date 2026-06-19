@@ -151,7 +151,8 @@ const uploadAssetToBucket = async (
   const createdDate = new Date(asset.creationTime);
   const creationIso = createdDate.toISOString();
   const modificationIso = new Date(asset.modificationTime).toISOString();
-  const fileName = localFilePath.split('/').pop() ?? asset.filename;
+
+  const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
 
   const [fileStat, user, folderUuid] = await Promise.all([
     fileSystemService.stat(localFilePath),
@@ -160,7 +161,6 @@ const uploadAssetToBucket = async (
   ]);
   const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
   const bucketId = photosBucket;
-  const { plainName, fileExtension } = splitFileNameAndExtension(fileName);
 
   const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type: fileExtension }]);
   if (existentFiles.length > 0) {
@@ -184,7 +184,7 @@ const uploadAssetToBucket = async (
       throw uploadError;
     }
     const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
-    throw new Error(`Bucket upload failed for ${fileName}: ${message}`);
+    throw new Error(`Bucket upload failed for ${asset.filename}: ${message}`);
   }
 
   return {
@@ -331,6 +331,8 @@ export const PhotoUploadService = {
     const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
 
     if (livePhoto) {
+      // TODO: duplicated in replace() — only the persist step differs (uploadSingleFile vs replaceFileEntry).
+      // Extract to PhotoLiveUploadHandler or similar
       let components;
       try {
         components = await exportLivePhotoComponents(asset.id);
@@ -349,8 +351,7 @@ export const PhotoUploadService = {
           const createdDate = new Date(asset.creationTime);
           const creationIso = createdDate.toISOString();
           const modificationIso = new Date(asset.modificationTime).toISOString();
-          const fileName = components.photo.fileName;
-          const { plainName, fileExtension } = splitFileNameAndExtension(fileName);
+          const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
 
           const [user, folderUuid] = await Promise.all([
             asyncStorageService.getUser(),
@@ -447,6 +448,7 @@ export const PhotoUploadService = {
     const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
 
     if (livePhoto) {
+      // TODO: see the equivalent TODO in upload().
       let components;
       try {
         components = await exportLivePhotoComponents(asset.id);
@@ -465,7 +467,7 @@ export const PhotoUploadService = {
           const createdDate = new Date(asset.creationTime);
           const creationIso = createdDate.toISOString();
           const modificationIso = new Date(asset.modificationTime).toISOString();
-          const { plainName, fileExtension } = splitFileNameAndExtension(components.photo.fileName);
+          const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
 
           const photoFileStat = await fileSystemService.stat(photoLocalPath);
           const user = await asyncStorageService.getUser();
