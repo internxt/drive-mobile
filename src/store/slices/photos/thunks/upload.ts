@@ -18,6 +18,8 @@ import { photosSlice, runBackupCycleThunk } from '../index';
 
 type NetworkPauseStatus = 'paused-no-connection' | 'paused-no-wifi' | null;
 
+const PROGRESS_STEP = 0.02;
+
 const evaluateNetworkPause = (
   state: Network.NetworkState,
   networkCondition: PhotoNetworkCondition,
@@ -161,20 +163,30 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         }
       }
 
+      const lastDispatchedUploadProgressStep = new Map<string, number>();
+
       await PhotoUploadQueue.start(uploadAssetJobs, deviceId, photosBucket, {
         onAssetStart: (assetId) => {
           dispatch(photosSlice.actions.addUploadingAssetId(assetId));
         },
-        onAssetProgress: (_, ratio) => {
-          dispatch(photosSlice.actions.setCurrentUploadProgress(ratio));
+        onAssetProgress: (assetId, ratio) => {
+          const progressStep = Math.floor(ratio / PROGRESS_STEP);
+          if (lastDispatchedUploadProgressStep.get(assetId) === progressStep) {
+            return;
+          }
+          lastDispatchedUploadProgressStep.set(assetId, progressStep);
+          dispatch(photosSlice.actions.setAssetUploadProgress({ assetId, progress: ratio }));
         },
         onAssetDone: async (assetId, result, modificationTime) => {
+          lastDispatchedUploadProgressStep.delete(assetId);
           await completeSyncForAsset(assetId, result, modificationTime);
+          dispatch(photosSlice.actions.markAssetUploadCompleted(assetId));
           dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
           dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
           dispatch(photosSlice.actions.incrementSessionUploadedAssets());
         },
         onAssetError: async (assetId, error) => {
+          lastDispatchedUploadProgressStep.delete(assetId);
           const isQuotaError = (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
           if (isQuotaError) {
             dispatch(photosSlice.actions.pauseForQuotaExceeded());
@@ -204,7 +216,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         return;
       }
       dispatch(photosSlice.actions.setSyncStatus(finalIsPaused || finalDisabledReason !== null ? 'paused' : 'synced'));
-      dispatch(photosSlice.actions.setCurrentUploadProgress(0));
+      dispatch(photosSlice.actions.clearUploadProgress());
 
       if (!finalIsPaused && finalDisabledReason === null && (await hasRemainingAssets(isIOS))) {
         logger.info('[Upload] Work remains after this cycle — restarting');

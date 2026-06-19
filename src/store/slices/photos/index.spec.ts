@@ -176,7 +176,7 @@ describe('photos slice', () => {
       pendingBackupAssets: 0,
       totalScannedAssets: 0,
       totalAssetsUploaded: 0,
-      currentUploadProgress: 0,
+      uploadProgressById: {},
       uploadingAssetIds: [],
       deviceId: null,
       photosBucket: null,
@@ -185,6 +185,7 @@ describe('photos slice', () => {
       cloudFetchRevision: 0,
       isFetchingCloudHistory: false,
       disabledReason: null,
+      sessionCompletedAssetIds: [],
     };
     mockAsyncStorage.getItem.mockResolvedValueOnce(JSON.stringify(saved));
 
@@ -726,7 +727,8 @@ describe('photos slice', () => {
       expect(persisted).not.toHaveProperty('syncStatus');
       expect(persisted).not.toHaveProperty('isFetchingCloudHistory');
       expect(persisted).not.toHaveProperty('uploadingAssetIds');
-      expect(persisted).not.toHaveProperty('currentUploadProgress');
+      expect(persisted).not.toHaveProperty('uploadProgressById');
+      expect(persisted).not.toHaveProperty('sessionCompletedAssetIds');
     });
 
     test('when the user pauses the backup, then in flight uploads are aborted via the upload queue', async () => {
@@ -996,6 +998,145 @@ describe('photos slice', () => {
 
       expect(store.getState().photos.syncStatus).toBe('paused-no-connection');
       expect(mockUploadQueue.abortAll).toHaveBeenCalled();
+    });
+  });
+
+  describe('upload progress', () => {
+    const makeUploadReadyStore = () => {
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
+      );
+      return store;
+    };
+
+    test('when progress is reported for an asset, then it is stored under that asset', () => {
+      const store = makeStore();
+
+      store.dispatch(photosSlice.actions.setAssetUploadProgress({ assetId: 'a1', progress: 0.5 }));
+      store.dispatch(photosSlice.actions.setAssetUploadProgress({ assetId: 'a2', progress: 0.25 }));
+
+      expect(store.getState().photos.uploadProgressById).toEqual({ a1: 0.5, a2: 0.25 });
+    });
+
+    test('when an asset stops uploading, then its progress entry is removed', () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.addUploadingAssetId('a1'));
+      store.dispatch(photosSlice.actions.setAssetUploadProgress({ assetId: 'a1', progress: 0.7 }));
+
+      store.dispatch(photosSlice.actions.removeUploadingAssetId('a1'));
+
+      expect(store.getState().photos.uploadProgressById).toEqual({});
+    });
+
+    test('when two progress reports fall within the same step, then only the first one is stored', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      let progressDuringUpload: number | undefined;
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetProgress?.('a1', 0.011);
+        callbacks.onAssetProgress?.('a1', 0.019);
+        progressDuringUpload = store.getState().photos.uploadProgressById['a1'];
+      });
+      const store = makeUploadReadyStore();
+
+      await store.dispatch(runUploadThunk());
+
+      expect(progressDuringUpload).toBe(0.011);
+    });
+
+    test('when progress crosses a step boundary, then the new value is stored', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      let progressDuringUpload: number | undefined;
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetProgress?.('a1', 0.011);
+        callbacks.onAssetProgress?.('a1', 0.05);
+        progressDuringUpload = store.getState().photos.uploadProgressById['a1'];
+      });
+      const store = makeUploadReadyStore();
+
+      await store.dispatch(runUploadThunk());
+
+      expect(progressDuringUpload).toBe(0.05);
+    });
+
+    test('when an asset finishes uploading, then its progress entry is removed', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      let progressAfterDone: number | undefined;
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetStart?.('a1');
+        callbacks.onAssetProgress?.('a1', 0.5);
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'remote-1' }, Date.now());
+        progressAfterDone = store.getState().photos.uploadProgressById['a1'];
+      });
+      const store = makeUploadReadyStore();
+
+      await store.dispatch(runUploadThunk());
+
+      expect(progressAfterDone).toBeUndefined();
+    });
+
+    test('when the upload cycle ends, then all progress entries are cleared', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([
+        { assetId: 'a1', status: 'pending' },
+        { assetId: 'a2', status: 'pending' },
+      ] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetProgress?.('a1', 0.4);
+        callbacks.onAssetProgress?.('a2', 0.8);
+      });
+      const store = makeUploadReadyStore();
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.uploadProgressById).toEqual({});
+    });
+
+    test('when an asset finishes uploading successfully, then it is added to the session completed list before the cycle ends', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      let completedDuringUpload: string[] | undefined;
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetStart?.('a1');
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'remote-1' }, Date.now());
+        completedDuringUpload = [...store.getState().photos.sessionCompletedAssetIds];
+      });
+      const store = makeUploadReadyStore();
+
+      await store.dispatch(runUploadThunk());
+
+      expect(completedDuringUpload).toEqual(['a1']);
+    });
+
+    test('when an asset fails to upload, then it is not added to the session completed list', async () => {
+      const uploadError = Object.assign(new Error('network error'), { name: 'Error' });
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetStart?.('a1');
+        await callbacks.onAssetError?.('a1', uploadError);
+      });
+      const store = makeUploadReadyStore();
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.sessionCompletedAssetIds).toEqual([]);
+    });
+
+    test('when the upload cycle ends, then the session completed list is cleared', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetStart?.('a1');
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'remote-1' }, Date.now());
+      });
+      const store = makeUploadReadyStore();
+      store.dispatch(photosSlice.actions.markAssetUploadCompleted('a1'));
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.sessionCompletedAssetIds).toEqual([]);
     });
   });
 });

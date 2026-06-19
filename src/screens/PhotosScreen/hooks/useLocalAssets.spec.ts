@@ -20,17 +20,18 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
 }));
 
 jest.mock('src/store/hooks', () => ({
-  useAppSelector: jest.fn().mockReturnValue({
-    syncStatus: 'idle',
-    uploadingAssetIds: [],
-    sessionUploadedAssets: 0,
-    isFetchingCloudHistory: false,
-  }),
+  useAppSelector: jest.fn(),
 }));
 
 const mockMediaLibrary = MediaLibrary as jest.Mocked<typeof MediaLibrary>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
 const mockUseAppSelector = useAppSelector as jest.Mock;
+const photosState = {
+  syncStatus: 'idle',
+  uploadingAssetIds: [] as string[],
+  sessionUploadedAssets: 0,
+  isFetchingCloudHistory: false,
+};
 
 const makeAsset = (id: string): MediaLibrary.Asset =>
   ({ id, uri: `file://${id}.jpg`, creationTime: 1000, mediaType: 'photo' }) as never;
@@ -43,6 +44,15 @@ const makePage = (
 
 beforeEach(() => {
   jest.clearAllMocks();
+  Object.assign(photosState, {
+    syncStatus: 'idle',
+    uploadingAssetIds: [],
+    sessionUploadedAssets: 0,
+    isFetchingCloudHistory: false,
+  });
+  mockUseAppSelector.mockImplementation((selector: (state: { photos: typeof photosState }) => unknown) =>
+    selector({ photos: photosState }),
+  );
   mockPhotosLocalDB.getSyncedEntries.mockResolvedValue(new Map());
 });
 
@@ -197,12 +207,7 @@ describe('useLocalAssets', () => {
       .mockResolvedValueOnce(new Map([['a1', { modificationTime: null, status: 'synced' as const }]]))
       .mockResolvedValueOnce(new Map([['a1', { modificationTime: null, status: 'cloud_deleted' as const }]]));
 
-    mockUseAppSelector.mockReturnValue({
-      syncStatus: 'idle',
-      uploadingAssetIds: [],
-      sessionUploadedAssets: 0,
-      isFetchingCloudHistory: true,
-    });
+    photosState.isFetchingCloudHistory = true;
 
     const { result, rerender } = renderHook(() => useLocalAssets());
 
@@ -212,12 +217,7 @@ describe('useLocalAssets', () => {
 
     expect(result.current.syncedIds.has('a1')).toBe(true);
 
-    mockUseAppSelector.mockReturnValue({
-      syncStatus: 'idle',
-      uploadingAssetIds: [],
-      sessionUploadedAssets: 0,
-      isFetchingCloudHistory: false,
-    });
+    photosState.isFetchingCloudHistory = false;
 
     await act(async () => {
       rerender({});

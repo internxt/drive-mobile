@@ -14,6 +14,7 @@ import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'rea
 import { Circle } from 'react-native-progress';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
+import { useAppSelector } from 'src/store/hooks';
 import { useTailwind } from 'tailwind-rn';
 import { useCloudThumbnail } from '../hooks/useCloudThumbnail';
 import { CloudPhotoItem, PhotoItem as PhotoItemType, TimelinePhotoItem } from '../types';
@@ -38,21 +39,25 @@ const SkeletonCell = (): JSX.Element => {
   );
 };
 
-const UploadProgressRing = ({ progress, color }: { progress: number; color: string }): JSX.Element => (
-  <View style={styles.progressRing}>
-    <Circle
-      size={22}
-      thickness={2}
-      progress={progress}
-      color={color}
-      unfilledColor="rgba(255,255,255,0.3)"
-      borderWidth={0}
-    />
-    <View style={[StyleSheet.absoluteFillObject, styles.progressRingIcon]}>
-      <ArrowUpIcon size={10} color={color} weight="bold" />
+const UploadProgressRing = ({ assetId, color }: { assetId: string; color: string }): JSX.Element => {
+  const progress = useAppSelector((state) => state.photos.uploadProgressById[assetId] ?? 0);
+
+  return (
+    <View style={styles.progressRing}>
+      <Circle
+        size={22}
+        thickness={2}
+        progress={progress}
+        color={color}
+        unfilledColor="rgba(255,255,255,0.3)"
+        borderWidth={0}
+      />
+      <View style={[StyleSheet.absoluteFillObject, styles.progressRingIcon]}>
+        <ArrowUpIcon size={10} color={color} weight="bold" />
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 interface CellProps {
   isSelectMode?: boolean;
@@ -152,7 +157,6 @@ const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next:
   prev.item.id === next.item.id &&
   prev.item.backupState === next.item.backupState &&
   prev.item.uri === next.item.uri &&
-  prev.item.uploadProgress === next.item.uploadProgress &&
   prev.item.mediaType === next.item.mediaType &&
   prev.item.duration === next.item.duration &&
   prev.item.isLivePhoto === next.item.isLivePhoto &&
@@ -196,7 +200,7 @@ const LocalPhotoCell = memo(
             {item.backupState === 'not-backed' ? (
               <CloudSlashIcon size={18} color={getColor('text-white')} weight="light" />
             ) : (
-              <UploadProgressRing progress={item.uploadProgress ?? 0} color={getColor('text-white')} />
+              <UploadProgressRing assetId={item.id} color={getColor('text-white')} />
             )}
           </View>
         )}

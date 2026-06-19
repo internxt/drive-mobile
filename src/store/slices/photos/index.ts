@@ -43,8 +43,9 @@ export interface PhotosState {
   pendingBackupAssets: number;
   totalScannedAssets: number;
   totalAssetsUploaded: number;
-  currentUploadProgress: number;
+  uploadProgressById: Record<string, number>;
   uploadingAssetIds: string[];
+  sessionCompletedAssetIds: string[];
   deviceId: string | null;
   photosBucket: string | null;
   sessionTotalAssets: number;
@@ -63,8 +64,9 @@ const initialState: PhotosState = {
   pendingBackupAssets: 0,
   totalScannedAssets: 0,
   totalAssetsUploaded: 0,
-  currentUploadProgress: 0,
+  uploadProgressById: {},
   uploadingAssetIds: [],
+  sessionCompletedAssetIds: [],
   deviceId: null,
   photosBucket: null,
   sessionTotalAssets: 0,
@@ -439,9 +441,19 @@ export const photosSlice = createSlice({
     },
     removeUploadingAssetId: (state, action: PayloadAction<string>) => {
       state.uploadingAssetIds = state.uploadingAssetIds.filter((id) => id !== action.payload);
+      delete state.uploadProgressById[action.payload];
     },
-    setCurrentUploadProgress: (state, action: PayloadAction<number>) => {
-      state.currentUploadProgress = action.payload;
+    setAssetUploadProgress: (state, action: PayloadAction<{ assetId: string; progress: number }>) => {
+      state.uploadProgressById[action.payload.assetId] = action.payload.progress;
+    },
+    markAssetUploadCompleted: (state, action: PayloadAction<string>) => {
+      if (!state.sessionCompletedAssetIds.includes(action.payload)) {
+        state.sessionCompletedAssetIds.push(action.payload);
+      }
+    },
+    clearUploadProgress: (state) => {
+      state.uploadProgressById = {};
+      state.sessionCompletedAssetIds = [];
     },
     incrementTotalAssetsUploaded: (state) => {
       state.totalAssetsUploaded += 1;

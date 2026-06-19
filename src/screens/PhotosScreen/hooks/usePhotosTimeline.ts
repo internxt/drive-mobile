@@ -26,15 +26,13 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
   } = useLocalAssets();
   const { cloudItems, reloadCloud } = useCloudAssets();
 
-  const {
-    syncStatus,
-    sessionTotalAssets,
-    sessionUploadedAssets,
-    isFetchingCloudHistory,
-    isPaused,
-    pendingBackupAssets,
-    disabledReason,
-  } = useAppSelector((state) => state.photos);
+  const syncStatus = useAppSelector((state) => state.photos.syncStatus);
+  const sessionTotalAssets = useAppSelector((state) => state.photos.sessionTotalAssets);
+  const sessionUploadedAssets = useAppSelector((state) => state.photos.sessionUploadedAssets);
+  const isFetchingCloudHistory = useAppSelector((state) => state.photos.isFetchingCloudHistory);
+  const isPaused = useAppSelector((state) => state.photos.isPaused);
+  const pendingBackupAssets = useAppSelector((state) => state.photos.pendingBackupAssets);
+  const disabledReason = useAppSelector((state) => state.photos.disabledReason);
 
   const localGroups = useMemo(
     () => groupAssetsByDate(assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet),
