@@ -85,6 +85,8 @@ const statements = {
   `,
 
   delete: `DELETE FROM ${TABLE_NAME} WHERE remote_file_id = ?;`,
+  deleteByDevice: `DELETE FROM ${TABLE_NAME} WHERE device_id = ?;`,
+  getDistinctDeviceIds: `SELECT DISTINCT device_id FROM ${TABLE_NAME};`,
   reset: `DELETE FROM ${TABLE_NAME};`,
 
   getRemoteIdsByDeviceAndMonth: `

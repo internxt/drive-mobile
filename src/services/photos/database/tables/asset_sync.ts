@@ -94,7 +94,7 @@ const statements = {
       AND creation_time >= ?
       AND creation_time < ?;
   `,
-  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted', 'cloud_deleted');`,
+  getPendingAssets: `SELECT asset_id, status, remote_file_id FROM ${TABLE_NAME} WHERE status NOT IN ('synced', 'deleted', 'cloud_deleted') ORDER BY creation_time DESC NULLS LAST;`,
   markDeleted: `
     INSERT INTO ${TABLE_NAME} (asset_id, status, deleted_at)
     VALUES (?, 'deleted', (unixepoch() * 1000))

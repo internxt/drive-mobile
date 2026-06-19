@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUpIcon, CheckIcon, CloudIcon, CloudSlashIcon, ImageIcon } from 'phosphor-react-native';
+import { ArrowUpIcon, CheckIcon, CloudIcon, CloudSlashIcon, ImageIcon, PlayIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Circle } from 'react-native-progress';
@@ -72,6 +72,30 @@ const SelectOverlay = ({
   );
 };
 
+const VideoBadge = ({ duration }: { duration?: string }): JSX.Element => {
+  const tailwind = useTailwind();
+  const getColor = useGetColor();
+
+  return (
+    <View style={[tailwind('absolute justify-center items-end'), { bottom: 8, right: 8 }]} pointerEvents="none">
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.6)']}
+        locations={[0, 0.4, 0.7, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.durationShadow}
+      />
+      {duration ? (
+        <AppText medium style={[tailwind('text-sm'), { color: getColor('text-white') }]}>
+          {duration}
+        </AppText>
+      ) : (
+        <PlayIcon size={12} weight="fill" color="#fff" />
+      )}
+    </View>
+  );
+};
+
 const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next: CellProps & { item: PhotoItemType }) =>
   prev.item.id === next.item.id &&
   prev.item.backupState === next.item.backupState &&
@@ -122,20 +146,7 @@ const LocalPhotoCell = memo(
           </View>
         )}
 
-        {item.mediaType === 'video' && item.duration && (
-          <View style={[tailwind('absolute justify-center items-end'), { bottom: 8, right: 8 }]} pointerEvents="none">
-            <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.6)']}
-              locations={[0, 0.4, 0.7, 1]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.durationShadow}
-            />
-            <AppText medium style={[tailwind('text-sm'), { color: getColor('text-white') }]}>
-              {item.duration}
-            </AppText>
-          </View>
-        )}
+        {item.mediaType === 'video' && <VideoBadge duration={item.duration} />}
 
         <SelectOverlay isSelectMode={isSelectMode} isSelected={isSelected} />
       </TouchableOpacity>
@@ -175,6 +186,8 @@ const CloudPhotoCell = memo(
         <View style={[tailwind('absolute justify-center items-center'), { top: 6, right: 6 }]} pointerEvents="none">
           <CloudIcon size={14} color={getColor('text-white')} weight="fill" />
         </View>
+
+        {item.mediaType === 'video' && <VideoBadge />}
 
         <SelectOverlay isSelectMode={isSelectMode} isSelected={isSelected} />
       </TouchableOpacity>

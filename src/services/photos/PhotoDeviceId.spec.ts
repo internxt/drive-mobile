@@ -191,3 +191,28 @@ describe('PhotoDeviceManager.ensureDeviceFolder', () => {
     });
   });
 });
+
+describe('PhotoDeviceManager concurrent calls', () => {
+  test('when ensureDeviceFolder is called twice before the first resolves, then the backend is only called once and both callers receive the same result', async () => {
+    mockGetItem.mockResolvedValue(null);
+
+    let resolveCreate!: (device: ReturnType<typeof makeDevice>) => void;
+    mockCreateDevice.mockReturnValue(
+      new Promise((r) => {
+        resolveCreate = r;
+      }),
+    );
+
+    const [p1, p2] = [PhotoDeviceManager.ensureDeviceFolder(), PhotoDeviceManager.ensureDeviceFolder()];
+
+    // Flush microtasks so resolveDeviceFolder reaches the createDevice call
+    await new Promise((r) => setImmediate(r));
+    resolveCreate(makeDevice('iPhone'));
+
+    const [result1, result2] = await Promise.all([p1, p2]);
+
+    expect(mockCreateDevice).toHaveBeenCalledTimes(1);
+    expect(result1.deviceId).toBe('folder-uuid-123');
+    expect(result2.deviceId).toBe('folder-uuid-123');
+  });
+});

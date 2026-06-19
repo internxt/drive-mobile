@@ -1,3 +1,4 @@
+import { PhotoDevice } from '@internxt/sdk/dist/drive/photos';
 import * as Application from 'expo-application';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
@@ -5,7 +6,6 @@ import uuid from 'react-native-uuid';
 import { logger } from 'src/services/common';
 import secureStorageService from 'src/services/SecureStorageService';
 import { AsyncStorageKey } from 'src/types';
-import { PhotoDevice } from '@internxt/sdk/dist/drive/photos';
 import { PhotoDeviceNameConflictError } from './errors';
 import { photosDeviceService } from './photosDeviceService';
 
@@ -59,8 +59,20 @@ const parseDeviceInfo = (device: PhotoDevice): PhotoDeviceInfo => ({
  * - Android: EncryptedSharedPreferences is wiped on uninstall, device is re-identified
  *   by androidId (stable hardware key); on a 409 the existing folder is adopted by key.
  */
-export const PhotoDeviceManager = {
-  async ensureDeviceFolder(): Promise<PhotoDeviceInfo> {
+class PhotoDeviceManagerService {
+  private pendingDeviceFolder: Promise<PhotoDeviceInfo> | null = null;
+
+  ensureDeviceFolder(): Promise<PhotoDeviceInfo> {
+    if (this.pendingDeviceFolder) {
+      return this.pendingDeviceFolder;
+    }
+    this.pendingDeviceFolder = this.resolveDeviceFolder().finally(() => {
+      this.pendingDeviceFolder = null;
+    });
+    return this.pendingDeviceFolder;
+  }
+
+  private async resolveDeviceFolder(): Promise<PhotoDeviceInfo> {
     const storedUuid = await secureStorageService.getItem(AsyncStorageKey.PhotosDeviceId);
 
     if (storedUuid) {
@@ -97,5 +109,7 @@ export const PhotoDeviceManager = {
       }
       throw err;
     }
-  },
-};
+  }
+}
+
+export const PhotoDeviceManager = new PhotoDeviceManagerService();

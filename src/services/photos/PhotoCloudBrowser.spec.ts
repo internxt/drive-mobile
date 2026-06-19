@@ -26,6 +26,8 @@ jest.mock('./database/photosLocalDB', () => ({
     deleteCloudAsset: jest.fn(),
     getCloudAssetMonthsByDevice: jest.fn(),
     getSyncedMonths: jest.fn(),
+    getDistinctCloudAssetDeviceIds: jest.fn().mockResolvedValue([]),
+    deleteCloudAssetsByDevice: jest.fn(),
   },
 }));
 
@@ -560,5 +562,26 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     await photoCloudBrowser.syncAllHistory({ onMonthFetched });
 
     expect(onMonthFetched).toHaveBeenCalledTimes(1);
+  });
+
+  test('when local DB has a device ID not returned by the backend, then its cloud assets are deleted', async () => {
+    mockDeviceService.listDevices.mockResolvedValue([makeDevice('active-uuid', 'iPhone')]);
+    mockPhotosLocalDB.getDistinctCloudAssetDeviceIds.mockResolvedValue(['active-uuid', 'orphan-uuid']);
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(Infinity);
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.deleteCloudAssetsByDevice).toHaveBeenCalledWith('orphan-uuid');
+    expect(mockPhotosLocalDB.deleteCloudAssetsByDevice).not.toHaveBeenCalledWith('active-uuid');
+  });
+
+  test('when all local device IDs match backend devices, then no cloud assets are deleted', async () => {
+    mockDeviceService.listDevices.mockResolvedValue([makeDevice('active-uuid', 'iPhone')]);
+    mockPhotosLocalDB.getDistinctCloudAssetDeviceIds.mockResolvedValue(['active-uuid']);
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(Infinity);
+
+    await photoCloudBrowser.syncAllHistory({});
+
+    expect(mockPhotosLocalDB.deleteCloudAssetsByDevice).not.toHaveBeenCalled();
   });
 });

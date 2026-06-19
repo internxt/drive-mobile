@@ -132,7 +132,7 @@ describe('PhotoUploadService.upload', () => {
 
     await PhotoUploadService.upload(asset, DEVICE_ID, PHOTOS_BUCKET);
 
-    expect(mockGenerateThumbnail).toHaveBeenCalledWith(LOCAL_PATH, 'jpg');
+    expect(mockGenerateThumbnail).toHaveBeenCalledWith(LOCAL_URI, 'jpg');
     expect(mockCreateThumbnailEntry).toHaveBeenCalledWith({
       fileUuid: 'drive-file-uuid',
       type: 'JPEG',
@@ -266,7 +266,7 @@ describe('PhotoUploadService.replace', () => {
 
     await PhotoUploadService.replace(asset, 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
 
-    expect(mockGenerateThumbnail).toHaveBeenCalledWith(LOCAL_PATH, 'jpg');
+    expect(mockGenerateThumbnail).toHaveBeenCalledWith(LOCAL_URI, 'jpg');
     expect(mockCreateThumbnailEntry).toHaveBeenCalledWith(expect.objectContaining({ fileUuid: 'existing-remote-id' }));
   });
 

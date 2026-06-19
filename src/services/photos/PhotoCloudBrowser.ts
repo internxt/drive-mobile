@@ -31,9 +31,7 @@ class PhotoCloudBrowserService {
 
   async listDeviceFolders(): Promise<{ uuid: string }[]> {
     const devices = await photosDeviceService.listDevices();
-    return devices
-      .filter((device) => device.status === 'EXISTS')
-      .map((device) => ({ uuid: device.uuid }));
+    return devices.filter((device) => device.status === 'EXISTS').map((device) => ({ uuid: device.uuid }));
   }
 
   async fetchMonth(params: {
@@ -70,11 +68,17 @@ class PhotoCloudBrowserService {
     currentDeviceId?: string;
   }): Promise<void> {
     const { onMonthFetched, isCancelled, force, currentDeviceId } = options;
+    logger.info(
+      `[CloudBrowser] syncAllHistory — currentDeviceId=${currentDeviceId ?? 'none'}, force=${force ?? false}`,
+    );
     const devices = await this.listDeviceFolders();
     if (devices.length === 0) {
       logger.info('[CloudBrowser] No device folders found — skipping sync');
       return;
     }
+    logger.info(`[CloudBrowser] Syncing ${devices.length} device(s): ${devices.map((d) => d.uuid).join(', ')}`);
+
+    await this.purgeDeletedDevices(devices, onMonthFetched);
 
     const months = await this.discoverAvailableMonths(devices);
 
@@ -189,7 +193,13 @@ class PhotoCloudBrowserService {
     currentDeviceId?: string;
   }): Promise<void> {
     const { deviceId, year, month, foundIds, currentDeviceId } = params;
+    logger.info(
+      `[CloudBrowser] reconcileCloudDeletions — device=${deviceId} ${year}/${String(month).padStart(2, '0')}, foundIds=${[...foundIds].length}, currentDeviceId=${currentDeviceId ?? 'none'}`,
+    );
     const knownFromCloud = await this.localDB.getCloudAssetRemoteIdsByDeviceAndMonth(deviceId, year, month);
+    logger.info(
+      `[CloudBrowser] reconcileCloudDeletions — knownFromCloud=${knownFromCloud.size} in local DB for device=${deviceId} ${year}/${String(month).padStart(2, '0')}`,
+    );
     const knownIds = new Set(knownFromCloud);
 
     if (currentDeviceId && deviceId === currentDeviceId) {
@@ -212,6 +222,24 @@ class PhotoCloudBrowserService {
     }
   }
 
+  private async purgeDeletedDevices(activeDevices: { uuid: string }[], onPurged?: () => void): Promise<void> {
+    const activeDevicesIds = new Set(activeDevices.map((device) => device.uuid));
+    const localIds = await this.localDB.getDistinctCloudAssetDeviceIds();
+    const orphanedDeviceIds = localIds.filter((id) => !activeDevicesIds.has(id));
+    if (orphanedDeviceIds.length === 0) {
+      return;
+    }
+
+    logger.info(
+      `[CloudBrowser] Purging ${orphanedDeviceIds.length} deleted device(s) from local DB: ${orphanedDeviceIds.join(', ')}`,
+    );
+    for (const deviceId of orphanedDeviceIds) {
+      await this.localDB.deleteCloudAssetsByDevice(deviceId);
+      logger.info(`[CloudBrowser] Purged all cloud_asset rows for deleted device=${deviceId}`);
+    }
+    onPurged?.();
+  }
+
   private async reconcileDeletedMonths(params: {
     devices: { uuid: string }[];
     discoveredMonths: { deviceId: string; year: number; month: number; monthFolderUuid: string }[];
@@ -219,10 +247,16 @@ class PhotoCloudBrowserService {
   }): Promise<void> {
     const { devices, discoveredMonths, currentDeviceId } = params;
     const discoveredSet = new Set(discoveredMonths.map((m) => `${m.deviceId}:${m.year}:${m.month}`));
+    logger.info(
+      `[CloudBrowser] reconcileDeletedMonths — ${devices.length} device(s) to reconcile: ${devices.map((d) => d.uuid).join(', ')}`,
+    );
 
     for (const device of devices) {
       const deviceId = device.uuid;
       const cloudMonths = await this.localDB.getCloudAssetMonthsByDevice(deviceId);
+      logger.info(
+        `[CloudBrowser] reconcileDeletedMonths — device=${deviceId}: ${cloudMonths.length} month(s) in local DB: ${JSON.stringify(cloudMonths)}`,
+      );
       const monthSet = new Set(cloudMonths.map((m) => `${m.year}:${m.month}`));
 
       if (currentDeviceId && deviceId === currentDeviceId) {
