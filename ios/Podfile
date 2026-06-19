@@ -71,6 +71,10 @@ target 'Internxt' do
   end
 end
 
+target 'InternxtFileProvider' do
+  # No use_expo_modules! — InternxtSwiftCore comes via SPM
+end
+
 target 'InternxtShareExtension' do     
   exclude = ["expo-updates", "expo-splash-screen", "expo-dev-client", "react-native-reanimated", "react-native-screens", "react-native-safe-area-context", "react-native-gesture-handler", "react-native-video", "react-native-webview", "react-native-fast-image", "react-native-svg", "@shopify/flash-list", "react-native-pdf", "jail-monkey"]
   use_expo_modules!(exclude: exclude)
