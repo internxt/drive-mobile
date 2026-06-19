@@ -5,7 +5,7 @@ import asyncStorageService from 'src/services/AsyncStorageService';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
-import { PhotoDeviceId } from 'src/services/photos/PhotoDeviceId';
+import { PhotoDeviceManager } from 'src/services/photos/PhotoDeviceId';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
@@ -45,7 +45,9 @@ jest.mock('@internxt-mobile/services/photos/photoPermissionService', () => ({
 }));
 
 jest.mock('src/services/photos/PhotoDeviceId', () => ({
-  PhotoDeviceId: { getOrCreate: jest.fn().mockResolvedValue('mock-device-id') },
+  PhotoDeviceManager: {
+    ensureDeviceFolder: jest.fn().mockResolvedValue({ deviceId: 'mock-device-id', plainName: 'Mock Device' }),
+  },
 }));
 
 jest.mock('src/services/photos/PhotoAssetScanner', () => ({
@@ -91,7 +93,7 @@ const mockStorageSelectors = storageSelectors as jest.Mocked<typeof storageSelec
 const mockAsyncStorage = asyncStorageService as jest.Mocked<typeof asyncStorageService>;
 const mockCloudBrowser = photoCloudBrowser as jest.Mocked<typeof photoCloudBrowser>;
 const mockPermissionService = photoPermissionService as jest.Mocked<typeof photoPermissionService>;
-const mockPhotoDeviceId = PhotoDeviceId as jest.Mocked<typeof PhotoDeviceId>;
+const mockPhotoDeviceManager = PhotoDeviceManager as jest.Mocked<typeof PhotoDeviceManager>;
 const mockScanner = PhotoAssetScanner as jest.Mocked<typeof PhotoAssetScanner>;
 const mockDeduplicator = PhotoDeduplicator as jest.Mocked<typeof PhotoDeduplicator>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
@@ -115,7 +117,7 @@ describe('photos slice', () => {
     // Re-set default implementations after reset clears them
     mockAsyncStorage.saveItem.mockResolvedValue(undefined);
     mockAsyncStorage.getItem.mockResolvedValue(null);
-    mockPhotoDeviceId.getOrCreate.mockResolvedValue('mock-device-id');
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'mock-device-id', plainName: 'Mock Device', bucket: 'mock-photos-bucket' });
     mockScanner.scanAll.mockResolvedValue([]);
     mockScanner.getAssetsByIds.mockResolvedValue([]);
     mockUploadQueue.start.mockResolvedValue(undefined);
@@ -154,6 +156,7 @@ describe('photos slice', () => {
       currentUploadProgress: 0,
       uploadingAssetIds: [],
       deviceId: null,
+      photosBucket: null,
       sessionTotalAssets: 0,
       sessionUploadedAssets: 0,
       cloudFetchRevision: 0,
@@ -348,23 +351,24 @@ describe('photos slice', () => {
     expect(getPersistedState()).toMatchObject({ networkCondition: 'wifi-only' });
   });
 
-  test('when the device is first registered for backup, then a new device identifier is created', async () => {
-    mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('new-device-id');
+  test('when the device is first registered for backup, then a new device identifier is created and the photos bucket is stored', async () => {
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({ deviceId: 'new-device-id', plainName: 'New Device', bucket: 'mock-photos-bucket' });
 
     const store = makeStore();
     await store.dispatch(initDeviceIdThunk());
 
     expect(store.getState().photos.deviceId).toBe('new-device-id');
+    expect(store.getState().photos.photosBucket).toBe('mock-photos-bucket');
   });
 
   test('when the device was already registered for backup, then the existing identifier is reused', async () => {
-    mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('existing-device-id');
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({ deviceId: 'existing-device-id', plainName: 'Existing Device', bucket: 'mock-photos-bucket' });
 
     const store = makeStore();
     await store.dispatch(initDeviceIdThunk());
 
     expect(store.getState().photos.deviceId).toBe('existing-device-id');
-    expect(mockPhotoDeviceId.getOrCreate).toHaveBeenCalledTimes(1);
+    expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalledTimes(1);
   });
 
   test('when backup is disabled and discovery runs, then no photos are scanned', async () => {
@@ -425,7 +429,7 @@ describe('photos slice', () => {
     await store.dispatch(runBackupCycleThunk());
 
     expect(mockScanner.scanAll).not.toHaveBeenCalled();
-    expect(mockPhotoDeviceId.getOrCreate).not.toHaveBeenCalled();
+    expect(mockPhotoDeviceManager.ensureDeviceFolder).not.toHaveBeenCalled();
   });
 
   test('when a backup cycle starts and the user has revoked permission, then no photos are scanned and backup is disabled', async () => {
@@ -443,7 +447,7 @@ describe('photos slice', () => {
     const store = makeStore();
     store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
     mockPermissionService.getStatus.mockResolvedValueOnce('granted');
-    mockPhotoDeviceId.getOrCreate.mockResolvedValueOnce('device-id');
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
     const assets = Array.from({ length: 5 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
     mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets, editedAssets: [] } as never);
@@ -456,7 +460,7 @@ describe('photos slice', () => {
     await store.dispatch(runBackupCycleThunk());
     await Promise.resolve();
 
-    expect(mockPhotoDeviceId.getOrCreate).toHaveBeenCalledTimes(1);
+    expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalledTimes(1);
     expect(mockScanner.scanAll).toHaveBeenCalledTimes(1);
     expect(store.getState().photos.pendingBackupAssets).toBe(5);
     expect(store.getState().photos.syncStatus).toBe('synced');
@@ -593,7 +597,7 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(forceRefreshThunk());
@@ -613,7 +617,7 @@ describe('photos slice', () => {
 
   describe('backup cycle', () => {
     test('when the backup cycle runs, then cloud history sync and discovery both run', async () => {
-      mockPhotoDeviceId.getOrCreate.mockResolvedValue('device-id');
+      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
 
       const store = makeStore();
       store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
@@ -626,7 +630,7 @@ describe('photos slice', () => {
     });
 
     test('when the backup cycle runs while paused, then discovery runs but the upload is skipped and sync status is paused', async () => {
-      mockPhotoDeviceId.getOrCreate.mockResolvedValue('device-id');
+      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
       mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: [{ id: 'a1' } as never], editedAssets: [] });
 
       const store = makeStore();
@@ -690,7 +694,7 @@ describe('photos slice', () => {
 
   describe('resuming backup', () => {
     test('when the user resumes the backup, then is paused flag clears and the backup cycle is dispatched', async () => {
-      mockPhotoDeviceId.getOrCreate.mockResolvedValue('device-id');
+      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
       mockPermissionService.getStatus.mockResolvedValue('granted');
 
       const store = makeStore();
@@ -719,7 +723,7 @@ describe('photos slice', () => {
 
     test('when the upload loop finishes while paused, then sync status remains paused', async () => {
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
-      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
         // Simulate pause being set mid-upload
         store.dispatch(photosSlice.actions.setIsPaused(true));
         await callbacks.onAssetDone?.('a1', 'remote-1', Date.now());
@@ -727,7 +731,7 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -738,13 +742,13 @@ describe('photos slice', () => {
     test('when an asset fails with abort error, then it is not marked as errored in the local database', async () => {
       const abortError = new AbortError();
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
-      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
         await callbacks.onAssetError?.('a1', abortError);
       });
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -754,13 +758,13 @@ describe('photos slice', () => {
 
     test('when an asset fails with a quota exceeded error from the backend, then the backup is paused and the asset is not marked as failed in the database', async () => {
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
-      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
         await callbacks.onAssetError?.('a1', quotaError);
       });
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -773,13 +777,13 @@ describe('photos slice', () => {
     test('when an asset fails with a quota exceeded error from the backend, then the upload queue is aborted to prevent further attempts', async () => {
       jest.spyOn(mockUploadQueue, 'abortAll');
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
-      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
         await callbacks.onAssetError?.('a1', quotaError);
       });
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -789,7 +793,7 @@ describe('photos slice', () => {
 
     test('when an asset fails with a quota exceeded error from the backend, then the backup cycle is not restarted', async () => {
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
-      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, callbacks) => {
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
         await callbacks.onAssetError?.('a1', quotaError);
       });
       const remainingAssets = Array.from({ length: 5 }, (_, i) => ({ assetId: `asset-${i}`, status: 'pending' }));
@@ -797,7 +801,7 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -810,7 +814,7 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -825,7 +829,7 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1' }),
+        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -844,6 +848,7 @@ describe('photos slice', () => {
           enabled: true,
           permissionStatus: 'granted',
           deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
           disabledReason: 'quota-exceeded',
         }),
       );

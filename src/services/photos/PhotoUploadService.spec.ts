@@ -82,6 +82,7 @@ const mockCreateThumbnailEntry = uploadService.createThumbnailEntry as jest.Mock
 const mockGetOrCreateFolder = photoBackupFolders.getOrCreateFolderForDate as jest.Mock;
 
 const DEVICE_ID = 'device-123';
+const PHOTOS_BUCKET = 'photos-bucket-456';
 const LOCAL_PATH = '/var/mobile/Media/DCIM/photo.jpg';
 const LOCAL_URI = `file://${LOCAL_PATH}`;
 
@@ -129,7 +130,7 @@ describe('PhotoUploadService.upload', () => {
   test('when uploading a supported image, then a thumbnail is generated and registered with the drive file uuid', async () => {
     const asset = makeAsset();
 
-    await PhotoUploadService.upload(asset, DEVICE_ID);
+    await PhotoUploadService.upload(asset, DEVICE_ID, PHOTOS_BUCKET);
 
     expect(mockGenerateThumbnail).toHaveBeenCalledWith(LOCAL_PATH, 'jpg');
     expect(mockCreateThumbnailEntry).toHaveBeenCalledWith({
@@ -138,21 +139,21 @@ describe('PhotoUploadService.upload', () => {
       size: 40_000,
       maxWidth: 512,
       maxHeight: 288,
-      bucketId: 'bucket-id',
+      bucketId: PHOTOS_BUCKET,
       bucketFile: 'thumb-bucket-file-id',
       encryptVersion: EncryptionVersion.Aes03,
     });
   });
 
   test('when uploading a supported image, then the drive file uuid is returned', async () => {
-    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID);
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
     expect(result).toBe('drive-file-uuid');
   });
 
   test('when the photo already exists in Drive, then its existing uuid is returned without uploading again', async () => {
     mockCheckFileExistence.mockResolvedValue({ existentFiles: [{ uuid: 'existing-uuid' }] });
 
-    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID);
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
     expect(result).toBe('existing-uuid');
     expect(mockUploadFile).not.toHaveBeenCalled();
@@ -162,7 +163,7 @@ describe('PhotoUploadService.upload', () => {
   test('when the network layer throws an abort error, then the abort error propagates with its name intact and is not wrapped', async () => {
     mockUploadFile.mockReset().mockRejectedValueOnce(new AbortError());
 
-    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID)).rejects.toMatchObject({
+    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET)).rejects.toMatchObject({
       name: AbortError.errorName,
     });
   });
@@ -170,7 +171,9 @@ describe('PhotoUploadService.upload', () => {
   test('when the network layer throws a generic error, then it is wrapped with bucket upload context', async () => {
     mockUploadFile.mockReset().mockRejectedValueOnce(new Error('network timeout'));
 
-    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID)).rejects.toThrow('Bucket upload failed');
+    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET)).rejects.toThrow(
+      'Bucket upload failed',
+    );
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
 
@@ -178,7 +181,7 @@ describe('PhotoUploadService.upload', () => {
     mockIsThumbnailSupported.mockReturnValue(false);
     mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
 
-    const result = await PhotoUploadService.upload(makeAsset({ filename: 'photo.dng' }), DEVICE_ID);
+    const result = await PhotoUploadService.upload(makeAsset({ filename: 'photo.dng' }), DEVICE_ID, PHOTOS_BUCKET);
 
     expect(mockGenerateThumbnail).not.toHaveBeenCalled();
     expect(mockCreateThumbnailEntry).not.toHaveBeenCalled();
@@ -190,7 +193,7 @@ describe('PhotoUploadService.upload', () => {
     // Only one uploadFile call for the main file
     mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
 
-    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID);
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
     expect(result).toBe('drive-file-uuid');
     expect(mockCreateThumbnailEntry).not.toHaveBeenCalled();
@@ -202,7 +205,7 @@ describe('PhotoUploadService.upload', () => {
       .mockResolvedValueOnce('bucket-file-id')
       .mockRejectedValueOnce(new Error('network error'));
 
-    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID);
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
     expect(result).toBe('drive-file-uuid');
     expect(mockCreateThumbnailEntry).not.toHaveBeenCalled();
@@ -214,16 +217,46 @@ describe('PhotoUploadService.upload', () => {
       .mockResolvedValueOnce('bucket-file-id')
       .mockRejectedValueOnce(new Error('network error'));
 
-    await PhotoUploadService.upload(makeAsset(), DEVICE_ID);
+    await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
 
     expect(mockRnfsUnlink).toHaveBeenCalledWith('/tmp/thumb.jpg');
+  });
+
+  test('when createFileEntry returns a 409 conflict, then the existing uuid is recovered via checkFileExistence', async () => {
+    mockCheckFileExistence
+      .mockResolvedValueOnce({ existentFiles: [] })
+      .mockResolvedValueOnce({ existentFiles: [{ uuid: 'recovered-uuid' }] });
+    mockCreateFileEntry.mockRejectedValueOnce({ status: 409 });
+    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
+
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result).toBe('recovered-uuid');
+  });
+
+  test('when createFileEntry returns a 409 conflict and checkFileExistence finds nothing, then the original error is rethrown', async () => {
+    mockCheckFileExistence.mockResolvedValueOnce({ existentFiles: [] }).mockResolvedValueOnce({ existentFiles: [] });
+    mockCreateFileEntry.mockRejectedValueOnce({ status: 409 });
+    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
+
+    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET)).rejects.toMatchObject({
+      status: 409,
+    });
   });
 
   test('when the asset has no local URI, then the upload still proceeds using the asset URI as fallback', async () => {
     mockGetAssetInfoAsync.mockResolvedValue({ localUri: null });
 
-    const result = PhotoUploadService.upload(makeAsset(), DEVICE_ID);
-    await expect(result).resolves.toBeDefined();
+    await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(mockUploadFile).toHaveBeenCalledWith(
+      LOCAL_PATH,
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
   });
 });
 
@@ -231,14 +264,14 @@ describe('PhotoUploadService.replace', () => {
   test('when replacing an asset, then a thumbnail is regenerated and registered against the existing file uuid', async () => {
     const asset = makeAsset();
 
-    await PhotoUploadService.replace(asset, 'existing-remote-id', DEVICE_ID);
+    await PhotoUploadService.replace(asset, 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
 
     expect(mockGenerateThumbnail).toHaveBeenCalledWith(LOCAL_PATH, 'jpg');
     expect(mockCreateThumbnailEntry).toHaveBeenCalledWith(expect.objectContaining({ fileUuid: 'existing-remote-id' }));
   });
 
   test('when replacing an asset, then the existing remote file id is returned', async () => {
-    const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID);
+    const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
     expect(result).toBe('existing-remote-id');
   });
 
@@ -246,7 +279,7 @@ describe('PhotoUploadService.replace', () => {
     mockGenerateThumbnail.mockRejectedValue(new Error('codec error'));
     mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
 
-    const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID);
+    const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
 
     expect(result).toBe('existing-remote-id');
   });
@@ -255,7 +288,7 @@ describe('PhotoUploadService.replace', () => {
     mockReplaceFileEntry.mockRejectedValue(new AppError('file can not be replaced', 400));
     mockCreateFileEntry.mockResolvedValue({ uuid: 'new-drive-uuid' });
 
-    const result = await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID);
+    const result = await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID, PHOTOS_BUCKET);
 
     expect(mockCreateFileEntry).toHaveBeenCalledTimes(1);
     expect(result).toBe('new-drive-uuid');
@@ -265,7 +298,7 @@ describe('PhotoUploadService.replace', () => {
     mockReplaceFileEntry.mockRejectedValue(new AppError('file can not be replaced', 400));
     mockCreateFileEntry.mockResolvedValue({ uuid: 'new-drive-uuid' });
 
-    await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID);
+    await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID, PHOTOS_BUCKET);
 
     expect(mockCreateThumbnailEntry).toHaveBeenCalledWith(expect.objectContaining({ fileUuid: 'new-drive-uuid' }));
   });
@@ -273,7 +306,7 @@ describe('PhotoUploadService.replace', () => {
   test('when the server rejects the replace with a non-400 error, then the error is propagated without creating a new entry', async () => {
     mockReplaceFileEntry.mockRejectedValue(new AppError('internal server error', 500));
 
-    await expect(PhotoUploadService.replace(makeAsset(), 'remote-id', DEVICE_ID)).rejects.toThrow();
+    await expect(PhotoUploadService.replace(makeAsset(), 'remote-id', DEVICE_ID, PHOTOS_BUCKET)).rejects.toThrow();
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
 });

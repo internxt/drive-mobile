@@ -6,7 +6,7 @@ import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
-import { PhotoDeviceId } from 'src/services/photos/PhotoDeviceId';
+import { PhotoDeviceManager } from 'src/services/photos/PhotoDeviceId';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import {
@@ -35,6 +35,7 @@ export interface PhotosState {
   currentUploadProgress: number;
   uploadingAssetIds: string[];
   deviceId: string | null;
+  photosBucket: string | null;
   sessionTotalAssets: number;
   sessionUploadedAssets: number;
   cloudFetchRevision: number;
@@ -54,6 +55,7 @@ const initialState: PhotosState = {
   currentUploadProgress: 0,
   uploadingAssetIds: [],
   deviceId: null,
+  photosBucket: null,
   sessionTotalAssets: 0,
   sessionUploadedAssets: 0,
   cloudFetchRevision: 0,
@@ -164,9 +166,10 @@ export const checkPermissionRevocationThunk = createAsyncThunk<void, void, { sta
 export const initDeviceIdThunk = createAsyncThunk<string, void, { state: RootState }>(
   'photos/initDeviceId',
   async (_, { dispatch }) => {
-    const id = await PhotoDeviceId.getOrCreate();
-    dispatch(photosSlice.actions.setDeviceId(id));
-    return id;
+    const { deviceId, bucket } = await PhotoDeviceManager.ensureDeviceFolder();
+    dispatch(photosSlice.actions.setDeviceId(deviceId));
+    dispatch(photosSlice.actions.setPhotosBucket(bucket));
+    return deviceId;
   },
 );
 
@@ -226,8 +229,14 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
   'photos/runUpload',
   async (args, { getState, dispatch }) => {
     const bypassEnabled = args?.bypassEnabled ?? false;
-    const { enabled, permissionStatus, deviceId, isPaused } = getState().photos;
-    if ((!enabled && !bypassEnabled) || !isPermissionActive(permissionStatus) || !deviceId || isPaused) {
+    const { enabled, permissionStatus, deviceId, photosBucket, isPaused } = getState().photos;
+    if (
+      (!enabled && !bypassEnabled) ||
+      !isPermissionActive(permissionStatus) ||
+      !deviceId ||
+      !photosBucket ||
+      isPaused
+    ) {
       return;
     }
 
@@ -267,7 +276,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     dispatch(photosSlice.actions.setSyncStatus('uploading'));
     dispatch(photosSlice.actions.setSessionUploadTotalAssets(uploadAssetJobs.length));
 
-    await PhotoUploadQueue.start(uploadAssetJobs, deviceId, {
+    await PhotoUploadQueue.start(uploadAssetJobs, deviceId, photosBucket, {
       onAssetStart: (assetId) => {
         dispatch(photosSlice.actions.addUploadingAssetId(assetId));
       },
@@ -464,6 +473,9 @@ export const photosSlice = createSlice({
     },
     setDeviceId: (state, action: PayloadAction<string>) => {
       state.deviceId = action.payload;
+    },
+    setPhotosBucket: (state, action: PayloadAction<string>) => {
+      state.photosBucket = action.payload;
     },
     setDiscoveryResult: (state, action: PayloadAction<{ pendingBackupAssets: number; totalScannedAssets: number }>) => {
       state.pendingBackupAssets = action.payload.pendingBackupAssets;

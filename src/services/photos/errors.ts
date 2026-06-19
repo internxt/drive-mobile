@@ -14,3 +14,10 @@ export class FileAlreadyExistsError extends Error {
     this.name = 'FileAlreadyExistsError';
   }
 }
+
+export class PhotoDeviceNameConflictError extends Error {
+  constructor(deviceName: string) {
+    super(`A photos device folder with name "${deviceName}" already exists`);
+    this.name = 'PhotoDeviceNameConflictError';
+  }
+}

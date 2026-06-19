@@ -5,7 +5,7 @@ import { getEnvironmentConfigFromUser } from 'src/lib/network';
 import { uploadFile } from 'src/network/upload';
 import { constants } from 'src/services/AppService';
 import asyncStorageService from 'src/services/AsyncStorageService';
-import { HTTP_BAD_REQUEST } from 'src/services/common/httpStatusCodes';
+import { HTTP_BAD_REQUEST, HTTP_CONFLICT } from 'src/services/common/httpStatusCodes';
 import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
 import { generateThumbnail } from 'src/services/common/media/thumbnail.generation';
 import { uploadService } from 'src/services/common/network/upload/upload.service';
@@ -70,6 +70,7 @@ const resolveLocalPath = async (asset: MediaLibrary.Asset): Promise<{ localPath:
 const uploadAssetToBucket = async (
   asset: MediaLibrary.Asset,
   deviceId: string,
+  photosBucket: string,
   onProgress?: (ratio: number) => void,
   signal?: AbortSignal,
 ): Promise<FileUploadResult> => {
@@ -85,7 +86,8 @@ const uploadAssetToBucket = async (
     asyncStorageService.getUser(),
     photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate),
   ]);
-  const { bucketId, encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+  const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+  const bucketId = photosBucket;
   const { plainName, fileExtension } = splitFileNameAndExtension(fileName);
 
   const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type: fileExtension }]);
@@ -177,16 +179,46 @@ const uploadThumbnailForAsset = async (
   }
 };
 
+const createFileEntryOrFetchExisting = async (params: {
+  fileId: string;
+  type: string;
+  size: number;
+  plainName: string;
+  bucket: string;
+  folderUuid: string;
+  modificationTime: string;
+  creationTime: string;
+}): Promise<string> => {
+  const { plainName, type, folderUuid } = params;
+  try {
+    const driveFile = await uploadService.createFileEntry({
+      ...params,
+      encryptVersion: EncryptionVersion.Aes03,
+    });
+    return driveFile.uuid;
+  } catch (err) {
+    if ((err as { status?: number })?.status !== HTTP_CONFLICT) {
+      throw err;
+    }
+    const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type }]);
+    if (!existentFiles[0]?.uuid) {
+      throw err;
+    }
+    return existentFiles[0].uuid;
+  }
+};
+
 export const PhotoUploadService = {
   async upload(
     asset: MediaLibrary.Asset,
     deviceId: string,
+    photosBucket: string,
     onProgress?: (ratio: number) => void,
     signal?: AbortSignal,
   ): Promise<string> {
     let fileUploadResult: FileUploadResult;
     try {
-      fileUploadResult = await uploadAssetToBucket(asset, deviceId, onProgress, signal);
+      fileUploadResult = await uploadAssetToBucket(asset, deviceId, photosBucket, onProgress, signal);
     } catch (err) {
       if (err instanceof FileAlreadyExistsError) {
         return err.existingUuid;
@@ -209,21 +241,20 @@ export const PhotoUploadService = {
     } = fileUploadResult;
 
     try {
-      const driveFile = await uploadService.createFileEntry({
+      const fileUuid = await createFileEntryOrFetchExisting({
         fileId,
         type: fileExtension,
         size: fileSize,
         plainName,
         bucket: bucketId,
         folderUuid,
-        encryptVersion: EncryptionVersion.Aes03,
         modificationTime: modificationIso,
         creationTime: creationIso,
       });
 
-      await uploadThumbnailForAsset(localFilePath, fileExtension, driveFile.uuid, credentials);
+      await uploadThumbnailForAsset(localFilePath, fileExtension, fileUuid, credentials);
 
-      return driveFile.uuid;
+      return fileUuid;
     } finally {
       await cleanupTempFile(tempPath);
     }
@@ -233,6 +264,7 @@ export const PhotoUploadService = {
     asset: MediaLibrary.Asset,
     existingRemoteFileId: string,
     deviceId: string,
+    photosBucket: string,
     onProgress?: (ratio: number) => void,
     signal?: AbortSignal,
   ): Promise<string> {
@@ -248,7 +280,7 @@ export const PhotoUploadService = {
       folderUuid,
       modificationIso,
       creationIso,
-    } = await uploadAssetToBucket(asset, deviceId, onProgress, signal);
+    } = await uploadAssetToBucket(asset, deviceId, photosBucket, onProgress, signal);
 
     try {
       try {

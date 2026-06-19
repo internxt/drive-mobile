@@ -20,7 +20,12 @@ let currentController: AbortController | null = null;
 
 // TODO: MAKE IT CLASS
 export const PhotoUploadQueue = {
-  async start(jobs: AssetUploadJob[], deviceId: string, callbacks: UploadQueueCallbacks): Promise<void> {
+  async start(
+    jobs: AssetUploadJob[],
+    deviceId: string,
+    photosBucket: string,
+    callbacks: UploadQueueCallbacks,
+  ): Promise<void> {
     currentController = new AbortController();
     const { signal } = currentController;
 
@@ -42,12 +47,14 @@ export const PhotoUploadQueue = {
                     asset,
                     existingRemoteFileId,
                     deviceId,
+                    photosBucket,
                     (ratio) => callbacks.onAssetProgress?.(asset.id, ratio),
                     signal,
                   )
                 : await PhotoUploadService.upload(
                     asset,
                     deviceId,
+                    photosBucket,
                     (ratio) => callbacks.onAssetProgress?.(asset.id, ratio),
                     signal,
                   );

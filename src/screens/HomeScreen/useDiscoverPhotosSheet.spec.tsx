@@ -38,6 +38,7 @@ const makeWrapper = (photosState?: Partial<PhotosState>) => {
         currentUploadProgress: 0,
         uploadingAssetIds: [],
         deviceId: null,
+        photosBucket: null,
         sessionTotalAssets: 0,
         sessionUploadedAssets: 0,
         cloudFetchRevision: 0,
