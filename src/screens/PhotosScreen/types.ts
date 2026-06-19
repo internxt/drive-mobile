@@ -10,6 +10,7 @@ export interface PhotoItem {
   mediaType: PhotoMediaType;
   duration?: string;
   uploadProgress?: number;
+  isLivePhoto?: boolean;
 }
 
 export interface CloudPhotoItem {
@@ -23,6 +24,9 @@ export interface CloudPhotoItem {
   deviceId: string;
   createdAt: number;
   fileName: string;
+  isLivePhoto?: boolean;
+  // uuid of the paired .mov cloud asset (only present when isLivePhoto = true and on cloud-only items)
+  pairedVideoRemoteFileId?: string;
 }
 
 export type TimelinePhotoItem = PhotoItem | CloudPhotoItem;

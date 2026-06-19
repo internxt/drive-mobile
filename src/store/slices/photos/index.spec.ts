@@ -92,7 +92,9 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     markPending: jest.fn().mockResolvedValue(undefined),
     markPendingEdit: jest.fn().mockResolvedValue(undefined),
     markSynced: jest.fn().mockResolvedValue(undefined),
+    markSyncedLivePhoto: jest.fn().mockResolvedValue(undefined),
     markError: jest.fn().mockResolvedValue(undefined),
+    getStatus: jest.fn().mockResolvedValue(null),
   },
 }));
 
@@ -143,7 +145,11 @@ describe('photos slice', () => {
     mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
     mockPermissionService.getStatus.mockResolvedValue('granted');
-    (Network.getNetworkStateAsync as jest.Mock).mockResolvedValue({ type: Network.NetworkStateType.WIFI, isConnected: true, isInternetReachable: true });
+    (Network.getNetworkStateAsync as jest.Mock).mockResolvedValue({
+      type: Network.NetworkStateType.WIFI,
+      isConnected: true,
+      isInternetReachable: true,
+    });
     (Network.addNetworkStateListener as jest.Mock).mockReturnValue({ remove: jest.fn() });
   });
 
@@ -768,7 +774,7 @@ describe('photos slice', () => {
       mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
         // Simulate pause being set mid-upload
         store.dispatch(photosSlice.actions.setIsPaused(true));
-        await callbacks.onAssetDone?.('a1', 'remote-1', Date.now());
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'remote-1' }, Date.now());
       });
 
       const store = makeStore();

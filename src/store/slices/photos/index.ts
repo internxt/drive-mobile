@@ -222,6 +222,7 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
             height: asset.height,
             duration: asset.duration,
             mediaType: asset.mediaType,
+            isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
           }),
         ),
         ...editedAssets.map((asset) =>
@@ -232,6 +233,7 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
             height: asset.height,
             duration: asset.duration,
             mediaType: asset.mediaType,
+            isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
           }),
         ),
       ]);
@@ -341,8 +343,20 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         onAssetProgress: (_, ratio) => {
           dispatch(photosSlice.actions.setCurrentUploadProgress(ratio));
         },
-        onAssetDone: async (assetId, remoteFileId, modificationTime) => {
-          await photosLocalDB.markSynced(assetId, remoteFileId, modificationTime);
+        onAssetDone: async (assetId, result, modificationTime) => {
+          if (result.pairedVideoUuid !== undefined) {
+            await photosLocalDB.markSyncedLivePhoto(
+              assetId,
+              result.photoUuid,
+              modificationTime,
+              result.pairedVideoUuid,
+              'synced',
+            );
+          } else if (result.pairedVideoUuid === undefined && (await photosLocalDB.getStatus(assetId))?.isLivePhoto) {
+            await photosLocalDB.markSyncedLivePhoto(assetId, result.photoUuid, modificationTime, null, 'error');
+          } else {
+            await photosLocalDB.markSynced(assetId, result.photoUuid, modificationTime);
+          }
           dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
           dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
           dispatch(photosSlice.actions.incrementSessionUploadedAssets());

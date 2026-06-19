@@ -2,7 +2,8 @@ import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
 import { logger } from 'src/services/common';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
-import { photosLocalDB } from './database/photosLocalDB';
+import { CloudAssetEntry, LivePhotoRole, photosLocalDB } from './database/photosLocalDB';
+import { getPhotoPlainNameFromPairedVideo, isPairedVideoPlainName } from './livePhoto.constants';
 import { photosDeviceService } from './photosDeviceService';
 
 const HOUR_MS = 60 * 60 * 1000;
@@ -138,37 +139,15 @@ class PhotoCloudBrowserService {
       const folderDate = new Date(year, month - 1, Number.isNaN(day) ? 1 : day).getTime();
 
       const files = await this.listFilesWithThumbnails(dayFolder.uuid);
-      for (const file of files) {
-        if (file.status && file.status.toLowerCase() !== 'exists') continue;
-        const baseName = file.plainName ?? file.name;
-        const fileName = file.type ? `${baseName}.${file.type}` : baseName;
-        const createdAt = folderDate;
-        const thumb = file.thumbnails?.[0] ?? null;
+      const existingFiles = files.filter((f) => !f.status || f.status.toLowerCase() === 'exists');
 
-        await this.localDB.upsertCloudAsset({
-          remoteFileId: file.uuid,
-          deviceId,
-          createdAt,
-          fileName,
-          fileSize: file.size ? Number(file.size) : null,
-          fileId: file.fileId ?? null,
-          thumbnailPath: null,
-          thumbnailBucketId: thumb?.bucket_id ?? null,
-          thumbnailBucketFile: thumb?.bucket_file ?? null,
-          thumbnailType: thumb?.type ?? null,
-          discoveredAt: now,
-          plainName: file.plainName ?? null,
-          extension: file.type ?? null,
-          bucket: file.bucket ?? null,
-          folderUuid: file.folderUuid ?? null,
-          creationTimeApi: file.creationTime ? new Date(file.creationTime).getTime() : null,
-          modificationTime: file.modificationTime ? new Date(file.modificationTime).getTime() : null,
-          updatedAt: file.updatedAt ? new Date(file.updatedAt).getTime() : null,
-          status: file.status ?? null,
-          encryptVersion: file.encrypt_version ?? null,
-        });
-        foundIds.add(file.uuid);
+      const plainNameIndex = this.buildPlainNameIndex(existingFiles);
+      const entries = this.buildCloudAssetEntries({ files: existingFiles, plainNameIndex, deviceId, folderDate, now });
+
+      for (const entry of entries) {
+        foundIds.add(entry.remoteFileId);
         count++;
+        await this.localDB.upsertCloudAsset(entry);
       }
     }
 
@@ -301,6 +280,87 @@ class PhotoCloudBrowserService {
     const allMonths = monthsPerDevice.flat();
     allMonths.sort((a, b) => b.year - a.year || b.month - a.month);
     return allMonths;
+  }
+
+  private buildPlainNameIndex(files: DriveFileData[]): Map<string, string> {
+    const index = new Map<string, string>();
+    for (const file of files) {
+      const baseName = file.plainName ?? file.name;
+      index.set(baseName.toLowerCase(), file.uuid);
+    }
+    return index;
+  }
+
+  private buildCloudAssetEntries({
+    files,
+    plainNameIndex,
+    deviceId,
+    folderDate,
+    now,
+  }: {
+    files: DriveFileData[];
+    plainNameIndex: Map<string, string>;
+    deviceId: string;
+    folderDate: number;
+    now: number;
+  }): CloudAssetEntry[] {
+    const entries: CloudAssetEntry[] = [];
+
+    for (const file of files) {
+      const baseName = file.plainName ?? file.name;
+      const type = file.type ?? '';
+      const fileName = type ? `${baseName}.${type}` : baseName;
+      const thumb = file.thumbnails?.[0] ?? null;
+
+      let livePhotoRole: LivePhotoRole | null = null;
+      let isLivePhoto = false;
+      let pairedRemoteFileId: string | null = null;
+
+      if (isPairedVideoPlainName(baseName, type)) {
+        const photoPlainName = getPhotoPlainNameFromPairedVideo(baseName).toLowerCase();
+        const photoUuid = plainNameIndex.get(photoPlainName);
+        if (photoUuid) {
+          livePhotoRole = 'paired_video';
+          pairedRemoteFileId = photoUuid;
+        }
+      } else {
+        const pairedVideoPlainName = `${baseName}.livephoto`.toLowerCase();
+        const pairedVideoUuid = plainNameIndex.get(pairedVideoPlainName);
+        if (pairedVideoUuid) {
+          isLivePhoto = true;
+          livePhotoRole = 'photo';
+          pairedRemoteFileId = pairedVideoUuid;
+        }
+      }
+
+      entries.push({
+        remoteFileId: file.uuid,
+        deviceId,
+        createdAt: folderDate,
+        fileName,
+        fileSize: file.size ? Number(file.size) : null,
+        fileId: file.fileId ?? null,
+        thumbnailPath: null,
+        thumbnailBucketId: thumb?.bucket_id ?? null,
+        thumbnailBucketFile: thumb?.bucket_file ?? null,
+        thumbnailType: thumb?.type ?? null,
+        discoveredAt: now,
+        plainName: file.plainName ?? null,
+        extension: type || null,
+        bucket: file.bucket ?? null,
+        folderUuid: file.folderUuid ?? null,
+        creationTimeApi: file.creationTime ? new Date(file.creationTime).getTime() : null,
+        modificationTime: file.modificationTime ? new Date(file.modificationTime).getTime() : null,
+        updatedAt: file.updatedAt ? new Date(file.updatedAt).getTime() : null,
+        status: file.status ?? null,
+        encryptVersion: file.encrypt_version ?? null,
+        isLivePhoto,
+        livePhotoRole,
+        pairedRemoteFileId,
+      });
+    }
+
+    return entries;
   }
 
   private async findChildFolder(parentUuid: string, name: string): Promise<FetchPaginatedFolder | null> {

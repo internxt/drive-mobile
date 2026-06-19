@@ -24,7 +24,7 @@ describe('photosLocalDB', () => {
     await photosLocalDB.init();
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(6);
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(7);
     const statements = mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS asset_sync'))).toBe(true);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS cloud_asset'))).toBe(true);
@@ -47,7 +47,7 @@ describe('photosLocalDB', () => {
     expect(stmt).toContain('\'pending\'');
     expect(stmt).toContain('ON CONFLICT');
     expect(stmt).toContain('status != \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
+    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0]);
   });
 
   test('when a photo is marked as pending with media info, then all media info fields are passed to the database', async () => {
@@ -61,7 +61,7 @@ describe('photosLocalDB', () => {
     });
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-1', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo']);
+    expect(params).toEqual(['asset-1', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo', 0]);
   });
 
   test('when a photo is marked as pending for edit, then the status is pending_edit and it never overwrites a non-synced photo', async () => {
@@ -71,7 +71,7 @@ describe('photosLocalDB', () => {
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
     expect(stmt).toContain('\'pending_edit\'');
     expect(stmt).toContain('status = \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null]);
+    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0]);
   });
 
   test('when a photo is marked as pending for edit with media info, then all media info fields are passed to the database', async () => {
@@ -85,7 +85,7 @@ describe('photosLocalDB', () => {
     });
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video']);
+    expect(params).toEqual(['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video', 0]);
   });
 
   test('when a file size is cached for an asset, then the file size and asset id are passed to the database', async () => {
@@ -219,6 +219,7 @@ describe('photosLocalDB', () => {
       status: 'pending',
       remote_file_id: null,
       synced_at: null,
+      deleted_at: null,
       error_message: null,
       attempt_count: 0,
       created_at: 1713900000000,
@@ -231,6 +232,9 @@ describe('photosLocalDB', () => {
       height: null,
       duration: null,
       media_type: null,
+      is_live_photo: 0,
+      paired_video_remote_file_id: null,
+      paired_video_status: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-3');
@@ -240,6 +244,7 @@ describe('photosLocalDB', () => {
       status: 'pending',
       remoteFileId: null,
       syncedAt: null,
+      deletedAt: null,
       errorMessage: null,
       attemptCount: 0,
       createdAt: 1713900000000,
@@ -252,6 +257,9 @@ describe('photosLocalDB', () => {
       height: null,
       duration: null,
       mediaType: null,
+      isLivePhoto: false,
+      pairedVideoRemoteFileId: null,
+      pairedVideoStatus: null,
     });
   });
 
@@ -300,11 +308,22 @@ describe('photosLocalDB', () => {
       status: 'synced',
       remote_file_id: 'remote-id',
       synced_at: 1714000000000,
+      deleted_at: null,
       error_message: null,
       attempt_count: 0,
       created_at: 1713900000000,
       last_attempt_at: 1714000000000,
       modification_time: 1714000000,
+      file_name: null,
+      file_size: null,
+      creation_time: null,
+      width: null,
+      height: null,
+      duration: null,
+      media_type: null,
+      is_live_photo: 0,
+      paired_video_remote_file_id: null,
+      paired_video_status: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-1');
@@ -314,11 +333,22 @@ describe('photosLocalDB', () => {
       status: 'synced',
       remoteFileId: 'remote-id',
       syncedAt: 1714000000000,
+      deletedAt: null,
       errorMessage: null,
       attemptCount: 0,
       createdAt: 1713900000000,
       lastAttemptAt: 1714000000000,
       modificationTime: 1714000000,
+      fileName: null,
+      fileSize: null,
+      creationTime: null,
+      width: null,
+      height: null,
+      duration: null,
+      mediaType: null,
+      isLivePhoto: false,
+      pairedVideoRemoteFileId: null,
+      pairedVideoStatus: null,
     });
   });
 
@@ -328,11 +358,22 @@ describe('photosLocalDB', () => {
       status: 'error',
       remote_file_id: null,
       synced_at: null,
+      deleted_at: null,
       error_message: 'Network timeout',
       attempt_count: 3,
       created_at: 1713900000000,
       last_attempt_at: 1714000000000,
       modification_time: null,
+      file_name: null,
+      file_size: null,
+      creation_time: null,
+      width: null,
+      height: null,
+      duration: null,
+      media_type: null,
+      is_live_photo: 0,
+      paired_video_remote_file_id: null,
+      paired_video_status: null,
     });
 
     const result = await photosLocalDB.getStatus('asset-2');
@@ -342,11 +383,22 @@ describe('photosLocalDB', () => {
       status: 'error',
       remoteFileId: null,
       syncedAt: null,
+      deletedAt: null,
       errorMessage: 'Network timeout',
       attemptCount: 3,
       createdAt: 1713900000000,
       lastAttemptAt: 1714000000000,
       modificationTime: null,
+      fileName: null,
+      fileSize: null,
+      creationTime: null,
+      width: null,
+      height: null,
+      duration: null,
+      mediaType: null,
+      isLivePhoto: false,
+      pairedVideoRemoteFileId: null,
+      pairedVideoStatus: null,
     });
   });
 
@@ -363,7 +415,7 @@ describe('photosLocalDB', () => {
     const createTableCalls = statements.filter((s) => s.includes('CREATE TABLE'));
     const createIndexCalls = statements.filter((s) => s.includes('CREATE INDEX'));
     expect(createTableCalls).toHaveLength(2);
-    expect(createIndexCalls).toHaveLength(4);
+    expect(createIndexCalls).toHaveLength(5);
   });
 });
 
@@ -458,6 +510,9 @@ describe('photosLocalDB cloud asset methods', () => {
       null, // updatedAt
       null, // status
       null, // encryptVersion
+      0,    // is_live_photo
+      null, // live_photo_role
+      null, // paired_remote_file_id
     ]);
   });
 
@@ -507,6 +562,9 @@ describe('photosLocalDB cloud asset methods', () => {
       1718060000000, // updatedAt
       'EXISTS', // status
       'aes-2', // encryptVersion
+      0,       // is_live_photo
+      null,    // live_photo_role
+      null,    // paired_remote_file_id
     ]);
   });
 
@@ -524,6 +582,18 @@ describe('photosLocalDB cloud asset methods', () => {
         thumbnail_bucket_file: 'f1',
         thumbnail_type: 'jpg',
         discovered_at: 1718100000,
+        plain_name: null,
+        extension: null,
+        bucket: null,
+        folder_uuid: null,
+        creation_time_api: null,
+        modification_time: null,
+        updated_at: null,
+        status: null,
+        encrypt_version: null,
+        is_live_photo: 0,
+        live_photo_role: null,
+        paired_remote_file_id: null,
       },
     ]);
 
@@ -542,6 +612,18 @@ describe('photosLocalDB cloud asset methods', () => {
       thumbnailBucketFile: 'f1',
       thumbnailType: 'jpg',
       discoveredAt: 1718100000,
+      plainName: null,
+      extension: null,
+      bucket: null,
+      folderUuid: null,
+      creationTimeApi: null,
+      modificationTime: null,
+      updatedAt: null,
+      status: null,
+      encryptVersion: null,
+      isLivePhoto: false,
+      livePhotoRole: null,
+      pairedRemoteFileId: null,
     });
   });
 

@@ -3,53 +3,58 @@ const TABLE_NAME = 'asset_sync';
 const statements = {
   createTable: `
     CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
-      asset_id          TEXT    PRIMARY KEY NOT NULL,
-      status            TEXT    NOT NULL CHECK (status IN ('pending', 'pending_edit', 'synced', 'error', 'deleted', 'cloud_deleted')),
-      remote_file_id    TEXT,
-      error_message     TEXT,
-      attempt_count     INTEGER NOT NULL DEFAULT 0,
-      created_at        INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
-      last_attempt_at   INTEGER,
-      synced_at         INTEGER,
-      deleted_at        INTEGER,
-      modification_time INTEGER,
-      file_name         TEXT,
-      file_size         INTEGER,
-      creation_time     INTEGER,
-      width             INTEGER,
-      height            INTEGER,
-      duration          INTEGER,
-      media_type        TEXT
+      asset_id                    TEXT    PRIMARY KEY NOT NULL,
+      status                      TEXT    NOT NULL CHECK (status IN ('pending', 'pending_edit', 'synced', 'error', 'deleted', 'cloud_deleted')),
+      remote_file_id              TEXT,
+      error_message               TEXT,
+      attempt_count               INTEGER NOT NULL DEFAULT 0,
+      created_at                  INTEGER NOT NULL DEFAULT (unixepoch() * 1000),
+      last_attempt_at             INTEGER,
+      synced_at                   INTEGER,
+      deleted_at                  INTEGER,
+      modification_time           INTEGER,
+      file_name                   TEXT,
+      file_size                   INTEGER,
+      creation_time               INTEGER,
+      width                       INTEGER,
+      height                      INTEGER,
+      duration                    INTEGER,
+      media_type                  TEXT,
+      is_live_photo               INTEGER NOT NULL DEFAULT 0,
+      paired_video_remote_file_id TEXT,
+      paired_video_status         TEXT
     );
   `,
   createIndex: `CREATE INDEX IF NOT EXISTS idx_asset_sync_status ON ${TABLE_NAME}(status);`,
   dropTable: `DROP TABLE IF EXISTS ${TABLE_NAME};`,
 
   markPending: `
-    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type)
-    VALUES (?, 'pending', ?, ?, ?, ?, ?, ?)
+    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type, is_live_photo)
+    VALUES (?, 'pending', ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(asset_id) DO UPDATE SET
-      status       = 'pending',
-      file_name    = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
+      status        = 'pending',
+      file_name     = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
       creation_time = COALESCE(excluded.creation_time, ${TABLE_NAME}.creation_time),
-      width        = COALESCE(excluded.width, ${TABLE_NAME}.width),
-      height       = COALESCE(excluded.height, ${TABLE_NAME}.height),
-      duration     = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
-      media_type   = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type)
+      width         = COALESCE(excluded.width, ${TABLE_NAME}.width),
+      height        = COALESCE(excluded.height, ${TABLE_NAME}.height),
+      duration      = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
+      media_type    = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type),
+      is_live_photo = excluded.is_live_photo
     WHERE ${TABLE_NAME}.status != 'synced';
   `,
 
   markPendingEdit: `
-    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type)
-    VALUES (?, 'pending_edit', ?, ?, ?, ?, ?, ?)
+    INSERT INTO ${TABLE_NAME} (asset_id, status, file_name, creation_time, width, height, duration, media_type, is_live_photo)
+    VALUES (?, 'pending_edit', ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(asset_id) DO UPDATE SET
-      status       = 'pending_edit',
-      file_name    = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
+      status        = 'pending_edit',
+      file_name     = COALESCE(excluded.file_name, ${TABLE_NAME}.file_name),
       creation_time = COALESCE(excluded.creation_time, ${TABLE_NAME}.creation_time),
-      width        = COALESCE(excluded.width, ${TABLE_NAME}.width),
-      height       = COALESCE(excluded.height, ${TABLE_NAME}.height),
-      duration     = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
-      media_type   = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type)
+      width         = COALESCE(excluded.width, ${TABLE_NAME}.width),
+      height        = COALESCE(excluded.height, ${TABLE_NAME}.height),
+      duration      = COALESCE(excluded.duration, ${TABLE_NAME}.duration),
+      media_type    = COALESCE(excluded.media_type, ${TABLE_NAME}.media_type),
+      is_live_photo = excluded.is_live_photo
     WHERE ${TABLE_NAME}.status = 'synced';
   `,
 
@@ -62,6 +67,21 @@ const statements = {
       synced_at         = excluded.synced_at,
       last_attempt_at   = excluded.last_attempt_at,
       modification_time = excluded.modification_time;
+  `,
+
+  markSyncedLivePhoto: `
+    INSERT INTO ${TABLE_NAME} (asset_id, status, remote_file_id, synced_at, last_attempt_at, modification_time,
+                               is_live_photo, paired_video_remote_file_id, paired_video_status)
+    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?)
+    ON CONFLICT(asset_id) DO UPDATE SET
+      status                      = 'synced',
+      remote_file_id              = excluded.remote_file_id,
+      synced_at                   = excluded.synced_at,
+      last_attempt_at             = excluded.last_attempt_at,
+      modification_time           = excluded.modification_time,
+      is_live_photo               = 1,
+      paired_video_remote_file_id = excluded.paired_video_remote_file_id,
+      paired_video_status         = excluded.paired_video_status;
   `,
 
   markError: `
@@ -82,7 +102,8 @@ const statements = {
   getStatus: `
     SELECT asset_id, status, remote_file_id, synced_at, error_message, attempt_count,
            created_at, last_attempt_at, modification_time,
-           file_name, file_size, creation_time, width, height, duration, media_type
+           file_name, file_size, creation_time, width, height, duration, media_type,
+           is_live_photo, paired_video_remote_file_id, paired_video_status
     FROM ${TABLE_NAME} WHERE asset_id = ?;
   `,
   getSyncedInList: (placeholders: string) =>

@@ -77,7 +77,7 @@ export const GroupHeaderUploading = ({
   return (
     <>
       <ActivityIndicator size="small" color={primaryColor} />
-      <AppText medium style={[tailwind('text-base'), { color: labelColor, lineHeight: 24 }]}>
+      <AppText medium numberOfLines={1} style={[tailwind('text-base'), { color: labelColor, lineHeight: 24, flexShrink: 1 }]}>
         {strings.screens.photos.groupHeader.backingUp}
       </AppText>
       {count != null && (
@@ -122,7 +122,7 @@ export const GroupHeaderPaused = ({
   const tailwind = useTailwind();
   return (
     <>
-      <AppText medium style={[tailwind('text-base'), { color: labelColor, lineHeight: 24 }]}>
+      <AppText medium numberOfLines={1} style={[tailwind('text-base'), { color: labelColor, lineHeight: 24, flexShrink: 1 }]}>
         {strings.screens.photos.groupHeader.backupPaused}
       </AppText>
       <AppText style={[tailwind('text-sm'), { color: statusColor, lineHeight: 24 }]}>
