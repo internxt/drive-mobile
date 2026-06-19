@@ -117,7 +117,11 @@ describe('photos slice', () => {
     // Re-set default implementations after reset clears them
     mockAsyncStorage.saveItem.mockResolvedValue(undefined);
     mockAsyncStorage.getItem.mockResolvedValue(null);
-    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'mock-device-id', plainName: 'Mock Device', bucket: 'mock-photos-bucket' });
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({
+      deviceId: 'mock-device-id',
+      plainName: 'Mock Device',
+      bucket: 'mock-photos-bucket',
+    });
     mockScanner.scanAll.mockResolvedValue([]);
     mockScanner.getAssetsByIds.mockResolvedValue([]);
     mockUploadQueue.start.mockResolvedValue(undefined);
@@ -249,6 +253,7 @@ describe('photos slice', () => {
   });
 
   test('when the user enables backup but denies permission, then backup stays off and the denial is saved', async () => {
+    mockPermissionService.getStatus.mockResolvedValueOnce('undetermined');
     mockPermissionService.requestPermission.mockResolvedValueOnce('denied');
 
     const store = makeStore();
@@ -261,6 +266,7 @@ describe('photos slice', () => {
   });
 
   test('when the user enables backup but permission status is undetermined, then backup stays off', async () => {
+    mockPermissionService.getStatus.mockResolvedValueOnce('undetermined');
     mockPermissionService.requestPermission.mockResolvedValueOnce('undetermined');
 
     const store = makeStore();
@@ -302,6 +308,7 @@ describe('photos slice', () => {
 
   test('when the permission check runs and the user has revoked access, then backup is automatically disabled', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('undetermined');
     mockPermissionService.getStatus.mockResolvedValueOnce('denied');
 
     const store = makeStore();
@@ -329,6 +336,7 @@ describe('photos slice', () => {
 
   test('when the permission check runs and the user has limited access, then backup continues running', async () => {
     mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
+    mockPermissionService.getStatus.mockResolvedValueOnce('undetermined');
     mockPermissionService.getStatus.mockResolvedValueOnce('granted');
     mockPermissionService.getStatus.mockResolvedValueOnce('limited');
 
@@ -352,7 +360,11 @@ describe('photos slice', () => {
   });
 
   test('when the device is first registered for backup, then a new device identifier is created and the photos bucket is stored', async () => {
-    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({ deviceId: 'new-device-id', plainName: 'New Device', bucket: 'mock-photos-bucket' });
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({
+      deviceId: 'new-device-id',
+      plainName: 'New Device',
+      bucket: 'mock-photos-bucket',
+    });
 
     const store = makeStore();
     await store.dispatch(initDeviceIdThunk());
@@ -362,7 +374,11 @@ describe('photos slice', () => {
   });
 
   test('when the device was already registered for backup, then the existing identifier is reused', async () => {
-    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({ deviceId: 'existing-device-id', plainName: 'Existing Device', bucket: 'mock-photos-bucket' });
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({
+      deviceId: 'existing-device-id',
+      plainName: 'Existing Device',
+      bucket: 'mock-photos-bucket',
+    });
 
     const store = makeStore();
     await store.dispatch(initDeviceIdThunk());
@@ -409,11 +425,9 @@ describe('photos slice', () => {
   });
 
   test('when no photos are found on the device, then zero photos are pending and the status returns to idle', async () => {
-    mockPermissionService.requestPermission.mockResolvedValueOnce('granted');
-
     const store = makeStore();
-    await store.dispatch(enableBackupThunk());
-    jest.clearAllMocks();
+    store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
     mockScanner.scanAll.mockResolvedValueOnce([] as never);
     mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: [], editedAssets: [] } as never);
     mockPhotosLocalDB.init.mockResolvedValueOnce(undefined);
@@ -447,7 +461,11 @@ describe('photos slice', () => {
     const store = makeStore();
     store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
     mockPermissionService.getStatus.mockResolvedValueOnce('granted');
-    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({
+      deviceId: 'device-id',
+      plainName: 'Device',
+      bucket: 'mock-photos-bucket',
+    });
     const assets = Array.from({ length: 5 }, (_, i) => ({ id: `asset-${i}` }));
     mockScanner.scanAll.mockResolvedValueOnce(assets as never);
     mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: assets, editedAssets: [] } as never);
@@ -597,7 +615,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(forceRefreshThunk());
@@ -617,7 +640,11 @@ describe('photos slice', () => {
 
   describe('backup cycle', () => {
     test('when the backup cycle runs, then cloud history sync and discovery both run', async () => {
-      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
+      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({
+        deviceId: 'device-id',
+        plainName: 'Device',
+        bucket: 'mock-photos-bucket',
+      });
 
       const store = makeStore();
       store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
@@ -630,7 +657,11 @@ describe('photos slice', () => {
     });
 
     test('when the backup cycle runs while paused, then discovery runs but the upload is skipped and sync status is paused', async () => {
-      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
+      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({
+        deviceId: 'device-id',
+        plainName: 'Device',
+        bucket: 'mock-photos-bucket',
+      });
       mockDeduplicator.getAssetsToSync.mockResolvedValueOnce({ newAssets: [{ id: 'a1' } as never], editedAssets: [] });
 
       const store = makeStore();
@@ -694,7 +725,11 @@ describe('photos slice', () => {
 
   describe('resuming backup', () => {
     test('when the user resumes the backup, then is paused flag clears and the backup cycle is dispatched', async () => {
-      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({ deviceId: 'device-id', plainName: 'Device', bucket: 'mock-photos-bucket' });
+      mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValue({
+        deviceId: 'device-id',
+        plainName: 'Device',
+        bucket: 'mock-photos-bucket',
+      });
       mockPermissionService.getStatus.mockResolvedValue('granted');
 
       const store = makeStore();
@@ -731,7 +766,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -748,7 +788,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -764,7 +809,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -783,7 +833,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -801,7 +856,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -814,7 +874,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(runUploadThunk());
@@ -829,7 +894,12 @@ describe('photos slice', () => {
 
       const store = makeStore();
       store.dispatch(
-        photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted', deviceId: 'device-1', photosBucket: 'photos-bucket-1' }),
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
       );
 
       await store.dispatch(runUploadThunk());

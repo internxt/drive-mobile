@@ -46,12 +46,16 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
       return;
     }
     setStatus('loading');
-    const result = await dispatch(enableBackupThunk()).unwrap();
-    if (result.isGranted) {
-      handleClose();
-      onSuccess?.();
-    } else {
-      setStatus('denied');
+    try {
+      const result = await dispatch(enableBackupThunk()).unwrap();
+      if (result.isGranted) {
+        handleClose();
+        onSuccess?.();
+      } else {
+        setStatus('denied');
+      }
+    } catch {
+      setStatus('idle');
     }
   };
 

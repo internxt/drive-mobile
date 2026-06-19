@@ -20,6 +20,7 @@ import { photoPermissionService } from '../../services/photos/photoPermissionSer
 import { NotificationType } from '../../types';
 import ActionProgressModal from './components/ActionProgressModal';
 import BackupDisabledBanner from './components/BackupDisabledBanner';
+import LimitedAccessBanner from './components/LimitedAccessBanner';
 import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
 import PhotosHeader from './components/PhotosHeader';
 import PhotosLockedOverlay from './components/PhotosLockedOverlay';
@@ -30,6 +31,7 @@ import EnableBackupBottomSheet from './EnableBackupBottomSheet';
 import { usePhotoActions } from './hooks/usePhotoActions';
 import { usePhotoSelection } from './hooks/usePhotoSelection';
 import { usePhotosTimeline } from './hooks/usePhotosTimeline';
+import useSelectMorePhotos from './hooks/useSelectMorePhotos';
 import { PhotosAccessState, TimelinePhotoItem } from './types';
 
 const PhotosScreen = (): JSX.Element => {
@@ -85,8 +87,14 @@ const PhotosScreen = (): JSX.Element => {
   const handleSelectPress = useCallback(() => selection.enterSelectMode(), [selection]);
 
   const handleEnableBackup = useCallback(() => setIsEnableBackupSheetOpen(true), []);
-  const listHeader =
-    accessState.type === 'backup-off' ? <BackupDisabledBanner onEnablePress={handleEnableBackup} /> : undefined;
+
+  const handleSelectMorePhotos = useSelectMorePhotos(reloadLocal);
+
+  const listHeader = useMemo(() => {
+    if (accessState.type === 'backup-off') return <BackupDisabledBanner onEnablePress={handleEnableBackup} />;
+    if (permissionStatus === 'limited') return <LimitedAccessBanner onSelectMorePress={handleSelectMorePhotos} />;
+    return undefined;
+  }, [accessState.type, permissionStatus, handleEnableBackup, handleSelectMorePhotos]);
 
   const handlePausePress = useCallback(() => {
     dispatch(pauseBackupThunk());

@@ -122,16 +122,23 @@ export const enableBackupThunk = createAsyncThunk<
   void,
   { state: RootState }
 >('photos/enableBackup', async (_, { getState, dispatch }) => {
-  const permissionStatus = await photoPermissionService.requestPermission();
-  const isGranted = isPermissionActive(permissionStatus);
+  const currentStatus = await photoPermissionService.getStatus();
 
+  let permissionStatus: PhotoPermissionStatus;
+  if (isPermissionActive(currentStatus)) {
+    permissionStatus = currentStatus;
+  } else {
+    permissionStatus = await photoPermissionService.requestPermission();
+  }
+
+  const isGranted = isPermissionActive(permissionStatus);
   const state = getState().photos;
   const updated: PhotosState = { ...state, enabled: isGranted, permissionStatus };
   dispatch(photosSlice.actions.setState({ enabled: isGranted, permissionStatus }));
+
   await persistPhotosSettings(updated);
 
   if (isGranted) {
-    await dispatch(initDeviceIdThunk());
     dispatch(runBackupCycleThunk());
   }
 

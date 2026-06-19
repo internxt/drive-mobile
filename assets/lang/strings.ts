@@ -176,6 +176,10 @@ const translations = {
           message: 'Internxt Photos is disabled. Your photos and videos are not being backed up.',
           enableCta: 'Enable gallery backup in settings.',
         },
+        limitedAccess: {
+          message: 'Internxt only has access to selected photos. ',
+          selectMoreCta: 'Select more photos.',
+        },
         groupHeader: {
           items: 'items',
           backingUp: 'Backing up',
@@ -1163,6 +1167,10 @@ const translations = {
         backupDisabled: {
           message: 'Internxt Photos está desactivado. Tus fotos y vídeos no se están guardando.',
           enableCta: 'Activa el backup en ajustes.',
+        },
+        limitedAccess: {
+          message: 'Internxt solo tiene acceso a fotos seleccionadas. ',
+          selectMoreCta: 'Seleccionar más fotos.',
         },
         groupHeader: {
           items: 'elementos',
