@@ -142,6 +142,9 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
     const currentBoundary = boundaries.find((b) => b.id === topGroupId) ?? boundaries[0];
+    const overlaySyncStatus: GroupSyncStatus = isSelectMode
+      ? { type: 'selection', count: selectedIds?.size ?? 0 }
+      : currentBoundary?.syncStatus ?? { type: 'none' };
 
     return (
       <View style={tailwind('flex-1')}>
@@ -174,7 +177,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             <Animated.View pointerEvents="none" style={[styles.headerOverlay, { opacity: solidOpacity }]}>
               <PhotosGroupHeader
                 label={currentBoundary.label}
-                syncStatus={currentBoundary.syncStatus}
+                syncStatus={overlaySyncStatus}
                 isSticky={false}
               />
             </Animated.View>
@@ -182,7 +185,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             <Animated.View style={[styles.headerOverlay, { opacity: floatingOpacity }]}>
               <PhotosGroupHeader
                 label={currentBoundary.label}
-                syncStatus={currentBoundary.syncStatus}
+                syncStatus={overlaySyncStatus}
                 isSticky
                 onPausePress={onPausePress}
                 onResumePress={onResumePress}

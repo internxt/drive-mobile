@@ -198,6 +198,26 @@ interface UploadErrorProps {
   onPress?: () => void;
 }
 
+interface SelectionProps {
+  count: number;
+  color: string;
+}
+
+export const GroupHeaderSelection = ({ count, color }: SelectionProps): JSX.Element => {
+  const tailwind = useTailwind();
+  const text =
+    count === 0
+      ? strings.screens.photos.selection.selectItems
+      : count === 1
+        ? strings.screens.photos.selection.itemSelected
+        : (strings.formatString(strings.screens.photos.selection.itemsSelected, count) as string);
+  return (
+    <AppText medium style={[tailwind('text-base'), { color }]}>
+      {text}
+    </AppText>
+  );
+};
+
 export const GroupHeaderUploadError = ({ count, color, onPress }: UploadErrorProps): JSX.Element => {
   const tailwind = useTailwind();
   return (

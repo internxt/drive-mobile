@@ -27,7 +27,6 @@ import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
 import PhotosHeader from './components/PhotosHeader';
 import PhotosLockedOverlay from './components/PhotosLockedOverlay';
 import PhotosTimeline, { PhotosTimelineHandle } from './components/PhotosTimeline';
-import SelectionHeader from './components/SelectionHeader';
 import SelectionToolbar from './components/SelectionToolbar';
 import EnableBackupBottomSheet from './EnableBackupBottomSheet';
 import { usePhotoActions } from './hooks/usePhotoActions';
@@ -194,11 +193,11 @@ const PhotosScreen = (): JSX.Element => {
 
   return (
     <AppScreen safeAreaTop style={tailwind('flex-1')}>
-      {selection.selectMode ? (
-        <SelectionHeader selectedCount={selection.selectedIds.size} onCancel={selection.exitSelectMode} />
-      ) : (
-        <PhotosHeader onSelectPress={handleSelectPress} />
-      )}
+      <PhotosHeader
+        isSelectMode={selection.selectMode}
+        onSelectPress={handleSelectPress}
+        onCancelPress={selection.exitSelectMode}
+      />
 
       <View style={tailwind('flex-1')}>
         <PhotosTimeline
