@@ -150,10 +150,10 @@ const statements = {
          AND attempt_count < 5
          AND last_attempt_at IS NOT NULL
          AND last_attempt_at < (unixepoch() * 1000) - CASE
-           WHEN attempt_count <= 1 THEN  300000
-           WHEN attempt_count <= 2 THEN  900000
-           WHEN attempt_count <= 3 THEN 3600000
-           ELSE                        14400000
+           WHEN attempt_count <= 1 THEN       0
+           WHEN attempt_count <= 2 THEN   30000
+           WHEN attempt_count <= 3 THEN  300000
+           ELSE                         1800000
          END
        )
     ORDER BY creation_time DESC NULLS LAST;

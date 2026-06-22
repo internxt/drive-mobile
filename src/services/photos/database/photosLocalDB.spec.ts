@@ -770,10 +770,10 @@ describe('photosLocalDB cloud asset methods', () => {
 
       const [, sql] = mockSqlite.getAllAsync.mock.calls[0];
       expect(sql).toContain('CASE');
+      expect(sql).toContain('0');
+      expect(sql).toContain('30000');
       expect(sql).toContain('300000');
-      expect(sql).toContain('900000');
-      expect(sql).toContain('3600000');
-      expect(sql).toContain('14400000');
+      expect(sql).toContain('1800000');
     });
 
     test('when pending assets are fetched, then synced, deleted and cloud deleted assets are excluded', async () => {
