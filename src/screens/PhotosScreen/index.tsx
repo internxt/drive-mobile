@@ -67,7 +67,7 @@ const PhotosScreen = (): JSX.Element => {
 
   const handlePhotoPress = useCallback(
     (id: string) => {
-      if (selection.selectMode) {
+      if (selection.isSelectMode) {
         selection.toggleSelect(id);
         return;
       }
@@ -83,7 +83,7 @@ const PhotosScreen = (): JSX.Element => {
 
   const handlePhotoLongPress = useCallback(
     (id: string) => {
-      if (!selection.selectMode) {
+      if (!selection.isSelectMode) {
         selection.enterSelectMode(id);
       }
     },
@@ -154,8 +154,8 @@ const PhotosScreen = (): JSX.Element => {
   }, [dispatch, reloadLocal]);
 
   useEffect(() => {
-    dispatch(uiActions.setIsTabBarHidden(selection.selectMode));
-  }, [selection.selectMode]);
+    dispatch(uiActions.setIsTabBarHidden(selection.isSelectMode));
+  }, [selection.isSelectMode]);
 
   useEffect(
     () => () => {
@@ -194,7 +194,7 @@ const PhotosScreen = (): JSX.Element => {
   return (
     <AppScreen safeAreaTop style={tailwind('flex-1')}>
       <PhotosHeader
-        isSelectMode={selection.selectMode}
+        isSelectMode={selection.isSelectMode}
         onSelectPress={handleSelectPress}
         onCancelPress={selection.exitSelectMode}
       />
@@ -210,17 +210,20 @@ const PhotosScreen = (): JSX.Element => {
           onRefresh={handleRefresh}
           onPhotoPress={handlePhotoPress}
           onPhotoLongPress={handlePhotoLongPress}
-          isSelectMode={selection.selectMode}
+          isSelectMode={selection.isSelectMode}
           selectedIds={selection.selectedIds}
           onPausePress={handlePausePress}
           onResumePress={handleResumePress}
           onRetryPress={handleRefresh}
+          onDragBegin={selection.beginDragSelect}
+          onDragUpdate={selection.updateDragSelect}
+          onDragEnd={selection.endDragSelect}
         />
         {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>
 
       <SelectionToolbar
-        visible={selection.selectMode && selection.selectedIds.size > 0}
+        visible={selection.isSelectMode && selection.selectedIds.size > 0}
         selectedItems={selection.selectedItems}
         onExport={actions.handleExport}
         onFavorite={() => undefined}

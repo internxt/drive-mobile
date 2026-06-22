@@ -1,7 +1,9 @@
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
+import { useDragSelectGesture } from '../hooks/useDragSelectGesture';
 import { PhotoBackupState, PhotoDateGroup, TimelinePhotoItem } from '../types';
 import { GroupBoundary, buildFlatTimeline, findGroupForIndex } from '../utils/photoTimelineGroups';
 import PhotosGroupHeader, { GroupSyncStatus } from './GroupHeader/PhotosGroupHeader';
@@ -30,7 +32,7 @@ const SKELETON_GROUP: TimelineDateGroup = {
 };
 
 const NUM_COLUMNS = 3;
-const HEADER_HEIGHT = 64; // h-16
+const HEADER_HEIGHT = 64; // h-16 — matches contentContainerStyle.paddingTop
 
 interface PhotosTimelineProps {
   assetsGroupsByDate: TimelineDateGroup[];
@@ -46,6 +48,9 @@ interface PhotosTimelineProps {
   onPausePress?: () => void;
   onResumePress?: () => void;
   onRetryPress?: () => void;
+  onDragBegin?: (index: number) => void;
+  onDragUpdate?: (index: number) => void;
+  onDragEnd?: () => void;
 }
 
 const keyExtractor = (item: TimelinePhotoItem) => item.id;
@@ -66,6 +71,9 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       onPausePress,
       onResumePress,
       onRetryPress,
+      onDragBegin,
+      onDragUpdate,
+      onDragEnd,
     },
     ref,
   ) => {
@@ -88,6 +96,18 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     const floatingOpacity = scrollY.interpolate({ inputRange: [0, 24], outputRange: [0.02, 1], extrapolate: 'clamp' });
     const solidOpacity = scrollY.interpolate({ inputRange: [0, 24], outputRange: [1, 0], extrapolate: 'clamp' });
 
+    const { gesture, onContainerLayout, onScroll } = useDragSelectGesture({
+      isSelectMode: !!isSelectMode,
+      photos,
+      scrollY,
+      flashListRef,
+      headerHeight: HEADER_HEIGHT,
+      numColumns: NUM_COLUMNS,
+      onDragBegin,
+      onDragUpdate,
+      onDragEnd,
+    });
+
     const extraData = useMemo(
       () => ({ isSelectMode, selectedIds, onPausePress, onResumePress, onRetryPress }),
       [isSelectMode, selectedIds, onPausePress, onResumePress, onRetryPress],
@@ -104,7 +124,9 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       () => ({
         scrollToAssetId: (id: string) => {
           const index = idToIndex.get(id);
-          if (index === undefined) return;
+          if (index === undefined) {
+            return;
+          }
           flashListRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0.3 });
         },
       }),
@@ -144,57 +166,53 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     const currentBoundary = boundaries.find((b) => b.id === topGroupId) ?? boundaries[0];
     const overlaySyncStatus: GroupSyncStatus = isSelectMode
       ? { type: 'selection', count: selectedIds?.size ?? 0 }
-      : currentBoundary?.syncStatus ?? { type: 'none' };
+      : (currentBoundary?.syncStatus ?? { type: 'none' });
 
     return (
-      <View style={tailwind('flex-1')}>
-        <FlashList
-          ref={flashListRef}
-          data={photos}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          numColumns={NUM_COLUMNS}
-          extraData={extraData}
-          ListHeaderComponent={ListHeaderComponent}
-          ListEmptyComponent={isEmpty ? <PhotosEmptyState /> : undefined}
-          contentContainerStyle={
-            isEmpty ? { paddingBottom: 80, flexGrow: 1 } : { paddingTop: HEADER_HEIGHT, paddingBottom: 80 }
-          }
-          showsVerticalScrollIndicator={false}
-          onEndReached={onEndReached}
-          onEndReachedThreshold={0.5}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-          onViewableItemsChanged={onViewableItemsChanged}
-          viewabilityConfig={{ itemVisiblePercentThreshold: 10 }}
-          onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
-          scrollEventThrottle={16}
-        />
+      <GestureDetector gesture={gesture}>
+        <View style={tailwind('flex-1')} onLayout={onContainerLayout}>
+          <FlashList
+            ref={flashListRef}
+            data={photos}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            numColumns={NUM_COLUMNS}
+            extraData={extraData}
+            ListHeaderComponent={ListHeaderComponent}
+            ListEmptyComponent={isEmpty ? <PhotosEmptyState /> : undefined}
+            contentContainerStyle={
+              isEmpty ? { paddingBottom: 80, flexGrow: 1 } : { paddingTop: HEADER_HEIGHT, paddingBottom: 80 }
+            }
+            showsVerticalScrollIndicator={false}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.5}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={{ itemVisiblePercentThreshold: 10 }}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+          />
 
-        {!isEmpty && currentBoundary && (
-          <>
-            {/* Solid layer: visible at scroll=0, fades out as user scrolls. Decorative only. */}
-            <Animated.View pointerEvents="none" style={[styles.headerOverlay, { opacity: solidOpacity }]}>
-              <PhotosGroupHeader
-                label={currentBoundary.label}
-                syncStatus={overlaySyncStatus}
-                isSticky={false}
-              />
-            </Animated.View>
-            {/* Floating layer: transparent at scroll=0, fades in as user scrolls. Interactive. */}
-            <Animated.View style={[styles.headerOverlay, { opacity: floatingOpacity }]}>
-              <PhotosGroupHeader
-                label={currentBoundary.label}
-                syncStatus={overlaySyncStatus}
-                isSticky
-                onPausePress={onPausePress}
-                onResumePress={onResumePress}
-                onRetryPress={onRetryPress}
-              />
-            </Animated.View>
-          </>
-        )}
-      </View>
+          {!isEmpty && currentBoundary && (
+            <>
+              <Animated.View pointerEvents="none" style={[styles.headerOverlay, { opacity: solidOpacity }]}>
+                <PhotosGroupHeader label={currentBoundary.label} syncStatus={overlaySyncStatus} isSticky={false} />
+              </Animated.View>
+              <Animated.View style={[styles.headerOverlay, { opacity: floatingOpacity }]}>
+                <PhotosGroupHeader
+                  label={currentBoundary.label}
+                  syncStatus={overlaySyncStatus}
+                  isSticky
+                  onPausePress={onPausePress}
+                  onResumePress={onResumePress}
+                  onRetryPress={onRetryPress}
+                />
+              </Animated.View>
+            </>
+          )}
+        </View>
+      </GestureDetector>
     );
   },
 );
