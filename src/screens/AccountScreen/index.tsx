@@ -13,6 +13,7 @@ import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
 import AppScreenTitle from '../../components/AppScreenTitle';
 import AppText from '../../components/AppText';
+import SecurityModal from '../../components/modals/SecurityModal';
 import SettingsGroup from '../../components/SettingsGroup';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import { openUrl } from '../../helpers/utils';
@@ -48,6 +49,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
   const user = useAppSelector((state) => state.auth.user);
   const userFullName = useAppSelector(authSelectors.userFullName);
   const hasPaidPlan = useAppSelector(paymentsSelectors.hasPaidPlan);
+  const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
 
   useEffect(() => {
     if (!user?.avatar) {
@@ -89,6 +91,8 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
   const onManageSubscriptionPressed = () => {
     navigation.navigate('Plan');
   };
+  const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
+
   const onSecurityPressed = () => {
     dispatch(uiActions.setIsSecurityModalOpen(true));
   };
@@ -174,6 +178,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
 
   return (
     <AppScreen safeAreaTop style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+      <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
       <AppScreenTitle
         text={strings.screens.AccountScreen.title}
         containerStyle={{ backgroundColor: getColor('bg-surface') }}

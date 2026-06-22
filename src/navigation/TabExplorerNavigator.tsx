@@ -5,7 +5,6 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 import { useEffect } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import SecurityModal from 'src/components/modals/SecurityModal';
 import { authThunks } from 'src/store/slices/auth';
 import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
@@ -27,8 +26,7 @@ import HomeScreen from '../screens/HomeScreen';
 import { useDiscoverPhotosSheet } from '../screens/HomeScreen/useDiscoverPhotosSheet';
 import PhotosScreen from '../screens/PhotosScreen';
 import DiscoverPhotosBottomSheet from '../screens/PhotosScreen/DiscoverPhotosBottomSheet';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { uiActions } from '../store/slices/ui';
+import { useAppDispatch } from '../store/hooks';
 import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
@@ -45,9 +43,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   const dispatch = useAppDispatch();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
-  const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
-  const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
-
   const discoverSheet = useDiscoverPhotosSheet(
     appService.isPhotosEnabled ? () => props.navigation.navigate('TabExplorer', { screen: 'Photos' }) : () => undefined,
   );
@@ -112,7 +107,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <EmptyFileNotAllowedModal />
       <FileSizeExceededModal />
       <NotEnoughDeviceSpaceModal />
-      <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>
   );
 }

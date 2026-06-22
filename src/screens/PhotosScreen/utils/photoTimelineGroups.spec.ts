@@ -4,9 +4,11 @@ import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
 import { PhotoDateGroup, PhotoItem } from '../types';
 import {
+  GroupBoundary,
   assetToPhotoItem,
-  buildTimelineItems,
+  buildFlatTimeline,
   cloudEntryToPhotoItem,
+  findGroupForIndex,
   formatVideoDuration,
   getDateLabel,
   getGroupSyncStatus,
@@ -372,41 +374,38 @@ describe('group sync status', () => {
   });
 });
 
-describe('building flat timeline item list', () => {
-  test('when a single group with two photos is provided, then three items are produced', () => {
-    const group = makeDateGroup({ photos: [makePhotoItem({ id: 'p1' }), makePhotoItem({ id: 'p2' })] });
-    const { items } = buildTimelineItems([makeTimelineGroup(group)]);
-    expect(items).toHaveLength(3);
-    expect(items[0].type).toBe('header');
-    expect(items[1].type).toBe('photo');
-    expect(items[2].type).toBe('photo');
+describe('building flat photo timeline', () => {
+  test('when a single group with two photos is provided, then photos contains those two photos and one boundary', () => {
+    const group = makeDateGroup({ id: 'g1', label: 'Today', photos: [makePhotoItem({ id: 'p1' }), makePhotoItem({ id: 'p2' })] });
+    const { photos, boundaries } = buildFlatTimeline([makeTimelineGroup(group)]);
+    expect(photos).toHaveLength(2);
+    expect(photos[0].id).toBe('p1');
+    expect(photos[1].id).toBe('p2');
+    expect(boundaries).toHaveLength(1);
+    expect(boundaries[0]).toMatchObject({ startIndex: 0, id: 'g1', label: 'Today' });
   });
 
-  test('when a single group is provided, then headerIndices contains only index 0', () => {
-    const { headerIndices } = buildTimelineItems([makeTimelineGroup(makeDateGroup())]);
-    expect(headerIndices).toEqual([0]);
-  });
-
-  test('when two groups are provided, then headerIndices points to the start of each group', () => {
+  test('when two groups are provided, then photos are concatenated and boundaries point to the correct start indices', () => {
     const group1 = makeDateGroup({ id: 'g1', photos: [makePhotoItem({ id: 'p1' }), makePhotoItem({ id: 'p2' })] });
     const group2 = makeDateGroup({ id: 'g2', photos: [makePhotoItem({ id: 'p3' })] });
-    const { items, headerIndices } = buildTimelineItems([makeTimelineGroup(group1), makeTimelineGroup(group2)]);
-    expect(headerIndices).toEqual([0, 3]);
-    expect(items[3].type).toBe('header');
+    const { photos, boundaries } = buildFlatTimeline([makeTimelineGroup(group1), makeTimelineGroup(group2)]);
+    expect(photos).toHaveLength(3);
+    expect(boundaries[0].startIndex).toBe(0);
+    expect(boundaries[1].startIndex).toBe(2);
+    expect(boundaries[1].id).toBe('g2');
   });
 
-  test('when multiple groups are provided, then only the first group header has isFirst set to true', () => {
-    const groups = [makeDateGroup({ id: 'g1' }), makeDateGroup({ id: 'g2' })].map((g) => makeTimelineGroup(g));
-    const { items } = buildTimelineItems(groups);
-    const headers = items.filter((i) => i.type === 'header') as Extract<(typeof items)[number], { type: 'header' }>[];
-    expect(headers[0].isFirst).toBe(true);
-    expect(headers[1].isFirst).toBe(false);
+  test('when given an empty group list, then photos and boundaries are both empty', () => {
+    const { photos, boundaries } = buildFlatTimeline([]);
+    expect(photos).toHaveLength(0);
+    expect(boundaries).toHaveLength(0);
   });
 
-  test('when given an empty group list, then returns no items and no header indices', () => {
-    const { items, headerIndices } = buildTimelineItems([]);
-    expect(items).toHaveLength(0);
-    expect(headerIndices).toHaveLength(0);
+  test('when a group has a sync status, then the boundary carries that sync status', () => {
+    const group = makeDateGroup({ id: 'g1', photos: [makePhotoItem({})] });
+    const syncStatus: GroupSyncStatus = { type: 'uploading', count: 3 };
+    const { boundaries } = buildFlatTimeline([{ group, syncStatus }]);
+    expect(boundaries[0].syncStatus).toEqual(syncStatus);
   });
 });
 
@@ -455,6 +454,50 @@ describe('cloud entry to photo item conversion', () => {
     const item = cloudEntryToPhotoItem(makeCloudEntry({ remoteFileId: 'abc-123' }));
     expect(item.type).toBe('cloud-only');
     expect(item.id).toBe('abc-123');
+  });
+});
+
+describe('finding the group that owns a given flat index', () => {
+  const makeBoundary = (startIndex: number, id: string): GroupBoundary => ({
+    startIndex,
+    id,
+    label: id,
+    syncStatus: { type: 'count', count: 1 },
+  });
+
+  test('when boundaries is empty, then returns undefined', () => {
+    expect(findGroupForIndex([], 0)).toBeUndefined();
+  });
+
+  test('when index falls within the only group, then that group is returned', () => {
+    const b = makeBoundary(0, 'day-a');
+    expect(findGroupForIndex([b], 5)).toEqual(b);
+  });
+
+  test('when index is exactly at the start of a group, then that group is returned', () => {
+    const a = makeBoundary(0, 'day-a');
+    const b = makeBoundary(3, 'day-b');
+    expect(findGroupForIndex([a, b], 3)).toEqual(b);
+  });
+
+  test('when index is one before a boundary, then the preceding group is returned', () => {
+    const a = makeBoundary(0, 'day-a');
+    const b = makeBoundary(3, 'day-b');
+    expect(findGroupForIndex([a, b], 2)).toEqual(a);
+  });
+
+  test('when index falls within a middle group, then that group is returned', () => {
+    const a = makeBoundary(0, 'day-a');
+    const b = makeBoundary(3, 'day-b');
+    const c = makeBoundary(7, 'day-c');
+    expect(findGroupForIndex([a, b, c], 5)).toEqual(b);
+  });
+
+  test('when index is in the last group, then the last group is returned', () => {
+    const a = makeBoundary(0, 'day-a');
+    const b = makeBoundary(3, 'day-b');
+    const c = makeBoundary(7, 'day-c');
+    expect(findGroupForIndex([a, b, c], 10)).toEqual(c);
   });
 });
 

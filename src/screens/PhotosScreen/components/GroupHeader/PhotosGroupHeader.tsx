@@ -15,6 +15,7 @@ import {
   GroupHeaderPausing,
   GroupHeaderScanning,
   GroupHeaderUploading,
+  GroupHeaderSelection,
   GroupHeaderUploadError,
 } from './GroupHeaderStatus';
 
@@ -30,6 +31,7 @@ export type GroupSyncStatus =
   | { type: 'paused-no-connection' }
   | { type: 'completed' }
   | { type: 'upload-error'; count: number }
+  | { type: 'selection'; count: number }
   | { type: 'none' };
 
 interface PhotosGroupHeaderProps {
@@ -102,41 +104,48 @@ const PhotosGroupHeader = memo(
         )}
 
         <View style={tailwind('flex-row items-center px-4')}>
-          <AppText semibold style={[tailwind('text-lg'), { color: labelColor, flex: 1 }]}>
-            {label}
-          </AppText>
-
-          <View style={[tailwind('flex-row items-center'), { gap: 8, maxWidth: 250 }]}>
-            {syncStatus.type === 'count' && <GroupHeaderCount count={syncStatus.count} color={statusColor} />}
-            {syncStatus.type === 'scanning' && <GroupHeaderScanning color={statusColor} />}
-            {syncStatus.type === 'fetching' && <GroupHeaderFetching color={statusColor} />}
-            {syncStatus.type === 'uploading' && (
-              <GroupHeaderUploading
-                count={syncStatus.count}
-                primaryColor={primaryColor}
-                labelColor={labelColor}
-                statusColor={statusColor}
-                onPausePress={onPausePress}
-              />
-            )}
-            {syncStatus.type === 'pausing' && <GroupHeaderPausing color={labelColor} />}
-            {syncStatus.type === 'paused' && (
-              <GroupHeaderPaused
-                count={syncStatus.count}
-                primaryColor={primaryColor}
-                labelColor={labelColor}
-                statusColor={statusColor}
-                onResumePress={onResumePress}
-              />
-            )}
-            {syncStatus.type === 'paused-storage-full' && <GroupHeaderPausedStorageFull dangerColor={dangerColor} />}
-            {syncStatus.type === 'paused-no-wifi' && <GroupHeaderPausedNoWifi color={statusColor} />}
-            {syncStatus.type === 'paused-no-connection' && <GroupHeaderPausedNoConnection color={statusColor} />}
-            {syncStatus.type === 'completed' && <GroupHeaderCompleted color={labelColor} />}
-            {syncStatus.type === 'upload-error' && (
-              <GroupHeaderUploadError count={syncStatus.count} color={statusColor} onPress={onRetryPress} />
-            )}
-          </View>
+          {syncStatus.type === 'selection' ? (
+            <View style={{ flex: 1 }}>
+              <GroupHeaderSelection count={syncStatus.count} color={labelColor} />
+            </View>
+          ) : (
+            <>
+              <AppText semibold style={[tailwind('text-lg'), { color: labelColor, flex: 1 }]}>
+                {label}
+              </AppText>
+              <View style={[tailwind('flex-row items-center'), { gap: 8, maxWidth: 250 }]}>
+                {syncStatus.type === 'count' && <GroupHeaderCount count={syncStatus.count} color={statusColor} />}
+                {syncStatus.type === 'scanning' && <GroupHeaderScanning color={statusColor} />}
+                {syncStatus.type === 'fetching' && <GroupHeaderFetching color={statusColor} />}
+                {syncStatus.type === 'uploading' && (
+                  <GroupHeaderUploading
+                    count={syncStatus.count}
+                    primaryColor={primaryColor}
+                    labelColor={labelColor}
+                    statusColor={statusColor}
+                    onPausePress={onPausePress}
+                  />
+                )}
+                {syncStatus.type === 'pausing' && <GroupHeaderPausing color={labelColor} />}
+                {syncStatus.type === 'paused' && (
+                  <GroupHeaderPaused
+                    count={syncStatus.count}
+                    primaryColor={primaryColor}
+                    labelColor={labelColor}
+                    statusColor={statusColor}
+                    onResumePress={onResumePress}
+                  />
+                )}
+                {syncStatus.type === 'paused-storage-full' && <GroupHeaderPausedStorageFull dangerColor={dangerColor} />}
+                {syncStatus.type === 'paused-no-wifi' && <GroupHeaderPausedNoWifi color={statusColor} />}
+                {syncStatus.type === 'paused-no-connection' && <GroupHeaderPausedNoConnection color={statusColor} />}
+                {syncStatus.type === 'completed' && <GroupHeaderCompleted color={labelColor} />}
+                {syncStatus.type === 'upload-error' && (
+                  <GroupHeaderUploadError count={syncStatus.count} color={statusColor} onPress={onRetryPress} />
+                )}
+              </View>
+            </>
+          )}
         </View>
       </View>
     );

@@ -202,28 +202,40 @@ export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: 
   return result.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
 };
 
-export type FlatItem =
-  | { type: 'header'; id: string; label: string; syncStatus: GroupSyncStatus; count: number; isFirst: boolean }
-  | { type: 'photo'; photo: TimelinePhotoItem };
+export interface GroupBoundary {
+  startIndex: number;
+  id: string;
+  label: string;
+  syncStatus: GroupSyncStatus;
+}
 
-export const buildTimelineItems = (groups: TimelineDateGroup[]): { items: FlatItem[]; headerIndices: number[] } => {
-  const items: FlatItem[] = [];
-  const headerIndices: number[] = [];
+export interface FlatTimeline {
+  photos: TimelinePhotoItem[];
+  boundaries: GroupBoundary[];
+}
 
-  for (const [groupIndex, { group, syncStatus }] of groups.entries()) {
-    const currentHeaderIndex = items.length;
-    headerIndices.push(currentHeaderIndex);
-    items.push({
-      type: 'header',
-      id: group.id,
-      label: group.label,
-      syncStatus,
-      count: group.photos.length,
-      isFirst: groupIndex === 0,
-    });
+export const buildFlatTimeline = (groups: TimelineDateGroup[]): FlatTimeline => {
+  const photos: TimelinePhotoItem[] = [];
+  const boundaries: GroupBoundary[] = [];
+
+  for (const { group, syncStatus } of groups) {
+    boundaries.push({ startIndex: photos.length, id: group.id, label: group.label, syncStatus });
     for (const photo of group.photos) {
-      items.push({ type: 'photo', photo });
+      photos.push(photo);
     }
   }
-  return { items, headerIndices };
+
+  return { photos, boundaries };
+};
+
+export const findGroupForIndex = (boundaries: GroupBoundary[], itemIndex: number): GroupBoundary | undefined => {
+  let result: GroupBoundary | undefined;
+  for (const boundary of boundaries) {
+    if (boundary.startIndex <= itemIndex) {
+      result = boundary;
+    } else {
+      break;
+    }
+  }
+  return result;
 };

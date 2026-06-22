@@ -27,7 +27,6 @@ import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
 import PhotosHeader from './components/PhotosHeader';
 import PhotosLockedOverlay from './components/PhotosLockedOverlay';
 import PhotosTimeline, { PhotosTimelineHandle } from './components/PhotosTimeline';
-import SelectionHeader from './components/SelectionHeader';
 import SelectionToolbar from './components/SelectionToolbar';
 import EnableBackupBottomSheet from './EnableBackupBottomSheet';
 import { usePhotoActions } from './hooks/usePhotoActions';
@@ -68,7 +67,7 @@ const PhotosScreen = (): JSX.Element => {
 
   const handlePhotoPress = useCallback(
     (id: string) => {
-      if (selection.selectMode) {
+      if (selection.isSelectMode) {
         selection.toggleSelect(id);
         return;
       }
@@ -84,7 +83,7 @@ const PhotosScreen = (): JSX.Element => {
 
   const handlePhotoLongPress = useCallback(
     (id: string) => {
-      if (!selection.selectMode) {
+      if (!selection.isSelectMode) {
         selection.enterSelectMode(id);
       }
     },
@@ -155,8 +154,8 @@ const PhotosScreen = (): JSX.Element => {
   }, [dispatch, reloadLocal]);
 
   useEffect(() => {
-    dispatch(uiActions.setIsTabBarHidden(selection.selectMode));
-  }, [selection.selectMode]);
+    dispatch(uiActions.setIsTabBarHidden(selection.isSelectMode));
+  }, [selection.isSelectMode]);
 
   useEffect(
     () => () => {
@@ -194,11 +193,11 @@ const PhotosScreen = (): JSX.Element => {
 
   return (
     <AppScreen safeAreaTop style={tailwind('flex-1')}>
-      {selection.selectMode ? (
-        <SelectionHeader selectedCount={selection.selectedIds.size} onCancel={selection.exitSelectMode} />
-      ) : (
-        <PhotosHeader onSelectPress={handleSelectPress} />
-      )}
+      <PhotosHeader
+        isSelectMode={selection.isSelectMode}
+        onSelectPress={handleSelectPress}
+        onCancelPress={selection.exitSelectMode}
+      />
 
       <View style={tailwind('flex-1')}>
         <PhotosTimeline
@@ -211,17 +210,20 @@ const PhotosScreen = (): JSX.Element => {
           onRefresh={handleRefresh}
           onPhotoPress={handlePhotoPress}
           onPhotoLongPress={handlePhotoLongPress}
-          isSelectMode={selection.selectMode}
+          isSelectMode={selection.isSelectMode}
           selectedIds={selection.selectedIds}
           onPausePress={handlePausePress}
           onResumePress={handleResumePress}
           onRetryPress={handleRefresh}
+          onDragBegin={selection.beginDragSelect}
+          onDragUpdate={selection.updateDragSelect}
+          onDragEnd={selection.endDragSelect}
         />
         {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>
 
       <SelectionToolbar
-        visible={selection.selectMode && selection.selectedIds.size > 0}
+        visible={selection.isSelectMode && selection.selectedIds.size > 0}
         selectedItems={selection.selectedItems}
         onExport={actions.handleExport}
         onFavorite={() => undefined}
