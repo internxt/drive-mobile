@@ -7,6 +7,7 @@ import { items } from '@internxt/lib';
 import { checkIsFolder, isValidFilename, mapRecentFile } from 'src/helpers';
 import authService from 'src/services/AuthService';
 import errorService from 'src/services/ErrorService';
+import { notifyParentChanged } from 'src/services/native/InternxtSignalingModule';
 import { ErrorCodes } from 'src/types/errors';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
@@ -368,6 +369,8 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
           destinationFolderUuid: destinationUuid,
         });
       }
+
+      void notifyParentChanged(origin.parentUuid);
 
       optimisticCallbacks?.onOptimisticUpdate();
 
