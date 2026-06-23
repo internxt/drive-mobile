@@ -23,6 +23,13 @@ enum FileProviderDomainManager {
   }
 
   static func signalEnumeration(completion: @escaping (Error?) -> Void) {
+    signalEnumeration(for: .workingSet, completion: completion)
+  }
+
+  static func signalEnumeration(
+    for container: NSFileProviderItemIdentifier,
+    completion: @escaping (Error?) -> Void
+  ) {
     guard let manager = NSFileProviderManager(for: domain) else {
       completion(NSError(
         domain: "FileProviderDomainManager",
@@ -31,7 +38,7 @@ enum FileProviderDomainManager {
       ))
       return
     }
-    manager.signalEnumerator(for: .workingSet) { error in
+    manager.signalEnumerator(for: container) { error in
       completion(error)
     }
   }
