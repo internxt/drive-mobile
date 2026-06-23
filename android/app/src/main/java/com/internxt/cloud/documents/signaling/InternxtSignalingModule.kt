@@ -18,12 +18,16 @@ class InternxtSignalingModule(ctx: ReactApplicationContext) :
             promise.reject("E_INVALID_FOLDER", "parentFolderUuid must be a non-empty string")
             return
         }
+        signalParent(folderUuid, promise)
+    }
+
+    private fun signalParent(folderUuid: String, promise: Promise) {
         try {
             InternxtDocumentsProvider.signalParentChanged(folderUuid)
             promise.resolve(null)
         } catch (e: Exception) {
             // Best-effort signal: never let a failed refresh break the JS caller.
-            Log.w(TAG, "notifyParentChanged failed for $folderUuid", e)
+            Log.w(TAG, "signalParent failed for $folderUuid", e)
             promise.resolve(null)
         }
     }

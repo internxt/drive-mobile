@@ -1,5 +1,6 @@
 const mockNotifyParentChanged = jest.fn().mockResolvedValue(undefined);
 const mockCreateFolderByUuid = jest.fn();
+const mockMoveFolderByUuid = jest.fn();
 
 jest.mock('../../native/InternxtSignalingModule', () => ({
   notifyParentChanged: (...args: unknown[]) => mockNotifyParentChanged(...args),
@@ -10,6 +11,7 @@ jest.mock('@internxt-mobile/services/common', () => ({
     getInstance: () => ({
       storageV2: {
         createFolderByUuid: (...args: unknown[]) => mockCreateFolderByUuid(...args),
+        moveFolderByUuid: (...args: unknown[]) => mockMoveFolderByUuid(...args),
       },
     }),
   },
@@ -23,7 +25,7 @@ describe('driveFolderService.createFolder — picker signaling', () => {
     mockCreateFolderByUuid.mockReset();
   });
 
-  it('when a folder is created, then it signals the parent folder uuid', async () => {
+  test('when a folder is created, then it signals the parent folder uuid', async () => {
     mockCreateFolderByUuid.mockReturnValue([Promise.resolve({ uuid: 'new-folder', name: 'docs' })]);
 
     await driveFolderService.createFolder('parent-folder-uuid', 'docs');
@@ -31,10 +33,25 @@ describe('driveFolderService.createFolder — picker signaling', () => {
     expect(mockNotifyParentChanged).toHaveBeenCalledWith('parent-folder-uuid');
   });
 
-  it('when the SDK returns no result, then it rejects and does not signal', async () => {
+  test('when the SDK returns no result, then it rejects and does not signal', async () => {
     mockCreateFolderByUuid.mockReturnValue(undefined);
 
     await expect(driveFolderService.createFolder('parent-folder-uuid', 'docs')).rejects.toBeDefined();
     expect(mockNotifyParentChanged).not.toHaveBeenCalled();
+  });
+});
+
+describe('driveFolderService.moveFolder — picker signaling', () => {
+  beforeEach(() => {
+    mockNotifyParentChanged.mockClear();
+    mockMoveFolderByUuid.mockReset();
+  });
+
+  test('when a folder is moved, then it signals the destination folder uuid', async () => {
+    mockMoveFolderByUuid.mockResolvedValue({ uuid: 'folder-uuid' });
+
+    await driveFolderService.moveFolder({ folderUuid: 'folder-uuid', destinationFolderUuid: 'destination-uuid' });
+
+    expect(mockNotifyParentChanged).toHaveBeenCalledWith('destination-uuid');
   });
 });

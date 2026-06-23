@@ -11,6 +11,7 @@ import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
 import errorService from '../../../services/ErrorService';
+import { notifyParentChanged } from '../../../services/native/InternxtSignalingModule';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
@@ -62,6 +63,8 @@ function RenameModal(): JSX.Element {
       } else if (focusedItem.uuid) {
         await drive.file.updateMetaData(focusedItem.uuid, trimmedNewName);
       }
+
+      void notifyParentChanged(driveCtx.focusedFolder.uuid);
 
       notificationsService.show({
         text1: strings.messages.renamedSuccessfully,
