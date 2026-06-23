@@ -12,6 +12,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
 
   private static let pageSize = 50
   private static let order = "ASC"
+  private static let folderContainerAnchor = NSFileProviderSyncAnchor(SyncAnchorStore.encode(0))
 
   private enum Phase: String {
     case folders
@@ -40,7 +41,12 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
   }
 
   private let enumeratedItemIdentifier: NSFileProviderItemIdentifier
-  private let anchor = NSFileProviderSyncAnchor("an anchor".data(using: .utf8)!)
+  private let syncAnchorStore = SyncAnchorStore()
+  private var browsedChildIds: [String] = []
+
+  private var isWorkingSet: Bool {
+    enumeratedItemIdentifier == .workingSet
+  }
 
   init(enumeratedItemIdentifier: NSFileProviderItemIdentifier) {
     self.enumeratedItemIdentifier = enumeratedItemIdentifier
@@ -50,9 +56,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
   func invalidate() {}
 
   func enumerateItems(for observer: NSFileProviderEnumerationObserver, startingAt page: NSFileProviderPage) {
-    let cursor = Cursor.decode(page)
-
-    guard FileProviderItemID.isDriveFolderContainer(enumeratedItemIdentifier) else {
+    guard !isWorkingSet, FileProviderItemID.isDriveFolderContainer(enumeratedItemIdentifier) else {
       observer.didEnumerate([])
       observer.finishEnumerating(upTo: nil)
       return
@@ -64,6 +68,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       return
     }
 
+    let cursor = Cursor.decode(page)
     Task {
       do {
         switch cursor.phase {
@@ -91,6 +96,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       FileProviderItem(folder: $0, parent: enumeratedItemIdentifier)
     }
     observer.didEnumerate(items)
+    accumulate(items)
 
     if response.folders.count == Self.pageSize {
       observer.finishEnumerating(upTo: Cursor(phase: .folders, offset: offset + Self.pageSize).encoded())
@@ -112,12 +118,125 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       FileProviderItem(file: $0, parent: enumeratedItemIdentifier)
     }
     observer.didEnumerate(items)
+    accumulate(items)
 
     if response.files.count == Self.pageSize {
       observer.finishEnumerating(upTo: Cursor(phase: .files, offset: offset + Self.pageSize).encoded())
     } else {
+      seedSnapshot(forFolderUuid: folderUuid)
       observer.finishEnumerating(upTo: nil)
     }
+  }
+
+  private func accumulate(_ items: [FileProviderItem]) {
+    browsedChildIds.append(contentsOf: items.map { $0.itemIdentifier.rawValue })
+  }
+
+  private func seedSnapshot(forFolderUuid folderUuid: String) {
+    syncAnchorStore?.saveSnapshot(browsedChildIds, forFolderUuid: folderUuid)
+  }
+
+  func currentSyncAnchor(completionHandler: @escaping (NSFileProviderSyncAnchor?) -> Void) {
+    completionHandler(isWorkingSet ? workingSetAnchor() : Self.folderContainerAnchor)
+  }
+
+  func enumerateChanges(for observer: NSFileProviderChangeObserver, from anchor: NSFileProviderSyncAnchor) {
+    guard isWorkingSet else {
+      observer.finishEnumeratingChanges(upTo: Self.folderContainerAnchor, moreComing: false)
+      return
+    }
+    enumerateWorkingSetChanges(for: observer, from: anchor)
+  }
+
+  private func enumerateWorkingSetChanges(for observer: NSFileProviderChangeObserver, from anchor: NSFileProviderSyncAnchor) {
+    let incoming = SyncAnchorStore.decode(anchor.rawValue) ?? 0
+    let current = workingSetAnchor()
+
+    guard let store = syncAnchorStore else {
+      observer.finishEnumeratingChanges(upTo: NSFileProviderSyncAnchor(SyncAnchorStore.encode(incoming)), moreComing: false)
+      return
+    }
+
+    let parents = store.changedParents(after: incoming)
+
+    guard !parents.isEmpty, let driveAPI = DriveAPIFactory.make() else {
+      observer.finishEnumeratingChanges(upTo: current, moreComing: false)
+      return
+    }
+
+    Task {
+      do {
+        for parentUuid in parents {
+          try await diffFolder(parentUuid, store: store, driveAPI: driveAPI, observer: observer)
+        }
+        observer.finishEnumeratingChanges(upTo: current, moreComing: false)
+      } catch {
+        observer.finishEnumeratingChanges(
+          upTo: NSFileProviderSyncAnchor(SyncAnchorStore.encode(incoming)),
+          moreComing: false
+        )
+      }
+    }
+  }
+
+  private func diffFolder(
+    _ parentUuid: String,
+    store: SyncAnchorStore,
+    driveAPI: DriveAPI,
+    observer: NSFileProviderChangeObserver
+  ) async throws {
+    let parent = FileProviderItemID.parentIdentifier(folderUuid: parentUuid)
+    let folderUuid = FileProviderItemID.folderUuid(for: parent) ?? parentUuid
+
+    let currentItems = try await currentChildren(of: folderUuid, parent: parent, driveAPI: driveAPI)
+    let currentIds = currentItems.map { $0.itemIdentifier.rawValue }
+    let prevIds = store.snapshot(forFolderUuid: parentUuid)
+    let deletedIds = Set(prevIds).subtracting(currentIds)
+
+    observer.didUpdate(currentItems)
+    if !deletedIds.isEmpty {
+      observer.didDeleteItems(withIdentifiers: deletedIds.map { NSFileProviderItemIdentifier($0) })
+    }
+    store.saveSnapshot(currentIds, forFolderUuid: parentUuid)
+  }
+
+  private func currentChildren(
+    of folderUuid: String,
+    parent: NSFileProviderItemIdentifier,
+    driveAPI: DriveAPI
+  ) async throws -> [FileProviderItem] {
+    var items: [FileProviderItem] = []
+    try await forEachPage { offset in
+      let response = try await driveAPI.getFolderFolders(
+        folderUuid: folderUuid, offset: offset, limit: Self.pageSize, order: Self.order
+      )
+      items.append(contentsOf: response.folders.map { FileProviderItem(folder: $0, parent: parent) })
+      return response.folders.count
+    }
+    try await forEachPage { offset in
+      let response = try await driveAPI.getFolderFilesV2(
+        folderUuid: folderUuid, offset: offset, limit: Self.pageSize, order: Self.order
+      )
+      items.append(contentsOf: response.files.map { FileProviderItem(file: $0, parent: parent) })
+      return response.files.count
+    }
+    return items
+  }
+
+  private func forEachPage(_ fetchPage: (_ offset: Int) async throws -> Int) async throws {
+    var offset = 0
+    while true {
+      let count = try await fetchPage(offset)
+      if count < Self.pageSize { break }
+      offset += Self.pageSize
+    }
+  }
+
+  private func workingSetAnchor() -> NSFileProviderSyncAnchor {
+    guard let store = syncAnchorStore else {
+      return NSFileProviderSyncAnchor(SyncAnchorStore.encode(0))
+    }
+    return NSFileProviderSyncAnchor(store.currentData)
   }
 
   private func notAuthenticatedError() -> Error {
@@ -129,13 +248,5 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
       return notAuthenticatedError()
     }
     return error
-  }
-
-  func enumerateChanges(for observer: NSFileProviderChangeObserver, from anchor: NSFileProviderSyncAnchor) {
-    observer.finishEnumeratingChanges(upTo: anchor, moreComing: false)
-  }
-
-  func currentSyncAnchor(completionHandler: @escaping (NSFileProviderSyncAnchor?) -> Void) {
-    completionHandler(anchor)
   }
 }
