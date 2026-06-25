@@ -22,7 +22,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         super.tearDown()
     }
 
-    func test_whenChangeRecorded_thenCurrentValueAdvancesByOne() {
+    func testWhenChangeRecordedThenCurrentValueAdvancesByOne() {
         let store = SyncAnchorStore(directory: directory)
         let before = store.currentValue
 
@@ -31,7 +31,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(store.currentValue, before + 1)
     }
 
-    func test_whenChangeRecorded_thenCurrentDataDiffersFromBefore() {
+    func testWhenChangeRecordedThenCurrentDataDiffersFromBefore() {
         let store = SyncAnchorStore(directory: directory)
         let before = store.currentData
 
@@ -40,7 +40,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertNotEqual(store.currentData, before)
     }
 
-    func test_whenReadFromSeparateInstance_thenSeesPersistedChange() {
+    func testWhenReadFromSeparateInstanceThenSeesPersistedChange() {
         SyncAnchorStore(directory: directory).recordChange(parentUuid: "parent-a")
 
         let reader = SyncAnchorStore(directory: directory)
@@ -48,7 +48,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(reader.currentValue, 1)
     }
 
-    func test_whenChangeRecorded_thenChangedParentsAfterPreviousAnchorIncludesIt() {
+    func testWhenChangeRecordedThenChangedParentsAfterPreviousAnchorIncludesIt() {
         let store = SyncAnchorStore(directory: directory)
         let before = store.currentValue
 
@@ -57,14 +57,14 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(store.changedParents(after: before), ["parent-a"])
     }
 
-    func test_whenAnchorIsAtRecordedValue_thenChangedParentsExcludesIt() {
+    func testWhenAnchorIsAtRecordedValueThenChangedParentsExcludesIt() {
         let store = SyncAnchorStore(directory: directory)
         let recordedAt = store.recordChange(parentUuid: "parent-a")
 
         XCTAssertEqual(store.changedParents(after: recordedAt), [])
     }
 
-    func test_whenMultipleParentsRecorded_thenChangedParentsReturnsOnlyNewerOnesInOrder() {
+    func testWhenMultipleParentsRecordedThenChangedParentsReturnsOnlyNewerOnesInOrder() {
         let store = SyncAnchorStore(directory: directory)
         let afterFirst = store.recordChange(parentUuid: "parent-a")
         store.recordChange(parentUuid: "parent-b")
@@ -73,7 +73,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(store.changedParents(after: afterFirst), ["parent-b", "parent-c"])
     }
 
-    func test_whenSameParentRecordedTwice_thenItUsesTheLatestAnchorValue() {
+    func testWhenSameParentRecordedTwiceThenItUsesTheLatestAnchorValue() {
         let store = SyncAnchorStore(directory: directory)
         store.recordChange(parentUuid: "parent-a")
         let afterSecond = store.recordChange(parentUuid: "parent-b")
@@ -82,13 +82,13 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(store.changedParents(after: afterSecond), ["parent-a"])
     }
 
-    func test_whenNoSnapshotSaved_thenSnapshotIsEmpty() {
+    func testWhenNoSnapshotSavedThenSnapshotIsEmpty() {
         let store = SyncAnchorStore(directory: directory)
 
         XCTAssertEqual(store.snapshot(forFolderUuid: "folder-a"), [])
     }
 
-    func test_whenSnapshotSaved_thenSnapshotRoundTrips() {
+    func testWhenSnapshotSavedThenSnapshotRoundTrips() {
         let store = SyncAnchorStore(directory: directory)
 
         store.saveSnapshot(["d:file-1", "f:folder-1"], forFolderUuid: "folder-a")
@@ -96,7 +96,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(store.snapshot(forFolderUuid: "folder-a"), ["d:file-1", "f:folder-1"])
     }
 
-    func test_whenSnapshotSavedFromSeparateInstance_thenItIsPersisted() {
+    func testWhenSnapshotSavedFromSeparateInstanceThenItIsPersisted() {
         SyncAnchorStore(directory: directory).saveSnapshot(["d:file-1"], forFolderUuid: "folder-a")
 
         let reader = SyncAnchorStore(directory: directory)
@@ -104,7 +104,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(reader.snapshot(forFolderUuid: "folder-a"), ["d:file-1"])
     }
 
-    func test_whenSnapshotSavedForDifferentFolders_thenTheyAreIndependent() {
+    func testWhenSnapshotSavedForDifferentFoldersThenTheyAreIndependent() {
         let store = SyncAnchorStore(directory: directory)
 
         store.saveSnapshot(["d:file-1"], forFolderUuid: "folder-a")
@@ -114,7 +114,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(store.snapshot(forFolderUuid: "folder-b"), ["d:file-2"])
     }
 
-    func test_whenSnapshotSavedAgain_thenItReplacesThePrevious() {
+    func testWhenSnapshotSavedAgainThenItReplacesThePrevious() {
         let store = SyncAnchorStore(directory: directory)
         store.saveSnapshot(["d:file-1", "d:file-2"], forFolderUuid: "folder-a")
 
@@ -123,7 +123,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(store.snapshot(forFolderUuid: "folder-a"), ["d:file-2"])
     }
 
-    func test_whenEncodingThenDecoding_thenRoundTripIsStable() {
+    func testWhenEncodingThenDecodingThenRoundTripIsStable() {
         let value: UInt64 = 42
 
         let decoded = SyncAnchorStore.decode(SyncAnchorStore.encode(value))
@@ -131,7 +131,7 @@ final class SyncAnchorStoreTests: XCTestCase {
         XCTAssertEqual(decoded, value)
     }
 
-    func test_whenDataLengthIsWrong_thenDecodeReturnsNil() {
+    func testWhenDataLengthIsWrongThenDecodeReturnsNil() {
         let malformed = Data([0x01, 0x02])
 
         let decoded = SyncAnchorStore.decode(malformed)
