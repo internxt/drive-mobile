@@ -16,6 +16,7 @@ import uuid from 'react-native-uuid';
 import { getEnvironmentConfigFromUser } from 'src/lib/network';
 import * as networkDownload from 'src/network/download';
 import network from '../../../network';
+import { notifyParentChanged } from '../../native/InternxtSignalingModule';
 import { uploadService } from '../../common/network/upload/upload.service';
 import { DRIVE_THUMBNAILS_DIRECTORY } from '../constants';
 import { driveFileCache } from './driveFileCache.service';
@@ -107,7 +108,9 @@ class DriveFileService {
     fileUuid: string;
     destinationFolderUuid: string;
   }): Promise<FileMeta> {
-    return this.sdk.storageV2.moveFileByUuid(fileUuid, { destinationFolder: destinationFolderUuid });
+    const moved = await this.sdk.storageV2.moveFileByUuid(fileUuid, { destinationFolder: destinationFolderUuid });
+    void notifyParentChanged(destinationFolderUuid);
+    return moved;
   }
 
   public getSortFunction({
