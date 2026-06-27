@@ -45,7 +45,7 @@ export type TabExplorerStackParamList = {
   Home: undefined;
   Drive: { sharedFolderId: number } | undefined;
   Add: undefined;
-  Shared: undefined;
+  Shared: NavigatorScreenParams<SharedStackParamList> | undefined;
   Settings: undefined;
 };
 
@@ -60,6 +60,20 @@ export type DriveStackParamList = {
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
   NativeStackScreenProps<DriveStackParamList, Screen>,
+  TabExplorerScreenProps<keyof TabExplorerStackParamList>
+>;
+
+export type SharedStackParamList = {
+  SharedRoot: undefined;
+  SharedFolder: {
+    folderUuid: string;
+    folderName?: string;
+    parentFolderName?: string;
+  };
+};
+
+export type SharedScreenProps<Screen extends keyof SharedStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<SharedStackParamList, Screen>,
   TabExplorerScreenProps<keyof TabExplorerStackParamList>
 >;
 

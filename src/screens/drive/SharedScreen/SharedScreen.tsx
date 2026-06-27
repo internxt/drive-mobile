@@ -1,8 +1,7 @@
 import { UseCaseStatus, useUseCase } from '@internxt-mobile/hooks/common';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { SharedFiles, SharedFolders } from '@internxt-mobile/types/drive/shared';
-import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
-import { TabExplorerScreenProps } from '@internxt-mobile/types/navigation';
+import { SharedScreenProps } from '@internxt-mobile/types/navigation';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import EmptySharesImage from 'assets/images/screens/empty-shares.svg';
 import NoResultsImage from 'assets/images/screens/no-results.svg';
@@ -14,18 +13,20 @@ import { SearchInput } from 'src/components/SearchInput';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import ScreenTitle from '../../../components/AppScreenTitle';
-import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import EmptyList from '../../../components/EmptyList';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
-import { DriveItemStatus } from '../../../types/drive/item';
+import { useAppSelector } from '../../../store/hooks';
+import { SharedDriveItem } from './SharedDriveItem';
+import { mapSharedLinkToDriveItemData, SharedFolderRouteParams } from './sharedNavigation';
 
 type SharedItem = SharedFolders & SharedFiles;
-export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {
+export const SharedScreen: React.FC<SharedScreenProps<'SharedRoot'>> = (props) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
+  const { user } = useAppSelector((state) => state.auth);
   const { loading: sharedLoading, executeUseCase: getSharedItems } = useUseCase(driveUseCases.getSharedItems);
 
   const [sharedItemsPage, setSharedItemsPage] = useState(1);
@@ -122,6 +123,10 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
     onEndOfListReached();
   };
 
+  const navigateToSharedFolder = (params: SharedFolderRouteParams) => {
+    props.navigation.push('SharedFolder', params);
+  };
+
   const renderContent = () => {
     if (!sharedItems?.length) {
       return renderEmpty();
@@ -134,30 +139,13 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
     }
 
     if (sharedItemsToRender.length > 0) {
-      return sharedItemsToRender.map((sharedLink, i: React.Key) => {
+      return sharedItemsToRender.map((sharedLink) => {
         return (
-          <DriveItem
-            key={i}
-            onPress={() => {
-              props.navigation.navigate('Drive');
-            }}
-            type={DriveListType.Shared}
-            status={DriveItemStatus.Idle}
-            viewMode={DriveListViewMode.List}
-            data={{
-              ...sharedLink,
-              token: sharedLink.token === null ? undefined : sharedLink.token,
-              name: sharedLink?.plainName,
-              type: 'folderId' in sharedLink ? sharedLink.type : undefined,
-              shareId: sharedLink.id.toString(),
-              thumbnails: [],
-              currentThumbnail: null,
-              code: (sharedLink as unknown as { code: string }).code,
-              updatedAt: sharedLink.updatedAt,
-              createdAt: sharedLink.createdAt,
-              isFolder: sharedLink.type === 'folder',
-            }}
-            progress={-1}
+          <SharedDriveItem
+            key={sharedLink.id}
+            navigateToSharedFolder={navigateToSharedFolder}
+            parentFolderName={strings.screens.shared.title}
+            data={mapSharedLinkToDriveItemData(sharedLink, user?.bucket)}
             shareLink={sharedLink}
           />
         );

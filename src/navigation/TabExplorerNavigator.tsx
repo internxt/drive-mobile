@@ -18,7 +18,6 @@ import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
 import SignOutModal from '../components/modals/SignOutModal';
 import useGetColor from '../hooks/useColor';
-import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -27,6 +26,7 @@ import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
+import { SharedNavigator } from './SharedNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 
@@ -76,7 +76,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Add" component={EmptyScreen} />
-        <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
+        <Tab.Screen name="Shared" component={SharedNavigator} options={{ lazy: false }} />
         <Tab.Screen name="Settings" component={SettingsNavigator} options={{ lazy: false }} />
       </Tab.Navigator>
 
