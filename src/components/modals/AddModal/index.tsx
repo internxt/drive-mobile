@@ -49,6 +49,7 @@ import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsServi
 import appService, { constants } from '../../../services/AppService';
 import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
 import {
+  copyFileFromEncodedUri,
   createUploadingFiles,
   handleDuplicateFiles,
   initializeUploads,
@@ -127,7 +128,7 @@ function AddModal(): JSX.Element {
     const name = fileToUpload.name || drive.file.getNameFromUri(fileToUpload.uri);
     const destPath = fileSystemService.tmpFilePath(name);
 
-    await fileSystemService.copyFile(fileToUpload.uri, destPath);
+    await copyFileFromEncodedUri(fileToUpload.uri, destPath);
 
     if (fileType === 'document') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
@@ -250,7 +251,7 @@ function AddModal(): JSX.Element {
     // If thumbnail generation fails, don't block the upload, we can
     // try thumbnail generation later
     try {
-      const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+      const generatedThumbnail = await imageService.generateThumbnail(filePath, {
         extension: fileExtension,
         thumbnailFormat: SaveFormat.JPEG,
         // Android needs an extension to generate the thumbnails, otherwise it crashes

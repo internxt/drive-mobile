@@ -14,6 +14,7 @@ import { prepareFilesToUpload } from './prepareFilesToUpload';
 
 import errorService from '../../../ErrorService';
 
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { Dispatch } from 'react';
@@ -213,6 +214,18 @@ async function trackUploadError(file: UploadingFile, err: Error) {
  */
 export function isFileEmpty(file: { size: number }): boolean {
   return file.size === 0;
+}
+
+function safeDecodeUri(uri: string): string {
+  try {
+    return decodeURIComponent(uri);
+  } catch {
+    return uri;
+  }
+}
+
+export async function copyFileFromEncodedUri(sourceUri: string, destPath: string): Promise<void> {
+  await fileSystemService.copyFile(safeDecodeUri(sourceUri), destPath);
 }
 
 /**
