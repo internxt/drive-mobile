@@ -15,6 +15,15 @@ import {
 } from './thumbnail.constants';
 import type { GeneratedThumbnail } from './thumbnail.types';
 
+const fromFileUri = (uri: string): string => {
+  const withoutScheme = uri.replace('file://', '');
+  try {
+    return decodeURIComponent(withoutScheme);
+  } catch {
+    return withoutScheme;
+  }
+};
+
 const statSize = async (path: string): Promise<number> => Number((await RNFS.stat(path)).size);
 
 const generateImageThumbnailAndroid = async (sourcePath: string): Promise<GeneratedThumbnail> => {
@@ -24,7 +33,7 @@ const generateImageThumbnailAndroid = async (sourcePath: string): Promise<Genera
   const result = await imageRef.saveAsync({ format: SaveFormat.JPEG, compress: THUMBNAIL_JPEG_COMPRESS });
   imageRef.release();
   imageManipulatorContext.release();
-  const path = stripFileUri(result.uri);
+  const path = fromFileUri(result.uri);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 
@@ -35,7 +44,7 @@ const generateMediaThumbnail = async (sourcePath: string): Promise<GeneratedThum
     maxWidth: THUMBNAIL_MAX_WIDTH,
     maxHeight: THUMBNAIL_MAX_WIDTH,
   });
-  const path = stripFileUri(result.path);
+  const path = fromFileUri(result.path);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 
@@ -50,7 +59,7 @@ export const generateVideoThumbnail = (sourcePath: string): Promise<GeneratedThu
 
 export const generatePdfThumbnail = async (sourcePath: string): Promise<GeneratedThumbnail> => {
   const result = await PdfThumbnail.generate(toFileUri(sourcePath), 0, PDF_THUMBNAIL_QUALITY);
-  const path = stripFileUri(result.uri);
+  const path = fromFileUri(result.uri);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 
