@@ -31,7 +31,7 @@ const DiscoverPhotosBottomSheet = ({
       <View style={tailwind('pb-6')}>
         <View style={styles.illustrationWrapper}>
           <View style={styles.illustrationContainer}>
-            <Image source={illustrationImg} style={styles.illustration} resizeMode="cover" />
+            <Image source={illustrationImg} style={styles.illustration} resizeMode="contain" />
             <LinearGradient colors={[surfaceColor, surfaceColorTransparent]} style={styles.illustrationFade} />
           </View>
         </View>
@@ -64,15 +64,12 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   illustrationContainer: {
-    height: 128,
-    width: 288,
+    width: '100%',
     overflow: 'hidden',
   },
   illustration: {
-    position: 'absolute',
-    width: 288,
-    height: 585,
-    top: -457,
+    width: '100%',
+    height: 128,
   },
   illustrationFade: {
     position: 'absolute',
