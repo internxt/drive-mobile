@@ -4,6 +4,7 @@ import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from '
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import BottomModal from 'src/components/modals/BottomModal';
+import { logger } from 'src/services/common';
 import useGetColor from 'src/hooks/useColor';
 import { useAppDispatch } from 'src/store/hooks';
 import { enableBackupThunk } from 'src/store/slices/photos';
@@ -54,7 +55,8 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
       } else {
         setStatus('denied');
       }
-    } catch {
+    } catch (error) {
+      logger.error('[EnableBackupBottomSheet] enableBackupThunk rejected', { error });
       setStatus('idle');
     }
   };
@@ -162,6 +164,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
+    overflow: 'visible',
   },
   photoTile: {
     width: 112,

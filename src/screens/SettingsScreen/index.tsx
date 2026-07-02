@@ -73,6 +73,22 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
     await setScreenProtection(value);
   };
 
+  const handlePhotosBackupToggle = () => {
+    if (!hasPhotosAccess) {
+      navigation.navigate('Plan');
+      return;
+    }
+    if (photosEnabled) {
+      dispatch(disableBackupThunk());
+    } else {
+      setIsBackupSheetOpen(true);
+    }
+  };
+
+  const handlePhotosMobileDataToggle = () => {
+    dispatch(setNetworkConditionThunk(networkCondition === 'wifi-and-data' ? 'wifi-only' : 'wifi-and-data'));
+  };
+
   const onAccountPressed = () => {
     navigation.navigate('Account');
   };
@@ -326,82 +342,70 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
             />
 
             {/* PHOTOS */}
-            {appService.isPhotosEnabled && <SettingsGroup
-              title={strings.screens.SettingsScreen.photos.sectionTitle}
-              items={[
-                {
-                  key: 'photos-backup',
-                  template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                      <View style={tailwind('flex-1 mr-3')}>
-                        <AppText style={[tailwind('text-lg')]}>
-                          {strings.screens.SettingsScreen.photos.backupTitle}
-                        </AppText>
-                        <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
-                          {strings.screens.SettingsScreen.photos.backupDescription}
-                        </AppText>
+            {appService.isPhotosEnabled && (
+              <SettingsGroup
+                title={strings.screens.SettingsScreen.photos.sectionTitle}
+                items={[
+                  {
+                    key: 'photos-backup',
+                    template: (
+                      <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                        <View style={tailwind('flex-1 mr-3')}>
+                          <AppText style={[tailwind('text-lg')]}>
+                            {strings.screens.SettingsScreen.photos.backupTitle}
+                          </AppText>
+                          <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
+                            {strings.screens.SettingsScreen.photos.backupDescription}
+                          </AppText>
+                        </View>
+                        <AppSwitch
+                          trackColor={{
+                            false: getColor('text-gray-20'),
+                            true: getColor('text-primary'),
+                          }}
+                          thumbColor={
+                            photosEnabled || isBackupSheetOpen ? getColor('text-white') : getColor('text-gray-40')
+                          }
+                          ios_backgroundColor={getColor('text-gray-20')}
+                          value={photosEnabled || isBackupSheetOpen}
+                          onValueChange={handlePhotosBackupToggle}
+                        />
                       </View>
-                      <AppSwitch
-                        trackColor={{
-                          false: getColor('text-gray-20'),
-                          true: getColor('text-primary'),
-                        }}
-                        thumbColor={photosEnabled ? getColor('text-white') : getColor('text-gray-40')}
-                        ios_backgroundColor={getColor('text-gray-20')}
-                        value={photosEnabled}
-                        pointerEvents="none"
-                      />
-                    </View>
-                  ),
-                  onPress: () => {
-                    if (!hasPhotosAccess) {
-                      navigation.navigate('Plan');
-                      return;
-                    }
-                    if (photosEnabled) {
-                      dispatch(disableBackupThunk());
-                    } else {
-                      setIsBackupSheetOpen(true);
-                    }
+                    ),
+                    onPress: undefined,
                   },
-                },
-                {
-                  key: 'photos-mobile-data',
-                  template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3'), !photosEnabled && { opacity: 0.4 }]}>
-                      <View style={tailwind('flex-1 mr-3')}>
-                        <AppText style={[tailwind('text-lg')]}>
-                          {strings.screens.SettingsScreen.photos.mobileDataTitle}
-                        </AppText>
-                        <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
-                          {strings.screens.SettingsScreen.photos.mobileDataDescription}
-                        </AppText>
+                  {
+                    key: 'photos-mobile-data',
+                    template: (
+                      <View style={[tailwind('flex-row items-center px-4 py-3'), !photosEnabled && { opacity: 0.4 }]}>
+                        <View style={tailwind('flex-1 mr-3')}>
+                          <AppText style={[tailwind('text-lg')]}>
+                            {strings.screens.SettingsScreen.photos.mobileDataTitle}
+                          </AppText>
+                          <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
+                            {strings.screens.SettingsScreen.photos.mobileDataDescription}
+                          </AppText>
+                        </View>
+                        <AppSwitch
+                          trackColor={{
+                            false: getColor('text-gray-20'),
+                            true: getColor('text-primary'),
+                          }}
+                          thumbColor={
+                            networkCondition === 'wifi-and-data' ? getColor('text-white') : getColor('text-gray-40')
+                          }
+                          ios_backgroundColor={getColor('text-gray-20')}
+                          value={networkCondition === 'wifi-and-data'}
+                          disabled={!photosEnabled}
+                          onValueChange={handlePhotosMobileDataToggle}
+                        />
                       </View>
-                      <AppSwitch
-                        trackColor={{
-                          false: getColor('text-gray-20'),
-                          true: getColor('text-primary'),
-                        }}
-                        thumbColor={
-                          networkCondition === 'wifi-and-data' ? getColor('text-white') : getColor('text-gray-40')
-                        }
-                        ios_backgroundColor={getColor('text-gray-20')}
-                        value={networkCondition === 'wifi-and-data'}
-                        pointerEvents="none"
-                      />
-                    </View>
-                  ),
-                  onPress: photosEnabled
-                    ? () =>
-                        dispatch(
-                          setNetworkConditionThunk(
-                            networkCondition === 'wifi-and-data' ? 'wifi-only' : 'wifi-and-data',
-                          ),
-                        )
-                    : undefined,
-                },
-              ]}
-            />}
+                    ),
+                    onPress: undefined,
+                  },
+                ]}
+              />
+            )}
 
             {/* INFORMATION */}
             <SettingsGroup

@@ -1,14 +1,6 @@
 import strings from 'assets/lang/strings';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  ArrowUpIcon,
-  CheckIcon,
-  CloudIcon,
-  CloudSlashIcon,
-  ImageIcon,
-  PlayIcon,
-  WarningIcon,
-} from 'phosphor-react-native';
+import { ArrowUpIcon, CheckIcon, CloudSlashIcon, ImageIcon, PlayIcon, WarningIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Circle } from 'react-native-progress';
@@ -242,9 +234,9 @@ const CloudPhotoCell = memo(
           </View>
         )}
 
-        <View style={[tailwind('absolute justify-center items-center'), { top: 6, right: 6 }]} pointerEvents="none">
+        {/* <View style={[tailwind('absolute justify-center items-center'), { top: 6, right: 6 }]} pointerEvents="none">
           <CloudIcon size={14} color={getColor('text-white')} weight="fill" />
-        </View>
+        </View> */}
 
         {item.mediaType === 'video' && <VideoBadge />}
         {item.isLivePhoto && <LiveBadge />}
