@@ -1,9 +1,11 @@
 import { act, renderHook } from '@testing-library/react-native';
 import useDebouncedValue from './useDebouncedValue';
 
-jest.useFakeTimers();
-
 describe('useDebouncedValue', () => {
+  beforeAll(() => {
+    jest.useFakeTimers();
+  });
+
   afterEach(() => {
     jest.clearAllTimers();
   });
