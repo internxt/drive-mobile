@@ -207,15 +207,21 @@ interface SelectionProps extends StickyProps {
   count: number;
 }
 
+const getSelectionText = (count: number): string => {
+  switch (count) {
+    case 0:
+      return strings.screens.photos.selection.selectItems;
+    case 1:
+      return strings.screens.photos.selection.itemSelected;
+    default:
+      return strings.formatString(strings.screens.photos.selection.itemsSelected, count);
+  }
+};
+
 export const GroupHeaderSelection = ({ count, isSticky }: SelectionProps): JSX.Element => {
   const tailwind = useTailwind();
   const { labelColor } = useGroupHeaderColors(isSticky);
-  const text =
-    count === 0
-      ? strings.screens.photos.selection.selectItems
-      : count === 1
-        ? strings.screens.photos.selection.itemSelected
-        : (strings.formatString(strings.screens.photos.selection.itemsSelected, count) as string);
+  const text = getSelectionText(count);
   return (
     <AppText medium style={[tailwind('text-base'), { color: labelColor }]}>
       {text}
