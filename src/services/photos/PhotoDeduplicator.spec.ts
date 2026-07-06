@@ -146,4 +146,15 @@ describe('PhotoDeduplicator', () => {
     expect(newAssets).toHaveLength(0);
     expect(editedAssets).toHaveLength(0);
   });
+
+  test('when a photo failed to upload, then it is not re-queued as new or edited by discovery', async () => {
+    mockDB.getSyncedEntries.mockResolvedValueOnce(
+      new Map([['a', { modificationTime: null, status: 'error' as const }]]),
+    );
+
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a', 1000)]);
+
+    expect(newAssets).toHaveLength(0);
+    expect(editedAssets).toHaveLength(0);
+  });
 });

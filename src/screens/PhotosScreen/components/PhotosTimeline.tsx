@@ -49,6 +49,7 @@ interface PhotosTimelineProps {
   onRefresh?: () => void;
   onPausePress?: () => void;
   onResumePress?: () => void;
+  onRetryPress?: () => void;
 }
 
 const getItemType = (item: FlatItem) => item.type;
@@ -76,6 +77,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       onRefresh,
       onPausePress,
       onResumePress,
+      onRetryPress,
     },
     ref,
   ) => {
@@ -86,8 +88,8 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     }, [assetsGroupsByDate, isLoading]);
 
     const extraData = useMemo(
-      () => ({ isSelectMode, selectedIds, onPausePress, onResumePress }),
-      [isSelectMode, selectedIds, onPausePress, onResumePress],
+      () => ({ isSelectMode, selectedIds, onPausePress, onResumePress, onRetryPress }),
+      [isSelectMode, selectedIds, onPausePress, onResumePress, onRetryPress],
     );
 
     const scrollY = useRef(new Animated.Value(0)).current;
@@ -138,6 +140,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
               stickyOpacity={isSticky ? stickyOpacity : undefined}
               onPausePress={onPausePress}
               onResumePress={onResumePress}
+              onRetryPress={onRetryPress}
             />
           );
         }
@@ -153,7 +156,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
           </View>
         );
       },
-      [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, stickyOpacity, onPausePress, onResumePress],
+      [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, stickyOpacity, onPausePress, onResumePress, onRetryPress],
     );
 
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;

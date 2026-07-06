@@ -15,6 +15,7 @@ import {
   GroupHeaderPausing,
   GroupHeaderScanning,
   GroupHeaderUploading,
+  GroupHeaderUploadError,
 } from './GroupHeaderStatus';
 
 export type GroupSyncStatus =
@@ -28,6 +29,7 @@ export type GroupSyncStatus =
   | { type: 'paused-no-wifi' }
   | { type: 'paused-no-connection' }
   | { type: 'completed' }
+  | { type: 'upload-error'; count: number }
   | { type: 'none' };
 
 interface PhotosGroupHeaderProps {
@@ -37,6 +39,7 @@ interface PhotosGroupHeaderProps {
   stickyOpacity?: Animated.AnimatedInterpolation<number>;
   onPausePress?: () => void;
   onResumePress?: () => void;
+  onRetryPress?: () => void;
 }
 
 const GRADIENT_LOCATIONS: [number, number, number] = [0, 0.35, 1];
@@ -63,6 +66,7 @@ const PhotosGroupHeader = memo(
     stickyOpacity,
     onPausePress,
     onResumePress,
+    onRetryPress,
   }: PhotosGroupHeaderProps): JSX.Element => {
     const tailwind = useTailwind();
     const getColor = useGetColor();
@@ -129,6 +133,9 @@ const PhotosGroupHeader = memo(
             {syncStatus.type === 'paused-no-wifi' && <GroupHeaderPausedNoWifi color={statusColor} />}
             {syncStatus.type === 'paused-no-connection' && <GroupHeaderPausedNoConnection color={statusColor} />}
             {syncStatus.type === 'completed' && <GroupHeaderCompleted color={labelColor} />}
+            {syncStatus.type === 'upload-error' && (
+              <GroupHeaderUploadError count={syncStatus.count} color={statusColor} onPress={onRetryPress} />
+            )}
           </View>
         </View>
       </View>

@@ -191,3 +191,21 @@ export const GroupHeaderCompleted = ({ color }: ColorProps): JSX.Element => {
     </>
   );
 };
+
+interface UploadErrorProps {
+  count: number;
+  color: string;
+  onPress?: () => void;
+}
+
+export const GroupHeaderUploadError = ({ count, color, onPress }: UploadErrorProps): JSX.Element => {
+  const tailwind = useTailwind();
+  return (
+    <TouchableOpacity onPress={onPress} hitSlop={ICON_HIT_SLOP} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <AppText medium style={[tailwind('text-base'), { color }]}>
+        {count.toLocaleString()} {strings.screens.photos.groupHeader.withError}
+      </AppText>
+      <WarningCircleIcon size={24} color={color} weight="fill" />
+    </TouchableOpacity>
+  );
+};

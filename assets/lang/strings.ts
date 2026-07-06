@@ -191,6 +191,7 @@ const translations = {
           backupCompleted: 'Backup completed',
           gettingPhotos: 'Getting photos from the cloud',
           scanningGallery: 'Scanning gallery',
+          withError: 'with error',
         },
         photosLocked: {
           title: 'Photos is locked',
@@ -1188,6 +1189,7 @@ const translations = {
           backupCompleted: 'Backup completado',
           gettingPhotos: 'Obteniendo fotos de la nube',
           scanningGallery: 'Escaneando galería',
+          withError: 'con error',
         },
         photosLocked: {
           title: 'Photos está bloqueado',

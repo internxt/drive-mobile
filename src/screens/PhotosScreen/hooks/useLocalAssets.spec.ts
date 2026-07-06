@@ -454,4 +454,20 @@ describe('useLocalAssets', () => {
     expect(result.current.cloudDeletedIds.has('a1')).toBe(true);
     expect(result.current.syncedIds.has('a1')).toBe(false);
   });
+
+  test('when an asset failed to upload, then it does not appear in syncedIds or cloudDeletedIds', async () => {
+    mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([makeAsset('a1')]));
+    mockPhotosLocalDB.getSyncedEntries.mockResolvedValue(
+      new Map([['a1', { modificationTime: null, status: 'error' as const }]]),
+    );
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.syncedIds.has('a1')).toBe(false);
+    expect(result.current.cloudDeletedIds.has('a1')).toBe(false);
+  });
 });

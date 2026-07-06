@@ -42,6 +42,7 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
   const isPaused = useAppSelector((state) => state.photos.isPaused);
   const pendingBackupAssets = useAppSelector((state) => state.photos.pendingBackupAssets);
   const disabledReason = useAppSelector((state) => state.photos.disabledReason);
+  const assetUploadErroredCount = useAppSelector((state) => state.photos.assetUploadErroredCount);
 
   const localGroups = useMemo(
     () => groupAssetsByDate(assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet),
@@ -65,6 +66,7 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
         isFetchingCloudHistory,
         isPaused,
         disabledReason,
+        assetUploadErroredCount,
       }),
     })) as TimelineDateGroup[];
   }, [
@@ -76,6 +78,7 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
     isPaused,
     pendingBackupAssets,
     disabledReason,
+    assetUploadErroredCount,
   ]);
 
   return { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud };

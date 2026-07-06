@@ -215,6 +215,7 @@ const PhotosScreen = (): JSX.Element => {
           selectedIds={selection.selectedIds}
           onPausePress={handlePausePress}
           onResumePress={handleResumePress}
+          onRetryPress={handleRefresh}
         />
         {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
       </View>

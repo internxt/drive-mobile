@@ -58,6 +58,7 @@ export interface PhotosState {
   cloudFetchRevision: number;
   isFetchingCloudHistory: boolean;
   disabledReason: PhotosDisabledReason;
+  assetUploadErroredCount: number;
 }
 
 const initialState: PhotosState = {
@@ -80,6 +81,7 @@ const initialState: PhotosState = {
   cloudFetchRevision: 0,
   isFetchingCloudHistory: false,
   disabledReason: null,
+  assetUploadErroredCount: 0,
 };
 
 const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
@@ -333,6 +335,8 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
     await dispatch(initDeviceIdThunk());
     dispatch(runFullCloudHistorySyncThunk({ force: true }));
 
+    await photosLocalDB.resetErrorsToPending();
+    dispatch(photosSlice.actions.setAssetUploadErroredCount(await photosLocalDB.getAssetUploadErroredCount()));
     await dispatch(runDiscoveryThunk()).unwrap();
     const pending = getState().photos.pendingBackupAssets;
     const incompleteBursts = Platform.OS === 'ios' ? await photosLocalDB.getIncompleteBurstAssets() : [];
@@ -374,6 +378,7 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
     dispatch(runFullCloudHistorySyncThunk());
 
     await dispatch(runDiscoveryThunk());
+    dispatch(photosSlice.actions.setAssetUploadErroredCount(await photosLocalDB.getAssetUploadErroredCount()));
 
     const { isPaused, pendingBackupAssets } = getState().photos;
 
@@ -514,6 +519,9 @@ export const photosSlice = createSlice({
     },
     setDisabledReason: (state, action: PayloadAction<PhotosDisabledReason>) => {
       state.disabledReason = action.payload;
+    },
+    setAssetUploadErroredCount: (state, action: PayloadAction<number>) => {
+      state.assetUploadErroredCount = action.payload;
     },
     pauseForQuotaExceeded: (state) => {
       state.syncStatus = 'paused';

@@ -182,6 +182,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: false,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'scanning' });
   });
@@ -196,6 +197,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: false,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({
       type: 'uploading',
@@ -214,6 +216,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: true,
         isPaused: false,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'fetching' });
   });
@@ -228,6 +231,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: false,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'count', count: 2 });
   });
@@ -242,6 +246,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: false,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'completed' });
   });
@@ -256,6 +261,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: true,
         isPaused: false,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'fetching' });
   });
@@ -270,6 +276,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: false,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'paused', count: 5 });
   });
@@ -284,6 +291,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: true,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'paused', count: 5 });
   });
@@ -298,6 +306,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: true,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'paused', count: 5 });
   });
@@ -312,6 +321,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: true,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'pausing' });
   });
@@ -326,6 +336,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: true,
         isPaused: true,
         disabledReason: null,
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'paused', count: 5 });
   });
@@ -340,6 +351,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: false,
         disabledReason: 'quota-exceeded',
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'paused-storage-full' });
   });
@@ -354,6 +366,7 @@ describe('group sync status', () => {
         isFetchingCloudHistory: false,
         isPaused: true,
         disabledReason: 'quota-exceeded',
+        assetUploadErroredCount: 0,
       }),
     ).toEqual({ type: 'paused-storage-full' });
   });
