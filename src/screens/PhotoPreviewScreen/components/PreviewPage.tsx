@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, View, useWindowDimensions } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
 import { VideoViewer } from '../../../components/photos/VideoViewer/VideoViewer';
 import { ImageViewer } from '../../../components/ui-kit/view/ImageViewer/ImageViewer';
@@ -83,12 +81,10 @@ interface PreviewPageProps {
   isScrubbing: boolean;
   onTap: () => void;
   onZoomChange: (zoomed: boolean) => void;
-  onSwipeDown: () => void;
   onVideoPlay?: () => void;
   onVideoPause?: () => void;
   onVideoEnd?: () => void;
   videoResetKey?: number;
-  hasVideoStarted?: boolean;
 }
 
 export const PreviewPage = ({
@@ -97,18 +93,14 @@ export const PreviewPage = ({
   isScrubbing,
   onTap,
   onZoomChange,
-  onSwipeDown,
   onVideoPlay,
   onVideoPause,
   onVideoEnd,
   videoResetKey,
-  hasVideoStarted,
 }: PreviewPageProps): JSX.Element => {
   const tailwind = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
   const { uri, thumbnailUri, isLoading } = usePreviewSource(item, isScrubbing);
-  const [zoomed, setZoomed] = useState(false);
-  const translateY = useSharedValue(0);
   const [isVideoActive, setIsVideoActive] = useState(false);
 
   useEffect(() => {
@@ -121,12 +113,10 @@ export const PreviewPage = ({
   }, [isActive]);
 
   const handleZoom = useCallback(() => {
-    setZoomed(true);
     onZoomChange(true);
   }, [onZoomChange]);
 
   const handleReset = useCallback(() => {
-    setZoomed(false);
     onZoomChange(false);
   }, [onZoomChange]);
 
@@ -142,45 +132,22 @@ export const PreviewPage = ({
     onVideoEnd?.();
   }, [onVideoEnd]);
 
-  const swipeDownGesture = Gesture.Pan()
-    .enabled(!zoomed && !hasVideoStarted)
-    .activeOffsetY(10)
-    .failOffsetX([-15, 15])
-    .onUpdate((e) => {
-      if (e.translationY > 0) {
-        translateY.value = e.translationY;
-      }
-    })
-    .onEnd((e) => {
-      if (e.translationY > 100) {
-        runOnJS(onSwipeDown)();
-      } else {
-        translateY.value = withTiming(0, { duration: 150 });
-      }
-    });
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: translateY.value }],
-  }));
-
   return (
-    <GestureDetector gesture={swipeDownGesture}>
-      <Animated.View style={[tailwind('flex-1 bg-black'), { width: screenWidth }, animatedStyle]}>
-        <PageContent
-          item={item}
-          uri={uri}
-          thumbnailUri={thumbnailUri}
-          isLoading={isLoading}
-          isActive={isVideoActive}
-          onTap={onTap}
-          onZoom={handleZoom}
-          onReset={handleReset}
-          onVideoPlay={playVideo}
-          onVideoPause={pauseVideo}
-          onVideoEnd={endVideo}
-          videoResetKey={videoResetKey}
-        />
-      </Animated.View>
-    </GestureDetector>
+    <View style={[tailwind('flex-1 bg-black'), { width: screenWidth }]}>
+      <PageContent
+        item={item}
+        uri={uri}
+        thumbnailUri={thumbnailUri}
+        isLoading={isLoading}
+        isActive={isVideoActive}
+        onTap={onTap}
+        onZoom={handleZoom}
+        onReset={handleReset}
+        onVideoPlay={playVideo}
+        onVideoPause={pauseVideo}
+        onVideoEnd={endVideo}
+        videoResetKey={videoResetKey}
+      />
+    </View>
   );
 };

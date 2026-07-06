@@ -2,6 +2,8 @@ import { useNavigation } from '@react-navigation/native';
 import strings from 'assets/lang/strings';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StatusBar, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { logger } from 'src/services/common';
 import { useAppDispatch } from 'src/store/hooks';
@@ -88,6 +90,29 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   const handleScrubStart = useCallback(() => setIsScrubbing(true), []);
   const handleScrubEnd = useCallback(() => setIsScrubbing(false), []);
 
+  const translateY = useSharedValue(0);
+
+  const swipeDownGesture = Gesture.Pan()
+    .enabled(!zoomActive && !hasVideoStarted && !isScrubbing)
+    .activeOffsetY(10)
+    .failOffsetX([-15, 15])
+    .onUpdate((e) => {
+      if (e.translationY > 0) {
+        translateY.value = e.translationY;
+      }
+    })
+    .onEnd((e) => {
+      if (e.translationY > 100) {
+        runOnJS(handleSwipeDown)();
+      } else {
+        translateY.value = withTiming(0, { duration: 150 });
+      }
+    });
+
+  const swipeDownAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: translateY.value }],
+  }));
+
   const currentItem = items[currentIndex];
   const actionItems = useMemo(() => (currentItem ? [currentItem] : []), [currentItem]);
 
@@ -126,43 +151,45 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   return (
     <View style={tailwind('flex-1 bg-black')}>
       <StatusBar hidden />
-      <PreviewPager
-        items={items}
-        initialIndex={currentIndex}
-        activeIndex={currentIndex}
-        isScrubbing={isScrubbing}
-        onIndexChange={setCurrentIndex}
-        onTap={handleTap}
-        onZoomChange={handleZoomChange}
-        onSwipeDown={handleSwipeDown}
-        onVideoPlay={handleVideoPlay}
-        onVideoPause={handleVideoPause}
-        onVideoEnd={handleVideoEnd}
-        videoResetKey={videoResetKey}
-        hasVideoStarted={hasVideoStarted}
-      />
-      <PreviewHeader
-        visible={isUiVisible}
-        item={currentItem}
-        onClose={handleClose}
-        onMore={() => setIsMoreActionsOpen(true)}
-      />
-      {showCarousel && (
-        <PreviewCarousel
-          items={items}
-          currentIndex={currentIndex}
-          onPress={setCurrentIndex}
-          onScrub={setCurrentIndex}
-          onScrubStart={handleScrubStart}
-          onScrubEnd={handleScrubEnd}
-          visible={isUiVisible}
-          onExport={handleExport}
-          onMore={() => setIsMoreActionsOpen(true)}
-          onDelete={handleDeletePress}
-          isSynced={isSynced}
-        />
-      )}
-      <BurstIncompleteBanner visible={isUiVisible && isBurstIncomplete} />
+      <GestureDetector gesture={swipeDownGesture}>
+        <Animated.View style={[tailwind('flex-1'), swipeDownAnimatedStyle]}>
+          <PreviewPager
+            items={items}
+            initialIndex={currentIndex}
+            activeIndex={currentIndex}
+            isScrubbing={isScrubbing}
+            onIndexChange={setCurrentIndex}
+            onTap={handleTap}
+            onZoomChange={handleZoomChange}
+            onVideoPlay={handleVideoPlay}
+            onVideoPause={handleVideoPause}
+            onVideoEnd={handleVideoEnd}
+            videoResetKey={videoResetKey}
+          />
+          <PreviewHeader
+            visible={isUiVisible}
+            item={currentItem}
+            onClose={handleClose}
+            onMore={() => setIsMoreActionsOpen(true)}
+          />
+          {showCarousel && (
+            <PreviewCarousel
+              items={items}
+              currentIndex={currentIndex}
+              onPress={setCurrentIndex}
+              onScrub={setCurrentIndex}
+              onScrubStart={handleScrubStart}
+              onScrubEnd={handleScrubEnd}
+              visible={isUiVisible}
+              onExport={handleExport}
+              onMore={() => setIsMoreActionsOpen(true)}
+              onDelete={handleDeletePress}
+              isSynced={isSynced}
+            />
+          )}
+          <BurstIncompleteBanner visible={isUiVisible && isBurstIncomplete} />
+        </Animated.View>
+      </GestureDetector>
       {metadataOpen && currentItem && <MetadataPanel item={currentItem} onClose={() => setMetadataOpen(false)} />}
       <MoreActionsBottomSheet
         isOpen={isMoreActionsOpen}
