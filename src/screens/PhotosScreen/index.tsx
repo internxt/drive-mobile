@@ -183,6 +183,10 @@ const PhotosScreen = (): JSX.Element => {
         dispatch(runBackupCycleThunk());
       }
 
+      if (!enabled) {
+        setIsEnableBackupSheetOpen(true);
+      }
+
       const id = lastViewedIdRef.current;
       if (id) {
         lastViewedIdRef.current = null;
