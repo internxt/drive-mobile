@@ -168,11 +168,11 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   }
 
   var creationDate: Date? {
-    Self.parseISO8601(createdAt)
+    Self.parseDate(createdAt)
   }
 
   var contentModificationDate: Date? {
-    Self.parseISO8601(updatedAt)
+    Self.parseDate(updatedAt)
   }
 
   private static let iso8601Formatter: ISO8601DateFormatter = {
@@ -181,13 +181,17 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     return formatter
   }()
 
-  private static func parseISO8601(_ value: String?) -> Date? {
+  private static let iso8601FormatterNoFractionalSeconds: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime]
+    return formatter
+  }()
+
+  private static func parseDate(_ value: String?) -> Date? {
     guard let value = value, !value.isEmpty else { return nil }
     if let date = iso8601Formatter.date(from: value) {
       return date
     }
-    let fallback = ISO8601DateFormatter()
-    fallback.formatOptions = [.withInternetDateTime]
-    return fallback.date(from: value)
+    return iso8601FormatterNoFractionalSeconds.date(from: value)
   }
 }
