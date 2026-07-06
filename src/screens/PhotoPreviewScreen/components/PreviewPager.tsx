@@ -51,9 +51,10 @@ export const PreviewPager = ({
   }, [activeIndex, items.length]);
 
   const renderItem: ListRenderItem<TimelinePhotoItem> = useCallback(
-    ({ item }) => (
+    ({ item, index }) => (
       <PreviewPage
         item={item}
+        isActive={index === activeIndex}
         isScrubbing={isScrubbing}
         onTap={onTap}
         onZoomChange={onZoomChange}
@@ -65,7 +66,18 @@ export const PreviewPager = ({
         hasVideoStarted={hasVideoStarted}
       />
     ),
-    [isScrubbing, onTap, onZoomChange, onSwipeDown, onVideoPlay, onVideoPause, onVideoEnd, videoResetKey, hasVideoStarted],
+    [
+      activeIndex,
+      isScrubbing,
+      onTap,
+      onZoomChange,
+      onSwipeDown,
+      onVideoPlay,
+      onVideoPause,
+      onVideoEnd,
+      videoResetKey,
+      hasVideoStarted,
+    ],
   );
 
   const getItemLayout = useCallback(

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -8,11 +8,14 @@ import { ImageViewer } from '../../../components/ui-kit/view/ImageViewer/ImageVi
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
 import { usePreviewSource } from '../hooks/usePreviewSource';
 
+const VIDEO_ACTIVATION_DELAY_MS = 200;
+
 interface PageContentProps {
   item: TimelinePhotoItem;
   uri: string | null;
   thumbnailUri: string | null;
   isLoading: boolean;
+  isActive: boolean;
   onTap: () => void;
   onZoom: () => void;
   onReset: () => void;
@@ -27,6 +30,7 @@ const PageContent = ({
   uri,
   thumbnailUri,
   isLoading,
+  isActive,
   onTap,
   onZoom,
   onReset,
@@ -37,7 +41,7 @@ const PageContent = ({
 }: PageContentProps): JSX.Element => {
   const tailwind = useTailwind();
   if (item.mediaType === 'video') {
-    if (uri) {
+    if (uri && isActive) {
       return (
         <VideoViewer
           key={videoResetKey}
@@ -75,6 +79,7 @@ const PageContent = ({
 
 interface PreviewPageProps {
   item: TimelinePhotoItem;
+  isActive: boolean;
   isScrubbing: boolean;
   onTap: () => void;
   onZoomChange: (zoomed: boolean) => void;
@@ -88,6 +93,7 @@ interface PreviewPageProps {
 
 export const PreviewPage = ({
   item,
+  isActive,
   isScrubbing,
   onTap,
   onZoomChange,
@@ -103,6 +109,16 @@ export const PreviewPage = ({
   const { uri, thumbnailUri, isLoading } = usePreviewSource(item, isScrubbing);
   const [zoomed, setZoomed] = useState(false);
   const translateY = useSharedValue(0);
+  const [isVideoActive, setIsVideoActive] = useState(false);
+
+  useEffect(() => {
+    if (!isActive) {
+      setIsVideoActive(false);
+      return;
+    }
+    const activateVideoTimer = setTimeout(() => setIsVideoActive(true), VIDEO_ACTIVATION_DELAY_MS);
+    return () => clearTimeout(activateVideoTimer);
+  }, [isActive]);
 
   const handleZoom = useCallback(() => {
     setZoomed(true);
@@ -155,6 +171,7 @@ export const PreviewPage = ({
           uri={uri}
           thumbnailUri={thumbnailUri}
           isLoading={isLoading}
+          isActive={isVideoActive}
           onTap={onTap}
           onZoom={handleZoom}
           onReset={handleReset}

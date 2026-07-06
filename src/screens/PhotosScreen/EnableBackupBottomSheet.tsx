@@ -4,16 +4,14 @@ import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, View } from '
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import BottomModal from 'src/components/modals/BottomModal';
-import { logger } from 'src/services/common';
 import useGetColor from 'src/hooks/useColor';
+import { logger } from 'src/services/common';
 import { useAppDispatch } from 'src/store/hooks';
 import { enableBackupThunk } from 'src/store/slices/photos';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 
-import photoCenter from '../../../assets/images/photos-sheet-center.jpg';
-import photoLeft from '../../../assets/images/photos-sheet-left.jpg';
-import photoRight from '../../../assets/images/photos-sheet-right.jpg';
+import discoverPhotosImg from 'assets/images/discover_photos.png';
 
 interface EnableBackupBottomSheetProps {
   isOpen: boolean;
@@ -76,19 +74,7 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
         </TouchableOpacity>
 
         <View style={styles.illustrationContainer}>
-          <Image
-            source={photoLeft}
-            style={[styles.photoTile, styles.photoTileSide, { transform: [{ rotate: '-8deg' }, { translateX: -50 }] }]}
-          />
-          <Image
-            source={photoRight}
-            style={[
-              styles.photoTile,
-              styles.photoTileSide,
-              { zIndex: 10, transform: [{ rotate: '8deg' }, { translateX: 50 }] },
-            ]}
-          />
-          <Image source={photoCenter} style={[styles.photoTile, styles.photoTileCenter]} />
+          <Image source={discoverPhotosImg} style={styles.illustrationImage} resizeMode="cover" />
         </View>
 
         <AppText
@@ -160,33 +146,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   illustrationContainer: {
-    height: 150,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 8,
-    overflow: 'visible',
   },
-  photoTile: {
-    width: 112,
-    height: 112,
-    borderRadius: 12,
-    position: 'absolute',
-  },
-  photoTileCenter: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 16,
-    elevation: 8,
-    zIndex: 2,
-  },
-  photoTileSide: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
-    zIndex: 1,
+  illustrationImage: {
+    width: '100%',
+    height: 200,
   },
   iconBox: {
     width: 40,
