@@ -28,11 +28,11 @@ describe('usePhotoSelection', () => {
     const items = [makeLocalItem('a'), makeLocalItem('b')];
     const { result } = renderHook(() => usePhotoSelection(items));
 
-    expect(result.current.selectMode).toBe(false);
+    expect(result.current.isSelectMode).toBe(false);
 
     act(() => result.current.enterSelectMode('a'));
 
-    expect(result.current.selectMode).toBe(true);
+    expect(result.current.isSelectMode).toBe(true);
     expect(result.current.selectedIds.has('a')).toBe(true);
     expect(result.current.selectedIds.size).toBe(1);
   });
@@ -56,7 +56,7 @@ describe('usePhotoSelection', () => {
     act(() => result.current.toggleSelect('b'));
     act(() => result.current.exitSelectMode());
 
-    expect(result.current.selectMode).toBe(false);
+    expect(result.current.isSelectMode).toBe(false);
     expect(result.current.selectedIds.size).toBe(0);
     expect(result.current.selectedItems).toHaveLength(0);
   });
@@ -67,7 +67,7 @@ describe('usePhotoSelection', () => {
 
     act(() => result.current.enterSelectMode());
 
-    expect(result.current.selectMode).toBe(true);
+    expect(result.current.isSelectMode).toBe(true);
     expect(result.current.selectedIds.size).toBe(0);
   });
 

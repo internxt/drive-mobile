@@ -72,15 +72,13 @@ const SelectOverlay = ({
 }: Pick<CellProps, 'isSelectMode' | 'isSelected'>): JSX.Element | null => {
   const getColor = useGetColor();
 
-  if (!isSelectMode && !isSelected) {
-    return null;
-  }
+  if (!isSelectMode || !isSelected) return null;
 
   return (
     <>
-      {isSelected && <View style={[StyleSheet.absoluteFillObject, styles.scrim]} />}
-      <View style={[styles.checkbox, isSelected && { backgroundColor: getColor('text-primary') }]}>
-        {isSelected && <CheckIcon size={16} color="white" weight="bold" />}
+      <View style={[StyleSheet.absoluteFillObject, styles.scrim]} />
+      <View style={[styles.checkbox, { backgroundColor: getColor('text-primary') }]}>
+        <CheckIcon size={16} color="white" weight="bold" />
       </View>
     </>
   );

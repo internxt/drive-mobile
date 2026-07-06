@@ -61,12 +61,15 @@ const makeLocalBacked = (id = 'asset-1'): PhotoItem => ({
 });
 
 const makeSelection = (overrides: Partial<PhotoSelection> = {}): PhotoSelection => ({
-  selectMode: true,
+  isSelectMode: true,
   selectedIds: new Set(['asset-1']),
   selectedItems: [makeLocalBacked()],
   enterSelectMode: jest.fn(),
   exitSelectMode: jest.fn(),
   toggleSelect: jest.fn(),
+  beginDragSelect: jest.fn(),
+  updateDragSelect: jest.fn(),
+  endDragSelect: jest.fn(),
   ...overrides,
 });
 

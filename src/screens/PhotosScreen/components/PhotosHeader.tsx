@@ -5,10 +5,12 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 
 interface PhotosHeaderProps {
+  isSelectMode?: boolean;
   onSelectPress?: () => void;
+  onCancelPress?: () => void;
 }
 
-const PhotosHeader = ({ onSelectPress }: PhotosHeaderProps): JSX.Element => {
+const PhotosHeader = ({ isSelectMode, onSelectPress, onCancelPress }: PhotosHeaderProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
@@ -27,12 +29,12 @@ const PhotosHeader = ({ onSelectPress }: PhotosHeaderProps): JSX.Element => {
           </AppText>
         </View>
         <TouchableOpacity
-          onPress={onSelectPress}
+          onPress={isSelectMode ? onCancelPress : onSelectPress}
           style={tailwind('px-5 py-2.5 mr-1')}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <AppText medium style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
-            {strings.screens.photos.select}
+            {isSelectMode ? strings.screens.photos.selection.cancel : strings.screens.photos.select}
           </AppText>
         </TouchableOpacity>
       </View>

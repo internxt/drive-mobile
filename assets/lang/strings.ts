@@ -236,6 +236,7 @@ const translations = {
         },
         selection: {
           cancel: 'Cancel',
+          selectItems: 'Select items',
           itemSelected: '1 item selected',
           itemsSelected: '{0} items selected',
           toolbar: {
@@ -1235,6 +1236,7 @@ const translations = {
         },
         selection: {
           cancel: 'Cancelar',
+          selectItems: 'Seleccionar elementos',
           itemSelected: '1 elemento seleccionado',
           itemsSelected: '{0} elementos seleccionados',
           toolbar: {
