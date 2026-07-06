@@ -125,9 +125,9 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     const file = makeFile('file-uuid', 'IMG_20240615_120000.jpg');
 
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthFolder] } as never)
-      .mockResolvedValueOnce({ folders: [dayFolder] } as never);
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthFolder] })
+      .mockResolvedValueOnce({ folders: [dayFolder] });
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
 
@@ -154,7 +154,7 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
   test('when there is no cache entry for the month, then the drive folder tree is traversed', async () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
 
-    mockFolderService.getFolderFolders.mockResolvedValue({ folders: [] } as never);
+    mockFolderService.getFolderFolders.mockResolvedValue({ folders: [] });
 
     await photoCloudBrowser.fetchMonth({
       deviceId: 'd1-uuid',
@@ -168,7 +168,7 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
 
   test('when the year folder does not exist in drive, then no assets are upserted', async () => {
     mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
-    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] });
 
     await photoCloudBrowser.fetchMonth({
       deviceId: 'd1-uuid',
@@ -189,9 +189,9 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     const fileB = makeFile('file-b', 'photo-b.jpg');
 
     mockFolderService.getFolderFolders
-      .mockResolvedValueOnce({ folders: [yearFolder] } as never)
-      .mockResolvedValueOnce({ folders: [monthFolder] } as never)
-      .mockResolvedValueOnce({ folders: [dayFolder] } as never);
+      .mockResolvedValueOnce({ folders: [yearFolder] })
+      .mockResolvedValueOnce({ folders: [monthFolder] })
+      .mockResolvedValueOnce({ folders: [dayFolder] });
 
     mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [fileA, fileB] } as never);
 
@@ -533,7 +533,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth
       .mockResolvedValueOnce(new Set(['file-a']))
       .mockResolvedValueOnce(new Set(['file-b']));
-    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never); // no year folders
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] }); // no year folders
 
     await photoCloudBrowser.syncAllHistory({});
 

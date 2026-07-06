@@ -14,9 +14,10 @@ import {
   GroupHeaderPausedStorageFull,
   GroupHeaderPausing,
   GroupHeaderScanning,
-  GroupHeaderUploading,
   GroupHeaderSelection,
   GroupHeaderUploadError,
+  GroupHeaderUploading,
+  useGroupHeaderColors,
 } from './GroupHeaderStatus';
 
 export type GroupSyncStatus =
@@ -46,6 +47,49 @@ interface PhotosGroupHeaderProps {
 
 const GRADIENT_LOCATIONS: [number, number, number] = [0, 0.35, 1];
 
+const renderSyncStatus = ({
+  syncStatus,
+  isSticky,
+  onPausePress,
+  onResumePress,
+  onRetryPress,
+}: {
+  syncStatus: GroupSyncStatus;
+  isSticky?: boolean;
+  onPausePress?: () => void;
+  onResumePress?: () => void;
+  onRetryPress?: () => void;
+}): JSX.Element | null => {
+  switch (syncStatus.type) {
+    case 'count':
+      return <GroupHeaderCount count={syncStatus.count} isSticky={isSticky} />;
+    case 'scanning':
+      return <GroupHeaderScanning isSticky={isSticky} />;
+    case 'fetching':
+      return <GroupHeaderFetching isSticky={isSticky} />;
+    case 'uploading':
+      return <GroupHeaderUploading count={syncStatus.count} isSticky={isSticky} onPausePress={onPausePress} />;
+    case 'pausing':
+      return <GroupHeaderPausing isSticky={isSticky} />;
+    case 'paused':
+      return <GroupHeaderPaused count={syncStatus.count} isSticky={isSticky} onResumePress={onResumePress} />;
+    case 'paused-storage-full':
+      return <GroupHeaderPausedStorageFull />;
+    case 'paused-no-wifi':
+      return <GroupHeaderPausedNoWifi isSticky={isSticky} />;
+    case 'paused-no-connection':
+      return <GroupHeaderPausedNoConnection isSticky={isSticky} />;
+    case 'completed':
+      return <GroupHeaderCompleted isSticky={isSticky} />;
+    case 'upload-error':
+      return <GroupHeaderUploadError count={syncStatus.count} isSticky={isSticky} onPress={onRetryPress} />;
+    case 'none':
+      return null;
+    default:
+      return null;
+  }
+};
+
 const BackupProgressBar = ({
   progress,
   fillColor,
@@ -72,11 +116,8 @@ const PhotosGroupHeader = memo(
   }: PhotosGroupHeaderProps): JSX.Element => {
     const tailwind = useTailwind();
     const getColor = useGetColor();
+    const { labelColor, primaryColor } = useGroupHeaderColors(isSticky);
 
-    const labelColor = isSticky ? getColor('text-white') : getColor('text-gray-100');
-    const statusColor = isSticky ? getColor('text-white-90') : getColor('text-gray-60');
-    const primaryColor = isSticky ? getColor('text-white') : getColor('text-primary');
-    const dangerColor = getColor('text-red');
     const gradientColors: [string, string, string] = [getColor('bg-black-50'), getColor('bg-black-40'), 'transparent'];
 
     const isUploading = syncStatus.type === 'uploading';
@@ -106,7 +147,7 @@ const PhotosGroupHeader = memo(
         <View style={tailwind('flex-row items-center px-4')}>
           {syncStatus.type === 'selection' ? (
             <View style={{ flex: 1 }}>
-              <GroupHeaderSelection count={syncStatus.count} color={labelColor} />
+              <GroupHeaderSelection count={syncStatus.count} isSticky={isSticky} />
             </View>
           ) : (
             <>
@@ -114,35 +155,7 @@ const PhotosGroupHeader = memo(
                 {label}
               </AppText>
               <View style={[tailwind('flex-row items-center'), { gap: 8, maxWidth: 250 }]}>
-                {syncStatus.type === 'count' && <GroupHeaderCount count={syncStatus.count} color={statusColor} />}
-                {syncStatus.type === 'scanning' && <GroupHeaderScanning color={statusColor} />}
-                {syncStatus.type === 'fetching' && <GroupHeaderFetching color={statusColor} />}
-                {syncStatus.type === 'uploading' && (
-                  <GroupHeaderUploading
-                    count={syncStatus.count}
-                    primaryColor={primaryColor}
-                    labelColor={labelColor}
-                    statusColor={statusColor}
-                    onPausePress={onPausePress}
-                  />
-                )}
-                {syncStatus.type === 'pausing' && <GroupHeaderPausing color={labelColor} />}
-                {syncStatus.type === 'paused' && (
-                  <GroupHeaderPaused
-                    count={syncStatus.count}
-                    primaryColor={primaryColor}
-                    labelColor={labelColor}
-                    statusColor={statusColor}
-                    onResumePress={onResumePress}
-                  />
-                )}
-                {syncStatus.type === 'paused-storage-full' && <GroupHeaderPausedStorageFull dangerColor={dangerColor} />}
-                {syncStatus.type === 'paused-no-wifi' && <GroupHeaderPausedNoWifi color={statusColor} />}
-                {syncStatus.type === 'paused-no-connection' && <GroupHeaderPausedNoConnection color={statusColor} />}
-                {syncStatus.type === 'completed' && <GroupHeaderCompleted color={labelColor} />}
-                {syncStatus.type === 'upload-error' && (
-                  <GroupHeaderUploadError count={syncStatus.count} color={statusColor} onPress={onRetryPress} />
-                )}
+                {renderSyncStatus({ syncStatus, isSticky, onPausePress, onResumePress, onRetryPress })}
               </View>
             </>
           )}
