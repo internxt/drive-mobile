@@ -2,11 +2,14 @@ import { DisplayPrice, Invoice, PaymentMethod, UserSubscription } from '@internx
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
+import asyncStorageService from 'src/services/AsyncStorageService';
 import authService from 'src/services/AuthService';
 import notificationsService from 'src/services/NotificationsService';
 import paymentService from 'src/services/PaymentService';
 import { RootState } from 'src/store';
-import { NotificationType } from 'src/types';
+import { AsyncStorageKey, NotificationType } from 'src/types';
+
+const PHOTOS_ACCESS_TTL_MS = 24 * 60 * 60 * 1000;
 
 export type Paypal = {
   paypal?: {
@@ -101,7 +104,22 @@ const checkShouldDisplayBilling = createAsyncThunk<boolean, void, { state: RootS
 const loadFileLimitsThunk = createAsyncThunk<{ photosAccess: boolean } | null, void, { state: RootState }>(
   'payments/loadFileLimits',
   async () => {
-    return paymentService.getFileLimits();
+    const cached = await asyncStorageService.getItem(AsyncStorageKey.PhotosAccessCache);
+    if (cached) {
+      const { photosAccess, cachedAt } = JSON.parse(cached) as { photosAccess: boolean; cachedAt: number };
+      if (Date.now() - cachedAt < PHOTOS_ACCESS_TTL_MS) {
+        return { photosAccess };
+      }
+    }
+
+    const limits = await paymentService.getFileLimits();
+    if (limits) {
+      await asyncStorageService.saveItem(
+        AsyncStorageKey.PhotosAccessCache,
+        JSON.stringify({ photosAccess: limits.photosAccess, cachedAt: Date.now() }),
+      );
+    }
+    return limits;
   },
 );
 

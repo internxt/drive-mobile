@@ -26,8 +26,8 @@ const SkeletonCell = (): JSX.Element => {
   useEffect(() => {
     const anim = Animated.loop(
       Animated.sequence([
-        Animated.timing(fadeAnim, { toValue: 0.2, duration: 1500, easing: Easing.linear, useNativeDriver: false }),
-        Animated.timing(fadeAnim, { toValue: 1, duration: 800, easing: Easing.linear, useNativeDriver: false }),
+        Animated.timing(fadeAnim, { toValue: 0.2, duration: 1500, easing: Easing.linear, useNativeDriver: true }),
+        Animated.timing(fadeAnim, { toValue: 1, duration: 800, easing: Easing.linear, useNativeDriver: true }),
       ]),
     );
     anim.start();

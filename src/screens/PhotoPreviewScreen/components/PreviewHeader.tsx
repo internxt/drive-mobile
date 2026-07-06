@@ -1,7 +1,16 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowUpIcon, CloudSlashIcon, DotsThreeVerticalIcon, XIcon } from 'phosphor-react-native';
+import { useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
@@ -34,6 +43,31 @@ const getBackedBurstLabel = (isBurst: boolean, isUploading: boolean, burstTotal:
   return null;
 };
 
+const AnimatedArrowUp = ({ size, color }: { size: number; color: string }): JSX.Element => {
+  const y = useSharedValue(0);
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    y.value = withRepeat(withSequence(withTiming(-8, { duration: 1200 }), withTiming(0, { duration: 0 })), -1, false);
+    opacity.value = withRepeat(
+      withSequence(withTiming(0, { duration: 1200 }), withTiming(1, { duration: 0 })),
+      -1,
+      false,
+    );
+    return () => {
+      cancelAnimation(y);
+      cancelAnimation(opacity);
+    };
+  }, []);
+
+  const style = useAnimatedStyle(() => ({ transform: [{ translateY: y.value }], opacity: opacity.value }));
+
+  return (
+    <Animated.View style={style}>
+      <ArrowUpIcon size={size} color={color} />
+    </Animated.View>
+  );
+};
 interface TimelineInfoProps {
   isWaitingToUpload: boolean;
   isUploading: boolean;
@@ -78,7 +112,7 @@ const TimelineInfo = ({
       )}
       {isUploading && (
         <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
-          <ArrowUpIcon size={16} color="white" />
+          <AnimatedArrowUp size={16} color="white" />
           <AppText style={tailwind('text-sm text-white')}>{uploadLabel}</AppText>
         </View>
       )}

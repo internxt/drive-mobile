@@ -416,6 +416,24 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.deleteById, [assetId]);
   }
 
+  async cleanupOrphanedAssetSync(localAssetIds: Set<string>): Promise<number> {
+    const allsyncedAssets = await sqliteService.getAllAsync<{ asset_id: string }>(
+      DB_NAME,
+      assetSyncTable.statements.getAllTrackedAssetIds,
+    );
+    const orphanAssetsIds = allsyncedAssets.filter((a) => !localAssetIds.has(a.asset_id)).map((a) => a.asset_id);
+    if (orphanAssetsIds.length === 0) {
+      return 0;
+    }
+    for (let i = 0; i < orphanAssetsIds.length; i += CHUNK_SIZE) {
+      const orphanAssetsChunk = orphanAssetsIds.slice(i, i + CHUNK_SIZE);
+      await Promise.all(
+        orphanAssetsChunk.map((id) => sqliteService.executeSql(DB_NAME, assetSyncTable.statements.deleteById, [id])),
+      );
+    }
+    return orphanAssetsIds.length;
+  }
+
   async reset(): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.reset);
   }

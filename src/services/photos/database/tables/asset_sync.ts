@@ -165,7 +165,8 @@ const statements = {
   `,
   deleteById: `DELETE FROM ${TABLE_NAME} WHERE asset_id = ?;`,
   reset: `DELETE FROM ${TABLE_NAME};`,
-  getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE status = 'synced' AND remote_file_id IS NOT NULL;`,
+  getSyncedRemoteFileIds: `SELECT remote_file_id FROM ${TABLE_NAME} WHERE remote_file_id IS NOT NULL AND status NOT IN ('cloud_deleted', 'deleted');`,
+  getAllTrackedAssetIds: `SELECT asset_id FROM ${TABLE_NAME} WHERE remote_file_id IS NOT NULL AND status NOT IN ('cloud_deleted', 'deleted');`,
 
   getSyncedMonths: `
     SELECT DISTINCT

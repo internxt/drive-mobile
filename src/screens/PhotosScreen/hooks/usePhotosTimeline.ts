@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useAppSelector } from 'src/store/hooks';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
 import { getGroupSyncStatus, groupAssetsByDate, mergeCloudIntoGroups } from '../utils/photoTimelineGroups';
@@ -21,10 +21,19 @@ export const usePhotosTimeline = (): PhotosTimelineResult => {
     uploadingIdSet,
     burstRepresentativeIdSet,
     incompleteUploadBurstIdSet: incompleteBurstIdSet,
+    localDeletionDetectedCount,
     loadNextPage,
     reload: reloadLocal,
   } = useLocalAssets();
   const { cloudItems, reloadCloud } = useCloudAssets();
+
+  // When local assets are deleted, their asset_sync entries are removed so the cloud
+  // copies become visible as cloud-only. Reload the cloud view to reflect that.
+  useEffect(() => {
+    if (localDeletionDetectedCount > 0) {
+      reloadCloud();
+    }
+  }, [localDeletionDetectedCount, reloadCloud]);
 
   const syncStatus = useAppSelector((state) => state.photos.syncStatus);
   const sessionTotalAssets = useAppSelector((state) => state.photos.sessionTotalAssets);

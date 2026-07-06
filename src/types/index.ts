@@ -104,6 +104,7 @@ export enum AsyncStorageKey {
   PhotosDiscoverSeen = 'photosDiscoverSeen',
   PhotosDeviceId = 'photos-device-id',
   PhotosDeviceKey = 'photos-device-key',
+  PhotosAccessCache = 'photosAccessCache',
 }
 
 export type ProgressCallback = (progress: number) => void;

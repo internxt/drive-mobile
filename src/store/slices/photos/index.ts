@@ -268,6 +268,12 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
           }),
         ),
       ]);
+      const localAssetIdSet = new Set(scannedAssets.map((a) => a.id));
+      const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(localAssetIdSet);
+      if (orphanedAssetsSyncRemovedCount > 0) {
+        logger.info(`[Discovery] Removed ${orphanedAssetsSyncRemovedCount} asset_sync entries for locally deleted assets`);
+      }
+
       const allPendingAssets = await photosLocalDB.getPendingAssets();
       dispatch(
         photosSlice.actions.setDiscoveryResult({
@@ -521,6 +527,7 @@ export const photosActions = photosSlice.actions;
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/signOut',
   async (_, { dispatch }) => {
+    PhotoUploadQueue.abortAll();
     await Promise.all([photosLocalDB.reset(), photosLocalDB.resetCloudAssets()]).catch(errorService.reportError);
     dispatch(photosActions.resetState());
   },
