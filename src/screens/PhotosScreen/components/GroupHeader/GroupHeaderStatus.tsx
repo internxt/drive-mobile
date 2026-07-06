@@ -8,7 +8,8 @@ import {
   WarningCircleIcon,
   WifiSlashIcon,
 } from 'phosphor-react-native';
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { ActivityIndicator, Animated, Easing, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
@@ -60,10 +61,25 @@ export const GroupHeaderScanning = ({ isSticky }: StickyProps): JSX.Element => {
 
 export const GroupHeaderFetching = ({ isSticky }: StickyProps): JSX.Element => {
   const tailwind = useTailwind();
-  const { statusColor } = useGroupHeaderColors(isSticky);
+  const { statusColor, primaryColor } = useGroupHeaderColors(isSticky);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 0.3, duration: 1200, easing: Easing.linear, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1200, easing: Easing.linear, useNativeDriver: true }),
+      ]),
+    );
+    anim.start();
+    return () => anim.stop();
+  }, []);
+
   return (
     <>
-      <CloudArrowDownIcon size={24} color={statusColor} weight="regular" />
+      <Animated.View style={{ opacity: pulseAnim }}>
+        <CloudArrowDownIcon size={24} color={primaryColor} weight="regular" />
+      </Animated.View>
       <AppText medium style={[tailwind('text-base'), { color: statusColor }]}>
         {strings.screens.photos.groupHeader.gettingPhotos}
       </AppText>
