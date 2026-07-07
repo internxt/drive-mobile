@@ -137,6 +137,23 @@ describe('useCloudAssets', () => {
     expect(result.current.cloudItems[0].id).toBe('r3');
   });
 
+  test('when a device filter id is provided, then it is passed to the database query', async () => {
+    const { result } = renderHook(() => useCloudAssets('device-2'));
+
+    await act(flushAsync);
+
+    expect(mockPhotosLocalDB.getAllCloudAssets).toHaveBeenCalledWith('device-2');
+    expect(result.current.cloudItems).toEqual([]);
+  });
+
+  test('when no device filter id is provided, then all devices are queried', async () => {
+    renderHook(() => useCloudAssets());
+
+    await act(flushAsync);
+
+    expect(mockPhotosLocalDB.getAllCloudAssets).toHaveBeenCalledWith(undefined);
+  });
+
   test('when synced remote ids overlap with cloud assets, then duplicates are excluded', async () => {
     mockPhotosLocalDB.getAllCloudAssets.mockResolvedValueOnce([
       {

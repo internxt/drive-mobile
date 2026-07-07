@@ -9,7 +9,7 @@ export interface CloudAssetsResult {
   reloadCloud: () => Promise<void>;
 }
 
-export const useCloudAssets = (): CloudAssetsResult => {
+export const useCloudAssets = (deviceFilterId?: string | null): CloudAssetsResult => {
   const [cloudItems, setCloudItems] = useState<CloudPhotoItem[]>([]);
   const cloudFetchRevision = useAppSelector((state) => state.photos.cloudFetchRevision);
   const sessionUploadedAssets = useAppSelector((state) => state.photos.sessionUploadedAssets);
@@ -18,7 +18,7 @@ export const useCloudAssets = (): CloudAssetsResult => {
   const reloadCloudFromDB = useCallback(async () => {
     await photosLocalDB.init();
     const [allCloud, syncedRemoteIds] = await Promise.all([
-      photosLocalDB.getAllCloudAssets(),
+      photosLocalDB.getAllCloudAssets(deviceFilterId ?? undefined),
       photosLocalDB.getSyncedRemoteFileIds(),
     ]);
 
@@ -26,7 +26,7 @@ export const useCloudAssets = (): CloudAssetsResult => {
       (cloudEntry) => !syncedRemoteIds.has(cloudEntry.remoteFileId) && cloudEntry.livePhotoRole !== 'paired_video',
     );
     setCloudItems(deduplicated.map(cloudEntryToPhotoItem));
-  }, []);
+  }, [deviceFilterId]);
 
   useEffect(() => {
     reloadCloudFromDB();

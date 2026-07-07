@@ -30,6 +30,7 @@ import PhotosTimeline, { PhotosTimelineHandle } from './components/PhotosTimelin
 import SelectionToolbar from './components/SelectionToolbar';
 import EnableBackupBottomSheet from './EnableBackupBottomSheet';
 import { usePhotoActions } from './hooks/usePhotoActions';
+import { usePhotoDevices } from './hooks/usePhotoDevices';
 import { usePhotoSelection } from './hooks/usePhotoSelection';
 import { usePhotosTimeline } from './hooks/usePhotosTimeline';
 import useSelectMorePhotos from './hooks/useSelectMorePhotos';
@@ -44,7 +45,13 @@ const PhotosScreen = (): JSX.Element => {
   const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
   const [isEnableBackupSheetOpen, setIsEnableBackupSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud } = usePhotosTimeline();
+  const [deviceFilterId, setDeviceFilterId] = useState<string | null>(null);
+  const { devices: photoDevices, reload: reloadPhotoDevices } = usePhotoDevices();
+  const activeDeviceName = useMemo(
+    () => photoDevices.find((device) => device.uuid === deviceFilterId)?.name ?? null,
+    [photoDevices, deviceFilterId],
+  );
+  const { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud } = usePhotosTimeline(deviceFilterId);
 
   const timelineRef = useRef<PhotosTimelineHandle>(null);
   const lastViewedIdRef = useRef<string | null>(null);
@@ -201,6 +208,11 @@ const PhotosScreen = (): JSX.Element => {
         isSelectMode={selection.isSelectMode}
         onSelectPress={handleSelectPress}
         onCancelPress={selection.exitSelectMode}
+        activeDeviceName={activeDeviceName}
+        devices={photoDevices}
+        selectedDeviceId={deviceFilterId}
+        onSelectDevice={setDeviceFilterId}
+        onOpenDeviceFilter={reloadPhotoDevices}
       />
 
       <View style={tailwind('flex-1')}>

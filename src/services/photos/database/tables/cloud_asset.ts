@@ -99,6 +99,25 @@ const statements = {
     ORDER BY created_at DESC;
   `,
 
+  getAllByDevice: `
+    SELECT ${COLUMNS}
+    FROM ${TABLE_NAME}
+    WHERE device_id = ?
+      AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
+      AND (burst_role IS NULL OR burst_role != 'member')
+    ORDER BY created_at DESC;
+  `,
+
+  getByRangeAndDevice: `
+    SELECT ${COLUMNS}
+    FROM ${TABLE_NAME}
+    WHERE (created_at >= ? AND created_at <= ?)
+      AND device_id = ?
+      AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
+      AND (burst_role IS NULL OR burst_role != 'member')
+    ORDER BY created_at DESC;
+  `,
+
   getBurstMembers: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}

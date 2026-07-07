@@ -34,6 +34,7 @@ const photosState = {
   uploadingAssetIds: [] as string[],
   sessionUploadedAssets: 0,
   isFetchingCloudHistory: false,
+  permissionStatus: 'granted' as const,
 };
 
 const makeAsset = (id: string, creationTime = 1000): MediaLibrary.Asset =>
@@ -469,5 +470,42 @@ describe('useLocalAssets', () => {
 
     expect(result.current.syncedIds.has('a1')).toBe(false);
     expect(result.current.cloudDeletedIds.has('a1')).toBe(false);
+  });
+
+  test('when the photo permission is not granted yet, then the device photo library is never touched', async () => {
+    Object.assign(photosState, { permissionStatus: 'undetermined' as const });
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockMediaLibrary.getAssetsAsync).not.toHaveBeenCalled();
+    expect(mockMediaLibrary.addListener).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  test('when the photo permission goes from ungranted to granted, then the device photo library is fetched', async () => {
+    Object.assign(photosState, { permissionStatus: 'undetermined' as const });
+    mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([makeAsset('a1')]));
+
+    const { result, rerender } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockMediaLibrary.getAssetsAsync).not.toHaveBeenCalled();
+
+    Object.assign(photosState, { permissionStatus: 'granted' as const });
+    rerender(undefined);
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockMediaLibrary.getAssetsAsync).toHaveBeenCalledTimes(1);
+    expect(mockMediaLibrary.addListener).toHaveBeenCalledTimes(1);
+    expect(result.current.assets).toEqual([makeAsset('a1')]);
   });
 });

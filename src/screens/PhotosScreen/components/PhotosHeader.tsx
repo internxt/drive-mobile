@@ -3,14 +3,30 @@ import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
+import { PhotoDeviceOption } from '../hooks/usePhotoDevices';
+import DeviceFilterDropdown from './DeviceFilterDropdown';
 
 interface PhotosHeaderProps {
   isSelectMode?: boolean;
   onSelectPress?: () => void;
   onCancelPress?: () => void;
+  activeDeviceName?: string | null;
+  devices?: PhotoDeviceOption[];
+  selectedDeviceId?: string | null;
+  onSelectDevice?: (deviceId: string | null) => void;
+  onOpenDeviceFilter?: () => void;
 }
 
-const PhotosHeader = ({ isSelectMode, onSelectPress, onCancelPress }: PhotosHeaderProps): JSX.Element => {
+const PhotosHeader = ({
+  isSelectMode,
+  onSelectPress,
+  onCancelPress,
+  activeDeviceName,
+  devices,
+  selectedDeviceId,
+  onSelectDevice,
+  onOpenDeviceFilter,
+}: PhotosHeaderProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
@@ -23,15 +39,24 @@ const PhotosHeader = ({ isSelectMode, onSelectPress, onCancelPress }: PhotosHead
       ]}
     >
       <View style={tailwind('flex-row items-center h-11')}>
-        <View style={tailwind('flex-1 px-4 justify-center')}>
+        <View style={tailwind('px-4 justify-center')}>
           <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
             {strings.screens.photos.title}
           </AppText>
         </View>
+        <View style={styles.spacer} />
+        {!isSelectMode && onSelectDevice && (
+          <DeviceFilterDropdown
+            activeDeviceName={activeDeviceName ?? null}
+            devices={devices ?? []}
+            selectedDeviceId={selectedDeviceId ?? null}
+            onSelect={onSelectDevice}
+            onOpen={onOpenDeviceFilter}
+          />
+        )}
         <TouchableOpacity
           onPress={isSelectMode ? onCancelPress : onSelectPress}
-          style={tailwind('px-5 py-2.5 mr-1')}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          style={tailwind('p-5 pl-3 py-2.5 mr-1 ml-2')}
         >
           <AppText medium style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
             {isSelectMode ? strings.screens.photos.selection.cancel : strings.screens.photos.select}
@@ -45,6 +70,9 @@ const PhotosHeader = ({ isSelectMode, onSelectPress, onCancelPress }: PhotosHead
 const styles = StyleSheet.create({
   border: {
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  spacer: {
+    flex: 1,
   },
 });
 
