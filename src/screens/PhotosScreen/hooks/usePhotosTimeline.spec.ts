@@ -64,6 +64,7 @@ beforeEach(() => {
   mockUseLocalAssets.mockReturnValue({
     assets: [localAsset],
     isLoading: false,
+    hasLoadedLocalAssetsOnce: true,
     syncedIds: new Set(),
     uploadingIdSet: new Set(),
     burstRepresentativeIdSet: new Set(),
@@ -99,5 +100,44 @@ describe('usePhotosTimeline', () => {
     const allIds = result.current.timelineDateGroups.flatMap((entry) => entry.group.photos.map((photo) => photo.id));
     expect(allIds).toEqual(['cloud-1']);
     expect(allIds).not.toContain('local-1');
+  });
+
+  test('when local assets have not finished their first load yet, then cloud items are withheld to avoid a reorder-after-mount scroll jump', () => {
+    mockUseLocalAssets.mockReturnValue({
+      assets: [],
+      isLoading: true,
+      hasLoadedLocalAssetsOnce: false,
+      syncedIds: new Set(),
+      uploadingIdSet: new Set(),
+      burstRepresentativeIdSet: new Set(),
+      incompleteUploadBurstIdSet: new Set(),
+      localDeletionDetectedCount: 0,
+      loadNextPage: jest.fn(),
+      reload: jest.fn(),
+    });
+
+    const { result } = renderHook(() => usePhotosTimeline(null));
+
+    expect(result.current.timelineDateGroups).toEqual([]);
+  });
+
+  test('when local assets have not finished loading but the filter targets another device, then that device cloud items still show', () => {
+    mockUseLocalAssets.mockReturnValue({
+      assets: [],
+      isLoading: true,
+      hasLoadedLocalAssetsOnce: false,
+      syncedIds: new Set(),
+      uploadingIdSet: new Set(),
+      burstRepresentativeIdSet: new Set(),
+      incompleteUploadBurstIdSet: new Set(),
+      localDeletionDetectedCount: 0,
+      loadNextPage: jest.fn(),
+      reload: jest.fn(),
+    });
+
+    const { result } = renderHook(() => usePhotosTimeline('other-device'));
+
+    const allIds = result.current.timelineDateGroups.flatMap((entry) => entry.group.photos.map((photo) => photo.id));
+    expect(allIds).toEqual(['cloud-1']);
   });
 });

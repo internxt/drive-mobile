@@ -154,6 +154,40 @@ describe('useCloudAssets', () => {
     expect(mockPhotosLocalDB.getAllCloudAssets).toHaveBeenCalledWith(undefined);
   });
 
+  test('when the device filter id changes, then the previous filter cloud items are cleared before the new query resolves', async () => {
+    mockPhotosLocalDB.getAllCloudAssets
+      .mockResolvedValueOnce([
+        {
+          remoteFileId: 'device-1-photo',
+          deviceId: 'device-1',
+          createdAt: 1000,
+          fileName: 'photo.jpg',
+          fileSize: null,
+          fileId: null,
+          thumbnailPath: null,
+          thumbnailBucketId: null,
+          thumbnailBucketFile: null,
+          thumbnailType: null,
+          discoveredAt: 1000,
+        },
+      ])
+      .mockImplementationOnce(() => new Promise(() => undefined)); // never resolves for device-2
+
+    const { result, rerender } = renderHook(({ deviceFilterId }) => useCloudAssets(deviceFilterId), {
+      initialProps: { deviceFilterId: 'device-1' },
+    });
+
+    await act(flushAsync);
+    expect(result.current.cloudItems.map((item) => item.id)).toEqual(['device-1-photo']);
+
+    await act(async () => {
+      rerender({ deviceFilterId: 'device-2' });
+      await flushAsync();
+    });
+
+    expect(result.current.cloudItems).toEqual([]);
+  });
+
   test('when synced remote ids overlap with cloud assets, then duplicates are excluded', async () => {
     mockPhotosLocalDB.getAllCloudAssets.mockResolvedValueOnce([
       {

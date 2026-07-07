@@ -1,4 +1,4 @@
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -12,6 +12,7 @@ import PhotosEmptyState from './PhotosEmptyState';
 
 export interface PhotosTimelineHandle {
   scrollToAssetId: (id: string) => void;
+  scrollToTop: () => void;
 }
 
 export type TimelineDateGroup = { group: PhotoDateGroup; syncStatus: GroupSyncStatus };
@@ -90,7 +91,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     const [topGroupId, setTopGroupId] = useState<string | undefined>(() => boundaries[0]?.id);
 
-    const flashListRef = useRef<any>(null);
+    const flashListRef = useRef<FlashListRef<TimelinePhotoItem>>(null);
     const boundariesRef = useRef<GroupBoundary[]>(boundaries);
     boundariesRef.current = boundaries;
 
@@ -141,6 +142,9 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             return;
           }
           flashListRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0.3 });
+        },
+        scrollToTop: () => {
+          flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
         },
       }),
       [idToIndex],
@@ -206,6 +210,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             onScroll={onScroll}
             scrollEventThrottle={16}
             progressViewOffset={HEADER_HEIGHT}
+            maintainVisibleContentPosition={{ disabled: true }}
           />
 
           {!isEmpty && currentBoundary && (

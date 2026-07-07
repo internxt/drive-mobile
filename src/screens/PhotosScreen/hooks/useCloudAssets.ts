@@ -29,6 +29,7 @@ export const useCloudAssets = (deviceFilterId?: string | null): CloudAssetsResul
   }, [deviceFilterId]);
 
   useEffect(() => {
+    setCloudItems([]);
     reloadCloudFromDB();
   }, [reloadCloudFromDB]);
 

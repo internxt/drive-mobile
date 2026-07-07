@@ -69,12 +69,15 @@ describe('useLocalAssets', () => {
 
     const { result } = renderHook(() => useLocalAssets());
 
+    expect(result.current.hasLoadedLocalAssetsOnce).toBe(false);
+
     await act(async () => {
       await Promise.resolve();
     });
 
     expect(result.current.assets).toEqual(assets);
     expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasLoadedLocalAssetsOnce).toBe(true);
   });
 
   test('when loadNextPage is called and there is a next page, then the new assets are appended', async () => {
