@@ -9,7 +9,9 @@ import ProgressBar from '../../../../AppProgressBar';
 import AppText from '../../../../AppText';
 
 import { time } from '@internxt-mobile/services/common/time';
+import { useDownloadedThumbnail } from '@internxt-mobile/hooks/drive';
 import { DriveListType } from '@internxt-mobile/types/drive/ui';
+import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../../hooks/useColor';
 import { DriveItemStatus } from '../../../../../types/drive/item';
@@ -18,6 +20,7 @@ import { DriveItemProps } from '../../../../../types/drive/ui';
 export function DriveListModeItem(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const downloadedThumbnail = useDownloadedThumbnail(props.data);
 
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
@@ -125,6 +128,13 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
           <View style={[tailwind('mb-1 mr-4 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
             {isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
+            ) : downloadedThumbnail ? (
+              <FastImage
+                testID="drive-list-item-thumbnail"
+                source={{ uri: downloadedThumbnail.uri }}
+                style={{ width: iconSize, height: iconSize, borderRadius: 6 }}
+                resizeMode="cover"
+              />
             ) : (
               <IconFile width={iconSize} height={iconSize} />
             )}
