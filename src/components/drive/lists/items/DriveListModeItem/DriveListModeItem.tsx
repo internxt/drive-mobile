@@ -115,6 +115,24 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
     );
   };
 
+  const isThumbnailVisible = Boolean(downloadedThumbnail);
+
+  let leadingVisual: JSX.Element;
+  if (isFolder) {
+    leadingVisual = <FolderIcon width={iconSize} height={iconSize} />;
+  } else if (isThumbnailVisible) {
+    leadingVisual = (
+      <FastImage
+        testID="drive-list-item-thumbnail"
+        source={{ uri: downloadedThumbnail?.uri }}
+        style={{ width: iconSize, height: iconSize, borderRadius: 6 }}
+        resizeMode="cover"
+      />
+    );
+  } else {
+    leadingVisual = <IconFile width={iconSize} height={iconSize} />;
+  }
+
   return (
     <TouchableHighlight
       disabled={!isFolderUploading && (isUploading || isDownloading)}
@@ -126,18 +144,7 @@ export function DriveListModeItem(props: DriveItemProps): JSX.Element {
       <View style={[tailwind('flex-row pl-5'), { backgroundColor: getColor('bg-surface') }]}>
         <View style={[tailwind('flex-row flex-1 py-3')]}>
           <View style={[tailwind('mb-1 mr-4 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
-            {isFolder ? (
-              <FolderIcon width={iconSize} height={iconSize} />
-            ) : downloadedThumbnail ? (
-              <FastImage
-                testID="drive-list-item-thumbnail"
-                source={{ uri: downloadedThumbnail.uri }}
-                style={{ width: iconSize, height: iconSize, borderRadius: 6 }}
-                resizeMode="cover"
-              />
-            ) : (
-              <IconFile width={iconSize} height={iconSize} />
-            )}
+            {leadingVisual}
             {props.type === DriveListType.Shared && (
               <View
                 style={[
