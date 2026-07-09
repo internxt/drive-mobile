@@ -118,6 +118,26 @@ describe('useLocalAssets', () => {
     expect(mockMediaLibrary.getAssetsAsync).toHaveBeenCalledTimes(1);
   });
 
+  test('when an asset has a corrupted creation time but a recent modification time, then it is placed by its resolved date instead of the device sort order', async () => {
+    const RECENT_TIME = new Date('2026-06-26T10:00:00Z').getTime();
+    const OLDER_TIME = new Date('2026-06-01T10:00:00Z').getTime();
+    const corruptedScreenshot = {
+      ...makeAsset('screenshot', 0),
+      modificationTime: RECENT_TIME,
+    } as MediaLibrary.Asset;
+    const olderPhoto = { ...makeAsset('older-photo', OLDER_TIME), modificationTime: OLDER_TIME } as MediaLibrary.Asset;
+    mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([olderPhoto, corruptedScreenshot]));
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.assets.map((asset) => asset.id)).toEqual(['screenshot', 'older-photo']);
+    expect(result.current.assets[0].creationTime).toBe(RECENT_TIME);
+  });
+
   test('when the app returns to the foreground and a recent photo was deleted while locked, then the deleted photo is removed from the gallery', async () => {
     const firstLoad = [makeAsset('a1'), makeAsset('a2')];
     const afterDelete = [makeAsset('a2')];
@@ -192,8 +212,12 @@ describe('useLocalAssets', () => {
 
     const { result } = renderHook(() => useLocalAssets());
 
-    await act(async () => { await Promise.resolve(); }); // page 1
-    await act(async () => { await Promise.resolve(); }); // page 2 eager
+    await act(async () => {
+      await Promise.resolve();
+    }); // page 1
+    await act(async () => {
+      await Promise.resolve();
+    }); // page 2 eager
 
     expect(result.current.assets).toEqual([...headAssets, ...tailAssets]);
 

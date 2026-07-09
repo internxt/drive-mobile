@@ -37,7 +37,9 @@ const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Pr
   const cachePath = cachePathFor(item.id, ext);
 
   const alreadyCached = await fileSystemService.exists(cachePath);
-  if (alreadyCached) return fileSystemService.pathToUri(cachePath);
+  if (alreadyCached) {
+    return fileSystemService.pathToUri(cachePath);
+  }
 
   const asset = await photosLocalDB.getCloudAssetById(item.id);
   if (!asset?.fileId) {

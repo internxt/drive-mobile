@@ -12,6 +12,7 @@ import { stripFileUri } from '../../../services/common/uri/uriHelpers';
 import fileSystemService from '../../../services/FileSystemService';
 import { photosLocalDB } from '../../../services/photos/database/photosLocalDB';
 import { photoMediaLibraryService } from '../../../services/photos/PhotoMediaLibraryService';
+import { resolveAssetCreationTime } from '../../../services/photos/utils/resolveAssetCreationTime';
 import { CloudPhotoItem, PhotoItem, TimelinePhotoItem } from '../../PhotosScreen/types';
 import { formatBytes, formatDate, formatDimensions, formatExtension } from '../utils/formatters';
 
@@ -93,16 +94,19 @@ const buildLocalMetadata = async (
 ): Promise<void> => {
   const cachedAssetStatus = await photosLocalDB.getStatus(localItem.id);
   let fileName = cachedAssetStatus?.fileName ?? null;
-  let creationTime = cachedAssetStatus?.creationTime ?? null;
   let width = cachedAssetStatus?.width ?? null;
   let height = cachedAssetStatus?.height ?? null;
 
   const assetInfo = await photoMediaLibraryService.getAssetInfo(localItem.id);
   fileName ??= assetInfo.filename;
-  creationTime ??= assetInfo.creationTime;
-  const modificationTime: number | null = assetInfo.modificationTime ?? null;
   width ??= assetInfo.width;
   height ??= assetInfo.height;
+
+  const modificationTime: number | null = assetInfo.modificationTime ?? null;
+  const creationTime = resolveAssetCreationTime(
+    cachedAssetStatus?.creationTime ?? assetInfo.creationTime,
+    modificationTime,
+  );
 
   const fileSize = await resolveLocalFileSize(
     localItem.id,
