@@ -19,14 +19,8 @@
 		7A61A118D20D0540EF70FE74 /* libPods-InternxtShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 546A3CDB7E733C0B5DA4C994 /* libPods-InternxtShareExtension.a */; };
 		7D373856C83A43879BFBE604 /* InternxtShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */; };
 		8F8148045BC14A539BD1917D /* ShareExtensionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */; };
+		A1F74FE4605AE39434B62C4D /* PHAssetExportModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 2356298295870010406FE711 /* PHAssetExportModule.m */; };
 		AA0100012F87A94000E14783 /* SharedAuthKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */; };
-		FF2010002F90000000E14783 /* FileProviderModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010002F90000000E14783 /* FileProviderModule.swift */; };
-		FF2010012F90000000E14783 /* FileProviderModule.m in Sources */ = {isa = PBXBuildFile; fileRef = FF1010012F90000000E14783 /* FileProviderModule.m */; };
-		FF2010062F90000000E14783 /* FileProviderItemIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */; };
-		FF2010022F90000000E14783 /* SyncAnchorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010022F90000000E14783 /* SyncAnchorStore.swift */; };
-		FF2010032F90000000E14783 /* SyncAnchorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010022F90000000E14783 /* SyncAnchorStore.swift */; };
-		FF2010042F90000000E14783 /* SyncAnchorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010022F90000000E14783 /* SyncAnchorStore.swift */; };
-		FF2010052F90000000E14783 /* SyncAnchorStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010032F90000000E14783 /* SyncAnchorStoreTests.swift */; };
 		AA0100032F87A94000E14783 /* FileProviderDomainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */; };
 		AA0100052F87A94000E14783 /* InternxtAuthCredentialsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */; };
 		AA0100072F87A94000E14783 /* InternxtAuthCredentialsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */; };
@@ -110,6 +104,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Internxt/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Internxt/Info.plist; sourceTree = "<group>"; };
 		20957EE3E4797FBBC2BD3192 /* libPods-InternxtFileProvider.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtFileProvider.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		2356298295870010406FE711 /* PHAssetExportModule.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = PHAssetExportModule.m; path = Internxt/PHAssetExportModule.m; sourceTree = "<group>"; };
 		30C3C55FF8AE435F8A82A9BC /* InternxtShareExtension.entitlements */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; path = InternxtShareExtension.entitlements; sourceTree = "<group>"; };
 		37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = Internxt/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; path = ShareExtensionViewController.swift; sourceTree = "<group>"; };
@@ -122,10 +117,6 @@
 		A4921399A370F5CE6EE7EA0F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-InternxtShareExtension/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		A7EBA4C496DAF1149115FA8A /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 		AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedAuthKeychain.swift; path = Internxt/SharedAuthKeychain.swift; sourceTree = "<group>"; };
-		FF1010002F90000000E14783 /* FileProviderModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileProviderModule.swift; path = Internxt/FileProviderModule.swift; sourceTree = "<group>"; };
-		FF1010012F90000000E14783 /* FileProviderModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = FileProviderModule.m; path = Internxt/FileProviderModule.m; sourceTree = "<group>"; };
-		FF1010022F90000000E14783 /* SyncAnchorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncAnchorStore.swift; sourceTree = "<group>"; };
-		FF1010032F90000000E14783 /* SyncAnchorStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncAnchorStoreTests.swift; sourceTree = "<group>"; };
 		AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileProviderDomainManager.swift; path = Internxt/FileProviderDomainManager.swift; sourceTree = "<group>"; };
 		AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InternxtAuthCredentialsModule.swift; path = Internxt/InternxtAuthCredentialsModule.swift; sourceTree = "<group>"; };
 		AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = InternxtAuthCredentialsModule.m; path = Internxt/InternxtAuthCredentialsModule.m; sourceTree = "<group>"; };
@@ -217,6 +208,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */,
+				5611E0781106EC1DEFE5CAF3 /* PHAssetExportModule.swift */,
+				2356298295870010406FE711 /* PHAssetExportModule.m */,
 			);
 			name = Internxt;
 			sourceTree = "<group>";
@@ -789,6 +782,8 @@
 				FF2010012F90000000E14783 /* FileProviderModule.m in Sources */,
 				FF2010032F90000000E14783 /* SyncAnchorStore.swift in Sources */,
 				FF2010062F90000000E14783 /* FileProviderItemIdentifier.swift in Sources */,
+				6AEC7292291CE3022419B72D /* PHAssetExportModule.swift in Sources */,
+				A1F74FE4605AE39434B62C4D /* PHAssetExportModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

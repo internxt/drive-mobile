@@ -790,6 +790,9 @@ const translations = {
       uploadInterrupted: 'Could not upload {0}',
       uploadsInterrupted: 'Could not upload {0} files',
       storageLimitReached: 'You have reached your storage limit',
+      cameraRollPickerFailed: "We couldn't open your photos. Please try again.",
+      cameraRollPartialFailure:
+        "{0} item(s) couldn't be added. They may be stored in iCloud — check your connection and try again.",
       inviteAFriend: 'Error sending invitation: {0}',
       loadProducts: 'Cannot load products: {0}',
       passwordsDontMatch: "Passwords don't match",
@@ -1657,6 +1660,9 @@ const translations = {
       uploadInterrupted: 'No se pudo subir {0}',
       uploadsInterrupted: 'No se pudieron subir {0} archivos',
       storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
+      cameraRollPickerFailed: 'No pudimos abrir tus fotos. Inténtalo de nuevo.',
+      cameraRollPartialFailure:
+        '{0} elemento(s) no se pudieron añadir. Puede que estén en iCloud: revisa tu conexión e inténtalo de nuevo.',
       inviteAFriend: 'Error enviando invitación: {0}',
       loadProducts: 'Error al cargar productos: {0}',
       passwordsDontMatch: 'Las contraseñas no coinciden',
