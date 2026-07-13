@@ -16,6 +16,7 @@ enum SharedAuthKeychain {
   static let userIdKey = "shared_userId"
   static let driveBaseUrlKey = "shared_driveBaseUrl"
   static let bridgeBaseUrlKey = "shared_bridgeBaseUrl"
+  static let themePreferenceKey = "shared_themePreference"
 
   static let allKeys = [
     photosTokenKey, mnemonicKey, rootFolderIdKey, bucketKey, bridgeUserKey, userIdKey,
@@ -102,6 +103,8 @@ enum SharedAuthKeychain {
   static func syncFromPrivateKeychain() {
     guard accessGroup != nil else { return }
 
+    syncThemePreference()
+
     let isAuthenticated = readPrivate("photosToken") != nil
     guard isAuthenticated else {
       clearAll()
@@ -114,6 +117,15 @@ enum SharedAuthKeychain {
     copyFromPrivate(privateKey: "xUser_bucket", sharedKey: bucketKey)
     copyFromPrivate(privateKey: "xUser_bridgeUser", sharedKey: bridgeUserKey, isJSONEncoded: true)
     copyFromPrivate(privateKey: "xUser_userId", sharedKey: userIdKey, isJSONEncoded: true)
+  }
+
+  static func syncThemePreference() {
+    guard accessGroup != nil else { return }
+    if let data = readPrivate("themePreference") {
+      write(data, for: themePreferenceKey)
+    } else {
+      delete(themePreferenceKey)
+    }
   }
 
   private static func copyFromPrivate(privateKey: String, sharedKey: String, isJSONEncoded: Bool = false) {
