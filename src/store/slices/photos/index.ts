@@ -22,7 +22,7 @@ import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 import { hasPhotosFeatureAccess } from './selectors';
-import { runUploadThunk } from './thunks/upload';
+import { evaluateNetworkPause, runUploadThunk } from './thunks/upload';
 export { runUploadThunk };
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
@@ -110,9 +110,24 @@ const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
   );
 };
 
+let unsubscribeNetworkRecovery: (() => void) | null = null;
+
 export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/setState',
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
+    unsubscribeNetworkRecovery?.();
+    unsubscribeNetworkRecovery = networkMonitorService.subscribe((networkState) => {
+      const { enabled, isPaused, syncStatus, networkCondition } = getState().photos;
+      const isWaitingForNetwork = syncStatus === 'paused-no-wifi' || syncStatus === 'paused-no-connection';
+      if (!enabled || isPaused || !isWaitingForNetwork) {
+        return;
+      }
+      if (evaluateNetworkPause(networkState, networkCondition) === null) {
+        logger.info('[Photos] Network recovered — resuming backup cycle');
+        dispatch(runBackupCycleThunk());
+      }
+    });
+
     await photosLocalDB.init();
     const persistedState = await asyncStorageService.getItem(AsyncStorageKey.PhotosSettings);
 
@@ -392,7 +407,8 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
       return;
     }
 
-    if (pendingBackupAssets > 0) {
+    const incompleteBursts = Platform.OS === 'ios' ? await photosLocalDB.getIncompleteBurstAssets() : [];
+    if (pendingBackupAssets > 0 || incompleteBursts.length > 0) {
       await dispatch(runUploadThunk());
     }
   },

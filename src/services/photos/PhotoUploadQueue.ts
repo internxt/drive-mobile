@@ -21,13 +21,22 @@ let currentController: AbortController | null = null;
 
 // TODO: MAKE IT CLASS
 export const PhotoUploadQueue = {
+  beginCycle(): AbortSignal {
+    currentController = new AbortController();
+    return currentController.signal;
+  },
+
+  endCycle(): void {
+    currentController = null;
+  },
+
   async start(
     jobs: AssetUploadJob[],
     deviceId: string,
     photosBucket: string,
     callbacks: UploadQueueCallbacks,
   ): Promise<void> {
-    currentController = new AbortController();
+    currentController = currentController ?? new AbortController();
     const { signal } = currentController;
 
     try {

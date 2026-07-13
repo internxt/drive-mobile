@@ -8,6 +8,7 @@ import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
 import { PhotoDeviceManager } from 'src/services/photos/PhotoDeviceId';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
+import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
 import { storageSelectors } from 'src/store/slices/storage';
@@ -68,7 +69,16 @@ jest.mock('src/services/photos/PhotoAssetScanner', () => ({
 }));
 
 jest.mock('src/services/photos/PhotoUploadQueue', () => ({
-  PhotoUploadQueue: { start: jest.fn().mockResolvedValue(undefined), abortAll: jest.fn() },
+  PhotoUploadQueue: {
+    start: jest.fn().mockResolvedValue(undefined),
+    abortAll: jest.fn(),
+    beginCycle: jest.fn(),
+    endCycle: jest.fn(),
+  },
+}));
+
+jest.mock('src/services/photos/burst/BurstUploadHandler', () => ({
+  retryIncompleteBursts: jest.fn().mockResolvedValue(0),
 }));
 
 jest.mock('src/services/photos/PhotoDeduplicator', () => ({
@@ -120,10 +130,17 @@ const mockScanner = PhotoAssetScanner as jest.Mocked<typeof PhotoAssetScanner>;
 const mockDeduplicator = PhotoDeduplicator as jest.Mocked<typeof PhotoDeduplicator>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
 const mockUploadQueue = PhotoUploadQueue as jest.Mocked<typeof PhotoUploadQueue>;
+const mockRetryIncompleteBursts = retryIncompleteBursts as jest.Mock;
 
 const makeStore = () => {
   const store = configureStore({ reducer: { photos: photosReducer } });
   return { ...store, dispatch: store.dispatch as AppDispatch };
+};
+
+const flushAsyncWork = async () => {
+  for (let i = 0; i < 5; i++) {
+    await new Promise((resolve) => setImmediate(resolve));
+  }
 };
 
 const getPersistedState = (): PhotosState => {
@@ -134,8 +151,19 @@ const getPersistedState = (): PhotosState => {
 };
 
 describe('photos slice', () => {
+  let uploadCycleController: AbortController | null = null;
+
   beforeEach(() => {
     jest.resetAllMocks();
+    uploadCycleController = null;
+    mockUploadQueue.beginCycle.mockImplementation(() => {
+      uploadCycleController = new AbortController();
+      return uploadCycleController.signal;
+    });
+    mockUploadQueue.abortAll.mockImplementation(() => uploadCycleController?.abort());
+    mockUploadQueue.endCycle.mockImplementation(() => {
+      uploadCycleController = null;
+    });
     // Re-set default implementations after reset clears them
     mockAsyncStorage.saveItem.mockResolvedValue(undefined);
     mockAsyncStorage.getItem.mockResolvedValue(null);
@@ -147,6 +175,7 @@ describe('photos slice', () => {
     mockScanner.scanAll.mockResolvedValue([]);
     mockScanner.getAssetsByIds.mockResolvedValue([]);
     mockUploadQueue.start.mockResolvedValue(undefined);
+    mockRetryIncompleteBursts.mockResolvedValue(0);
     mockDeduplicator.getAssetsToSync.mockResolvedValue({ newAssets: [], editedAssets: [] });
     mockPhotosLocalDB.init.mockResolvedValue(undefined);
     mockPhotosLocalDB.getPendingAssets.mockResolvedValue([]);
@@ -1094,6 +1123,213 @@ describe('photos slice', () => {
 
       expect(store.getState().photos.syncStatus).toBe('paused-no-connection');
       expect(mockUploadQueue.abortAll).toHaveBeenCalled();
+    });
+
+    test('when the backup is paused during the burst retry pass, then the cycle signal is aborted and the status ends as paused', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+      let burstPassSignal: AbortSignal | undefined;
+      mockRetryIncompleteBursts.mockImplementationOnce(async ({ signal }: { signal?: AbortSignal }) => {
+        burstPassSignal = signal;
+        await store.dispatch(pauseBackupThunk());
+        return 0;
+      });
+
+      await store.dispatch(runUploadThunk());
+
+      expect(burstPassSignal?.aborted).toBe(true);
+      expect(store.getState().photos.syncStatus).toBe('paused');
+    });
+
+    test('when the connection is lost during the burst retry pass, then the cycle signal is aborted and the no connection state is kept', async () => {
+      let networkListener: ((state: NetworkState) => void) | null = null;
+      (networkMonitorService.subscribe as jest.Mock).mockImplementationOnce((listener) => {
+        networkListener = listener;
+        return jest.fn();
+      });
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+      let burstPassSignal: AbortSignal | undefined;
+      mockRetryIncompleteBursts.mockImplementationOnce(async ({ signal }: { signal?: AbortSignal }) => {
+        burstPassSignal = signal;
+        networkListener?.({ type: NetworkStateType.NONE, isConnected: false, isInternetReachable: false });
+        return 0;
+      });
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(burstPassSignal?.aborted).toBe(true);
+      expect(store.getState().photos.syncStatus).toBe('paused-no-connection');
+    });
+
+    test('when the backup is paused just before the queue would start, then the cycle signal is aborted and the status ends as paused', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+      mockScanner.getAssetsByIds.mockImplementationOnce(async () => {
+        await store.dispatch(pauseBackupThunk());
+        return [];
+      });
+
+      await store.dispatch(runUploadThunk());
+
+      const cycleSignal = mockUploadQueue.beginCycle.mock.results[0].value as AbortSignal;
+      expect(cycleSignal.aborted).toBe(true);
+      expect(store.getState().photos.syncStatus).toBe('paused');
+    });
+
+    test('when only permanently failing bursts remain after a cycle with no progress, then the backup cycle is not restarted', async () => {
+      mockPhotosLocalDB.getIncompleteBurstAssets.mockResolvedValue([{ assetId: 'b1' }] as never);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+      await flushAsyncWork();
+
+      expect(store.getState().photos.syncStatus).toBe('synced');
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).not.toHaveBeenCalled();
+    });
+
+    test('when work remains after a cycle that made progress, then the backup cycle is restarted', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+      mockScanner.getAssetsByIds.mockResolvedValue([{ id: 'a1', modificationTime: 1 }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (jobs, deviceId, bucket, callbacks) => {
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'u1' } as never, 1);
+      });
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+      await flushAsyncWork();
+
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalled();
+    });
+
+    test('when an upload cycle is already running, then a second upload request is ignored', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+      mockUploadQueue.start.mockImplementationOnce(async () => {
+        await store.dispatch(runUploadThunk({ bypassEnabled: true }));
+      });
+
+      await store.dispatch(runUploadThunk());
+
+      expect(mockUploadQueue.beginCycle).toHaveBeenCalledTimes(1);
+    });
+
+    test('when the connection comes back while the backup is waiting for network, then the backup cycle resumes automatically', async () => {
+      const store = makeStore();
+      await store.dispatch(hydratePhotosStateThunk());
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-only',
+          syncStatus: 'paused-no-wifi',
+        }),
+      );
+      const [recoveryListener] = (networkMonitorService.subscribe as jest.Mock).mock.calls[0] as [
+        (state: NetworkState) => void,
+      ];
+
+      recoveryListener({ type: NetworkStateType.WIFI, isConnected: true, isInternetReachable: true });
+      await flushAsyncWork();
+
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalled();
+    });
+
+    test('when the network comes back but the user paused the backup manually, then the backup does not resume', async () => {
+      const store = makeStore();
+      await store.dispatch(hydratePhotosStateThunk());
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-only',
+          syncStatus: 'paused-no-wifi',
+          isPaused: true,
+        }),
+      );
+      const [recoveryListener] = (networkMonitorService.subscribe as jest.Mock).mock.calls[0] as [
+        (state: NetworkState) => void,
+      ];
+
+      recoveryListener({ type: NetworkStateType.WIFI, isConnected: true, isInternetReachable: true });
+      await flushAsyncWork();
+
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).not.toHaveBeenCalled();
+    });
+
+    test('when only incomplete bursts remain, then a normal backup cycle retries them', async () => {
+      mockPhotosLocalDB.getIncompleteBurstAssets.mockResolvedValue([{ assetId: 'b1' }] as never);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+        }),
+      );
+
+      await store.dispatch(runBackupCycleThunk());
+      await flushAsyncWork();
+
+      expect(mockRetryIncompleteBursts).toHaveBeenCalled();
     });
   });
 
