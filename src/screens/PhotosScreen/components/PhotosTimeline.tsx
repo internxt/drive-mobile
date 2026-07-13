@@ -1,5 +1,5 @@
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
-import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
@@ -110,7 +110,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       extrapolate: 'clamp',
     });
 
-    const { gesture, onContainerLayout, onScroll } = useDragSelectGesture({
+    const { gesture, onContainerLayout, onScroll, scrollOffsetRef } = useDragSelectGesture({
       isSelectMode: !!isSelectMode,
       photos,
       scrollY,
@@ -180,6 +180,18 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     );
 
     const isIosRefreshing = Platform.OS === 'ios' && !!refreshing;
+
+    const wasIosRefreshingRef = useRef(isIosRefreshing);
+    useEffect(() => {
+      if (wasIosRefreshingRef.current && !isIosRefreshing) {
+        flashListRef.current?.scrollToOffset({
+          offset: scrollOffsetRef.current,
+          animated: false,
+        });
+      }
+      wasIosRefreshingRef.current = isIosRefreshing;
+    }, [isIosRefreshing]);
+
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
     const currentBoundary = boundaries.find((b) => b.id === topGroupId) ?? boundaries[0];
     const overlaySyncStatus: GroupSyncStatus = isSelectMode
