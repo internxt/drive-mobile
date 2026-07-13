@@ -179,6 +179,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, tailwind],
     );
 
+    const isIosRefreshing = Platform.OS === 'ios' && !!refreshing;
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
     const currentBoundary = boundaries.find((b) => b.id === topGroupId) ?? boundaries[0];
     const overlaySyncStatus: GroupSyncStatus = isSelectMode
@@ -198,7 +199,9 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             ListHeaderComponent={ListHeaderComponent}
             ListEmptyComponent={isEmpty ? <PhotosEmptyState /> : undefined}
             contentContainerStyle={
-              isEmpty ? { paddingBottom: 80, flexGrow: 1 } : { paddingTop: HEADER_HEIGHT, paddingBottom: 80 }
+              isEmpty
+                ? { paddingBottom: 80, flexGrow: 1 }
+                : { paddingTop: isIosRefreshing ? 0 : HEADER_HEIGHT, paddingBottom: 80 }
             }
             showsVerticalScrollIndicator={false}
             onEndReached={onEndReached}
@@ -209,7 +212,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             viewabilityConfig={{ itemVisiblePercentThreshold: 10 }}
             onScroll={onScroll}
             scrollEventThrottle={16}
-            progressViewOffset={HEADER_HEIGHT}
+            progressViewOffset={Platform.OS === 'android' ? HEADER_HEIGHT : 0}
             maintainVisibleContentPosition={{ disabled: true }}
           />
 
@@ -217,7 +220,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             <>
               <Animated.View
                 pointerEvents="none"
-                style={[styles.headerOverlay, { opacity: Platform.OS === 'ios' && refreshing ? 0 : solidOpacity }]}
+                style={[styles.headerOverlay, { opacity: isIosRefreshing ? 0 : solidOpacity }]}
               >
                 <PhotosGroupHeader label={currentBoundary.label} syncStatus={overlaySyncStatus} isSticky={false} />
               </Animated.View>
