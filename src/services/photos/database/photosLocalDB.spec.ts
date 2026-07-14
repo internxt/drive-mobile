@@ -685,6 +685,17 @@ describe('photosLocalDB cloud asset methods', () => {
     expect(params).toEqual(['device-1']);
   });
 
+  test('when cloud assets are fetched with or without a device filter, then they are ordered by real capture time with a deterministic tiebreaker', async () => {
+    mockSqlite.getAllAsync.mockResolvedValue([]);
+
+    await photosLocalDB.getAllCloudAssets();
+    await photosLocalDB.getAllCloudAssets('device-1');
+
+    for (const [, stmt] of mockSqlite.getAllAsync.mock.calls) {
+      expect(stmt).toContain('ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC');
+    }
+  });
+
   test('when a cloud thumbnail path is set, then the path and remote file id are passed to the database', async () => {
     await photosLocalDB.setCloudThumbnailPath('remote-1', '/path/to/thumb.jpg');
 

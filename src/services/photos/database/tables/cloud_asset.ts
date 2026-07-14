@@ -81,13 +81,13 @@ const statements = {
     FROM ${TABLE_NAME}
     WHERE (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY created_at DESC;
+    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
   `,
 
   getAllIncludingPaired: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
-    ORDER BY created_at DESC;
+    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
   `,
 
   getByRange: `
@@ -96,7 +96,7 @@ const statements = {
     WHERE (created_at >= ? AND created_at <= ?)
       AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY created_at DESC;
+    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
   `,
 
   getAllByDevice: `
@@ -105,7 +105,7 @@ const statements = {
     WHERE device_id = ?
       AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY created_at DESC;
+    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
   `,
 
   getByRangeAndDevice: `
@@ -115,7 +115,7 @@ const statements = {
       AND device_id = ?
       AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY created_at DESC;
+    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
   `,
 
   getBurstMembers: `
