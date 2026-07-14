@@ -29,23 +29,35 @@ const getOrGenerateFallbackKey = async (): Promise<string> => {
 };
 
 /**
- * Returns a stable, opaque key used as the backend device name.
- * - Android: androidId (survives reinstalls, unique per device + signing key)
- * - iOS: human-readable device name (Keychain survives reinstalls, name is stable)
- * - Fallback: UUID generated once and persisted in SecureStorage (collision-proof)
+ * Returns a stable, opaque per-device identifier.
+ * - Android: androidId
+ * - iOS: identifierForVendor
+ * - Fallback: UUID generated once and persisted in SecureStorage
  */
-const getDeviceKey = async (): Promise<string> => {
+const getDeviceUniqueId = async (): Promise<string> => {
   if (Platform.OS === 'android') {
     const androidId = Application.getAndroidId?.();
-    if (androidId) return androidId;
+    if (androidId) {
+      return androidId;
+    }
   } else {
-    const name = Device.deviceName ?? Device.modelName;
-    if (name) return name;
+    const idfv = await Application.getIosIdForVendorAsync();
+    if (idfv) {
+      return idfv;
+    }
   }
   return getOrGenerateFallbackKey();
 };
 
-const persist = (uuid: string): Promise<void> => secureStorageService.setItem(AsyncStorageKey.PhotosDeviceId, uuid);
+const getDisplayName = (): string | null =>
+  Platform.OS === 'android' ? (Device.deviceName ?? Device.modelName) : Device.modelName;
+
+const buildDeviceKey = (uniqueId: string): string => {
+  const displayName = getDisplayName();
+  return displayName ? `${displayName} (${uniqueId})` : uniqueId;
+};
+
+const storeDevice = (uuid: string): Promise<void> => secureStorageService.setItem(AsyncStorageKey.PhotosDeviceId, uuid);
 
 const parseDeviceInfo = (device: PhotoDevice): PhotoDeviceInfo => ({
   deviceId: device.uuid,
@@ -87,10 +99,11 @@ class PhotoDeviceManagerService {
       logger.warn(TAG, `Stored uuid=${storedUuid} not found or DELETED — recreating by key`);
     }
 
-    const deviceKey = await getDeviceKey();
+    const uniqueId = await getDeviceUniqueId();
+    const deviceKey = buildDeviceKey(uniqueId);
     try {
       const createdDevice = await photosDeviceService.createDevice(deviceKey);
-      await persist(createdDevice.uuid);
+      await storeDevice(createdDevice.uuid);
       logger.info(
         TAG,
         `Created device folder uuid=${createdDevice.uuid} key="${createdDevice.plainName}" bucket=${createdDevice.bucket}`,
@@ -98,11 +111,11 @@ class PhotoDeviceManagerService {
       return parseDeviceInfo(createdDevice);
     } catch (err) {
       if (err instanceof PhotoDeviceNameConflictError) {
-        logger.info(TAG, `Device key "${deviceKey}" already exists (409) — adopting by key`);
+        logger.info(TAG, `Device key "${deviceKey}" already exists (409) — adopting by uniqueId`);
         const devices = await photosDeviceService.listDevices();
-        const device = devices.find((device) => device.plainName === deviceKey && device.status === 'EXISTS');
+        const device = devices.find((device) => device.plainName.includes(uniqueId) && device.status === 'EXISTS');
         if (device) {
-          await persist(device.uuid);
+          await storeDevice(device.uuid);
           logger.info(TAG, `Adopted device folder uuid=${device.uuid} bucket=${device.bucket}`);
           return parseDeviceInfo(device);
         }

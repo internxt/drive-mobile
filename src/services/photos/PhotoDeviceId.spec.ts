@@ -7,6 +7,7 @@ import { photosDeviceService } from './photosDeviceService';
 
 jest.mock('expo-application', () => ({
   getAndroidId: jest.fn(() => 'test-android-id'),
+  getIosIdForVendorAsync: jest.fn(() => Promise.resolve('test-idfv')),
 }));
 
 jest.mock('react-native-uuid', () => ({
@@ -74,23 +75,23 @@ describe('PhotoDeviceManager.ensureDeviceFolder', () => {
     test('when the stored folder has been deleted on the backend, then a new one is created by device key', async () => {
       mockGetItem.mockResolvedValue('folder-uuid-old');
       mockGetDevice.mockResolvedValue({ ...makeDevice('test-android-id'), uuid: 'folder-uuid-old', status: 'DELETED' });
-      mockCreateDevice.mockResolvedValue(makeDevice('test-android-id'));
+      mockCreateDevice.mockResolvedValue(makeDevice('Internxt iPhone (test-android-id)'));
 
       const result = await PhotoDeviceManager.ensureDeviceFolder();
 
       expect(result.deviceId).toBe('folder-uuid-123');
-      expect(mockCreateDevice).toHaveBeenCalledWith('test-android-id');
+      expect(mockCreateDevice).toHaveBeenCalledWith('Internxt iPhone (test-android-id)');
       expect(mockSetItem).toHaveBeenCalledWith(expect.any(String), 'folder-uuid-123');
     });
 
     test('when the stored folder is not found on the backend, then a new one is created by device key', async () => {
       mockGetItem.mockResolvedValue('folder-uuid-gone');
       mockGetDevice.mockResolvedValue(null);
-      mockCreateDevice.mockResolvedValue(makeDevice('test-android-id'));
+      mockCreateDevice.mockResolvedValue(makeDevice('Internxt iPhone (test-android-id)'));
 
       await PhotoDeviceManager.ensureDeviceFolder();
 
-      expect(mockCreateDevice).toHaveBeenCalledWith('test-android-id');
+      expect(mockCreateDevice).toHaveBeenCalledWith('Internxt iPhone (test-android-id)');
     });
   });
 
@@ -100,36 +101,54 @@ describe('PhotoDeviceManager.ensureDeviceFolder', () => {
       mockGetItem.mockResolvedValue(null);
     });
 
-    test('when no folder exists yet, then a new device folder is created using the android hardware id', async () => {
-      mockCreateDevice.mockResolvedValue(makeDevice('test-android-id'));
+    test('when no folder exists yet, then a new device folder is created using the device name and the android hardware id', async () => {
+      mockCreateDevice.mockResolvedValue(makeDevice('Internxt iPhone (test-android-id)'));
 
       const result = await PhotoDeviceManager.ensureDeviceFolder();
 
-      expect(result).toEqual({ deviceId: 'folder-uuid-123', plainName: 'test-android-id', bucket: 'photos-bucket' });
-      expect(mockCreateDevice).toHaveBeenCalledWith('test-android-id');
+      expect(result).toEqual({
+        deviceId: 'folder-uuid-123',
+        plainName: 'Internxt iPhone (test-android-id)',
+        bucket: 'photos-bucket',
+      });
+      expect(mockCreateDevice).toHaveBeenCalledWith('Internxt iPhone (test-android-id)');
       expect(mockSetItem).toHaveBeenCalledWith(expect.any(String), 'folder-uuid-123');
     });
 
     test('when creation returns 409, then the existing folder matching the android hardware id is adopted', async () => {
-      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('test-android-id'));
-      mockListDevices.mockResolvedValue([makeDevice('test-android-id')]);
+      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('Internxt iPhone (test-android-id)'));
+      mockListDevices.mockResolvedValue([makeDevice('Internxt iPhone (test-android-id)')]);
 
       const result = await PhotoDeviceManager.ensureDeviceFolder();
 
-      expect(result).toEqual({ deviceId: 'folder-uuid-123', plainName: 'test-android-id', bucket: 'photos-bucket' });
+      expect(result).toEqual({
+        deviceId: 'folder-uuid-123',
+        plainName: 'Internxt iPhone (test-android-id)',
+        bucket: 'photos-bucket',
+      });
+      expect(mockSetItem).toHaveBeenCalledWith(expect.any(String), 'folder-uuid-123');
+    });
+
+    test('when creation returns 409 and the remote device name has a different model but contains the same hardware id, then it is adopted anyway', async () => {
+      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('Internxt iPhone (test-android-id)'));
+      mockListDevices.mockResolvedValue([makeDevice('Old Model Name (test-android-id)')]);
+
+      const result = await PhotoDeviceManager.ensureDeviceFolder();
+
+      expect(result.plainName).toBe('Old Model Name (test-android-id)');
       expect(mockSetItem).toHaveBeenCalledWith(expect.any(String), 'folder-uuid-123');
     });
 
     test('when creation returns 409 but no folder matches the android hardware id, then the error is rethrown', async () => {
-      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('test-android-id'));
-      mockListDevices.mockResolvedValue([makeDevice('other-device-id')]);
+      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('Internxt iPhone (test-android-id)'));
+      mockListDevices.mockResolvedValue([makeDevice('Internxt iPhone (other-device-id)')]);
 
       await expect(PhotoDeviceManager.ensureDeviceFolder()).rejects.toThrow(PhotoDeviceNameConflictError);
     });
 
     test('when creation returns 409 and the matching folder is deleted, then the error is rethrown', async () => {
-      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('test-android-id'));
-      mockListDevices.mockResolvedValue([{ ...makeDevice('test-android-id'), status: 'DELETED' }]);
+      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('Internxt iPhone (test-android-id)'));
+      mockListDevices.mockResolvedValue([{ ...makeDevice('Internxt iPhone (test-android-id)'), status: 'DELETED' }]);
 
       await expect(PhotoDeviceManager.ensureDeviceFolder()).rejects.toThrow(PhotoDeviceNameConflictError);
     });
@@ -141,18 +160,18 @@ describe('PhotoDeviceManager.ensureDeviceFolder', () => {
       mockGetItem.mockResolvedValue(null);
     });
 
-    test('when no folder exists yet, then a new device folder is created using the device name', async () => {
-      mockCreateDevice.mockResolvedValue(makeDevice('Internxt iPhone'));
+    test('when no folder exists yet, then a new device folder is created using the model name and the identifierForVendor', async () => {
+      mockCreateDevice.mockResolvedValue(makeDevice('iPhone 15 (test-idfv)'));
 
       const result = await PhotoDeviceManager.ensureDeviceFolder();
 
       expect(result.deviceId).toBe('folder-uuid-123');
-      expect(mockCreateDevice).toHaveBeenCalledWith('Internxt iPhone');
+      expect(mockCreateDevice).toHaveBeenCalledWith('iPhone 15 (test-idfv)');
     });
 
-    test('when creation returns 409, then the existing folder matching the device name is adopted', async () => {
-      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('Internxt iPhone'));
-      mockListDevices.mockResolvedValue([makeDevice('Internxt iPhone')]);
+    test('when creation returns 409, then the existing folder matching the identifierForVendor is adopted', async () => {
+      mockCreateDevice.mockRejectedValue(new PhotoDeviceNameConflictError('iPhone 15 (test-idfv)'));
+      mockListDevices.mockResolvedValue([makeDevice('iPhone 15 (test-idfv)')]);
 
       const result = await PhotoDeviceManager.ensureDeviceFolder();
 
@@ -170,11 +189,11 @@ describe('PhotoDeviceManager.ensureDeviceFolder', () => {
     });
 
     test('when no device key is stored either, then a uuid is generated, persisted and used as device key', async () => {
-      mockCreateDevice.mockResolvedValue(makeDevice('generated-uuid-fallback'));
+      mockCreateDevice.mockResolvedValue(makeDevice('Internxt iPhone (generated-uuid-fallback)'));
 
       await PhotoDeviceManager.ensureDeviceFolder();
 
-      expect(mockCreateDevice).toHaveBeenCalledWith('generated-uuid-fallback');
+      expect(mockCreateDevice).toHaveBeenCalledWith('Internxt iPhone (generated-uuid-fallback)');
       expect(mockSetItem).toHaveBeenCalledWith('photos-device-key', 'generated-uuid-fallback');
     });
 
@@ -182,11 +201,11 @@ describe('PhotoDeviceManager.ensureDeviceFolder', () => {
       mockGetItem
         .mockResolvedValueOnce(null) // PhotosDeviceId
         .mockResolvedValueOnce('previously-generated-key'); // PhotosDeviceKey
-      mockCreateDevice.mockResolvedValue(makeDevice('previously-generated-key'));
+      mockCreateDevice.mockResolvedValue(makeDevice('Internxt iPhone (previously-generated-key)'));
 
       await PhotoDeviceManager.ensureDeviceFolder();
 
-      expect(mockCreateDevice).toHaveBeenCalledWith('previously-generated-key');
+      expect(mockCreateDevice).toHaveBeenCalledWith('Internxt iPhone (previously-generated-key)');
       expect(mockSetItem).not.toHaveBeenCalledWith('photos-device-key', expect.anything());
     });
   });
