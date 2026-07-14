@@ -198,5 +198,5 @@ export const useDragSelectGesture = ({
     scrollYAnimHandler(e);
   }).current;
 
-  return { gesture: panGesture, onContainerLayout, onScroll };
+  return { gesture: panGesture, onContainerLayout, onScroll, scrollOffsetRef: scrollYOffsetRef };
 };

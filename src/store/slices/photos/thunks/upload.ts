@@ -21,7 +21,10 @@ type NetworkPauseStatus = 'paused-no-connection' | 'paused-no-wifi' | null;
 const PROGRESS_STEP = 0.02;
 const REPRESENTATIVE_ASSET_COUNT = 1;
 
-const evaluateNetworkPause = (state: NetworkState, networkCondition: PhotoNetworkCondition): NetworkPauseStatus => {
+export const evaluateNetworkPause = (
+  state: NetworkState,
+  networkCondition: PhotoNetworkCondition,
+): NetworkPauseStatus => {
   const hasConnection = state.isConnected !== false && state.type !== NetworkStateType.NONE;
   if (!hasConnection) {
     return 'paused-no-connection';
@@ -93,6 +96,8 @@ const hasRemainingAssets = async (isIOS: boolean): Promise<boolean> => {
   return remainingPending.length > 0 || remainingBursts.length > 0;
 };
 
+let isUploadCycleRunning = false;
+
 export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean } | void, { state: RootState }>(
   'photos/runUpload',
   async (args, { getState, dispatch }) => {
@@ -107,12 +112,13 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     ) {
       return;
     }
-    const initialNetworkState = await networkMonitorService.getNetworkStateAsync();
-    const pauseStatus = evaluateNetworkPause(initialNetworkState, networkCondition);
-    if (pauseStatus) {
-      dispatch(photosSlice.actions.setSyncStatus(pauseStatus));
+    if (isUploadCycleRunning) {
+      logger.info('[Upload] Skipped — an upload cycle is already running');
       return;
     }
+    isUploadCycleRunning = true;
+
+    const uploadCycleAbortSignal = PhotoUploadQueue.beginCycle();
     const unsubscribeNetworkMonitor = networkMonitorService.subscribe((state) => {
       const pauseStatusSub = evaluateNetworkPause(state, networkCondition);
       if (pauseStatusSub) {
@@ -122,6 +128,12 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     });
 
     try {
+      const initialNetworkState = await networkMonitorService.getNetworkStateAsync();
+      const pauseStatus = evaluateNetworkPause(initialNetworkState, networkCondition);
+      if (pauseStatus) {
+        dispatch(photosSlice.actions.setSyncStatus(pauseStatus));
+        return;
+      }
       const isIOS = Platform.OS === 'ios';
       const availableStorage = storageSelectors.availableStorage(getState());
       if (availableStorage <= 0) {
@@ -187,6 +199,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         const completedBursts = await retryIncompleteBursts({
           deviceId,
           photosBucket,
+          signal: uploadCycleAbortSignal,
           uploadMember: uploadSingleFile,
           onBurstEvent: applyBurstEvent,
         });
@@ -247,6 +260,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         isPaused: finalIsPaused,
         disabledReason: finalDisabledReason,
         syncStatus: finalSyncStatus,
+        sessionUploadedAssets: finalSessionUploadedAssets,
       } = getState().photos;
 
       if (finalSyncStatus === 'paused-no-wifi' || finalSyncStatus === 'paused-no-connection') {
@@ -256,12 +270,15 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       dispatch(photosSlice.actions.clearUploadProgress());
       dispatch(photosSlice.actions.setAssetUploadErroredCount(await photosLocalDB.getAssetUploadErroredCount()));
 
-      if (!finalIsPaused && finalDisabledReason === null && (await hasRemainingAssets(isIOS))) {
+      const hasUploadSomeAssets = finalSessionUploadedAssets > 0;
+      if (!finalIsPaused && finalDisabledReason === null && hasUploadSomeAssets && (await hasRemainingAssets(isIOS))) {
         logger.info('[Upload] Work remains after this cycle — restarting');
         dispatch(runBackupCycleThunk());
       }
     } finally {
+      isUploadCycleRunning = false;
       unsubscribeNetworkMonitor();
+      PhotoUploadQueue.endCycle();
     }
   },
 );

@@ -168,6 +168,31 @@ describe('PhotoUploadQueue.abortAll', () => {
     expect(mockUpload).toHaveBeenCalledTimes(1);
   });
 
+  test('when abort is requested after a cycle begins but before the queue starts, then no jobs are uploaded', async () => {
+    const onAssetStart = jest.fn();
+    PhotoUploadQueue.beginCycle();
+    PhotoUploadQueue.abortAll();
+
+    await PhotoUploadQueue.start([{ asset: makeAsset('a1') }], DEVICE_ID, PHOTOS_BUCKET, { onAssetStart });
+
+    expect(onAssetStart).not.toHaveBeenCalled();
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  test('when a cycle ends, then a later abort request does not affect the next run', async () => {
+    mockUpload.mockResolvedValue('remote-id');
+    PhotoUploadQueue.beginCycle();
+    PhotoUploadQueue.endCycle();
+    PhotoUploadQueue.abortAll();
+
+    const onAssetDone = jest.fn();
+    const asset = makeAsset('a1');
+    await PhotoUploadQueue.start([{ asset }], DEVICE_ID, PHOTOS_BUCKET, { onAssetDone });
+
+    expect(mockUpload).toHaveBeenCalledTimes(1);
+    expect(onAssetDone).toHaveBeenCalledWith('a1', expect.any(String), asset.modificationTime);
+  });
+
   test('when start is called again after abort, then a fresh abort signal is created for each run', async () => {
     const asset = makeAsset('a1');
     mockUpload.mockResolvedValue('remote-id');
