@@ -20,7 +20,8 @@ export interface PhotoDevicesResult {
 const sortAlphabetically = (devices: PhotoDeviceOption[]): PhotoDeviceOption[] =>
   [...devices].sort((a, b) => a.name.localeCompare(b.name));
 
-const stripUniqueIdSuffix = (plainName: string): string => plainName.replace(/\s*\([^)]*\)\s*$/, '');
+const UNIQUE_ID_SUFFIX_PATTERN = / \([^()]*\)$/;
+const stripUniqueIdSuffix = (plainName: string): string => plainName.replace(UNIQUE_ID_SUFFIX_PATTERN, '');
 
 /**
  * Lists the devices registered for Photos backup.
