@@ -1514,12 +1514,10 @@
     "@typescript-eslint/parser" "^5.4.0"
     eslint-config-prettier "^8.3.0"
 
-"@internxt/lib@^1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.4.1.tgz#dd4974cb49ab6bba118cf218434e69e95cc4a481"
-  integrity sha512-sWNp57IKCk0HjzTdPSuxOgZWvrSDWGYrzNOq90LIZTzr1HwkxObicUaZqSzmw4uDKrJhsdFdzwdywk3g8gwDDA==
-  dependencies:
-    uuid "^11.1.0"
+"@internxt/lib@1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.5.1.tgz#08d3a474c9952b5ca47404db5ed197f1615f9ff9"
+  integrity sha512-Zt6ZRJ4B3N6zgYE7kBtVSiBXNWLV2F6QgK27IvWCg+6C2qoWDwy6uN1niMzHgSi3KUSTKOB4jiu42wJUYj4LXw==
 
 "@internxt/mobile-sdk@^0.3.1":
   version "0.3.1"
@@ -6119,11 +6117,6 @@ jsonify@^0.0.1:
   resolved "https://registry.yarnpkg.com/jsonify/-/jsonify-0.0.1.tgz#2aa3111dae3d34a0f151c63f3a45d995d9420978"
   integrity sha512-2/Ki0GcmuqSrgFyelQq9M05y7PS0mEwuIzrf3f1fPqkVDVRvZrPZtVSMHxdgo8Aq0sxAOb/cr2aqqA3LeWHVPg==
 
-jwt-decode@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/jwt-decode/-/jwt-decode-4.0.0.tgz#2270352425fd413785b2faf11f6e755c5151bd4b"
-  integrity sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==
-
 keyv@^4.5.3:
   version "4.5.4"
   resolved "https://registry.yarnpkg.com/keyv/-/keyv-4.5.4.tgz#a879a99e29452f942439f2a405e3af8b31d4de93"
@@ -9284,11 +9277,6 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
-
-uuid@^11.1.0:
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.0.tgz#9549028be1753bb934fc96e2bca09bb4105ae912"
-  integrity sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==
 
 uuid@^3.0.1:
   version "3.4.0"
