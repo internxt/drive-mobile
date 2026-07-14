@@ -1,8 +1,8 @@
 import { photoPermissionService } from '@internxt-mobile/services/photos/photoPermissionService';
 import { configureStore } from '@reduxjs/toolkit';
-import * as Network from 'expo-network';
 import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
+import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
@@ -11,7 +11,6 @@ import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
 import { storageSelectors } from 'src/store/slices/storage';
-import { hasPhotosFeatureAccess } from './selectors';
 import photosReducer, {
   checkPermissionRevocationThunk,
   disableBackupThunk,
@@ -29,11 +28,14 @@ import photosReducer, {
   runUploadThunk,
   setNetworkConditionThunk,
 } from './index';
+import { hasPhotosFeatureAccess } from './selectors';
 
-jest.mock('expo-network', () => ({
+jest.mock('src/services/NetworkMonitorService', () => ({
   NetworkStateType: { WIFI: 'WIFI', CELLULAR: 'CELLULAR', NONE: 'NONE', UNKNOWN: 'UNKNOWN' },
-  getNetworkStateAsync: jest.fn().mockResolvedValue({ type: 'WIFI', isConnected: true, isInternetReachable: true }),
-  addNetworkStateListener: jest.fn().mockReturnValue({ remove: jest.fn() }),
+  networkMonitorService: {
+    subscribe: jest.fn().mockReturnValue(jest.fn()),
+    getNetworkStateAsync: jest.fn().mockResolvedValue({ type: 'WIFI', isConnected: true, isInternetReachable: true }),
+  },
 }));
 
 jest.mock('src/services/AsyncStorageService', () => ({
@@ -159,12 +161,12 @@ describe('photos slice', () => {
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
     mockPermissionService.getStatus.mockResolvedValue('granted');
     mockHasPhotosFeatureAccess.mockReturnValue(true);
-    (Network.getNetworkStateAsync as jest.Mock).mockResolvedValue({
-      type: Network.NetworkStateType.WIFI,
+    (networkMonitorService.getNetworkStateAsync as jest.Mock).mockResolvedValue({
+      type: NetworkStateType.WIFI,
       isConnected: true,
       isInternetReachable: true,
     });
-    (Network.addNetworkStateListener as jest.Mock).mockReturnValue({ remove: jest.fn() });
+    (networkMonitorService.subscribe as jest.Mock).mockReturnValue(jest.fn());
   });
 
   test('when the app starts for the first time, then backup is disabled and set to wifi-only with no permission yet', () => {
@@ -1042,8 +1044,8 @@ describe('photos slice', () => {
     });
 
     test('when there is no network connection at the start of the upload, then the sync status is set to paused with no connection', async () => {
-      (Network.getNetworkStateAsync as jest.Mock).mockResolvedValueOnce({
-        type: Network.NetworkStateType.NONE,
+      (networkMonitorService.getNetworkStateAsync as jest.Mock).mockResolvedValueOnce({
+        type: NetworkStateType.NONE,
         isConnected: false,
         isInternetReachable: false,
       });
@@ -1067,14 +1069,14 @@ describe('photos slice', () => {
 
     test('when the network connection drops during an upload, then the upload is aborted and the sync status is set to paused with no connection', async () => {
       jest.spyOn(mockUploadQueue, 'abortAll');
-      let networkListener: ((state: Network.NetworkState) => void) | null = null;
-      (Network.addNetworkStateListener as jest.Mock).mockImplementationOnce((listener) => {
+      let networkListener: ((state: NetworkState) => void) | null = null;
+      (networkMonitorService.subscribe as jest.Mock).mockImplementationOnce((listener) => {
         networkListener = listener;
-        return { remove: jest.fn() };
+        return jest.fn();
       });
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
       mockUploadQueue.start.mockImplementationOnce(async () => {
-        networkListener?.({ type: Network.NetworkStateType.NONE, isConnected: false, isInternetReachable: false });
+        networkListener?.({ type: NetworkStateType.NONE, isConnected: false, isInternetReachable: false });
       });
 
       const store = makeStore();

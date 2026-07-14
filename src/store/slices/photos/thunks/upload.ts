@@ -1,8 +1,8 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import * as MediaLibrary from 'expo-media-library';
-import * as Network from 'expo-network';
 import { Platform } from 'react-native';
 import { AbortError } from 'src/network/errors';
+import { NetworkState, NetworkStateType, networkMonitorService } from 'src/services/NetworkMonitorService';
 import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { AssetUploadJob, PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
@@ -21,15 +21,12 @@ type NetworkPauseStatus = 'paused-no-connection' | 'paused-no-wifi' | null;
 const PROGRESS_STEP = 0.02;
 const REPRESENTATIVE_ASSET_COUNT = 1;
 
-const evaluateNetworkPause = (
-  state: Network.NetworkState,
-  networkCondition: PhotoNetworkCondition,
-): NetworkPauseStatus => {
-  const hasConnection = state.isConnected !== false && state.type !== Network.NetworkStateType.NONE;
+const evaluateNetworkPause = (state: NetworkState, networkCondition: PhotoNetworkCondition): NetworkPauseStatus => {
+  const hasConnection = state.isConnected !== false && state.type !== NetworkStateType.NONE;
   if (!hasConnection) {
     return 'paused-no-connection';
   }
-  if (networkCondition === 'wifi-only' && state.type !== Network.NetworkStateType.WIFI) {
+  if (networkCondition === 'wifi-only' && state.type !== NetworkStateType.WIFI) {
     return 'paused-no-wifi';
   }
   return null;
@@ -110,13 +107,13 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     ) {
       return;
     }
-    const initialNetworkState = await Network.getNetworkStateAsync();
+    const initialNetworkState = await networkMonitorService.getNetworkStateAsync();
     const pauseStatus = evaluateNetworkPause(initialNetworkState, networkCondition);
     if (pauseStatus) {
       dispatch(photosSlice.actions.setSyncStatus(pauseStatus));
       return;
     }
-    const networkSubscription = Network.addNetworkStateListener((state) => {
+    const unsubscribeNetworkMonitor = networkMonitorService.subscribe((state) => {
       const pauseStatusSub = evaluateNetworkPause(state, networkCondition);
       if (pauseStatusSub) {
         dispatch(photosSlice.actions.setSyncStatus(pauseStatusSub));
@@ -264,7 +261,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         dispatch(runBackupCycleThunk());
       }
     } finally {
-      networkSubscription.remove();
+      unsubscribeNetworkMonitor();
     }
   },
 );

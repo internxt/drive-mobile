@@ -1,9 +1,9 @@
 import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import * as Network from 'expo-network';
 import { Platform } from 'react-native';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
+import { networkMonitorService, NetworkStateType } from 'src/services/NetworkMonitorService';
 import { HTTP_PAYMENT_REQUIRED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
@@ -427,8 +427,8 @@ export const setNetworkConditionThunk = createAsyncThunk<void, PhotoNetworkCondi
     dispatch(photosSlice.actions.setNetworkCondition(value));
     await persistPhotosSettings({ ...state, networkCondition: value });
     if (value === 'wifi-only' && state.syncStatus === 'uploading') {
-      const networkState = await Network.getNetworkStateAsync();
-      if (networkState.type !== Network.NetworkStateType.WIFI) {
+      const networkState = await networkMonitorService.getNetworkStateAsync();
+      if (networkState.type !== NetworkStateType.WIFI) {
         dispatch(photosSlice.actions.setSyncStatus('paused-no-wifi'));
         PhotoUploadQueue.abortAll();
       }
