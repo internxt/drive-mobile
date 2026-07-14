@@ -1,5 +1,6 @@
 import * as MediaLibrary from 'expo-media-library';
 import { logger } from 'src/services/common';
+import { normalizeAssetCreationTime } from 'src/services/photos/utils/resolveAssetCreationTime';
 
 const PAGE_SIZE = 1000;
 const MEDIA_TYPES = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video];
@@ -10,7 +11,9 @@ async function* streamAssets(
   let cursor: string | undefined;
   do {
     const page = await MediaLibrary.getAssetsAsync({ first: PAGE_SIZE, after: cursor, ...options });
-    yield* page.assets;
+    for (const asset of page.assets) {
+      yield normalizeAssetCreationTime(asset);
+    }
     cursor = page.hasNextPage ? page.endCursor : undefined;
   } while (cursor);
 }

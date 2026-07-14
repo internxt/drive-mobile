@@ -6,6 +6,7 @@ import { logger } from 'src/services/common';
 import { BurstNativeModule } from 'src/services/photos/burst/BurstNativeModule';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { isPermissionActive } from 'src/services/photos/photoPermissionService';
+import { normalizeAssetCreationTime } from 'src/services/photos/utils/resolveAssetCreationTime';
 import { useAppSelector } from 'src/store/hooks';
 
 const PAGE_SIZE = 1000;
@@ -52,16 +53,15 @@ export const useLocalAssets = (): LocalAssetsResult => {
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
 
-  const fetchLocalPage = useCallback(
-    async (after?: string): Promise<MediaLibrary.PagedInfo<MediaLibrary.Asset>> =>
-      MediaLibrary.getAssetsAsync({
-        first: PAGE_SIZE,
-        after,
-        mediaType: MEDIA_TYPES,
-        sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-      }),
-    [],
-  );
+  const fetchLocalPage = useCallback(async (after?: string): Promise<MediaLibrary.PagedInfo<MediaLibrary.Asset>> => {
+    const page = await MediaLibrary.getAssetsAsync({
+      first: PAGE_SIZE,
+      after,
+      mediaType: MEDIA_TYPES,
+      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
+    });
+    return { ...page, assets: page.assets.map(normalizeAssetCreationTime) };
+  }, []);
 
   const applyPage = useCallback(
     (page: MediaLibrary.PagedInfo<MediaLibrary.Asset>, { replace }: { replace: boolean }) => {
@@ -297,8 +297,11 @@ export const useLocalAssets = (): LocalAssetsResult => {
     refreshSyncStatusFromDB();
   }, [refreshSyncStatusFromDB, syncStatus, sessionUploadedAssets, isFetchingCloudHistory]);
 
+  // Re-sort explicitly by the normalized value so the exposed order always matches what's shown.
+  const sortedAssets = useMemo(() => [...assets].sort((a, b) => b.creationTime - a.creationTime), [assets]);
+
   return {
-    assets,
+    assets: sortedAssets,
     isLoading,
     hasLoadedLocalAssetsOnce,
     syncedIds,
