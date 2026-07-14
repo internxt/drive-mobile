@@ -82,6 +82,23 @@ describe('usePreviewSource — uri resolution', () => {
 
     expect(mockFetchPlaybackUri).not.toHaveBeenCalled();
   });
+
+  test('when scrubbing ends on the same item that was already loaded, then the uri is not refetched or cleared', async () => {
+    const item = makeCloudItem();
+
+    const { result, rerender } = renderHook(({ isScrubbing }) => usePreviewSource(item, isScrubbing), {
+      initialProps: { isScrubbing: false },
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockFetchPlaybackUri).toHaveBeenCalledTimes(1);
+
+    rerender({ isScrubbing: true });
+    rerender({ isScrubbing: false });
+
+    expect(mockFetchPlaybackUri).toHaveBeenCalledTimes(1);
+    expect(result.current.uri).toBe('file:///dcim/photo.jpg');
+  });
 });
 
 describe('usePreviewSource — thumbnailUri', () => {

@@ -1,9 +1,11 @@
 import strings from 'assets/lang/strings';
 import { useCallback, useEffect, useRef } from 'react';
+import { Linking } from 'react-native';
 import { logger } from 'src/services/common';
 import { notifications } from 'src/services/NotificationsService';
 import { SavePermissionDeniedError } from 'src/services/photos/errors';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
+import { NotificationType } from 'src/types';
 import { TimelinePhotoItem } from '../types';
 import { getSavedNotificationMessage, getTrashNotificationMessage } from '../utils/photoUtils';
 
@@ -69,14 +71,26 @@ export const usePhotoActionHandlers = ({
     try {
       for (const item of items) {
         await photoActionsService.saveToDevice(item, signal);
-        if (signal.aborted) break;
+        if (signal.aborted) {
+          break;
+        }
         notifications.success(getSavedNotificationMessage(item));
         await onAfterSave?.();
       }
     } catch (error) {
       logger.error(`[usePhotoActionHandlers] Save error: ${error}`);
       if (error instanceof SavePermissionDeniedError) {
-        notifications.error(strings.screens.photos.notifications.saveErrorNoPermission);
+        notifications.show({
+          text1: strings.screens.photos.notifications.saveErrorNoPermission,
+          type: NotificationType.Error,
+          autoHide: false,
+          action: {
+            text: strings.screens.photos.notifications.saveErrorNoPermissionAction,
+            onActionPress: () => {
+              Linking.openSettings();
+            },
+          },
+        });
       } else {
         notifications.error(strings.screens.photos.notifications.saveError);
       }

@@ -1,6 +1,6 @@
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { forwardRef, useCallback, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
+import { Animated, Platform, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
 import { useDragSelectGesture } from '../hooks/useDragSelectGesture';
@@ -32,7 +32,11 @@ const SKELETON_GROUP: TimelineDateGroup = {
 };
 
 const NUM_COLUMNS = 3;
-const HEADER_HEIGHT = 64; // h-16 — matches contentContainerStyle.paddingTop
+const HEADER_HEIGHT = 64;
+const HEADER_FADE_SCROLL_DISTANCE = 24;
+const FLOATING_HEADER_MIN_OPACITY = 0.02;
+const PULL_TO_REFRESH_FADE_START = -10;
+const PULL_TO_REFRESH_FADE_END = -60;
 
 interface PhotosTimelineProps {
   assetsGroupsByDate: TimelineDateGroup[];
@@ -91,10 +95,19 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     boundariesRef.current = boundaries;
 
     const scrollY = useRef(new Animated.Value(0)).current;
-    // UIKit drops touches below alpha 0.01, so use 0.02 as the floor so pause/resume buttons
-    // are always touchable even when the floating layer is nearly invisible at scroll=0.
-    const floatingOpacity = scrollY.interpolate({ inputRange: [0, 24], outputRange: [0.02, 1], extrapolate: 'clamp' });
-    const solidOpacity = scrollY.interpolate({ inputRange: [0, 24], outputRange: [1, 0], extrapolate: 'clamp' });
+    // UIKit drops touches below alpha 0.01, so use FLOATING_HEADER_MIN_OPACITY as the floor so
+    // pause/resume buttons are always touchable even when the floating layer is nearly invisible
+    // at scroll=0.
+    const floatingOpacity = scrollY.interpolate({
+      inputRange: [0, HEADER_FADE_SCROLL_DISTANCE],
+      outputRange: [FLOATING_HEADER_MIN_OPACITY, 1],
+      extrapolate: 'clamp',
+    });
+    const solidOpacity = scrollY.interpolate({
+      inputRange: [PULL_TO_REFRESH_FADE_END, PULL_TO_REFRESH_FADE_START, 0, HEADER_FADE_SCROLL_DISTANCE],
+      outputRange: [0, 1, 1, 0],
+      extrapolate: 'clamp',
+    });
 
     const { gesture, onContainerLayout, onScroll } = useDragSelectGesture({
       isSelectMode: !!isSelectMode,
@@ -192,11 +205,15 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             viewabilityConfig={{ itemVisiblePercentThreshold: 10 }}
             onScroll={onScroll}
             scrollEventThrottle={16}
+            progressViewOffset={HEADER_HEIGHT}
           />
 
           {!isEmpty && currentBoundary && (
             <>
-              <Animated.View pointerEvents="none" style={[styles.headerOverlay, { opacity: solidOpacity }]}>
+              <Animated.View
+                pointerEvents="none"
+                style={[styles.headerOverlay, { opacity: Platform.OS === 'ios' && refreshing ? 0 : solidOpacity }]}
+              >
                 <PhotosGroupHeader label={currentBoundary.label} syncStatus={overlaySyncStatus} isSticky={false} />
               </Animated.View>
               <Animated.View style={[styles.headerOverlay, { opacity: floatingOpacity }]}>

@@ -11,12 +11,10 @@ interface PreviewPagerProps {
   onIndexChange: (index: number) => void;
   onTap: () => void;
   onZoomChange: (zoomed: boolean) => void;
-  onSwipeDown: () => void;
   onVideoPlay?: () => void;
   onVideoPause?: () => void;
   onVideoEnd?: () => void;
   videoResetKey?: number;
-  hasVideoStarted?: boolean;
 }
 
 export const PreviewPager = ({
@@ -27,12 +25,10 @@ export const PreviewPager = ({
   onIndexChange,
   onTap,
   onZoomChange,
-  onSwipeDown,
   onVideoPlay,
   onVideoPause,
   onVideoEnd,
   videoResetKey,
-  hasVideoStarted,
 }: PreviewPagerProps): JSX.Element => {
   const { width: screenWidth } = useWindowDimensions();
   const listRef = useRef<FlatList<TimelinePhotoItem>>(null);
@@ -58,26 +54,13 @@ export const PreviewPager = ({
         isScrubbing={isScrubbing}
         onTap={onTap}
         onZoomChange={onZoomChange}
-        onSwipeDown={onSwipeDown}
         onVideoPlay={onVideoPlay}
         onVideoPause={onVideoPause}
         onVideoEnd={onVideoEnd}
         videoResetKey={videoResetKey}
-        hasVideoStarted={hasVideoStarted}
       />
     ),
-    [
-      activeIndex,
-      isScrubbing,
-      onTap,
-      onZoomChange,
-      onSwipeDown,
-      onVideoPlay,
-      onVideoPause,
-      onVideoEnd,
-      videoResetKey,
-      hasVideoStarted,
-    ],
+    [activeIndex, isScrubbing, onTap, onZoomChange, onVideoPlay, onVideoPause, onVideoEnd, videoResetKey],
   );
 
   const getItemLayout = useCallback(

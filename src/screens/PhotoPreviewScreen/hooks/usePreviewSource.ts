@@ -14,9 +14,11 @@ export const usePreviewSource = (item: TimelinePhotoItem, isScrubbing: boolean):
   const [uri, setUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const loadedItemIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (isScrubbing) {
+    const isAlreadyLoadedItem = loadedItemIdRef.current === item.id;
+    if (isScrubbing || isAlreadyLoadedItem) {
       return;
     }
 
@@ -30,6 +32,7 @@ export const usePreviewSource = (item: TimelinePhotoItem, isScrubbing: boolean):
 
     PhotoAssetFetchService.fetchPlaybackUri(item, controller.signal).then((fullUri) => {
       if (!controller.signal.aborted) {
+        loadedItemIdRef.current = item.id;
         logger.info(`[usePreviewSource] asset ready — id: ${item.id}, uri: ${fullUri ?? 'null'}`);
         setUri(fullUri ?? null);
         setIsLoading(false);

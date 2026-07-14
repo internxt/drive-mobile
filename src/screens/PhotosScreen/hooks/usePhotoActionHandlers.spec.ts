@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import { notifications } from 'src/services/NotificationsService';
 import { SavePermissionDeniedError } from 'src/services/photos/errors';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
@@ -16,7 +17,7 @@ jest.mock('src/services/photos/PhotoActionsService', () => ({
 }));
 
 jest.mock('src/services/NotificationsService', () => ({
-  notifications: { success: jest.fn(), error: jest.fn(), info: jest.fn() },
+  notifications: { success: jest.fn(), error: jest.fn(), info: jest.fn(), show: jest.fn() },
 }));
 
 jest.mock('src/services/common', () => ({
@@ -97,14 +98,20 @@ describe('handleSave', () => {
     expect(mockNotifications.success).toHaveBeenCalledTimes(2);
   });
 
-  test('when save throws SavePermissionDeniedError, then the permission-denied toast is shown', async () => {
+  test('when save throws SavePermissionDeniedError, then a toast with a Settings action is shown', async () => {
+    const openSettingsSpy = jest.spyOn(Linking, 'openSettings').mockResolvedValue();
     mockService.saveToDevice.mockRejectedValueOnce(new SavePermissionDeniedError());
     const { result } = renderHook(() => usePhotoActionHandlers({ items: [makeLocalBacked()] }));
 
     await act(() => result.current.handleSave());
 
-    expect(mockNotifications.error).toHaveBeenCalledTimes(1);
-    expect(mockNotifications.error).toHaveBeenCalledWith(expect.stringContaining('permission'));
+    expect(mockNotifications.error).not.toHaveBeenCalled();
+    expect(mockNotifications.show).toHaveBeenCalledTimes(1);
+    const call = mockNotifications.show.mock.calls[0][0];
+    expect(call.action?.text).toBeTruthy();
+
+    call.action?.onActionPress();
+    expect(openSettingsSpy).toHaveBeenCalledTimes(1);
   });
 
   test('when save throws a generic error, then the generic save-error toast is shown', async () => {
