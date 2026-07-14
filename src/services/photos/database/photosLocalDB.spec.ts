@@ -660,8 +660,29 @@ describe('photosLocalDB cloud asset methods', () => {
 
     await photosLocalDB.getCloudAssetsByRange(1000, 2000);
 
-    const [, , params] = mockSqlite.getAllAsync.mock.calls[0];
+    const [, stmt, params] = mockSqlite.getAllAsync.mock.calls[0];
+    expect(stmt).not.toContain('device_id = ?');
     expect(params).toEqual([1000, 2000]);
+  });
+
+  test('when cloud assets are fetched by range with a device id, then only that device is queried', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+    await photosLocalDB.getCloudAssetsByRange(1000, 2000, 'device-1');
+
+    const [, stmt, params] = mockSqlite.getAllAsync.mock.calls[0];
+    expect(stmt).toContain('device_id = ?');
+    expect(params).toEqual([1000, 2000, 'device-1']);
+  });
+
+  test('when all cloud assets are fetched with a device id, then only that device is queried', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+    await photosLocalDB.getAllCloudAssets('device-1');
+
+    const [, stmt, params] = mockSqlite.getAllAsync.mock.calls[0];
+    expect(stmt).toContain('device_id = ?');
+    expect(params).toEqual(['device-1']);
   });
 
   test('when a cloud thumbnail path is set, then the path and remote file id are passed to the database', async () => {

@@ -495,16 +495,23 @@ class PhotosLocalDB {
     return row ? rowToCloudAssetEntry(row) : null;
   }
 
-  async getAllCloudAssets(): Promise<CloudAssetEntry[]> {
-    const rows = await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getAll);
+  async getAllCloudAssets(deviceId?: string): Promise<CloudAssetEntry[]> {
+    const rows = deviceId
+      ? await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getAllByDevice, [
+          deviceId,
+        ])
+      : await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getAll);
     return rows.map(rowToCloudAssetEntry);
   }
 
-  async getCloudAssetsByRange(from: number, to: number): Promise<CloudAssetEntry[]> {
-    const rows = await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getByRange, [
-      from,
-      to,
-    ]);
+  async getCloudAssetsByRange(from: number, to: number, deviceId?: string): Promise<CloudAssetEntry[]> {
+    const rows = deviceId
+      ? await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getByRangeAndDevice, [
+          from,
+          to,
+          deviceId,
+        ])
+      : await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getByRange, [from, to]);
     return rows.map(rowToCloudAssetEntry);
   }
 

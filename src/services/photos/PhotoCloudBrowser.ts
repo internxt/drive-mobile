@@ -80,6 +80,7 @@ class PhotoCloudBrowserService {
       year,
       month,
       onMonthFetched,
+      currentDeviceId: undefined,
     });
   }
 
@@ -87,14 +88,13 @@ class PhotoCloudBrowserService {
     onMonthFetched?: () => void;
     isCancelled?: () => boolean;
     force?: boolean;
-    currentDeviceId?: string;
+    currentDeviceId: string | undefined;
   }): Promise<void> {
     const { onMonthFetched, isCancelled, force, currentDeviceId } = options;
     logger.info(
       `[CloudBrowser] syncAllHistory — currentDeviceId=${currentDeviceId ?? 'none'}, force=${force ?? false}`,
     );
-    const allDevices = await this.listDeviceFolders();
-    const devices = currentDeviceId ? allDevices.filter((device) => device.uuid === currentDeviceId) : allDevices;
+    const devices = await this.listDeviceFolders();
     if (devices.length === 0) {
       logger.info('[CloudBrowser] No device folders found — skipping sync');
       if (currentDeviceId) {
@@ -104,6 +104,14 @@ class PhotoCloudBrowserService {
         await this.localDB.resetSyncedToPending();
       }
       return;
+    }
+
+    const currentDeviceMissing = !!currentDeviceId && !devices.some((device) => device.uuid === currentDeviceId);
+    if (currentDeviceMissing) {
+      logger.info(
+        `[CloudBrowser] Current device "${currentDeviceId}" not found among Drive's device folders — resetting synced assets to pending`,
+      );
+      await this.localDB.resetSyncedToPending();
     }
     logger.info(`[CloudBrowser] Syncing ${devices.length} device(s): ${devices.map((d) => d.uuid).join(', ')}`);
 
@@ -149,7 +157,7 @@ class PhotoCloudBrowserService {
     month: number;
     onMonthFetched?: () => void;
     force?: boolean;
-    currentDeviceId?: string;
+    currentDeviceId: string | undefined;
   }): Promise<number> {
     const { deviceId, monthFolderUuid, year, month, onMonthFetched, force, currentDeviceId } = params;
     if (!force) {
@@ -197,7 +205,7 @@ class PhotoCloudBrowserService {
     year: number;
     month: number;
     foundIds: Set<string>;
-    currentDeviceId?: string;
+    currentDeviceId: string | undefined;
   }): Promise<void> {
     const { deviceId, year, month, foundIds, currentDeviceId } = params;
     logger.info(
@@ -250,7 +258,7 @@ class PhotoCloudBrowserService {
   private async reconcileDeletedMonths(params: {
     devices: { uuid: string }[];
     discoveredMonths: { deviceId: string; year: number; month: number; monthFolderUuid: string }[];
-    currentDeviceId?: string;
+    currentDeviceId: string | undefined;
   }): Promise<void> {
     const { devices, discoveredMonths, currentDeviceId } = params;
     const discoveredSet = new Set(discoveredMonths.map((m) => `${m.deviceId}:${m.year}:${m.month}`));

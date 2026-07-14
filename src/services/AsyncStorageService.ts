@@ -128,6 +128,7 @@ class AsyncStorageService {
         AsyncStorageKey.Language,
         AsyncStorageKey.PhotosSettings,
         AsyncStorageKey.PhotosDiscoverSeen,
+        AsyncStorageKey.PhotosDevicesCache,
       ];
 
       await AsyncStorage.multiRemove(nonSensitiveKeys);

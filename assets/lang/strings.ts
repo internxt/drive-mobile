@@ -168,6 +168,10 @@ const translations = {
         select: 'Select',
         emptyTitle: 'No photos to show',
         emptySubtitle: 'Take a photo or video to start backing up',
+        deviceFilter: {
+          title: 'Filter',
+          allDevices: 'All devices',
+        },
         syncStatus: {
           loading: 'Getting photos from the cloud',
           completed: 'Backup completed',
@@ -1168,6 +1172,10 @@ const translations = {
         select: 'Seleccionar',
         emptyTitle: 'No hay fotos que mostrar',
         emptySubtitle: 'Haz una foto o vídeo para empezar el backup',
+        deviceFilter: {
+          title: 'Filtro',
+          allDevices: 'Todos los dispositivos',
+        },
         syncStatus: {
           loading: 'Obteniendo fotos de la nube',
           completed: 'Backup completado',

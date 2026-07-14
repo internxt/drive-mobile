@@ -273,7 +273,9 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
       const localAssetIdSet = new Set(scannedAssets.map((a) => a.id));
       const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(localAssetIdSet);
       if (orphanedAssetsSyncRemovedCount > 0) {
-        logger.info(`[Discovery] Removed ${orphanedAssetsSyncRemovedCount} asset_sync entries for locally deleted assets`);
+        logger.info(
+          `[Discovery] Removed ${orphanedAssetsSyncRemovedCount} asset_sync entries for locally deleted assets`,
+        );
       }
 
       const allPendingAssets = await photosLocalDB.getPendingAssets();

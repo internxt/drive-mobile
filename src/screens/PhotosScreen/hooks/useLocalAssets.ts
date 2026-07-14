@@ -5,6 +5,7 @@ import useDebouncedValue from 'src/hooks/useDebouncedValue';
 import { logger } from 'src/services/common';
 import { BurstNativeModule } from 'src/services/photos/burst/BurstNativeModule';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
+import { isPermissionActive } from 'src/services/photos/photoPermissionService';
 import { useAppSelector } from 'src/store/hooks';
 
 const PAGE_SIZE = 1000;
@@ -44,6 +45,8 @@ export const useLocalAssets = (): LocalAssetsResult => {
   const uploadingAssetIds = useAppSelector((state) => state.photos.uploadingAssetIds);
   const sessionUploadedAssets = useAppSelector((state) => state.photos.sessionUploadedAssets);
   const isFetchingCloudHistory = useAppSelector((state) => state.photos.isFetchingCloudHistory);
+  const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
+  const isPhotosEnabled = isPermissionActive(permissionStatus);
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
 
@@ -224,6 +227,10 @@ export const useLocalAssets = (): LocalAssetsResult => {
   }, [fetchLocalPage]);
 
   useEffect(() => {
+    if (!isPhotosEnabled) {
+      setIsLoading(false);
+      return;
+    }
     const loadFirstPage = async () => {
       try {
         const page = await fetchLocalPage();
@@ -239,19 +246,22 @@ export const useLocalAssets = (): LocalAssetsResult => {
       }
     };
     loadFirstPage();
-  }, []);
+  }, [isPhotosEnabled]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
-      if (appStateRef.current !== 'active' && nextState === 'active') {
+      if (isPhotosEnabled && appStateRef.current !== 'active' && nextState === 'active') {
         reconcileOnForeground();
       }
       appStateRef.current = nextState;
     });
     return () => subscription.remove();
-  }, [reconcileOnForeground]);
+  }, [reconcileOnForeground, isPhotosEnabled]);
 
   useEffect(() => {
+    if (!isPhotosEnabled) {
+      return;
+    }
     mediaLibrarySubscriptionRef.current = MediaLibrary.addListener((event) => {
       if (event.hasIncrementalChanges) {
         // iOS: we have the exact set of inserted/deleted/updated assets. Apply without a fetch.
@@ -277,7 +287,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
         libraryChangeDebounceRef.current = null;
       }
     };
-  }, [applyIncrementalLibraryChange, reconcileOnForeground]);
+  }, [applyIncrementalLibraryChange, reconcileOnForeground, isPhotosEnabled]);
 
   useEffect(() => {
     refreshSyncStatusFromDB();
