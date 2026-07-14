@@ -468,6 +468,7 @@ describe('useLocalAssets', () => {
       await Promise.resolve();
     });
 
+    expect(mockPhotosLocalDB.getSyncedEntries).toHaveBeenCalledWith(['a1']);
     expect(result.current.syncedIds.has('a1')).toBe(false);
     expect(result.current.cloudDeletedIds.has('a1')).toBe(false);
   });
@@ -476,10 +477,6 @@ describe('useLocalAssets', () => {
     Object.assign(photosState, { permissionStatus: 'undetermined' as const });
 
     const { result } = renderHook(() => useLocalAssets());
-
-    await act(async () => {
-      await Promise.resolve();
-    });
 
     expect(mockMediaLibrary.getAssetsAsync).not.toHaveBeenCalled();
     expect(mockMediaLibrary.addListener).not.toHaveBeenCalled();
