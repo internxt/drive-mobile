@@ -14,6 +14,7 @@ const MEDIA_TYPES = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video]
 export interface LocalAssetsResult {
   assets: MediaLibrary.Asset[];
   isLoading: boolean;
+  hasLoadedLocalAssetsOnce: boolean;
   syncedIds: Set<string>;
   cloudDeletedIds: Set<string>;
   uploadingIdSet: Set<string>;
@@ -27,6 +28,7 @@ export interface LocalAssetsResult {
 export const useLocalAssets = (): LocalAssetsResult => {
   const [assets, setAssets] = useState<MediaLibrary.Asset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasLoadedLocalAssetsOnce, setHasLoadedLocalAssetsOnce] = useState(false);
   const [syncedIds, setSyncedIds] = useState<Set<string>>(new Set());
   // TODO: Reserved for show a distinct icon for cloud-deleted vs never-backed assets. Remove if finally will be the same.
   const [cloudDeletedIds, setCloudDeletedIds] = useState<Set<string>>(new Set());
@@ -229,6 +231,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
   useEffect(() => {
     if (!isPhotosEnabled) {
       setIsLoading(false);
+      setHasLoadedLocalAssetsOnce(true);
       return;
     }
     const loadFirstPage = async () => {
@@ -243,6 +246,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
         }
       } finally {
         setIsLoading(false);
+        setHasLoadedLocalAssetsOnce(true);
       }
     };
     loadFirstPage();
@@ -296,6 +300,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
   return {
     assets,
     isLoading,
+    hasLoadedLocalAssetsOnce,
     syncedIds,
     cloudDeletedIds,
     uploadingIdSet,

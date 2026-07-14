@@ -55,6 +55,7 @@ const PhotosScreen = (): JSX.Element => {
 
   const timelineRef = useRef<PhotosTimelineHandle>(null);
   const lastViewedIdRef = useRef<string | null>(null);
+  const isFirstDeviceFilterRenderRef = useRef(true);
 
   const allItems = useMemo<TimelinePhotoItem[]>(
     () => timelineDateGroups.flatMap((dateGroup) => dateGroup.group.photos),
@@ -159,6 +160,14 @@ const PhotosScreen = (): JSX.Element => {
       setRefreshing(false);
     }
   }, [dispatch, reloadLocal]);
+
+  useEffect(() => {
+    if (isFirstDeviceFilterRenderRef.current) {
+      isFirstDeviceFilterRenderRef.current = false;
+      return;
+    }
+    timelineRef.current?.scrollToTop();
+  }, [deviceFilterId]);
 
   useEffect(() => {
     dispatch(uiActions.setIsTabBarHidden(selection.isSelectMode));

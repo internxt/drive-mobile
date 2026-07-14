@@ -17,6 +17,7 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
   const {
     assets,
     isLoading,
+    hasLoadedLocalAssetsOnce,
     syncedIds,
     uploadingIdSet,
     burstRepresentativeIdSet,
@@ -27,7 +28,7 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
   } = useLocalAssets();
   const { cloudItems, reloadCloud } = useCloudAssets(deviceFilterId);
   const currentDeviceId = useAppSelector((state) => state.photos.deviceId);
-  const showLocal = deviceFilterId == null || deviceFilterId === currentDeviceId;
+  const showLocalAssets = deviceFilterId == null || deviceFilterId === currentDeviceId;
 
   // When local assets are deleted, their asset_sync entries are removed so the cloud
   // copies become visible as cloud-only. Reload the cloud view to reflect that.
@@ -48,13 +49,17 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
 
   const localGroups = useMemo(
     () =>
-      showLocal
+      showLocalAssets
         ? groupAssetsByDate(assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet)
         : [],
-    [showLocal, assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet],
+    [showLocalAssets, assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet],
   );
 
-  const mergedGroups = useMemo(() => mergeCloudIntoGroups(localGroups, cloudItems), [localGroups, cloudItems]);
+  const readyToMergeCloud = !showLocalAssets || hasLoadedLocalAssetsOnce;
+  const mergedGroups = useMemo(
+    () => mergeCloudIntoGroups(localGroups, readyToMergeCloud ? cloudItems : []),
+    [localGroups, cloudItems, readyToMergeCloud],
+  );
 
   const timelineDateGroups = useMemo(() => {
     const sessionRemaining = Math.max(0, sessionTotalAssets - sessionUploadedAssets);
