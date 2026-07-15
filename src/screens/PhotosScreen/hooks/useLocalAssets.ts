@@ -31,7 +31,6 @@ export const useLocalAssets = (): LocalAssetsResult => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedLocalAssetsOnce, setHasLoadedLocalAssetsOnce] = useState(false);
   const [syncedIds, setSyncedIds] = useState<Set<string>>(new Set());
-  // TODO: Reserved for show a distinct icon for cloud-deleted vs never-backed assets. Remove if finally will be the same.
   const [cloudDeletedIds, setCloudDeletedIds] = useState<Set<string>>(new Set());
   const [localDeletionDetectedCount, setLocalDeletionDetectedCount] = useState(0);
   const [burstRepresentativeIdSet, setBurstRepresentativeIdSet] = useState<Set<string>>(new Set());
@@ -112,7 +111,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
     const synced = new Set<string>();
     const cloudDeleted = new Set<string>();
     for (const [id, info] of entries) {
-      if (info.status === 'cloud_deleted') {
+      if (info.status === 'cloud_deleted' || info.status === 'deleted') {
         cloudDeleted.add(id);
       } else if (info.status === 'synced') {
         synced.add(id);

@@ -7,6 +7,11 @@ export const isItemBacked = (item: TimelinePhotoItem): boolean =>
 export const isLocalItemNotBacked = (item: TimelinePhotoItem): boolean =>
   item.type === 'local' && item.backupState === 'not-backed';
 
+export const isItemCloudDeleted = (item: TimelinePhotoItem): boolean =>
+  item.type === 'local' && item.backupState === 'cloud-deleted';
+
+export const isItemSelectable = (item: TimelinePhotoItem): boolean => !isItemCloudDeleted(item);
+
 const isVideo = (item: TimelinePhotoItem): boolean => item.mediaType === 'video';
 
 export const getSavedNotificationMessage = (item: TimelinePhotoItem): string =>

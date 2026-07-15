@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { TimelinePhotoItem } from '../types';
+import { isItemSelectable } from '../utils/photoUtils';
 
 export interface PhotoSelection {
   isSelectMode: boolean;
@@ -49,7 +50,7 @@ export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection
   const beginDragSelect = useCallback(
     (index: number) => {
       const anchorItem = allItems[index];
-      if (!anchorItem) {
+      if (!anchorItem || !isItemSelectable(anchorItem)) {
         return;
       }
       dragAnchorIndexRef.current = index;
@@ -73,7 +74,7 @@ export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection
         const updatedSelection = new Set(selectionSnapshot);
         for (let i = rangeStart; i <= rangeEnd; i++) {
           const item = allItems[i];
-          if (!item) {
+          if (!item || !isItemSelectable(item)) {
             continue;
           }
           if (shouldSelect) {

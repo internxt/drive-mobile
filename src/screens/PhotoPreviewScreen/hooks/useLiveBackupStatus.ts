@@ -10,6 +10,7 @@ export interface BurstLiveProgress {
 
 export interface LiveBackupStatus {
   isWaitingToUpload: boolean;
+  isCloudDeleted: boolean;
   isUploading: boolean;
   progress: number;
   isBurst: boolean;
@@ -50,6 +51,7 @@ export const useLiveBackupStatus = (item: TimelinePhotoItem | undefined): LiveBa
 
   const snapshotState = item?.type === 'local' ? item.backupState : undefined;
   const isWaitingToUpload = snapshotState === 'not-backed' && !isInUploadQueue && !completedDuringSession;
+  const isCloudDeleted = snapshotState === 'cloud-deleted' && !isInUploadQueue && !completedDuringSession;
 
   useEffect(() => {
     if (!isBurst || !assetId || isInUploadQueue) {
@@ -75,6 +77,7 @@ export const useLiveBackupStatus = (item: TimelinePhotoItem | undefined): LiveBa
   return {
     isUploading: isInUploadQueue,
     isWaitingToUpload,
+    isCloudDeleted,
     progress: isInUploadQueue ? progress : 0,
     isBurst,
     burstLiveProgress: isInUploadQueue ? burstLiveProgress : null,

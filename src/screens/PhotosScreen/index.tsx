@@ -35,6 +35,7 @@ import { usePhotoSelection } from './hooks/usePhotoSelection';
 import { usePhotosTimeline } from './hooks/usePhotosTimeline';
 import useSelectMorePhotos from './hooks/useSelectMorePhotos';
 import { PhotosAccessState, TimelinePhotoItem } from './types';
+import { isItemSelectable } from './utils/photoUtils';
 
 const PhotosScreen = (): JSX.Element => {
   const tailwind = useTailwind();
@@ -76,6 +77,10 @@ const PhotosScreen = (): JSX.Element => {
   const handlePhotoPress = useCallback(
     (id: string) => {
       if (selection.isSelectMode) {
+        const item = allItems.find((candidate) => candidate.id === id);
+        if (item && !isItemSelectable(item)) {
+          return;
+        }
         selection.toggleSelect(id);
         return;
       }
@@ -92,10 +97,14 @@ const PhotosScreen = (): JSX.Element => {
   const handlePhotoLongPress = useCallback(
     (id: string) => {
       if (!selection.isSelectMode) {
+        const item = allItems.find((candidate) => candidate.id === id);
+        if (item && !isItemSelectable(item)) {
+          return;
+        }
         selection.enterSelectMode(id);
       }
     },
-    [selection],
+    [selection, allItems],
   );
 
   const accessState = useMemo<PhotosAccessState>(() => {

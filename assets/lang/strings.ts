@@ -225,6 +225,8 @@ const translations = {
         photoPreview: {
           back: 'Back',
           waitingToUpload: 'Waiting to upload',
+          deletedFromCloud: 'Deleted from the cloud',
+          backup: 'Backup',
           uploading: 'Uploading',
           burstBadge: 'Burst',
           burstIncomplete: 'Burst not fully backed up. Grant full Photos access to back up all burst photos.',
@@ -1229,6 +1231,8 @@ const translations = {
         photoPreview: {
           back: 'Volver',
           waitingToUpload: 'Pendiente de subir',
+          deletedFromCloud: 'Eliminado de la nube',
+          backup: 'Copia de seguridad',
           uploading: 'Subiendo',
           burstBadge: 'Ráfaga',
           burstIncomplete:

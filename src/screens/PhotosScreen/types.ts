@@ -1,4 +1,4 @@
-export type PhotoBackupState = 'loading' | 'backed' | 'not-backed' | 'uploading';
+export type PhotoBackupState = 'loading' | 'backed' | 'not-backed' | 'uploading' | 'cloud-deleted';
 export type PhotoMediaType = 'photo' | 'video';
 
 export interface PhotoItem {

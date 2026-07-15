@@ -2,7 +2,7 @@ import { PhotoDeduplicator } from './PhotoDeduplicator';
 import { photosLocalDB } from './database/photosLocalDB';
 
 jest.mock('./database/photosLocalDB', () => ({
-  photosLocalDB: { getSyncedEntries: jest.fn(), getDeletedAssetIds: jest.fn() },
+  photosLocalDB: { getSyncedEntries: jest.fn() },
 }));
 
 const mockDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
@@ -12,7 +12,6 @@ const makeAsset = (id: string, modificationTime = 1000) => ({ id, modificationTi
 describe('PhotoDeduplicator', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockDB.getDeletedAssetIds.mockResolvedValue(new Set());
   });
 
   test('when no photos have been synced before, then all photos are queued as new', async () => {
@@ -92,25 +91,25 @@ describe('PhotoDeduplicator', () => {
     expect(editedAssets).toHaveLength(0);
   });
 
-  test('when a photo was explicitly deleted from cloud, then it is excluded from new assets', async () => {
-    mockDB.getSyncedEntries.mockResolvedValueOnce(new Map());
-    mockDB.getDeletedAssetIds.mockResolvedValueOnce(new Set(['a']));
-
-    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a'), makeAsset('b')]);
-
-    expect(newAssets.map((asset) => asset.id)).toEqual(['b']);
-    expect(editedAssets).toHaveLength(0);
-  });
-
-  test('when a previously synced photo was explicitly deleted from cloud, then it is excluded from edited assets', async () => {
+  test('when a photo was deleted in-app and not edited on device, then it is not re-queued', async () => {
     mockDB.getSyncedEntries.mockResolvedValueOnce(
-      new Map([['a', { modificationTime: 500, status: 'synced' as const }]]),
+      new Map([['a', { modificationTime: 1000, status: 'deleted' as const }]]),
     );
-    mockDB.getDeletedAssetIds.mockResolvedValueOnce(new Set(['a']));
 
     const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a', 1000)]);
 
     expect(newAssets).toHaveLength(0);
+    expect(editedAssets).toHaveLength(0);
+  });
+
+  test('when a photo was deleted in-app and was later edited on device, then it is treated as a new upload', async () => {
+    mockDB.getSyncedEntries.mockResolvedValueOnce(
+      new Map([['a', { modificationTime: 500, status: 'deleted' as const }]]),
+    );
+
+    const { newAssets, editedAssets } = await PhotoDeduplicator.getAssetsToSync([makeAsset('a', 1000)]);
+
+    expect(newAssets.map((asset) => asset.id)).toEqual(['a']);
     expect(editedAssets).toHaveLength(0);
   });
 

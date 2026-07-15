@@ -19,6 +19,7 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
     isLoading,
     hasLoadedLocalAssetsOnce,
     syncedIds,
+    cloudDeletedIds,
     uploadingIdSet,
     burstRepresentativeIdSet,
     incompleteUploadBurstIdSet: incompleteBurstIdSet,
@@ -50,9 +51,24 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
   const localGroups = useMemo(
     () =>
       showLocalAssets
-        ? groupAssetsByDate(assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet)
+        ? groupAssetsByDate(
+            assets,
+            syncedIds,
+            uploadingIdSet,
+            burstRepresentativeIdSet,
+            incompleteBurstIdSet,
+            cloudDeletedIds,
+          )
         : [],
-    [showLocalAssets, assets, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet],
+    [
+      showLocalAssets,
+      assets,
+      syncedIds,
+      uploadingIdSet,
+      burstRepresentativeIdSet,
+      incompleteBurstIdSet,
+      cloudDeletedIds,
+    ],
   );
 
   const readyToMergeCloud = !showLocalAssets || hasLoadedLocalAssetsOnce;

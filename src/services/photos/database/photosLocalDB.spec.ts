@@ -139,13 +139,13 @@ describe('photosLocalDB', () => {
     expect(stmt).toContain('status != \'synced\'');
   });
 
-  test('when looking up synced photos, then synced, cloud_deleted and error statuses are queried', async () => {
+  test('when looking up synced photos, then synced, cloud_deleted, deleted and error statuses are queried', async () => {
     mockSqlite.getAllAsync.mockResolvedValueOnce([]);
 
     await photosLocalDB.getSyncedEntries(['asset-1']);
 
     const [, stmt] = mockSqlite.getAllAsync.mock.calls[0];
-    expect(stmt).toContain('status IN (\'synced\', \'cloud_deleted\', \'error\')');
+    expect(stmt).toContain('status IN (\'synced\', \'cloud_deleted\', \'deleted\', \'error\')');
   });
 
   test('when looking up 300 photos at once, then a single database query is made with all ids', async () => {

@@ -1,15 +1,18 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { DotsThreeOutlineIcon, ExportIcon, TrashIcon } from 'phosphor-react-native';
+import { CloudArrowUpIcon, DotsThreeOutlineIcon, ExportIcon, TrashIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { FlatList, Image, ListRenderItem, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
+import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
 import { useCloudThumbnail } from '../../PhotosScreen/hooks/useCloudThumbnail';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
+
+const photoPreviewStrings = strings.screens.photos.photoPreview;
 
 const THUMB_W_INACTIVE = 17;
 const THUMB_W_ACTIVE = 26;
@@ -117,7 +120,9 @@ interface PreviewCarouselProps {
   onExport: () => void;
   onMore: () => void;
   onDelete: () => void;
+  onBackup: () => void;
   isSynced: boolean;
+  isCloudDeleted: boolean;
 }
 
 export const PreviewCarousel = ({
@@ -131,7 +136,9 @@ export const PreviewCarousel = ({
   onExport,
   onMore,
   onDelete,
+  onBackup,
   isSynced,
+  isCloudDeleted,
 }: PreviewCarouselProps): JSX.Element => {
   const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
@@ -267,20 +274,34 @@ export const PreviewCarousel = ({
         </View>
 
         <View style={[tailwind('flex-row'), { paddingBottom: insets.bottom + 8 }]}>
-          <ActionButton
-            icon={<ExportIcon size={26} color="white" />}
-            label="Export"
-            onPress={onExport}
-            disabled={!isSynced}
-          />
-          {/* <ActionButton icon={<StarIcon size={26} color="white" />} label="Favorite" onPress={() => undefined} /> */}
-          <ActionButton icon={<DotsThreeOutlineIcon size={26} color="white" />} label="More" onPress={onMore} />
-          <ActionButton
-            icon={<TrashIcon size={26} color="white" />}
-            label="Delete"
-            onPress={onDelete}
-            disabled={!isSynced}
-          />
+          {isCloudDeleted ? (
+            <View style={tailwind('flex-1 items-center')}>
+              <View style={{ width: 80 }}>
+                <ActionButton
+                  icon={<CloudArrowUpIcon size={26} color="white" />}
+                  label={photoPreviewStrings.backup}
+                  onPress={onBackup}
+                />
+              </View>
+            </View>
+          ) : (
+            <>
+              <ActionButton
+                icon={<ExportIcon size={26} color="white" />}
+                label="Export"
+                onPress={onExport}
+                disabled={!isSynced}
+              />
+              {/* <ActionButton icon={<StarIcon size={26} color="white" />} label="Favorite" onPress={() => undefined} /> */}
+              <ActionButton icon={<DotsThreeOutlineIcon size={26} color="white" />} label="More" onPress={onMore} />
+              <ActionButton
+                icon={<TrashIcon size={26} color="white" />}
+                label="Delete"
+                onPress={onDelete}
+                disabled={!isSynced}
+              />
+            </>
+          )}
         </View>
       </LinearGradient>
     </Animated.View>

@@ -1,6 +1,14 @@
 import strings from 'assets/lang/strings';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUpIcon, CheckIcon, CloudSlashIcon, ImageIcon, PlayIcon, WarningIcon } from 'phosphor-react-native';
+import {
+  ArrowUpIcon,
+  CheckIcon,
+  CloudSlashIcon,
+  CloudXIcon,
+  ImageIcon,
+  PlayIcon,
+  WarningIcon,
+} from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Circle } from 'react-native-progress';
@@ -172,13 +180,21 @@ const LocalPhotoCell = memo(
     }
 
     const containerStyle = [styles.container, { backgroundColor: getColor('bg-gray-1') }];
+    const isCloudDeleted = item.backupState === 'cloud-deleted';
 
     return (
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
         {/* key forces Image to remount on cell recycle, preventing the previous photo from flashing */}
-        <Image key={item.id} source={{ uri: item.uri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+        <Image
+          key={item.id}
+          source={{ uri: item.uri }}
+          style={[StyleSheet.absoluteFillObject, isCloudDeleted && styles.dimmed]}
+          resizeMode="cover"
+        />
 
-        {(item.backupState === 'not-backed' || item.backupState === 'uploading') && (
+        {(item.backupState === 'not-backed' ||
+          item.backupState === 'uploading' ||
+          item.backupState === 'cloud-deleted') && (
           <View style={[tailwind('absolute justify-center items-center'), { bottom: 8, left: 8 }]} pointerEvents="none">
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.6)']}
@@ -187,10 +203,12 @@ const LocalPhotoCell = memo(
               end={{ x: 0, y: 1 }}
               style={styles.badgeShadow}
             />
-            {item.backupState === 'not-backed' ? (
-              <CloudSlashIcon size={18} color={getColor('text-white')} weight="light" />
-            ) : (
+            {item.backupState === 'uploading' ? (
               <UploadProgressRing assetId={item.id} color={getColor('text-white')} />
+            ) : item.backupState === 'cloud-deleted' ? (
+              <CloudXIcon size={18} color={getColor('text-white')} weight="light" />
+            ) : (
+              <CloudSlashIcon size={18} color={getColor('text-white')} weight="light" />
             )}
           </View>
         )}
@@ -264,6 +282,9 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     borderRadius: 2,
     overflow: 'hidden',
+  },
+  dimmed: {
+    opacity: 0.5,
   },
   badgeShadow: {
     position: 'absolute',
