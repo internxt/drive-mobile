@@ -198,14 +198,14 @@ describe('grouping assets by date', () => {
   test('when an asset is synced, then the corresponding photo item has a backed state', () => {
     const asset = makeAsset({ id: 'a1' });
     const groups = groupAssetsByDate([asset], new Set(['a1']), new Set());
-    const photo = groups[0].photos[0] as import('../types').PhotoItem;
+    const photo = groups[0].photos[0] as PhotoItem;
     expect(photo.backupState).toBe('backed');
   });
 
   test('when an asset is cloud-deleted, then the corresponding photo item has a cloud-deleted state', () => {
     const asset = makeAsset({ id: 'a1' });
     const groups = groupAssetsByDate([asset], new Set(), new Set(), undefined, undefined, new Set(['a1']));
-    const photo = groups[0].photos[0] as import('../types').PhotoItem;
+    const photo = groups[0].photos[0] as PhotoItem;
     expect(photo.backupState).toBe('cloud-deleted');
   });
 });
