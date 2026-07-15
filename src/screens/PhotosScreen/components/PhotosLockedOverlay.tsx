@@ -1,17 +1,12 @@
 import { ImageIcon } from 'phosphor-react-native';
 import { StyleSheet, View } from 'react-native';
-import AppButton from 'src/components/AppButton';
-import LockBadgeIcon from './LockBadgeIcon';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
+import LockBadgeIcon from './LockBadgeIcon';
 
-interface PhotosLockedOverlayProps {
-  onUpgradePress?: () => void;
-}
-
-const PhotosLockedOverlay = ({ onUpgradePress }: PhotosLockedOverlayProps): JSX.Element => {
+const PhotosLockedOverlay = (): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
@@ -27,7 +22,7 @@ const PhotosLockedOverlay = ({ onUpgradePress }: PhotosLockedOverlayProps): JSX.
           </View>
         </View>
 
-        <View style={tailwind('items-center w-full')}>
+        <View style={[tailwind('items-center w-full'), styles.textStack]}>
           <AppText semibold style={[tailwind('text-xl text-center'), { color: getColor('text-gray-100') }]}>
             {strings.screens.photos.photosLocked.title}
           </AppText>
@@ -37,13 +32,13 @@ const PhotosLockedOverlay = ({ onUpgradePress }: PhotosLockedOverlayProps): JSX.
           <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
             {strings.screens.photos.photosLocked.upgradeLine}
           </AppText>
+          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
+            {strings.screens.photos.photosLocked.upgradeInfoPrefix}
+            <AppText semibold style={{ color: getColor('text-gray-60') }}>
+              {strings.screens.photos.photosLocked.upgradeInfoHighlight}
+            </AppText>
+          </AppText>
         </View>
-
-        <AppButton
-          title={strings.screens.photos.photosLocked.upgradeCta}
-          type="accept"
-          onPress={onUpgradePress ?? (() => undefined)}
-        />
       </View>
     </View>
   );
@@ -64,7 +59,10 @@ const styles = StyleSheet.create({
     paddingVertical: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 32,
+    gap: 16,
+  },
+  textStack: {
+    gap: 8,
   },
   iconTile: {
     width: 76,
@@ -76,7 +74,7 @@ const styles = StyleSheet.create({
   },
   lockBadge: {
     position: 'absolute',
-    bottom: -8,
+    bottom: -16,
     left: -16,
   },
 });

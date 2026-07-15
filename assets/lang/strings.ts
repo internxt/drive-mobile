@@ -201,7 +201,8 @@ const translations = {
           title: 'Photos is locked',
           body: 'Automatically back up, organize, and protect your photos in one private space.',
           upgradeLine: 'Upgrade to unlock Photos.',
-          upgradeCta: 'Upgrade',
+          upgradeInfoPrefix: 'To upgrade visit ',
+          upgradeInfoHighlight: 'our website > pricing',
         },
         enableSheet: {
           title: 'All your photos,\none gallery',
@@ -1207,7 +1208,8 @@ const translations = {
           title: 'Photos está bloqueado',
           body: 'Haz copias de seguridad, organiza y protege tus fotos automáticamente en un espacio privado.',
           upgradeLine: 'Actualiza para desbloquear Fotos.',
-          upgradeCta: 'Mejorar plan',
+          upgradeInfoPrefix: 'Para actualizar visita ',
+          upgradeInfoHighlight: 'nuestra web > precios',
         },
         enableSheet: {
           title: 'Todas tus fotos,\nuna galería',
