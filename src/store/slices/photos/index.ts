@@ -22,8 +22,9 @@ import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 import { hasPhotosFeatureAccess } from './selectors';
-import { evaluateNetworkPause, runUploadThunk, uploadAssetsManuallyThunk } from './thunks/upload';
-export { runUploadThunk, uploadAssetsManuallyThunk };
+import { evaluateNetworkPause, runUploadThunk } from './thunks/upload';
+export { runUploadThunk };
+export { uploadAssetsManuallyThunk } from './thunks/upload';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
 export type PhotoSyncStatus =
