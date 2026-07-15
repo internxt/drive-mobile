@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { notifications } from 'src/services/NotificationsService';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
 import { useAppDispatch } from 'src/store/hooks';
-import { runBackupCycleThunk, runUploadThunk } from 'src/store/slices/photos';
+import { runBackupCycleThunk, uploadAssetsManuallyThunk } from 'src/store/slices/photos';
 import { PhotoItem } from '../types';
 import { usePhotoActions } from './usePhotoActions';
 import { PhotoSelection } from './usePhotoSelection';
@@ -13,7 +13,6 @@ jest.mock('src/services/photos/PhotoActionsService', () => ({
     saveToDevice: jest.fn(),
     copyToClipboard: jest.fn(),
     trash: jest.fn(),
-    restoreToCloud: jest.fn(),
   },
 }));
 
@@ -30,7 +29,7 @@ jest.mock('src/store/hooks', () => ({
 }));
 
 jest.mock('src/store/slices/photos', () => ({
-  runUploadThunk: jest.fn(),
+  uploadAssetsManuallyThunk: jest.fn(),
   runBackupCycleThunk: jest.fn(),
 }));
 
@@ -87,11 +86,13 @@ beforeEach(() => {
   mockService.saveToDevice.mockResolvedValue(undefined);
   mockService.copyToClipboard.mockResolvedValue(undefined);
   mockService.trash.mockResolvedValue(undefined);
-  mockService.restoreToCloud.mockResolvedValue(undefined);
   mockUnwrap = jest.fn().mockResolvedValue(undefined);
   mockDispatch = jest.fn().mockReturnValue({ unwrap: mockUnwrap });
   mockUseAppDispatch.mockReturnValue(mockDispatch);
-  (runUploadThunk as unknown as jest.Mock).mockReturnValue({ type: 'photos/runUploadThunk' });
+  (uploadAssetsManuallyThunk as unknown as jest.Mock).mockImplementation((arg) => ({
+    type: 'photos/uploadAssetsNow',
+    arg,
+  }));
   (runBackupCycleThunk as unknown as jest.Mock).mockReturnValue({ type: 'photos/runBackupCycle' });
 });
 
@@ -213,27 +214,17 @@ describe('handleTrashConfirm', () => {
 });
 
 describe('handleRestore', () => {
-  test('when restore succeeds, then dispatch is called with runUploadThunk and reloads run', async () => {
+  test('when restore succeeds, then dispatch is called with uploadAssetsManuallyThunk and reloads run', async () => {
     const opts = makeOpts();
     const { result } = renderHook(() => usePhotoActions(makeSelection(), opts));
 
     await act(() => result.current.handleRestore());
 
-    expect(mockDispatch).toHaveBeenCalledWith(runUploadThunk({ bypassEnabled: true }));
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({ arg: expect.objectContaining({ assetIds: ['asset-1'] }) }),
+    );
     expect(opts.reloadLocal).toHaveBeenCalledTimes(1);
     expect(opts.reloadCloud).toHaveBeenCalledTimes(1);
-  });
-
-  test('when restore throws, then dispatch and reloads are not called', async () => {
-    mockService.restoreToCloud.mockRejectedValueOnce(new Error('network error'));
-    const opts = makeOpts();
-    const { result } = renderHook(() => usePhotoActions(makeSelection(), opts));
-
-    await act(() => result.current.handleRestore());
-
-    expect(mockDispatch).not.toHaveBeenCalled();
-    expect(opts.reloadLocal).not.toHaveBeenCalled();
-    expect(opts.reloadCloud).not.toHaveBeenCalled();
   });
 
   test('when dispatch unwrap rejects, then reloads are not called and the restore-error toast is shown', async () => {

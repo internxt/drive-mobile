@@ -3,6 +3,8 @@ import { Linking } from 'react-native';
 import { notifications } from 'src/services/NotificationsService';
 import { SavePermissionDeniedError } from 'src/services/photos/errors';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
+import { useAppDispatch } from 'src/store/hooks';
+import { uploadAssetsManuallyThunk } from 'src/store/slices/photos';
 import { CloudPhotoItem, PhotoItem } from '../types';
 import { usePhotoActionHandlers } from './usePhotoActionHandlers';
 
@@ -12,7 +14,6 @@ jest.mock('src/services/photos/PhotoActionsService', () => ({
     saveToDevice: jest.fn(),
     copyToClipboard: jest.fn(),
     trash: jest.fn(),
-    restoreToCloud: jest.fn(),
   },
 }));
 
@@ -24,8 +25,17 @@ jest.mock('src/services/common', () => ({
   logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
 }));
 
+jest.mock('src/store/hooks', () => ({
+  useAppDispatch: jest.fn(),
+}));
+
+jest.mock('src/store/slices/photos', () => ({
+  uploadAssetsManuallyThunk: jest.fn(),
+}));
+
 const mockService = photoActionsService as jest.Mocked<typeof photoActionsService>;
 const mockNotifications = notifications as jest.Mocked<typeof notifications>;
+const mockUseAppDispatch = useAppDispatch as jest.Mock;
 
 const makeLocalBacked = (id = 'asset-1'): PhotoItem => ({
   id,
@@ -49,13 +59,22 @@ const makeCloudOnly = (id = 'remote-1'): CloudPhotoItem => ({
   deviceId: 'device-1',
 });
 
+let mockDispatch: jest.Mock;
+let mockUnwrap: jest.Mock;
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockService.exportItems.mockResolvedValue(undefined);
   mockService.saveToDevice.mockResolvedValue(undefined);
   mockService.copyToClipboard.mockResolvedValue(undefined);
   mockService.trash.mockResolvedValue(undefined);
-  mockService.restoreToCloud.mockResolvedValue(undefined);
+  mockUnwrap = jest.fn().mockResolvedValue(undefined);
+  mockDispatch = jest.fn().mockReturnValue({ unwrap: mockUnwrap });
+  mockUseAppDispatch.mockReturnValue(mockDispatch);
+  (uploadAssetsManuallyThunk as unknown as jest.Mock).mockImplementation((arg) => ({
+    type: 'photos/uploadAssetsNow',
+    arg,
+  }));
 });
 
 describe('handleExport', () => {
@@ -227,17 +246,43 @@ describe('handleTrashConfirm', () => {
 });
 
 describe('handleRestore', () => {
-  test('when restore succeeds, then onAfterRestore is called', async () => {
+  test('when restore succeeds, then uploadAssetsManuallyThunk is dispatched with the local item ids and onAfterRestore is called with the items', async () => {
+    const items = [makeLocalBacked('a'), makeLocalBacked('b')];
     const onAfterRestore = jest.fn().mockResolvedValue(undefined);
-    const { result } = renderHook(() => usePhotoActionHandlers({ items: [makeLocalBacked()], onAfterRestore }));
+    const { result } = renderHook(() => usePhotoActionHandlers({ items, onAfterRestore }));
 
     await act(() => result.current.handleRestore());
 
-    expect(onAfterRestore).toHaveBeenCalledTimes(1);
+    expect(uploadAssetsManuallyThunk).toHaveBeenCalledWith(
+      expect.objectContaining({ assetIds: ['a', 'b'], signal: expect.any(AbortSignal) }),
+    );
+    expect(onAfterRestore).toHaveBeenCalledWith(items);
   });
 
-  test('when restore throws, then the restore-error toast is shown and onAfterRestore is not called', async () => {
-    mockService.restoreToCloud.mockRejectedValueOnce(new Error('network error'));
+  test('when the screen unmounts while a restore upload is in flight, then the signal passed to the upload thunk is not aborted', async () => {
+    const { result, unmount } = renderHook(() => usePhotoActionHandlers({ items: [makeLocalBacked()] }));
+
+    const restorePromise = act(() => result.current.handleRestore());
+    unmount();
+    await restorePromise;
+
+    const dispatchedArg = (uploadAssetsManuallyThunk as unknown as jest.Mock).mock.calls[0][0] as { signal: AbortSignal };
+    expect(dispatchedArg.signal.aborted).toBe(false);
+  });
+
+  test('when there are no local items, then uploadAssetsManuallyThunk is not dispatched but onAfterRestore still runs', async () => {
+    const items = [makeCloudOnly()];
+    const onAfterRestore = jest.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => usePhotoActionHandlers({ items, onAfterRestore }));
+
+    await act(() => result.current.handleRestore());
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(onAfterRestore).toHaveBeenCalledWith(items);
+  });
+
+  test('when the upload thunk rejects, then the restore-error toast is shown and onAfterRestore is not called', async () => {
+    mockUnwrap.mockRejectedValueOnce(new Error('network error'));
     const onAfterRestore = jest.fn();
     const { result } = renderHook(() => usePhotoActionHandlers({ items: [makeLocalBacked()], onAfterRestore }));
 

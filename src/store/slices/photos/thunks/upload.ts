@@ -1,8 +1,8 @@
-import { createAsyncThunk } from '@reduxjs/toolkit';
+import { AnyAction, createAsyncThunk, ThunkDispatch } from '@reduxjs/toolkit';
 import * as MediaLibrary from 'expo-media-library';
 import { Platform } from 'react-native';
 import { AbortError } from 'src/network/errors';
-import { NetworkState, NetworkStateType, networkMonitorService } from 'src/services/NetworkMonitorService';
+import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
 import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { AssetUploadJob, PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
@@ -54,7 +54,7 @@ const buildUploadJobs = (
     return [{ asset }];
   });
 
-const completeSyncForAsset = async (
+export const completeSyncForAsset = async (
   assetId: string,
   result: PhotoUploadResult,
   modificationTime: number,
@@ -94,6 +94,54 @@ const hasRemainingAssets = async (isIOS: boolean): Promise<boolean> => {
   const remainingPending = await photosLocalDB.getPendingAssets();
   const remainingBursts = isIOS ? await photosLocalDB.getIncompleteBurstAssets() : [];
   return remainingPending.length > 0 || remainingBursts.length > 0;
+};
+
+const isQuotaExceededError = (error: Error): boolean => (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
+
+const isAbortSignalError = (error: Error): boolean => error.name === AbortError.errorName;
+
+type UploadThunkDispatch = ThunkDispatch<RootState, unknown, AnyAction>;
+
+const finishAssetUpload = async (
+  dispatch: UploadThunkDispatch,
+  assetId: string,
+  result: PhotoUploadResult,
+  modificationTime: number,
+): Promise<void> => {
+  await completeSyncForAsset(assetId, result, modificationTime);
+  dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
+  dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
+};
+
+const finishAssetUploadInCycle = async (
+  dispatch: UploadThunkDispatch,
+  assetId: string,
+  result: PhotoUploadResult,
+  modificationTime: number,
+): Promise<void> => {
+  await finishAssetUpload(dispatch, assetId, result, modificationTime);
+  dispatch(photosSlice.actions.markAssetUploadCompleted(assetId));
+};
+
+type AssetErrorOutcome = 'quota' | 'aborted' | 'failed';
+
+const handleAssetUploadError = async (
+  dispatch: UploadThunkDispatch,
+  assetId: string,
+  error: Error,
+): Promise<AssetErrorOutcome> => {
+  dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
+  if (isQuotaExceededError(error)) {
+    dispatch(photosSlice.actions.pauseForQuotaExceeded());
+    return 'quota';
+  }
+  if (isAbortSignalError(error)) {
+    logger.info(`[Upload] Asset ${assetId} aborted (pause or wifi loss)`);
+    return 'aborted';
+  }
+  logger.error(`[Upload] Asset ${assetId} failed: ${error?.message ?? String(error)}`);
+  await photosLocalDB.markError(assetId, error.message);
+  return 'failed';
 };
 
 let isUploadCycleRunning = false;
@@ -228,31 +276,16 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         },
         onAssetDone: async (assetId, result, modificationTime) => {
           lastDispatchedUploadProgressStep.delete(assetId);
-          await completeSyncForAsset(assetId, result, modificationTime);
-          dispatch(photosSlice.actions.markAssetUploadCompleted(assetId));
-          dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-          dispatch(photosSlice.actions.incrementTotalAssetsUploaded());
+          await finishAssetUploadInCycle(dispatch, assetId, result, modificationTime);
           dispatch(photosSlice.actions.incrementSessionUploadedAssets());
         },
         onAssetEvent: applyBurstEvent,
         onAssetError: async (assetId, error) => {
           lastDispatchedUploadProgressStep.delete(assetId);
-          const isQuotaError = (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
-          if (isQuotaError) {
-            dispatch(photosSlice.actions.pauseForQuotaExceeded());
-            dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
+          const errorOutcome = await handleAssetUploadError(dispatch, assetId, error);
+          if (errorOutcome === 'quota') {
             PhotoUploadQueue.abortAll();
-            return;
           }
-
-          if (error.name === AbortError.errorName) {
-            logger.info(`[Upload] Asset ${assetId} aborted (pause or wifi loss)`);
-            dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
-            return;
-          }
-          logger.error(`[Upload] Asset ${assetId} failed: ${error?.message ?? String(error)}`);
-          await photosLocalDB.markError(assetId, error.message);
-          dispatch(photosSlice.actions.removeUploadingAssetId(assetId));
         },
       });
 
@@ -282,3 +315,76 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     }
   },
 );
+
+/**
+ * Uploads the given assets for the manual "Backup" action, independent of the automatic backup
+ * cycle: not gated by `enabled`/`isPaused`/`isUploadCycleRunning`, never marks the asset
+ * `pending`, and skips session bookkeeping — so it can't be swallowed by a running cycle or
+ * silently resume an entire backlog when backup is off. Not retried automatically if interrupted.
+ */
+export const uploadAssetsManuallyThunk = createAsyncThunk<
+  void,
+  { assetIds: string[]; signal: AbortSignal },
+  { state: RootState }
+>('photos/uploadAssetsNow', async ({ assetIds, signal }, { getState, dispatch }) => {
+  if (assetIds.length === 0 || signal.aborted) {
+    return;
+  }
+
+  const { permissionStatus, deviceId, photosBucket, networkCondition } = getState().photos;
+  if (!isPermissionActive(permissionStatus) || !deviceId || !photosBucket) {
+    throw new Error('[Upload] uploadAssetsNow — missing device/bucket/permission prerequisites');
+  }
+
+  const networkState = await networkMonitorService.getNetworkStateAsync();
+  const pauseStatus = evaluateNetworkPause(networkState, networkCondition);
+  if (pauseStatus) {
+    throw new Error(`[Upload] uploadAssetsNow — blocked by network condition: ${pauseStatus}`);
+  }
+
+  const availableStorage = storageSelectors.availableStorage(getState());
+  if (availableStorage <= 0) {
+    dispatch(photosSlice.actions.pauseForQuotaExceeded());
+    throw new Error('[Upload] uploadAssetsNow — storage quota exceeded');
+  }
+
+  const resolvedAssets = await PhotoAssetScanner.getAssetsByIds(assetIds);
+  const assetById = new Map(resolvedAssets.map((a) => [a.id, a]));
+  const jobs: AssetUploadJob[] = assetIds.flatMap((id) => {
+    const asset = assetById.get(id);
+    return asset ? [{ asset }] : [];
+  });
+  if (jobs.length === 0) {
+    return;
+  }
+
+  let uploadError: Error | null = null;
+
+  await PhotoUploadQueue.start(
+    jobs,
+    deviceId,
+    photosBucket,
+    {
+      onAssetStart: (assetId) => {
+        dispatch(photosSlice.actions.addUploadingAssetId(assetId));
+      },
+      onAssetProgress: (assetId, ratio) => {
+        dispatch(photosSlice.actions.setAssetUploadProgress({ assetId, progress: ratio }));
+      },
+      onAssetDone: async (assetId, result, modificationTime) => {
+        await finishAssetUpload(dispatch, assetId, result, modificationTime);
+      },
+      onAssetError: async (assetId, error) => {
+        const errorOutcome = await handleAssetUploadError(dispatch, assetId, error);
+        if (errorOutcome !== 'aborted') {
+          uploadError ??= error;
+        }
+      },
+    },
+    signal,
+  );
+
+  if (uploadError) {
+    throw uploadError;
+  }
+});

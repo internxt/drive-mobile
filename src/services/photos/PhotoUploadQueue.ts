@@ -35,43 +35,58 @@ export const PhotoUploadQueue = {
     deviceId: string,
     photosBucket: string,
     callbacks: UploadQueueCallbacks,
+    externalAbortSignal?: AbortSignal,
   ): Promise<void> {
+    if (externalAbortSignal) {
+      return PhotoUploadQueue.runJobs(jobs, deviceId, photosBucket, callbacks, externalAbortSignal);
+    }
+
     currentController = currentController ?? new AbortController();
     const { signal } = currentController;
 
     try {
-      const limit = pLimit(UPLOAD_CONCURRENCY);
-
-      await Promise.all(
-        jobs.map((job) =>
-          limit(async () => {
-            if (signal.aborted) {
-              return;
-            }
-            const { asset, existingRemoteFileId } = job;
-            callbacks.onAssetStart?.(asset.id);
-
-            try {
-              const uploadOptions = {
-                onProgress: (ratio: number) => callbacks.onAssetProgress?.(asset.id, ratio),
-                signal,
-                onEvent: (event: PhotoUploadEvent) => callbacks.onAssetEvent?.(asset.id, event),
-              };
-              const photoUploadResult = existingRemoteFileId
-                ? await PhotoUploadService.replace(asset, existingRemoteFileId, deviceId, photosBucket, uploadOptions)
-                : await PhotoUploadService.upload(asset, deviceId, photosBucket, uploadOptions);
-              await callbacks.onAssetDone?.(asset.id, photoUploadResult, asset.modificationTime);
-            } catch (uploadError) {
-              await callbacks.onAssetError?.(asset.id, uploadError as Error);
-            }
-          }),
-        ),
-      );
+      await PhotoUploadQueue.runJobs(jobs, deviceId, photosBucket, callbacks, signal);
     } finally {
       if (currentController?.signal === signal) {
         currentController = null;
       }
     }
+  },
+
+  async runJobs(
+    jobs: AssetUploadJob[],
+    deviceId: string,
+    photosBucket: string,
+    callbacks: UploadQueueCallbacks,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const limit = pLimit(UPLOAD_CONCURRENCY);
+
+    await Promise.all(
+      jobs.map((job) =>
+        limit(async () => {
+          if (signal.aborted) {
+            return;
+          }
+          const { asset, existingRemoteFileId } = job;
+          callbacks.onAssetStart?.(asset.id);
+
+          try {
+            const uploadOptions = {
+              onProgress: (ratio: number) => callbacks.onAssetProgress?.(asset.id, ratio),
+              signal,
+              onEvent: (event: PhotoUploadEvent) => callbacks.onAssetEvent?.(asset.id, event),
+            };
+            const photoUploadResult = existingRemoteFileId
+              ? await PhotoUploadService.replace(asset, existingRemoteFileId, deviceId, photosBucket, uploadOptions)
+              : await PhotoUploadService.upload(asset, deviceId, photosBucket, uploadOptions);
+            await callbacks.onAssetDone?.(asset.id, photoUploadResult, asset.modificationTime);
+          } catch (uploadError) {
+            await callbacks.onAssetError?.(asset.id, uploadError as Error);
+          }
+        }),
+      ),
+    );
   },
 
   abortAll(): void {

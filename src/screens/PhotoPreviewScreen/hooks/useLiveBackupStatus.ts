@@ -42,6 +42,7 @@ export const useLiveBackupStatus = (item: TimelinePhotoItem | undefined): LiveBa
     assetId ? state.photos.uploadingAssetIds.includes(assetId) : false,
   );
   const progress = useAppSelector((state) => (assetId ? (state.photos.uploadProgressById[assetId] ?? 0) : 0));
+
   const completedDuringSession = useAppSelector((state) =>
     assetId ? state.photos.sessionCompletedAssetIds.includes(assetId) : false,
   );
