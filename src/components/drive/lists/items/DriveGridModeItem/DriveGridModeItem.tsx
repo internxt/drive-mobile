@@ -1,18 +1,15 @@
 import { time } from '@internxt-mobile/services/common/time';
 import strings from '../../../../../../assets/lang/strings';
-import { driveFileService } from '@internxt-mobile/services/drive/file';
+import { useDownloadedThumbnail } from '@internxt-mobile/hooks/drive';
 import { items } from '@internxt/lib';
 import { ArrowCircleUpIcon, XCircleIcon } from 'phosphor-react-native';
 import prettysize from 'prettysize';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import useGetColor from '../../../../../hooks/useColor';
-import { logger } from '../../../../../services/common';
-import { useAppSelector } from '../../../../../store/hooks';
-import { DownloadedThumbnail } from '../../../../../types/drive/file';
 import { DriveItemStatus } from '../../../../../types/drive/item';
 import { DriveItemProps } from '../../../../../types/drive/ui';
 import AppText from '../../../../AppText';
@@ -20,8 +17,7 @@ import AppText from '../../../../AppText';
 function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const user = useAppSelector((state) => state.auth.user);
-  const [downloadedThumbnail, setDownloadedThumbnail] = useState<DownloadedThumbnail | null>(null);
+  const downloadedThumbnail = useDownloadedThumbnail(props.data);
   const [maxThumbnailWidth, setMaxThumbnailWidth] = useState<number | null>(null);
   const thumbnailSize = downloadedThumbnail || null;
   const IconFile = getFileTypeIcon(props.data.type || '');
@@ -45,26 +41,6 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
 
     return thumbnailHeight > maxThumbnailHeight ? maxThumbnailHeight : thumbnailHeight;
   };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    if (props.data.thumbnails?.length && !downloadedThumbnail && user) {
-      driveFileService
-        // TODO: NEED TO UPDATE SDK TYPES
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .getThumbnail(props.data.thumbnails[0], user)
-        .then((thumbnail) => {
-          if (isMounted) setDownloadedThumbnail(thumbnail);
-        })
-        .catch(logger.error);
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [props.data.thumbnails, user]);
 
   const renderThumbnail = (thumbnail: { width: number; height: number; uri: string }) => {
     const height = getThumbnailHeight();
