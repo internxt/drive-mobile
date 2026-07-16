@@ -6,5 +6,13 @@ export const toFileUri = (path: string): string => {
   return `${FILE_URI_PREFIX}${encodeURI(decodeURIComponent(absolutePath))}`;
 };
 
-export const stripFileUri = (path: string): string =>
-  path.startsWith(FILE_URI_PREFIX) ? decodeURIComponent(path.slice(FILE_URI_PREFIX.length)) : path;
+export const decodeUriSafely = (uri: string): string => {
+  try {
+    return decodeURIComponent(uri);
+  } catch {
+    return uri;
+  }
+};
+
+export const fromFileUri = (uri: string): string =>
+  decodeUriSafely(uri.startsWith(FILE_URI_PREFIX) ? uri.slice(FILE_URI_PREFIX.length) : uri);

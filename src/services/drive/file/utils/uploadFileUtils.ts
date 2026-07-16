@@ -19,6 +19,7 @@ import { uiActions } from '../../../../store/slices/ui';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
+import { decodeUriSafely } from '../../../common/uri/uriHelpers';
 import { notifyParentChanged } from '../../../native/InternxtSignalingModule';
 import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
 import { FileSizeExceededError, isFileSizeExceededError } from './fileSizeErrors';
@@ -174,16 +175,8 @@ export function isFileEmpty(file: { size: number }): boolean {
   return file.size === 0;
 }
 
-function safeDecodeUri(uri: string): string {
-  try {
-    return decodeURIComponent(uri);
-  } catch {
-    return uri;
-  }
-}
-
 export async function copyFileFromEncodedUri(sourceUri: string, destPath: string): Promise<void> {
-  await fileSystemService.copyFile(safeDecodeUri(sourceUri), destPath);
+  await fileSystemService.copyFile(decodeUriSafely(sourceUri), destPath);
 }
 
 /**
