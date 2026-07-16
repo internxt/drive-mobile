@@ -8,6 +8,7 @@ import { prepareFilesToUpload } from './prepareFilesToUpload';
 
 import errorService from '../../../ErrorService';
 
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { Dispatch } from 'react';
@@ -18,6 +19,7 @@ import { uiActions } from '../../../../store/slices/ui';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
+import { decodeUriSafely } from '../../../common/uri/uriHelpers';
 import { notifyParentChanged } from '../../../native/InternxtSignalingModule';
 import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
 import { FileSizeExceededError, isFileSizeExceededError } from './fileSizeErrors';
@@ -171,6 +173,10 @@ async function trackUploadError(file: UploadingFile, err: Error) {
  */
 export function isFileEmpty(file: { size: number }): boolean {
   return file.size === 0;
+}
+
+export async function copyFileFromEncodedUri(sourceUri: string, destPath: string): Promise<void> {
+  await fileSystemService.copyFile(decodeUriSafely(sourceUri), destPath);
 }
 
 /**
