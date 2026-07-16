@@ -20,6 +20,7 @@ import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'r
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
+import { exportPhAsset, pickPhotoAssets, withRetry } from '@internxt-mobile/services/common/media/cameraRollAssets';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 import {
   EmptyFileNotAllowedError,
@@ -566,87 +567,81 @@ function AddModal(): JSX.Element {
     if (Platform.OS === 'ios') {
       const { status } = await MediaLibrary.requestPermissionsAsync();
 
-      if (status === 'granted') {
+      if (status !== 'granted') return;
+
+      let pickedAssets: { localIdentifier: string }[];
+      try {
+        pickedAssets = await pickPhotoAssets(MAX_FILES_BULK_UPLOAD);
+      } catch (error) {
+        logger.error(
+          'Error opening the photo picker:',
+          (error as Error)?.message ?? String(error),
+          (error as { code?: string })?.code,
+        );
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.errors.cameraRollPickerFailed,
+        });
+        return;
+      }
+
+      if (pickedAssets.length === 0) return;
+
+      dispatch(uiActions.setShowUploadFileModal(false));
+
+      const documents: DocumentPickerFile[] = [];
+      let failedCount = 0;
+
+      for (const asset of pickedAssets) {
         try {
-          const result = await launchImageLibraryAsync({
-            mediaTypes: MediaTypeOptions.All,
-            allowsMultipleSelection: true,
-            selectionLimit: MAX_FILES_BULK_UPLOAD,
-            allowsEditing: false,
-            preferredAssetRepresentationMode: UIImagePickerPreferredAssetRepresentationMode.Current,
-            base64: false,
-            exif: false,
+          const exported = await withRetry(() => exportPhAsset(asset.localIdentifier));
+          documents.push({
+            name: decodeURIComponent(exported.fileName ?? ''),
+            size: exported.size ?? 0,
+            type: drive.file.getExtensionFromUri(exported.uri)?.toLowerCase() ?? '',
+            uri: exported.uri,
           });
-
-          if (!result.canceled && result.assets) {
-            const documents: DocumentPickerFile[] = [];
-
-            for (const asset of result.assets) {
-              try {
-                const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.assetId || asset.uri);
-                const cleanUri = assetInfo.mediaType === 'video' ? asset.uri : assetInfo.localUri || asset.uri;
-                const originalFileName = assetInfo.filename || asset.fileName;
-
-                let fileSize = asset.fileSize;
-                if (!fileSize) {
-                  try {
-                    const fileInfo = fileSystemService.getFileInfo(cleanUri);
-                    fileSize = fileInfo.exists ? (fileInfo.size ?? 0) : 0;
-                  } catch (error) {
-                    logger.warn('The file size could not be obtained:', error);
-                    fileSize = 0;
-                  }
-                }
-
-                documents.push({
-                  name: decodeURIComponent(originalFileName ?? ''),
-                  size: fileSize ?? 0,
-                  type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
-                  uri: cleanUri,
-                });
-              } catch (error) {
-                logger.error('Error obtaining original asset info:', error);
-                const cleanUri = asset.uri;
-                const fallbackName = generateFileName(cleanUri);
-
-                documents.push({
-                  name: fallbackName,
-                  size: asset.fileSize ?? 0,
-                  type: asset.type ?? '',
-                  uri: cleanUri,
-                });
-              }
-            }
-
-            dispatch(uiActions.setShowUploadFileModal(false));
-
-            uploadDocuments(documents)
-              .then(async () => {
-                dispatch(driveThunks.loadUsageThunk());
-
-                if (focusedFolder) {
-                  await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-                  driveCtx.loadFolderContent(focusedFolder.uuid, {
-                    pullFrom: ['network'],
-                    resetPagination: true,
-                  });
-                }
-              })
-              .catch((err) => {
-                logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
-                const error = errorService.castError(err, 'upload');
-                notificationsService.show({
-                  type: NotificationType.Error,
-                  text1: error.message,
-                });
-              })
-              .finally(() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-              });
-          }
         } catch (error) {
-          logger.error('Error accessing media library:', error);
+          failedCount++;
+          logger.error(
+            'Error exporting camera roll asset:',
+            (error as Error)?.message ?? String(error),
+            (error as { code?: string })?.code,
+          );
         }
+      }
+
+      if (documents.length > 0) {
+        uploadDocuments(documents)
+          .then(async () => {
+            dispatch(driveThunks.loadUsageThunk());
+
+            if (focusedFolder) {
+              await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+              driveCtx.loadFolderContent(focusedFolder.uuid, {
+                pullFrom: ['network'],
+                resetPagination: true,
+              });
+            }
+          })
+          .catch((err) => {
+            logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+            const error = errorService.castError(err, 'upload');
+            notificationsService.show({
+              type: NotificationType.Error,
+              text1: error.message,
+            });
+          })
+          .finally(() => {
+            dispatch(uiActions.setShowUploadFileModal(false));
+          });
+      }
+
+      if (failedCount > 0) {
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.formatString(strings.errors.cameraRollPartialFailure, failedCount) as string,
+        });
       }
     } else {
       const { status } = await MediaLibrary.requestPermissionsAsync();
