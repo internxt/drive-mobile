@@ -24,15 +24,6 @@ const fromFileUri = (uri: string): string => {
   }
 };
 
-const fromFileUri = (uri: string): string => {
-  const withoutScheme = uri.replace('file://', '');
-  try {
-    return decodeURIComponent(withoutScheme);
-  } catch {
-    return withoutScheme;
-  }
-};
-
 const statSize = async (path: string): Promise<number> => Number((await RNFS.stat(path)).size);
 
 const generateImageThumbnailAndroid = async (sourcePath: string): Promise<GeneratedThumbnail> => {
