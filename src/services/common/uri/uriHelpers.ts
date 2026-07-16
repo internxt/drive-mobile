@@ -20,7 +20,7 @@ export const toFileUri = (path: string): string => {
     return path;
   }
   const absolutePath = path.startsWith('/') ? path : `/${path}`;
-  return `${FILE_URI_PREFIX}${encodeURI(decodeURIComponent(absolutePath))}`;
+  return `${FILE_URI_PREFIX}${encodeURI(decodeUriSafely(absolutePath))}`;
 };
 
 export const stripFileUri = (path: string): string =>

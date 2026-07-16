@@ -36,6 +36,46 @@ describe('toFileUri', () => {
   test('when path contains spaces, then they are percent-encoded in the resulting URI', () => {
     expect(toFileUri('/var/tmp/my photo.jpg')).toBe('file:///var/tmp/my%20photo.jpg');
   });
+
+  test('when the file name contains a literal percent sign, then it returns a usable uri instead of failing', () => {
+    const pathWithLiteralPercent = '/cache/Nómina 100% final.pdf';
+
+    const result = toFileUri(pathWithLiteralPercent);
+
+    expect(result).toBe('file:///cache/N%C3%B3mina%20100%25%20final.pdf');
+  });
+
+  test('when the path is already percent-encoded, then it returns the same uri without encoding it twice', () => {
+    const encodedPath = '/cache/N%C3%B3mina%2026_04.pdf';
+
+    const result = toFileUri(encodedPath);
+
+    expect(result).toBe('file:///cache/N%C3%B3mina%2026_04.pdf');
+  });
+
+  test('when the path has accents and spaces, then it returns the encoded uri', () => {
+    const pathWithAccents = '/cache/Nómina 26_04.pdf';
+
+    const result = toFileUri(pathWithAccents);
+
+    expect(result).toBe('file:///cache/N%C3%B3mina%2026_04.pdf');
+  });
+
+  test('when the path has no characters to encode, then it returns the path with the scheme', () => {
+    const plainPath = '/cache/plain.pdf';
+
+    const result = toFileUri(plainPath);
+
+    expect(result).toBe('file:///cache/plain.pdf');
+  });
+
+  test('when the path already has the scheme, then it returns it unchanged', () => {
+    const fileUri = 'file:///cache/already.pdf';
+
+    const result = toFileUri(fileUri);
+
+    expect(result).toBe(fileUri);
+  });
 });
 
 describe('stripFileUri', () => {
