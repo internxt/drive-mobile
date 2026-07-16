@@ -5,7 +5,7 @@ import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 
 import { logger } from '../logger';
-import { stripFileUri, toFileUri } from '../uri/uriHelpers';
+import { fromFileUri, toFileUri } from '../uri/uriHelpers';
 import {
   IMAGE_THUMBNAIL_EXTENSIONS,
   PDF_THUMBNAIL_QUALITY,
@@ -16,15 +16,6 @@ import {
   VIDEO_THUMBNAIL_EXTENSIONS,
 } from './thumbnail.constants';
 import type { GeneratedThumbnail } from './thumbnail.types';
-
-const fromFileUri = (uri: string): string => {
-  const withoutScheme = uri.replace('file://', '');
-  try {
-    return decodeURIComponent(withoutScheme);
-  } catch {
-    return withoutScheme;
-  }
-};
 
 const statSize = async (path: string): Promise<number> => Number((await RNFS.stat(path)).size);
 
