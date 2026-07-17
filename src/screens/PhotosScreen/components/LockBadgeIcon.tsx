@@ -16,7 +16,7 @@ const LockBadgeIcon = ({ size }: LockBadgeIconProps): JSX.Element => {
       <G>
         <Path
           d={LOCK_PATH}
-          fill={getColor('text-gray-60')}
+          fill={getColor('text-gray-30')}
           stroke={getColor('bg-surface')}
           strokeWidth={5}
         />

@@ -117,8 +117,6 @@ const PhotosScreen = (): JSX.Element => {
     return { type: 'backup-off' };
   }, [hasAccess, enabled]);
 
-  const handleUpgradePress = useCallback(() => navigation.navigate('Settings'), [navigation]);
-
   const handleSelectPress = useCallback(() => selection.enterSelectMode(), [selection]);
 
   const handleEnableBackup = useCallback(() => setIsEnableBackupSheetOpen(true), []);
@@ -253,7 +251,7 @@ const PhotosScreen = (): JSX.Element => {
           onDragUpdate={selection.updateDragSelect}
           onDragEnd={selection.endDragSelect}
         />
-        {accessState.type === 'photos-locked' && <PhotosLockedOverlay onUpgradePress={handleUpgradePress} />}
+        {accessState.type === 'photos-locked' && <PhotosLockedOverlay />}
       </View>
 
       <SelectionToolbar
