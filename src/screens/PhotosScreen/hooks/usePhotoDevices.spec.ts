@@ -134,6 +134,46 @@ describe('usePhotoDevices', () => {
     expect(result.current.devices).toEqual([]);
   });
 
+  describe('when a plainName carries a trailing unique id', () => {
+    test('when the plainName is "model (uniqueId)", then only the model is shown', async () => {
+      mockPhotosDeviceService.listDevices.mockResolvedValueOnce([
+        {
+          uuid: 'd1',
+          plainName: 'iPhone 16 Pro (05B85ECD-97E7-426F-AB2A-3F040D683939)',
+          bucket: 'b1',
+          status: 'EXISTS',
+        },
+      ]);
+
+      const { result } = renderHook(() => usePhotoDevices());
+      await act(flushAsync);
+
+      expect(result.current.devices).toEqual([{ uuid: 'd1', name: 'iPhone 16 Pro' }]);
+    });
+
+    test('when the plainName has no trailing parentheses, then it is shown as-is', async () => {
+      mockPhotosDeviceService.listDevices.mockResolvedValueOnce([
+        { uuid: 'd1', plainName: 'legacy-android-id', bucket: 'b1', status: 'EXISTS' },
+      ]);
+
+      const { result } = renderHook(() => usePhotoDevices());
+      await act(flushAsync);
+
+      expect(result.current.devices).toEqual([{ uuid: 'd1', name: 'legacy-android-id' }]);
+    });
+
+    test('when the model name itself contains parentheses in the middle, then only the trailing group is stripped', async () => {
+      mockPhotosDeviceService.listDevices.mockResolvedValueOnce([
+        { uuid: 'd1', plainName: 'Galaxy (2024) (test-android-id)', bucket: 'b1', status: 'EXISTS' },
+      ]);
+
+      const { result } = renderHook(() => usePhotoDevices());
+      await act(flushAsync);
+
+      expect(result.current.devices).toEqual([{ uuid: 'd1', name: 'Galaxy (2024)' }]);
+    });
+  });
+
   test('when the dropdown menu is reopened after devices change on the backend, then reload replaces the list', async () => {
     mockPhotosDeviceService.listDevices.mockResolvedValueOnce([
       { uuid: 'd1', plainName: 'iPhone', bucket: 'b1', status: 'EXISTS' },

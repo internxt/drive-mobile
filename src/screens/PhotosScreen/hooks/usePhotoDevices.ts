@@ -20,6 +20,9 @@ export interface PhotoDevicesResult {
 const sortAlphabetically = (devices: PhotoDeviceOption[]): PhotoDeviceOption[] =>
   [...devices].sort((a, b) => a.name.localeCompare(b.name));
 
+const UNIQUE_ID_SUFFIX_PATTERN = / \([^()]*\)$/;
+const stripUniqueIdSuffix = (plainName: string): string => plainName.replace(UNIQUE_ID_SUFFIX_PATTERN, '');
+
 /**
  * Lists the devices registered for Photos backup.
  */
@@ -35,7 +38,7 @@ export const usePhotoDevices = (): PhotoDevicesResult => {
       const options = sortAlphabetically(
         allDevices
           .filter((device) => device.status === 'EXISTS')
-          .map((device) => ({ uuid: device.uuid, name: device.plainName })),
+          .map((device) => ({ uuid: device.uuid, name: stripUniqueIdSuffix(device.plainName) })),
       );
       setDevices(options);
       await asyncStorageService.saveItem(AsyncStorageKey.PhotosDevicesCache, JSON.stringify(options));
