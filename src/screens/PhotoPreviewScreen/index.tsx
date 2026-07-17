@@ -12,7 +12,7 @@ import { RootStackScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import MoreActionsBottomSheet from '../PhotosScreen/components/MoreActionsBottomSheet';
 import { usePhotoActionHandlers } from '../PhotosScreen/hooks/usePhotoActionHandlers';
-import { isItemBacked } from '../PhotosScreen/utils/photoUtils';
+import { isItemBacked, isItemCloudDeleted } from '../PhotosScreen/utils/photoUtils';
 import { BurstIncompleteBanner } from './components/BurstIncompleteBanner';
 import { MetadataPanel } from './components/MetadataPanel';
 import { PreviewCarousel } from './components/PreviewCarousel';
@@ -146,6 +146,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
 
   const showCarousel = isUiVisible && !zoomActive && !hasVideoStarted;
   const isSynced = currentItem ? isItemBacked(currentItem) : false;
+  const isCloudDeleted = currentItem ? isItemCloudDeleted(currentItem) : false;
   const isBurstIncomplete = currentItem?.type === 'local' && currentItem?.isBurstUploadIncomplete === true;
 
   return (
@@ -184,7 +185,9 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
               onExport={handleExport}
               onMore={() => setIsMoreActionsOpen(true)}
               onDelete={handleDeletePress}
+              onBackup={handleRestore}
               isSynced={isSynced}
+              isCloudDeleted={isCloudDeleted}
             />
           )}
           <BurstIncompleteBanner visible={isUiVisible && isBurstIncomplete} />

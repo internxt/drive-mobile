@@ -123,7 +123,7 @@ interface AssetSyncRow {
 
 export interface SyncedAssetInfo {
   modificationTime: number | null;
-  status: 'synced' | 'cloud_deleted' | 'error';
+  status: 'synced' | 'cloud_deleted' | 'deleted' | 'error';
 }
 
 export interface IncompleteBurstAsset {
@@ -306,7 +306,7 @@ class PhotosLocalDB {
         return sqliteService.getAllAsync<{
           asset_id: string;
           modification_time: number | null;
-          status: 'synced' | 'cloud_deleted' | 'error';
+          status: 'synced' | 'cloud_deleted' | 'deleted' | 'error';
         }>(DB_NAME, assetSyncTable.statements.getSyncedInList(placeholders), chunk);
       }),
     );
@@ -411,14 +411,6 @@ class PhotosLocalDB {
 
   async markAssetDeleted(assetId: string): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markDeleted, [assetId]);
-  }
-
-  async getDeletedAssetIds(): Promise<Set<string>> {
-    const rows = await sqliteService.getAllAsync<{ asset_id: string }>(
-      DB_NAME,
-      assetSyncTable.statements.getDeletedIds,
-    );
-    return new Set(rows.map((row) => row.asset_id));
   }
 
   async deleteAssetSync(assetId: string): Promise<void> {

@@ -35,12 +35,15 @@ export const assetToPhotoItem = (
   uploadingIdSet: Set<string>,
   burstRepresentativeIdSet?: Set<string>,
   incompleteBurstIdSet?: Set<string>,
+  cloudDeletedIds?: Set<string>,
 ): PhotoItem => {
   let backupState: PhotoBackupState;
   if (uploadingIdSet.has(asset.id)) {
     backupState = 'uploading';
   } else if (syncedIds.has(asset.id)) {
     backupState = 'backed';
+  } else if (cloudDeletedIds?.has(asset.id)) {
+    backupState = 'cloud-deleted';
   } else {
     backupState = 'not-backed';
   }
@@ -66,6 +69,7 @@ export const groupAssetsByDate = (
   uploadingIdSet: Set<string>,
   burstRepresentativeIdSet?: Set<string>,
   incompleteBurstIdSet?: Set<string>,
+  cloudDeletedIds?: Set<string>,
 ): PhotoDateGroup[] => {
   const now = new Date();
   const groupMap = new Map<string, { label: string; photos: PhotoItem[] }>();
@@ -80,7 +84,14 @@ export const groupAssetsByDate = (
       groupMap.set(groupKey, group);
     }
     group.photos.push(
-      assetToPhotoItem(asset, syncedIds, uploadingIdSet, burstRepresentativeIdSet, incompleteBurstIdSet),
+      assetToPhotoItem(
+        asset,
+        syncedIds,
+        uploadingIdSet,
+        burstRepresentativeIdSet,
+        incompleteBurstIdSet,
+        cloudDeletedIds,
+      ),
     );
   }
 

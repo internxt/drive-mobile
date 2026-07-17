@@ -20,23 +20,16 @@ export const PhotoDeduplicator = {
       return { newAssets: [], editedAssets: [] };
     }
 
-    const [syncedEntries, deletedIds] = await Promise.all([
-      photosLocalDB.getSyncedEntries(assets.map((asset) => asset.id)),
-      photosLocalDB.getDeletedAssetIds(),
-    ]);
+    const syncedEntries = await photosLocalDB.getSyncedEntries(assets.map((asset) => asset.id));
 
     const newAssets: MediaLibrary.Asset[] = [];
     const editedAssets: MediaLibrary.Asset[] = [];
 
     for (const asset of assets) {
-      const skipBecauseDeleted = deletedIds.has(asset.id);
-      if (skipBecauseDeleted) {
-        continue;
-      }
       const syncedInfo = syncedEntries.get(asset.id);
       if (!syncedInfo) {
         newAssets.push(asset);
-      } else if (syncedInfo.status === 'cloud_deleted') {
+      } else if (syncedInfo.status === 'cloud_deleted' || syncedInfo.status === 'deleted') {
         if (hasBeenEdited(asset, syncedInfo.modificationTime)) {
           newAssets.push(asset);
         }

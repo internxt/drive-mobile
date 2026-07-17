@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowUpIcon, CloudSlashIcon, DotsThreeVerticalIcon, XIcon } from 'phosphor-react-native';
+import { ArrowUpIcon, CloudSlashIcon, CloudXIcon, DotsThreeVerticalIcon, XIcon } from 'phosphor-react-native';
 import { useEffect } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Animated, {
@@ -70,6 +70,7 @@ const AnimatedArrowUp = ({ size, color }: { size: number; color: string }): JSX.
 };
 interface TimelineInfoProps {
   isWaitingToUpload: boolean;
+  isCloudDeleted: boolean;
   isUploading: boolean;
   isBurst: boolean;
   burstLiveProgress: { uploaded: number; total: number } | null;
@@ -80,6 +81,7 @@ interface TimelineInfoProps {
 
 const TimelineInfo = ({
   isWaitingToUpload,
+  isCloudDeleted,
   isUploading,
   isBurst,
   burstLiveProgress,
@@ -92,7 +94,7 @@ const TimelineInfo = ({
   const uploadLabel = getUploadingLabel(isBurst, burstLiveProgress);
   const backedBurstLabel = getBackedBurstLabel(isBurst, isUploading, burstTotal);
 
-  const showUploadRow = isWaitingToUpload || isUploading;
+  const showUploadRow = isWaitingToUpload || isCloudDeleted || isUploading;
   if (!showUploadRow && !backedBurstLabel && (!timestamp || !hasTimeAccuracy)) {
     return null;
   }
@@ -104,6 +106,12 @@ const TimelineInfo = ({
         <AppText style={tailwind('text-sm text-white')}>{formatHeaderTime(timestamp)}</AppText>
       )}
       {showSeparator && <AppText style={tailwind('text-sm text-white')}>·</AppText>}
+      {isCloudDeleted && (
+        <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
+          <CloudXIcon size={16} color="white" />
+          <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.deletedFromCloud}</AppText>
+        </View>
+      )}
       {isWaitingToUpload && (
         <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
           <CloudSlashIcon size={16} color="white" />
@@ -136,6 +144,7 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
 
   const {
     isWaitingToUpload,
+    isCloudDeleted,
     isUploading,
     progress: uploadProgress,
     isBurst,
@@ -177,6 +186,7 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
               </AppText>
               <TimelineInfo
                 isWaitingToUpload={isWaitingToUpload}
+                isCloudDeleted={isCloudDeleted}
                 isUploading={isUploading}
                 isBurst={isBurst}
                 burstLiveProgress={burstLiveProgress}

@@ -1,12 +1,12 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { TimelinePhotoItem } from '../types';
+import { PhotoBackupState, TimelinePhotoItem } from '../types';
 import { usePhotoSelection } from './usePhotoSelection';
 
-const makeLocalItem = (id: string): TimelinePhotoItem => ({
+const makeLocalItem = (id: string, backupState: PhotoBackupState = 'backed'): TimelinePhotoItem => ({
   id,
   type: 'local',
   createdAt: 0,
-  backupState: 'backed',
+  backupState,
   mediaType: 'photo',
 });
 
@@ -97,5 +97,29 @@ describe('usePhotoSelection', () => {
 
     expect(result.current.selectedItems).toHaveLength(1);
     expect(result.current.selectedItems[0].id).toBe('c');
+  });
+
+  test('when a drag-select starts on a cloud-deleted photo, then the anchor is rejected and nothing is selected', () => {
+    const items = [makeLocalItem('a', 'cloud-deleted'), makeLocalItem('b')];
+    const { result } = renderHook(() => usePhotoSelection(items));
+
+    act(() => result.current.enterSelectMode());
+    act(() => result.current.beginDragSelect(0));
+    act(() => result.current.updateDragSelect(1));
+
+    expect(result.current.selectedIds.size).toBe(0);
+  });
+
+  test('when a drag-select range includes a cloud-deleted photo, then that photo is skipped while others are selected', () => {
+    const items = [makeLocalItem('a'), makeLocalItem('b', 'cloud-deleted'), makeLocalItem('c')];
+    const { result } = renderHook(() => usePhotoSelection(items));
+
+    act(() => result.current.enterSelectMode());
+    act(() => result.current.beginDragSelect(0));
+    act(() => result.current.updateDragSelect(2));
+
+    expect(result.current.selectedIds.has('a')).toBe(true);
+    expect(result.current.selectedIds.has('b')).toBe(false);
+    expect(result.current.selectedIds.has('c')).toBe(true);
   });
 });

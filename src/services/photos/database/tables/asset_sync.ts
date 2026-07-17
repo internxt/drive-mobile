@@ -134,7 +134,7 @@ const statements = {
     FROM ${TABLE_NAME} WHERE asset_id = ?;
   `,
   getSyncedInList: (placeholders: string) =>
-    `SELECT asset_id, modification_time, status FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status IN ('synced', 'cloud_deleted', 'error');`,
+    `SELECT asset_id, modification_time, status FROM ${TABLE_NAME} WHERE asset_id IN (${placeholders}) AND status IN ('synced', 'cloud_deleted', 'deleted', 'error');`,
   getSyncedRemoteIdsByCreationMonth: `
     SELECT remote_file_id FROM ${TABLE_NAME}
     WHERE status = 'synced'
@@ -165,7 +165,6 @@ const statements = {
       status     = 'deleted',
       deleted_at = (unixepoch() * 1000);
   `,
-  getDeletedIds: `SELECT asset_id FROM ${TABLE_NAME} WHERE status = 'deleted';`,
   markCloudDeleted: `UPDATE ${TABLE_NAME} SET status = 'cloud_deleted' WHERE remote_file_id = ?;`,
   resetSyncedToPending: `
     UPDATE ${TABLE_NAME} SET

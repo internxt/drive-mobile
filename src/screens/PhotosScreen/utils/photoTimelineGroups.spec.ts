@@ -137,6 +137,38 @@ describe('local asset to photo item conversion', () => {
     expect(item.mediaType).toBe('video');
     expect(item.duration).toBe('2:05');
   });
+
+  test('when the asset is in the cloud-deleted set, then its backup state is cloud-deleted', () => {
+    const asset = makeAsset({ id: 'asset-1' });
+    const item = assetToPhotoItem(asset, new Set(), new Set(), undefined, undefined, new Set(['asset-1']));
+    expect(item.backupState).toBe('cloud-deleted');
+  });
+
+  test('when the asset is both synced and cloud-deleted, then synced takes priority', () => {
+    const asset = makeAsset({ id: 'asset-1' });
+    const item = assetToPhotoItem(
+      asset,
+      new Set(['asset-1']),
+      new Set(),
+      undefined,
+      undefined,
+      new Set(['asset-1']),
+    );
+    expect(item.backupState).toBe('backed');
+  });
+
+  test('when the asset is both uploading and cloud-deleted, then uploading takes priority', () => {
+    const asset = makeAsset({ id: 'asset-1' });
+    const item = assetToPhotoItem(
+      asset,
+      new Set(),
+      new Set(['asset-1']),
+      undefined,
+      undefined,
+      new Set(['asset-1']),
+    );
+    expect(item.backupState).toBe('uploading');
+  });
 });
 
 describe('grouping assets by date', () => {
@@ -166,8 +198,15 @@ describe('grouping assets by date', () => {
   test('when an asset is synced, then the corresponding photo item has a backed state', () => {
     const asset = makeAsset({ id: 'a1' });
     const groups = groupAssetsByDate([asset], new Set(['a1']), new Set());
-    const photo = groups[0].photos[0] as import('../types').PhotoItem;
+    const photo = groups[0].photos[0] as PhotoItem;
     expect(photo.backupState).toBe('backed');
+  });
+
+  test('when an asset is cloud-deleted, then the corresponding photo item has a cloud-deleted state', () => {
+    const asset = makeAsset({ id: 'a1' });
+    const groups = groupAssetsByDate([asset], new Set(), new Set(), undefined, undefined, new Set(['a1']));
+    const photo = groups[0].photos[0] as PhotoItem;
+    expect(photo.backupState).toBe('cloud-deleted');
   });
 });
 
