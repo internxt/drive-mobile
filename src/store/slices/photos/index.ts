@@ -24,6 +24,7 @@ import { RootState } from '../../index';
 import { hasPhotosFeatureAccess } from './selectors';
 import { evaluateNetworkPause, runUploadThunk } from './thunks/upload';
 export { runUploadThunk };
+export { uploadAssetsManuallyThunk } from './thunks/upload';
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
 export type PhotoSyncStatus =

@@ -117,6 +117,20 @@ describe('useLiveBackupStatus', () => {
     expect(result.current.progress).toBe(0);
   });
 
+  test('when the asset is cloud-deleted and completed during this session, then cloud-deleted is no longer reported', () => {
+    photosState.sessionCompletedAssetIds = ['a1'];
+
+    const { result } = renderHook(() => useLiveBackupStatus(makeLocalItem('a1', 'cloud-deleted')));
+
+    expect(result.current.isCloudDeleted).toBe(false);
+  });
+
+  test('when the asset is cloud-deleted and was not completed during this session, then cloud-deleted is reported', () => {
+    const { result } = renderHook(() => useLiveBackupStatus(makeLocalItem('a1', 'cloud-deleted')));
+
+    expect(result.current.isCloudDeleted).toBe(true);
+  });
+
   test('when the snapshot says uploading but the queue no longer contains the asset, then it is shown as backed', () => {
     const { result } = renderHook(() => useLiveBackupStatus(makeLocalItem('a1', 'uploading')));
 
@@ -148,7 +162,14 @@ describe('useLiveBackupStatus', () => {
     photosState.uploadProgressById = { b1: 0.6 };
     photosState.burstUploadProgressById = { b1: { uploaded: 3, total: 5 } };
 
-    const item: PhotoItem = { id: 'b1', type: 'local', createdAt: 1000, backupState: 'not-backed', mediaType: 'photo', isBurst: true };
+    const item: PhotoItem = {
+      id: 'b1',
+      type: 'local',
+      createdAt: 1000,
+      backupState: 'not-backed',
+      mediaType: 'photo',
+      isBurst: true,
+    };
     const { result } = renderHook(() => useLiveBackupStatus(item));
 
     expect(result.current.isBurst).toBe(true);
@@ -160,7 +181,14 @@ describe('useLiveBackupStatus', () => {
   test('when a burst is backed, then the member count from the database is reported as total', async () => {
     mockGetStatus.mockResolvedValue({ burstMemberCount: 4 });
 
-    const item: PhotoItem = { id: 'b2', type: 'local', createdAt: 1000, backupState: 'backed', mediaType: 'photo', isBurst: true };
+    const item: PhotoItem = {
+      id: 'b2',
+      type: 'local',
+      createdAt: 1000,
+      backupState: 'backed',
+      mediaType: 'photo',
+      isBurst: true,
+    };
     const { result } = renderHook(() => useLiveBackupStatus(item));
 
     await waitFor(() => expect(result.current.burstTotal).toBe(5)); // 4 members + 1 representative

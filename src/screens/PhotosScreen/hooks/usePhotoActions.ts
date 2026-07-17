@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useAppDispatch } from 'src/store/hooks';
-import { runBackupCycleThunk, runUploadThunk } from 'src/store/slices/photos';
+import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { usePhotoActionHandlers } from './usePhotoActionHandlers';
 import { PhotoSelection } from './usePhotoSelection';
 
@@ -57,10 +57,9 @@ export const usePhotoActions = (
       await reloadCloud();
     }, [reloadLocal, reloadCloud]),
     onAfterRestore: useCallback(async () => {
-      await dispatch(runUploadThunk({ bypassEnabled: true })).unwrap();
       await reloadLocal();
       await reloadCloud();
-    }, [dispatch, reloadLocal, reloadCloud]),
+    }, [reloadLocal, reloadCloud]),
   });
 
   const handleDelete = useCallback(() => {

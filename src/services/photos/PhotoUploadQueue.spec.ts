@@ -132,6 +132,52 @@ describe('PhotoUploadQueue.start', () => {
   });
 });
 
+describe('PhotoUploadQueue.start with an external signal', () => {
+  test('when an external signal is provided, then it is used instead of the shared cycle controller', async () => {
+    const asset = makeAsset('a1');
+    mockUpload.mockResolvedValue('remote-id');
+    const controller = new AbortController();
+
+    await PhotoUploadQueue.start([{ asset }], DEVICE_ID, PHOTOS_BUCKET, {}, controller.signal);
+
+    expect(mockUpload).toHaveBeenCalledWith(
+      asset,
+      DEVICE_ID,
+      PHOTOS_BUCKET,
+      expect.objectContaining({ signal: controller.signal }),
+    );
+  });
+
+  test('when an external signal is already aborted, then no job is uploaded', async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const onAssetStart = jest.fn();
+
+    await PhotoUploadQueue.start([{ asset: makeAsset('a1') }], DEVICE_ID, PHOTOS_BUCKET, { onAssetStart }, controller.signal);
+
+    expect(onAssetStart).not.toHaveBeenCalled();
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
+  test('when a run uses an external signal, then abortAll on the shared cycle controller does not cancel it', async () => {
+    const asset = makeAsset('a1');
+    const controller = new AbortController();
+    mockUpload.mockImplementationOnce(async () => {
+      PhotoUploadQueue.beginCycle();
+      PhotoUploadQueue.abortAll();
+      return 'remote-id';
+    });
+
+    const onAssetDone = jest.fn();
+    await PhotoUploadQueue.start([{ asset }], DEVICE_ID, PHOTOS_BUCKET, { onAssetDone }, controller.signal);
+
+    expect(controller.signal.aborted).toBe(false);
+    expect(onAssetDone).toHaveBeenCalledWith('a1', 'remote-id', asset.modificationTime);
+
+    PhotoUploadQueue.endCycle();
+  });
+});
+
 describe('PhotoUploadQueue.abortAll', () => {
   test('when the upload service rejects with an abort error, then onAssetError receives the original abort error and not a wrapped error', async () => {
     const asset = makeAsset('a1');

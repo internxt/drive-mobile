@@ -6,28 +6,26 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { logger } from 'src/services/common';
-import { useAppDispatch } from 'src/store/hooks';
-import { runUploadThunk } from 'src/store/slices/photos';
 import { RootStackScreenProps } from 'src/types/navigation';
 import { useTailwind } from 'tailwind-rn';
 import MoreActionsBottomSheet from '../PhotosScreen/components/MoreActionsBottomSheet';
 import { usePhotoActionHandlers } from '../PhotosScreen/hooks/usePhotoActionHandlers';
-import { isItemBacked, isItemCloudDeleted } from '../PhotosScreen/utils/photoUtils';
+import { TimelinePhotoItem } from '../PhotosScreen/types';
 import { BurstIncompleteBanner } from './components/BurstIncompleteBanner';
 import { MetadataPanel } from './components/MetadataPanel';
 import { PreviewCarousel } from './components/PreviewCarousel';
 import { PreviewHeader } from './components/PreviewHeader';
 import { PreviewPager } from './components/PreviewPager';
+import { useLiveBackupStatus } from './hooks/useLiveBackupStatus';
 import { usePreviewItems } from './hooks/usePreviewItems';
 
 type Props = RootStackScreenProps<'PhotoPreview'>;
 
 export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   const { initialId, items: routeItems, onItemChanged, onCurrentItemChange } = route.params;
-  const { items, currentIndex, setCurrentIndex } = usePreviewItems(initialId, routeItems);
+  const { items, currentIndex, setCurrentIndex, markAssetBackedUp } = usePreviewItems(initialId, routeItems);
   const tailwind = useTailwind();
   const navigation = useNavigation();
-  const dispatch = useAppDispatch();
 
   const [isUiVisible, setIsUiVisible] = useState(true);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -132,9 +130,15 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
       await onItemChanged?.();
       navigation.goBack();
     }, [onItemChanged, navigation]),
-    onAfterRestore: useCallback(async () => {
-      await dispatch(runUploadThunk({ bypassEnabled: true })).unwrap();
-    }, [dispatch]),
+    onAfterRestore: useCallback(
+      async (restoredItems: TimelinePhotoItem[]) => {
+        for (const restoredItem of restoredItems) {
+          markAssetBackedUp(restoredItem.id);
+        }
+        await onItemChanged?.();
+      },
+      [onItemChanged, markAssetBackedUp],
+    ),
   });
 
   const handleDeletePress = useCallback(() => setIsDeleteConfirmOpen(true), []);
@@ -145,8 +149,8 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   }, [handleTrashConfirm]);
 
   const showCarousel = isUiVisible && !zoomActive && !hasVideoStarted;
-  const isSynced = currentItem ? isItemBacked(currentItem) : false;
-  const isCloudDeleted = currentItem ? isItemCloudDeleted(currentItem) : false;
+  const { isWaitingToUpload, isCloudDeleted, isUploading } = useLiveBackupStatus(currentItem);
+  const isSynced = !isWaitingToUpload && !isCloudDeleted && !isUploading;
   const isBurstIncomplete = currentItem?.type === 'local' && currentItem?.isBurstUploadIncomplete === true;
 
   return (

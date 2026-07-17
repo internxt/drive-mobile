@@ -206,7 +206,7 @@ const translations = {
         enableSheet: {
           title: 'All your photos,\none gallery',
           featurePrivacy: 'Keep your memories safe and private, only you can access them.',
-          featureDevices: 'Access from all your devices, even from the browser with Photos Web.',
+          featureDevices: 'Access from all your devices',
           featureBackup: 'Backup all your photos in case you lose your device.',
           allowButton: 'Back up my gallery',
           deniedHintPrefix: 'On the following screen, change Photos access from ',
@@ -1212,7 +1212,7 @@ const translations = {
         enableSheet: {
           title: 'Todas tus fotos,\nuna galería',
           featurePrivacy: 'Mantén tus recuerdos seguros y privados, solo tú puedes acceder a ellos.',
-          featureDevices: 'Accede desde todos tus dispositivos, incluso desde el navegador con Photos Web.',
+          featureDevices: 'Accede desde todos tus dispositivos.',
           featureBackup: 'Haz backup de todas tus fotos por si pierdes tu dispositivo.',
           allowButton: 'Guardar mi galería',
           deniedHintPrefix: 'En la siguiente pantalla, cambia el acceso a Fotos de ',

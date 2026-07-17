@@ -174,18 +174,6 @@ class PhotoActionsService {
     }
   }
 
-  async restoreToCloud(items: TimelinePhotoItem[], signal: AbortSignal): Promise<void> {
-    for (const item of items) {
-      if (signal.aborted) {
-        return;
-      }
-      if (item.type !== 'local') {
-        continue;
-      }
-      await photosLocalDB.markPending(item.id);
-    }
-  }
-
   async trash(items: TimelinePhotoItem[], signal: AbortSignal): Promise<void> {
     const { trashPayload, cleanupItems } = await this.classifyItems(items, signal);
 

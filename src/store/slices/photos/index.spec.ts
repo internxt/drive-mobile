@@ -28,6 +28,7 @@ import photosReducer, {
   runFullCloudHistorySyncThunk,
   runUploadThunk,
   setNetworkConditionThunk,
+  uploadAssetsManuallyThunk,
 } from './index';
 import { hasPhotosFeatureAccess } from './selectors';
 
@@ -1469,6 +1470,129 @@ describe('photos slice', () => {
       await store.dispatch(runUploadThunk());
 
       expect(store.getState().photos.sessionCompletedAssetIds).toEqual([]);
+    });
+  });
+
+  describe('uploadAssetsManuallyThunk', () => {
+    const makeSignal = () => new AbortController().signal;
+
+    const makeReadyStore = () => {
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
+      );
+      return store;
+    };
+
+    test('when the upload succeeds, then the asset is marked synced and removed from the uploading set', async () => {
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        callbacks.onAssetStart?.('a1');
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'remote-1' }, 12345);
+      });
+      const store = makeReadyStore();
+
+      await store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap();
+
+      expect(mockPhotosLocalDB.markSynced).toHaveBeenCalledWith('a1', 'remote-1', 12345);
+      expect(store.getState().photos.uploadingAssetIds).toEqual([]);
+      expect(mockPhotosLocalDB.markPending).not.toHaveBeenCalled();
+    });
+
+    test('when the upload succeeds, then the asset is not added to sessionCompletedAssetIds', async () => {
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'remote-1' }, 12345);
+      });
+      const store = makeReadyStore();
+
+      await store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap();
+
+      expect(store.getState().photos.sessionCompletedAssetIds).toEqual([]);
+    });
+
+    test('when the upload fails, then the asset is marked errored and the thunk rejects', async () => {
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1' }] as never);
+      const uploadError = Object.assign(new Error('network error'), { name: 'Error' });
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        await callbacks.onAssetError?.('a1', uploadError);
+      });
+      const store = makeReadyStore();
+
+      await expect(
+        store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap(),
+      ).rejects.toMatchObject({ message: 'network error' });
+
+      expect(mockPhotosLocalDB.markError).toHaveBeenCalledWith('a1', 'network error');
+    });
+
+    test('when wifi-only is enabled and the device is on cellular, then the upload is blocked and the queue never starts', async () => {
+      (networkMonitorService.getNetworkStateAsync as jest.Mock).mockResolvedValueOnce({
+        type: NetworkStateType.CELLULAR,
+        isConnected: true,
+        isInternetReachable: true,
+      } as NetworkState);
+      const store = makeReadyStore();
+      store.dispatch(photosSlice.actions.setNetworkCondition('wifi-only'));
+
+      await expect(
+        store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap(),
+      ).rejects.toBeTruthy();
+
+      expect(mockUploadQueue.start).not.toHaveBeenCalled();
+    });
+
+    test('when available storage is exhausted, then the upload is blocked and backup is paused for quota', async () => {
+      mockStorageSelectors.availableStorage.mockReturnValueOnce(0);
+      const store = makeReadyStore();
+
+      await expect(
+        store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap(),
+      ).rejects.toBeTruthy();
+
+      expect(mockUploadQueue.start).not.toHaveBeenCalled();
+      expect(store.getState().photos.disabledReason).toBe('quota-exceeded');
+    });
+
+    test('when backup is disabled, then the manual upload still runs', async () => {
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1' }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'remote-1' }, Date.now());
+      });
+      const store = makeReadyStore();
+      store.dispatch(photosSlice.actions.setEnabled(false));
+
+      await store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap();
+
+      expect(mockUploadQueue.start).toHaveBeenCalled();
+    });
+
+    test('when the signal is already aborted, then nothing is uploaded', async () => {
+      const controller = new AbortController();
+      controller.abort();
+      const store = makeReadyStore();
+
+      await store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: controller.signal })).unwrap();
+
+      expect(mockUploadQueue.start).not.toHaveBeenCalled();
+    });
+
+    test('when the asset upload is aborted mid-flight, then it is not marked as errored and the thunk does not reject', async () => {
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1' }] as never);
+      const abortError = new AbortError();
+      mockUploadQueue.start.mockImplementationOnce(async (_jobs, _deviceId, _photosBucket, callbacks) => {
+        await callbacks.onAssetError?.('a1', abortError);
+      });
+      const store = makeReadyStore();
+
+      await store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap();
+
+      expect(mockPhotosLocalDB.markError).not.toHaveBeenCalled();
     });
   });
 });

@@ -5,6 +5,8 @@ import { logger } from 'src/services/common';
 import { notifications } from 'src/services/NotificationsService';
 import { SavePermissionDeniedError } from 'src/services/photos/errors';
 import { photoActionsService } from 'src/services/photos/PhotoActionsService';
+import { useAppDispatch } from 'src/store/hooks';
+import { uploadAssetsManuallyThunk } from 'src/store/slices/photos';
 import { NotificationType } from 'src/types';
 import { TimelinePhotoItem } from '../types';
 import { getSavedNotificationMessage, getTrashNotificationMessage } from '../utils/photoUtils';
@@ -15,7 +17,7 @@ interface UsePhotoActionHandlersOpts {
   onActionEnd?: () => void;
   onAfterSave?: () => void | Promise<void>;
   onAfterTrash?: () => void | Promise<void>;
-  onAfterRestore?: () => void | Promise<void>;
+  onAfterRestore?: (items: TimelinePhotoItem[]) => void | Promise<void>;
 }
 
 export interface UsePhotoActionHandlersReturn {
@@ -34,6 +36,7 @@ export const usePhotoActionHandlers = ({
   onAfterTrash,
   onAfterRestore,
 }: UsePhotoActionHandlersOpts): UsePhotoActionHandlersReturn => {
+  const dispatch = useAppDispatch();
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(
@@ -130,17 +133,21 @@ export const usePhotoActionHandlers = ({
   }, [startAction, onActionEnd, items, onAfterTrash]);
 
   const handleRestore = useCallback(async () => {
-    const { signal } = startAction(strings.screens.photos.selection.actionProgress.uploadingToCloud);
+    startAction(strings.screens.photos.selection.actionProgress.uploadingToCloud);
     try {
-      await photoActionsService.restoreToCloud(items, signal);
-      await onAfterRestore?.();
+      const assetIds = items.filter((item) => item.type === 'local').map((item) => item.id);
+      if (assetIds.length > 0) {
+        const uploadSignal = new AbortController().signal;
+        await dispatch(uploadAssetsManuallyThunk({ assetIds, signal: uploadSignal })).unwrap();
+      }
+      await onAfterRestore?.(items);
     } catch (error) {
       logger.error(`[usePhotoActionHandlers] Restore error: ${error}`);
       notifications.error(strings.screens.photos.notifications.restoreError);
     } finally {
       onActionEnd?.();
     }
-  }, [startAction, onActionEnd, items, onAfterRestore]);
+  }, [startAction, onActionEnd, items, onAfterRestore, dispatch]);
 
   return { handleExport, handleSave, handleCopy, handleTrashConfirm, handleRestore };
 };

@@ -42,7 +42,6 @@ jest.mock('./database/photosLocalDB', () => ({
     getStatus: jest.fn(),
     deleteCloudAsset: jest.fn(),
     markAssetDeleted: jest.fn(),
-    markPending: jest.fn(),
   },
 }));
 
@@ -101,7 +100,6 @@ beforeEach(() => {
   mockDB.getStatus.mockResolvedValue(null);
   mockDB.deleteCloudAsset.mockResolvedValue(undefined);
   mockDB.markAssetDeleted.mockResolvedValue(undefined);
-  mockDB.markPending.mockResolvedValue(undefined);
   mockMoveToTrash.mockResolvedValue(undefined);
 });
 
@@ -271,34 +269,5 @@ describe('trash', () => {
     await photoActionsService.trash([makeCloudOnly()], controller.signal);
 
     expect(mockMoveToTrash).not.toHaveBeenCalled();
-  });
-});
-
-describe('restoreToCloud', () => {
-  test('when a local item is restored, then it is marked pending', async () => {
-    const item = makeLocalNotBacked('local-1');
-
-    await photoActionsService.restoreToCloud([item], makeSignal());
-
-    expect(mockDB.markPending).toHaveBeenCalledWith('local-1');
-  });
-
-  test('when a cloud-only item is in the list, then it is ignored', async () => {
-    const cloud = makeCloudOnly('remote-1');
-    const local = makeLocalNotBacked('local-1');
-
-    await photoActionsService.restoreToCloud([cloud, local], makeSignal());
-
-    expect(mockDB.markPending).toHaveBeenCalledTimes(1);
-    expect(mockDB.markPending).toHaveBeenCalledWith('local-1');
-  });
-
-  test('when the signal is aborted before processing starts, then nothing is marked pending', async () => {
-    const controller = new AbortController();
-    controller.abort();
-
-    await photoActionsService.restoreToCloud([makeLocalNotBacked()], controller.signal);
-
-    expect(mockDB.markPending).not.toHaveBeenCalled();
   });
 });
