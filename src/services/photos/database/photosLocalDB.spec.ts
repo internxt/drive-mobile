@@ -8,6 +8,7 @@ jest.mock('../../SqliteService', () => ({
     executeSql: jest.fn().mockResolvedValue(undefined),
     getAllAsync: jest.fn().mockResolvedValue([]),
     getFirstAsync: jest.fn().mockResolvedValue(null),
+    transaction: jest.fn(),
   },
 }));
 
@@ -875,6 +876,143 @@ describe('photosLocalDB cloud asset methods', () => {
       const result = await photosLocalDB.getAssetUploadErroredCount();
 
       expect(result).toBe(0);
+    });
+  });
+
+  describe('when checking whether the local asset_sync table has any state', () => {
+    test('when the table has at least one row, then it returns true', async () => {
+      mockSqlite.getFirstAsync.mockResolvedValueOnce({ result: 1 });
+
+      const result = await photosLocalDB.hasAnyAssetSyncEntry();
+
+      expect(result).toBe(true);
+    });
+
+    test('when the table is empty, then it returns false', async () => {
+      mockSqlite.getFirstAsync.mockResolvedValueOnce({ result: 0 });
+
+      const result = await photosLocalDB.hasAnyAssetSyncEntry();
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('when exporting entries for the sync manifest', () => {
+    test('when there are synced and cloud_deleted assets, then only those statuses are queried', async () => {
+      mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+      await photosLocalDB.getManifestEntries();
+
+      const [, sql] = mockSqlite.getAllAsync.mock.calls[0];
+      expect(sql).toContain('status IN (\'synced\', \'cloud_deleted\')');
+    });
+
+    test('when a burst entry is exported, then its member remote file ids are parsed from JSON', async () => {
+      mockSqlite.getAllAsync.mockResolvedValueOnce([
+        {
+          asset_id: 'asset-1',
+          status: 'synced',
+          remote_file_id: 'remote-1',
+          modification_time: 111,
+          file_name: 'IMG_1.jpg',
+          creation_time: 222,
+          width: 100,
+          height: 200,
+          duration: 0,
+          media_type: 'photo',
+          is_live_photo: 0,
+          paired_video_remote_file_id: null,
+          paired_video_status: null,
+          is_burst: 1,
+          burst_id: 'burst-1',
+          burst_member_remote_file_ids: '["remote-2","remote-3"]',
+          burst_member_count: 2,
+        },
+      ]);
+
+      const result = await photosLocalDB.getManifestEntries();
+
+      expect(result[0].burstMemberRemoteFileIds).toEqual(['remote-2', 'remote-3']);
+      expect(result[0].isBurst).toBe(true);
+    });
+  });
+
+  describe('when restoring entries from a sync manifest', () => {
+    test('when there are no entries to restore, then no transaction is started', async () => {
+      await photosLocalDB.restoreEntries([]);
+
+      expect(mockSqlite.transaction).not.toHaveBeenCalled();
+    });
+
+    test('when restoring entries, then each one is inserted inside a single transaction', async () => {
+      const executeSql = jest.fn();
+      mockSqlite.transaction.mockImplementation(async (_name, scope) => {
+        await scope({ executeSql });
+      });
+
+      await photosLocalDB.restoreEntries([
+        {
+          assetId: 'asset-1',
+          status: 'synced',
+          remoteFileId: 'remote-1',
+          modificationTime: 111,
+          fileName: 'IMG_1.jpg',
+          creationTime: 222,
+          width: 100,
+          height: 200,
+          duration: 0,
+          mediaType: 'photo',
+          isLivePhoto: false,
+          pairedVideoRemoteFileId: null,
+          pairedVideoStatus: null,
+          isBurst: false,
+          burstId: null,
+          burstMemberRemoteFileIds: null,
+          burstMemberCount: null,
+        },
+        {
+          assetId: 'asset-2',
+          status: 'cloud_deleted',
+          remoteFileId: 'remote-2',
+          modificationTime: 333,
+          fileName: 'IMG_2.jpg',
+          creationTime: 444,
+          width: 50,
+          height: 60,
+          duration: 0,
+          mediaType: 'photo',
+          isLivePhoto: false,
+          pairedVideoRemoteFileId: null,
+          pairedVideoStatus: null,
+          isBurst: false,
+          burstId: null,
+          burstMemberRemoteFileIds: null,
+          burstMemberCount: null,
+        },
+      ]);
+
+      expect(mockSqlite.transaction).toHaveBeenCalledTimes(1);
+      expect(executeSql).toHaveBeenCalledTimes(2);
+      const [, firstParams] = executeSql.mock.calls[0];
+      expect(firstParams).toEqual([
+        'asset-1',
+        'synced',
+        'remote-1',
+        111,
+        'IMG_1.jpg',
+        222,
+        100,
+        200,
+        0,
+        'photo',
+        0,
+        null,
+        null,
+        0,
+        null,
+        null,
+        null,
+      ]);
     });
   });
 });

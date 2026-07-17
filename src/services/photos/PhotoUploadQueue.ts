@@ -19,15 +19,57 @@ interface UploadQueueCallbacks {
 
 let currentController: AbortController | null = null;
 
+interface PromiseWithResolvers<T> {
+  promise: Promise<T>;
+  resolve: (value: T | PromiseLike<T>) => void;
+}
+
+// Local stand-in for ES2024 Promise.withResolvers(), which Hermes doesn't support yet.
+const promiseWithResolvers = <T = void>(): PromiseWithResolvers<T> => {
+  let resolve!: (value: T | PromiseLike<T>) => void;
+  const promise = new Promise<T>((res) => {
+    resolve = res;
+  });
+  return { promise, resolve };
+};
+
+let currentCycleEnd: PromiseWithResolvers<void> | null = null;
+
 // TODO: MAKE IT CLASS
 export const PhotoUploadQueue = {
   beginCycle(): AbortSignal {
     currentController = new AbortController();
+    currentCycleEnd = promiseWithResolvers();
     return currentController.signal;
   },
 
   endCycle(): void {
     currentController = null;
+    currentCycleEnd?.resolve();
+    currentCycleEnd = null;
+  },
+
+  isCycleRunning(): boolean {
+    return currentCycleEnd !== null;
+  },
+
+  /**
+   * Resolves once the current cycle ends, or immediately if none is running.
+   * With `timeoutMs`, resolves after that long even if the cycle has not ended.
+   */
+  waitForCycleEnd(timeoutMs?: number): Promise<void> {
+    if (!currentCycleEnd) {
+      return Promise.resolve();
+    }
+    const cycleEndPromise = currentCycleEnd.promise;
+    if (timeoutMs === undefined) {
+      return cycleEndPromise;
+    }
+    let timeoutHandle: ReturnType<typeof setTimeout>;
+    const timedOut = new Promise<void>((res) => {
+      timeoutHandle = setTimeout(res, timeoutMs);
+    });
+    return Promise.race([cycleEndPromise.finally(() => clearTimeout(timeoutHandle)), timedOut]);
   },
 
   async start(

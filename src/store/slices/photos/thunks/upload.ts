@@ -5,6 +5,7 @@ import { AbortError } from 'src/network/errors';
 import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
 import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
+import { photoSyncManifestService } from 'src/services/photos/PhotoSyncManifestService';
 import { AssetUploadJob, PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { PhotoUploadEvent, PhotoUploadResult, uploadSingleFile } from 'src/services/photos/PhotoUploadService';
 import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
@@ -144,8 +145,6 @@ const handleAssetUploadError = async (
   return 'failed';
 };
 
-let isUploadCycleRunning = false;
-
 export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean } | void, { state: RootState }>(
   'photos/runUpload',
   async (args, { getState, dispatch }) => {
@@ -160,11 +159,10 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     ) {
       return;
     }
-    if (isUploadCycleRunning) {
+    if (PhotoUploadQueue.isCycleRunning()) {
       logger.info('[Upload] Skipped — an upload cycle is already running');
       return;
     }
-    isUploadCycleRunning = true;
 
     const uploadCycleAbortSignal = PhotoUploadQueue.beginCycle();
     const unsubscribeNetworkMonitor = networkMonitorService.subscribe((state) => {
@@ -278,6 +276,9 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
           lastDispatchedUploadProgressStep.delete(assetId);
           await finishAssetUploadInCycle(dispatch, assetId, result, modificationTime);
           dispatch(photosSlice.actions.incrementSessionUploadedAssets());
+          photoSyncManifestService
+            .maybeUploadManifest(deviceId, photosBucket)
+            .catch((err) => logger.error('[Upload] Failed to checkpoint sync manifest', err));
         },
         onAssetEvent: applyBurstEvent,
         onAssetError: async (assetId, error) => {
@@ -304,12 +305,16 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       dispatch(photosSlice.actions.setAssetUploadErroredCount(await photosLocalDB.getAssetUploadErroredCount()));
 
       const hasUploadSomeAssets = finalSessionUploadedAssets > 0;
+      if (hasUploadSomeAssets) {
+        photoSyncManifestService
+          .uploadManifest(deviceId, photosBucket)
+          .catch((err) => logger.error('[Upload] Failed to upload sync manifest', err));
+      }
       if (!finalIsPaused && finalDisabledReason === null && hasUploadSomeAssets && (await hasRemainingAssets(isIOS))) {
         logger.info('[Upload] Work remains after this cycle — restarting');
         dispatch(runBackupCycleThunk());
       }
     } finally {
-      isUploadCycleRunning = false;
       unsubscribeNetworkMonitor();
       PhotoUploadQueue.endCycle();
     }
@@ -318,7 +323,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
 
 /**
  * Uploads the given assets for the manual "Backup" action, independent of the automatic backup
- * cycle: not gated by `enabled`/`isPaused`/`isUploadCycleRunning`, never marks the asset
+ * cycle: not gated by `enabled`/`isPaused`/a running cycle, never marks the asset
  * `pending`, and skips session bookkeeping — so it can't be swallowed by a running cycle or
  * silently resume an entire backlog when backup is off. Not retried automatically if interrupted.
  */

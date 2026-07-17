@@ -9,6 +9,7 @@ import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
 import { PhotoDeviceManager } from 'src/services/photos/PhotoDeviceId';
+import { photoSyncManifestService } from 'src/services/photos/PhotoSyncManifestService';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { BurstNativeModule } from 'src/services/photos/burst/BurstNativeModule';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
@@ -23,8 +24,8 @@ import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 import { hasPhotosFeatureAccess } from './selectors';
 import { evaluateNetworkPause, runUploadThunk } from './thunks/upload';
-export { runUploadThunk };
 export { uploadAssetsManuallyThunk } from './thunks/upload';
+export { runUploadThunk };
 
 export type PhotoNetworkCondition = 'wifi-only' | 'wifi-and-data';
 export type PhotoSyncStatus =
@@ -240,6 +241,24 @@ export const initDeviceIdThunk = createAsyncThunk<string, void, { state: RootSta
   },
 );
 
+export const restoreLocalDbFromManifestThunk = createAsyncThunk<void, void, { state: RootState }>(
+  'photos/restoreLocalDbFromManifest',
+  async (_, { getState }) => {
+    const { deviceId, photosBucket } = getState().photos;
+    if (!deviceId || !photosBucket) {
+      return;
+    }
+
+    const hasLocalState = await photosLocalDB.hasAnyAssetSyncEntry();
+    if (hasLocalState) {
+      return;
+    }
+
+    logger.info('[Manifest] asset_sync is empty — checking for a same-device manifest to restore');
+    await photoSyncManifestService.restoreManifest(deviceId);
+  },
+);
+
 export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/runDiscovery',
   async (_, { getState, dispatch }) => {
@@ -392,6 +411,7 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
       return;
     }
     await dispatch(initDeviceIdThunk());
+    await dispatch(restoreLocalDbFromManifestThunk());
 
     dispatch(runFullCloudHistorySyncThunk());
 
@@ -551,10 +571,22 @@ export const photosSlice = createSlice({
 
 export const photosActions = photosSlice.actions;
 
+const SIGN_OUT_DRAIN_TIMEOUT_MS = 2 * 60 * 1000;
+
 export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/signOut',
-  async (_, { dispatch }) => {
+  async (_, { getState, dispatch }) => {
     PhotoUploadQueue.abortAll();
+    // Cancellation signal for the fire-and-forget cloud history sync — it checks !enabled between months.
+    dispatch(photosSlice.actions.setEnabled(false));
+    logger.info('[Manifest] signOutThunk — draining any in-flight upload cycle before wiping local state');
+    await PhotoUploadQueue.waitForCycleEnd(SIGN_OUT_DRAIN_TIMEOUT_MS);
+
+    const { deviceId, photosBucket } = getState().photos;
+    if (deviceId && photosBucket) {
+      await photoSyncManifestService.uploadManifest(deviceId, photosBucket).catch(errorService.reportError);
+    }
+
     await Promise.all([photosLocalDB.reset(), photosLocalDB.resetCloudAssets()]).catch(errorService.reportError);
     dispatch(photosActions.resetState());
   },

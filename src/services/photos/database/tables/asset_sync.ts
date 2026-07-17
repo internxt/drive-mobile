@@ -205,6 +205,28 @@ const statements = {
       AND is_burst = 1
       AND burst_member_count IS NULL;
   `,
+
+  hasAnyEntry: `SELECT EXISTS(SELECT 1 FROM ${TABLE_NAME}) AS result;`,
+
+  getManifestEntries: `
+    SELECT asset_id, status, remote_file_id, modification_time, file_name, creation_time,
+           width, height, duration, media_type,
+           is_live_photo, paired_video_remote_file_id, paired_video_status,
+           is_burst, burst_id, burst_member_remote_file_ids, burst_member_count
+    FROM ${TABLE_NAME}
+    WHERE status IN ('synced', 'cloud_deleted');
+  `,
+
+  restoreEntry: `
+    INSERT OR IGNORE INTO ${TABLE_NAME} (
+      asset_id, status, remote_file_id, modification_time, file_name, creation_time,
+      width, height, duration, media_type,
+      is_live_photo, paired_video_remote_file_id, paired_video_status,
+      is_burst, burst_id, burst_member_remote_file_ids, burst_member_count,
+      synced_at, last_attempt_at
+    )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (unixepoch() * 1000), (unixepoch() * 1000));
+  `,
 };
 
 export default { TABLE_NAME, statements };
