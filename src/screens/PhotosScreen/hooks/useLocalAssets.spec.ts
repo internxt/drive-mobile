@@ -278,6 +278,74 @@ describe('useLocalAssets', () => {
     expect(mockMediaLibrary.getAssetsAsync).toHaveBeenCalledTimes(2);
   });
 
+  test('when reload is called while the mount background pagination is still in flight, then the stale page is discarded instead of being appended after the reload', async () => {
+    const page1 = [makeAsset('a1'), makeAsset('a2')];
+    const reloadAssets = [makeAsset('a9')];
+    let resolveStalePage2: ((page: MediaLibrary.PagedInfo<MediaLibrary.Asset>) => void) | undefined;
+    const stalePage2 = new Promise<MediaLibrary.PagedInfo<MediaLibrary.Asset>>((resolve) => {
+      resolveStalePage2 = resolve;
+    });
+
+    mockMediaLibrary.getAssetsAsync
+      .mockResolvedValueOnce(makePage(page1, true, 'cursor-1')) // mount: first page
+      .mockImplementationOnce(() => stalePage2) // mount: background page 2, held pending
+      .mockResolvedValueOnce(makePage(reloadAssets, false)); // reload: fresh first page
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    }); // first page applied, background load for page 2 now in flight
+
+    await act(async () => {
+      await result.current.reload();
+    }); // reload wins: resets assets to the fresh result while page 2 is still pending
+
+    expect(result.current.assets).toEqual(reloadAssets);
+
+    await act(async () => {
+      resolveStalePage2?.(makePage([makeAsset('a3')], false));
+      await flushPromises();
+    }); // the stale background loop resumes here — it must detect it was superseded and no-op
+
+    expect(result.current.assets).toEqual(reloadAssets);
+  });
+
+  test('when a reload is interrupted by a newer reload, then only the newer reload cleans up orphaned sync entries', async () => {
+    const mountAssets = [makeAsset('a1')];
+    let resolveInterruptedReloadPage: ((page: MediaLibrary.PagedInfo<MediaLibrary.Asset>) => void) | undefined;
+    const interruptedReloadPage = new Promise<MediaLibrary.PagedInfo<MediaLibrary.Asset>>((resolve) => {
+      resolveInterruptedReloadPage = resolve;
+    });
+
+    mockMediaLibrary.getAssetsAsync
+      .mockResolvedValueOnce(makePage(mountAssets, false)) // mount
+      .mockImplementationOnce(() => interruptedReloadPage) // first reload, held pending
+      .mockResolvedValueOnce(makePage([makeAsset('a9')], false)); // second reload
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    let firstReload: Promise<void> | undefined;
+    await act(async () => {
+      firstReload = result.current.reload(); // blocks on the held page
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      const secondReload = result.current.reload(); // supersedes the first one
+      resolveInterruptedReloadPage?.(makePage(mountAssets, true, 'cursor-1'));
+      await Promise.all([secondReload, firstReload]);
+    });
+
+    // the interrupted reload must not clean up with its incomplete id set
+    expect(mockPhotosLocalDB.cleanupOrphanedAssetSync).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.cleanupOrphanedAssetSync).toHaveBeenCalledWith(new Set(['a9']));
+  });
+
   test('when sync status changes and there are assets loaded, then synced ids refresh from the database', async () => {
     mockMediaLibrary.getAssetsAsync.mockResolvedValueOnce(makePage([makeAsset('a1')]));
     mockPhotosLocalDB.getSyncedEntries.mockResolvedValue(

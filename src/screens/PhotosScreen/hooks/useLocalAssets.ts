@@ -39,6 +39,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
   const cursorRef = useRef<string | undefined>(undefined);
   const hasMoreRef = useRef(true);
   const isLoadingMoreRef = useRef(false);
+  const activeLoadGenerationRef = useRef(0);
   const appStateRef = useRef(AppState.currentState);
   const mediaLibrarySubscriptionRef = useRef<ReturnType<typeof MediaLibrary.addListener> | null>(null);
   const libraryChangeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -75,10 +76,14 @@ export const useLocalAssets = (): LocalAssetsResult => {
     if (isLoadingMoreRef.current || !hasMoreRef.current || !cursorRef.current) {
       return;
     }
+    const generation = activeLoadGenerationRef.current;
     isLoadingMoreRef.current = true;
     setIsLoading(true);
     try {
       const page = await fetchLocalPage(cursorRef.current);
+      if (activeLoadGenerationRef.current !== generation) {
+        return;
+      }
       applyPage(page, { replace: false });
     } finally {
       isLoadingMoreRef.current = false;
@@ -86,20 +91,26 @@ export const useLocalAssets = (): LocalAssetsResult => {
     }
   }, [fetchLocalPage, applyPage]);
 
-  const loadAllRemainingPages = useCallback(async () => {
-    if (isLoadingMoreRef.current || !hasMoreRef.current || !cursorRef.current) {
-      return;
-    }
-    isLoadingMoreRef.current = true;
-    try {
-      while (hasMoreRef.current && cursorRef.current) {
-        const page = await fetchLocalPage(cursorRef.current);
-        applyPage(page, { replace: false });
+  const loadAllRemainingPages = useCallback(
+    async (generation: number) => {
+      if (isLoadingMoreRef.current || !hasMoreRef.current || !cursorRef.current) {
+        return;
       }
-    } finally {
-      isLoadingMoreRef.current = false;
-    }
-  }, [fetchLocalPage, applyPage]);
+      isLoadingMoreRef.current = true;
+      try {
+        while (hasMoreRef.current && cursorRef.current && activeLoadGenerationRef.current === generation) {
+          const page = await fetchLocalPage(cursorRef.current);
+          if (activeLoadGenerationRef.current !== generation) {
+            break;
+          }
+          applyPage(page, { replace: false });
+        }
+      } finally {
+        isLoadingMoreRef.current = false;
+      }
+    },
+    [fetchLocalPage, applyPage],
+  );
 
   const refreshSyncStatusFromDB = useCallback(async () => {
     if (assets.length === 0) {
@@ -139,6 +150,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
   }, [debouncedAssetIds]);
 
   const hardReloadAndReconcile = useCallback(async () => {
+    const generation = ++activeLoadGenerationRef.current; // invalidate any in-flight pagination loop
     cursorRef.current = undefined;
     hasMoreRef.current = true;
     isLoadingMoreRef.current = true;
@@ -146,14 +158,24 @@ export const useLocalAssets = (): LocalAssetsResult => {
     const allIds = new Set<string>();
     try {
       let isFirstPage = true;
-      while (isFirstPage || (hasMoreRef.current && cursorRef.current)) {
+      while (
+        activeLoadGenerationRef.current === generation &&
+        (isFirstPage || (hasMoreRef.current && cursorRef.current))
+      ) {
         const page = await fetchLocalPage(isFirstPage ? undefined : cursorRef.current);
+        if (activeLoadGenerationRef.current !== generation) {
+          break;
+        }
         applyPage(page, { replace: isFirstPage });
         page.assets.forEach((a) => allIds.add(a.id));
         isFirstPage = false;
       }
     } finally {
       isLoadingMoreRef.current = false;
+    }
+
+    if (activeLoadGenerationRef.current !== generation) {
+      return; // superseded — cleaning up with a partial id set would drop valid asset_sync entries
     }
 
     logger.info(`[LocalAssets] Reloaded from start — ${allIds.size} total assets`);
@@ -241,7 +263,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
         // Cloud items from history can extend the list far back in time, making
         // onEndReached fire much later than the user runs out of local assets.
         if (page.hasNextPage) {
-          loadAllRemainingPages();
+          loadAllRemainingPages(activeLoadGenerationRef.current);
         }
       } finally {
         setIsLoading(false);
