@@ -344,12 +344,12 @@ class FileSystemService {
     await this.clearTempDir();
   }
 
-  public async checkAvailableStorage(requiredSpace: number): Promise<boolean> {
+  public async checkAvailableStorage(requiredSpace: number, bufferMultiplier = 1.3): Promise<boolean> {
     try {
       const fsInfo = await RNFS.getFSInfo();
       const freeSpace = fsInfo.freeSpace;
 
-      const spaceWithBuffer = requiredSpace * 1.3;
+      const spaceWithBuffer = requiredSpace * bufferMultiplier;
 
       return freeSpace >= spaceWithBuffer;
     } catch (error) {
