@@ -20,6 +20,7 @@ import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
 import { notifyParentChanged } from '../../../native/InternxtSignalingModule';
+import { UPLOAD_FREE_SPACE_MULTIPLIER, isNativeIOError } from './deviceStorageErrors';
 import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
 import { FileSizeExceededError, isFileSizeExceededError } from './fileSizeErrors';
 import { BucketNotFoundError } from './upload.errors';
@@ -239,6 +240,16 @@ export async function uploadSingleFile(
 
       await createEmptyFileEntry(bucketId, file);
     } else {
+      const hasDeviceSpace = await fileSystemService
+        .checkAvailableStorage(file.size, UPLOAD_FREE_SPACE_MULTIPLIER)
+        .catch(() => true);
+
+      if (!hasDeviceSpace) {
+        dispatch(uiActions.setShowNotEnoughDeviceSpaceModal(true));
+        dispatch(driveActions.uploadFileFinished());
+        return;
+      }
+
       await uploadFile(file, 'document');
     }
     uploadSuccess(file);
@@ -265,6 +276,10 @@ export async function uploadSingleFile(
       },
     });
     trackUploadError(file, err);
+    if (isNativeIOError(e)) {
+      dispatch(uiActions.setShowNotEnoughDeviceSpaceModal(true));
+      return;
+    }
     const castedError = errorService.castError(e, 'upload');
     dispatch(driveActions.uploadFileFailed({ errorMessage: castedError.message, id: file.id }));
     logger.error('File upload process failed: ', JSON.stringify(err));
