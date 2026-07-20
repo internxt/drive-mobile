@@ -139,8 +139,9 @@ describe('useLocalAssets', () => {
   });
 
   test('when the app returns to the foreground and a recent photo was deleted while locked, then the deleted photo is removed from the gallery', async () => {
-    const firstLoad = [makeAsset('a1'), makeAsset('a2')];
-    const afterDelete = [makeAsset('a2')];
+    const RECENT_TIME = new Date('2026-07-01T10:00:00Z').getTime();
+    const firstLoad = [makeAsset('a1', RECENT_TIME), makeAsset('a2', RECENT_TIME - 1000)];
+    const afterDelete = [makeAsset('a2', RECENT_TIME - 1000)];
     mockMediaLibrary.getAssetsAsync
       .mockResolvedValueOnce(makePage(firstLoad))
       .mockResolvedValueOnce(makePage(afterDelete));
@@ -194,6 +195,69 @@ describe('useLocalAssets', () => {
     expect(result.current.assets[0]).toEqual(newPhoto);
     expect(result.current.assets).toContainEqual(existingAssets[0]);
     expect(result.current.assets).toContainEqual(existingAssets[1]);
+  });
+
+  test('when photos with corrupted creation times fall outside the head window, then they are not treated as locally deleted', async () => {
+    const RECENT_TIME = new Date('2026-07-01T10:00:00Z').getTime();
+    const recentPhoto = { ...makeAsset('recent', RECENT_TIME), modificationTime: RECENT_TIME } as MediaLibrary.Asset;
+    const corruptedTimePhoto = { ...makeAsset('whatsapp', 0), modificationTime: RECENT_TIME } as MediaLibrary.Asset;
+
+    mockMediaLibrary.getAssetsAsync
+      .mockResolvedValueOnce(makePage([recentPhoto, corruptedTimePhoto]))
+      .mockResolvedValueOnce(makePage([recentPhoto], true, 'cursor-1'));
+
+    let appStateCallback: ((state: string) => void) | undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((_event, cb) => {
+      appStateCallback = cb as (state: string) => void;
+      return { remove: jest.fn() } as never;
+    });
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      appStateCallback?.('background');
+      appStateCallback?.('active');
+      await flushPromises();
+    });
+
+    expect(result.current.assets.find((a) => a.id === 'whatsapp')).toBeDefined();
+    expect(mockPhotosLocalDB.deleteAssetSync).not.toHaveBeenCalled();
+  });
+
+  test('when the head window creation times are unreliable, then no photos are dropped from the gallery', async () => {
+    const RECENT_TIME = new Date('2026-07-01T10:00:00Z').getTime();
+    const knownPhoto = { ...makeAsset('known', RECENT_TIME), modificationTime: RECENT_TIME } as MediaLibrary.Asset;
+    const corruptedA = { ...makeAsset('corrupted-1', 0), modificationTime: RECENT_TIME } as MediaLibrary.Asset;
+    const corruptedB = { ...makeAsset('corrupted-2', 0), modificationTime: RECENT_TIME } as MediaLibrary.Asset;
+
+    mockMediaLibrary.getAssetsAsync
+      .mockResolvedValueOnce(makePage([knownPhoto, corruptedA, corruptedB]))
+      .mockResolvedValueOnce(makePage([corruptedA, corruptedB], true, 'cursor-1'));
+
+    let appStateCallback: ((state: string) => void) | undefined;
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((_event, cb) => {
+      appStateCallback = cb as (state: string) => void;
+      return { remove: jest.fn() } as never;
+    });
+
+    const { result } = renderHook(() => useLocalAssets());
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      appStateCallback?.('background');
+      appStateCallback?.('active');
+      await flushPromises();
+    });
+
+    expect(result.current.assets.find((a) => a.id === 'known')).toBeDefined();
+    expect(mockPhotosLocalDB.deleteAssetSync).not.toHaveBeenCalled();
   });
 
   test('when the device is unlocked mid-gallery, then assets loaded beyond the first page are preserved without re-pagination', async () => {
@@ -287,26 +351,26 @@ describe('useLocalAssets', () => {
     });
 
     mockMediaLibrary.getAssetsAsync
-      .mockResolvedValueOnce(makePage(page1, true, 'cursor-1')) // mount: first page
-      .mockImplementationOnce(() => stalePage2) // mount: background page 2, held pending
-      .mockResolvedValueOnce(makePage(reloadAssets, false)); // reload: fresh first page
+      .mockResolvedValueOnce(makePage(page1, true, 'cursor-1'))
+      .mockImplementationOnce(() => stalePage2)
+      .mockResolvedValueOnce(makePage(reloadAssets, false));
 
     const { result } = renderHook(() => useLocalAssets());
 
     await act(async () => {
       await Promise.resolve();
-    }); // first page applied, background load for page 2 now in flight
+    });
 
     await act(async () => {
       await result.current.reload();
-    }); // reload wins: resets assets to the fresh result while page 2 is still pending
+    });
 
     expect(result.current.assets).toEqual(reloadAssets);
 
     await act(async () => {
       resolveStalePage2?.(makePage([makeAsset('a3')], false));
       await flushPromises();
-    }); // the stale background loop resumes here — it must detect it was superseded and no-op
+    });
 
     expect(result.current.assets).toEqual(reloadAssets);
   });
@@ -319,9 +383,9 @@ describe('useLocalAssets', () => {
     });
 
     mockMediaLibrary.getAssetsAsync
-      .mockResolvedValueOnce(makePage(mountAssets, false)) // mount
-      .mockImplementationOnce(() => interruptedReloadPage) // first reload, held pending
-      .mockResolvedValueOnce(makePage([makeAsset('a9')], false)); // second reload
+      .mockResolvedValueOnce(makePage(mountAssets, false))
+      .mockImplementationOnce(() => interruptedReloadPage)
+      .mockResolvedValueOnce(makePage([makeAsset('a9')], false));
 
     const { result } = renderHook(() => useLocalAssets());
 
@@ -331,17 +395,16 @@ describe('useLocalAssets', () => {
 
     let firstReload: Promise<void> | undefined;
     await act(async () => {
-      firstReload = result.current.reload(); // blocks on the held page
+      firstReload = result.current.reload();
       await Promise.resolve();
     });
 
     await act(async () => {
-      const secondReload = result.current.reload(); // supersedes the first one
+      const secondReload = result.current.reload();
       resolveInterruptedReloadPage?.(makePage(mountAssets, true, 'cursor-1'));
       await Promise.all([secondReload, firstReload]);
     });
 
-    // the interrupted reload must not clean up with its incomplete id set
     expect(mockPhotosLocalDB.cleanupOrphanedAssetSync).toHaveBeenCalledTimes(1);
     expect(mockPhotosLocalDB.cleanupOrphanedAssetSync).toHaveBeenCalledWith(new Set(['a9']));
   });

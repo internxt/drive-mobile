@@ -1,16 +1,15 @@
 import * as MediaLibrary from 'expo-media-library';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
-import useDebouncedValue from 'src/hooks/useDebouncedValue';
 import { logger } from 'src/services/common';
-import { BurstNativeModule } from 'src/services/photos/burst/BurstNativeModule';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { isPermissionActive } from 'src/services/photos/photoPermissionService';
-import { normalizeAssetCreationTime } from 'src/services/photos/utils/resolveAssetCreationTime';
 import { useAppSelector } from 'src/store/hooks';
+import { useBurstRepresentatives } from './useBurstRepresentatives';
+import { useLocalAssetsSyncStatus } from './useLocalAssetsSyncStatus';
+import { usePagedLocalAssets } from './usePagedLocalAssets';
 
-const PAGE_SIZE = 1000;
-const MEDIA_TYPES = [MediaLibrary.MediaType.photo, MediaLibrary.MediaType.video];
+const LIBRARY_CHANGE_DEBOUNCE_MS = 400;
 
 export interface LocalAssetsResult {
   assets: MediaLibrary.Asset[];
@@ -26,271 +25,94 @@ export interface LocalAssetsResult {
   reload: () => Promise<void>;
 }
 
+/**
+ * Local device timeline for the Photos screen.
+ *
+ * @returns The current local assets, their backup/sync status, and controls to page or reload.
+ */
 export const useLocalAssets = (): LocalAssetsResult => {
-  const [assets, setAssets] = useState<MediaLibrary.Asset[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasLoadedLocalAssetsOnce, setHasLoadedLocalAssetsOnce] = useState(false);
-  const [syncedIds, setSyncedIds] = useState<Set<string>>(new Set());
-  const [cloudDeletedIds, setCloudDeletedIds] = useState<Set<string>>(new Set());
   const [localDeletionDetectedCount, setLocalDeletionDetectedCount] = useState(0);
-  const [burstRepresentativeIdSet, setBurstRepresentativeIdSet] = useState<Set<string>>(new Set());
-  const [incompleteUploadBurstIdSet, setIncompleteUploadBurstIdSet] = useState<Set<string>>(new Set());
-
-  const cursorRef = useRef<string | undefined>(undefined);
-  const hasMoreRef = useRef(true);
-  const isLoadingMoreRef = useRef(false);
-  const activeLoadGenerationRef = useRef(0);
   const appStateRef = useRef(AppState.currentState);
-  const mediaLibrarySubscriptionRef = useRef<ReturnType<typeof MediaLibrary.addListener> | null>(null);
   const libraryChangeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const syncStatus = useAppSelector((state) => state.photos.syncStatus);
   const uploadingAssetIds = useAppSelector((state) => state.photos.uploadingAssetIds);
-  const sessionUploadedAssets = useAppSelector((state) => state.photos.sessionUploadedAssets);
-  const isFetchingCloudHistory = useAppSelector((state) => state.photos.isFetchingCloudHistory);
   const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
   const isPhotosEnabled = isPermissionActive(permissionStatus);
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
 
-  const fetchLocalPage = useCallback(async (after?: string): Promise<MediaLibrary.PagedInfo<MediaLibrary.Asset>> => {
-    const page = await MediaLibrary.getAssetsAsync({
-      first: PAGE_SIZE,
-      after,
-      mediaType: MEDIA_TYPES,
-      sortBy: [[MediaLibrary.SortBy.creationTime, false]],
-    });
-    return { ...page, assets: page.assets.map(normalizeAssetCreationTime) };
-  }, []);
-
-  const applyPage = useCallback(
-    (page: MediaLibrary.PagedInfo<MediaLibrary.Asset>, { replace }: { replace: boolean }) => {
-      setAssets((prev) => (replace ? page.assets : [...prev, ...page.assets]));
-      cursorRef.current = page.hasNextPage ? page.endCursor : undefined;
-      hasMoreRef.current = page.hasNextPage;
-    },
-    [],
-  );
-
-  const loadNextPage = useCallback(async () => {
-    if (isLoadingMoreRef.current || !hasMoreRef.current || !cursorRef.current) {
-      return;
-    }
-    const generation = activeLoadGenerationRef.current;
-    isLoadingMoreRef.current = true;
-    setIsLoading(true);
-    try {
-      const page = await fetchLocalPage(cursorRef.current);
-      if (activeLoadGenerationRef.current !== generation) {
-        return;
-      }
-      applyPage(page, { replace: false });
-    } finally {
-      isLoadingMoreRef.current = false;
-      setIsLoading(false);
-    }
-  }, [fetchLocalPage, applyPage]);
-
-  const loadAllRemainingPages = useCallback(
-    async (generation: number) => {
-      if (isLoadingMoreRef.current || !hasMoreRef.current || !cursorRef.current) {
-        return;
-      }
-      isLoadingMoreRef.current = true;
-      try {
-        while (hasMoreRef.current && cursorRef.current && activeLoadGenerationRef.current === generation) {
-          const page = await fetchLocalPage(cursorRef.current);
-          if (activeLoadGenerationRef.current !== generation) {
-            break;
-          }
-          applyPage(page, { replace: false });
-        }
-      } finally {
-        isLoadingMoreRef.current = false;
-      }
-    },
-    [fetchLocalPage, applyPage],
-  );
-
-  const refreshSyncStatusFromDB = useCallback(async () => {
-    if (assets.length === 0) {
-      return;
-    }
-    const assetIds = assets.map((a) => a.id);
-    await photosLocalDB.init();
-    const entries = await photosLocalDB.getSyncedEntries(assetIds);
-    const synced = new Set<string>();
-    const cloudDeleted = new Set<string>();
-    for (const [id, info] of entries) {
-      if (info.status === 'cloud_deleted' || info.status === 'deleted') {
-        cloudDeleted.add(id);
-      } else if (info.status === 'synced') {
-        synced.add(id);
-      } else if (info.status === 'error') {
-        // to not mark as synced, but still track as known asset
-        // leave this to fill if we add a Icon for error state in the future
-      }
-    }
-    setSyncedIds(synced);
-    setCloudDeletedIds(cloudDeleted);
-
-    const incompleteBursts = await photosLocalDB.getIncompleteBurstAssets();
-    setIncompleteUploadBurstIdSet(new Set(incompleteBursts.map((burst) => burst.assetId)));
-  }, [assets]);
+  const { assets, isLoading, hasLoadedLocalAssetsOnce, loadNextPage, reloadFromStart, reconcileHead, applyLibraryChange } =
+    usePagedLocalAssets(isPhotosEnabled);
 
   const assetIds = useMemo(() => assets.map((asset) => asset.id), [assets]);
-  const debouncedAssetIds = useDebouncedValue(assetIds, 400);
-  useEffect(() => {
-    if (debouncedAssetIds.length === 0) {
-      return;
+  const { syncedIds, cloudDeletedIds, incompleteUploadBurstIdSet } = useLocalAssetsSyncStatus(assetIds);
+  const burstRepresentativeIdSet = useBurstRepresentatives(assetIds);
+
+  const removeDeletedAssetsFromSyncDB = useCallback(async (deletedAssetIds: string[]) => {
+    await photosLocalDB.init();
+    await Promise.all(deletedAssetIds.map((id) => photosLocalDB.deleteAssetSync(id)));
+    setLocalDeletionDetectedCount((prev) => prev + 1);
+  }, []);
+
+  const reconcileWithDevice = useCallback(async () => {
+    const droppedAssetIds = await reconcileHead();
+    if (droppedAssetIds.length > 0) {
+      logger.info(
+        `[LocalAssets] Reconcile dropped ${droppedAssetIds.length} locally deleted assets: ${droppedAssetIds.join(', ')}`,
+      );
+      await removeDeletedAssetsFromSyncDB(droppedAssetIds);
     }
-    BurstNativeModule.getBurstRepresentativeIds(debouncedAssetIds)
-      .then((ids) => setBurstRepresentativeIdSet(new Set(ids)))
-      .catch((err) => logger.error(`[LocalAssets] getBurstRepresentativeIds failed: ${err}`));
-  }, [debouncedAssetIds]);
+  }, [reconcileHead, removeDeletedAssetsFromSyncDB]);
+
+  const handleIncrementalLibraryChange = useCallback(
+    async (event: MediaLibrary.MediaLibraryAssetsChangeEvent) => {
+      const { insertedAssets = [], deletedAssets = [], updatedAssets = [] } = event;
+      const deletedAssetIds = deletedAssets.map((a) => a.id);
+
+      applyLibraryChange({ inserted: insertedAssets, updated: updatedAssets, deletedIds: deletedAssetIds });
+
+      if (deletedAssetIds.length > 0) {
+        logger.info(`[LocalAssets] Library change: removing ${deletedAssetIds.length} deleted assets from asset_sync`);
+        await removeDeletedAssetsFromSyncDB(deletedAssetIds);
+      }
+    },
+    [applyLibraryChange, removeDeletedAssetsFromSyncDB],
+  );
 
   const hardReloadAndReconcile = useCallback(async () => {
-    const generation = ++activeLoadGenerationRef.current; // invalidate any in-flight pagination loop
-    cursorRef.current = undefined;
-    hasMoreRef.current = true;
-    isLoadingMoreRef.current = true;
-
-    const allIds = new Set<string>();
-    try {
-      let isFirstPage = true;
-      while (
-        activeLoadGenerationRef.current === generation &&
-        (isFirstPage || (hasMoreRef.current && cursorRef.current))
-      ) {
-        const page = await fetchLocalPage(isFirstPage ? undefined : cursorRef.current);
-        if (activeLoadGenerationRef.current !== generation) {
-          break;
-        }
-        applyPage(page, { replace: isFirstPage });
-        page.assets.forEach((a) => allIds.add(a.id));
-        isFirstPage = false;
-      }
-    } finally {
-      isLoadingMoreRef.current = false;
+    const deviceAssetIds = await reloadFromStart();
+    if (!deviceAssetIds) {
+      return;
     }
 
-    if (activeLoadGenerationRef.current !== generation) {
-      return; // superseded — cleaning up with a partial id set would drop valid asset_sync entries
-    }
-
-    logger.info(`[LocalAssets] Reloaded from start — ${allIds.size} total assets`);
+    logger.info(`[LocalAssets] Reloaded from start — ${deviceAssetIds.size} total assets`);
 
     await photosLocalDB.init();
-    const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(allIds);
+    const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(deviceAssetIds);
     if (orphanedAssetsSyncRemovedCount > 0) {
       logger.info(`[LocalAssets] Cleaned up ${orphanedAssetsSyncRemovedCount} orphaned asset_sync entries`);
       setLocalDeletionDetectedCount((prev) => prev + 1);
     }
-  }, [fetchLocalPage, applyPage]);
-
-  const applyIncrementalLibraryChange = useCallback(async (event: MediaLibrary.MediaLibraryAssetsChangeEvent) => {
-    const { insertedAssets = [], deletedAssets = [], updatedAssets = [] } = event;
-
-    const deletedAssetIds = deletedAssets.map((a) => a.id);
-    const deletedAssetIdSet = new Set(deletedAssetIds);
-    const updatedAssetMap = new Map(updatedAssets.map((a) => [a.id, a]));
-
-    setAssets((prevAssets) => {
-      const insertedAssetsNotAlreadyPresent = insertedAssets.filter((a) => !prevAssets.some((p) => p.id === a.id));
-      const nextAssets = prevAssets
-        .filter((a) => !deletedAssetIdSet.has(a.id))
-        .map((a) => updatedAssetMap.get(a.id) ?? a);
-
-      if (insertedAssetsNotAlreadyPresent.length > 0) {
-        logger.info(`[LocalAssets] Library change: prepending ${insertedAssetsNotAlreadyPresent.length} new assets`);
-      }
-
-      return [...insertedAssetsNotAlreadyPresent, ...nextAssets];
-    });
-
-    if (deletedAssetIds.length > 0) {
-      logger.info(`[LocalAssets] Library change: removing ${deletedAssetIds.length} deleted assets from asset_sync`);
-      await photosLocalDB.init();
-      await Promise.all(deletedAssetIds.map((id) => photosLocalDB.deleteAssetSync(id)));
-      setLocalDeletionDetectedCount((prev) => prev + 1);
-    }
-  }, []);
-
-  const reconcileOnForeground = useCallback(async () => {
-    const page = await fetchLocalPage();
-    if (page.assets.length === 0) {
-      return;
-    }
-
-    const freshIds = new Set(page.assets.map((a) => a.id));
-    const headMinTime = Math.min(...page.assets.map((a) => a.creationTime));
-
-    let droppedAssetsIds: string[] = [];
-    setAssets((prevAssets) => {
-      const newAssets = page.assets.filter((a) => !prevAssets.some((p) => p.id === a.id));
-      const droppedAssets = prevAssets.filter((a) => a.creationTime >= headMinTime && !freshIds.has(a.id));
-      droppedAssetsIds = droppedAssets.map((a) => a.id);
-      const preservedAssets = prevAssets.filter((a) => a.creationTime < headMinTime || freshIds.has(a.id));
-      if (newAssets.length > 0) {
-        logger.info(`[LocalAssets] Reconcile prepended ${newAssets.length} new assets`);
-      }
-      return [...newAssets, ...preservedAssets];
-    });
-
-    if (droppedAssetsIds.length > 0) {
-      logger.info(
-        `[LocalAssets] Reconcile dropped ${droppedAssetsIds.length} locally deleted assets: ${droppedAssetsIds.join(', ')}`,
-      );
-      await photosLocalDB.init();
-      await Promise.all(droppedAssetsIds.map((id) => photosLocalDB.deleteAssetSync(id)));
-      setLocalDeletionDetectedCount((prev) => prev + 1);
-    }
-
-    logger.info(`[LocalAssets] Reconciled on foreground — ${page.assets.length} fresh assets`);
-  }, [fetchLocalPage]);
-
-  useEffect(() => {
-    if (!isPhotosEnabled) {
-      setIsLoading(false);
-      setHasLoadedLocalAssetsOnce(true);
-      return;
-    }
-    const loadFirstPage = async () => {
-      try {
-        const page = await fetchLocalPage();
-        applyPage(page, { replace: true });
-        // Eagerly load all remaining pages in background — don't wait for scroll.
-        // Cloud items from history can extend the list far back in time, making
-        // onEndReached fire much later than the user runs out of local assets.
-        if (page.hasNextPage) {
-          loadAllRemainingPages(activeLoadGenerationRef.current);
-        }
-      } finally {
-        setIsLoading(false);
-        setHasLoadedLocalAssetsOnce(true);
-      }
-    };
-    loadFirstPage();
-  }, [isPhotosEnabled]);
+  }, [reloadFromStart]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (isPhotosEnabled && appStateRef.current !== 'active' && nextState === 'active') {
-        reconcileOnForeground();
+        reconcileWithDevice();
       }
       appStateRef.current = nextState;
     });
     return () => subscription.remove();
-  }, [reconcileOnForeground, isPhotosEnabled]);
+  }, [reconcileWithDevice, isPhotosEnabled]);
 
   useEffect(() => {
     if (!isPhotosEnabled) {
       return;
     }
-    mediaLibrarySubscriptionRef.current = MediaLibrary.addListener((event) => {
+    const subscription = MediaLibrary.addListener((event) => {
       if (event.hasIncrementalChanges) {
         // iOS: we have the exact set of inserted/deleted/updated assets. Apply without a fetch.
-        applyIncrementalLibraryChange(event);
+        handleIncrementalLibraryChange(event);
       } else {
         // Android (empty event) or iOS large change:
         // debounce to coalesce rapid bursts before fetching.
@@ -299,37 +121,29 @@ export const useLocalAssets = (): LocalAssetsResult => {
         }
         libraryChangeDebounceRef.current = setTimeout(() => {
           libraryChangeDebounceRef.current = null;
-          reconcileOnForeground();
-        }, 400);
+          reconcileWithDevice();
+        }, LIBRARY_CHANGE_DEBOUNCE_MS);
       }
     });
 
     return () => {
-      mediaLibrarySubscriptionRef.current?.remove();
-      mediaLibrarySubscriptionRef.current = null;
+      subscription?.remove();
       if (libraryChangeDebounceRef.current) {
         clearTimeout(libraryChangeDebounceRef.current);
         libraryChangeDebounceRef.current = null;
       }
     };
-  }, [applyIncrementalLibraryChange, reconcileOnForeground, isPhotosEnabled]);
-
-  useEffect(() => {
-    refreshSyncStatusFromDB();
-  }, [refreshSyncStatusFromDB, syncStatus, sessionUploadedAssets, isFetchingCloudHistory]);
-
-  // Re-sort explicitly by the normalized value so the exposed order always matches what's shown.
-  const sortedAssets = useMemo(() => [...assets].sort((a, b) => b.creationTime - a.creationTime), [assets]);
+  }, [handleIncrementalLibraryChange, reconcileWithDevice, isPhotosEnabled]);
 
   return {
-    assets: sortedAssets,
+    assets,
     isLoading,
     hasLoadedLocalAssetsOnce,
     syncedIds,
     cloudDeletedIds,
     uploadingIdSet,
     burstRepresentativeIdSet,
-    incompleteUploadBurstIdSet: incompleteUploadBurstIdSet,
+    incompleteUploadBurstIdSet,
     localDeletionDetectedCount,
     loadNextPage,
     reload: hardReloadAndReconcile,
