@@ -24,11 +24,13 @@ import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
+import MailboxListScreen from '../screens/mail/MailboxListScreen';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
+import { MailNavigator } from './MailNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
@@ -37,6 +39,19 @@ const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 const LAUNCH_ON_ROUTE_ON_DEV_MODE: keyof TabExplorerStackParamList | undefined = appService.isDevMode
   ? undefined
   : undefined;
+
+// The Home tab shows Recents in Drive space, or the Inbox in Mail space
+function TabHomeScreen(): JSX.Element {
+  const activeSpace = useAppSelector((state) => state.ui.activeSpace);
+  return activeSpace === 'mail' ? <MailboxListScreen /> : <HomeScreen />;
+}
+
+// The Drive tab shows the Drive file browser or the Mail folder browser, depending on the active space
+function TabDriveOrMailScreen(): JSX.Element {
+  const activeSpace = useAppSelector((state) => state.ui.activeSpace);
+  return activeSpace === 'mail' ? <MailNavigator /> : <DriveNavigator />;
+}
+
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
@@ -76,8 +91,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
           lazy: true,
         }}
       >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
+        <Tab.Screen name="Home" component={TabHomeScreen} />
+        <Tab.Screen name="Drive" component={TabDriveOrMailScreen} options={{ lazy: false }} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
         <Tab.Screen name="Settings" component={SettingsNavigator} options={{ lazy: false }} />

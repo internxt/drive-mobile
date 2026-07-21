@@ -14,6 +14,7 @@ import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
 import DebugScreen from '../screens/DebugScreen';
 import { TrashScreen } from '../screens/common/TrashScreen';
 import { DrivePreviewScreen } from '../screens/drive/DrivePreviewScreen';
+import { ComposeEmailScreen } from '../screens/mail/ComposeEmailScreen';
 import ShareExtensionView from '../shareExtension/ShareExtensionView.android';
 import { useIosPendingShareHandoff } from '../shareExtension/hooks/useIosPendingShareHandoff';
 import { useAndroidShareIntent } from '../shareExtension/useAndroidShareIntent';
@@ -46,6 +47,11 @@ function AppNavigator({ navigationContainerRef }: Readonly<Props>): JSX.Element 
       <Stack.Screen
         name="DrivePreview"
         component={DrivePreviewScreen}
+        options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="ComposeEmail"
+        component={ComposeEmailScreen}
         options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
       />
       {Platform.OS === 'android' && (

@@ -55,6 +55,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const { user } = useAppSelector((state) => state.auth);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
+  const activeSpace = useAppSelector((state) => state.ui.activeSpace);
   const [profileAvatar, setProfileAvatar] = useState<string>();
   const userFullName = useAppSelector(authSelectors.userFullName);
 
@@ -330,7 +331,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   ),
                   onPress: undefined,
                 },
-              ]}
+              ].filter((item) => !(item.key === 'trash' && activeSpace === 'mail'))}
             />
 
             {/* INFORMATION */}

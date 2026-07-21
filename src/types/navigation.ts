@@ -27,6 +27,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
+  ComposeEmail: undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };
 };
@@ -56,6 +57,10 @@ export type DriveStackParamList = {
     parentFolderName?: string;
     parentUuid?: string;
   };
+};
+
+export type MailStackParamList = {
+  MailboxList: undefined;
 };
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
