@@ -9,7 +9,6 @@ const SENSITIVE_KEYS = [
   AsyncStorageKey.PhotosToken,
   AsyncStorageKey.User,
   AsyncStorageKey.ThemePreference,
-  AsyncStorageKey.PhotosDeviceId,
 ];
 
 class AsyncStorageService {
@@ -129,6 +128,9 @@ class AsyncStorageService {
         AsyncStorageKey.PhotosSettings,
         AsyncStorageKey.PhotosDiscoverSeen,
         AsyncStorageKey.PhotosDevicesCache,
+        AsyncStorageKey.PhotosAccessCache,
+        AsyncStorageKey.LastUpdatedAt,
+        AsyncStorageKey.IsDeletingAccount,
       ];
 
       await AsyncStorage.multiRemove(nonSensitiveKeys);

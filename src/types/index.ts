@@ -102,8 +102,6 @@ export enum AsyncStorageKey {
   ScreenProtectionEnabled = 'screenProtectionEnabled',
   PhotosSettings = 'photosSettings',
   PhotosDiscoverSeen = 'photosDiscoverSeen',
-  PhotosDeviceId = 'photos-device-id',
-  PhotosDeviceKey = 'photos-device-key',
   PhotosAccessCache = 'photosAccessCache',
   PhotosDevicesCache = 'photos-devices-cache',
 }
