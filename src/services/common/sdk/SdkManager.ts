@@ -1,4 +1,4 @@
-import { Auth, Drive } from '@internxt/sdk';
+import { Auth, Drive, MailApi } from '@internxt/sdk';
 import { Trash } from '@internxt/sdk/dist/drive';
 import { ApiSecurity } from '@internxt/sdk/dist/shared';
 import packageJson from '../../../../package.json';
@@ -97,6 +97,11 @@ export class SdkManager {
   get share() {
     // Uses V2 API
     return Drive.Share.client(constants.DRIVE_NEW_API_URL, SdkManager.getAppDetails(), {
+      token: this.getApiSecurity().newToken,
+    });
+  }
+  get mail() {
+    return MailApi.client(constants.MAIL_API_URL, SdkManager.getAppDetails(), {
       token: this.getApiSecurity().newToken,
     });
   }

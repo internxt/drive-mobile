@@ -61,7 +61,13 @@ export type DriveStackParamList = {
 
 export type MailStackParamList = {
   MailboxList: undefined;
+  EmailDetail: { emailId: string };
 };
+
+export type MailScreenProps<Screen extends keyof MailStackParamList> = NativeStackScreenProps<
+  MailStackParamList,
+  Screen
+>;
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
   NativeStackScreenProps<DriveStackParamList, Screen>,
