@@ -1850,10 +1850,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.17.3":
-  version "1.17.3"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.17.3.tgz#8cf9538c0d6f12313ed16f2bdd74409267ee9301"
-  integrity sha512-NI80kM1u751OFRZ4J1goZLEW166bnHBHx4N2odVxOMkKhlNxgc+EywQShMwZQDbS9bm+y7iRZzLL/DIc3XFJLg==
+"@internxt/sdk@1.17.19":
+  version "1.17.19"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.17.19.tgz#84373d19c18079ae2b0f94525e915b3edc80f8e3"
+  integrity sha512-Aa12X7A6fhDXr5s3IBey9qOJuq46DY8KYGveeKKqHr7IQIv21a6J4klOIvb0/sf7GLRHEkBR5hA4XHPv5tVX0g==
   dependencies:
     axios "^1.16.0"
 
@@ -3143,7 +3143,17 @@ await-lock@^2.2.2:
   resolved "https://registry.yarnpkg.com/await-lock/-/await-lock-2.2.2.tgz#a95a9b269bfd2f69d22b17a321686f551152bcef"
   integrity sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==
 
-axios@^1.16.0, axios@^1.18.0:
+axios@1.16.1, axios@^1.16.0:
+  version "1.16.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.16.1.tgz#517e29291d19d6e8cf919ff264f4fe157261ba12"
+  integrity sha512-caYkukvroVPO8KrzuJEb50Hm07KwfBZPEC3VeFHTsqWHvKTsy54hjJz9BS/cdaypROE2rH6xvm9mHX4fgWkr3A==
+  dependencies:
+    follow-redirects "^1.16.0"
+    form-data "^4.0.5"
+    https-proxy-agent "^5.0.1"
+    proxy-from-env "^2.1.0"
+
+axios@^1.18.0:
   version "1.18.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.18.0.tgz#8a7f8854af280fcaae063272df2ed9f3837d2398"
   integrity sha512-E32NzpYKp++W7XRe52rHiXV2ehxmh3wbdgO7MHeFM+vqxLBYHzt0ElkiImtOBxtOmyp0yoC8C6uESVV84Y2/hw==
