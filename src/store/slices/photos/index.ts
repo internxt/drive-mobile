@@ -212,7 +212,9 @@ export const checkPermissionRevocationThunk = createAsyncThunk<void, void, { sta
   'photos/checkPermissionRevocation',
   async (_, { getState, dispatch }) => {
     const { enabled } = getState().photos;
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
 
     const status = await photoPermissionService.getStatus();
     if (status === 'denied') {
@@ -287,7 +289,6 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
             duration: asset.duration,
             mediaType: asset.mediaType,
             isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
-            // BURST:
             isBurst: burstIdSet.has(asset.id),
           }),
         ),
@@ -300,7 +301,6 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
             duration: asset.duration,
             mediaType: asset.mediaType,
             isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
-            // BURST:
             isBurst: burstIdSet.has(asset.id),
           }),
         ),

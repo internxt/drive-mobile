@@ -119,7 +119,18 @@ const PhotosScreen = (): JSX.Element => {
 
   const handleSelectPress = useCallback(() => selection.enterSelectMode(), [selection]);
 
-  const handleEnableBackup = useCallback(() => setIsEnableBackupSheetOpen(true), []);
+  const handleEnableBackup = useCallback(() => {
+    if (!hasAccess) {
+      return;
+    }
+    setIsEnableBackupSheetOpen(true);
+  }, [hasAccess]);
+
+  useEffect(() => {
+    if (!hasAccess && isEnableBackupSheetOpen) {
+      setIsEnableBackupSheetOpen(false);
+    }
+  }, [hasAccess, isEnableBackupSheetOpen]);
 
   const handleSelectMorePhotos = useSelectMorePhotos(reloadLocal);
 
@@ -206,7 +217,7 @@ const PhotosScreen = (): JSX.Element => {
         dispatch(runBackupCycleThunk());
       }
 
-      if (!enabled) {
+      if (!enabled && hasAccess) {
         setIsEnableBackupSheetOpen(true);
       }
 
@@ -215,7 +226,7 @@ const PhotosScreen = (): JSX.Element => {
         lastViewedIdRef.current = null;
         timelineRef.current?.scrollToAssetId(id);
       }
-    }, [enabled]),
+    }, [enabled, hasAccess]),
   );
 
   return (

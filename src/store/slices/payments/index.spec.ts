@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit';
+import asyncStorageService from 'src/services/AsyncStorageService';
 import paymentService from 'src/services/PaymentService';
 import { AppDispatch } from 'src/store';
 import paymentsReducer, { paymentsSelectors, paymentsThunks } from './index';
@@ -52,6 +53,21 @@ describe('payments slice — loadFileLimitsThunk', () => {
     const store = makeStore();
     await store.dispatch(paymentsThunks.loadFileLimitsThunk());
     expect(store.getState().payments.photosAccess).toBeUndefined();
+  });
+
+  test('when a valid cached value exists, then it is used and the backend is not called', async () => {
+    mockPaymentService.getFileLimits.mockClear();
+    jest.spyOn(asyncStorageService, 'getItem').mockResolvedValue(
+      JSON.stringify({ photosAccess: true, cachedAt: Date.now() }),
+    );
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadFileLimitsThunk());
+
+    expect(mockPaymentService.getFileLimits).not.toHaveBeenCalled();
+    expect(store.getState().payments.photosAccess).toBe(true);
+
+    jest.restoreAllMocks();
   });
 });
 
