@@ -164,7 +164,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     <View style={{ backgroundColor: getColor('bg-surface') }}>
       {driveRoute && (
         <View style={tailwind('px-4 pt-2 pb-1')}>
-          <View style={[tailwind('flex-row rounded-full p-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+          <View style={[tailwind('flex-row rounded-full'), { padding: 4, backgroundColor: getColor('bg-gray-5') }]}>
             <TouchableOpacity
               activeOpacity={0.8}
               style={[
