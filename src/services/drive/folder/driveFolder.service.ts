@@ -60,8 +60,8 @@ class DriveFolderService {
     return this.sdk.storageV2.getFolderAncestors(folderUuid) as Promise<FolderAncestor[]>;
   }
 
-  public getFolderContentByUuid(folderUuid: string) {
-    const [contentPromise] = this.sdk.storageV2.getFolderContentByUuid({ folderUuid });
+  public getFolderContentByUuid(folderUuid: string, offset?: number, limit?: number) {
+    const [contentPromise] = this.sdk.storageV2.getFolderContentByUuid({ folderUuid, offset, limit });
     return contentPromise;
   }
 

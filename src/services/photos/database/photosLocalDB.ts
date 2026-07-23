@@ -426,6 +426,28 @@ class PhotosLocalDB {
     return new Set(rows.map((r) => r.remote_file_id));
   }
 
+  async getCloudDeletedRemoteIdsByCreationMonth(year: number, month: number): Promise<Set<string>> {
+    const startMs = new Date(year, month - 1, 1).getTime();
+    const endMs = new Date(year, month, 1).getTime();
+    const rows = await sqliteService.getAllAsync<{ remote_file_id: string }>(
+      DB_NAME,
+      assetSyncTable.statements.getCloudDeletedRemoteIdsByCreationMonth,
+      [startMs, endMs],
+    );
+    return new Set(rows.map((r) => r.remote_file_id));
+  }
+
+  async revertCloudDeleted(remoteFileIds: string[]): Promise<void> {
+    if (remoteFileIds.length === 0) {
+      return;
+    }
+    for (let i = 0; i < remoteFileIds.length; i += CHUNK_SIZE) {
+      const chunk = remoteFileIds.slice(i, i + CHUNK_SIZE);
+      const placeholders = chunk.map(() => '?').join(', ');
+      await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.revertCloudDeleted(placeholders), chunk);
+    }
+  }
+
   async markCloudDeleted(remoteFileId: string): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markCloudDeleted, [remoteFileId]);
   }
