@@ -265,7 +265,9 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
   'photos/runDiscovery',
   async (_, { getState, dispatch }) => {
     const { enabled, syncStatus } = getState().photos;
-    if (!enabled || syncStatus === 'scanning') return;
+    if (!enabled || syncStatus === 'scanning' || PhotoUploadQueue.isCycleRunning()) {
+      return;
+    }
 
     logger.info('[Discovery] Starting discovery cycle');
     dispatch(photosSlice.actions.setSyncStatus('scanning'));
