@@ -1609,6 +1609,8 @@ PODS:
     - Yoga
   - react-native-randombytes (3.6.2):
     - React-Core
+  - react-native-render-html (6.3.4):
+    - React-Core
   - react-native-safe-area-context (5.6.2):
     - hermes-engine
     - RCTRequired
@@ -2547,6 +2549,7 @@ DEPENDENCIES:
   - react-native-pdf (from `../node_modules/react-native-pdf`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
   - react-native-randombytes (from `../node_modules/react-native-randombytes`)
+  - react-native-render-html (from `../node_modules/react-native-render-html`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -2769,6 +2772,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-pdf-thumbnail"
   react-native-randombytes:
     :path: "../node_modules/react-native-randombytes"
+  react-native-render-html:
+    :path: "../node_modules/react-native-render-html"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-video:
@@ -2950,6 +2955,7 @@ SPEC CHECKSUMS:
   react-native-pdf: 70836b3b48595c7f85a3aa2b5d122b175c455733
   react-native-pdf-thumbnail: cc2076c2d871e43cf267611975db8ed3682cc65e
   react-native-randombytes: 4eeddad82d1fd57adda1cd5beffe67d041c9d6de
+  react-native-render-html: 5afc4751f1a98621b3009432ef84c47019dcb2bd
   react-native-safe-area-context: 37e680fc4cace3c0030ee46e8987d24f5d3bdab2
   react-native-video: f5982e21efab0dc356d92541a8a9e19581307f58
   react-native-webview: b29007f4723bca10872028067b07abacfa1cb35a

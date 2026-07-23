@@ -1,5 +1,16 @@
 import { SdkManager } from '@internxt-mobile/services/common';
-import { EmailSummaryResponse, MailboxResponse, EmailResponse } from '@internxt/sdk/dist/mail/types';
+import {
+  EmailSummaryResponse,
+  MailboxResponse,
+  EmailResponse,
+  MailAccountKeysResponse,
+  DownloadAttachmentPayload,
+  DownloadAttachmentResponse,
+  UploadAttachmentResponse,
+  SendEmailRequest,
+  EmailCreatedResponse,
+  LookupRecipientKeysResponse,
+} from '@internxt/sdk/dist/mail/types';
 
 const DEFAULT_LIMIT = 50;
 
@@ -33,6 +44,37 @@ class MailboxService {
    */
   public async getThread(emailId: string): Promise<EmailResponse[]> {
     return this.sdk.mail.getThreads(emailId);
+  }
+
+  /**
+   * Gets the mail account keys for the given address.
+   */
+  public async getMailAccountKeys(address?: string): Promise<MailAccountKeysResponse> {
+    return this.sdk.mail.getMailAccountKeys(address);
+  }
+
+  /**
+   * Download email attachment
+   */
+  public async downloadAttachment(
+    emailId: string,
+    blobId: string,
+    query?: DownloadAttachmentPayload,
+  ): Promise<DownloadAttachmentResponse> {
+    return this.sdk.mail.downloadAttachment(emailId, blobId, query);
+  }
+
+  public async uploadAttachment(file: { uri: string; name: string; type: string }): Promise<UploadAttachmentResponse> {
+    const { promise } = this.sdk.mail.uploadAttachment(file as unknown as File);
+    return promise;
+  }
+
+  public async sendEmail(body: SendEmailRequest): Promise<EmailCreatedResponse> {
+    return this.sdk.mail.sendEmail(body);
+  }
+
+  public async getRecipientsWithPublicKeys(addresses: string[]): Promise<LookupRecipientKeysResponse> {
+    return this.sdk.mail.lookupRecipientKeys(addresses);
   }
 }
 

@@ -1,4 +1,5 @@
 import { EmailSummaryResponse, MailboxResponse } from '@internxt/sdk/dist/mail/types';
+import { getPrivateHybridKey, decryptPreviews } from '../../../services/mail/mailCrypto.service';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
@@ -21,6 +22,7 @@ import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import strings from '../../../../assets/lang/strings';
 import { mailboxService } from '../../../services/mail/mailbox.service';
+import { useAppSelector } from '../../../store/hooks';
 import { MailStackParamList } from '../../../types/navigation';
 
 enum MailboxId {
@@ -35,6 +37,7 @@ const MailboxListScreen = (): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const navigation = useNavigation<NativeStackNavigationProp<MailStackParamList, 'MailboxList'>>();
+  const { user } = useAppSelector((state) => state.auth);
   useLanguage();
   const [selectedMailboxId, setSelectedMailboxId] = useState<MailboxId>(MailboxId.Inbox);
   const [inboxEmails, setInboxEmails] = useState<EmailSummaryResponse[]>([]);
@@ -68,7 +71,17 @@ const MailboxListScreen = (): JSX.Element => {
     ]);
 
     if (emailsResult.status === 'fulfilled') {
-      setInboxEmails(emailsResult.value);
+      let emails = emailsResult.value;
+      if (user?.mnemonic && user?.email) {
+        try {
+          const privateKey = await getPrivateHybridKey(user.mnemonic);
+          emails = await decryptPreviews(emails, privateKey);
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.warn('Failed to decrypt inbox previews', error);
+        }
+      }
+      setInboxEmails(emails);
     } else {
       setInboxError(true);
     }
@@ -81,7 +94,7 @@ const MailboxListScreen = (): JSX.Element => {
     }
 
     setIsLoadingInbox(false);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     if (selectedMailboxId === MailboxId.Inbox) {
@@ -178,7 +191,7 @@ const MailboxListScreen = (): JSX.Element => {
         }
         renderItem={({ item }) => {
           const senderLabel = item.from?.[0]?.name || item.from?.[0]?.email || '';
-          const previewText = item.preview || '[encrypted preview]';
+          const previewText = item.preview || '(No preview available)';
           return (
             <TouchableOpacity
               onPress={() => onOpenEmail(item.id)}
@@ -187,7 +200,7 @@ const MailboxListScreen = (): JSX.Element => {
                 { borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') },
               ]}
             >
-              <View style={tailwind('items-center pt-1.5 pr-2')}>
+              <View style={(tailwind('items-center'), { paddingTop: 6, paddingRight: 8 })}>
                 {!item.isRead && (
                   <View
                     style={[
