@@ -52,7 +52,7 @@ const MailboxListScreen = (): JSX.Element => {
       >,
     [mailboxesMeta],
   );
-  const MAILBOXES_WITH_UNREAD_BADGE: MailboxId[] = [MailboxId.Inbox, MailboxId.Spam, MailboxId.Trash];
+  const MAILBOXES_WITH_UNREAD_BADGE = new Set<MailboxId>([MailboxId.Inbox, MailboxId.Spam, MailboxId.Trash]);
 
   function groupEmailsByThread(list: EmailSummaryResponse[]): EmailSummaryResponse[] {
     const byThread = new Map<string, EmailSummaryResponse[]>();
@@ -139,7 +139,7 @@ const MailboxListScreen = (): JSX.Element => {
       {mailboxes.map((mailbox) => {
         const isSelected = mailbox.id === selectedMailboxId;
         const unreadCount = unreadByMailbox[mailbox.id] ?? 0;
-        const showUnreadBadge = MAILBOXES_WITH_UNREAD_BADGE.includes(mailbox.id) && unreadCount > 0;
+        const showUnreadBadge = MAILBOXES_WITH_UNREAD_BADGE.has(mailbox.id) && unreadCount > 0;
 
         return (
           <TouchableOpacity

@@ -84,7 +84,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       }
 
       const sorted = [...messages].sort((a, b) => new Date(a.receivedAt).getTime() - new Date(b.receivedAt).getTime());
-      const resolved = await Promise.all(sorted.map(resolveMessage));
+      const resolved = await Promise.all(sorted.map((message) => resolveMessage(message)));
       setThread(resolved);
       const latest = sorted[sorted.length - 1];
       if (latest && !latest.isRead) {

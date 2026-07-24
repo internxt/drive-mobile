@@ -1,10 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { UpdateProfilePayload } from '@internxt/sdk/dist/drive/users/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
-import Axios from 'axios';
-import { constants } from './AppService';
 import { SdkManager } from './common/sdk/SdkManager';
-const FormData = global.FormData;
 
 class UserService {
   private sdk: SdkManager;
@@ -24,25 +20,10 @@ class UserService {
   }
 
   public async updateUserAvatar(payload: { name: string; uri: string }) {
-    const url = `${constants.DRIVE_NEW_API_URL}/users/avatar`;
     const token = SdkManager.getInstance().getApiSecurity().newToken;
+    const avatar = { uri: payload.uri, type: 'image/jpeg', name: payload.name } as unknown as Blob;
 
-    const formData = new FormData();
-    //@ts-ignore
-    formData.append('avatar', {
-      //@ts-ignore
-      uri: payload.uri,
-      type: 'image/jpg',
-      name: payload.name,
-    });
-
-    const headers = {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data',
-    };
-
-    const response = await Axios.put<{ avatar: string }>(url, formData, { headers });
-    return response.data;
+    return this.sdk.usersV2.updateUserAvatar({ avatar }, token);
   }
 
   /**
