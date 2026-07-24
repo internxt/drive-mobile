@@ -16,7 +16,7 @@ import {
 const DEFAULT_LIMIT = 50;
 
 class MailboxService {
-  private sdk: SdkManager;
+  private readonly sdk: SdkManager;
   constructor(sdk: SdkManager) {
     this.sdk = sdk;
   }

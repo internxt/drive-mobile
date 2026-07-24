@@ -16,8 +16,13 @@ export type CachedDecryptedEmail = {
 };
 
 class MailLocalDB {
-  constructor() {
-    this.init();
+  private initPromise: Promise<void> | null = null;
+
+  private ensureInit(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.init();
+    }
+    return this.initPromise;
   }
 
   public async init(): Promise<void> {
@@ -26,6 +31,7 @@ class MailLocalDB {
   }
 
   public async getCachedEmail(id: string): Promise<CachedDecryptedEmail | null> {
+    await this.ensureInit();
     const row = await sqliteService.getFirstAsync<SqliteMailEmailRow>(MAIL_DB_NAME, mailEmailTable.statements.getById, [
       id,
     ]);
@@ -34,6 +40,7 @@ class MailLocalDB {
   }
 
   public async saveCachedEmail(id: string, decrypted: CachedDecryptedEmail): Promise<void> {
+    await this.ensureInit();
     await sqliteService.executeSql(MAIL_DB_NAME, mailEmailTable.statements.insert, [
       id,
       decrypted.text,
@@ -43,20 +50,24 @@ class MailLocalDB {
   }
 
   public async deleteCachedEmail(id: string): Promise<void> {
+    await this.ensureInit();
     await sqliteService.executeSql(MAIL_DB_NAME, mailEmailTable.statements.deleteById, [id]);
   }
 
   public async deleteCachedEmails(ids: string[]): Promise<void> {
+    await this.ensureInit();
     for (const id of ids) {
       await this.deleteCachedEmail(id);
     }
   }
 
   public async resetDatabase(): Promise<void> {
+    await this.ensureInit();
     await sqliteService.executeSql(MAIL_DB_NAME, mailEmailTable.statements.dropTable);
     await sqliteService.close(MAIL_DB_NAME);
     await sqliteService.delete(MAIL_DB_NAME);
-    await this.init();
+    this.initPromise = null;
+    await this.ensureInit();
   }
 }
 

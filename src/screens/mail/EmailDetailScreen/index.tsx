@@ -155,6 +155,19 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     const isRawTextEncrypted = !!message.textBody && isEncryptedEmailBody(message.textBody);
     const resolvedBody = decryptedBody || (!isRawTextEncrypted ? message.textBody : null) || message.htmlBody || '';
 
+    const onPressAttachment = (attachment: NonNullable<typeof message.attachments>[number]) => {
+      downloadDecryptAndOpenAttachment({
+        emailId: message.id,
+        blobId: attachment.blobId,
+        name: attachment.name,
+        type: attachment.type,
+        attachmentsSessionKey,
+      }).catch((error) => {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to open attachment', error);
+      });
+    };
+
     return (
       <View
         key={message.id}
@@ -194,18 +207,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
                   tailwind('flex-row items-center py-3'),
                   { borderTopWidth: 1, borderTopColor: getColor('border-gray-5') },
                 ]}
-                onPress={() =>
-                  downloadDecryptAndOpenAttachment({
-                    emailId: message.id,
-                    blobId: attachment.blobId,
-                    name: attachment.name,
-                    type: attachment.type,
-                    attachmentsSessionKey,
-                  }).catch((error) => {
-                    // eslint-disable-next-line no-console
-                    console.warn('Failed to open attachment', error);
-                  })
-                }
+                onPress={() => onPressAttachment(attachment)}
               >
                 <AppText numberOfLines={1} style={[tailwind('flex-1'), { color: getColor('text-primary') }]}>
                   {attachment.name}
