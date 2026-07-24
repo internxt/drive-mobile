@@ -32,7 +32,9 @@ const makeCloudItem = (overrides: Partial<CloudPhotoItem> = {}): CloudPhotoItem 
   thumbnailBucketFile: 'file-1',
   thumbnailType: 'jpg',
   deviceId: 'device-1',
-  createdAt: 1718000000000,
+  folderDate: 1718000000000,
+  uploadedAt: 1718000000000,
+  isFavorite: false,
   fileName: 'photo.jpg',
   ...overrides,
 });
@@ -164,7 +166,11 @@ describe('useCloudThumbnail', () => {
   });
 
   test('when the image fails to load, then the stale path is cleared from the database and uri becomes null', async () => {
-    const item = makeCloudItem({ thumbnailPath: '/stale/thumb.jpg', thumbnailBucketId: 'bucket-1', thumbnailBucketFile: 'file-1' });
+    const item = makeCloudItem({
+      thumbnailPath: '/stale/thumb.jpg',
+      thumbnailBucketId: 'bucket-1',
+      thumbnailBucketFile: 'file-1',
+    });
 
     const { result } = renderHook(() => useCloudThumbnail(item));
 

@@ -455,7 +455,7 @@ describe('photosLocalDB cloud asset methods', () => {
     mockSqlite.getFirstAsync.mockResolvedValueOnce({
       remote_file_id: 'remote-1',
       device_id: 'device-1',
-      created_at: 1718000000000,
+      folder_date: 1718000000000,
       file_name: 'photo.jpg',
       file_size: 2048,
       file_id: 'bridge-file-1',
@@ -501,7 +501,7 @@ describe('photosLocalDB cloud asset methods', () => {
     await photosLocalDB.upsertCloudAsset({
       remoteFileId: 'remote-1',
       deviceId: 'device-1',
-      createdAt: 1718000000000,
+      folderDate: 1718000000000,
       fileName: 'photo.jpg',
       fileSize: 2048,
       fileId: 'bridge-file-1',
@@ -510,6 +510,8 @@ describe('photosLocalDB cloud asset methods', () => {
       thumbnailBucketFile: 'file-1',
       thumbnailType: 'jpg',
       discoveredAt: 1718100000000,
+      uploadedAt: 1718200000000,
+      isFavorite: false,
     });
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
@@ -540,6 +542,8 @@ describe('photosLocalDB cloud asset methods', () => {
       null, // paired_remote_file_id
       null, // burst_role
       null, // burst_group_id
+      1718200000000, // uploadedAt
+      0, // is_favorite
     ]);
   });
 
@@ -547,7 +551,7 @@ describe('photosLocalDB cloud asset methods', () => {
     await photosLocalDB.upsertCloudAsset({
       remoteFileId: 'remote-1',
       deviceId: 'device-1',
-      createdAt: 1718000000000,
+      folderDate: 1718000000000,
       fileName: 'photo.jpg',
       fileSize: 2048,
       fileId: 'bridge-file-1',
@@ -565,6 +569,8 @@ describe('photosLocalDB cloud asset methods', () => {
       updatedAt: 1718060000000,
       status: 'EXISTS',
       encryptVersion: 'aes-2',
+      uploadedAt: 1718200000000,
+      isFavorite: true,
     });
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
@@ -594,6 +600,8 @@ describe('photosLocalDB cloud asset methods', () => {
       null, // paired_remote_file_id
       null, // burst_role
       null, // burst_group_id
+      1718200000000, // uploadedAt
+      1, // is_favorite
     ]);
   });
 
@@ -602,7 +610,7 @@ describe('photosLocalDB cloud asset methods', () => {
       {
         remote_file_id: 'r1',
         device_id: 'd1',
-        created_at: 1718000000,
+        folder_date: 1718000000,
         file_name: 'a.jpg',
         file_size: 512,
         file_id: null,
@@ -623,6 +631,8 @@ describe('photosLocalDB cloud asset methods', () => {
         is_live_photo: 0,
         live_photo_role: null,
         paired_remote_file_id: null,
+        uploaded_at: 1718200000,
+        is_favorite: 0,
       },
     ]);
 
@@ -632,7 +642,7 @@ describe('photosLocalDB cloud asset methods', () => {
     expect(result[0]).toEqual({
       remoteFileId: 'r1',
       deviceId: 'd1',
-      createdAt: 1718000000,
+      folderDate: 1718000000,
       fileName: 'a.jpg',
       fileSize: 512,
       fileId: null,
@@ -653,6 +663,8 @@ describe('photosLocalDB cloud asset methods', () => {
       isLivePhoto: false,
       livePhotoRole: null,
       pairedRemoteFileId: null,
+      uploadedAt: 1718200000,
+      isFavorite: false,
     });
   });
 
@@ -693,7 +705,7 @@ describe('photosLocalDB cloud asset methods', () => {
     await photosLocalDB.getAllCloudAssets('device-1');
 
     for (const [, stmt] of mockSqlite.getAllAsync.mock.calls) {
-      expect(stmt).toContain('ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC');
+      expect(stmt).toContain('ORDER BY COALESCE(creation_time_api, folder_date) DESC, remote_file_id ASC');
     }
   });
 

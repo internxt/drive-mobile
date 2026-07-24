@@ -1,8 +1,12 @@
+import strings from '../../../../assets/lang/strings';
 export { formatBytes } from '../../../utils/format';
 
 export const formatDate = (ms: number): string => {
-  const d = new Date(ms);
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const date = new Date(ms);
+  const datePart = date.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const timePart = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  const connector = strings.screens.photos.photoPreview.metadata.dateTimeConnector;
+  return `${datePart} ${connector} ${timePart}`;
 };
 
 export const formatDimensions = (width: number, height: number): string => `${width} × ${height}`;

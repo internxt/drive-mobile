@@ -20,7 +20,9 @@ const makeCloudItem = (overrides: Partial<CloudPhotoItem> = {}): CloudPhotoItem 
   thumbnailBucketFile: null,
   thumbnailType: null,
   deviceId: 'device-1',
-  createdAt: Date.now(),
+  folderDate: Date.now(),
+  uploadedAt: Date.now(),
+  isFavorite: false,
   fileName: 'photo.jpg',
   ...overrides,
 });

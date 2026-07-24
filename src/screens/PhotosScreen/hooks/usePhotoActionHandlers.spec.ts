@@ -49,7 +49,9 @@ const makeLocalBacked = (id = 'asset-1'): PhotoItem => ({
 const makeCloudOnly = (id = 'remote-1'): CloudPhotoItem => ({
   id,
   type: 'cloud-only',
-  createdAt: 0,
+  folderDate: 0,
+  uploadedAt: 0,
+  isFavorite: false,
   mediaType: 'photo',
   fileName: 'photo.jpg',
   thumbnailPath: null,
@@ -266,7 +268,9 @@ describe('handleRestore', () => {
     unmount();
     await restorePromise;
 
-    const dispatchedArg = (uploadAssetsManuallyThunk as unknown as jest.Mock).mock.calls[0][0] as { signal: AbortSignal };
+    const dispatchedArg = (uploadAssetsManuallyThunk as unknown as jest.Mock).mock.calls[0][0] as {
+      signal: AbortSignal;
+    };
     expect(dispatchedArg.signal.aborted).toBe(false);
   });
 

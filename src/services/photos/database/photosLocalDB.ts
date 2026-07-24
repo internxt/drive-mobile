@@ -11,7 +11,8 @@ export type BurstRole = 'representative' | 'member';
 export interface CloudAssetEntry {
   remoteFileId: string;
   deviceId: string;
-  createdAt: number;
+  /** Time of the device/year/month/day cloud folder this asset was discovered in. Used for timeline day-grouping and month-range queries*/
+  folderDate: number;
   fileName: string;
   fileSize: number | null;
   fileId: string | null;
@@ -34,12 +35,15 @@ export interface CloudAssetEntry {
   pairedRemoteFileId?: string | null;
   burstRole?: BurstRole | null;
   burstGroupId?: string | null;
+  /** Real upload timestamp reported by Drive (`file.createdAt`) */
+  uploadedAt: number;
+  isFavorite: boolean;
 }
 
 interface CloudAssetRow {
   remote_file_id: string;
   device_id: string;
-  created_at: number;
+  folder_date: number;
   file_name: string;
   file_size: number | null;
   file_id: string | null;
@@ -62,6 +66,8 @@ interface CloudAssetRow {
   paired_remote_file_id: string | null;
   burst_role: BurstRole | null;
   burst_group_id: string | null;
+  uploaded_at: number;
+  is_favorite: number;
 }
 
 export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted' | 'cloud_deleted';
@@ -212,7 +218,7 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
   return {
     remoteFileId: row.remote_file_id,
     deviceId: row.device_id,
-    createdAt: row.created_at,
+    folderDate: row.folder_date,
     fileName: row.file_name,
     fileSize: row.file_size,
     fileId: row.file_id,
@@ -235,6 +241,8 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
     pairedRemoteFileId: row.paired_remote_file_id,
     burstRole: row.burst_role,
     burstGroupId: row.burst_group_id,
+    uploadedAt: row.uploaded_at,
+    isFavorite: row.is_favorite === 1,
   };
 };
 
@@ -538,7 +546,7 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.upsert, [
       entry.remoteFileId,
       entry.deviceId,
-      entry.createdAt,
+      entry.folderDate,
       entry.fileName,
       entry.fileSize ?? null,
       entry.fileId ?? null,
@@ -559,9 +567,10 @@ class PhotosLocalDB {
       entry.isLivePhoto ? 1 : 0,
       entry.livePhotoRole ?? null,
       entry.pairedRemoteFileId ?? null,
-      // BURST:
       entry.burstRole ?? null,
       entry.burstGroupId ?? null,
+      entry.uploadedAt,
+      entry.isFavorite ? 1 : 0,
     ]);
   }
 

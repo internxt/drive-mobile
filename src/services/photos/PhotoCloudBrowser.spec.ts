@@ -45,6 +45,7 @@ const makeFile = (uuid: string, plainName: string) =>
     plainName,
     name: plainName,
     size: 1024,
+    createdAt: '2024-06-15T12:00:00.000Z',
     thumbnails: [{ bucket_id: 'bucket-1', bucket_file: 'file-1', type: 'jpg' }],
   }) as never;
 const makeDevice = (uuid: string, plainName: string, status: 'EXISTS' | 'TRASHED' | 'DELETED' = 'EXISTS') => ({

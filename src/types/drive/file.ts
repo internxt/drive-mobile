@@ -1,6 +1,11 @@
-import type { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import type { DriveFileData as SdkDriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 export { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-export type { DriveFileData, FileEntryByUuid, FileMeta, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+export type { FileEntryByUuid, FileMeta, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+
+// TODO: Remove this type when the SDK is updated to include it
+export type DriveFileData = SdkDriveFileData & {
+  isFavorite?: boolean;
+};
 
 /**
  * Base type for a Drive file

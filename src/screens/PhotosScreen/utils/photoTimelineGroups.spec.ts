@@ -451,7 +451,9 @@ describe('building flat photo timeline', () => {
 const makeCloudEntry = (overrides: Partial<CloudAssetEntry> = {}): CloudAssetEntry => ({
   remoteFileId: 'remote-1',
   deviceId: 'device-1',
-  createdAt: new Date('2024-06-15T12:00:00').getTime(),
+  folderDate: new Date('2024-06-15T12:00:00').getTime(),
+  uploadedAt: new Date('2024-06-15T12:00:00').getTime(),
+  isFavorite: false,
   fileName: 'photo.jpg',
   fileSize: 1024,
   fileId: null,
@@ -548,17 +550,17 @@ describe('merging cloud items into local groups', () => {
   });
 
   test('when a cloud item falls on an existing local group date, then it is added to that group', () => {
-    const createdAt = new Date('2024-06-15T12:00:00').getTime();
+    const folderDate = new Date('2024-06-15T12:00:00').getTime();
     const localGroups = [makeDateGroup({ id: new Date('2024-06-15T12:00:00').toDateString() })];
-    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ createdAt }));
+    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ folderDate }));
     const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
     expect(result[0].photos).toHaveLength(2);
   });
 
   test('when a cloud item has a date with no matching local group, then a new group is created for it', () => {
-    const createdAt = new Date('2024-05-01T12:00:00').getTime();
+    const folderDate = new Date('2024-05-01T12:00:00').getTime();
     const localGroups = [makeDateGroup({ id: new Date('2024-06-15T12:00:00').toDateString() })];
-    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ createdAt }));
+    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ folderDate }));
     const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
     expect(result).toHaveLength(2);
   });
@@ -567,7 +569,7 @@ describe('merging cloud items into local groups', () => {
     const olderAt = new Date('2024-05-01T12:00:00').getTime();
     const newerAt = new Date('2024-06-15T12:00:00').getTime();
     const localGroups = [makeDateGroup({ id: new Date(olderAt).toDateString() })];
-    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ createdAt: newerAt }));
+    const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ folderDate: newerAt }));
     const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
     expect(new Date(result[0].id).getTime()).toBeGreaterThan(new Date(result[1].id).getTime());
   });

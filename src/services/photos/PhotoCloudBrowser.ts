@@ -469,7 +469,7 @@ class PhotoCloudBrowserService {
       entries.push({
         remoteFileId: file.uuid,
         deviceId,
-        createdAt: folderDate,
+        folderDate,
         fileName,
         fileSize: file.size ? Number(file.size) : null,
         fileId: file.fileId ?? null,
@@ -490,6 +490,8 @@ class PhotoCloudBrowserService {
         isLivePhoto,
         livePhotoRole,
         pairedRemoteFileId,
+        uploadedAt: new Date(file.createdAt).getTime(),
+        isFavorite: file.isFavorite ?? false,
         ...resolveBurstFields(baseName, file.uuid, plainNameIndex, burstBaseSet),
       });
     }

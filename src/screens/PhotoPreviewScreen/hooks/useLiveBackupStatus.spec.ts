@@ -41,7 +41,9 @@ const makeCloudItem = (id: string): CloudPhotoItem => ({
   thumbnailBucketFile: null,
   thumbnailType: null,
   deviceId: 'device-1',
-  createdAt: 1000,
+  folderDate: 1000,
+  uploadedAt: 1000,
+  isFavorite: false,
   fileName: 'photo.jpg',
 });
 
