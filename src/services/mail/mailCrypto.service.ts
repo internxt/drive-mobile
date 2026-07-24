@@ -258,3 +258,15 @@ export async function sendEmail(
 
   await mailboxService.sendEmail(body);
 }
+
+export async function moveThreadToMailbox(threadMessageIds: string[], mailbox: 'trash' | 'spam'): Promise<void> {
+  await Promise.all(threadMessageIds.map((id) => mailboxService.updateEmail(id, { mailbox })));
+}
+
+export async function markEmailUnread(emailId: string): Promise<void> {
+  await mailboxService.updateEmail(emailId, { isRead: false });
+}
+
+export async function markEmailRead(emailId: string): Promise<void> {
+  await mailboxService.updateEmail(emailId, { isRead: true });
+}
