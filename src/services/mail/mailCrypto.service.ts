@@ -10,8 +10,8 @@ import {
   decryptEmailPreviewHybrid,
   encryptEmailHybridForMultipleRecipients,
   Email,
+  uint8ToUTF8,
 } from 'internxt-crypto';
-import { Buffer } from 'buffer';
 import asyncStorageService from '../AsyncStorageService';
 import { AsyncStorageKey } from '../../types';
 import { CachedDecryptedEmail, mailLocalDB } from './database/mailLocalDB';
@@ -29,12 +29,6 @@ export type EmailEncryptionBlock = {
   version?: string;
 };
 
-/**
- * Gets the user's private hybrid key and persists it via SecureStore
- *
- * @param mnemonic - The user's decrypted mnemonic
- * @param userEmail - The user's own mail address (used as EncryptedKeystore.userEmail)
- */
 export async function getPrivateHybridKey(mnemonic: string): Promise<Uint8Array> {
   const stored = await asyncStorageService.getItem(AsyncStorageKey.MailAccountPrivateKey);
   if (stored) {
@@ -64,20 +58,16 @@ async function findWrappedKeyForEmail(encryption: EmailEncryptionBlock) {
   return encryption.wrappedKeys.find((k) => k.encryptedForEmail?.toLowerCase() === normalized);
 }
 
-/** True if a thread message's textBody is actually an encrypted email envelope, not plain text. */
 export function isEncryptedEmailBody(textBody: string | null | undefined): boolean {
   return !!textBody && textBody.startsWith(`${ENCRYPTED_EMAIL_PREFIX}\n`);
 }
 
-/** Parses the encryption block embedded in a thread message's textBody. */
 export function parseEncryptionBlock(textBody: string): EmailEncryptionBlock {
   const payload = textBody.slice(ENCRYPTED_EMAIL_PREFIX.length + 1);
-  const json = Buffer.from(payload, 'base64').toString('utf-8');
+  const json = uint8ToUTF8(base64ToUint8Array(payload));
   return JSON.parse(json);
 }
-/**
- * Decrypts the preview for each enchrypted email
- */
+
 export async function decryptPreviews(
   emails: EmailSummaryResponse[],
   privateKey: Uint8Array,
@@ -98,12 +88,6 @@ export async function decryptPreviews(
   );
 }
 
-/**
- * Decrypts just the preview for a LIST-view email
- *
- * @param encryption - The email's encryption block from the list response
- * @param privateKey - The user's private hybrid key (see getPrivateHybridKey)
- */
 export async function decryptPreview(encryption: EmailEncryptionBlock, privateKey: Uint8Array): Promise<string> {
   const wrappedKey = await findWrappedKeyForEmail(encryption);
   if (!wrappedKey) {
@@ -114,13 +98,6 @@ export async function decryptPreview(encryption: EmailEncryptionBlock, privateKe
   return preview;
 }
 
-/**
- * Decrypts the full body for an email
- *
- * @param emailId - The email's id, used as the SQLite cache key
- * @param encryption - The full encryption block parsed from the thread message's textBody
- * @param privateKey - The user's private hybrid key (see getPrivateHybridKey)
- */
 export async function decryptAndCacheFullEmail(
   emailId: string,
   encryption: EmailEncryptionBlock,
@@ -157,12 +134,10 @@ export async function decryptAndCacheFullEmail(
   return decrypted;
 }
 
-/** Gets a previously cached fully-decrypted email from SQLite, if any. */
 export async function getCachedEmail(emailId: string): Promise<CachedDecryptedEmail | null> {
   return mailLocalDB.getCachedEmail(emailId);
 }
 
-/** Removes cached data for a deleted email. */
 export async function removeCachedEmail(emailId: string): Promise<void> {
   await mailLocalDB.deleteCachedEmail(emailId);
 }

@@ -54,110 +54,110 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     }
   };
 
+  const renderSharedTab = (route: BottomTabBarProps['state']['routes'][number], isFocused: boolean) => {
+    const { options } = props.descriptors[route.key];
+    const SharedIcon = activeSpace === 'mail' ? NotePencilIcon : UsersIcon;
+    const sharedLabel = activeSpace === 'mail' ? strings.tabs.NewEmail : strings.tabs.Shared;
+    return (
+      <TouchableWithoutFeedback
+        key={route.key}
+        accessibilityRole="button"
+        accessibilityLabel={options.tabBarAccessibilityLabel}
+        testID={options.tabBarTestID}
+        onPress={() => onSharedOrComposePressed(route)}
+      >
+        <View style={tailwind('h-14 items-center justify-center flex-1')}>
+          <SharedIcon
+            weight={isFocused ? 'fill' : undefined}
+            color={isFocused ? getColor('text-primary') : getColor('text-gray-50')}
+            size={26}
+          />
+          <Text
+            style={[
+              tailwind('text-supporting-2'),
+              { color: isFocused ? getColor('text-primary') : getColor('text-gray-50') },
+              isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
+            ]}
+          >
+            {sharedLabel}
+          </Text>
+        </View>
+      </TouchableWithoutFeedback>
+    );
+  };
+
+  const onRegularTabPress = (route: BottomTabBarProps['state']['routes'][number], isFocused: boolean) => {
+    const isSettingsRoute = route.name === 'Settings';
+    const isAddRoute = route.name === 'Add';
+
+    if (isSettingsRoute) {
+      dispatch(storageThunks.loadStorageUsageThunk());
+    }
+    if (isAddRoute) {
+      dispatch(uiActions.setShowUploadFileModal(true));
+      return;
+    }
+    const event = props.navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+    if (!isFocused && !event.defaultPrevented) {
+      props.navigation.navigate(route.name);
+    }
+  };
+
+  const onLongPressTab = (route: BottomTabBarProps['state']['routes'][number]) => {
+    props.navigation.emit({ type: 'tabLongPress', target: route.key });
+  };
+
+  const getTabIconColor = (isAddRoute: boolean, isFocused: boolean) => {
+    if (isAddRoute) return getColor('text-white');
+    return isFocused ? getColor('text-primary') : getColor('text-gray-50');
+  };
+
+  const renderRegularTab = (route: BottomTabBarProps['state']['routes'][number], isFocused: boolean) => {
+    const { options } = props.descriptors[route.key];
+    const isAddRoute = route.name === 'Add';
+    const label = tabs[route.name as keyof typeof tabs].label;
+    const Icon = tabs[route.name as keyof typeof tabs].icon;
+    const iconColor = getTabIconColor(isAddRoute, isFocused);
+
+    return (
+      <TouchableWithoutFeedback
+        key={route.key}
+        accessibilityRole="button"
+        accessibilityState={isFocused ? { selected: true } : {}}
+        accessibilityLabel={options.tabBarAccessibilityLabel}
+        testID={options.tabBarTestID}
+        onPress={() => onRegularTabPress(route, isFocused)}
+        onLongPress={() => onLongPressTab(route)}
+      >
+        <View style={tailwind('h-14 items-center justify-center flex-1')}>
+          {isAddRoute ? (
+            <Icon weight="fill" color={getColor('text-primary')} size={40} />
+          ) : (
+            <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
+          )}
+
+          {options.tabBarShowLabel && !isAddRoute && (
+            <Text
+              style={[
+                tailwind('text-supporting-2'),
+                { color: isFocused ? getColor('text-primary') : getColor('text-gray-50') },
+                isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
+              ]}
+            >
+              {label}
+            </Text>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
+    );
+  };
+
   const items = props.state.routes
     .filter((route) => Object.keys(tabs).includes(route.name) || route.name === 'Shared')
     .filter((route) => !(activeSpace === 'mail' && (route.name === 'Home' || route.name === 'Add')))
     .map((route) => {
-      const { options } = props.descriptors[route.key];
       const isFocused = props.state.routes[props.state.index]?.key === route.key;
-      const isAddRoute = route.name === 'Add';
-      const isSettingsRoute = route.name === 'Settings';
-      const isSharedRoute = route.name === 'Shared';
-
-      if (isSharedRoute) {
-        const SharedIcon = activeSpace === 'mail' ? NotePencilIcon : UsersIcon;
-        const sharedLabel = activeSpace === 'mail' ? strings.tabs.NewEmail : strings.tabs.Shared;
-        return (
-          <TouchableWithoutFeedback
-            key={route.key}
-            accessibilityRole="button"
-            accessibilityLabel={options.tabBarAccessibilityLabel}
-            testID={options.tabBarTestID}
-            onPress={() => onSharedOrComposePressed(route)}
-          >
-            <View style={tailwind('h-14 items-center justify-center flex-1')}>
-              <SharedIcon
-                weight={isFocused ? 'fill' : undefined}
-                color={isFocused ? getColor('text-primary') : getColor('text-gray-50')}
-                size={26}
-              />
-              <Text
-                style={[
-                  tailwind('text-supporting-2'),
-                  { color: isFocused ? getColor('text-primary') : getColor('text-gray-50') },
-                  isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-                ]}
-              >
-                {sharedLabel}
-              </Text>
-            </View>
-          </TouchableWithoutFeedback>
-        );
-      }
-
-      const label = tabs[route.name as keyof typeof tabs].label;
-
-      const onPress = () => {
-        if (isSettingsRoute) {
-          dispatch(storageThunks.loadStorageUsageThunk());
-        }
-        if (isAddRoute) {
-          return dispatch(uiActions.setShowUploadFileModal(true));
-        }
-        const event = props.navigation.emit({
-          type: 'tabPress',
-          target: route.key,
-          canPreventDefault: true,
-        });
-
-        if (!isFocused && !event.defaultPrevented) {
-          props.navigation.navigate(route.name);
-        }
-      };
-
-      const onLongPress = () => {
-        props.navigation.emit({ type: 'tabLongPress', target: route.key });
-      };
-
-      const iconColor = isAddRoute
-        ? getColor('text-white')
-        : isFocused
-          ? getColor('text-primary')
-          : getColor('text-gray-50');
-
-      const Icon = tabs[route.name as keyof typeof tabs].icon;
-
-      return (
-        <TouchableWithoutFeedback
-          key={route.key}
-          accessibilityRole="button"
-          accessibilityState={isFocused ? { selected: true } : {}}
-          accessibilityLabel={options.tabBarAccessibilityLabel}
-          testID={options.tabBarTestID}
-          onPress={onPress}
-          onLongPress={onLongPress}
-        >
-          <View style={tailwind('h-14 items-center justify-center flex-1')}>
-            {isAddRoute ? (
-              <Icon weight="fill" color={getColor('text-primary')} size={40} />
-            ) : (
-              <Icon weight={isFocused ? 'fill' : undefined} color={iconColor} size={26} />
-            )}
-
-            {options.tabBarShowLabel && !isAddRoute && (
-              <Text
-                style={[
-                  tailwind('text-supporting-2'),
-                  { color: isFocused ? getColor('text-primary') : getColor('text-gray-50') },
-                  isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-                ]}
-              >
-                {label}
-              </Text>
-            )}
-          </View>
-        </TouchableWithoutFeedback>
-      );
+      return route.name === 'Shared' ? renderSharedTab(route, isFocused) : renderRegularTab(route, isFocused);
     });
 
   return (

@@ -19,9 +19,7 @@ class MailLocalDB {
   private initPromise: Promise<void> | null = null;
 
   private ensureInit(): Promise<void> {
-    if (!this.initPromise) {
-      this.initPromise = this.init();
-    }
+    this.initPromise ??= this.init();
     return this.initPromise;
   }
 
