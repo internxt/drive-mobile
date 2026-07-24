@@ -1854,8 +1854,8 @@
 
 "@internxt/sdk@1.17.19":
   version "1.17.19"
-  resolved "https://npm.pkg.github.com/download/@internxt/sdk/1.17.19/f60aea61973b3f39a4c52499d4dde6082c7c5745#f60aea61973b3f39a4c52499d4dde6082c7c5745"
-  integrity sha512-FKDz9H6u2SL2qsVeFdLDjLqkICef6CXlw12+zmK2fswZ7v8E0sJNOseiHyRmwwIFINWzRpCCEPUEcaRmw6ZhyA==
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.17.19.tgz#84373d19c18079ae2b0f94525e915b3edc80f8e3"
+  integrity sha512-Aa12X7A6fhDXr5s3IBey9qOJuq46DY8KYGveeKKqHr7IQIv21a6J4klOIvb0/sf7GLRHEkBR5hA4XHPv5tVX0g==
   dependencies:
     axios "^1.16.0"
 
