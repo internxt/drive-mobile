@@ -68,7 +68,7 @@ const MailboxListScreen = (): JSX.Element => {
 
     return Array.from(byThread.values())
       .map((group) => {
-        const latest = group.reduce((a, b) => (new Date(a.receivedAt) > new Date(b.receivedAt) ? a : b));
+        const latest = group.reduce((a, b) => (new Date(a.receivedAt) > new Date(b.receivedAt) ? a : b), group[0]);
         const hasUnread = group.some((e) => !e.isRead);
         return { ...latest, isRead: !hasUnread };
       })
