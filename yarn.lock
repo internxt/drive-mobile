@@ -5844,8 +5844,10 @@ inline-style-prefixer@^7.0.1:
   dependencies:
     css-in-js-utils "^3.1.0"
 
-"internxt-crypto@file:../crypto/internxt-crypto-pkg":
+internxt-crypto@1.6.1:
   version "1.6.1"
+  resolved "https://registry.yarnpkg.com/internxt-crypto/-/internxt-crypto-1.6.1.tgz#0c6035f10c69ddc0e5863556c9376184daec1b9c"
+  integrity sha512-g7LyHS7dGtBIF5cIkd6LIpdRxyxYwGgB2a9NMX0gAoXep6D9+tg7SXFP5Yl8rLJzqax9YOLzrXG7VN0a6Q9g1w==
   dependencies:
     "@noble/ciphers" "^2.2.0"
     "@noble/curves" "^2.2.0"

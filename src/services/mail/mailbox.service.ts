@@ -10,6 +10,7 @@ import {
   SendEmailRequest,
   EmailCreatedResponse,
   LookupRecipientKeysResponse,
+  UpdateEmailRequest,
 } from '@internxt/sdk/dist/mail/types';
 
 const DEFAULT_LIMIT = 50;
@@ -75,6 +76,10 @@ class MailboxService {
 
   public async getRecipientsWithPublicKeys(addresses: string[]): Promise<LookupRecipientKeysResponse> {
     return this.sdk.mail.lookupRecipientKeys(addresses);
+  }
+
+  public async updateEmail(emailId: string, body: UpdateEmailRequest): Promise<void> {
+    return this.sdk.mail.updateEmail(emailId, body);
   }
 }
 

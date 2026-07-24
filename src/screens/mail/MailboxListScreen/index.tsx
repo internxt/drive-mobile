@@ -1,6 +1,6 @@
 import { EmailSummaryResponse, MailboxResponse } from '@internxt/sdk/dist/mail/types';
 import { getPrivateHybridKey, decryptPreviews } from '../../../services/mail/mailCrypto.service';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import dayjs from 'dayjs';
 import {
@@ -40,9 +40,9 @@ const MailboxListScreen = (): JSX.Element => {
   const { user } = useAppSelector((state) => state.auth);
   useLanguage();
   const [selectedMailboxId, setSelectedMailboxId] = useState<MailboxId>(MailboxId.Inbox);
-  const [inboxEmails, setInboxEmails] = useState<EmailSummaryResponse[]>([]);
-  const [isLoadingInbox, setIsLoadingInbox] = useState(false);
-  const [inboxError, setInboxError] = useState(false);
+  const [emails, setEmails] = useState<EmailSummaryResponse[]>([]);
+  const [isLoadingEmails, setIsLoadingEmails] = useState(false);
+  const [emailsError, setEmailsError] = useState(false);
   const [mailboxesMeta, setMailboxesMeta] = useState<MailboxResponse[]>([]);
   const unreadByMailbox = useMemo(
     () =>
@@ -52,7 +52,28 @@ const MailboxListScreen = (): JSX.Element => {
       >,
     [mailboxesMeta],
   );
-  const inboxUnreadCount = unreadByMailbox.inbox ?? 0;
+  const MAILBOXES_WITH_UNREAD_BADGE: MailboxId[] = [MailboxId.Inbox, MailboxId.Spam, MailboxId.Trash];
+
+  function groupEmailsByThread(list: EmailSummaryResponse[]): EmailSummaryResponse[] {
+    const byThread = new Map<string, EmailSummaryResponse[]>();
+    for (const email of list) {
+      const key = email.threadId || email.id;
+      const group = byThread.get(key);
+      if (group) {
+        group.push(email);
+      } else {
+        byThread.set(key, [email]);
+      }
+    }
+
+    return Array.from(byThread.values())
+      .map((group) => {
+        const latest = group.reduce((a, b) => (new Date(a.receivedAt) > new Date(b.receivedAt) ? a : b));
+        const hasUnread = group.some((e) => !e.isRead);
+        return { ...latest, isRead: !hasUnread };
+      })
+      .sort((a, b) => new Date(b.receivedAt).getTime() - new Date(a.receivedAt).getTime());
+  }
 
   const mailboxes = [
     { id: MailboxId.Inbox, label: strings.screens.mail.mailboxes.inbox, Icon: TrayIcon },
@@ -62,11 +83,15 @@ const MailboxListScreen = (): JSX.Element => {
     { id: MailboxId.Trash, label: strings.screens.mail.mailboxes.trash, Icon: TrashIcon },
   ];
 
-  const loadInboxEmails = useCallback(async () => {
-    setIsLoadingInbox(true);
-    setInboxError(false);
+  const loadEmails = useCallback(async () => {
+    if (selectedMailboxId === MailboxId.Drafts) {
+      return;
+    }
+    setIsLoadingEmails(true);
+    setEmails([]);
+    setEmailsError(false);
     const [emailsResult, mailboxesResult] = await Promise.allSettled([
-      mailboxService.listEmails('inbox'),
+      mailboxService.listEmails(selectedMailboxId),
       mailboxService.getMailboxes(),
     ]);
 
@@ -78,12 +103,12 @@ const MailboxListScreen = (): JSX.Element => {
           emails = await decryptPreviews(emails, privateKey);
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.warn('Failed to decrypt inbox previews', error);
+          console.warn(`Failed to decrypt previews for ${selectedMailboxId}`, error);
         }
       }
-      setInboxEmails(emails);
+      setEmails(groupEmailsByThread(emails));
     } else {
-      setInboxError(true);
+      setEmailsError(true);
     }
 
     if (mailboxesResult.status === 'fulfilled') {
@@ -93,15 +118,18 @@ const MailboxListScreen = (): JSX.Element => {
       console.warn('Failed to load mailbox metadata (unread counts)', mailboxesResult.reason);
     }
 
-    setIsLoadingInbox(false);
-  }, [user]);
+    setIsLoadingEmails(false);
+  }, [user, selectedMailboxId]);
 
   useEffect(() => {
-    if (selectedMailboxId === MailboxId.Inbox) {
-      loadInboxEmails();
-    }
-  }, [selectedMailboxId, loadInboxEmails]);
+    loadEmails();
+  }, [loadEmails]);
 
+  useFocusEffect(
+    useCallback(() => {
+      loadEmails();
+    }, [loadEmails]),
+  );
   const onOpenEmail = (emailId: string) => {
     navigation.navigate('EmailDetail', { emailId });
   };
@@ -110,6 +138,9 @@ const MailboxListScreen = (): JSX.Element => {
     <View style={tailwind('px-4')}>
       {mailboxes.map((mailbox) => {
         const isSelected = mailbox.id === selectedMailboxId;
+        const unreadCount = unreadByMailbox[mailbox.id] ?? 0;
+        const showUnreadBadge = MAILBOXES_WITH_UNREAD_BADGE.includes(mailbox.id) && unreadCount > 0;
+
         return (
           <TouchableOpacity
             key={mailbox.id}
@@ -127,14 +158,14 @@ const MailboxListScreen = (): JSX.Element => {
             <AppText style={[tailwind('ml-3 text-lg'), isSelected ? { color: getColor('text-primary') } : undefined]}>
               {mailbox.label}
             </AppText>
-            {mailbox.id === MailboxId.Inbox && inboxUnreadCount > 0 && (
+            {showUnreadBadge && (
               <View
                 style={[
                   tailwind('ml-2 items-center justify-center rounded-full px-2'),
                   { backgroundColor: getColor('text-primary'), minWidth: 22, height: 22 },
                 ]}
               >
-                <AppText style={[tailwind('text-xs'), { color: getColor('text-white') }]}>{inboxUnreadCount}</AppText>
+                <AppText style={[tailwind('text-xs'), { color: getColor('text-white') }]}>{unreadCount}</AppText>
               </View>
             )}
           </TouchableOpacity>
@@ -152,8 +183,8 @@ const MailboxListScreen = (): JSX.Element => {
     </View>
   );
 
-  const renderInboxContent = () => {
-    if (isLoadingInbox && inboxEmails.length === 0) {
+  const renderEmailListContent = () => {
+    if (isLoadingEmails && emails.length === 0) {
       return (
         <View style={tailwind('flex-1 items-center justify-center')}>
           <ActivityIndicator color={getColor('text-primary')} />
@@ -161,7 +192,7 @@ const MailboxListScreen = (): JSX.Element => {
       );
     }
 
-    if (inboxError) {
+    if (emailsError) {
       return (
         <View style={tailwind('flex-1 items-center justify-center')}>
           <WarningIcon color={getColor('text-gray-30')} size={48} />
@@ -172,7 +203,7 @@ const MailboxListScreen = (): JSX.Element => {
       );
     }
 
-    if (inboxEmails.length === 0) {
+    if (emails.length === 0) {
       return renderEmptyState();
     }
 
@@ -180,14 +211,10 @@ const MailboxListScreen = (): JSX.Element => {
       <FlatList
         style={tailwind('flex-1')}
         contentContainerStyle={{ paddingBottom: 32 }}
-        data={inboxEmails}
+        data={emails}
         keyExtractor={(email) => email.id}
         refreshControl={
-          <RefreshControl
-            refreshing={isLoadingInbox}
-            onRefresh={loadInboxEmails}
-            tintColor={getColor('text-gray-50')}
-          />
+          <RefreshControl refreshing={isLoadingEmails} onRefresh={loadEmails} tintColor={getColor('text-gray-50')} />
         }
         renderItem={({ item }) => {
           const senderLabel = item.from?.[0]?.name || item.from?.[0]?.email || '';
@@ -252,7 +279,7 @@ const MailboxListScreen = (): JSX.Element => {
       <AppScreenTitle text={strings.screens.mail.title} showBackButton={false} />
       <View style={tailwind('flex-1')}>
         {renderMailboxSwitcher()}
-        {selectedMailboxId === MailboxId.Inbox ? renderInboxContent() : renderEmptyState()}
+        {selectedMailboxId === MailboxId.Drafts ? renderEmptyState() : renderEmailListContent()}
       </View>
     </AppScreen>
   );
