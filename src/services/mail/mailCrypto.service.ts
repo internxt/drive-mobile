@@ -6,8 +6,6 @@ import {
   decryptSymmetrically,
   encryptSymmetrically,
   genSymmetricKey,
-} from 'internxt-crypto';
-import {
   decryptEmailHybrid,
   decryptEmailPreviewHybrid,
   encryptEmailHybridForMultipleRecipients,

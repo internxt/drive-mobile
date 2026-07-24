@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, View, TouchableOpacity } from 'react-native';
+import { ScrollView, View, TouchableOpacity, Alert } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
@@ -13,7 +13,6 @@ import { RootStackScreenProps } from '../../../types/navigation';
 import * as ImagePicker from 'expo-image-picker';
 import { pick } from '@react-native-documents/picker';
 import AppText from '../../../components/AppText';
-import { Alert } from 'react-native';
 import { encryptAndSendEmail, sendEmail } from '@internxt-mobile/services/mail/mailCrypto.service';
 
 const INTERNAL_MAIL_DOMAINS = ['@inxt.com', '@inxt.me'];
