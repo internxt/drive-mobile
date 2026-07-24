@@ -52,7 +52,7 @@ export const useLiveBackupStatus = (item: TimelinePhotoItem | undefined): LiveBa
 
   const snapshotState = item?.type === 'local' ? item.backupState : undefined;
   const isWaitingToUpload = snapshotState === 'not-backed' && !isInUploadQueue && !completedDuringSession;
-  const isCloudDeleted = snapshotState === 'cloud-deleted' && !isInUploadQueue && !completedDuringSession;
+  const isCloudDeleted = snapshotState === 'cloud-deleted' && !isInUploadQueue;
 
   useEffect(() => {
     if (!isBurst || !assetId || isInUploadQueue) {
