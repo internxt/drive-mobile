@@ -8,6 +8,7 @@ jest.mock('../../SqliteService', () => ({
     executeSql: jest.fn().mockResolvedValue(undefined),
     getAllAsync: jest.fn().mockResolvedValue([]),
     getFirstAsync: jest.fn().mockResolvedValue(null),
+    executeBulk: jest.fn().mockResolvedValue(undefined),
     transaction: jest.fn(),
   },
 }));
@@ -40,53 +41,74 @@ describe('photosLocalDB', () => {
     expect(mockSqlite.executeSql).not.toHaveBeenCalled();
   });
 
-  test('when a photo is marked as pending, then it never overwrites an already synced photo', async () => {
-    await photosLocalDB.markPending('asset-1');
+  test('when photos are marked as pending in bulk, then it never overwrites an already synced photo and all media info fields are passed', async () => {
+    await photosLocalDB.markPendingBulk([
+      { assetId: 'asset-1' },
+      {
+        assetId: 'asset-2',
+        mediaInfo: {
+          fileName: 'photo.jpg',
+          creationTime: 1714000000000,
+          width: 3024,
+          height: 4032,
+          duration: 0,
+          mediaType: 'photo',
+        },
+      },
+    ]);
 
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
-    const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
+    expect(mockSqlite.executeBulk).toHaveBeenCalledTimes(1);
+    const [dbName, stmt, paramsList] = mockSqlite.executeBulk.mock.calls[0];
+    expect(dbName).toBe('photos_sync.db');
     expect(stmt).toContain('\'pending\'');
     expect(stmt).toContain('ON CONFLICT');
     expect(stmt).toContain('status != \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0, 0]);
+    expect(paramsList).toEqual([
+      ['asset-1', null, null, null, null, null, null, 0, 0],
+      ['asset-2', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo', 0, 0],
+    ]);
+    expect(mockSqlite.executeSql).not.toHaveBeenCalled();
   });
 
-  test('when a photo is marked as pending with media info, then all media info fields are passed to the database', async () => {
-    await photosLocalDB.markPending('asset-1', {
-      fileName: 'photo.jpg',
-      creationTime: 1714000000000,
-      width: 3024,
-      height: 4032,
-      duration: 0,
-      mediaType: 'photo',
-    });
+  test('when markPendingBulk is called with no entries, then it still delegates to executeBulk, which no-ops on an empty list', async () => {
+    await photosLocalDB.markPendingBulk([]);
 
-    const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-1', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo', 0, 0]);
+    expect(mockSqlite.executeBulk).toHaveBeenCalledWith('photos_sync.db', expect.any(String), []);
   });
 
-  test('when a photo is marked as pending for edit, then the status is pending_edit and it never overwrites a non-synced photo', async () => {
-    await photosLocalDB.markPendingEdit('asset-1');
+  test('when edited photos are marked as pending in bulk, then the status is pending_edit, it never overwrites a non-synced photo, and media info fields are passed', async () => {
+    await photosLocalDB.markPendingEditBulk([
+      { assetId: 'asset-1' },
+      {
+        assetId: 'asset-2',
+        mediaInfo: {
+          fileName: 'video.mp4',
+          creationTime: 1714000000000,
+          width: 1920,
+          height: 1080,
+          duration: 30,
+          mediaType: 'video',
+        },
+      },
+    ]);
 
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
-    const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
+    expect(mockSqlite.executeBulk).toHaveBeenCalledTimes(1);
+    const [, stmt, paramsList] = mockSqlite.executeBulk.mock.calls[0];
     expect(stmt).toContain('\'pending_edit\'');
     expect(stmt).toContain('status = \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0, 0]);
+    expect(paramsList).toEqual([
+      ['asset-1', null, null, null, null, null, null, 0, 0],
+      ['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video', 0, 0],
+    ]);
   });
 
-  test('when a photo is marked as pending for edit with media info, then all media info fields are passed to the database', async () => {
-    await photosLocalDB.markPendingEdit('asset-2', {
-      fileName: 'video.mp4',
-      creationTime: 1714000000000,
-      width: 1920,
-      height: 1080,
-      duration: 30,
-      mediaType: 'video',
-    });
+  test('when asset_sync rows are deleted in bulk, then one param row per asset id is passed to executeBulk', async () => {
+    await photosLocalDB.deleteAssetSyncBulk(['asset-1', 'asset-2', 'asset-3']);
 
-    const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video', 0, 0]);
+    expect(mockSqlite.executeBulk).toHaveBeenCalledTimes(1);
+    const [dbName, , paramsList] = mockSqlite.executeBulk.mock.calls[0];
+    expect(dbName).toBe('photos_sync.db');
+    expect(paramsList).toEqual([['asset-1'], ['asset-2'], ['asset-3']]);
   });
 
   test('when a file size is cached for an asset, then the file size and asset id are passed to the database', async () => {

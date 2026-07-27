@@ -281,31 +281,23 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
       const burstRepresentativeIds = await BurstNativeModule.getBurstRepresentativeIds(allPendingIds);
       const burstIdSet = new Set(burstRepresentativeIds);
 
+      const transformToPendingEntry = (asset: (typeof newAssets)[number]) => ({
+        assetId: asset.id,
+        mediaInfo: {
+          fileName: asset.filename,
+          creationTime: asset.creationTime,
+          width: asset.width,
+          height: asset.height,
+          duration: asset.duration,
+          mediaType: asset.mediaType,
+          isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
+          isBurst: burstIdSet.has(asset.id),
+        },
+      });
+
       await Promise.all([
-        ...newAssets.map((asset) =>
-          photosLocalDB.markPending(asset.id, {
-            fileName: asset.filename,
-            creationTime: asset.creationTime,
-            width: asset.width,
-            height: asset.height,
-            duration: asset.duration,
-            mediaType: asset.mediaType,
-            isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
-            isBurst: burstIdSet.has(asset.id),
-          }),
-        ),
-        ...editedAssets.map((asset) =>
-          photosLocalDB.markPendingEdit(asset.id, {
-            fileName: asset.filename,
-            creationTime: asset.creationTime,
-            width: asset.width,
-            height: asset.height,
-            duration: asset.duration,
-            mediaType: asset.mediaType,
-            isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
-            isBurst: burstIdSet.has(asset.id),
-          }),
-        ),
+        photosLocalDB.markPendingBulk(newAssets.map(transformToPendingEntry)),
+        photosLocalDB.markPendingEditBulk(editedAssets.map(transformToPendingEntry)),
       ]);
       const localAssetIdSet = new Set(scannedAssets.map((a) => a.id));
       const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(localAssetIdSet);

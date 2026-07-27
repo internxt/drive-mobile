@@ -112,8 +112,8 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
   photosLocalDB: {
     init: jest.fn().mockResolvedValue(undefined),
     getPendingAssets: jest.fn().mockResolvedValue([]),
-    markPending: jest.fn().mockResolvedValue(undefined),
-    markPendingEdit: jest.fn().mockResolvedValue(undefined),
+    markPendingBulk: jest.fn().mockResolvedValue(undefined),
+    markPendingEditBulk: jest.fn().mockResolvedValue(undefined),
     markSynced: jest.fn().mockResolvedValue(undefined),
     markSyncedLivePhoto: jest.fn().mockResolvedValue(undefined),
     markSyncedBurst: jest.fn().mockResolvedValue(undefined),
@@ -197,8 +197,8 @@ describe('photos slice', () => {
     mockDeduplicator.getAssetsToSync.mockResolvedValue({ newAssets: [], editedAssets: [] });
     mockPhotosLocalDB.init.mockResolvedValue(undefined);
     mockPhotosLocalDB.getPendingAssets.mockResolvedValue([]);
-    mockPhotosLocalDB.markPending.mockResolvedValue(undefined);
-    mockPhotosLocalDB.markPendingEdit.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markPendingBulk.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markPendingEditBulk.mockResolvedValue(undefined);
     mockPhotosLocalDB.markSynced.mockResolvedValue(undefined);
     mockPhotosLocalDB.markSyncedBurst.mockResolvedValue(undefined);
     mockPhotosLocalDB.markError.mockResolvedValue(undefined);
@@ -1726,7 +1726,7 @@ describe('photos slice', () => {
 
       expect(mockPhotosLocalDB.markSynced).toHaveBeenCalledWith('a1', 'remote-1', 12345);
       expect(store.getState().photos.uploadingAssetIds).toEqual([]);
-      expect(mockPhotosLocalDB.markPending).not.toHaveBeenCalled();
+      expect(mockPhotosLocalDB.markPendingBulk).not.toHaveBeenCalled();
     });
 
     test('when the upload succeeds, then the asset is not added to sessionCompletedAssetIds', async () => {

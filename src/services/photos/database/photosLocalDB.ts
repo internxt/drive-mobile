@@ -273,6 +273,18 @@ const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
   burstMemberCount: row.burst_member_count,
 });
 
+const toMarkPendingParams = (assetId: string, mediaInfo?: AssetMediaInfo) => [
+  assetId,
+  mediaInfo?.fileName ?? null,
+  mediaInfo?.creationTime ?? null,
+  mediaInfo?.width ?? null,
+  mediaInfo?.height ?? null,
+  mediaInfo?.duration ?? null,
+  mediaInfo?.mediaType ?? null,
+  mediaInfo?.isLivePhoto ? 1 : 0,
+  mediaInfo?.isBurst ? 1 : 0,
+];
+
 class PhotosLocalDB {
   private initPromise: Promise<void> | null = null;
 
@@ -291,32 +303,33 @@ class PhotosLocalDB {
     return this.initPromise;
   }
 
-  async markPending(assetId: string, mediaInfo?: AssetMediaInfo): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPending, [
-      assetId,
-      mediaInfo?.fileName ?? null,
-      mediaInfo?.creationTime ?? null,
-      mediaInfo?.width ?? null,
-      mediaInfo?.height ?? null,
-      mediaInfo?.duration ?? null,
-      mediaInfo?.mediaType ?? null,
-      mediaInfo?.isLivePhoto ? 1 : 0,
-      mediaInfo?.isBurst ? 1 : 0,
-    ]);
+  /**
+   * Marks assets pending, in bulk (see `SqliteService.executeBulk`).
+   *
+   * @param entries - Asset id + media info pairs, one per asset to mark pending.
+   */
+  async markPendingBulk(entries: Array<{ assetId: string; mediaInfo?: AssetMediaInfo }>): Promise<void> {
+    await this.markBulk(assetSyncTable.statements.markPending, entries);
   }
 
-  async markPendingEdit(assetId: string, mediaInfo?: AssetMediaInfo): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPendingEdit, [
-      assetId,
-      mediaInfo?.fileName ?? null,
-      mediaInfo?.creationTime ?? null,
-      mediaInfo?.width ?? null,
-      mediaInfo?.height ?? null,
-      mediaInfo?.duration ?? null,
-      mediaInfo?.mediaType ?? null,
-      mediaInfo?.isLivePhoto ? 1 : 0,
-      mediaInfo?.isBurst ? 1 : 0,
-    ]);
+  /**
+   * Same as `markPendingBulk`, but for assets that were edited after already syncing.
+   *
+   * @param entries - Asset id + media info pairs, one per edited asset to mark pending.
+   */
+  async markPendingEditBulk(entries: Array<{ assetId: string; mediaInfo?: AssetMediaInfo }>): Promise<void> {
+    await this.markBulk(assetSyncTable.statements.markPendingEdit, entries);
+  }
+
+  private async markBulk(
+    statement: string,
+    entries: Array<{ assetId: string; mediaInfo?: AssetMediaInfo }>,
+  ): Promise<void> {
+    await sqliteService.executeBulk(
+      DB_NAME,
+      statement,
+      entries.map(({ assetId, mediaInfo }) => toMarkPendingParams(assetId, mediaInfo)),
+    );
   }
 
   async markSynced(assetId: string, remoteFileId: string, modificationTime: number | null): Promise<void> {
@@ -506,8 +519,17 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markDeleted, [assetId]);
   }
 
-  async deleteAssetSync(assetId: string): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.deleteById, [assetId]);
+  /**
+   * Removes `asset_sync` rows for locally-deleted assets, in bulk (see `SqliteService.executeBulk`).
+   *
+   * @param assetIds - Ids of the local assets to remove from `asset_sync`.
+   */
+  async deleteAssetSyncBulk(assetIds: string[]): Promise<void> {
+    await sqliteService.executeBulk(
+      DB_NAME,
+      assetSyncTable.statements.deleteById,
+      assetIds.map((assetId) => [assetId]),
+    );
   }
 
   async cleanupOrphanedAssetSync(localAssetIds: Set<string>): Promise<number> {
@@ -519,12 +541,7 @@ class PhotosLocalDB {
     if (orphanAssetsIds.length === 0) {
       return 0;
     }
-    for (let i = 0; i < orphanAssetsIds.length; i += CHUNK_SIZE) {
-      const orphanAssetsChunk = orphanAssetsIds.slice(i, i + CHUNK_SIZE);
-      await Promise.all(
-        orphanAssetsChunk.map((id) => sqliteService.executeSql(DB_NAME, assetSyncTable.statements.deleteById, [id])),
-      );
-    }
+    await this.deleteAssetSyncBulk(orphanAssetsIds);
     return orphanAssetsIds.length;
   }
 
