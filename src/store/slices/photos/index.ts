@@ -314,7 +314,8 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
           totalScannedAssets: scannedAssets.length,
         }),
       );
-      dispatch(photosSlice.actions.setSyncStatus('idle'));
+
+      dispatch(photosSlice.actions.setSyncStatus(PhotoUploadQueue.isCycleRunning() ? 'uploading' : 'idle'));
       logger.info(
         `[Discovery] Complete — scanned: ${scannedAssets.length}, new: ${newAssets.length}, edited: ${editedAssets.length}`,
       );
