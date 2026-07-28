@@ -46,7 +46,6 @@ function SignOutModal({ onSignedOut }: SignOutModalProps): JSX.Element {
 
   return (
     <CenterModal
-      // signOutThunk resets isSignOutModalOpen early — the local flag keeps the loader open until done.
       isOpen={isSignOutModalOpen || isSigningOut}
       onClosed={onClosed}
       backdropPressToClose={false}
@@ -54,7 +53,6 @@ function SignOutModal({ onSignedOut }: SignOutModalProps): JSX.Element {
     >
       {isSigningOut ? (
         <View style={tailwind('w-full px-6 py-8 items-center')}>
-          {/* LoadingSpinner sizes itself via flex-1 and collapses without a fixed-height container */}
           <View style={{ width: 48, height: 48 }}>
             <LoadingSpinner size={40} />
           </View>

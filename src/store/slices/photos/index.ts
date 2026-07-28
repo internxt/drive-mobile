@@ -577,7 +577,6 @@ export const signOutThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/signOut',
   async (_, { getState, dispatch }) => {
     PhotoUploadQueue.abortAll();
-    // Cancellation signal for the fire-and-forget cloud history sync — it checks !enabled between months.
     dispatch(photosSlice.actions.setEnabled(false));
     logger.info('[Manifest] signOutThunk — draining any in-flight upload cycle before wiping local state');
     await PhotoUploadQueue.waitForCycleEnd(SIGN_OUT_DRAIN_TIMEOUT_MS);

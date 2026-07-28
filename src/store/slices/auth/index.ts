@@ -210,7 +210,6 @@ export const signOutThunk = createAsyncThunk<
   }
   isSignOutInFlight = true;
   try {
-    // The Photos snapshot needs credentials, so it runs before the wipes below.
     await dispatch(photosSignOutThunk());
     authService.signout(payload.reason).catch(errorService.reportError);
     drive.clear().catch(errorService.reportError);
