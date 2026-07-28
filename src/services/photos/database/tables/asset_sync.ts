@@ -140,7 +140,8 @@ const statements = {
     WHERE status = 'synced'
       AND remote_file_id IS NOT NULL
       AND creation_time >= ?
-      AND creation_time < ?;
+      AND creation_time < ?
+      AND (synced_at IS NULL OR synced_at < ?);
   `,
   getCloudDeletedRemoteIdsByCreationMonth: `
     SELECT remote_file_id FROM ${TABLE_NAME}
@@ -184,7 +185,8 @@ const statements = {
       burst_member_count = NULL,
       paired_video_remote_file_id = NULL,
       paired_video_status = NULL
-    WHERE status = 'synced';
+    WHERE status = 'synced'
+      AND (synced_at IS NULL OR synced_at < ?);
   `,
   resetErrorsToPending: `
     UPDATE ${TABLE_NAME}
@@ -204,7 +206,8 @@ const statements = {
     FROM ${TABLE_NAME}
     WHERE status = 'synced'
       AND creation_time IS NOT NULL
-      AND remote_file_id IS NOT NULL;
+      AND remote_file_id IS NOT NULL
+      AND (synced_at IS NULL OR synced_at < ?);
   `,
 
   getIncompleteBurstAssets: `

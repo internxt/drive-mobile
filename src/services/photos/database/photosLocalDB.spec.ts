@@ -1049,4 +1049,36 @@ describe('photosLocalDB cloud asset methods', () => {
       ]);
     });
   });
+
+  describe('synced-before cutoff', () => {
+    test('when synced remote ids for a creation month are requested, then the cutoff is passed after the month range', async () => {
+      await photosLocalDB.getSyncedRemoteIdsByCreationMonth(2024, 6, 1714000000000);
+
+      expect(mockSqlite.getAllAsync).toHaveBeenCalledTimes(1);
+      const [dbName, stmt, params] = mockSqlite.getAllAsync.mock.calls[0];
+      expect(dbName).toBe('photos_sync.db');
+      expect(stmt).toContain('synced_at');
+      expect(params).toEqual([new Date(2024, 5, 1).getTime(), new Date(2024, 6, 1).getTime(), 1714000000000]);
+    });
+
+    test('when synced months are requested, then the cutoff is passed as the only parameter', async () => {
+      await photosLocalDB.getSyncedMonths(1714000000000);
+
+      expect(mockSqlite.getAllAsync).toHaveBeenCalledWith(
+        'photos_sync.db',
+        expect.stringContaining('synced_at'),
+        [1714000000000],
+      );
+    });
+
+    test('when synced assets are reset to pending, then the cutoff is passed as the only parameter', async () => {
+      await photosLocalDB.resetSyncedToPending(1714000000000);
+
+      expect(mockSqlite.executeSql).toHaveBeenCalledWith(
+        'photos_sync.db',
+        expect.stringContaining('synced_at'),
+        [1714000000000],
+      );
+    });
+  });
 });

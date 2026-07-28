@@ -445,6 +445,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
 
     // Own device folder isn't among Drive's — reset synced assets to pending regardless.
     expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledWith(expect.any(Number));
     // But other (unrelated) devices are still walked so the "All devices" filter has their data.
     expect(mockFolderService.getFolderFolders).toHaveBeenCalledWith('d1-uuid', 0, 50);
   });
@@ -456,6 +457,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
 
     expect(mockFolderService.getFolderFolders).not.toHaveBeenCalled();
     expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledWith(expect.any(Number));
     expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
   });
 
@@ -475,7 +477,7 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
 
     await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'd1-uuid' });
 
-    expect(mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth).toHaveBeenCalled();
+    expect(mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth).toHaveBeenCalledWith(2024, 6, expect.any(Number));
   });
 
   test('when a month known in the DB is no longer present in the cloud, then all its files are marked as cloud_deleted', async () => {
@@ -547,6 +549,31 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'd1-uuid' });
 
     expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledTimes(1);
+    expect(mockPhotosLocalDB.resetSyncedToPending).toHaveBeenCalledWith(expect.any(Number));
+    expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
+  });
+
+  test('when the current device has no cloud history but every synced month was synced during this same cycle, then nothing is reset to pending', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([makeDevice('d1-uuid', 'Internxt iPhone')]);
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([]);
+    mockPhotosLocalDB.getSyncedMonths.mockResolvedValue([]);
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'd1-uuid' });
+
+    expect(mockPhotosLocalDB.getSyncedMonths).toHaveBeenCalledWith(expect.any(Number));
+    expect(mockPhotosLocalDB.resetSyncedToPending).not.toHaveBeenCalled();
+  });
+
+  test('when the sync cycle is cancelled, then deleted-months reconciliation is skipped', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([makeDevice('d1-uuid', 'Internxt iPhone')]);
+    mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([{ year: 2024, month: 6 }]);
+    mockFolderService.getFolderFolders.mockResolvedValueOnce({ folders: [] } as never);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'd1-uuid', isCancelled: () => true });
+
+    expect(mockPhotosLocalDB.resetSyncedToPending).not.toHaveBeenCalled();
     expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
   });
 

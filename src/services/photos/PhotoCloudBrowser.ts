@@ -81,6 +81,7 @@ class PhotoCloudBrowserService {
       month,
       onMonthFetched,
       currentDeviceId: undefined,
+      cycleStartedAt: Date.now(),
     });
   }
 
@@ -94,6 +95,7 @@ class PhotoCloudBrowserService {
     logger.info(
       `[CloudBrowser] syncAllHistory — currentDeviceId=${currentDeviceId ?? 'none'}, force=${force ?? false}`,
     );
+    const cycleStartedAt = Date.now();
     const devices = await this.listDeviceFolders();
     if (devices.length === 0) {
       logger.info('[CloudBrowser] No device folders found — skipping sync');
@@ -101,7 +103,7 @@ class PhotoCloudBrowserService {
         // Own device folder gone from cloud — every remote reference is stale. Reset synced
         // assets to pending (not cloud_deleted) so the next upload cycle restores the backup.
         await this.purgeDeletedDevices(devices, onMonthFetched);
-        await this.localDB.resetSyncedToPending();
+        await this.localDB.resetSyncedToPending(cycleStartedAt);
       }
       return;
     }
@@ -111,7 +113,7 @@ class PhotoCloudBrowserService {
       logger.info(
         `[CloudBrowser] Current device "${currentDeviceId}" not found among Drive's device folders — resetting synced assets to pending`,
       );
-      await this.localDB.resetSyncedToPending();
+      await this.localDB.resetSyncedToPending(cycleStartedAt);
     }
     logger.info(`[CloudBrowser] Syncing ${devices.length} device(s): ${devices.map((d) => d.uuid).join(', ')}`);
 
@@ -141,13 +143,19 @@ class PhotoCloudBrowserService {
             onMonthFetched,
             force,
             currentDeviceId,
+            cycleStartedAt,
           });
         }
       };
       await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
     }
 
-    await this.reconcileDeletedMonths({ devices, discoveredMonths: months, currentDeviceId });
+    if (isCancelled?.()) {
+      logger.info('[CloudBrowser] Sync cancelled — skipping deleted-months reconciliation');
+      return;
+    }
+
+    await this.reconcileDeletedMonths({ devices, discoveredMonths: months, currentDeviceId, cycleStartedAt });
   }
 
   private async fetchMonthFromFolder(params: {
@@ -158,8 +166,9 @@ class PhotoCloudBrowserService {
     onMonthFetched?: () => void;
     force?: boolean;
     currentDeviceId: string | undefined;
+    cycleStartedAt: number;
   }): Promise<number> {
-    const { deviceId, monthFolderUuid, year, month, onMonthFetched, force, currentDeviceId } = params;
+    const { deviceId, monthFolderUuid, year, month, onMonthFetched, force, currentDeviceId, cycleStartedAt } = params;
     if (!force) {
       const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
       if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
@@ -187,7 +196,7 @@ class PhotoCloudBrowserService {
       }
     }
 
-    await this.reconcileCloudDeletions({ deviceId, year, month, foundIds, currentDeviceId });
+    await this.reconcileCloudDeletions({ deviceId, year, month, foundIds, currentDeviceId, cycleStartedAt });
 
     if (count > 0) {
       logger.info(
@@ -210,6 +219,8 @@ class PhotoCloudBrowserService {
    * @param params.month - Month being reconciled (1-12).
    * @param params.foundIds - Remote file ids found in Drive for this device/month in this pass.
    * @param params.currentDeviceId - This device's own folder uuid, or undefined if unknown.
+   * @param params.cycleStartedAt - Timestamp (ms) captured before this sync cycle started
+   * observing the cloud
    */
   private async reconcileCloudDeletions(params: {
     deviceId: string;
@@ -217,15 +228,16 @@ class PhotoCloudBrowserService {
     month: number;
     foundIds: Set<string>;
     currentDeviceId: string | undefined;
+    cycleStartedAt: number;
   }): Promise<void> {
-    const { deviceId, year, month, foundIds, currentDeviceId } = params;
+    const { deviceId, year, month, foundIds, currentDeviceId, cycleStartedAt } = params;
     const monthLabel = `${year}/${String(month).padStart(2, '0')}`;
     logger.info(
       `[CloudBrowser] reconcileCloudDeletions — device=${deviceId} ${monthLabel}, foundIds=${[...foundIds].length}, currentDeviceId=${currentDeviceId ?? 'none'}`,
     );
     const isCurrentDevice = !!currentDeviceId && deviceId === currentDeviceId;
 
-    const knownIds = await this.getKnownRemoteIds({ deviceId, year, month, isCurrentDevice });
+    const knownIds = await this.getKnownRemoteIds({ deviceId, year, month, isCurrentDevice, cycleStartedAt });
 
     const removedCount = await this.markMissingAsCloudDeleted({ knownIds, foundIds });
     if (removedCount > 0) {
@@ -250,6 +262,8 @@ class PhotoCloudBrowserService {
    * @param params.month - Month being reconciled (1-12).
    * @param params.isCurrentDevice - Whether `params.deviceId` is this device's own folder uuid;
    *   when true, `asset_sync` is also consulted.
+   * @param params.cycleStartedAt - Timestamp (ms) captured before this sync cycle started
+   * observing the cloud
    * @returns The set of known remote file ids.
    */
   private async getKnownRemoteIds(params: {
@@ -257,8 +271,9 @@ class PhotoCloudBrowserService {
     year: number;
     month: number;
     isCurrentDevice: boolean;
+    cycleStartedAt: number;
   }): Promise<Set<string>> {
-    const { deviceId, year, month, isCurrentDevice } = params;
+    const { deviceId, year, month, isCurrentDevice, cycleStartedAt } = params;
     const knownFromCloud = await this.localDB.getCloudAssetRemoteIdsByDeviceAndMonth(deviceId, year, month);
     logger.info(
       `[CloudBrowser] reconcileCloudDeletions — knownFromCloud=${knownFromCloud.size} in local DB for device=${deviceId} ${year}/${String(month).padStart(2, '0')}`,
@@ -266,7 +281,7 @@ class PhotoCloudBrowserService {
     const knownIds = new Set(knownFromCloud);
 
     if (isCurrentDevice) {
-      const knownFromSync = await this.localDB.getSyncedRemoteIdsByCreationMonth(year, month);
+      const knownFromSync = await this.localDB.getSyncedRemoteIdsByCreationMonth(year, month, cycleStartedAt);
       for (const id of knownFromSync) {
         knownIds.add(id);
       }
@@ -347,8 +362,9 @@ class PhotoCloudBrowserService {
     devices: { uuid: string }[];
     discoveredMonths: { deviceId: string; year: number; month: number; monthFolderUuid: string }[];
     currentDeviceId: string | undefined;
+    cycleStartedAt: number;
   }): Promise<void> {
-    const { devices, discoveredMonths, currentDeviceId } = params;
+    const { devices, discoveredMonths, currentDeviceId, cycleStartedAt } = params;
     const discoveredSet = new Set(discoveredMonths.map((m) => `${m.deviceId}:${m.year}:${m.month}`));
     logger.info(
       `[CloudBrowser] reconcileDeletedMonths — ${devices.length} device(s) to reconcile: ${devices.map((d) => d.uuid).join(', ')}`,
@@ -363,13 +379,13 @@ class PhotoCloudBrowserService {
       const monthSet = new Set(cloudMonths.map((m) => `${m.year}:${m.month}`));
 
       if (currentDeviceId && deviceId === currentDeviceId) {
-        const syncedMonths = await this.localDB.getSyncedMonths();
+        const syncedMonths = await this.localDB.getSyncedMonths(cycleStartedAt);
         const isRecreatedDeviceFolder = cloudMonths.length === 0 && syncedMonths.length > 0;
         if (isRecreatedDeviceFolder) {
           logger.info(
             `[CloudBrowser] Device "${deviceId}" has no cloud history but local DB has synced months — resetting to pending for re-upload`,
           );
-          await this.localDB.resetSyncedToPending();
+          await this.localDB.resetSyncedToPending(cycleStartedAt);
           continue;
         }
         for (const m of syncedMonths) monthSet.add(`${m.year}:${m.month}`);
@@ -381,7 +397,14 @@ class PhotoCloudBrowserService {
           logger.info(
             `[CloudBrowser] Device "${deviceId}" ${year}/${String(month).padStart(2, '0')} — month no longer in cloud`,
           );
-          await this.reconcileCloudDeletions({ deviceId, year, month, foundIds: new Set(), currentDeviceId });
+          await this.reconcileCloudDeletions({
+            deviceId,
+            year,
+            month,
+            foundIds: new Set(),
+            currentDeviceId,
+            cycleStartedAt,
+          });
         }
       }
     }
