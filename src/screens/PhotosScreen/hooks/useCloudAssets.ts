@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
@@ -25,7 +26,9 @@ export const useCloudAssets = (deviceFilterId?: string | null): CloudAssetsResul
     const deduplicated = allCloud.filter(
       (cloudEntry) => !syncedRemoteIds.has(cloudEntry.remoteFileId) && cloudEntry.livePhotoRole !== 'paired_video',
     );
-    setCloudItems(deduplicated.map(cloudEntryToPhotoItem));
+    const nextItems = deduplicated.map(cloudEntryToPhotoItem);
+    // Avoid rerenders when the new list is identical to the previous one (e.g., during a background sync tick)
+    setCloudItems((prev) => (isEqual(prev, nextItems) ? prev : nextItems));
   }, [deviceFilterId]);
 
   useEffect(() => {

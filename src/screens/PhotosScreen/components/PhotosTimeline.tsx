@@ -262,6 +262,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             scrollEventThrottle={16}
             progressViewOffset={Platform.OS === 'android' ? HEADER_HEIGHT : 0}
             maintainVisibleContentPosition={{ disabled: true }}
+            drawDistance={500}
           />
 
           {!isEmpty && currentBoundary && (

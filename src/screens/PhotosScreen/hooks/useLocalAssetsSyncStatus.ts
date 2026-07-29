@@ -1,3 +1,4 @@
+import { isEqual } from 'lodash';
 import { useEffect, useState } from 'react';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
@@ -43,11 +44,13 @@ export const useLocalAssetsSyncStatus = (assetIds: string[]): LocalAssetsSyncSta
           // leave this to fill if we add a Icon for error state in the future
         }
       }
-      setSyncedIds(synced);
-      setCloudDeletedIds(cloudDeleted);
+      // Avoid rerenders when the new list is identical to the previous one (e.g., during a background sync tick)
+      setSyncedIds((prev) => (isEqual(prev, synced) ? prev : synced));
+      setCloudDeletedIds((prev) => (isEqual(prev, cloudDeleted) ? prev : cloudDeleted));
 
       const incompleteBursts = await photosLocalDB.getIncompleteBurstAssets();
-      setIncompleteUploadBurstIdSet(new Set(incompleteBursts.map((burst) => burst.assetId)));
+      const incompleteBurstIds = new Set(incompleteBursts.map((burst) => burst.assetId));
+      setIncompleteUploadBurstIdSet((prev) => (isEqual(prev, incompleteBurstIds) ? prev : incompleteBurstIds));
     };
     refreshFromDB();
   }, [assetIds, syncStatus, sessionUploadedAssets, isFetchingCloudHistory, cloudFetchRevision]);

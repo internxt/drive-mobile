@@ -1,4 +1,6 @@
+import { useRecyclingState } from '@shopify/flash-list';
 import strings from 'assets/lang/strings';
+import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowUpIcon,
@@ -10,7 +12,7 @@ import {
   WarningIcon,
 } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
-import { Animated, Easing, Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { Circle } from 'react-native-progress';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
@@ -19,7 +21,7 @@ import { useTailwind } from 'tailwind-rn';
 import { useCloudThumbnail } from '../hooks/useCloudThumbnail';
 import { CloudPhotoItem, PhotoItem as PhotoItemType, TimelinePhotoItem } from '../types';
 
-const SkeletonCell = (): JSX.Element => {
+const SkeletonCell = ({ style }: { style?: StyleProp<ViewStyle> }): JSX.Element => {
   const getColor = useGetColor();
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -35,7 +37,11 @@ const SkeletonCell = (): JSX.Element => {
   }, []);
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: getColor('bg-primary-10'), opacity: fadeAnim }]} />
+    <View style={[styles.container, { backgroundColor: getColor('bg-gray-10') }, style]}>
+      <Animated.View
+        style={[StyleSheet.absoluteFillObject, { backgroundColor: getColor('bg-gray-1'), opacity: fadeAnim }]}
+      />
+    </View>
   );
 };
 
@@ -169,11 +175,24 @@ const LocalPhotoCell = memo(
   ({ item, isSelectMode, isSelected, onPress, onLongPress }: CellProps & { item: PhotoItemType }): JSX.Element => {
     const tailwind = useTailwind();
     const getColor = useGetColor();
+    const [isImageLoaded, setIsImageLoaded] = useRecyclingState(false, [item.id]);
+    // A late onLoad for the cell's *previous* asset (fired after fast-scroll recycled it to
+    // a new item) must not mark the new, still-loading asset as loaded — hence the uri check below.
+    const currentUriRef = useRef(item.uri);
+    currentUriRef.current = item.uri;
 
     const handlePress = useCallback(() => {
       onPress?.(item.id);
     }, [onPress, item.id]);
     const handleLongPress = useCallback(() => onLongPress?.(item.id), [onLongPress, item.id]);
+    const handleLoad = useCallback(
+      (event: { source: { url: string } }) => {
+        if (event.source.url === currentUriRef.current) {
+          setIsImageLoaded(true);
+        }
+      },
+      [setIsImageLoaded],
+    );
 
     if (item.backupState === 'loading' || !item.uri) {
       return <SkeletonCell />;
@@ -184,13 +203,15 @@ const LocalPhotoCell = memo(
 
     return (
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
-        {/* key forces Image to remount on cell recycle, preventing the previous photo from flashing */}
-        <Image
-          key={item.id}
+        {/* recyclingKey clears the previous asset's bitmap immediately when FlashList reuses this cell */}
+        <ExpoImage
           source={{ uri: item.uri }}
+          recyclingKey={item.id}
           style={[StyleSheet.absoluteFillObject, isCloudDeleted && styles.dimmed]}
-          resizeMode="cover"
+          contentFit="cover"
+          onLoad={handleLoad}
         />
+        {!isImageLoaded && <SkeletonCell style={StyleSheet.absoluteFillObject} />}
 
         {(item.backupState === 'not-backed' ||
           item.backupState === 'uploading' ||
@@ -240,10 +261,11 @@ const CloudPhotoCell = memo(
     return (
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
         {thumbnailUri ? (
-          <Image
+          <ExpoImage
             source={{ uri: thumbnailUri }}
+            recyclingKey={item.id}
             style={StyleSheet.absoluteFillObject}
-            resizeMode="cover"
+            contentFit="cover"
             onError={onImageError}
           />
         ) : (
