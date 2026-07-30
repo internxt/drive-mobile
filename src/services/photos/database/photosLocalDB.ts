@@ -436,13 +436,13 @@ class PhotosLocalDB {
     }));
   }
 
-  async getSyncedRemoteIdsByCreationMonth(year: number, month: number): Promise<Set<string>> {
+  async getSyncedRemoteIdsByCreationMonth(year: number, month: number, syncedBefore: number): Promise<Set<string>> {
     const startMs = new Date(year, month - 1, 1).getTime();
     const endMs = new Date(year, month, 1).getTime();
     const rows = await sqliteService.getAllAsync<{ remote_file_id: string }>(
       DB_NAME,
       assetSyncTable.statements.getSyncedRemoteIdsByCreationMonth,
-      [startMs, endMs],
+      [startMs, endMs, syncedBefore],
     );
     return new Set(rows.map((r) => r.remote_file_id));
   }
@@ -473,8 +473,8 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markCloudDeleted, [remoteFileId]);
   }
 
-  async resetSyncedToPending(): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.resetSyncedToPending);
+  async resetSyncedToPending(syncedBefore: number): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.resetSyncedToPending, [syncedBefore]);
   }
 
   async getDistinctCloudAssetDeviceIds(): Promise<string[]> {
@@ -497,10 +497,11 @@ class PhotosLocalDB {
     );
   }
 
-  async getSyncedMonths(): Promise<{ year: number; month: number }[]> {
+  async getSyncedMonths(syncedBefore: number): Promise<{ year: number; month: number }[]> {
     return sqliteService.getAllAsync<{ year: number; month: number }>(
       DB_NAME,
       assetSyncTable.statements.getSyncedMonths,
+      [syncedBefore],
     );
   }
 
