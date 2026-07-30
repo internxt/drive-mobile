@@ -11,7 +11,8 @@ export type BurstRole = 'representative' | 'member';
 export interface CloudAssetEntry {
   remoteFileId: string;
   deviceId: string;
-  createdAt: number;
+  /** Time of the device/year/month/day cloud folder this asset was discovered in. Used for timeline day-grouping and month-range queries*/
+  folderDate: number;
   fileName: string;
   fileSize: number | null;
   fileId: string | null;
@@ -34,12 +35,15 @@ export interface CloudAssetEntry {
   pairedRemoteFileId?: string | null;
   burstRole?: BurstRole | null;
   burstGroupId?: string | null;
+  /** Real upload timestamp reported by Drive (`file.createdAt`) */
+  uploadedAt: number;
+  isFavorite: boolean;
 }
 
 interface CloudAssetRow {
   remote_file_id: string;
   device_id: string;
-  created_at: number;
+  folder_date: number;
   file_name: string;
   file_size: number | null;
   file_id: string | null;
@@ -62,6 +66,8 @@ interface CloudAssetRow {
   paired_remote_file_id: string | null;
   burst_role: BurstRole | null;
   burst_group_id: string | null;
+  uploaded_at: number;
+  is_favorite: number;
 }
 
 export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted' | 'cloud_deleted';
@@ -212,7 +218,7 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
   return {
     remoteFileId: row.remote_file_id,
     deviceId: row.device_id,
-    createdAt: row.created_at,
+    folderDate: row.folder_date,
     fileName: row.file_name,
     fileSize: row.file_size,
     fileId: row.file_id,
@@ -235,6 +241,8 @@ const rowToCloudAssetEntry = (row: CloudAssetRow): CloudAssetEntry => {
     pairedRemoteFileId: row.paired_remote_file_id,
     burstRole: row.burst_role,
     burstGroupId: row.burst_group_id,
+    uploadedAt: row.uploaded_at,
+    isFavorite: row.is_favorite === 1,
   };
 };
 
@@ -265,6 +273,18 @@ const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
   burstMemberCount: row.burst_member_count,
 });
 
+const toMarkPendingParams = (assetId: string, mediaInfo?: AssetMediaInfo) => [
+  assetId,
+  mediaInfo?.fileName ?? null,
+  mediaInfo?.creationTime ?? null,
+  mediaInfo?.width ?? null,
+  mediaInfo?.height ?? null,
+  mediaInfo?.duration ?? null,
+  mediaInfo?.mediaType ?? null,
+  mediaInfo?.isLivePhoto ? 1 : 0,
+  mediaInfo?.isBurst ? 1 : 0,
+];
+
 class PhotosLocalDB {
   private initPromise: Promise<void> | null = null;
 
@@ -283,32 +303,33 @@ class PhotosLocalDB {
     return this.initPromise;
   }
 
-  async markPending(assetId: string, mediaInfo?: AssetMediaInfo): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPending, [
-      assetId,
-      mediaInfo?.fileName ?? null,
-      mediaInfo?.creationTime ?? null,
-      mediaInfo?.width ?? null,
-      mediaInfo?.height ?? null,
-      mediaInfo?.duration ?? null,
-      mediaInfo?.mediaType ?? null,
-      mediaInfo?.isLivePhoto ? 1 : 0,
-      mediaInfo?.isBurst ? 1 : 0,
-    ]);
+  /**
+   * Marks assets pending, in bulk (see `SqliteService.executeBulk`).
+   *
+   * @param entries - Asset id + media info pairs, one per asset to mark pending.
+   */
+  async markPendingBulk(entries: Array<{ assetId: string; mediaInfo?: AssetMediaInfo }>): Promise<void> {
+    await this.markBulk(assetSyncTable.statements.markPending, entries);
   }
 
-  async markPendingEdit(assetId: string, mediaInfo?: AssetMediaInfo): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPendingEdit, [
-      assetId,
-      mediaInfo?.fileName ?? null,
-      mediaInfo?.creationTime ?? null,
-      mediaInfo?.width ?? null,
-      mediaInfo?.height ?? null,
-      mediaInfo?.duration ?? null,
-      mediaInfo?.mediaType ?? null,
-      mediaInfo?.isLivePhoto ? 1 : 0,
-      mediaInfo?.isBurst ? 1 : 0,
-    ]);
+  /**
+   * Same as `markPendingBulk`, but for assets that were edited after already syncing.
+   *
+   * @param entries - Asset id + media info pairs, one per edited asset to mark pending.
+   */
+  async markPendingEditBulk(entries: Array<{ assetId: string; mediaInfo?: AssetMediaInfo }>): Promise<void> {
+    await this.markBulk(assetSyncTable.statements.markPendingEdit, entries);
+  }
+
+  private async markBulk(
+    statement: string,
+    entries: Array<{ assetId: string; mediaInfo?: AssetMediaInfo }>,
+  ): Promise<void> {
+    await sqliteService.executeBulk(
+      DB_NAME,
+      statement,
+      entries.map(({ assetId, mediaInfo }) => toMarkPendingParams(assetId, mediaInfo)),
+    );
   }
 
   async markSynced(assetId: string, remoteFileId: string, modificationTime: number | null): Promise<void> {
@@ -426,6 +447,28 @@ class PhotosLocalDB {
     return new Set(rows.map((r) => r.remote_file_id));
   }
 
+  async getCloudDeletedRemoteIdsByCreationMonth(year: number, month: number): Promise<Set<string>> {
+    const startMs = new Date(year, month - 1, 1).getTime();
+    const endMs = new Date(year, month, 1).getTime();
+    const rows = await sqliteService.getAllAsync<{ remote_file_id: string }>(
+      DB_NAME,
+      assetSyncTable.statements.getCloudDeletedRemoteIdsByCreationMonth,
+      [startMs, endMs],
+    );
+    return new Set(rows.map((r) => r.remote_file_id));
+  }
+
+  async revertCloudDeleted(remoteFileIds: string[]): Promise<void> {
+    if (remoteFileIds.length === 0) {
+      return;
+    }
+    for (let i = 0; i < remoteFileIds.length; i += CHUNK_SIZE) {
+      const chunk = remoteFileIds.slice(i, i + CHUNK_SIZE);
+      const placeholders = chunk.map(() => '?').join(', ');
+      await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.revertCloudDeleted(placeholders), chunk);
+    }
+  }
+
   async markCloudDeleted(remoteFileId: string): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markCloudDeleted, [remoteFileId]);
   }
@@ -476,8 +519,17 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markDeleted, [assetId]);
   }
 
-  async deleteAssetSync(assetId: string): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.deleteById, [assetId]);
+  /**
+   * Removes `asset_sync` rows for locally-deleted assets, in bulk (see `SqliteService.executeBulk`).
+   *
+   * @param assetIds - Ids of the local assets to remove from `asset_sync`.
+   */
+  async deleteAssetSyncBulk(assetIds: string[]): Promise<void> {
+    await sqliteService.executeBulk(
+      DB_NAME,
+      assetSyncTable.statements.deleteById,
+      assetIds.map((assetId) => [assetId]),
+    );
   }
 
   async cleanupOrphanedAssetSync(localAssetIds: Set<string>): Promise<number> {
@@ -489,12 +541,7 @@ class PhotosLocalDB {
     if (orphanAssetsIds.length === 0) {
       return 0;
     }
-    for (let i = 0; i < orphanAssetsIds.length; i += CHUNK_SIZE) {
-      const orphanAssetsChunk = orphanAssetsIds.slice(i, i + CHUNK_SIZE);
-      await Promise.all(
-        orphanAssetsChunk.map((id) => sqliteService.executeSql(DB_NAME, assetSyncTable.statements.deleteById, [id])),
-      );
-    }
+    await this.deleteAssetSyncBulk(orphanAssetsIds);
     return orphanAssetsIds.length;
   }
 
@@ -516,7 +563,7 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.upsert, [
       entry.remoteFileId,
       entry.deviceId,
-      entry.createdAt,
+      entry.folderDate,
       entry.fileName,
       entry.fileSize ?? null,
       entry.fileId ?? null,
@@ -537,9 +584,10 @@ class PhotosLocalDB {
       entry.isLivePhoto ? 1 : 0,
       entry.livePhotoRole ?? null,
       entry.pairedRemoteFileId ?? null,
-      // BURST:
       entry.burstRole ?? null,
       entry.burstGroupId ?? null,
+      entry.uploadedAt,
+      entry.isFavorite ? 1 : 0,
     ]);
   }
 

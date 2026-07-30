@@ -51,7 +51,9 @@ const cloudItem: CloudPhotoItem = {
   thumbnailBucketFile: null,
   thumbnailType: null,
   deviceId: 'other-device',
-  createdAt: 1_000_000,
+  folderDate: 1_000_000,
+  uploadedAt: 1_000_000,
+  isFavorite: false,
   fileName: 'cloud-1.jpg',
   isLivePhoto: false,
 };

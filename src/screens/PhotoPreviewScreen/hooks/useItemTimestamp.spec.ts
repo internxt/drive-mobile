@@ -36,9 +36,15 @@ const makeCloudItem = (overrides?: object): TimelinePhotoItem =>
   ({
     type: 'cloud-only',
     id: 'cloud-1',
-    createdAt: 1_700_000_000_000,
+    deviceId: 'device-1',
+    folderDate: 1_700_000_000_000,
+    uploadedAt: 1_700_000_000_000,
+    isFavorite: false,
     fileName: 'photo.jpg',
     thumbnailPath: null,
+    thumbnailBucketId: null,
+    thumbnailBucketFile: null,
+    thumbnailType: null,
     mediaType: 'photo',
     ...overrides,
   }) as TimelinePhotoItem;
@@ -72,9 +78,9 @@ describe('useItemTimestamp', () => {
     expect(mockGetAssetInfo).not.toHaveBeenCalled();
   });
 
-  test('when item is cloud-only without cached creation time, then it falls back to createdAt', async () => {
+  test('when item is cloud-only without cached creation time, then it falls back to folderDate', async () => {
     mockGetCloudAssetById.mockResolvedValue({ creationTimeApi: null });
-    const item = makeCloudItem({ createdAt: 1_700_000_000_000 });
+    const item = makeCloudItem({ folderDate: 1_700_000_000_000 });
 
     const { result } = renderHook(() => useItemTimestamp(item));
 

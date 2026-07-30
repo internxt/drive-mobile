@@ -42,17 +42,17 @@ const buildUploadJobs = (
 ): AssetUploadJob[] =>
   pendingAssets.flatMap((dbAsset) => {
     const asset = assetById.get(dbAsset.assetId);
-    if (!asset) return [];
-    if (dbAsset.status === 'pending_edit') {
-      // TODO: this is temporary, maybe we should store the hash of the content in the servers
-      // to detect edits reliably and avoid re-uploads of edited assets unchanged in content.
-      if (!dbAsset.remoteFileId)
-        throw new Error(
-          `[Upload] Asset ${dbAsset.assetId} is pending_edit but has no remote_file_id — DB may be corrupted`,
-        );
-      return [{ asset, existingRemoteFileId: dbAsset.remoteFileId }];
+    if (!asset) {
+      return [];
     }
-    return [{ asset }];
+    // TODO: this is temporary, maybe we should store the hash of the content in the servers
+    // to detect edits reliably and avoid re-uploads of edited assets unchanged in content.
+    if (dbAsset.status === 'pending_edit' && !dbAsset.remoteFileId) {
+      throw new Error(
+        `[Upload] Asset ${dbAsset.assetId} is pending_edit but has no remote_file_id — DB may be corrupted`,
+      );
+    }
+    return dbAsset.remoteFileId ? [{ asset, existingRemoteFileId: dbAsset.remoteFileId }] : [{ asset }];
   });
 
 export const completeSyncForAsset = async (
@@ -161,6 +161,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
     }
     if (PhotoUploadQueue.isCycleRunning()) {
       logger.info('[Upload] Skipped — an upload cycle is already running');
+      dispatch(photosSlice.actions.setSyncStatus('uploading'));
       return;
     }
 

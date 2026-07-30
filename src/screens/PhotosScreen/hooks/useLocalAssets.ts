@@ -41,8 +41,15 @@ export const useLocalAssets = (): LocalAssetsResult => {
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
 
-  const { assets, isLoading, hasLoadedLocalAssetsOnce, loadNextPage, reloadFromStart, reconcileHead, applyLibraryChange } =
-    usePagedLocalAssets(isPhotosEnabled);
+  const {
+    assets,
+    isLoading,
+    hasLoadedLocalAssetsOnce,
+    loadNextPage,
+    reloadFromStart,
+    reconcileHead,
+    applyLibraryChange,
+  } = usePagedLocalAssets(isPhotosEnabled);
 
   const assetIds = useMemo(() => assets.map((asset) => asset.id), [assets]);
   const { syncedIds, cloudDeletedIds, incompleteUploadBurstIdSet } = useLocalAssetsSyncStatus(assetIds);
@@ -50,7 +57,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
 
   const removeDeletedAssetsFromSyncDB = useCallback(async (deletedAssetIds: string[]) => {
     await photosLocalDB.init();
-    await Promise.all(deletedAssetIds.map((id) => photosLocalDB.deleteAssetSync(id)));
+    await photosLocalDB.deleteAssetSyncBulk(deletedAssetIds);
     setLocalDeletionDetectedCount((prev) => prev + 1);
   }, []);
 

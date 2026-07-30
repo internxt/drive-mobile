@@ -95,7 +95,11 @@ class AuthService {
     logger.info(`User logged out - Reason: ${reason}`);
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
-    await internxtMobileSDKConfig.destroy();
+    try {
+      await internxtMobileSDKConfig.destroy();
+    } catch (error) {
+      logger.warn(`Mobile SDK destroy failed on logout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   public async doChangePassword(params: {

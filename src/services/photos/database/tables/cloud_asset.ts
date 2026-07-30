@@ -1,12 +1,12 @@
 const TABLE_NAME = 'cloud_asset';
 
 const COLUMNS = `
-  remote_file_id, device_id, created_at, file_name, file_size, file_id,
+  remote_file_id, device_id, folder_date, file_name, file_size, file_id,
   thumbnail_path, thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, discovered_at,
   plain_name, extension, bucket, folder_uuid,
   creation_time_api, modification_time, updated_at, status, encrypt_version,
   is_live_photo, live_photo_role, paired_remote_file_id,
-  burst_role, burst_group_id
+  burst_role, burst_group_id, uploaded_at, is_favorite
 `;
 
 const statements = {
@@ -14,7 +14,7 @@ const statements = {
     CREATE TABLE IF NOT EXISTS ${TABLE_NAME} (
       remote_file_id         TEXT    PRIMARY KEY NOT NULL,
       device_id              TEXT    NOT NULL,
-      created_at             INTEGER NOT NULL,
+      folder_date            INTEGER NOT NULL,
       file_name              TEXT    NOT NULL,
       file_size              INTEGER,
       file_id                TEXT,
@@ -37,21 +37,23 @@ const statements = {
       paired_remote_file_id  TEXT,
       -- BURST: burst photo columns (iOS only). Clean install required when adding these.
       burst_role             TEXT,
-      burst_group_id         TEXT
+      burst_group_id         TEXT,
+      uploaded_at            INTEGER NOT NULL,
+      is_favorite            INTEGER NOT NULL DEFAULT 0
     );
   `,
-  createIndexCreated: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_created ON ${TABLE_NAME}(created_at DESC);`,
+  createIndexCreated: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_folder_date ON ${TABLE_NAME}(folder_date DESC);`,
   createIndexDevice: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_device ON ${TABLE_NAME}(device_id);`,
-  createIndexMonth: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_month ON ${TABLE_NAME}(device_id, created_at);`,
+  createIndexMonth: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_month ON ${TABLE_NAME}(device_id, folder_date);`,
   createIndexRole: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_role ON ${TABLE_NAME}(live_photo_role);`,
   createIndexBurstGroup: `CREATE INDEX IF NOT EXISTS idx_cloud_asset_burst_group ON ${TABLE_NAME}(burst_group_id);`,
 
   upsert: `
     INSERT INTO ${TABLE_NAME} (${COLUMNS})
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(remote_file_id) DO UPDATE SET
       device_id              = excluded.device_id,
-      created_at             = excluded.created_at,
+      folder_date            = excluded.folder_date,
       file_name              = excluded.file_name,
       file_size              = excluded.file_size,
       file_id                = excluded.file_id,
@@ -73,7 +75,9 @@ const statements = {
       live_photo_role        = excluded.live_photo_role,
       paired_remote_file_id  = excluded.paired_remote_file_id,
       burst_role             = COALESCE(excluded.burst_role, ${TABLE_NAME}.burst_role),
-      burst_group_id         = COALESCE(excluded.burst_group_id, ${TABLE_NAME}.burst_group_id);
+      burst_group_id         = COALESCE(excluded.burst_group_id, ${TABLE_NAME}.burst_group_id),
+      uploaded_at            = excluded.uploaded_at,
+      is_favorite            = excluded.is_favorite;
   `,
 
   getAll: `
@@ -81,22 +85,22 @@ const statements = {
     FROM ${TABLE_NAME}
     WHERE (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
+    ORDER BY COALESCE(creation_time_api, folder_date) DESC, remote_file_id ASC;
   `,
 
   getAllIncludingPaired: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
-    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
+    ORDER BY COALESCE(creation_time_api, folder_date) DESC, remote_file_id ASC;
   `,
 
   getByRange: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
-    WHERE (created_at >= ? AND created_at <= ?)
+    WHERE (folder_date >= ? AND folder_date <= ?)
       AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
+    ORDER BY COALESCE(creation_time_api, folder_date) DESC, remote_file_id ASC;
   `,
 
   getAllByDevice: `
@@ -105,17 +109,17 @@ const statements = {
     WHERE device_id = ?
       AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
+    ORDER BY COALESCE(creation_time_api, folder_date) DESC, remote_file_id ASC;
   `,
 
   getByRangeAndDevice: `
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
-    WHERE (created_at >= ? AND created_at <= ?)
+    WHERE (folder_date >= ? AND folder_date <= ?)
       AND device_id = ?
       AND (live_photo_role IS NULL OR live_photo_role != 'paired_video')
       AND (burst_role IS NULL OR burst_role != 'member')
-    ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC;
+    ORDER BY COALESCE(creation_time_api, folder_date) DESC, remote_file_id ASC;
   `,
 
   getBurstMembers: `
@@ -141,21 +145,21 @@ const statements = {
 
   getRemoteIdsByDeviceAndMonth: `
     SELECT remote_file_id FROM ${TABLE_NAME}
-    WHERE device_id = ? AND created_at >= ? AND created_at < ?;
+    WHERE device_id = ? AND folder_date >= ? AND folder_date < ?;
   `,
 
   getLatestDiscoveredAt: `
     SELECT MAX(discovered_at) AS latest
     FROM ${TABLE_NAME}
     WHERE device_id = ?
-      AND created_at >= ?
-      AND created_at <  ?;
+      AND folder_date >= ?
+      AND folder_date <  ?;
   `,
 
   getMonthsByDevice: `
     SELECT DISTINCT
-      CAST(strftime('%Y', created_at / 1000, 'unixepoch') AS INTEGER) AS year,
-      CAST(strftime('%m', created_at / 1000, 'unixepoch') AS INTEGER) AS month
+      CAST(strftime('%Y', folder_date / 1000, 'unixepoch') AS INTEGER) AS year,
+      CAST(strftime('%m', folder_date / 1000, 'unixepoch') AS INTEGER) AS month
     FROM ${TABLE_NAME}
     WHERE device_id = ?;
   `,

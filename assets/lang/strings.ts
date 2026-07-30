@@ -239,6 +239,7 @@ const translations = {
             size: 'Size',
             dimensions: 'Dimensions',
             format: 'Format',
+            dateTimeConnector: 'at',
           },
         },
         selection: {
@@ -1248,6 +1249,7 @@ const translations = {
             size: 'Tamaño',
             dimensions: 'Dimensiones',
             format: 'Formato',
+            dateTimeConnector: 'a las',
           },
         },
         selection: {

@@ -8,6 +8,7 @@ jest.mock('../../SqliteService', () => ({
     executeSql: jest.fn().mockResolvedValue(undefined),
     getAllAsync: jest.fn().mockResolvedValue([]),
     getFirstAsync: jest.fn().mockResolvedValue(null),
+    executeBulk: jest.fn().mockResolvedValue(undefined),
     transaction: jest.fn(),
   },
 }));
@@ -40,53 +41,74 @@ describe('photosLocalDB', () => {
     expect(mockSqlite.executeSql).not.toHaveBeenCalled();
   });
 
-  test('when a photo is marked as pending, then it never overwrites an already synced photo', async () => {
-    await photosLocalDB.markPending('asset-1');
+  test('when photos are marked as pending in bulk, then it never overwrites an already synced photo and all media info fields are passed', async () => {
+    await photosLocalDB.markPendingBulk([
+      { assetId: 'asset-1' },
+      {
+        assetId: 'asset-2',
+        mediaInfo: {
+          fileName: 'photo.jpg',
+          creationTime: 1714000000000,
+          width: 3024,
+          height: 4032,
+          duration: 0,
+          mediaType: 'photo',
+        },
+      },
+    ]);
 
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
-    const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
+    expect(mockSqlite.executeBulk).toHaveBeenCalledTimes(1);
+    const [dbName, stmt, paramsList] = mockSqlite.executeBulk.mock.calls[0];
+    expect(dbName).toBe('photos_sync.db');
     expect(stmt).toContain('\'pending\'');
     expect(stmt).toContain('ON CONFLICT');
     expect(stmt).toContain('status != \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0, 0]);
+    expect(paramsList).toEqual([
+      ['asset-1', null, null, null, null, null, null, 0, 0],
+      ['asset-2', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo', 0, 0],
+    ]);
+    expect(mockSqlite.executeSql).not.toHaveBeenCalled();
   });
 
-  test('when a photo is marked as pending with media info, then all media info fields are passed to the database', async () => {
-    await photosLocalDB.markPending('asset-1', {
-      fileName: 'photo.jpg',
-      creationTime: 1714000000000,
-      width: 3024,
-      height: 4032,
-      duration: 0,
-      mediaType: 'photo',
-    });
+  test('when markPendingBulk is called with no entries, then it still delegates to executeBulk, which no-ops on an empty list', async () => {
+    await photosLocalDB.markPendingBulk([]);
 
-    const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-1', 'photo.jpg', 1714000000000, 3024, 4032, 0, 'photo', 0, 0]);
+    expect(mockSqlite.executeBulk).toHaveBeenCalledWith('photos_sync.db', expect.any(String), []);
   });
 
-  test('when a photo is marked as pending for edit, then the status is pending_edit and it never overwrites a non-synced photo', async () => {
-    await photosLocalDB.markPendingEdit('asset-1');
+  test('when edited photos are marked as pending in bulk, then the status is pending_edit, it never overwrites a non-synced photo, and media info fields are passed', async () => {
+    await photosLocalDB.markPendingEditBulk([
+      { assetId: 'asset-1' },
+      {
+        assetId: 'asset-2',
+        mediaInfo: {
+          fileName: 'video.mp4',
+          creationTime: 1714000000000,
+          width: 1920,
+          height: 1080,
+          duration: 30,
+          mediaType: 'video',
+        },
+      },
+    ]);
 
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
-    const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
+    expect(mockSqlite.executeBulk).toHaveBeenCalledTimes(1);
+    const [, stmt, paramsList] = mockSqlite.executeBulk.mock.calls[0];
     expect(stmt).toContain('\'pending_edit\'');
     expect(stmt).toContain('status = \'synced\'');
-    expect(params).toEqual(['asset-1', null, null, null, null, null, null, 0, 0]);
+    expect(paramsList).toEqual([
+      ['asset-1', null, null, null, null, null, null, 0, 0],
+      ['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video', 0, 0],
+    ]);
   });
 
-  test('when a photo is marked as pending for edit with media info, then all media info fields are passed to the database', async () => {
-    await photosLocalDB.markPendingEdit('asset-2', {
-      fileName: 'video.mp4',
-      creationTime: 1714000000000,
-      width: 1920,
-      height: 1080,
-      duration: 30,
-      mediaType: 'video',
-    });
+  test('when asset_sync rows are deleted in bulk, then one param row per asset id is passed to executeBulk', async () => {
+    await photosLocalDB.deleteAssetSyncBulk(['asset-1', 'asset-2', 'asset-3']);
 
-    const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-2', 'video.mp4', 1714000000000, 1920, 1080, 30, 'video', 0, 0]);
+    expect(mockSqlite.executeBulk).toHaveBeenCalledTimes(1);
+    const [dbName, , paramsList] = mockSqlite.executeBulk.mock.calls[0];
+    expect(dbName).toBe('photos_sync.db');
+    expect(paramsList).toEqual([['asset-1'], ['asset-2'], ['asset-3']]);
   });
 
   test('when a file size is cached for an asset, then the file size and asset id are passed to the database', async () => {
@@ -455,7 +477,7 @@ describe('photosLocalDB cloud asset methods', () => {
     mockSqlite.getFirstAsync.mockResolvedValueOnce({
       remote_file_id: 'remote-1',
       device_id: 'device-1',
-      created_at: 1718000000000,
+      folder_date: 1718000000000,
       file_name: 'photo.jpg',
       file_size: 2048,
       file_id: 'bridge-file-1',
@@ -501,7 +523,7 @@ describe('photosLocalDB cloud asset methods', () => {
     await photosLocalDB.upsertCloudAsset({
       remoteFileId: 'remote-1',
       deviceId: 'device-1',
-      createdAt: 1718000000000,
+      folderDate: 1718000000000,
       fileName: 'photo.jpg',
       fileSize: 2048,
       fileId: 'bridge-file-1',
@@ -510,6 +532,8 @@ describe('photosLocalDB cloud asset methods', () => {
       thumbnailBucketFile: 'file-1',
       thumbnailType: 'jpg',
       discoveredAt: 1718100000000,
+      uploadedAt: 1718200000000,
+      isFavorite: false,
     });
 
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(1);
@@ -540,6 +564,8 @@ describe('photosLocalDB cloud asset methods', () => {
       null, // paired_remote_file_id
       null, // burst_role
       null, // burst_group_id
+      1718200000000, // uploadedAt
+      0, // is_favorite
     ]);
   });
 
@@ -547,7 +573,7 @@ describe('photosLocalDB cloud asset methods', () => {
     await photosLocalDB.upsertCloudAsset({
       remoteFileId: 'remote-1',
       deviceId: 'device-1',
-      createdAt: 1718000000000,
+      folderDate: 1718000000000,
       fileName: 'photo.jpg',
       fileSize: 2048,
       fileId: 'bridge-file-1',
@@ -565,6 +591,8 @@ describe('photosLocalDB cloud asset methods', () => {
       updatedAt: 1718060000000,
       status: 'EXISTS',
       encryptVersion: 'aes-2',
+      uploadedAt: 1718200000000,
+      isFavorite: true,
     });
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
@@ -594,6 +622,8 @@ describe('photosLocalDB cloud asset methods', () => {
       null, // paired_remote_file_id
       null, // burst_role
       null, // burst_group_id
+      1718200000000, // uploadedAt
+      1, // is_favorite
     ]);
   });
 
@@ -602,7 +632,7 @@ describe('photosLocalDB cloud asset methods', () => {
       {
         remote_file_id: 'r1',
         device_id: 'd1',
-        created_at: 1718000000,
+        folder_date: 1718000000,
         file_name: 'a.jpg',
         file_size: 512,
         file_id: null,
@@ -623,6 +653,8 @@ describe('photosLocalDB cloud asset methods', () => {
         is_live_photo: 0,
         live_photo_role: null,
         paired_remote_file_id: null,
+        uploaded_at: 1718200000,
+        is_favorite: 0,
       },
     ]);
 
@@ -632,7 +664,7 @@ describe('photosLocalDB cloud asset methods', () => {
     expect(result[0]).toEqual({
       remoteFileId: 'r1',
       deviceId: 'd1',
-      createdAt: 1718000000,
+      folderDate: 1718000000,
       fileName: 'a.jpg',
       fileSize: 512,
       fileId: null,
@@ -653,6 +685,8 @@ describe('photosLocalDB cloud asset methods', () => {
       isLivePhoto: false,
       livePhotoRole: null,
       pairedRemoteFileId: null,
+      uploadedAt: 1718200000,
+      isFavorite: false,
     });
   });
 
@@ -693,7 +727,7 @@ describe('photosLocalDB cloud asset methods', () => {
     await photosLocalDB.getAllCloudAssets('device-1');
 
     for (const [, stmt] of mockSqlite.getAllAsync.mock.calls) {
-      expect(stmt).toContain('ORDER BY COALESCE(creation_time_api, created_at) DESC, remote_file_id ASC');
+      expect(stmt).toContain('ORDER BY COALESCE(creation_time_api, folder_date) DESC, remote_file_id ASC');
     }
   });
 

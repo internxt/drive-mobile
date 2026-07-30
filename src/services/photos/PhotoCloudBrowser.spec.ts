@@ -22,6 +22,8 @@ jest.mock('./database/photosLocalDB', () => ({
     upsertCloudAsset: jest.fn(),
     getCloudAssetRemoteIdsByDeviceAndMonth: jest.fn(),
     getSyncedRemoteIdsByCreationMonth: jest.fn(),
+    getCloudDeletedRemoteIdsByCreationMonth: jest.fn().mockResolvedValue(new Set()),
+    revertCloudDeleted: jest.fn(),
     markCloudDeleted: jest.fn(),
     deleteCloudAsset: jest.fn(),
     getCloudAssetMonthsByDevice: jest.fn(),
@@ -43,6 +45,7 @@ const makeFile = (uuid: string, plainName: string) =>
     plainName,
     name: plainName,
     size: 1024,
+    createdAt: '2024-06-15T12:00:00.000Z',
     thumbnails: [{ bucket_id: 'bucket-1', bucket_file: 'file-1', type: 'jpg' }],
   }) as never;
 const makeDevice = (uuid: string, plainName: string, status: 'EXISTS' | 'TRASHED' | 'DELETED' = 'EXISTS') => ({
@@ -57,6 +60,8 @@ beforeEach(() => {
   mockPhotosLocalDB.upsertCloudAsset.mockResolvedValue(undefined);
   mockPhotosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth.mockResolvedValue(new Set());
   mockPhotosLocalDB.getSyncedRemoteIdsByCreationMonth.mockResolvedValue(new Set());
+  mockPhotosLocalDB.getCloudDeletedRemoteIdsByCreationMonth.mockResolvedValue(new Set());
+  mockPhotosLocalDB.revertCloudDeleted.mockResolvedValue(undefined);
   mockPhotosLocalDB.markCloudDeleted.mockResolvedValue(undefined);
   mockPhotosLocalDB.deleteCloudAsset.mockResolvedValue(undefined);
   mockPhotosLocalDB.getCloudAssetMonthsByDevice.mockResolvedValue([]);
@@ -411,6 +416,25 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
     expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledTimes(1);
     expect(mockPhotosLocalDB.markCloudDeleted).toHaveBeenCalledWith('synced-remote-uuid');
     expect(mockPhotosLocalDB.deleteCloudAsset).toHaveBeenCalledWith('synced-remote-uuid');
+  });
+
+  test('when an asset previously marked cloud_deleted is found in the cloud again, then it is reverted back to synced', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([makeDevice('d1-uuid', 'Internxt iPhone')]);
+    const year = makeFolder('y-uuid', '2024');
+    const month = makeFolder('m-uuid', '06');
+    const day = makeFolder('day-uuid', '15');
+    const file = makeFile('remote-uuid', 'IMG_0001');
+    mockPhotosLocalDB.getCloudDeletedRemoteIdsByCreationMonth.mockResolvedValue(new Set(['remote-uuid']));
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [year] } as never)
+      .mockResolvedValueOnce({ folders: [month] } as never)
+      .mockResolvedValueOnce({ folders: [day] } as never);
+    mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'd1-uuid' });
+
+    expect(mockPhotosLocalDB.revertCloudDeleted).toHaveBeenCalledWith(['remote-uuid']);
+    expect(mockPhotosLocalDB.markCloudDeleted).not.toHaveBeenCalled();
   });
 
   test('when the current device id does not match any device in Drive, then synced assets are reset to pending but other devices are still synced', async () => {

@@ -17,7 +17,7 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     init: jest.fn().mockResolvedValue(undefined),
     getSyncedEntries: jest.fn(),
     getIncompleteBurstAssets: jest.fn().mockResolvedValue([]),
-    deleteAssetSync: jest.fn().mockResolvedValue(undefined),
+    deleteAssetSyncBulk: jest.fn().mockResolvedValue(undefined),
     cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
   },
 }));
@@ -225,7 +225,7 @@ describe('useLocalAssets', () => {
     });
 
     expect(result.current.assets.find((a) => a.id === 'whatsapp')).toBeDefined();
-    expect(mockPhotosLocalDB.deleteAssetSync).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).not.toHaveBeenCalled();
   });
 
   test('when the head window creation times are unreliable, then no photos are dropped from the gallery', async () => {
@@ -257,7 +257,7 @@ describe('useLocalAssets', () => {
     });
 
     expect(result.current.assets.find((a) => a.id === 'known')).toBeDefined();
-    expect(mockPhotosLocalDB.deleteAssetSync).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).not.toHaveBeenCalled();
   });
 
   test('when the device is unlocked mid-gallery, then assets loaded beyond the first page are preserved without re-pagination', async () => {
@@ -481,7 +481,7 @@ describe('useLocalAssets', () => {
 
     expect(result.current.assets.find((a) => a.id === 'old')).toBeUndefined();
     expect(result.current.assets).toHaveLength(2);
-    expect(mockPhotosLocalDB.deleteAssetSync).toHaveBeenCalledWith('old');
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['old']);
     expect(result.current.localDeletionDetectedCount).toBe(1);
     // getAssetsAsync should NOT have been called for the incremental update
     expect(mockMediaLibrary.getAssetsAsync).toHaveBeenCalledTimes(1);
@@ -548,7 +548,7 @@ describe('useLocalAssets', () => {
 
     expect(result.current.assets.find((a) => a.id === 'a1')).toEqual(editedAsset);
     expect(result.current.localDeletionDetectedCount).toBe(0);
-    expect(mockPhotosLocalDB.deleteAssetSync).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).not.toHaveBeenCalled();
   });
 
   test('when the media library fires a non-incremental event, then it falls back to a head-window reconcile fetch', async () => {

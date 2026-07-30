@@ -22,6 +22,7 @@ export const useLocalAssetsSyncStatus = (assetIds: string[]): LocalAssetsSyncSta
   const syncStatus = useAppSelector((state) => state.photos.syncStatus);
   const sessionUploadedAssets = useAppSelector((state) => state.photos.sessionUploadedAssets);
   const isFetchingCloudHistory = useAppSelector((state) => state.photos.isFetchingCloudHistory);
+  const cloudFetchRevision = useAppSelector((state) => state.photos.cloudFetchRevision);
 
   useEffect(() => {
     if (assetIds.length === 0) {
@@ -49,7 +50,7 @@ export const useLocalAssetsSyncStatus = (assetIds: string[]): LocalAssetsSyncSta
       setIncompleteUploadBurstIdSet(new Set(incompleteBursts.map((burst) => burst.assetId)));
     };
     refreshFromDB();
-  }, [assetIds, syncStatus, sessionUploadedAssets, isFetchingCloudHistory]);
+  }, [assetIds, syncStatus, sessionUploadedAssets, isFetchingCloudHistory, cloudFetchRevision]);
 
   return { syncedIds, cloudDeletedIds, incompleteUploadBurstIdSet };
 };

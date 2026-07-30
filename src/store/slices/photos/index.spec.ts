@@ -112,8 +112,8 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
   photosLocalDB: {
     init: jest.fn().mockResolvedValue(undefined),
     getPendingAssets: jest.fn().mockResolvedValue([]),
-    markPending: jest.fn().mockResolvedValue(undefined),
-    markPendingEdit: jest.fn().mockResolvedValue(undefined),
+    markPendingBulk: jest.fn().mockResolvedValue(undefined),
+    markPendingEditBulk: jest.fn().mockResolvedValue(undefined),
     markSynced: jest.fn().mockResolvedValue(undefined),
     markSyncedLivePhoto: jest.fn().mockResolvedValue(undefined),
     markSyncedBurst: jest.fn().mockResolvedValue(undefined),
@@ -197,8 +197,8 @@ describe('photos slice', () => {
     mockDeduplicator.getAssetsToSync.mockResolvedValue({ newAssets: [], editedAssets: [] });
     mockPhotosLocalDB.init.mockResolvedValue(undefined);
     mockPhotosLocalDB.getPendingAssets.mockResolvedValue([]);
-    mockPhotosLocalDB.markPending.mockResolvedValue(undefined);
-    mockPhotosLocalDB.markPendingEdit.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markPendingBulk.mockResolvedValue(undefined);
+    mockPhotosLocalDB.markPendingEditBulk.mockResolvedValue(undefined);
     mockPhotosLocalDB.markSynced.mockResolvedValue(undefined);
     mockPhotosLocalDB.markSyncedBurst.mockResolvedValue(undefined);
     mockPhotosLocalDB.markError.mockResolvedValue(undefined);
@@ -532,6 +532,22 @@ describe('photos slice', () => {
     expect(store.getState().photos.pendingBackupAssets).toBe(0);
     expect(store.getState().photos.totalScannedAssets).toBe(0);
     expect(store.getState().photos.syncStatus).toBe('idle');
+  });
+
+  test('when another cycle starts uploading while discovery is still running, then discovery leaves sync status as uploading instead of idle', async () => {
+    const store = makeStore();
+    store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
+    mockScanner.scanAll.mockResolvedValueOnce([] as never);
+    // Simulate a concurrent chain (e.g. the app coming back to the foreground) beginning its own
+    // upload cycle while this discovery run is still in flight.
+    mockDeduplicator.getAssetsToSync.mockImplementationOnce(async () => {
+      actualUploadQueue.beginCycle();
+      return { newAssets: [], editedAssets: [] };
+    });
+    await store.dispatch(runDiscoveryThunk());
+
+    expect(store.getState().photos.syncStatus).toBe('uploading');
   });
 
   test('when a backup cycle starts and backup is disabled, then no photos are scanned', async () => {
@@ -1280,6 +1296,61 @@ describe('photos slice', () => {
       expect(mockUploadQueue.start).not.toHaveBeenCalled();
     });
 
+    test('when a failed edit re-upload is retried as an error-status asset, then the retry replaces the existing remote file instead of uploading a new one', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([
+        {
+          assetId: 'a1',
+          status: 'error',
+          remoteFileId: 'pre-edit-remote-uuid',
+          isBurst: false,
+          burstMemberCount: null,
+        },
+      ] as never);
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1', modificationTime: Date.now() }] as never);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(mockUploadQueue.start).toHaveBeenCalled();
+      const [jobs] = mockUploadQueue.start.mock.calls[0];
+      expect(jobs).toEqual([
+        { asset: { id: 'a1', modificationTime: expect.any(Number) }, existingRemoteFileId: 'pre-edit-remote-uuid' },
+      ]);
+    });
+
+    test('when a pending asset that never had a remote file is retried after an error, then it is uploaded as a new file', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([
+        { assetId: 'a1', status: 'error', remoteFileId: null, isBurst: false, burstMemberCount: null },
+      ] as never);
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1', modificationTime: Date.now() }] as never);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      expect(mockUploadQueue.start).toHaveBeenCalled();
+      const [jobs] = mockUploadQueue.start.mock.calls[0];
+      expect(jobs).toEqual([{ asset: { id: 'a1', modificationTime: expect.any(Number) } }]);
+      expect(jobs[0].existingRemoteFileId).toBeUndefined();
+    });
+
     test('when the network connection drops during an upload, then the upload is aborted and the sync status is set to paused with no connection', async () => {
       jest.spyOn(mockUploadQueue, 'abortAll');
       let networkListener: ((state: NetworkState) => void) | null = null;
@@ -1493,6 +1564,29 @@ describe('photos slice', () => {
       await store.dispatch(runUploadThunk());
 
       expect(mockUploadQueue.beginCycle).toHaveBeenCalledTimes(1);
+    });
+
+    test('when an upload request is ignored because another cycle is already running, then sync status reflects the upload in progress instead of whatever discovery left behind', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+      // Simulate discovery having just finished and left sync status at 'idle', while some other
+      // chain's upload cycle is genuinely still running in the background.
+      actualUploadQueue.beginCycle();
+      store.dispatch(photosSlice.actions.setSyncStatus('idle'));
+
+      await store.dispatch(runUploadThunk());
+
+      expect(store.getState().photos.syncStatus).toBe('uploading');
+      expect(mockUploadQueue.beginCycle).not.toHaveBeenCalled();
     });
 
     test('when the connection comes back while the backup is waiting for network, then the backup cycle resumes automatically', async () => {
@@ -1726,7 +1820,7 @@ describe('photos slice', () => {
 
       expect(mockPhotosLocalDB.markSynced).toHaveBeenCalledWith('a1', 'remote-1', 12345);
       expect(store.getState().photos.uploadingAssetIds).toEqual([]);
-      expect(mockPhotosLocalDB.markPending).not.toHaveBeenCalled();
+      expect(mockPhotosLocalDB.markPendingBulk).not.toHaveBeenCalled();
     });
 
     test('when the upload succeeds, then the asset is not added to sessionCompletedAssetIds', async () => {

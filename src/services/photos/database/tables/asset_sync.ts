@@ -126,7 +126,7 @@ const statements = {
   `,
 
   getStatus: `
-    SELECT asset_id, status, remote_file_id, synced_at, error_message, attempt_count,
+    SELECT asset_id, status, remote_file_id, synced_at, deleted_at, error_message, attempt_count,
            created_at, last_attempt_at, modification_time,
            file_name, file_size, creation_time, width, height, duration, media_type,
            is_live_photo, paired_video_remote_file_id, paired_video_status,
@@ -142,6 +142,15 @@ const statements = {
       AND creation_time >= ?
       AND creation_time < ?;
   `,
+  getCloudDeletedRemoteIdsByCreationMonth: `
+    SELECT remote_file_id FROM ${TABLE_NAME}
+    WHERE status = 'cloud_deleted'
+      AND remote_file_id IS NOT NULL
+      AND creation_time >= ?
+      AND creation_time < ?;
+  `,
+  revertCloudDeleted: (placeholders: string) =>
+    `UPDATE ${TABLE_NAME} SET status = 'synced', deleted_at = NULL WHERE status = 'cloud_deleted' AND remote_file_id IN (${placeholders});`,
   getPendingAssets: `
     SELECT asset_id, status, remote_file_id, is_burst, burst_member_count FROM ${TABLE_NAME}
     WHERE status IN ('pending', 'pending_edit')
@@ -165,7 +174,7 @@ const statements = {
       status     = 'deleted',
       deleted_at = (unixepoch() * 1000);
   `,
-  markCloudDeleted: `UPDATE ${TABLE_NAME} SET status = 'cloud_deleted' WHERE remote_file_id = ?;`,
+  markCloudDeleted: `UPDATE ${TABLE_NAME} SET status = 'cloud_deleted', deleted_at = (unixepoch() * 1000) WHERE remote_file_id = ?;`,
   resetSyncedToPending: `
     UPDATE ${TABLE_NAME} SET
       status = 'pending',

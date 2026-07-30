@@ -34,15 +34,15 @@ const resolveBurstFields = (
 };
 
 const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Promise<T[]> => {
-  const all: T[] = [];
+  const alltItems: T[] = [];
   let offset = 0;
   let batch: T[];
   do {
     batch = await fetcher(offset);
-    all.push(...batch);
+    alltItems.push(...batch);
     offset += PAGE_SIZE;
   } while (batch.length === PAGE_SIZE);
-  return all;
+  return alltItems;
 };
 
 class PhotoCloudBrowserService {
@@ -200,6 +200,17 @@ class PhotoCloudBrowserService {
     return count;
   }
 
+  /**
+   * Reconciles what the local DB believes is backed up for this device/month against what was
+   * found in Drive. Marks ids no longer found as `cloud_deleted`, and reverts
+   * previously `cloud_deleted` ids that are found again back to `synced`.
+   *
+   * @param params.deviceId - Device folder uuid being reconciled.
+   * @param params.year - Year of the month being reconciled.
+   * @param params.month - Month being reconciled (1-12).
+   * @param params.foundIds - Remote file ids found in Drive for this device/month in this pass.
+   * @param params.currentDeviceId - This device's own folder uuid, or undefined if unknown.
+   */
   private async reconcileCloudDeletions(params: {
     deviceId: string;
     year: number;
@@ -208,20 +219,70 @@ class PhotoCloudBrowserService {
     currentDeviceId: string | undefined;
   }): Promise<void> {
     const { deviceId, year, month, foundIds, currentDeviceId } = params;
+    const monthLabel = `${year}/${String(month).padStart(2, '0')}`;
     logger.info(
-      `[CloudBrowser] reconcileCloudDeletions — device=${deviceId} ${year}/${String(month).padStart(2, '0')}, foundIds=${[...foundIds].length}, currentDeviceId=${currentDeviceId ?? 'none'}`,
+      `[CloudBrowser] reconcileCloudDeletions — device=${deviceId} ${monthLabel}, foundIds=${[...foundIds].length}, currentDeviceId=${currentDeviceId ?? 'none'}`,
     );
+    const isCurrentDevice = !!currentDeviceId && deviceId === currentDeviceId;
+
+    const knownIds = await this.getKnownRemoteIds({ deviceId, year, month, isCurrentDevice });
+
+    const removedCount = await this.markMissingAsCloudDeleted({ knownIds, foundIds });
+    if (removedCount > 0) {
+      logger.info(`[CloudBrowser] Device "${deviceId}" ${monthLabel} — ${removedCount} file(s) cloud_deleted`);
+    }
+
+    const revertedIds = await this.revertReappearedCloudDeleted({ year, month, foundIds, isCurrentDevice });
+    if (revertedIds.length > 0) {
+      logger.info(
+        `[CloudBrowser] Device "${deviceId}" ${monthLabel} — ${revertedIds.length} file(s) reverted to synced (found in cloud again): ${revertedIds.join(', ')}`,
+      );
+    }
+  }
+
+  /**
+   * Returns the remote ids the local DB believes are backed up for this device/month: cached
+   * `cloud_asset` entries, plus — when `params.isCurrentDevice` is true — ids already `synced`
+   * in `asset_sync` with a matching creation month.
+   *
+   * @param params.deviceId - Device folder uuid being reconciled.
+   * @param params.year - Year of the month being reconciled.
+   * @param params.month - Month being reconciled (1-12).
+   * @param params.isCurrentDevice - Whether `params.deviceId` is this device's own folder uuid;
+   *   when true, `asset_sync` is also consulted.
+   * @returns The set of known remote file ids.
+   */
+  private async getKnownRemoteIds(params: {
+    deviceId: string;
+    year: number;
+    month: number;
+    isCurrentDevice: boolean;
+  }): Promise<Set<string>> {
+    const { deviceId, year, month, isCurrentDevice } = params;
     const knownFromCloud = await this.localDB.getCloudAssetRemoteIdsByDeviceAndMonth(deviceId, year, month);
     logger.info(
       `[CloudBrowser] reconcileCloudDeletions — knownFromCloud=${knownFromCloud.size} in local DB for device=${deviceId} ${year}/${String(month).padStart(2, '0')}`,
     );
     const knownIds = new Set(knownFromCloud);
 
-    if (currentDeviceId && deviceId === currentDeviceId) {
+    if (isCurrentDevice) {
       const knownFromSync = await this.localDB.getSyncedRemoteIdsByCreationMonth(year, month);
-      for (const id of knownFromSync) knownIds.add(id);
+      for (const id of knownFromSync) {
+        knownIds.add(id);
+      }
     }
+    return knownIds;
+  }
 
+  /**
+   * Marks ids present in `params.knownIds` but absent from `params.foundIds` as `cloud_deleted`.
+   *
+   * @param params.knownIds - Remote file ids the local DB believes are backed up.
+   * @param params.foundIds - Remote file ids found in Drive for this device/month in this pass.
+   * @returns The number of ids marked `cloud_deleted`.
+   */
+  private async markMissingAsCloudDeleted(params: { knownIds: Set<string>; foundIds: Set<string> }): Promise<number> {
+    const { knownIds, foundIds } = params;
     let removedCount = 0;
     for (const knownId of knownIds) {
       if (!foundIds.has(knownId)) {
@@ -230,11 +291,38 @@ class PhotoCloudBrowserService {
         removedCount++;
       }
     }
-    if (removedCount > 0) {
-      logger.info(
-        `[CloudBrowser] Device "${deviceId}" ${year}/${String(month).padStart(2, '0')} — ${removedCount} file(s) cloud_deleted`,
-      );
+    return removedCount;
+  }
+
+  /**
+   * Reverts ids already marked `cloud_deleted` back to `synced` if they appear in
+   * `params.foundIds` this pass. No-op unless `params.isCurrentDevice` is true — `asset_sync` is
+   * only meaningful locally, so other devices have nothing to revert.
+   *
+   * @param params.year - Year of the month being reconciled.
+   * @param params.month - Month being reconciled (1-12).
+   * @param params.foundIds - Remote file ids found in Drive for this device/month in this pass.
+   * @param params.isCurrentDevice - Whether the device being reconciled is this device's own
+   *   folder uuid.
+   * @returns The remote file ids that were reverted back to `synced`.
+   */
+  private async revertReappearedCloudDeleted(params: {
+    year: number;
+    month: number;
+    foundIds: Set<string>;
+    isCurrentDevice: boolean;
+  }): Promise<string[]> {
+    const { year, month, foundIds, isCurrentDevice } = params;
+    if (!isCurrentDevice) {
+      return [];
     }
+
+    const cloudDeletedIds = await this.localDB.getCloudDeletedRemoteIdsByCreationMonth(year, month);
+    const revertedIds = [...cloudDeletedIds].filter((id) => foundIds.has(id));
+    if (revertedIds.length > 0) {
+      await this.localDB.revertCloudDeleted(revertedIds);
+    }
+    return revertedIds;
   }
 
   private async purgeDeletedDevices(activeDevices: { uuid: string }[], onPurged?: () => void): Promise<void> {
@@ -381,7 +469,7 @@ class PhotoCloudBrowserService {
       entries.push({
         remoteFileId: file.uuid,
         deviceId,
-        createdAt: folderDate,
+        folderDate,
         fileName,
         fileSize: file.size ? Number(file.size) : null,
         fileId: file.fileId ?? null,
@@ -402,6 +490,8 @@ class PhotoCloudBrowserService {
         isLivePhoto,
         livePhotoRole,
         pairedRemoteFileId,
+        uploadedAt: new Date(file.createdAt).getTime(),
+        isFavorite: file.isFavorite ?? false,
         ...resolveBurstFields(baseName, file.uuid, plainNameIndex, burstBaseSet),
       });
     }
@@ -423,8 +513,9 @@ class PhotoCloudBrowserService {
   }
 
   private async listFilesWithThumbnails(folderUuid: string): Promise<DriveFileData[]> {
-    const content = await this.folderService.getFolderContentByUuid(folderUuid);
-    return content.files;
+    return fetchAllPages((offset) =>
+      this.folderService.getFolderContentByUuid(folderUuid, offset, PAGE_SIZE).then((content) => content.files),
+    );
   }
 }
 

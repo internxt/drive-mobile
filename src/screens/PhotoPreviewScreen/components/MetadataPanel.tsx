@@ -63,9 +63,11 @@ const formatCloudDisplayName = (
   return `${plainName}${extensionSuffix}`;
 };
 
-const formatCloudHeaderSubtitle = (fileSize: number | null | undefined, createdAt: number): string => {
-  if (fileSize) return `${formatBytes(fileSize)} · ${formatDate(createdAt)}`;
-  return formatDate(createdAt);
+const formatCloudHeaderSubtitle = (fileSize: number | null | undefined, creationTime: number): string => {
+  if (fileSize) {
+    return `${formatBytes(fileSize)} · ${formatDate(creationTime)}`;
+  }
+  return formatDate(creationTime);
 };
 
 const resolveLocalFileSize = async (
@@ -116,7 +118,10 @@ const buildLocalMetadata = async (
 
   const metadataRows: MetadataRow[] = [
     { label: photoPreviewStrings.metadata.info, value: fileName ?? '-' },
-    { label: photoPreviewStrings.metadata.uploaded, value: creationTime ? formatDate(creationTime) : '-' },
+    {
+      label: photoPreviewStrings.metadata.uploaded,
+      value: cachedAssetStatus?.syncedAt ? formatDate(cachedAssetStatus.syncedAt) : '-',
+    },
     ...(fileSize ? [{ label: photoPreviewStrings.metadata.size, value: formatBytes(fileSize) }] : []),
     { label: photoPreviewStrings.metadata.modified, value: modificationTime ? formatDate(modificationTime) : '-' },
     {
@@ -143,10 +148,11 @@ const buildCloudMetadata = async (
   const cloudAsset = await photosLocalDB.getCloudAssetById(cloudItem.id);
   const displayName = formatCloudDisplayName(cloudAsset?.plainName, cloudAsset?.extension, cloudItem.fileName);
   const modificationTimestamp = cloudAsset?.modificationTime ?? cloudAsset?.updatedAt ?? null;
+  const creationTime = cloudAsset?.creationTimeApi ?? cloudItem.folderDate;
 
   const metadataRows: MetadataRow[] = [
     { label: photoPreviewStrings.metadata.info, value: displayName },
-    { label: photoPreviewStrings.metadata.uploaded, value: formatDate(cloudItem.createdAt) },
+    { label: photoPreviewStrings.metadata.uploaded, value: formatDate(cloudAsset?.uploadedAt ?? cloudItem.uploadedAt) },
     ...(cloudAsset?.fileSize
       ? [{ label: photoPreviewStrings.metadata.size, value: formatBytes(cloudAsset.fileSize) }]
       : []),
@@ -163,7 +169,7 @@ const buildCloudMetadata = async (
 
   if (mountedRef.current) {
     setHeaderName(displayName);
-    setHeaderSubtitle(formatCloudHeaderSubtitle(cloudAsset?.fileSize, cloudItem.createdAt));
+    setHeaderSubtitle(formatCloudHeaderSubtitle(cloudAsset?.fileSize, creationTime));
     setRows(metadataRows);
   }
 };
@@ -179,7 +185,7 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
   const insets = useSafeAreaInsets();
   const [rows, setRows] = useState<MetadataRow[]>([]);
   const [headerName, setHeaderName] = useState(item.type === 'cloud-only' ? item.fileName : '');
-  const [headerSubtitle, setHeaderSubtitle] = useState(item.type === 'cloud-only' ? formatDate(item.createdAt) : '');
+  const [headerSubtitle, setHeaderSubtitle] = useState(item.type === 'cloud-only' ? formatDate(item.folderDate) : '');
   const mountedRef = useRef(true);
   const thumbnailUri = item.type === 'local' ? (item.uri ?? null) : (item.thumbnailPath ?? null);
 

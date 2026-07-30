@@ -17,6 +17,30 @@ export interface PhotosTimelineHandle {
 
 export type TimelineDateGroup = { group: PhotoDateGroup; syncStatus: GroupSyncStatus };
 
+const resolveOverlaySyncStatus = ({
+  isSelectMode,
+  selectedCount,
+  isAtListTop,
+  currentSyncStatus,
+  totalAssetsCount,
+}: {
+  isSelectMode: boolean;
+  selectedCount: number;
+  isAtListTop: boolean;
+  currentSyncStatus: GroupSyncStatus;
+  totalAssetsCount: number;
+}): GroupSyncStatus => {
+  if (isSelectMode) {
+    return { type: 'selection', count: selectedCount };
+  }
+
+  if (isAtListTop && currentSyncStatus.type === 'count') {
+    return { type: 'count', count: totalAssetsCount };
+  }
+
+  return currentSyncStatus;
+};
+
 const SKELETON_GROUP: TimelineDateGroup = {
   group: {
     id: '__skeleton__',
@@ -90,6 +114,12 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     }, [assetsGroupsByDate, isLoading]);
 
     const [topGroupId, setTopGroupId] = useState<string | undefined>(() => boundaries[0]?.id);
+    const [isAtListTop, setIsAtListTop] = useState(true);
+
+    const totalAssetsCount = useMemo(
+      () => assetsGroupsByDate.reduce((sum, { group }) => sum + group.photos.length, 0),
+      [assetsGroupsByDate],
+    );
 
     const flashListRef = useRef<FlashListRef<TimelinePhotoItem>>(null);
     const boundariesRef = useRef<GroupBoundary[]>(boundaries);
@@ -156,6 +186,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
           return;
         }
         const topIndex = viewableItems[0].index ?? 0;
+        setIsAtListTop((prev) => (prev === (topIndex === 0) ? prev : topIndex === 0));
         const group = findGroupForIndex(boundariesRef.current, topIndex);
         if (group) {
           setTopGroupId((prev) => (prev === group.id ? prev : group.id));
@@ -194,9 +225,14 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
     const currentBoundary = boundaries.find((b) => b.id === topGroupId) ?? boundaries[0];
-    const overlaySyncStatus: GroupSyncStatus = isSelectMode
-      ? { type: 'selection', count: selectedIds?.size ?? 0 }
-      : (currentBoundary?.syncStatus ?? { type: 'none' });
+    const currentSyncStatus = currentBoundary?.syncStatus ?? { type: 'none' };
+    const overlaySyncStatus = resolveOverlaySyncStatus({
+      isSelectMode: !!isSelectMode,
+      selectedCount: selectedIds?.size ?? 0,
+      isAtListTop,
+      currentSyncStatus,
+      totalAssetsCount,
+    });
 
     return (
       <GestureDetector gesture={gesture}>

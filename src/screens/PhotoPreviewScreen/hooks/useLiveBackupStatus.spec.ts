@@ -41,7 +41,9 @@ const makeCloudItem = (id: string): CloudPhotoItem => ({
   thumbnailBucketFile: null,
   thumbnailType: null,
   deviceId: 'device-1',
-  createdAt: 1000,
+  folderDate: 1000,
+  uploadedAt: 1000,
+  isFavorite: false,
   fileName: 'photo.jpg',
 });
 
@@ -117,18 +119,26 @@ describe('useLiveBackupStatus', () => {
     expect(result.current.progress).toBe(0);
   });
 
-  test('when the asset is cloud-deleted and completed during this session, then cloud-deleted is no longer reported', () => {
+  test('when the asset is cloud-deleted and was uploaded earlier in this session, then cloud-deleted is still reported', () => {
     photosState.sessionCompletedAssetIds = ['a1'];
 
     const { result } = renderHook(() => useLiveBackupStatus(makeLocalItem('a1', 'cloud-deleted')));
 
-    expect(result.current.isCloudDeleted).toBe(false);
+    expect(result.current.isCloudDeleted).toBe(true);
   });
 
-  test('when the asset is cloud-deleted and was not completed during this session, then cloud-deleted is reported', () => {
+  test('when the asset is cloud-deleted and not in the upload queue, then cloud-deleted is reported', () => {
     const { result } = renderHook(() => useLiveBackupStatus(makeLocalItem('a1', 'cloud-deleted')));
 
     expect(result.current.isCloudDeleted).toBe(true);
+  });
+
+  test('when the asset is cloud-deleted but is currently being re-uploaded, then cloud-deleted is not reported', () => {
+    photosState.uploadingAssetIds = ['a1'];
+
+    const { result } = renderHook(() => useLiveBackupStatus(makeLocalItem('a1', 'cloud-deleted')));
+
+    expect(result.current.isCloudDeleted).toBe(false);
   });
 
   test('when the snapshot says uploading but the queue no longer contains the asset, then it is shown as backed', () => {

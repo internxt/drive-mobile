@@ -23,13 +23,16 @@ export interface CloudPhotoItem {
   thumbnailBucketFile: string | null;
   thumbnailType: string | null;
   deviceId: string;
-  createdAt: number;
+  /** Time of the cloud day-folder this asset was discovered in. Used for timeline day-grouping. */
+  folderDate: number;
   fileName: string;
   isLivePhoto?: boolean;
-  // uuid of the paired .mov cloud asset (only present when isLivePhoto = true and on cloud-only items)
+  // uuid of the paired .mov cloud asset (for isLivePhoto and cloud-only)
   pairedVideoRemoteFileId?: string;
   isBurst?: boolean;
   burstGroupId?: string;
+  uploadedAt: number;
+  isFavorite: boolean;
 }
 
 export type TimelinePhotoItem = PhotoItem | CloudPhotoItem;

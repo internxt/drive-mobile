@@ -170,12 +170,14 @@ export const cloudEntryToPhotoItem = (entry: CloudAssetEntry): CloudPhotoItem =>
   thumbnailBucketFile: entry.thumbnailBucketFile,
   thumbnailType: entry.thumbnailType,
   deviceId: entry.deviceId,
-  createdAt: entry.createdAt,
+  folderDate: entry.folderDate,
   fileName: entry.fileName,
   isLivePhoto: entry.isLivePhoto,
   pairedVideoRemoteFileId: entry.pairedRemoteFileId ?? undefined,
   isBurst: entry.burstRole === 'representative',
   burstGroupId: entry.burstGroupId ?? undefined,
+  uploadedAt: entry.uploadedAt,
+  isFavorite: entry.isFavorite ?? false,
 });
 
 export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: CloudPhotoItem[]): PhotoDateGroup[] => {
@@ -185,7 +187,7 @@ export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: 
 
   const cloudByKey = new Map<string, CloudPhotoItem[]>();
   for (const item of cloudItems) {
-    const key = new Date(item.createdAt).toDateString();
+    const key = new Date(item.folderDate).toDateString();
     let list = cloudByKey.get(key);
     if (!list) {
       list = [];

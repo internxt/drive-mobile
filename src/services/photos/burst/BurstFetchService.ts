@@ -13,7 +13,9 @@ const entryToCloudPhotoItem = (entry: {
   thumbnailBucketFile: string | null;
   thumbnailType: string | null;
   deviceId: string;
-  createdAt: number;
+  folderDate: number;
+  uploadedAt: number;
+  isFavorite: boolean;
 }): CloudPhotoItem => ({
   id: entry.remoteFileId,
   type: 'cloud-only',
@@ -23,8 +25,10 @@ const entryToCloudPhotoItem = (entry: {
   thumbnailBucketFile: entry.thumbnailBucketFile,
   thumbnailType: entry.thumbnailType,
   deviceId: entry.deviceId,
-  createdAt: entry.createdAt,
+  folderDate: entry.folderDate,
   fileName: entry.fileName,
+  uploadedAt: entry.uploadedAt,
+  isFavorite: entry.isFavorite,
 });
 
 /**

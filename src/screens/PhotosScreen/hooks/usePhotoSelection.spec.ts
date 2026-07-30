@@ -19,7 +19,9 @@ const makeCloudItem = (id: string): TimelinePhotoItem => ({
   thumbnailBucketFile: null,
   thumbnailType: null,
   deviceId: 'device-1',
-  createdAt: 0,
+  folderDate: 0,
+  uploadedAt: 0,
+  isFavorite: false,
   fileName: `${id}.jpg`,
 });
 

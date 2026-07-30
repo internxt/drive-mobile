@@ -212,7 +212,9 @@ export const checkPermissionRevocationThunk = createAsyncThunk<void, void, { sta
   'photos/checkPermissionRevocation',
   async (_, { getState, dispatch }) => {
     const { enabled } = getState().photos;
-    if (!enabled) return;
+    if (!enabled) {
+      return;
+    }
 
     const status = await photoPermissionService.getStatus();
     if (status === 'denied') {
@@ -263,7 +265,9 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
   'photos/runDiscovery',
   async (_, { getState, dispatch }) => {
     const { enabled, syncStatus } = getState().photos;
-    if (!enabled || syncStatus === 'scanning') return;
+    if (!enabled || syncStatus === 'scanning' || PhotoUploadQueue.isCycleRunning()) {
+      return;
+    }
 
     logger.info('[Discovery] Starting discovery cycle');
     dispatch(photosSlice.actions.setSyncStatus('scanning'));
@@ -277,33 +281,23 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
       const burstRepresentativeIds = await BurstNativeModule.getBurstRepresentativeIds(allPendingIds);
       const burstIdSet = new Set(burstRepresentativeIds);
 
+      const transformToPendingEntry = (asset: (typeof newAssets)[number]) => ({
+        assetId: asset.id,
+        mediaInfo: {
+          fileName: asset.filename,
+          creationTime: asset.creationTime,
+          width: asset.width,
+          height: asset.height,
+          duration: asset.duration,
+          mediaType: asset.mediaType,
+          isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
+          isBurst: burstIdSet.has(asset.id),
+        },
+      });
+
       await Promise.all([
-        ...newAssets.map((asset) =>
-          photosLocalDB.markPending(asset.id, {
-            fileName: asset.filename,
-            creationTime: asset.creationTime,
-            width: asset.width,
-            height: asset.height,
-            duration: asset.duration,
-            mediaType: asset.mediaType,
-            isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
-            // BURST:
-            isBurst: burstIdSet.has(asset.id),
-          }),
-        ),
-        ...editedAssets.map((asset) =>
-          photosLocalDB.markPendingEdit(asset.id, {
-            fileName: asset.filename,
-            creationTime: asset.creationTime,
-            width: asset.width,
-            height: asset.height,
-            duration: asset.duration,
-            mediaType: asset.mediaType,
-            isLivePhoto: asset.mediaSubtypes?.includes('livePhoto') ?? false,
-            // BURST:
-            isBurst: burstIdSet.has(asset.id),
-          }),
-        ),
+        photosLocalDB.markPendingBulk(newAssets.map(transformToPendingEntry)),
+        photosLocalDB.markPendingEditBulk(editedAssets.map(transformToPendingEntry)),
       ]);
       const localAssetIdSet = new Set(scannedAssets.map((a) => a.id));
       const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(localAssetIdSet);
@@ -320,7 +314,8 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
           totalScannedAssets: scannedAssets.length,
         }),
       );
-      dispatch(photosSlice.actions.setSyncStatus('idle'));
+
+      dispatch(photosSlice.actions.setSyncStatus(PhotoUploadQueue.isCycleRunning() ? 'uploading' : 'idle'));
       logger.info(
         `[Discovery] Complete — scanned: ${scannedAssets.length}, new: ${newAssets.length}, edited: ${editedAssets.length}`,
       );
