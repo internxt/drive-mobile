@@ -153,7 +153,13 @@ describe('PhotoUploadQueue.start with an external signal', () => {
     controller.abort();
     const onAssetStart = jest.fn();
 
-    await PhotoUploadQueue.start([{ asset: makeAsset('a1') }], DEVICE_ID, PHOTOS_BUCKET, { onAssetStart }, controller.signal);
+    await PhotoUploadQueue.start(
+      [{ asset: makeAsset('a1') }],
+      DEVICE_ID,
+      PHOTOS_BUCKET,
+      { onAssetStart },
+      controller.signal,
+    );
 
     expect(onAssetStart).not.toHaveBeenCalled();
     expect(mockUpload).not.toHaveBeenCalled();
@@ -258,5 +264,46 @@ describe('PhotoUploadQueue.abortAll', () => {
     expect(secondSignal.aborted).toBe(false);
     // The second run must receive a different signal instance from the first
     expect(secondSignal).not.toBe(firstSignal);
+  });
+});
+
+describe('PhotoUploadQueue cycle lifecycle', () => {
+  afterEach(() => {
+    PhotoUploadQueue.endCycle();
+  });
+
+  test('when no cycle has begun, then nothing is reported as running and waiting resolves immediately', async () => {
+    expect(PhotoUploadQueue.isCycleRunning()).toBe(false);
+    await expect(PhotoUploadQueue.waitForCycleEnd()).resolves.toBeUndefined();
+  });
+
+  test('when a cycle has begun, then it is reported as running until it ends', () => {
+    PhotoUploadQueue.beginCycle();
+    expect(PhotoUploadQueue.isCycleRunning()).toBe(true);
+
+    PhotoUploadQueue.endCycle();
+    expect(PhotoUploadQueue.isCycleRunning()).toBe(false);
+  });
+
+  test('when a cycle is running, then waiting for it only resolves after the cycle ends', async () => {
+    PhotoUploadQueue.beginCycle();
+    let hasCycleEnded = false;
+    const cycleEndWait = PhotoUploadQueue.waitForCycleEnd().then(() => {
+      hasCycleEnded = true;
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+    expect(hasCycleEnded).toBe(false);
+
+    PhotoUploadQueue.endCycle();
+    await cycleEndWait;
+    expect(hasCycleEnded).toBe(true);
+  });
+
+  test('when a cycle is stuck and never ends, then waiting with a timeout gives up instead of hanging forever', async () => {
+    PhotoUploadQueue.beginCycle();
+
+    await expect(PhotoUploadQueue.waitForCycleEnd(50)).resolves.toBeUndefined();
+    expect(PhotoUploadQueue.isCycleRunning()).toBe(true);
   });
 });

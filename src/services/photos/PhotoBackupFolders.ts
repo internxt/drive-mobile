@@ -1,10 +1,21 @@
 import { logger } from 'src/services/common';
 import { createFolderWithMerge } from 'src/services/drive/folder/folderOrchestration.service';
 
+const SYNC_MANIFEST_FOLDER_NAME = '.sync';
+
 class PhotoBackupFolderService {
   private readonly yearFolderUuid = new Map<string, string>();
   private readonly monthFolderUuid = new Map<string, string>();
   private readonly dayFolderUuid = new Map<string, string>();
+  private readonly syncFolderUuid = new Map<string, string>();
+
+  /**
+   * Returns the uuid of the `.sync` folder under the given device folder, creating it if needed.
+   * The device manifest is stored inside it.
+   */
+  async getOrCreateSyncFolder(deviceFolderUuid: string): Promise<string> {
+    return this.getOrCreateFolder(this.syncFolderUuid, deviceFolderUuid, deviceFolderUuid, SYNC_MANIFEST_FOLDER_NAME);
+  }
 
   /**
    * Returns the uuid of the day folder under the given device folder, creating
@@ -20,7 +31,9 @@ class PhotoBackupFolderService {
 
     const dayKey = `${deviceFolderUuid}/${year}/${month}/${day}`;
     const localDayFolderUuid = this.dayFolderUuid.get(dayKey);
-    if (localDayFolderUuid) return localDayFolderUuid;
+    if (localDayFolderUuid) {
+      return localDayFolderUuid;
+    }
 
     const yearUuid = await this.getOrCreateYearFolder(deviceFolderUuid, year);
     const monthUuid = await this.getOrCreateMonthFolder(deviceFolderUuid, year, month, yearUuid);
@@ -35,6 +48,7 @@ class PhotoBackupFolderService {
     this.yearFolderUuid.clear();
     this.monthFolderUuid.clear();
     this.dayFolderUuid.clear();
+    this.syncFolderUuid.clear();
   }
 
   private async getOrCreateFolder(
@@ -44,7 +58,9 @@ class PhotoBackupFolderService {
     name: string,
   ): Promise<string> {
     const cached = cache.get(key);
-    if (cached) return cached;
+    if (cached) {
+      return cached;
+    }
     const uuid = await createFolderWithMerge(parentUuid, name);
     cache.set(key, uuid);
     return uuid;

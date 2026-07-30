@@ -134,6 +134,66 @@ export interface IncompleteBurstAsset {
   modificationTime: number | null;
 }
 
+export interface ManifestAssetEntry {
+  assetId: string;
+  status: 'synced' | 'cloud_deleted';
+  remoteFileId: string | null;
+  modificationTime: number | null;
+  fileName: string | null;
+  creationTime: number | null;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+  mediaType: string | null;
+  isLivePhoto: boolean;
+  pairedVideoRemoteFileId: string | null;
+  pairedVideoStatus: PairedVideoStatus | null;
+  isBurst: boolean;
+  burstId: string | null;
+  burstMemberRemoteFileIds: string[] | null;
+  burstMemberCount: number | null;
+}
+
+interface ManifestAssetRow {
+  asset_id: string;
+  status: 'synced' | 'cloud_deleted';
+  remote_file_id: string | null;
+  modification_time: number | null;
+  file_name: string | null;
+  creation_time: number | null;
+  width: number | null;
+  height: number | null;
+  duration: number | null;
+  media_type: string | null;
+  is_live_photo: number;
+  paired_video_remote_file_id: string | null;
+  paired_video_status: PairedVideoStatus | null;
+  is_burst: number;
+  burst_id: string | null;
+  burst_member_remote_file_ids: string | null;
+  burst_member_count: number | null;
+}
+
+const rowToManifestEntry = (row: ManifestAssetRow): ManifestAssetEntry => ({
+  assetId: row.asset_id,
+  status: row.status,
+  remoteFileId: row.remote_file_id,
+  modificationTime: row.modification_time,
+  fileName: row.file_name,
+  creationTime: row.creation_time,
+  width: row.width,
+  height: row.height,
+  duration: row.duration,
+  mediaType: row.media_type,
+  isLivePhoto: row.is_live_photo === 1,
+  pairedVideoRemoteFileId: row.paired_video_remote_file_id,
+  pairedVideoStatus: row.paired_video_status,
+  isBurst: row.is_burst === 1,
+  burstId: row.burst_id,
+  burstMemberRemoteFileIds: row.burst_member_remote_file_ids ? JSON.parse(row.burst_member_remote_file_ids) : null,
+  burstMemberCount: row.burst_member_count,
+});
+
 export interface AssetMediaInfo {
   fileName: string;
   creationTime: number;
@@ -284,7 +344,10 @@ class PhotosLocalDB {
   }
 
   async getAssetUploadErroredCount(): Promise<number> {
-    const rows = await sqliteService.getAllAsync<{ count: number }>(DB_NAME, assetSyncTable.statements.getAssetUploadErroredCount);
+    const rows = await sqliteService.getAllAsync<{ count: number }>(
+      DB_NAME,
+      assetSyncTable.statements.getAssetUploadErroredCount,
+    );
     return rows[0]?.count ?? 0;
   }
 
@@ -489,9 +552,7 @@ class PhotosLocalDB {
 
   async getAllCloudAssets(deviceId?: string): Promise<CloudAssetEntry[]> {
     const rows = deviceId
-      ? await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getAllByDevice, [
-          deviceId,
-        ])
+      ? await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getAllByDevice, [deviceId])
       : await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getAll);
     return rows.map(rowToCloudAssetEntry);
   }
@@ -582,6 +643,48 @@ class PhotosLocalDB {
       creationTime: r.creation_time,
       modificationTime: r.modification_time,
     }));
+  }
+
+  async hasAnyAssetSyncEntry(): Promise<boolean> {
+    const row = await sqliteService.getFirstAsync<{ result: number }>(DB_NAME, assetSyncTable.statements.hasAnyEntry);
+    return row?.result === 1;
+  }
+
+  async getManifestEntries(): Promise<ManifestAssetEntry[]> {
+    const rows = await sqliteService.getAllAsync<ManifestAssetRow>(
+      DB_NAME,
+      assetSyncTable.statements.getManifestEntries,
+    );
+    return rows.map(rowToManifestEntry);
+  }
+
+  async restoreEntries(entries: ManifestAssetEntry[]): Promise<void> {
+    if (entries.length === 0) {
+      return;
+    }
+    await sqliteService.transaction(DB_NAME, async (tx) => {
+      for (const entry of entries) {
+        await tx.executeSql(assetSyncTable.statements.restoreEntry, [
+          entry.assetId,
+          entry.status,
+          entry.remoteFileId,
+          entry.modificationTime,
+          entry.fileName,
+          entry.creationTime,
+          entry.width,
+          entry.height,
+          entry.duration,
+          entry.mediaType,
+          entry.isLivePhoto ? 1 : 0,
+          entry.pairedVideoRemoteFileId,
+          entry.pairedVideoStatus,
+          entry.isBurst ? 1 : 0,
+          entry.burstId,
+          entry.burstMemberRemoteFileIds ? JSON.stringify(entry.burstMemberRemoteFileIds) : null,
+          entry.burstMemberCount,
+        ]);
+      }
+    });
   }
 
   async getCloudFetchCacheAge(deviceId: string, year: number, month: number): Promise<number | null> {

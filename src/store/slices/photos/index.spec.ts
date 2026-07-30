@@ -3,13 +3,14 @@ import { configureStore } from '@reduxjs/toolkit';
 import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
+import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
+import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoDeduplicator } from 'src/services/photos/PhotoDeduplicator';
 import { PhotoDeviceManager } from 'src/services/photos/PhotoDeviceId';
+import { photoSyncManifestService } from 'src/services/photos/PhotoSyncManifestService';
 import { PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
-import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
-import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { AppDispatch } from 'src/store';
 import { storageSelectors } from 'src/store/slices/storage';
 import photosReducer, {
@@ -22,12 +23,14 @@ import photosReducer, {
   pauseBackupThunk,
   photosSlice,
   PhotosState,
+  restoreLocalDbFromManifestThunk,
   resumeBackupThunk,
   runBackupCycleThunk,
   runDiscoveryThunk,
   runFullCloudHistorySyncThunk,
   runUploadThunk,
   setNetworkConditionThunk,
+  signOutThunk,
   uploadAssetsManuallyThunk,
 } from './index';
 import { hasPhotosFeatureAccess } from './selectors';
@@ -75,6 +78,8 @@ jest.mock('src/services/photos/PhotoUploadQueue', () => ({
     abortAll: jest.fn(),
     beginCycle: jest.fn(),
     endCycle: jest.fn(),
+    isCycleRunning: jest.fn(),
+    waitForCycleEnd: jest.fn(),
   },
 }));
 
@@ -118,8 +123,24 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
     resetErrorsToPending: jest.fn().mockResolvedValue(undefined),
     getAssetUploadErroredCount: jest.fn().mockResolvedValue(0),
+    hasAnyAssetSyncEntry: jest.fn().mockResolvedValue(true),
+    reset: jest.fn().mockResolvedValue(undefined),
+    resetCloudAssets: jest.fn().mockResolvedValue(undefined),
   },
 }));
+
+jest.mock('src/services/photos/PhotoSyncManifestService', () => ({
+  photoSyncManifestService: {
+    uploadManifest: jest.fn().mockResolvedValue(undefined),
+    maybeUploadManifest: jest.fn().mockResolvedValue(undefined),
+    restoreManifest: jest.fn().mockResolvedValue(null),
+  },
+}));
+
+// The cycle lifecycle (begin/end/isCycleRunning/waitForCycleEnd) is pure in-memory state, so the
+// mocks delegate to the real implementation — drain and reentrancy tests exercise real logic.
+const actualUploadQueue = jest.requireActual('src/services/photos/PhotoUploadQueue')
+  .PhotoUploadQueue as typeof PhotoUploadQueue;
 
 const mockStorageSelectors = storageSelectors as jest.Mocked<typeof storageSelectors>;
 const mockHasPhotosFeatureAccess = hasPhotosFeatureAccess as jest.MockedFunction<typeof hasPhotosFeatureAccess>;
@@ -130,6 +151,7 @@ const mockPhotoDeviceManager = PhotoDeviceManager as jest.Mocked<typeof PhotoDev
 const mockScanner = PhotoAssetScanner as jest.Mocked<typeof PhotoAssetScanner>;
 const mockDeduplicator = PhotoDeduplicator as jest.Mocked<typeof PhotoDeduplicator>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
+const mockPhotoSyncManifestService = photoSyncManifestService as jest.Mocked<typeof photoSyncManifestService>;
 const mockUploadQueue = PhotoUploadQueue as jest.Mocked<typeof PhotoUploadQueue>;
 const mockRetryIncompleteBursts = retryIncompleteBursts as jest.Mock;
 
@@ -152,19 +174,14 @@ const getPersistedState = (): PhotosState => {
 };
 
 describe('photos slice', () => {
-  let uploadCycleController: AbortController | null = null;
-
   beforeEach(() => {
     jest.resetAllMocks();
-    uploadCycleController = null;
-    mockUploadQueue.beginCycle.mockImplementation(() => {
-      uploadCycleController = new AbortController();
-      return uploadCycleController.signal;
-    });
-    mockUploadQueue.abortAll.mockImplementation(() => uploadCycleController?.abort());
-    mockUploadQueue.endCycle.mockImplementation(() => {
-      uploadCycleController = null;
-    });
+    actualUploadQueue.endCycle(); // clear any cycle left over from a previous test
+    mockUploadQueue.beginCycle.mockImplementation(actualUploadQueue.beginCycle);
+    mockUploadQueue.endCycle.mockImplementation(actualUploadQueue.endCycle);
+    mockUploadQueue.abortAll.mockImplementation(actualUploadQueue.abortAll);
+    mockUploadQueue.isCycleRunning.mockImplementation(actualUploadQueue.isCycleRunning);
+    mockUploadQueue.waitForCycleEnd.mockImplementation(actualUploadQueue.waitForCycleEnd);
     // Re-set default implementations after reset clears them
     mockAsyncStorage.saveItem.mockResolvedValue(undefined);
     mockAsyncStorage.getItem.mockResolvedValue(null);
@@ -186,6 +203,12 @@ describe('photos slice', () => {
     mockPhotosLocalDB.markSyncedBurst.mockResolvedValue(undefined);
     mockPhotosLocalDB.markError.mockResolvedValue(undefined);
     mockPhotosLocalDB.getIncompleteBurstAssets.mockResolvedValue([]);
+    mockPhotosLocalDB.hasAnyAssetSyncEntry.mockResolvedValue(true);
+    mockPhotosLocalDB.reset.mockResolvedValue(undefined);
+    mockPhotosLocalDB.resetCloudAssets.mockResolvedValue(undefined);
+    mockPhotoSyncManifestService.uploadManifest.mockResolvedValue(undefined);
+    mockPhotoSyncManifestService.maybeUploadManifest.mockResolvedValue(undefined);
+    mockPhotoSyncManifestService.restoreManifest.mockResolvedValue(null);
     mockCloudBrowser.listDeviceFolders.mockResolvedValue([]);
     mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
@@ -827,6 +850,166 @@ describe('photos slice', () => {
     });
   });
 
+  describe('restoring the local database from the sync manifest', () => {
+    test('when the local database already has state, then no manifest restore is attempted', async () => {
+      mockPhotosLocalDB.hasAnyAssetSyncEntry.mockResolvedValue(true);
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ deviceId: 'device-1', photosBucket: 'bucket-1' }));
+
+      await store.dispatch(restoreLocalDbFromManifestThunk());
+
+      expect(mockPhotoSyncManifestService.restoreManifest).not.toHaveBeenCalled();
+    });
+
+    test('when the local database is empty and a device is registered, then the manifest is checked for a restore', async () => {
+      mockPhotosLocalDB.hasAnyAssetSyncEntry.mockResolvedValue(false);
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ deviceId: 'device-1', photosBucket: 'bucket-1' }));
+
+      await store.dispatch(restoreLocalDbFromManifestThunk());
+
+      expect(mockPhotoSyncManifestService.restoreManifest).toHaveBeenCalledWith('device-1');
+    });
+
+    test('when there is no device registered yet, then no manifest restore is attempted', async () => {
+      mockPhotosLocalDB.hasAnyAssetSyncEntry.mockResolvedValue(false);
+      const store = makeStore();
+
+      await store.dispatch(restoreLocalDbFromManifestThunk());
+
+      expect(mockPhotoSyncManifestService.restoreManifest).not.toHaveBeenCalled();
+    });
+
+    test('when a backup cycle runs on a freshly emptied database, then the manifest restore is attempted before discovery starts', async () => {
+      mockPhotosLocalDB.hasAnyAssetSyncEntry.mockResolvedValue(false);
+      const callOrder: string[] = [];
+      mockPhotoSyncManifestService.restoreManifest.mockImplementation(async () => {
+        callOrder.push('restoreManifest');
+        return null;
+      });
+      mockScanner.scanAll.mockImplementation(async () => {
+        callOrder.push('scanAll');
+        return [];
+      });
+
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+      mockPermissionService.getStatus.mockResolvedValue('granted');
+
+      await store.dispatch(runBackupCycleThunk());
+
+      expect(callOrder).toEqual(['restoreManifest', 'scanAll']);
+    });
+  });
+
+  describe('signing out', () => {
+    test('when the user signs out with a device already registered, then the manifest is uploaded before local state is wiped', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ deviceId: 'device-1', photosBucket: 'bucket-1' }));
+
+      await store.dispatch(signOutThunk());
+
+      expect(mockPhotoSyncManifestService.uploadManifest).toHaveBeenCalledWith('device-1', 'bucket-1');
+      expect(mockPhotosLocalDB.reset).toHaveBeenCalled();
+      expect(mockPhotosLocalDB.resetCloudAssets).toHaveBeenCalled();
+    });
+
+    test('when sign out starts, then enabled is flipped to false right away so a still-running cloud history sync cancels itself instead of running to completion', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ deviceId: 'device-1', photosBucket: 'bucket-1', enabled: true }));
+
+      await store.dispatch(signOutThunk());
+
+      expect(store.getState().photos.enabled).toBe(false);
+    });
+
+    test('when the user signs out without a device registered yet, then no manifest upload is attempted', async () => {
+      const store = makeStore();
+
+      await store.dispatch(signOutThunk());
+
+      expect(mockPhotoSyncManifestService.uploadManifest).not.toHaveBeenCalled();
+      expect(mockPhotosLocalDB.reset).toHaveBeenCalled();
+    });
+
+    test('when uploading the manifest fails during sign out, then local state is still wiped', async () => {
+      mockPhotoSyncManifestService.uploadManifest.mockRejectedValue(new Error('network error'));
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ deviceId: 'device-1', photosBucket: 'bucket-1' }));
+
+      await store.dispatch(signOutThunk());
+
+      expect(mockPhotosLocalDB.reset).toHaveBeenCalled();
+      expect(mockPhotosLocalDB.resetCloudAssets).toHaveBeenCalled();
+    });
+
+    test('when an upload cycle is still finishing when sign out starts, then local state is not wiped until the cycle drains', async () => {
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'bucket-1',
+        }),
+      );
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([{ assetId: 'a1', status: 'pending' }] as never);
+
+      let releaseUploadCycle!: () => void;
+      mockUploadQueue.start.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            releaseUploadCycle = resolve;
+          }),
+      );
+
+      const uploadCyclePromise = store.dispatch(runUploadThunk());
+      await flushAsyncWork();
+
+      const signOutPromise = store.dispatch(signOutThunk());
+      await flushAsyncWork();
+
+      expect(mockPhotosLocalDB.reset).not.toHaveBeenCalled();
+
+      releaseUploadCycle();
+      await uploadCyclePromise;
+      await signOutPromise;
+
+      expect(mockPhotosLocalDB.reset).toHaveBeenCalled();
+    });
+
+    test('when a backup cycle is dispatched while sign out is in progress, then it returns immediately without touching device or restore state', async () => {
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'bucket-1',
+        }),
+      );
+
+      let releaseManifestUpload!: () => void;
+      mockPhotoSyncManifestService.uploadManifest.mockImplementationOnce(
+        () =>
+          new Promise<void>((resolve) => {
+            releaseManifestUpload = resolve;
+          }),
+      );
+
+      const signOutPromise = store.dispatch(signOutThunk());
+      await flushAsyncWork();
+
+      await store.dispatch(runBackupCycleThunk());
+
+      expect(mockPhotoDeviceManager.ensureDeviceFolder).not.toHaveBeenCalled();
+      expect(mockPhotoSyncManifestService.restoreManifest).not.toHaveBeenCalled();
+
+      releaseManifestUpload();
+      await signOutPromise;
+    });
+  });
+
   describe('pausing backup', () => {
     test('when the user pauses the backup, then is paused flag persists and sync status becomes pausing', async () => {
       const store = makeStore();
@@ -1247,6 +1430,48 @@ describe('photos slice', () => {
       await flushAsyncWork();
 
       expect(mockPhotoDeviceManager.ensureDeviceFolder).toHaveBeenCalled();
+    });
+
+    test('when an upload cycle finishes assets, then the sync manifest is uploaded for that device', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+      mockScanner.getAssetsByIds.mockResolvedValue([{ id: 'a1', modificationTime: 1 }] as never);
+      mockUploadQueue.start.mockImplementationOnce(async (jobs, deviceId, bucket, callbacks) => {
+        await callbacks.onAssetDone?.('a1', { photoUuid: 'u1' } as never, 1);
+      });
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+      await flushAsyncWork();
+
+      expect(mockPhotoSyncManifestService.uploadManifest).toHaveBeenCalledWith('device-1', 'photos-bucket-1');
+    });
+
+    test('when an upload cycle finishes with nothing uploaded, then the sync manifest is not touched', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValue([]);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+          networkCondition: 'wifi-and-data',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+      await flushAsyncWork();
+
+      expect(mockPhotoSyncManifestService.uploadManifest).not.toHaveBeenCalled();
     });
 
     test('when an upload cycle is already running, then a second upload request is ignored', async () => {
