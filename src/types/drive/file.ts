@@ -91,4 +91,5 @@ export enum FileExtension {
   PNG = 'png',
   HEIC = 'heic',
   PDF = 'pdf',
+  DNG = 'dng',
 }

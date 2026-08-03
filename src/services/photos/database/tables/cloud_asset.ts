@@ -138,6 +138,12 @@ const statements = {
     UPDATE ${TABLE_NAME} SET thumbnail_path = ? WHERE remote_file_id = ?;
   `,
 
+  setThumbnailRefs: `
+    UPDATE ${TABLE_NAME}
+    SET thumbnail_bucket_id = ?, thumbnail_bucket_file = ?, thumbnail_type = ?, thumbnail_path = ?
+    WHERE remote_file_id = ?;
+  `,
+
   delete: `DELETE FROM ${TABLE_NAME} WHERE remote_file_id = ?;`,
   deleteByDevice: `DELETE FROM ${TABLE_NAME} WHERE device_id = ?;`,
   getDistinctDeviceIds: `SELECT DISTINCT device_id FROM ${TABLE_NAME};`,

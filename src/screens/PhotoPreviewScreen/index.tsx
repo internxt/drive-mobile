@@ -16,6 +16,7 @@ import { MetadataPanel } from './components/MetadataPanel';
 import { PreviewCarousel } from './components/PreviewCarousel';
 import { PreviewHeader } from './components/PreviewHeader';
 import { PreviewPager } from './components/PreviewPager';
+import { PreviewThumbnailBackfillContext } from './context/PreviewThumbnailBackfillContext';
 import { useLiveBackupStatus } from './hooks/useLiveBackupStatus';
 import { usePreviewItems } from './hooks/usePreviewItems';
 
@@ -23,7 +24,10 @@ type Props = RootStackScreenProps<'PhotoPreview'>;
 
 export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   const { initialId, items: routeItems, onItemChanged, onCurrentItemChange } = route.params;
-  const { items, currentIndex, setCurrentIndex, markAssetBackedUp } = usePreviewItems(initialId, routeItems);
+  const { items, currentIndex, setCurrentIndex, markAssetBackedUp, markThumbnailBackfilled } = usePreviewItems(
+    initialId,
+    routeItems,
+  );
   const tailwind = useTailwind();
   const navigation = useNavigation();
 
@@ -153,24 +157,31 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   const isSynced = !isWaitingToUpload && !isCloudDeleted && !isUploading;
   const isBurstIncomplete = currentItem?.type === 'local' && currentItem?.isBurstUploadIncomplete === true;
 
+  const thumbnailBackfillContextValue = useMemo(
+    () => ({ onThumbnailBackfilled: markThumbnailBackfilled }),
+    [markThumbnailBackfilled],
+  );
+
   return (
     <View style={tailwind('flex-1 bg-black')}>
       <StatusBar hidden />
       <GestureDetector gesture={swipeDownGesture}>
         <Animated.View style={[tailwind('flex-1'), swipeDownAnimatedStyle]}>
-          <PreviewPager
-            items={items}
-            initialIndex={currentIndex}
-            activeIndex={currentIndex}
-            isScrubbing={isScrubbing}
-            onIndexChange={setCurrentIndex}
-            onTap={handleTap}
-            onZoomChange={handleZoomChange}
-            onVideoPlay={handleVideoPlay}
-            onVideoPause={handleVideoPause}
-            onVideoEnd={handleVideoEnd}
-            videoResetKey={videoResetKey}
-          />
+          <PreviewThumbnailBackfillContext.Provider value={thumbnailBackfillContextValue}>
+            <PreviewPager
+              items={items}
+              initialIndex={currentIndex}
+              activeIndex={currentIndex}
+              isScrubbing={isScrubbing}
+              onIndexChange={setCurrentIndex}
+              onTap={handleTap}
+              onZoomChange={handleZoomChange}
+              onVideoPlay={handleVideoPlay}
+              onVideoPause={handleVideoPause}
+              onVideoEnd={handleVideoEnd}
+              videoResetKey={videoResetKey}
+            />
+          </PreviewThumbnailBackfillContext.Provider>
           <PreviewHeader
             visible={isUiVisible}
             item={currentItem}

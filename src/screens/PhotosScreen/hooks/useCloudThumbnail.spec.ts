@@ -165,6 +165,29 @@ describe('useCloudThumbnail', () => {
     expect(mockPhotosLocalDB.setCloudThumbnailPath).not.toHaveBeenCalled();
   });
 
+  test('when the same item is backfilled with a thumbnail path after a reload, then the new path is shown without a new download', async () => {
+    const itemWithoutThumbnail = makeCloudItem({ id: 'remote-1', thumbnailPath: null, thumbnailBucketId: null, thumbnailBucketFile: null });
+    const itemWithBackfilledThumbnail = makeCloudItem({
+      id: 'remote-1',
+      thumbnailPath: '/backfilled/thumb.jpg',
+      thumbnailBucketId: 'bucket-1',
+      thumbnailBucketFile: 'file-1',
+    });
+
+    const { result, rerender } = renderHook(({ item }) => useCloudThumbnail(item), {
+      initialProps: { item: itemWithoutThumbnail },
+    });
+
+    expect(result.current.uri).toBeNull();
+
+    await act(async () => {
+      rerender({ item: itemWithBackfilledThumbnail });
+    });
+
+    expect(result.current.uri).toBe('/backfilled/thumb.jpg');
+    expect(mockDriveFileService.getThumbnail).not.toHaveBeenCalled();
+  });
+
   test('when the image fails to load, then the stale path is cleared from the database and uri becomes null', async () => {
     const item = makeCloudItem({
       thumbnailPath: '/stale/thumb.jpg',

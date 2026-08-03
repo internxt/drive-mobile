@@ -228,15 +228,25 @@ const cleanupTempFile = async (tempPath?: string): Promise<void> => {
   await fileSystemService.unlinkIfExists(tempPath);
 };
 
-const uploadThumbnailForAsset = async (
+export interface UploadedThumbnailRef {
+  bucketId: string;
+  bucketFile: string;
+  type: string;
+  /** Local path of the generated thumbnail file. Only set when `keepTempFile` is true. */
+  localPath?: string;
+}
+
+export const uploadThumbnailForAsset = async (
   localFilePath: string,
   fileExtension: string,
   fileUuid: string,
   credentials: UploadCredentials,
-): Promise<void> => {
-  if (!isThumbnailSupported(fileExtension)) return;
+  keepTempFile = false,
+): Promise<UploadedThumbnailRef | null> => {
+  if (!isThumbnailSupported(fileExtension)) return null;
 
   let thumbnailPath: string | undefined;
+  let succeeded = false;
   try {
     const thumbnail = await generateThumbnail(localFilePath, fileExtension);
     thumbnailPath = thumbnail.path;
@@ -260,10 +270,21 @@ const uploadThumbnailForAsset = async (
       bucketFile: thumbnailFileId,
       encryptVersion: EncryptionVersion.Aes03,
     });
+
+    succeeded = true;
+    return {
+      bucketId: credentials.bucketId,
+      bucketFile: thumbnailFileId,
+      type: thumbnail.type,
+      localPath: keepTempFile ? thumbnailPath : undefined,
+    };
   } catch (err) {
     logger.error(`Failed to upload thumbnail for file ${fileUuid} (ext=${fileExtension}, path=${localFilePath}):`, err);
+    return null;
   } finally {
-    await cleanupTempFile(thumbnailPath);
+    if (!keepTempFile || !succeeded) {
+      await cleanupTempFile(thumbnailPath);
+    }
   }
 };
 
