@@ -65,7 +65,7 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
     return () => {
       cancelled = true;
     };
-  }, [item.id, retryCount]);
+  }, [item.id, item.thumbnailPath, retryCount]);
 
   return { uri: localPath, onImageError };
 };

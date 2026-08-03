@@ -16,6 +16,7 @@ jest.mock('expo-image-manipulator', () => ({
   },
   SaveFormat: { JPEG: 'jpeg' },
 }));
+jest.mock('../logger', () => ({ logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() } }));
 
 import {
   generateImageThumbnail,
@@ -29,6 +30,7 @@ const mocks = () => ({
   pdfGenerate: jest.requireMock('react-native-pdf-thumbnail').default.generate as jest.Mock,
   manipulate: jest.requireMock('expo-image-manipulator').ImageManipulator.manipulate as jest.Mock,
   stat: jest.requireMock('@dr.pogodin/react-native-fs').stat as jest.Mock,
+  loggerError: jest.requireMock('../logger').logger.error as jest.Mock,
 });
 
 beforeEach(() => {
@@ -157,5 +159,35 @@ describe('generateThumbnail', () => {
 
     expect(mocks().createThumbnail).toHaveBeenCalledTimes(1);
     expect(mocks().pdfGenerate).not.toHaveBeenCalled();
+  });
+
+  test('when extension is a RAW photo, then it routes through expo-image-manipulator instead of createThumbnail (AVFoundation can not decode RAW)', async () => {
+    await generateThumbnail('/var/mobile/Containers/Data/DCIM/IMG_5068.DNG', 'dng');
+
+    expect(mocks().manipulate).toHaveBeenCalledWith('file:///var/mobile/Containers/Data/DCIM/IMG_5068.DNG');
+    expect(mocks().createThumbnail).not.toHaveBeenCalled();
+    expect(mocks().pdfGenerate).not.toHaveBeenCalled();
+  });
+
+  test('when extension is a RAW photo and running on Android, then it also routes through expo-image-manipulator', async () => {
+    Platform.OS = 'android';
+
+    await generateThumbnail('/storage/emulated/0/DCIM/Camera/IMG_5068.dng', 'dng');
+
+    expect(mocks().manipulate).toHaveBeenCalledWith('file:///storage/emulated/0/DCIM/Camera/IMG_5068.dng');
+    expect(mocks().createThumbnail).not.toHaveBeenCalled();
+    expect(mocks().pdfGenerate).not.toHaveBeenCalled();
+  });
+
+  test('when generation fails, then the error is logged with the asset path and rethrown', async () => {
+    mocks().createThumbnail.mockRejectedValueOnce(new Error('Cannot Open'));
+
+    await expect(generateThumbnail('/var/mobile/Containers/Data/DCIM/IMG_0042.png', 'png')).rejects.toThrow(
+      'Cannot Open',
+    );
+
+    expect(mocks().loggerError).toHaveBeenCalledWith(
+      expect.stringContaining('/var/mobile/Containers/Data/DCIM/IMG_0042.png'),
+    );
   });
 });

@@ -621,6 +621,19 @@ class PhotosLocalDB {
     await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.setThumbnailPath, [path, remoteFileId]);
   }
 
+  async setCloudThumbnailRefs(
+    remoteFileId: string,
+    refs: { bucketId: string; bucketFile: string; type: string; localPath: string | null },
+  ): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.setThumbnailRefs, [
+      refs.bucketId,
+      refs.bucketFile,
+      refs.type,
+      refs.localPath,
+      remoteFileId,
+    ]);
+  }
+
   async deleteCloudAsset(remoteFileId: string): Promise<void> {
     await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.delete, [remoteFileId]);
   }

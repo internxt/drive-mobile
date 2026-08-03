@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { PhotoItem } from '../../PhotosScreen/types';
+import { CloudPhotoItem, PhotoItem } from '../../PhotosScreen/types';
 import { usePreviewItems } from './usePreviewItems';
 
 const makeItem = (id: string, backupState: PhotoItem['backupState']): PhotoItem => ({
@@ -8,6 +8,22 @@ const makeItem = (id: string, backupState: PhotoItem['backupState']): PhotoItem 
   createdAt: 0,
   backupState,
   mediaType: 'photo',
+});
+
+const makeCloudItem = (id: string, overrides: Partial<CloudPhotoItem> = {}): CloudPhotoItem => ({
+  id,
+  type: 'cloud-only',
+  mediaType: 'photo',
+  fileName: 'photo.dng',
+  thumbnailPath: null,
+  thumbnailBucketId: null,
+  thumbnailBucketFile: null,
+  thumbnailType: null,
+  deviceId: 'device-1',
+  folderDate: 0,
+  uploadedAt: 0,
+  isFavorite: false,
+  ...overrides,
 });
 
 describe('usePreviewItems', () => {
@@ -53,5 +69,42 @@ describe('usePreviewItems', () => {
     const { result } = renderHook(() => usePreviewItems('a', items));
 
     expect(result.current.items).toEqual(items);
+  });
+
+  test('when markThumbnailBackfilled is called, then the matching cloud item gets the new thumbnail refs', () => {
+    const items = [makeCloudItem('a')];
+    const { result } = renderHook(() => usePreviewItems('a', items));
+
+    act(() =>
+      result.current.markThumbnailBackfilled('a', {
+        thumbnailBucketId: 'bucket-1',
+        thumbnailBucketFile: 'file-1',
+        thumbnailType: 'JPEG',
+        thumbnailPath: '/local/thumb.jpg',
+      }),
+    );
+
+    expect(result.current.items[0]).toMatchObject({
+      thumbnailBucketId: 'bucket-1',
+      thumbnailBucketFile: 'file-1',
+      thumbnailType: 'JPEG',
+      thumbnailPath: '/local/thumb.jpg',
+    });
+  });
+
+  test('when one cloud item is backfilled, then other items are left unchanged', () => {
+    const items = [makeCloudItem('a'), makeCloudItem('b')];
+    const { result } = renderHook(() => usePreviewItems('a', items));
+
+    act(() =>
+      result.current.markThumbnailBackfilled('a', {
+        thumbnailBucketId: 'bucket-1',
+        thumbnailBucketFile: 'file-1',
+        thumbnailType: 'JPEG',
+        thumbnailPath: '/local/thumb.jpg',
+      }),
+    );
+
+    expect((result.current.items[1] as CloudPhotoItem).thumbnailBucketFile).toBeNull();
   });
 });
