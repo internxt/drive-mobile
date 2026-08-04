@@ -5,8 +5,8 @@ import { items } from '@internxt/lib';
 import { ArrowCircleUpIcon, XCircleIcon } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import { useEffect, useState } from 'react';
+import { Image } from 'expo-image';
 import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import useGetColor from '../../../../../hooks/useColor';
@@ -83,7 +83,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
           shadowRadius: 2.22,
         }}
       >
-        <FastImage
+        <Image
           source={{ uri: thumbnail.uri }}
           style={[
             {
@@ -92,7 +92,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
               borderRadius: 6,
             },
           ]}
-          resizeMode="cover"
+          contentFit="cover"
         />
       </View>
     );

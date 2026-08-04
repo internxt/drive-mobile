@@ -62,6 +62,8 @@ const PhotosScreen = (): JSX.Element => {
     () => timelineDateGroups.flatMap((dateGroup) => dateGroup.group.photos),
     [timelineDateGroups],
   );
+  const allItemsForSelectionRef = useRef(allItems);
+  allItemsForSelectionRef.current = allItems;
 
   const selection = usePhotoSelection(allItems);
   const actions = usePhotoActions(selection, { reloadLocal, reloadCloud });
@@ -77,7 +79,7 @@ const PhotosScreen = (): JSX.Element => {
   const handlePhotoPress = useCallback(
     (id: string) => {
       if (selection.isSelectMode) {
-        const item = allItems.find((candidate) => candidate.id === id);
+        const item = allItemsForSelectionRef.current.find((candidate) => candidate.id === id);
         if (item && !isItemSelectable(item)) {
           return;
         }
@@ -86,25 +88,25 @@ const PhotosScreen = (): JSX.Element => {
       }
       navigation.navigate('PhotoPreview', {
         initialId: id,
-        items: allItems,
+        items: allItemsForSelectionRef.current,
         onItemChanged: handleItemChangedFromPreview,
         onCurrentItemChange: handleCurrentItemChange,
       });
     },
-    [selection, navigation, allItems, handleItemChangedFromPreview, handleCurrentItemChange],
+    [selection.isSelectMode, selection.toggleSelect, navigation, handleItemChangedFromPreview, handleCurrentItemChange],
   );
 
   const handlePhotoLongPress = useCallback(
     (id: string) => {
       if (!selection.isSelectMode) {
-        const item = allItems.find((candidate) => candidate.id === id);
+        const item = allItemsForSelectionRef.current.find((candidate) => candidate.id === id);
         if (item && !isItemSelectable(item)) {
           return;
         }
         selection.enterSelectMode(id);
       }
     },
-    [selection, allItems],
+    [selection.isSelectMode, selection.enterSelectMode],
   );
 
   const accessState = useMemo<PhotosAccessState>(() => {
