@@ -1,12 +1,49 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, View, useWindowDimensions } from 'react-native';
+import { logger } from 'src/services/common';
 import { useTailwind } from 'tailwind-rn';
 import { VideoViewer } from '../../../components/photos/VideoViewer/VideoViewer';
 import { ImageViewer } from '../../../components/ui-kit/view/ImageViewer/ImageViewer';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
+import { useCloudThumbnailBackfill } from '../hooks/useCloudThumbnailBackfill';
 import { usePreviewSource } from '../hooks/usePreviewSource';
 
 const VIDEO_ACTIVATION_DELAY_MS = 200;
+
+interface ThumbnailFallbackProps {
+  itemId: string;
+  thumbnailUri: string | null;
+  isLoading: boolean;
+  mediaLabel: 'video' | 'photo';
+  containerClassName: string;
+}
+
+const ThumbnailFallback = ({
+  itemId,
+  thumbnailUri,
+  isLoading,
+  mediaLabel,
+  containerClassName,
+}: ThumbnailFallbackProps): JSX.Element => {
+  const tailwind = useTailwind();
+  return (
+    <View style={tailwind(containerClassName)}>
+      {thumbnailUri ? (
+        <Image
+          source={{ uri: thumbnailUri }}
+          style={tailwind('w-full h-full')}
+          resizeMode="contain"
+          onError={(e) =>
+            logger.error(
+              `[PreviewPage] ${mediaLabel} thumbnail failed to load — id: ${itemId}, uri: ${thumbnailUri}, error: ${e.nativeEvent.error}`,
+            )
+          }
+        />
+      ) : null}
+      {isLoading ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
+    </View>
+  );
+};
 
 interface PageContentProps {
   item: TimelinePhotoItem;
@@ -37,7 +74,6 @@ const PageContent = ({
   onVideoEnd,
   videoResetKey,
 }: PageContentProps): JSX.Element => {
-  const tailwind = useTailwind();
   if (item.mediaType === 'video') {
     if (uri && isActive) {
       return (
@@ -52,12 +88,13 @@ const PageContent = ({
       );
     }
     return (
-      <View style={tailwind('flex-1 bg-black justify-center items-center')}>
-        {thumbnailUri ? (
-          <Image source={{ uri: thumbnailUri }} style={tailwind('w-full h-full')} resizeMode="contain" />
-        ) : null}
-        {isLoading ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
-      </View>
+      <ThumbnailFallback
+        itemId={item.id}
+        thumbnailUri={thumbnailUri}
+        isLoading={isLoading}
+        mediaLabel="video"
+        containerClassName="flex-1 bg-black justify-center items-center"
+      />
     );
   }
 
@@ -66,12 +103,13 @@ const PageContent = ({
   }
 
   return (
-    <View style={tailwind('flex-1 justify-center items-center')}>
-      {thumbnailUri ? (
-        <Image source={{ uri: thumbnailUri }} style={tailwind('w-full h-full')} resizeMode="contain" />
-      ) : null}
-      {isLoading ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
-    </View>
+    <ThumbnailFallback
+      itemId={item.id}
+      thumbnailUri={thumbnailUri}
+      isLoading={isLoading}
+      mediaLabel="photo"
+      containerClassName="flex-1 justify-center items-center"
+    />
   );
 };
 
@@ -101,6 +139,7 @@ export const PreviewPage = ({
   const tailwind = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
   const { uri, thumbnailUri, isLoading } = usePreviewSource(item, isScrubbing);
+  useCloudThumbnailBackfill(item, uri);
   const [isVideoActive, setIsVideoActive] = useState(false);
 
   useEffect(() => {
