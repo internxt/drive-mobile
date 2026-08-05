@@ -315,4 +315,53 @@ describe('PhotoUploadService.replace', () => {
     await expect(PhotoUploadService.replace(makeAsset(), 'remote-id', DEVICE_ID, PHOTOS_BUCKET)).rejects.toThrow();
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
+
+  // Parity with the equivalent upload() test: replace() now resolves its own local path instead
+  // of sharing uploadAssetToBucket with upload(), so this fallback needs its own coverage.
+  test('when the asset has no local URI, then the replace still proceeds using the asset URI as fallback', async () => {
+    mockGetAssetInfoAsync.mockResolvedValue({ localUri: null });
+
+    await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(mockUploadFile).toHaveBeenCalledWith(
+      LOCAL_PATH,
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
+  test('when replacing an asset, then the destination folder is resolved for the asset creation date', async () => {
+    const asset = makeAsset({ creationTime: new Date('2024-03-10T08:00:00Z').getTime() });
+
+    await PhotoUploadService.replace(asset, 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(mockGetOrCreateFolder).toHaveBeenCalledWith(DEVICE_ID, new Date('2024-03-10T08:00:00Z'));
+  });
+
+  // Regression: the file being replaced always exists in Drive under this name — that's the file
+  // this call is replacing. A pre-upload duplicate check would always find it and should never be
+  // part of this path (see BUGFIX_EDITED_ASSET_REPLACE_FILE_ALREADY_EXISTS.md).
+  test('when replacing an asset, then it does not check Drive for a duplicate file first', async () => {
+    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id').mockResolvedValueOnce('thumb-bucket-file-id');
+
+    await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(mockCheckFileExistence).not.toHaveBeenCalled();
+  });
+
+  test('when checkFileExistence would report the target file as a duplicate, then the replace still succeeds', async () => {
+    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id').mockResolvedValueOnce('thumb-bucket-file-id');
+    mockCheckFileExistence.mockResolvedValue({ existentFiles: [{ uuid: 'existing-remote-id' }] });
+
+    const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result.photoUuid).toBe('existing-remote-id');
+    expect(mockReplaceFileEntry).toHaveBeenCalledWith(
+      'existing-remote-id',
+      expect.objectContaining({ fileId: 'bucket-file-id' }),
+    );
+  });
 });
