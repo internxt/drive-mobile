@@ -316,8 +316,6 @@ describe('PhotoUploadService.replace', () => {
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
 
-  // Parity with the equivalent upload() test: replace() now resolves its own local path instead
-  // of sharing uploadAssetToBucket with upload(), so this fallback needs its own coverage.
   test('when the asset has no local URI, then the replace still proceeds using the asset URI as fallback', async () => {
     mockGetAssetInfoAsync.mockResolvedValue({ localUri: null });
 
@@ -341,9 +339,6 @@ describe('PhotoUploadService.replace', () => {
     expect(mockGetOrCreateFolder).toHaveBeenCalledWith(DEVICE_ID, new Date('2024-03-10T08:00:00Z'));
   });
 
-  // Regression: the file being replaced always exists in Drive under this name — that's the file
-  // this call is replacing. A pre-upload duplicate check would always find it and should never be
-  // part of this path (see BUGFIX_EDITED_ASSET_REPLACE_FILE_ALREADY_EXISTS.md).
   test('when replacing an asset, then it does not check Drive for a duplicate file first', async () => {
     mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id').mockResolvedValueOnce('thumb-bucket-file-id');
 
