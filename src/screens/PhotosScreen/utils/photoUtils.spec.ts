@@ -6,6 +6,7 @@ const makeLocalItem = (overrides: Partial<PhotoItem> = {}): PhotoItem => ({
   type: 'local',
   uri: 'file:///photo.jpg',
   createdAt: Date.now(),
+  modificationTime: Date.now(),
   backupState: 'not-backed',
   mediaType: 'photo',
   ...overrides,

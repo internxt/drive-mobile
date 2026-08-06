@@ -6,6 +6,7 @@ const makeItem = (id: string, backupState: PhotoItem['backupState']): PhotoItem 
   id,
   type: 'local',
   createdAt: 0,
+  modificationTime: 0,
   backupState,
   mediaType: 'photo',
 });

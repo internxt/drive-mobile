@@ -28,6 +28,7 @@ const makeLocalItem = (id: string, backupState: PhotoItem['backupState']): Photo
   id,
   type: 'local',
   createdAt: 1000,
+  modificationTime: 1000,
   backupState,
   mediaType: 'photo',
 });
@@ -176,6 +177,7 @@ describe('useLiveBackupStatus', () => {
       id: 'b1',
       type: 'local',
       createdAt: 1000,
+      modificationTime: 1000,
       backupState: 'not-backed',
       mediaType: 'photo',
       isBurst: true,
@@ -195,6 +197,7 @@ describe('useLiveBackupStatus', () => {
       id: 'b2',
       type: 'local',
       createdAt: 1000,
+      modificationTime: 1000,
       backupState: 'backed',
       mediaType: 'photo',
       isBurst: true,

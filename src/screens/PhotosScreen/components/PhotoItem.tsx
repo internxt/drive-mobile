@@ -157,10 +157,14 @@ const BurstBadge = ({ isBurstIncomplete }: { isBurstIncomplete?: boolean }): JSX
   );
 };
 
-const localPhotoCellAreEqual = (prev: CellProps & { item: PhotoItemType }, next: CellProps & { item: PhotoItemType }) =>
+export const localPhotoCellAreEqual = (
+  prev: CellProps & { item: PhotoItemType },
+  next: CellProps & { item: PhotoItemType },
+) =>
   prev.item.id === next.item.id &&
   prev.item.backupState === next.item.backupState &&
   prev.item.uri === next.item.uri &&
+  prev.item.modificationTime === next.item.modificationTime &&
   prev.item.mediaType === next.item.mediaType &&
   prev.item.duration === next.item.duration &&
   prev.item.isLivePhoto === next.item.isLivePhoto &&
@@ -205,7 +209,7 @@ const LocalPhotoCell = memo(
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
         {/* recyclingKey clears the previous asset's bitmap immediately when FlashList reuses this cell */}
         <ExpoImage
-          source={{ uri: item.uri }}
+          source={{ uri: item.uri, cacheKey: `${item.id}-${item.modificationTime}` }}
           recyclingKey={item.id}
           style={[StyleSheet.absoluteFillObject, isCloudDeleted && styles.dimmed]}
           contentFit="cover"

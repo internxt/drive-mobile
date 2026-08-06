@@ -66,6 +66,7 @@ const makeLocalBacked = (id = 'asset-1'): PhotoItem => ({
   uri: `ph://${id}`,
   mediaType: 'photo',
   createdAt: Date.now(),
+  modificationTime: Date.now(),
   backupState: 'backed',
 });
 
@@ -75,6 +76,7 @@ const makeLocalNotBacked = (id = 'asset-nb'): PhotoItem => ({
   uri: `ph://${id}`,
   mediaType: 'photo',
   createdAt: Date.now(),
+  modificationTime: Date.now(),
   backupState: 'not-backed',
 });
 

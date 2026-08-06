@@ -41,6 +41,7 @@ const makePhotoItem = (overrides: Partial<PhotoItem> = {}): PhotoItem => ({
   type: 'local',
   uri: 'file:///photo.jpg',
   createdAt: new Date('2024-06-15T12:00:00').getTime(),
+  modificationTime: new Date('2024-06-15T12:00:00').getTime(),
   backupState: 'not-backed',
   mediaType: 'photo',
   ...overrides,
@@ -136,6 +137,12 @@ describe('local asset to photo item conversion', () => {
     const item = assetToPhotoItem(asset, new Set(), new Set());
     expect(item.mediaType).toBe('video');
     expect(item.duration).toBe('2:05');
+  });
+
+  test('when a device asset is converted to a timeline item, then its modification time is carried over', () => {
+    const asset = makeAsset({ modificationTime: new Date('2024-07-01T09:30:00').getTime() });
+    const item = assetToPhotoItem(asset, new Set(), new Set());
+    expect(item.modificationTime).toBe(new Date('2024-07-01T09:30:00').getTime());
   });
 
   test('when the asset is in the cloud-deleted set, then its backup state is cloud-deleted', () => {
