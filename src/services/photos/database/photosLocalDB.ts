@@ -617,7 +617,7 @@ class PhotosLocalDB {
     return rows.map(rowToCloudAssetEntry);
   }
 
-  private buildInClausePlaceholders = (ids: string[]): string => ids.map(() => '?').join(', ');
+  private readonly buildInClausePlaceholders = (ids: string[]): string => ids.map(() => '?').join(', ');
 
   async getCachedThumbnailRefs(
     remoteFileIds: string[],

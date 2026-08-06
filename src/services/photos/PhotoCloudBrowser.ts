@@ -36,7 +36,7 @@ const pickLatestThumbnail = (thumbnails: ThumbnailWithCreatedAt[] | undefined): 
       return new Date(candidate.createdAt).getTime() > new Date(newest.createdAt).getTime() ? candidate : newest;
     }
     return candidate.id > newest.id ? candidate : newest;
-  });
+  }, thumbnails[0]);
 };
 
 const resolveBurstFields = (
@@ -557,19 +557,21 @@ class PhotoCloudBrowserService {
     }
 
     const cachedRefs = await this.localDB.getCachedThumbnailRefs(entriesWithThumbnail.map((entry) => entry.remoteFileId));
-    await Promise.all(
-      entriesWithThumbnail.map((entry) => {
+    const stalePaths = entriesWithThumbnail
+      .map((entry) => {
         const cached = cachedRefs.get(entry.remoteFileId);
         if (
           !cached?.thumbnailPath ||
           !cached.thumbnailBucketFile ||
           cached.thumbnailBucketFile === entry.thumbnailBucketFile
         ) {
-          return undefined;
+          return null;
         }
-        return fileSystemService.unlinkIfExists(cached.thumbnailPath);
-      }),
-    );
+        return cached.thumbnailPath;
+      })
+      .filter((path): path is string => path !== null);
+
+    await Promise.all(stalePaths.map((path) => fileSystemService.unlinkIfExists(path)));
   }
 
   private async findChildFolder(parentUuid: string, name: string): Promise<FetchPaginatedFolder | null> {
