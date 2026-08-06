@@ -73,7 +73,7 @@ const resolveLocalPath = async (
   asset: MediaLibrary.Asset,
 ): Promise<{ localPath: string; tempPath?: string; thumbnailUri?: string }> => {
   if (Platform.OS === 'ios') {
-    const assetInfo = await photoMediaLibraryService.getAssetInfo(asset.id, { shouldDownloadFromNetwork: false });
+    const assetInfo = await photoMediaLibraryService.getAssetInfo(asset.id, { shouldDownloadFromNetwork: true });
     const rawUri = assetInfo.localUri ?? asset.uri;
     if (!rawUri || rawUri.startsWith(ICLOUD_URI_SCHEME)) {
       throw new Error(`Asset ${asset.id} has no local URI — may be stored in iCloud`);
@@ -356,6 +356,100 @@ const uploadPairedVideo = async (params: {
   }
 };
 
+/**
+ * Uploads a file's bytes and swaps them into an existing Drive entry, falling back to creating
+ * a new entry if the existing one was deleted or trashed.
+ * @param params.localFilePath - Path of the local file to upload.
+ * @param params.thumbnailSource - Path/URI to generate the thumbnail from.
+ * @param params.existingRemoteFileId - UUID of the Drive entry to replace.
+ * @param params.plainName - File name without extension.
+ * @param params.fileExtension - File extension, without the leading dot.
+ * @param params.fileSize - Size of the local file, in bytes.
+ * @param params.folderUuid - Destination folder UUID, used only if a new entry has to be created.
+ * @param params.bucketId - Network bucket to upload the bytes to.
+ * @param params.modificationIso - Asset modification time, ISO 8601.
+ * @param params.creationIso - Asset creation time, ISO 8601.
+ * @param params.credentials - Encryption key and bridge credentials for the upload.
+ * @param params.onProgress - Called with the upload progress ratio (0-1).
+ * @param params.signal - Aborts the upload when triggered.
+ * @returns UUID of the replaced or newly created Drive entry.
+ */
+const replaceRemoteFile = async (params: {
+  localFilePath: string;
+  thumbnailSource: string;
+  existingRemoteFileId: string;
+  plainName: string;
+  fileExtension: string;
+  fileSize: number;
+  folderUuid: string;
+  bucketId: string;
+  modificationIso: string;
+  creationIso: string;
+  credentials: UploadCredentials;
+  onProgress?: (ratio: number) => void;
+  signal?: AbortSignal;
+}): Promise<string> => {
+  const {
+    localFilePath,
+    thumbnailSource,
+    existingRemoteFileId,
+    plainName,
+    fileExtension,
+    fileSize,
+    folderUuid,
+    bucketId,
+    modificationIso,
+    creationIso,
+    credentials,
+    onProgress,
+    signal,
+  } = params;
+
+  let fileId: string;
+  try {
+    fileId = await uploadFile(
+      localFilePath,
+      bucketId,
+      credentials.encryptionKey,
+      constants.BRIDGE_URL,
+      { user: credentials.bridgeUser, pass: credentials.bridgePass },
+      { notifyProgress: onProgress, signal },
+    );
+  } catch (uploadError) {
+    if (uploadError instanceof Error && uploadError.name !== 'Error') {
+      throw uploadError;
+    }
+    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
+    throw new Error(`Bucket upload failed for ${plainName}.${fileExtension}: ${message}`);
+  }
+
+  let photoUuid = existingRemoteFileId;
+  try {
+    await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
+    await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials);
+  } catch (replaceError) {
+    if (!isDeletedOrTrashedError(replaceError)) {
+      logger.error(`Failed to replace file entry for ${existingRemoteFileId}:`, replaceError);
+      throw replaceError;
+    }
+    const driveFile = await uploadService.createFileEntry({
+      fileId,
+      type: fileExtension,
+      size: fileSize,
+      plainName,
+      bucket: bucketId,
+      folderUuid,
+      encryptVersion: EncryptionVersion.Aes03,
+      modificationTime: modificationIso,
+      creationTime: creationIso,
+    });
+    await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
+    photoUuid = driveFile.uuid;
+  }
+
+  return photoUuid;
+};
+
 export const PhotoUploadService = {
   async upload(
     asset: MediaLibrary.Asset,
@@ -508,7 +602,6 @@ export const PhotoUploadService = {
     const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
 
     if (livePhoto) {
-      // TODO: see the equivalent TODO in upload().
       let components;
       try {
         components = await exportLivePhotoComponents(asset.id);
@@ -531,6 +624,7 @@ export const PhotoUploadService = {
 
           const photoFileStat = await fileSystemService.stat(photoLocalPath);
           const user = await asyncStorageService.getUser();
+          const folderUuid = await photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate);
           const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
           const credentials: UploadCredentials = {
             bucketId: photosBucket,
@@ -539,42 +633,22 @@ export const PhotoUploadService = {
             bridgePass,
           };
 
-          let photoUuid = existingRemoteFileId;
-          const photoFileId = await uploadFile(
-            photoLocalPath,
-            photosBucket,
-            encryptionKey,
-            constants.BRIDGE_URL,
-            { user: bridgeUser, pass: bridgePass },
-            { notifyProgress: onProgress, signal },
-          );
+          const photoUuid = await replaceRemoteFile({
+            localFilePath: photoLocalPath,
+            thumbnailSource: asset.uri,
+            existingRemoteFileId,
+            plainName,
+            fileExtension,
+            fileSize: photoFileStat.size,
+            folderUuid,
+            bucketId: photosBucket,
+            modificationIso,
+            creationIso,
+            credentials,
+            onProgress,
+            signal,
+          });
 
-          try {
-            await uploadService.replaceFileEntry(existingRemoteFileId, {
-              fileId: photoFileId,
-              size: photoFileStat.size,
-            });
-            await uploadThumbnailForAsset(asset.uri, fileExtension, existingRemoteFileId, credentials);
-          } catch (replaceError) {
-            if (!isDeletedOrTrashedError(replaceError)) throw replaceError;
-            const folderUuid = await photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate);
-            const driveFile = await uploadService.createFileEntry({
-              fileId: photoFileId,
-              type: fileExtension,
-              size: photoFileStat.size,
-              plainName,
-              bucket: photosBucket,
-              folderUuid,
-              encryptVersion: EncryptionVersion.Aes03,
-              modificationTime: modificationIso,
-              creationTime: creationIso,
-            });
-            await uploadThumbnailForAsset(asset.uri, fileExtension, driveFile.uuid, credentials);
-            photoUuid = driveFile.uuid;
-          }
-
-          // Retrieve folderUuid for the paired video (may differ from original if photo was re-created)
-          const folderUuid = await photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate);
           const pairedVideoUuid = await uploadPairedVideo({
             videoLocalPath,
             videoFileName: components.video.fileName,
@@ -594,44 +668,35 @@ export const PhotoUploadService = {
       }
     }
 
-    const {
-      fileId,
-      fileSize,
-      thumbnailSource,
-      fileExtension,
-      tempPath,
-      credentials,
-      plainName,
-      bucketId,
-      folderUuid,
-      modificationIso,
-      creationIso,
-    } = await uploadAssetToBucket(asset, deviceId, photosBucket, onProgress, signal);
+    const { localPath: localFilePath, tempPath, thumbnailUri } = await resolveLocalPath(asset);
+
+    const createdDate = new Date(asset.creationTime);
+    const creationIso = createdDate.toISOString();
+    const modificationIso = new Date(asset.modificationTime).toISOString();
+    const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
+
+    const fileStat = await fileSystemService.stat(localFilePath);
+    const user = await asyncStorageService.getUser();
+    const folderUuid = await photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate);
+    const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+    const credentials: UploadCredentials = { bucketId: photosBucket, encryptionKey, bridgeUser, bridgePass };
 
     try {
-      let photoUuid = existingRemoteFileId;
-      try {
-        await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
-        await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials);
-      } catch (replaceError) {
-        if (!isDeletedOrTrashedError(replaceError)) {
-          logger.error(`Failed to replace file entry for ${existingRemoteFileId}:`, replaceError);
-          throw replaceError;
-        }
-        const driveFile = await uploadService.createFileEntry({
-          fileId,
-          type: fileExtension,
-          size: fileSize,
-          plainName,
-          bucket: bucketId,
-          folderUuid,
-          encryptVersion: EncryptionVersion.Aes03,
-          modificationTime: modificationIso,
-          creationTime: creationIso,
-        });
-        await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
-        photoUuid = driveFile.uuid;
-      }
+      const photoUuid = await replaceRemoteFile({
+        localFilePath,
+        thumbnailSource: thumbnailUri ?? localFilePath,
+        existingRemoteFileId,
+        plainName,
+        fileExtension,
+        fileSize: fileStat.size,
+        folderUuid,
+        bucketId: photosBucket,
+        modificationIso,
+        creationIso,
+        credentials,
+        onProgress,
+        signal,
+      });
 
       const burst = await uploadBurstMembersIfBurst({
         assetId: asset.id,
