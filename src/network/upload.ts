@@ -27,6 +27,10 @@ export async function uploadFile(
   const stat = await RNFS.stat(filePath);
   const fileSize = stat.size;
 
+  if (fileSize <= 0) {
+    logger.warn(`[Upload] File "${filePath}" has invalid size=${fileSize} (stat: ${JSON.stringify(stat)})`);
+  }
+
   const useMultipart = fileSize > MAX_SIZE_FOR_SINGLE_UPLOAD;
 
   const isAborted = () => params.signal?.aborted === true;

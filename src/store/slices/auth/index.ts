@@ -14,6 +14,7 @@ import notificationsService from '../../../services/NotificationsService';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
+import { signOutThunk as photosSignOutThunk } from '../photos';
 import { uiActions } from '../ui';
 export interface AuthState {
   loggedIn: boolean | null;
@@ -197,19 +198,29 @@ export const checkAndRefreshTokenThunk = createAsyncThunk<void, void, { state: R
   },
 );
 
+let isSignOutInFlight = false;
+
 export const signOutThunk = createAsyncThunk<
   void,
   { reason: 'manual' | 'unauthorized' | 'token_expired' },
   { state: RootState }
 >('auth/signOut', async (payload, { dispatch }) => {
-  const reason = payload.reason;
-  authService.signout(reason).catch(errorService.reportError);
-  drive.clear().catch(errorService.reportError);
-  dispatch(uiActions.resetState());
-  dispatch(authActions.resetState());
-  dispatch(driveActions.resetState());
-  dispatch(authActions.setLoggedIn(false));
-  authService.emitLogoutEvent();
+  if (isSignOutInFlight) {
+    return;
+  }
+  isSignOutInFlight = true;
+  try {
+    await dispatch(photosSignOutThunk());
+    authService.signout(payload.reason).catch(errorService.reportError);
+    drive.clear().catch(errorService.reportError);
+    dispatch(uiActions.resetState());
+    dispatch(authActions.resetState());
+    dispatch(driveActions.resetState());
+    dispatch(authActions.setLoggedIn(false));
+    authService.emitLogoutEvent();
+  } finally {
+    isSignOutInFlight = false;
+  }
 });
 
 export const refreshUserThunk = createAsyncThunk<void, void, { state: RootState }>(

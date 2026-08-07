@@ -2,9 +2,12 @@ import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import network from '../../../../network';
 
 import {
+  CheckDuplicatedFilesResponse,
   CreateThumbnailEntryPayload,
   DriveFileData,
   FileEntryByUuid,
+  FileStructure,
+  ReplaceFile,
   Thumbnail,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
@@ -67,8 +70,19 @@ class UploadService {
     return this.sdk.storageV2.createFileEntryByUuid(entry);
   }
 
+  public async replaceFileEntry(fileUuid: string, payload: ReplaceFile): Promise<DriveFileData> {
+    return this.sdk.storageV2.replaceFile(fileUuid, payload);
+  }
+
   public async createThumbnailEntry(entry: CreateThumbnailEntryPayload): Promise<Thumbnail> {
     return this.sdk.storageV2.createThumbnailEntryWithUUID(entry);
+  }
+
+  public async checkFileExistence(
+    parentFolderUuid: string,
+    filesList: FileStructure[],
+  ): Promise<CheckDuplicatedFilesResponse> {
+    return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
   }
 
   public getFinalUri(fileUri: string, fileType: FileType): string {

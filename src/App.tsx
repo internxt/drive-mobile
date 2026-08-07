@@ -13,7 +13,10 @@ import DeleteAccountModal from './components/modals/DeleteAccountModal';
 import EditNameModal from './components/modals/EditNameModal';
 import LanguageModal from './components/modals/LanguageModal';
 import LinkCopiedModal from './components/modals/LinkCopiedModal';
+import SignOutModal from './components/modals/SignOutModal';
 
+import { useNavigationContainerRef } from '@react-navigation/native';
+import { useKeepAwake } from 'expo-keep-awake';
 import { DriveContextProvider } from './contexts/Drive';
 import { ThemeProvider, useTheme } from './contexts/Theme';
 import { useLoadFonts } from './helpers';
@@ -33,11 +36,14 @@ import { useAppDispatch, useAppSelector } from './store/hooks';
 import { appActions, appThunks } from './store/slices/app';
 import { authThunks } from './store/slices/auth';
 import { paymentsThunks } from './store/slices/payments';
+import { hydratePhotosStateThunk } from './store/slices/photos';
 import { uiActions } from './store/slices/ui';
+import { RootStackParamList } from './types/navigation';
 
 let listener: NativeEventSubscription | null = null;
 
 function AppContent(): JSX.Element {
+  const navigationRef = useNavigationContainerRef<RootStackParamList>();
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -48,6 +54,7 @@ function AppContent(): JSX.Element {
   const { screenLocked, lastScreenLock, initialScreenLocked, screenLockEnabled } = useAppSelector((state) => state.app);
   const { performPeriodicSecurityCheck } = useSecurity();
 
+  useKeepAwake();
   useScreenProtection();
 
   const [isAppInitialized, setIsAppInitialized] = useState(false);
@@ -65,6 +72,8 @@ function AppContent(): JSX.Element {
     await dispatch(appThunks.initializeUserPreferencesThunk());
     await dispatch(authThunks.silentSignInThunk());
     await dispatch(authThunks.refreshTokensThunk());
+    dispatch(hydratePhotosStateThunk());
+    await dispatch(paymentsThunks.loadFileLimitsThunk());
   };
 
   const onLinkCopiedModalClosed = () => dispatch(uiActions.setIsLinkCopiedModalOpen(false));
@@ -229,7 +238,7 @@ function AppContent(): JSX.Element {
                     onScreenUnlocked={handleUnlockScreen}
                   />
 
-                  {initialScreenLocked && screenLocked ? null : <Navigation />}
+                  {initialScreenLocked && screenLocked ? null : <Navigation navigationRef={navigationRef} />}
                   <AppToast />
 
                   <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
@@ -240,6 +249,13 @@ function AppContent(): JSX.Element {
                     onClose={onChangeProfilePictureModalClosed}
                   />
                   <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
+                  <SignOutModal
+                    onSignedOut={() => {
+                      if (navigationRef.isReady()) {
+                        navigationRef.reset({ index: 0, routes: [{ name: 'SignIn' }] });
+                      }
+                    }}
+                  />
                 </Portal.Host>
               </DriveContextProvider>
             ) : (

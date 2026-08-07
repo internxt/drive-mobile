@@ -1,6 +1,7 @@
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { TimelinePhotoItem } from '../screens/PhotosScreen/types';
 import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
 import { SharedFile } from '../shareExtension/types';
 
@@ -27,6 +28,13 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
+  PhotoPreview: {
+    initialId: string;
+    items: TimelinePhotoItem[];
+    onItemChanged?: () => Promise<void> | void;
+    onCurrentItemChange?: (itemId: string) => void;
+  };
+  Settings: undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };
 };
@@ -46,6 +54,7 @@ export type TabExplorerStackParamList = {
   Drive: { sharedFolderId: number } | undefined;
   Add: undefined;
   Shared: undefined;
+  Photos: undefined;
   Settings: undefined;
 };
 

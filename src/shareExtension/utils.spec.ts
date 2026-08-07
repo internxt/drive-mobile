@@ -86,8 +86,8 @@ describe('getMimeTypeFromUri', () => {
 });
 
 describe('formatBytes', () => {
-  test('when given 1024 bytes, then it returns "1 kB"', () => {
-    expect(formatBytes(1024)).toBe('1 kB');
+  test('when given 1024 bytes, then it returns "1.0 KB"', () => {
+    expect(formatBytes(1024)).toBe('1.0 KB');
   });
 });
 

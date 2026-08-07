@@ -1,0 +1,209 @@
+import * as RNFS from '@dr.pogodin/react-native-fs';
+import * as Clipboard from 'expo-clipboard';
+import * as MediaLibrary from 'expo-media-library';
+import { Platform } from 'react-native';
+import { CloudPhotoItem, TimelinePhotoItem } from 'src/screens/PhotosScreen/types';
+import { logger } from 'src/services/common';
+import { stripFileUri, toFileUri } from 'src/services/common/uri/uriHelpers';
+import { driveTrashService } from 'src/services/drive/trash/driveTrash.service';
+import fileSystemService from 'src/services/FileSystemService';
+import { BurstFetchService } from './burst/BurstFetchService';
+import { photosLocalDB } from './database/photosLocalDB';
+import { SavePermissionDeniedError } from './errors';
+import { saveLivePhotoToLibrary } from './LivePhotoNativeModule';
+import { PhotoAssetFetchService } from './PhotoAssetFetchService';
+
+type CleanupItem = { type: 'cloud'; assetId: string } | { type: 'local-backed'; assetId: string; remoteFileId: string };
+
+class PhotoActionsService {
+  async exportItems(items: TimelinePhotoItem[], signal: AbortSignal): Promise<void> {
+    for (const item of items) {
+      if (signal.aborted) {
+        return;
+      }
+
+      let result;
+      try {
+        result = await PhotoAssetFetchService.resolveExportUri(item, signal);
+        if (!result) {
+          logger.warn(`[PhotoActionsService] export — no URI resolved for ${item.id}, skipping`);
+          continue;
+        }
+        if (signal.aborted) {
+          return;
+        }
+
+        await fileSystemService.shareFile({ title: '', fileUri: toFileUri(result.uri) });
+      } catch (error) {
+        logger.error(`[PhotoActionsService] export failed for ${item.id}: ${error}`);
+        throw error;
+      } finally {
+        result?.cleanup?.();
+      }
+    }
+  }
+
+  async saveToDevice(item: TimelinePhotoItem, signal: AbortSignal): Promise<void> {
+    const { status } = await MediaLibrary.requestPermissionsAsync(true);
+    if (status !== 'granted') {
+      logger.warn(`[PhotoActionsService] saveToDevice — permission not granted (status: ${status})`);
+      throw new SavePermissionDeniedError();
+    }
+
+    if (Platform.OS === 'ios' && item.type === 'cloud-only' && item.isLivePhoto && item.pairedVideoRemoteFileId) {
+      await this.saveLivePhotoToDevice(item, signal);
+      return;
+    }
+
+    if (Platform.OS === 'ios' && item.type === 'cloud-only' && item.isBurst && item.burstGroupId) {
+      const saved = await BurstFetchService.saveBurstToDevice(item, signal);
+      if (saved) {
+        logger.info(`[PhotoActionsService] saveToDevice — burst saved for ${item.id}`);
+        return;
+      }
+      logger.warn(
+        `[PhotoActionsService] saveToDevice — burst save incomplete for ${item.id}, falling through to single save`,
+      );
+    }
+
+    const uri = await PhotoAssetFetchService.fetchUri(item, signal);
+    if (!uri) {
+      logger.warn(`[PhotoActionsService] saveToDevice — no URI resolved for ${item.id}`);
+      return;
+    }
+    if (signal.aborted) {
+      return;
+    }
+
+    try {
+      const fileUri = toFileUri(uri);
+      await MediaLibrary.saveToLibraryAsync(fileUri);
+    } catch (error) {
+      logger.error(`[PhotoActionsService] saveToDevice failed for ${item.id}: ${error}`);
+      throw error;
+    }
+  }
+
+  private async saveLivePhotoToDevice(item: CloudPhotoItem, signal: AbortSignal): Promise<void> {
+    const livePhotoComponents = await PhotoAssetFetchService.fetchLivePhotoComponents(item, signal);
+    if (!livePhotoComponents || signal.aborted) {
+      logger.warn(`[PhotoActionsService] saveLivePhotoToDevice — could not fetch components for ${item.id}`);
+      return;
+    }
+
+    try {
+      await saveLivePhotoToLibrary(livePhotoComponents.photoPath, livePhotoComponents.videoPath);
+      logger.info(`[PhotoActionsService] saveLivePhotoToDevice — Live Photo saved for ${item.id}`);
+    } catch (err) {
+      logger.error(`[PhotoActionsService] saveLivePhotoToDevice — native save failed for ${item.id}: ${err}`);
+      logger.warn(`[PhotoActionsService] saveLivePhotoToDevice — falling back to photo-only save for ${item.id}`);
+      const uri = await PhotoAssetFetchService.fetchUri(item, signal);
+      if (uri) {
+        await MediaLibrary.saveToLibraryAsync(toFileUri(uri));
+      }
+    }
+  }
+
+  private async classifyItems(
+    items: TimelinePhotoItem[],
+    signal: AbortSignal,
+  ): Promise<{
+    trashPayload: { id: string; type: 'file'; uuid: string }[];
+    cleanupItems: CleanupItem[];
+  }> {
+    const trashPayload: { id: string; type: 'file'; uuid: string }[] = [];
+    const cleanupItems: CleanupItem[] = [];
+
+    for (const item of items) {
+      if (signal.aborted) {
+        return { trashPayload, cleanupItems };
+      }
+
+      if (item.type === 'cloud-only') {
+        trashPayload.push({ id: item.id, type: 'file', uuid: item.id });
+        cleanupItems.push({ type: 'cloud', assetId: item.id });
+
+        if (item.pairedVideoRemoteFileId) {
+          trashPayload.push({ id: item.pairedVideoRemoteFileId, type: 'file', uuid: item.pairedVideoRemoteFileId });
+          cleanupItems.push({ type: 'cloud', assetId: item.pairedVideoRemoteFileId });
+        }
+
+        if (item.isBurst && item.burstGroupId) {
+          const members = await photosLocalDB.getBurstMembers(item.burstGroupId);
+          for (const member of members) {
+            trashPayload.push({ id: member.remoteFileId, type: 'file', uuid: member.remoteFileId });
+            cleanupItems.push({ type: 'cloud', assetId: member.remoteFileId });
+          }
+        }
+      } else if (item.type === 'local' && item.backupState === 'backed') {
+        const itemDbEntry = await photosLocalDB.getStatus(item.id);
+
+        if (itemDbEntry?.remoteFileId) {
+          const { remoteFileId } = itemDbEntry;
+          trashPayload.push({ id: remoteFileId, type: 'file', uuid: remoteFileId });
+          cleanupItems.push({ type: 'local-backed', assetId: item.id, remoteFileId });
+          if (itemDbEntry.pairedVideoRemoteFileId) {
+            trashPayload.push({
+              id: itemDbEntry.pairedVideoRemoteFileId,
+              type: 'file',
+              uuid: itemDbEntry.pairedVideoRemoteFileId,
+            });
+            cleanupItems.push({ type: 'cloud', assetId: itemDbEntry.pairedVideoRemoteFileId });
+          }
+        } else {
+          logger.info(`[PhotoActionsService] trash — local-backed ${item.id} has no remoteFileId, skipping`);
+        }
+      } else {
+        logger.info(
+          `[PhotoActionsService] trash — skipping ${item.id} (type=${item.type}, backupState=${item.type === 'local' ? item.backupState : 'n/a'})`,
+        );
+      }
+    }
+
+    return { trashPayload, cleanupItems };
+  }
+
+  private async removeItemsFromDB(cleanupItems: CleanupItem[]): Promise<void> {
+    for (const target of cleanupItems) {
+      if (target.type === 'cloud') {
+        await photosLocalDB.deleteCloudAsset(target.assetId);
+      } else {
+        await photosLocalDB.markAssetDeleted(target.assetId);
+        await photosLocalDB.deleteCloudAsset(target.remoteFileId);
+      }
+    }
+  }
+
+  async trash(items: TimelinePhotoItem[], signal: AbortSignal): Promise<void> {
+    const { trashPayload, cleanupItems } = await this.classifyItems(items, signal);
+
+    logger.info(`[PhotoActionsService] trash — sending ${trashPayload.length}/${items.length} items to Drive trash`);
+    if (trashPayload.length > 0) {
+      await driveTrashService.moveToTrash(trashPayload);
+      logger.info('[PhotoActionsService] trash — moveToTrash done');
+    }
+
+    await this.removeItemsFromDB(cleanupItems);
+    logger.info('[PhotoActionsService] trash — DB cleanup done');
+  }
+
+  async copyToClipboard(item: TimelinePhotoItem, signal: AbortSignal): Promise<void> {
+    const uri = await PhotoAssetFetchService.fetchUri(item, signal);
+    if (!uri) {
+      logger.warn(`[PhotoActionsService] copyToClipboard — no URI resolved for ${item.id}`);
+      return;
+    }
+    if (signal.aborted) return;
+
+    try {
+      const fileUri = stripFileUri(uri);
+      const base64 = await RNFS.readFile(fileUri, 'base64');
+      await Clipboard.setImageAsync(base64);
+    } catch (error) {
+      logger.error(`[PhotoActionsService] copyToClipboard failed for ${item.id}: ${error}`);
+      throw error;
+    }
+  }
+}
+
+export const photoActionsService = new PhotoActionsService();

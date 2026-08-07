@@ -4,7 +4,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AsyncStorageKey } from '../types';
 import secureStorageService from './SecureStorageService';
 
-const SENSITIVE_KEYS = [AsyncStorageKey.Token, AsyncStorageKey.PhotosToken, AsyncStorageKey.User, AsyncStorageKey.ThemePreference];
+const SENSITIVE_KEYS = [
+  AsyncStorageKey.Token,
+  AsyncStorageKey.PhotosToken,
+  AsyncStorageKey.User,
+  AsyncStorageKey.ThemePreference,
+];
 
 class AsyncStorageService {
   private isSensitiveKey(key: AsyncStorageKey): boolean {
@@ -120,6 +125,12 @@ class AsyncStorageService {
         AsyncStorageKey.LastScreenLock,
         AsyncStorageKey.ThemePreference,
         AsyncStorageKey.Language,
+        AsyncStorageKey.PhotosSettings,
+        AsyncStorageKey.PhotosDiscoverSeen,
+        AsyncStorageKey.PhotosDevicesCache,
+        AsyncStorageKey.PhotosAccessCache,
+        AsyncStorageKey.LastUpdatedAt,
+        AsyncStorageKey.IsDeletingAccount,
       ];
 
       await AsyncStorage.multiRemove(nonSensitiveKeys);

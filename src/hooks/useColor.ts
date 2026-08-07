@@ -83,6 +83,12 @@ const lightThemeColors = {
   'bg-primary-10': 'rgba(0, 102, 255, 0.10)',
   'bg-primary-20': 'rgba(0, 102, 255, 0.20)',
 
+  'bg-yellow-10': 'rgba(255, 204, 0, 0.15)',
+  'text-yellow-text': 'rgb(153, 122, 0)',
+  'text-white-90': 'rgba(255, 255, 255, 0.9)',
+  'bg-black-40': 'rgba(0, 0, 0, 0.4)',
+  'bg-black-50': 'rgba(0, 0, 0, 0.5)',
+
   'bg-forgot-password-screen': '#ebf2ff',
   'border-color-forgot-password-screen': '#f6faff',
 };
@@ -168,6 +174,12 @@ const darkThemeColors = {
 
   'bg-primary-10': 'rgba(20, 114, 255, 0.10)',
   'bg-primary-20': 'rgba(20, 114, 255, 0.20)',
+
+  'bg-yellow-10': 'rgba(255, 204, 0, 0.15)',
+  'text-yellow-text': 'rgb(153, 122, 0)',
+  'text-white-90': 'rgba(255, 255, 255, 0.9)',
+  'bg-black-40': 'rgba(0, 0, 0, 0.4)',
+  'bg-black-50': 'rgba(0, 0, 0, 0.5)',
 
   'bg-forgot-password-screen': 'rgba(20, 114, 255, 0.2)',
   'border-color-forgot-password-screen': 'rgba(20, 114, 255, 0.1)',

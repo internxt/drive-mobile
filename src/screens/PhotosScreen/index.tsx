@@ -1,0 +1,309 @@
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import strings from 'assets/lang/strings';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
+import AppScreen from 'src/components/AppScreen';
+import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
+import { useAppDispatch, useAppSelector } from 'src/store/hooks';
+import { paymentsThunks } from 'src/store/slices/payments';
+import {
+  forceRefreshThunk,
+  pauseBackupThunk,
+  photosActions,
+  resumeBackupThunk,
+  runBackupCycleThunk,
+} from 'src/store/slices/photos';
+import { hasPhotosFeatureAccess } from 'src/store/slices/photos/selectors';
+import { uiActions } from 'src/store/slices/ui';
+import { TabExplorerScreenNavigationProp } from 'src/types/navigation';
+import { useTailwind } from 'tailwind-rn';
+import notificationsService from '../../services/NotificationsService';
+import { photoPermissionService } from '../../services/photos/photoPermissionService';
+import { NotificationType } from '../../types';
+import ActionProgressModal from './components/ActionProgressModal';
+import BackupDisabledBanner from './components/BackupDisabledBanner';
+import LimitedAccessBanner from './components/LimitedAccessBanner';
+import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
+import PhotosHeader from './components/PhotosHeader';
+import PhotosLockedOverlay from './components/PhotosLockedOverlay';
+import PhotosTimeline, { PhotosTimelineHandle } from './components/PhotosTimeline';
+import SelectionToolbar from './components/SelectionToolbar';
+import EnableBackupBottomSheet from './EnableBackupBottomSheet';
+import { usePhotoActions } from './hooks/usePhotoActions';
+import { usePhotoDevices } from './hooks/usePhotoDevices';
+import { usePhotoSelection } from './hooks/usePhotoSelection';
+import { usePhotosTimeline } from './hooks/usePhotosTimeline';
+import useSelectMorePhotos from './hooks/useSelectMorePhotos';
+import { PhotosAccessState, TimelinePhotoItem } from './types';
+import { isItemSelectable } from './utils/photoUtils';
+
+const PhotosScreen = (): JSX.Element => {
+  const tailwind = useTailwind();
+  const dispatch = useAppDispatch();
+  const navigation = useNavigation<TabExplorerScreenNavigationProp<'Photos'>>();
+  const enabled = useAppSelector((state) => state.photos.enabled);
+  const hasAccess = useAppSelector(hasPhotosFeatureAccess);
+  const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
+  const [isEnableBackupSheetOpen, setIsEnableBackupSheetOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [deviceFilterId, setDeviceFilterId] = useState<string | null>(null);
+  const { devices: photoDevices, reload: reloadPhotoDevices } = usePhotoDevices();
+  const activeDeviceName = useMemo(
+    () => photoDevices.find((device) => device.uuid === deviceFilterId)?.name ?? null,
+    [photoDevices, deviceFilterId],
+  );
+  const { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud } = usePhotosTimeline(deviceFilterId);
+
+  const timelineRef = useRef<PhotosTimelineHandle>(null);
+  const lastViewedIdRef = useRef<string | null>(null);
+  const isFirstDeviceFilterRenderRef = useRef(true);
+
+  const allItems = useMemo<TimelinePhotoItem[]>(
+    () => timelineDateGroups.flatMap((dateGroup) => dateGroup.group.photos),
+    [timelineDateGroups],
+  );
+  const allItemsForSelectionRef = useRef(allItems);
+  allItemsForSelectionRef.current = allItems;
+
+  const selection = usePhotoSelection(allItems);
+  const actions = usePhotoActions(selection, { reloadLocal, reloadCloud });
+
+  const handleItemChangedFromPreview = useCallback(async () => {
+    await Promise.all([reloadLocal(), reloadCloud()]);
+  }, [reloadLocal, reloadCloud]);
+
+  const handleCurrentItemChange = useCallback((itemId: string) => {
+    lastViewedIdRef.current = itemId;
+  }, []);
+
+  const handlePhotoPress = useCallback(
+    (id: string) => {
+      if (selection.isSelectMode) {
+        const item = allItemsForSelectionRef.current.find((candidate) => candidate.id === id);
+        if (item && !isItemSelectable(item)) {
+          return;
+        }
+        selection.toggleSelect(id);
+        return;
+      }
+      navigation.navigate('PhotoPreview', {
+        initialId: id,
+        items: allItemsForSelectionRef.current,
+        onItemChanged: handleItemChangedFromPreview,
+        onCurrentItemChange: handleCurrentItemChange,
+      });
+    },
+    [selection.isSelectMode, selection.toggleSelect, navigation, handleItemChangedFromPreview, handleCurrentItemChange],
+  );
+
+  const handlePhotoLongPress = useCallback(
+    (id: string) => {
+      if (!selection.isSelectMode) {
+        const item = allItemsForSelectionRef.current.find((candidate) => candidate.id === id);
+        if (item && !isItemSelectable(item)) {
+          return;
+        }
+        selection.enterSelectMode(id);
+      }
+    },
+    [selection.isSelectMode, selection.enterSelectMode],
+  );
+
+  const accessState = useMemo<PhotosAccessState>(() => {
+    if (!hasAccess) {
+      return { type: 'photos-locked' };
+    }
+    if (enabled) {
+      return { type: 'available' };
+    }
+    return { type: 'backup-off' };
+  }, [hasAccess, enabled]);
+
+  const handleSelectPress = useCallback(() => selection.enterSelectMode(), [selection]);
+
+  const handleEnableBackup = useCallback(() => {
+    if (!hasAccess) {
+      return;
+    }
+    setIsEnableBackupSheetOpen(true);
+  }, [hasAccess]);
+
+  useEffect(() => {
+    if (!hasAccess && isEnableBackupSheetOpen) {
+      setIsEnableBackupSheetOpen(false);
+    }
+  }, [hasAccess, isEnableBackupSheetOpen]);
+
+  const handleSelectMorePhotos = useSelectMorePhotos(reloadLocal);
+
+  const listHeader = useMemo(() => {
+    if (accessState.type === 'backup-off') {
+      return <BackupDisabledBanner onEnablePress={handleEnableBackup} />;
+    }
+    if (permissionStatus === 'limited') {
+      return <LimitedAccessBanner onSelectMorePress={handleSelectMorePhotos} />;
+    }
+
+    return undefined;
+  }, [accessState.type, permissionStatus, handleEnableBackup, handleSelectMorePhotos]);
+
+  const handlePausePress = useCallback(() => {
+    dispatch(pauseBackupThunk());
+  }, [dispatch]);
+  const handleResumePress = useCallback(() => {
+    dispatch(resumeBackupThunk());
+  }, [dispatch]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const [localResult, cloudResult] = await Promise.allSettled([
+        reloadLocal(),
+        dispatch(forceRefreshThunk()).unwrap(),
+      ]);
+
+      if (localResult.status === 'rejected') {
+        notificationsService.show({
+          text1: strings.screens.photos.refreshLocalError,
+          type: NotificationType.Error,
+          autoHide: false,
+        });
+      }
+      if (cloudResult.status === 'rejected') {
+        notificationsService.show({
+          text1: strings.screens.photos.refreshCloudError,
+          type: NotificationType.Error,
+          autoHide: false,
+        });
+      }
+    } finally {
+      setRefreshing(false);
+    }
+  }, [dispatch, reloadLocal]);
+
+  useEffect(() => {
+    if (isFirstDeviceFilterRenderRef.current) {
+      isFirstDeviceFilterRenderRef.current = false;
+      return;
+    }
+    timelineRef.current?.scrollToTop();
+  }, [deviceFilterId]);
+
+  useEffect(() => {
+    dispatch(uiActions.setIsTabBarHidden(selection.isSelectMode));
+  }, [selection.isSelectMode]);
+
+  useEffect(
+    () => () => {
+      dispatch(uiActions.setIsTabBarHidden(false));
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (permissionStatus !== 'undetermined') return;
+
+    const checkPermissionStatus = async () => {
+      const photoPermissionStatus = await photoPermissionService.getStatus();
+      dispatch(photosActions.setPermissionStatus(photoPermissionStatus));
+    };
+
+    checkPermissionStatus();
+  }, [permissionStatus]);
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(paymentsThunks.loadFileLimitsThunk());
+
+      if (enabled) {
+        dispatch(runBackupCycleThunk());
+      }
+
+      if (!enabled && hasAccess) {
+        setIsEnableBackupSheetOpen(true);
+      }
+
+      const id = lastViewedIdRef.current;
+      if (id) {
+        lastViewedIdRef.current = null;
+        timelineRef.current?.scrollToAssetId(id);
+      }
+    }, [enabled, hasAccess]),
+  );
+
+  return (
+    <AppScreen safeAreaTop style={tailwind('flex-1')}>
+      <PhotosHeader
+        isSelectMode={selection.isSelectMode}
+        onSelectPress={handleSelectPress}
+        onCancelPress={selection.exitSelectMode}
+        activeDeviceName={activeDeviceName}
+        devices={photoDevices}
+        selectedDeviceId={deviceFilterId}
+        onSelectDevice={setDeviceFilterId}
+        onOpenDeviceFilter={reloadPhotoDevices}
+      />
+
+      <View style={tailwind('flex-1')}>
+        <PhotosTimeline
+          ref={timelineRef}
+          assetsGroupsByDate={timelineDateGroups}
+          isLoading={isLoading}
+          ListHeaderComponent={listHeader}
+          onEndReached={loadNextPage}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          onPhotoPress={handlePhotoPress}
+          onPhotoLongPress={handlePhotoLongPress}
+          isSelectMode={selection.isSelectMode}
+          selectedIds={selection.selectedIds}
+          onPausePress={handlePausePress}
+          onResumePress={handleResumePress}
+          onRetryPress={handleRefresh}
+          onDragBegin={selection.beginDragSelect}
+          onDragUpdate={selection.updateDragSelect}
+          onDragEnd={selection.endDragSelect}
+        />
+        {accessState.type === 'photos-locked' && <PhotosLockedOverlay />}
+      </View>
+
+      <SelectionToolbar
+        visible={selection.isSelectMode && selection.selectedIds.size > 0}
+        selectedItems={selection.selectedItems}
+        onExport={actions.handleExport}
+        onFavorite={() => undefined}
+        onMore={actions.handleMore}
+        onDelete={actions.handleDelete}
+      />
+
+      <MoreActionsBottomSheet
+        isOpen={actions.isMoreActionsSheetOpen}
+        selectedItems={selection.selectedItems}
+        onClose={actions.handleMoreClose}
+        onExport={actions.handleExport}
+        onCopy={actions.handleCopy}
+        onSave={actions.handleSave}
+        onFavorite={() => undefined}
+        onTrash={actions.handleTrash}
+        onRestore={actions.handleRestore}
+      />
+
+      <ActionProgressModal visible={actions.actionLabel !== null} label={actions.actionLabel ?? ''} />
+
+      <ConfirmModal
+        isOpen={actions.isDeleteConfirmOpen}
+        onClose={actions.handleDeleteClose}
+        title={strings.screens.photos.selection.deleteModal.title(selection.selectedIds.size)}
+        message={strings.screens.photos.selection.deleteModal.message(selection.selectedIds.size)}
+        confirmLabel={strings.screens.photos.selection.deleteModal.confirm}
+        onConfirm={actions.handleTrashConfirm}
+        onCancel={actions.handleDeleteClose}
+        type="confirm-danger"
+      />
+
+      <EnableBackupBottomSheet isOpen={isEnableBackupSheetOpen} onClose={() => setIsEnableBackupSheetOpen(false)} />
+    </AppScreen>
+  );
+};
+
+export default PhotosScreen;

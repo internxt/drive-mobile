@@ -10,7 +10,10 @@ export const IMAGE_THUMBNAIL_EXTENSIONS = new Set<string>([
   FileExtension.JPEG,
   FileExtension.PNG,
   FileExtension.HEIC,
+  FileExtension.DNG,
 ]);
+
+export const RAW_IMAGE_THUMBNAIL_EXTENSIONS = new Set<string>([FileExtension.DNG]);
 export const VIDEO_THUMBNAIL_EXTENSIONS = new Set<string>([FileExtension.MP4, FileExtension.MOV, FileExtension.AVI]);
 export const PDF_THUMBNAIL_EXTENSIONS = new Set<string>([FileExtension.PDF]);
 

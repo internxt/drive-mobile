@@ -1,4 +1,5 @@
 import { logger } from '@internxt-mobile/services/common';
+import { auth, TokenStatus } from '@internxt/lib';
 import { internxtMobileSDKConfig } from '@internxt/mobile-sdk';
 import { TwoFactorAuthQR } from '@internxt/sdk';
 import { StorageTypes } from '@internxt/sdk/dist/drive';
@@ -6,7 +7,6 @@ import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import * as bip39 from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 import EventEmitter from 'events';
-import { jwtDecode } from 'jwt-decode';
 import { NetworkCacheModule } from '../../modules/network-cache';
 import { decryptText, encryptText, encryptTextWithKey, passToHash } from '../helpers';
 import AesUtils from '../helpers/aesUtils';
@@ -27,12 +27,6 @@ export interface AuthCredentials {
   accessToken: string;
   user: UserSettings;
 }
-
-export type JWTPayload = {
-  email: string;
-  iat: number;
-  exp: number;
-};
 
 class AuthService {
   defaultName = 'My';
@@ -101,7 +95,11 @@ class AuthService {
     logger.info(`User logged out - Reason: ${reason}`);
     analytics.track(AnalyticsEventKey.UserLogout);
     await asyncStorageService.clearStorage();
-    await internxtMobileSDKConfig.destroy();
+    try {
+      await internxtMobileSDKConfig.destroy();
+    } catch (error) {
+      logger.warn(`Mobile SDK destroy failed on logout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   public async doChangePassword(params: {
@@ -256,38 +254,19 @@ class AuthService {
    * @returns {boolean} If the token has expired or not
    */
   public authTokenHasExpired(authToken: string): boolean {
-    try {
-      const payload = jwtDecode<JWTPayload>(authToken);
-
-      // No expiration, bye
-      if (!payload.exp) return true;
-      const expiration = payload.exp * 1000;
-
-      return expiration > Date.now() ? false : true;
-    } catch {
-      return true;
-    }
+    const status = auth.validateTokenAndCheckExpiration(authToken);
+    return status === TokenStatus.EXPIRED || status === TokenStatus.INVALID;
   }
 
   /**
-   * Checks if token needs refresh (expires in less than 3 days)
-   * @param authToken The token to check
-   * @returns true if token expires in less than 7 days
+   * Checks if token needs refresh
+   *
+   * @param authToken The token to be checked
+   * @returns {boolean} If the token needs to be refreshed
    */
   public tokenNeedsRefresh(authToken: string): boolean {
-    try {
-      const payload = jwtDecode<JWTPayload>(authToken);
-
-      if (!payload.exp) return true;
-
-      const expiration = payload.exp * 1000;
-      const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
-      const threeDaysFromNow = Date.now() + THREE_DAYS_IN_MS;
-
-      return expiration < threeDaysFromNow;
-    } catch {
-      return true;
-    }
+    const status = auth.validateTokenAndCheckExpiration(authToken);
+    return status === TokenStatus.REFRESH_REQUIRED || status === TokenStatus.EXPIRED || status === TokenStatus.INVALID;
   }
 
   /**

@@ -1828,12 +1828,10 @@
     "@typescript-eslint/parser" "^5.4.0"
     eslint-config-prettier "^8.3.0"
 
-"@internxt/lib@^1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.4.1.tgz#dd4974cb49ab6bba118cf218434e69e95cc4a481"
-  integrity sha512-sWNp57IKCk0HjzTdPSuxOgZWvrSDWGYrzNOq90LIZTzr1HwkxObicUaZqSzmw4uDKrJhsdFdzwdywk3g8gwDDA==
-  dependencies:
-    uuid "^11.1.0"
+"@internxt/lib@1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@internxt/lib/-/lib-1.5.1.tgz#08d3a474c9952b5ca47404db5ed197f1615f9ff9"
+  integrity sha512-Zt6ZRJ4B3N6zgYE7kBtVSiBXNWLV2F6QgK27IvWCg+6C2qoWDwy6uN1niMzHgSi3KUSTKOB4jiu42wJUYj4LXw==
 
 "@internxt/mobile-sdk@^0.3.1":
   version "0.3.1"
@@ -1852,10 +1850,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.16.4":
-  version "1.16.4"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.16.4.tgz#1dad7c3fe1581cfb62f9720b6a6470b7c52d7f34"
-  integrity sha512-L4UG7SvNAlldCqx43f5EWt/oVOleqssBb67y1ZUqCcGh3h/wC9mpvkuz80lsGmkzO/ZSZZ0beUzWFlk0LmWM6g==
+"@internxt/sdk@1.17.3":
+  version "1.17.3"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.17.3.tgz#8cf9538c0d6f12313ed16f2bdd74409267ee9301"
+  integrity sha512-NI80kM1u751OFRZ4J1goZLEW166bnHBHx4N2odVxOMkKhlNxgc+EywQShMwZQDbS9bm+y7iRZzLL/DIc3XFJLg==
   dependencies:
     axios "^1.16.0"
 
@@ -4765,6 +4763,11 @@ expect@^29.0.0, expect@^29.7.0:
     jest-message-util "^29.7.0"
     jest-util "^29.7.0"
 
+expo-application@~7.0.8:
+  version "7.0.8"
+  resolved "https://registry.yarnpkg.com/expo-application/-/expo-application-7.0.8.tgz#320af0d6c39b331456d3bc833b25763c702d23db"
+  integrity sha512-qFGyxk7VJbrNOQWBbE09XUuGuvkOgFS9QfToaK2FdagM2aQ+x3CvGV2DuVgl/l4ZxPgIf3b/MNh9xHpwSwn74Q==
+
 expo-asset@~12.0.13:
   version "12.0.13"
   resolved "https://registry.yarnpkg.com/expo-asset/-/expo-asset-12.0.13.tgz#1974ed7abee2ad987a519dbdcbf7f0c647dddf5b"
@@ -4833,6 +4836,11 @@ expo-image-picker@~17.0.11:
   integrity sha512-/apkoyukDvsCHHb9fzP+F34A1uQqSzUtYH/2P/xJACNEwq+mwEXjXvVU8bzlJq6ih0Qo1+tpVivIa7B9kYSwOQ==
   dependencies:
     expo-image-loader "~6.0.0"
+
+expo-image@~3.0.11:
+  version "3.0.11"
+  resolved "https://registry.yarnpkg.com/expo-image/-/expo-image-3.0.11.tgz#54195565dc710e632c10414c3609deebb7149ac5"
+  integrity sha512-4TudfUCLgYgENv+f48omnU8tjS2S0Pd9EaON5/s1ZUBRwZ7K8acEr4NfvLPSaeXvxW24iLAiyQ7sV7BXQH3RoA==
 
 expo-json-utils@~0.15.0:
   version "0.15.0"
@@ -4910,6 +4918,11 @@ expo-navigation-bar@~5.0.10:
     "@react-native/normalize-colors" "0.81.5"
     debug "^4.3.2"
     react-native-is-edge-to-edge "^1.2.1"
+
+expo-network@~8.0.8:
+  version "8.0.8"
+  resolved "https://registry.yarnpkg.com/expo-network/-/expo-network-8.0.8.tgz#d8eb25b60a93b010e635192f343d3a955a763df5"
+  integrity sha512-dgrL8UHAmWofqeY4UEjWskCl/RoQAM0DG6PZR8xz2WZt+6aQEboQgFRXowCfhbKZ71d16sNuKXtwBEsp2DtdNw==
 
 expo-screen-orientation@~9.0.9:
   version "9.0.9"
@@ -6438,11 +6451,6 @@ jsonify@^0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/jsonify/-/jsonify-0.0.1.tgz#2aa3111dae3d34a0f151c63f3a45d995d9420978"
   integrity sha512-2/Ki0GcmuqSrgFyelQq9M05y7PS0mEwuIzrf3f1fPqkVDVRvZrPZtVSMHxdgo8Aq0sxAOb/cr2aqqA3LeWHVPg==
-
-jwt-decode@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/jwt-decode/-/jwt-decode-4.0.0.tgz#2270352425fd413785b2faf11f6e755c5151bd4b"
-  integrity sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==
 
 keyv@^4.5.3:
   version "4.5.4"
@@ -7987,11 +7995,6 @@ react-native-device-info@^8.4.8:
   version "8.7.1"
   resolved "https://registry.yarnpkg.com/react-native-device-info/-/react-native-device-info-8.7.1.tgz#fbb06f87dbbc4423abe713874699fb2e6e99fd15"
   integrity sha512-cVMZztFa2Qn6qpQa601W61CtUwZQ1KXfqCOeltejAWEXmgIWivC692WGSdtGudj4upSi1UgMSaGcvKjfcpdGjg==
-
-react-native-fast-image@^8.5.11:
-  version "8.6.3"
-  resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-8.6.3.tgz#6edc3f9190092a909d636d93eecbcc54a8822255"
-  integrity sha512-Sdw4ESidXCXOmQ9EcYguNY2swyoWmx53kym2zRsvi+VeFCHEdkO+WG1DK+6W81juot40bbfLNhkc63QnWtesNg==
 
 react-native-file-viewer@^2.1.4:
   version "2.1.5"
@@ -9586,11 +9589,6 @@ utils-merge@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==
-
-uuid@^11.1.0:
-  version "11.1.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.1.tgz#f6d81d2e1c65d00762e5e29b16c5d2d995e208ad"
-  integrity sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==
 
 uuid@^3.0.1:
   version "3.4.0"

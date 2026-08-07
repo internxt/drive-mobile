@@ -41,6 +41,7 @@ const translations = {
       Drive: 'Drive',
       Add: 'Add',
       Shared: 'Shared',
+      Photos: 'Photos',
       Settings: 'Settings',
     },
     subscriptions: {
@@ -162,6 +163,141 @@ const translations = {
       home: {
         title: 'Home',
       },
+      photos: {
+        title: 'Photos',
+        select: 'Select',
+        emptyTitle: 'No photos to show',
+        emptySubtitle: 'Take a photo or video to start backing up',
+        deviceFilter: {
+          title: 'Filter',
+          allDevices: 'All devices',
+        },
+        syncStatus: {
+          loading: 'Getting photos from the cloud',
+          completed: 'Backup completed',
+        },
+        backupDisabled: {
+          message: 'Internxt Photos is disabled. Your photos and videos are not being backed up.',
+          enableCta: 'Enable gallery backup in settings.',
+        },
+        limitedAccess: {
+          message: 'Internxt only has access to selected photos. ',
+          selectMoreCta: 'Select more photos.',
+        },
+        groupHeader: {
+          items: 'items',
+          backingUp: 'Backing up',
+          backupPausing: 'Pausing backup',
+          backupPaused: 'Backup paused',
+          waitingForWifi: 'Waiting for WiFi',
+          noConnection: 'No connection',
+          storageFull: 'Storage is full',
+          backupCompleted: 'Backup completed',
+          gettingPhotos: 'Getting photos from the cloud',
+          scanningGallery: 'Scanning gallery',
+          withError: 'with error',
+        },
+        photosLocked: {
+          title: 'Photos is locked',
+          body: 'Automatically back up, organize, and protect your photos in one private space.',
+          upgradeLine: 'Upgrade to unlock Photos.',
+          upgradeInfoPrefix: 'To upgrade visit ',
+          upgradeInfoHighlight: 'our website > pricing',
+        },
+        enableSheet: {
+          title: 'All your photos,\none gallery',
+          featurePrivacy: 'Keep your memories safe and private, only you can access them.',
+          featureDevices: 'Access from all your devices',
+          featureBackup: 'Backup all your photos in case you lose your device.',
+          allowButton: 'Back up my gallery',
+          deniedHintPrefix: 'On the following screen, change Photos access from ',
+          deniedHintNone: 'None',
+          deniedHintMiddle: ' to ',
+          deniedHintAllPhotos: 'All Photos',
+          disclaimer:
+            'Internxt Photos needs access to your photos to let you view, sync and share photos from this device.',
+        },
+        discoverSheet: {
+          title: 'Backup your gallery',
+          subtitle:
+            'Internxt Photos keeps your gallery backed up and lets you share your photos privately with your family and friends',
+          startButton: 'Start using Photos',
+        },
+        photoPreview: {
+          back: 'Back',
+          waitingToUpload: 'Waiting to upload',
+          deletedFromCloud: 'Deleted from the cloud',
+          backup: 'Backup',
+          uploading: 'Uploading',
+          burstBadge: 'Burst',
+          burstIncomplete: 'Burst not fully backed up. Grant full Photos access to back up all burst photos.',
+          burstPhotosUnit: 'photos',
+          metadata: {
+            info: 'Name',
+            uploaded: 'Uploaded',
+            modified: 'Modified',
+            size: 'Size',
+            dimensions: 'Dimensions',
+            format: 'Format',
+            dateTimeConnector: 'at',
+          },
+        },
+        selection: {
+          cancel: 'Cancel',
+          selectItems: 'Select items',
+          itemSelected: '1 item selected',
+          itemsSelected: '{0} items selected',
+          toolbar: {
+            export: 'Export',
+            favorite: 'Favorite',
+            more: 'More',
+            delete: 'Delete',
+            info: 'Info',
+          },
+          more: {
+            info: 'Info',
+            back: 'Back',
+            export: 'Export',
+            copy: 'Copy',
+            save: 'Save',
+            addToFavorites: 'Add to favorites',
+            removeFromFavorites: 'Remove from favorites',
+            moveToTrash: 'Move to trash',
+            uploadToCloud: 'Upload to cloud',
+          },
+          actionProgress: {
+            preparing: 'Preparing…',
+            saving: 'Saving to gallery…',
+            copying: 'Copying…',
+            movingToTrash: 'Moving to trash…',
+            uploadingToCloud: 'Uploading to cloud…',
+          },
+          deleteModal: {
+            title: (count: number) => (count === 1 ? 'Delete item' : 'Delete items'),
+            message: (count: number) =>
+              count === 1
+                ? 'This photo will be deleted from Internxt Drive on all your devices. It will remain in Trash for a limited time.'
+                : 'These photos will be deleted from Internxt Drive on all your devices. They will remain in Trash for a limited time.',
+            confirm: 'Delete',
+          },
+        },
+        notifications: {
+          photoCopied: 'Photo copied',
+          photoSaved: 'Photo saved to gallery',
+          videoSaved: 'Video saved to gallery',
+          itemMovedToTrash: 'Item moved to trash',
+          itemsMovedToTrash: (count: number) => `${count} items moved to trash`,
+          exportError: 'Could not share item',
+          copyError: 'Could not copy item',
+          saveError: 'Could not save to gallery',
+          saveErrorNoPermission: 'Gallery permission denied',
+          saveErrorNoPermissionAction: 'Settings',
+          trashError: 'Could not move to trash',
+          restoreError: 'Could not start upload',
+        },
+        refreshLocalError: 'Gallery could not be loaded',
+        refreshCloudError: 'Cloud sync could not be completed. Check your connection and try again.',
+      },
       forgot_password: {
         title: 'Delete account',
         message:
@@ -273,6 +409,13 @@ const translations = {
         darkModeDescription: 'Change the app theme',
         screenProtection: 'Screen protection',
         screenProtectionDescription: 'Enable screen protection',
+        photos: {
+          sectionTitle: 'PHOTOS',
+          backupTitle: 'Backup photos',
+          backupDescription: 'All your gallery photos and videos will be backed up on Internxt Photos',
+          mobileDataTitle: 'Use mobile data to upload',
+          mobileDataDescription: 'Use wifi and mobile data to backup your gallery',
+        },
       },
       AccountScreen: {
         title: 'Account',
@@ -714,6 +857,7 @@ const translations = {
 
       SignOutModal: {
         title: 'Log out from this account?',
+        signingOut: 'Saving your latest Photos data…',
       },
       ConfirmMoveItemModal: {
         title: 'Move {0} item(s) from',
@@ -905,6 +1049,7 @@ const translations = {
       Drive: 'Drive',
       Add: 'Añadir',
       Shared: 'Compartido',
+      Photos: 'Fotos',
       Settings: 'Ajustes',
     },
     subscriptions: {
@@ -1027,6 +1172,143 @@ const translations = {
       home: {
         title: 'Inicio',
       },
+      photos: {
+        title: 'Fotos',
+        select: 'Seleccionar',
+        emptyTitle: 'No hay fotos que mostrar',
+        emptySubtitle: 'Haz una foto o vídeo para empezar el backup',
+        deviceFilter: {
+          title: 'Filtro',
+          allDevices: 'Todos los dispositivos',
+        },
+        syncStatus: {
+          loading: 'Obteniendo fotos de la nube',
+          completed: 'Backup completado',
+        },
+        backupDisabled: {
+          message: 'Internxt Photos está desactivado. Tus fotos y vídeos no se están guardando.',
+          enableCta: 'Activa el backup en ajustes.',
+        },
+        limitedAccess: {
+          message: 'Internxt solo tiene acceso a fotos seleccionadas. ',
+          selectMoreCta: 'Seleccionar más fotos.',
+        },
+        groupHeader: {
+          items: 'elementos',
+          backingUp: 'Guardando copia',
+          backupPausing: 'Pausando backup',
+          backupPaused: 'Copia de seguridad pausada',
+          waitingForWifi: 'Esperando WiFi',
+          noConnection: 'Sin conexión',
+          storageFull: 'Almacenamiento lleno',
+          backupCompleted: 'Backup completado',
+          gettingPhotos: 'Obteniendo fotos de la nube',
+          scanningGallery: 'Escaneando galería',
+          withError: 'con error',
+        },
+        photosLocked: {
+          title: 'Photos está bloqueado',
+          body: 'Haz copias de seguridad, organiza y protege tus fotos automáticamente en un espacio privado.',
+          upgradeLine: 'Actualiza para desbloquear Fotos.',
+          upgradeInfoPrefix: 'Para actualizar visita ',
+          upgradeInfoHighlight: 'nuestra web > precios',
+        },
+        enableSheet: {
+          title: 'Todas tus fotos,\nuna galería',
+          featurePrivacy: 'Mantén tus recuerdos seguros y privados, solo tú puedes acceder a ellos.',
+          featureDevices: 'Accede desde todos tus dispositivos.',
+          featureBackup: 'Haz backup de todas tus fotos por si pierdes tu dispositivo.',
+          allowButton: 'Guardar mi galería',
+          deniedHintPrefix: 'En la siguiente pantalla, cambia el acceso a Fotos de ',
+          deniedHintNone: 'Ninguno',
+          deniedHintMiddle: ' a ',
+          deniedHintAllPhotos: 'Todas las fotos',
+          disclaimer:
+            'Internxt Photos necesita acceso a tus fotos para que puedas ver, sincronizar y compartir fotos desde este dispositivo.',
+        },
+        discoverSheet: {
+          title: 'Guarda tu galería',
+          subtitle:
+            'Internxt Photos hace copias de seguridad de tu galería y te permite compartir tus fotos de forma privada con tu familia y amigos',
+          startButton: 'Empezar a usar Photos',
+        },
+        photoPreview: {
+          back: 'Volver',
+          waitingToUpload: 'Pendiente de subir',
+          deletedFromCloud: 'Eliminado de la nube',
+          backup: 'Copia de seguridad',
+          uploading: 'Subiendo',
+          burstBadge: 'Ráfaga',
+          burstIncomplete:
+            'Ráfaga incompleta. Para respaldar todas las fotos de la ráfaga, concede acceso completo a Fotos.',
+          burstPhotosUnit: 'fotos',
+          metadata: {
+            info: 'Nombre',
+            uploaded: 'Subido',
+            modified: 'Modificado',
+            size: 'Tamaño',
+            dimensions: 'Dimensiones',
+            format: 'Formato',
+            dateTimeConnector: 'a las',
+          },
+        },
+        selection: {
+          cancel: 'Cancelar',
+          selectItems: 'Seleccionar elementos',
+          itemSelected: '1 elemento seleccionado',
+          itemsSelected: '{0} elementos seleccionados',
+          toolbar: {
+            export: 'Exportar',
+            favorite: 'Favorito',
+            more: 'Más',
+            delete: 'Eliminar',
+            info: 'Info',
+          },
+          more: {
+            info: 'Info',
+            back: 'Volver',
+            export: 'Exportar',
+            copy: 'Copiar',
+            save: 'Guardar',
+            addToFavorites: 'Añadir a favoritos',
+            removeFromFavorites: 'Quitar de favoritos',
+            moveToTrash: 'Mover a la papelera',
+            uploadToCloud: 'Subir a la nube',
+          },
+          actionProgress: {
+            preparing: 'Preparando…',
+            saving: 'Guardando en galería…',
+            copying: 'Copiando…',
+            movingToTrash: 'Moviendo a la papelera…',
+            uploadingToCloud: 'Subiendo a la nube…',
+          },
+          deleteModal: {
+            title: (count: number) => (count === 1 ? 'Eliminar elemento' : 'Eliminar elementos'),
+            message: (count: number) =>
+              count === 1
+                ? 'Esta foto se eliminará de Internxt Drive en todos tus dispositivos. Permanecerá en la papelera durante un tiempo limitado.'
+                : 'Estas fotos se eliminarán de Internxt Drive en todos tus dispositivos. Permanecerán en la papelera durante un tiempo limitado.',
+            confirm: 'Eliminar',
+          },
+        },
+        notifications: {
+          photoCopied: 'Foto copiada',
+          photoSaved: 'Foto guardada en la galería',
+          videoSaved: 'Vídeo guardado en la galería',
+          itemMovedToTrash: 'Elemento movido a la papelera',
+          itemsMovedToTrash: (count: number) => `${count} elementos movidos a la papelera`,
+          exportError: 'No se pudo compartir el elemento',
+          copyError: 'No se pudo copiar el elemento',
+          saveError: 'No se pudo guardar en la galería',
+          saveErrorNoPermission: 'Permiso de galería denegado',
+          saveErrorNoPermissionAction: 'Ajustes',
+          trashError: 'No se pudo mover a la papelera',
+          restoreError: 'No se pudo iniciar la subida',
+        },
+        refreshLocalError: 'No se pudo cargar la galería',
+        refreshCloudError:
+          'No se pudo completar la sincronización con la nube. Comprueba tu conexión e inténtalo de nuevo.',
+      },
       forgot_password: {
         title: 'Borrar cuenta',
         message:
@@ -1138,6 +1420,13 @@ const translations = {
         darkModeDescription: 'Cambiar apariencia de la aplicación',
         screenProtection: 'Protección de pantalla',
         screenProtectionDescription: 'Activar protección de pantalla',
+        photos: {
+          sectionTitle: 'PHOTOS',
+          backupTitle: 'Backup de fotos',
+          backupDescription: 'Todas tus fotos y vídeos de la galería se guardarán en Internxt Photos',
+          mobileDataTitle: 'Usar datos móviles para subir',
+          mobileDataDescription: 'Usa wifi y datos móviles para hacer el backup de tu galería',
+        },
       },
       AccountScreen: {
         title: 'Cuenta',
@@ -1578,6 +1867,7 @@ const translations = {
 
       SignOutModal: {
         title: '¿Salir de esta cuenta?',
+        signingOut: 'Guardando tus últimos datos de Photos…',
       },
       ConfirmMoveItemModal: {
         title: 'Mover {0} item(s) desde',
