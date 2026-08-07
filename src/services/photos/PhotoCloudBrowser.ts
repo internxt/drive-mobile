@@ -1,5 +1,6 @@
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
-import { FetchPaginatedFolder } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchPaginatedFolder, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { logger } from 'src/services/common';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
 import { buildBurstBaseSet, linkBurst } from './burst/BurstCloudLinker';
@@ -17,6 +18,26 @@ const CACHE_TTL_MS = 24 * HOUR_MS;
 const PAGE_SIZE = 50;
 const MIN_MONTH_NUMBER = 1;
 const MAX_MONTH_NUMBER = 12;
+
+// The SDK's Thumbnail type omits `createdAt`, need to add it
+type ThumbnailWithCreatedAt = Thumbnail & { createdAt?: string };
+
+/**
+ * Picks the most recently created thumbnail. A file can have several thumbnail entries (e.g.
+ * after an edited photo is re-uploaded and a new thumbnail is generated), and `id` is an
+ * autoincrement fallback for when `createdAt` isn't present on either candidate.
+ */
+const pickLatestThumbnail = (thumbnails: ThumbnailWithCreatedAt[] | undefined): ThumbnailWithCreatedAt | null => {
+  if (!thumbnails?.length) {
+    return null;
+  }
+  return thumbnails.reduce((newest, candidate) => {
+    if (candidate.createdAt && newest.createdAt) {
+      return new Date(candidate.createdAt).getTime() > new Date(newest.createdAt).getTime() ? candidate : newest;
+    }
+    return candidate.id > newest.id ? candidate : newest;
+  }, thumbnails[0]);
+};
 
 const resolveBurstFields = (
   baseName: string | null,
@@ -188,6 +209,8 @@ class PhotoCloudBrowserService {
 
       const plainNameIndex = this.buildPlainNameIndex(existingFiles);
       const entries = this.buildCloudAssetEntries({ files: existingFiles, plainNameIndex, deviceId, folderDate, now });
+
+      await this.evictStaleThumbnailCacheFiles(entries);
 
       for (const entry of entries) {
         foundIds.add(entry.remoteFileId);
@@ -466,7 +489,7 @@ class PhotoCloudBrowserService {
       const baseName = file.plainName ?? file.name;
       const type = file.type ?? '';
       const fileName = type ? `${baseName}.${type}` : baseName;
-      const thumb = file.thumbnails?.[0] ?? null;
+      const thumb = pickLatestThumbnail(file.thumbnails);
 
       let livePhotoRole: LivePhotoRole | null = null;
       let isLivePhoto = false;
@@ -520,6 +543,35 @@ class PhotoCloudBrowserService {
     }
 
     return entries;
+  }
+
+  /**
+   * Deletes cached thumbnail files that no longer match the file's current thumbnail bucket file
+   * (e.g. after an edited photo replaced its thumbnail on the server). The DB row itself is
+   * invalidated by the `upsertCloudAsset` upsert; this only reclaims the orphaned disk file.
+   */
+  private async evictStaleThumbnailCacheFiles(entries: CloudAssetEntry[]): Promise<void> {
+    const entriesWithThumbnail = entries.filter((entry) => entry.thumbnailBucketFile);
+    if (entriesWithThumbnail.length === 0) {
+      return;
+    }
+
+    const cachedRefs = await this.localDB.getCachedThumbnailRefs(entriesWithThumbnail.map((entry) => entry.remoteFileId));
+    const stalePaths = entriesWithThumbnail
+      .map((entry) => {
+        const cached = cachedRefs.get(entry.remoteFileId);
+        if (
+          !cached?.thumbnailPath ||
+          !cached.thumbnailBucketFile ||
+          cached.thumbnailBucketFile === entry.thumbnailBucketFile
+        ) {
+          return null;
+        }
+        return cached.thumbnailPath;
+      })
+      .filter((path): path is string => path !== null);
+
+    await Promise.all(stalePaths.map((path) => fileSystemService.unlinkIfExists(path)));
   }
 
   private async findChildFolder(parentUuid: string, name: string): Promise<FetchPaginatedFolder | null> {

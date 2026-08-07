@@ -6,6 +6,7 @@ const makeLocalItem = (id: string, backupState: PhotoBackupState = 'backed'): Ti
   id,
   type: 'local',
   createdAt: 0,
+  modificationTime: 0,
   backupState,
   mediaType: 'photo',
 });

@@ -627,6 +627,47 @@ describe('photosLocalDB cloud asset methods', () => {
     ]);
   });
 
+  test('when a cloud asset is upserted, then the cached thumbnail path is only kept if the thumbnail bucket file is unchanged', async () => {
+    await photosLocalDB.upsertCloudAsset({
+      remoteFileId: 'remote-1',
+      deviceId: 'device-1',
+      folderDate: 1718000000000,
+      fileName: 'photo.jpg',
+      fileSize: 2048,
+      fileId: 'bridge-file-1',
+      thumbnailPath: null,
+      thumbnailBucketId: 'bucket-1',
+      thumbnailBucketFile: 'file-1',
+      thumbnailType: 'jpg',
+      discoveredAt: 1718100000000,
+      uploadedAt: 1718200000000,
+      isFavorite: false,
+    });
+
+    const [, statement] = mockSqlite.executeSql.mock.calls[0];
+    expect(statement as string).toContain('cloud_asset.thumbnail_bucket_file IS NOT excluded.thumbnail_bucket_file');
+    expect(statement as string).toContain('THEN NULL');
+  });
+
+  test('when cached thumbnail refs are requested for a set of ids, then a map keyed by remote file id is returned', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([
+      { remote_file_id: 'remote-1', thumbnail_path: '/local/thumb1.jpg', thumbnail_bucket_file: 'file-1' },
+      { remote_file_id: 'remote-2', thumbnail_path: null, thumbnail_bucket_file: null },
+    ]);
+
+    const refs = await photosLocalDB.getCachedThumbnailRefs(['remote-1', 'remote-2']);
+
+    expect(refs.get('remote-1')).toEqual({ thumbnailPath: '/local/thumb1.jpg', thumbnailBucketFile: 'file-1' });
+    expect(refs.get('remote-2')).toEqual({ thumbnailPath: null, thumbnailBucketFile: null });
+  });
+
+  test('when cached thumbnail refs are requested for an empty id list, then no query is made', async () => {
+    const refs = await photosLocalDB.getCachedThumbnailRefs([]);
+
+    expect(refs.size).toBe(0);
+    expect(mockSqlite.getAllAsync).not.toHaveBeenCalled();
+  });
+
   test('when all cloud assets are fetched, then each database row is mapped to a typed entry', async () => {
     mockSqlite.getAllAsync.mockResolvedValueOnce([
       {

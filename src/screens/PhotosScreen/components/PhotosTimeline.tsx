@@ -49,6 +49,7 @@ const SKELETON_GROUP: TimelineDateGroup = {
       id: `__skeleton_${i}__`,
       type: 'local' as const,
       createdAt: 0,
+      modificationTime: 0,
       backupState: 'loading' as PhotoBackupState,
       mediaType: 'photo' as const,
     })),

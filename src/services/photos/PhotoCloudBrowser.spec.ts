@@ -1,3 +1,4 @@
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
 import { photosLocalDB } from './database/photosLocalDB';
 import { photoCloudBrowser } from './PhotoCloudBrowser';
@@ -31,23 +32,39 @@ jest.mock('./database/photosLocalDB', () => ({
     getDistinctCloudAssetDeviceIds: jest.fn().mockResolvedValue([]),
     deleteCloudAssetsByDevice: jest.fn(),
     resetSyncedToPending: jest.fn(),
+    getCachedThumbnailRefs: jest.fn(),
   },
+}));
+
+jest.mock('@internxt-mobile/services/FileSystemService', () => ({
+  __esModule: true,
+  default: { unlinkIfExists: jest.fn() },
 }));
 
 const mockFolderService = driveFolderService as jest.Mocked<typeof driveFolderService>;
 const mockDeviceService = photosDeviceService as jest.Mocked<typeof photosDeviceService>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
+const mockFileSystemService = fileSystemService as jest.Mocked<typeof fileSystemService>;
 
 const makeFolder = (uuid: string, plainName: string) => ({ uuid, plainName, name: plainName }) as never;
-const makeFile = (uuid: string, plainName: string) =>
+const defaultThumbnails = [{ bucket_id: 'bucket-1', bucket_file: 'file-1', type: 'jpg' }];
+const makeFile = (uuid: string, plainName: string, thumbnails: unknown[] = defaultThumbnails) =>
   ({
     uuid,
     plainName,
     name: plainName,
     size: 1024,
     createdAt: '2024-06-15T12:00:00.000Z',
-    thumbnails: [{ bucket_id: 'bucket-1', bucket_file: 'file-1', type: 'jpg' }],
+    thumbnails,
   }) as never;
+
+const setupMonthFetch = (file: unknown) => {
+  mockFolderService.getFolderFolders
+    .mockResolvedValueOnce({ folders: [makeFolder('year-uuid', '2024')] })
+    .mockResolvedValueOnce({ folders: [makeFolder('month-uuid', '06')] })
+    .mockResolvedValueOnce({ folders: [makeFolder('day-uuid', '15')] });
+  mockFolderService.getFolderContentByUuid.mockResolvedValueOnce({ files: [file] } as never);
+};
 const makeDevice = (uuid: string, plainName: string, status: 'EXISTS' | 'TRASHED' | 'DELETED' = 'EXISTS') => ({
   uuid,
   plainName,
@@ -68,6 +85,8 @@ beforeEach(() => {
   mockPhotosLocalDB.getSyncedMonths.mockResolvedValue([]);
   mockPhotosLocalDB.getDistinctCloudAssetDeviceIds.mockResolvedValue([]);
   mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+  mockPhotosLocalDB.getCachedThumbnailRefs.mockResolvedValue(new Map());
+  mockFileSystemService.unlinkIfExists.mockResolvedValue(true);
 });
 
 describe('PhotoCloudBrowser.listDeviceFolders', () => {
@@ -183,6 +202,73 @@ describe('PhotoCloudBrowser.fetchMonth', () => {
     });
 
     expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
+  });
+
+  test('when a cloud file has several thumbnails, then the most recently created one is used', async () => {
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
+    setupMonthFetch(
+      makeFile('file-uuid', 'IMG_20240615_120000.jpg', [
+        { id: 1, bucket_id: 'bucket-1', bucket_file: 'old-thumb', type: 'jpg', createdAt: '2024-06-15T10:00:00Z' },
+        { id: 2, bucket_id: 'bucket-1', bucket_file: 'new-thumb', type: 'jpg', createdAt: '2024-06-16T10:00:00Z' },
+      ]),
+    );
+
+    await photoCloudBrowser.fetchMonth({ deviceId: 'd1-uuid', deviceFolderUuid: 'd1-uuid', year: 2024, month: 6 });
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ thumbnailBucketFile: 'new-thumb' }),
+    );
+  });
+
+  test('when the thumbnails have no creation date, then the one with the highest identifier is used', async () => {
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
+    setupMonthFetch(
+      makeFile('file-uuid', 'IMG_20240615_120000.jpg', [
+        { id: 5, bucket_id: 'bucket-1', bucket_file: 'thumb-5', type: 'jpg' },
+        { id: 9, bucket_id: 'bucket-1', bucket_file: 'thumb-9', type: 'jpg' },
+      ]),
+    );
+
+    await photoCloudBrowser.fetchMonth({ deviceId: 'd1-uuid', deviceFolderUuid: 'd1-uuid', year: 2024, month: 6 });
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ thumbnailBucketFile: 'thumb-9' }),
+    );
+  });
+
+  test('when a cloud file has no thumbnails, then the thumbnail references are left empty', async () => {
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
+    setupMonthFetch(makeFile('file-uuid', 'IMG_20240615_120000.jpg', []));
+
+    await photoCloudBrowser.fetchMonth({ deviceId: 'd1-uuid', deviceFolderUuid: 'd1-uuid', year: 2024, month: 6 });
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ thumbnailBucketId: null, thumbnailBucketFile: null, thumbnailType: null }),
+    );
+  });
+
+  test('when a file thumbnail bucket file changes, then the old cached thumbnail file is deleted', async () => {
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
+    mockPhotosLocalDB.getCachedThumbnailRefs.mockResolvedValueOnce(
+      new Map([['file-uuid', { thumbnailPath: '/cache/old-thumb.jpg', thumbnailBucketFile: 'old-thumb' }]]),
+    );
+    setupMonthFetch(makeFile('file-uuid', 'IMG_20240615_120000.jpg'));
+
+    await photoCloudBrowser.fetchMonth({ deviceId: 'd1-uuid', deviceFolderUuid: 'd1-uuid', year: 2024, month: 6 });
+
+    expect(mockFileSystemService.unlinkIfExists).toHaveBeenCalledWith('/cache/old-thumb.jpg');
+  });
+
+  test('when a file thumbnail bucket file is unchanged, then no cached thumbnail file is deleted', async () => {
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValueOnce(null);
+    mockPhotosLocalDB.getCachedThumbnailRefs.mockResolvedValueOnce(
+      new Map([['file-uuid', { thumbnailPath: '/cache/thumb.jpg', thumbnailBucketFile: 'file-1' }]]),
+    );
+    setupMonthFetch(makeFile('file-uuid', 'IMG_20240615_120000.jpg'));
+
+    await photoCloudBrowser.fetchMonth({ deviceId: 'd1-uuid', deviceFolderUuid: 'd1-uuid', year: 2024, month: 6 });
+
+    expect(mockFileSystemService.unlinkIfExists).not.toHaveBeenCalled();
   });
 
   test('when a folder has two files, then the count returned is two', async () => {

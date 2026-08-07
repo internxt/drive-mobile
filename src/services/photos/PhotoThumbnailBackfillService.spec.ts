@@ -96,6 +96,7 @@ describe('backfillCloudThumbnail', () => {
       type: 'local',
       mediaType: 'photo',
       createdAt: Date.now(),
+      modificationTime: Date.now(),
       backupState: 'backed',
     };
 

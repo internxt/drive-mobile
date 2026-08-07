@@ -386,7 +386,7 @@ class PhotosLocalDB {
 
     const results = await Promise.all(
       chunks.map((chunk) => {
-        const placeholders = chunk.map(() => '?').join(', ');
+        const placeholders = this.buildInClausePlaceholders(chunk);
         return sqliteService.getAllAsync<{
           asset_id: string;
           modification_time: number | null;
@@ -464,7 +464,7 @@ class PhotosLocalDB {
     }
     for (let i = 0; i < remoteFileIds.length; i += CHUNK_SIZE) {
       const chunk = remoteFileIds.slice(i, i + CHUNK_SIZE);
-      const placeholders = chunk.map(() => '?').join(', ');
+      const placeholders = this.buildInClausePlaceholders(chunk);
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.revertCloudDeleted(placeholders), chunk);
     }
   }
@@ -615,6 +615,44 @@ class PhotosLocalDB {
         ])
       : await sqliteService.getAllAsync<CloudAssetRow>(DB_NAME, cloudAssetTable.statements.getByRange, [from, to]);
     return rows.map(rowToCloudAssetEntry);
+  }
+
+  private readonly buildInClausePlaceholders = (ids: string[]): string => ids.map(() => '?').join(', ');
+
+  async getCachedThumbnailRefs(
+    remoteFileIds: string[],
+  ): Promise<Map<string, { thumbnailPath: string | null; thumbnailBucketFile: string | null }>> {
+    const refs = new Map<string, { thumbnailPath: string | null; thumbnailBucketFile: string | null }>();
+    if (remoteFileIds.length === 0) {
+      return refs;
+    }
+
+    const chunks: string[][] = [];
+    for (let i = 0; i < remoteFileIds.length; i += CHUNK_SIZE) {
+      chunks.push(remoteFileIds.slice(i, i + CHUNK_SIZE));
+    }
+
+    const results = await Promise.all(
+      chunks.map((chunk) => {
+        const placeholders = this.buildInClausePlaceholders(chunk);
+        return sqliteService.getAllAsync<{
+          remote_file_id: string;
+          thumbnail_path: string | null;
+          thumbnail_bucket_file: string | null;
+        }>(DB_NAME, cloudAssetTable.statements.getThumbnailRefsInList(placeholders), chunk);
+      }),
+    );
+
+    for (const chunkRows of results) {
+      for (const row of chunkRows) {
+        refs.set(row.remote_file_id, {
+          thumbnailPath: row.thumbnail_path,
+          thumbnailBucketFile: row.thumbnail_bucket_file,
+        });
+      }
+    }
+
+    return refs;
   }
 
   async setCloudThumbnailPath(remoteFileId: string, path: string | null): Promise<void> {

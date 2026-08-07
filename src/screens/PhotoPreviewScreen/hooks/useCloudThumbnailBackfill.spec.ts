@@ -97,6 +97,7 @@ describe('useCloudThumbnailBackfill', () => {
       type: 'local',
       mediaType: 'photo',
       createdAt: 0,
+      modificationTime: 0,
       backupState: 'backed',
     };
 

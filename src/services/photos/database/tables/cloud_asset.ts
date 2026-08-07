@@ -57,7 +57,12 @@ const statements = {
       file_name              = excluded.file_name,
       file_size              = excluded.file_size,
       file_id                = excluded.file_id,
-      thumbnail_path         = COALESCE(${TABLE_NAME}.thumbnail_path, excluded.thumbnail_path),
+      thumbnail_path         = CASE
+        WHEN excluded.thumbnail_bucket_file IS NOT NULL
+         AND ${TABLE_NAME}.thumbnail_bucket_file IS NOT excluded.thumbnail_bucket_file
+        THEN NULL
+        ELSE COALESCE(${TABLE_NAME}.thumbnail_path, excluded.thumbnail_path)
+      END,
       thumbnail_bucket_id    = excluded.thumbnail_bucket_id,
       thumbnail_bucket_file  = excluded.thumbnail_bucket_file,
       thumbnail_type         = excluded.thumbnail_type,
@@ -132,6 +137,12 @@ const statements = {
     SELECT ${COLUMNS}
     FROM ${TABLE_NAME}
     WHERE remote_file_id = ?;
+  `,
+
+  getThumbnailRefsInList: (placeholders: string) => `
+    SELECT remote_file_id, thumbnail_path, thumbnail_bucket_file
+    FROM ${TABLE_NAME}
+    WHERE remote_file_id IN (${placeholders});
   `,
 
   setThumbnailPath: `
