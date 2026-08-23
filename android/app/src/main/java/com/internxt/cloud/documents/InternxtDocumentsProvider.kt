@@ -63,7 +63,10 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private val uploadScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val folderLoads = ConcurrentHashMap<String, FolderLoad>()
+    private val documentRows = DocumentRowCache()
     private val pendingUploads = ConcurrentHashMap<String, PendingUpload>()
+
+    @Volatile private var cachedRootBucket: String? = null
 
     private enum class LoadState { LOADING, DONE, ERROR }
 
@@ -137,14 +140,20 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             return cursor
         }
 
+        documentRows[uuid]?.let { cached ->
+            cursor.addDocumentRow(cached)
+            return cursor
+        }
+
         val api = apiClient(op = "queryDocument")
         val row = if (api == null) null else try {
-            fetchDocumentRow(api, decoded?.kind, uuid)
+            runBlockingIo { fetchDocumentRow(api, decoded?.kind, uuid) }
         } catch (e: InternxtApiException) {
             Log.w(TAG, "queryDocument id=$id failed: ${e.javaClass.simpleName}: ${e.message}")
             null
         }
 
+        row?.let { documentRows.put(uuid, it) }
         cursor.addDocumentRow(row ?: DocumentRowBuilder.folderRow(uuid = uuid, displayName = uuid))
         return cursor
     }
@@ -228,6 +237,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun appendRows(load: FolderLoad, notifyUri: Uri, rows: List<Map<String, Any?>>) {
         if (rows.isEmpty()) return
         synchronized(load) { load.rows.addAll(rows) }
+        documentRows.putAll(rows)
         context?.contentResolver?.notifyChange(notifyUri, null)
     }
 
@@ -312,8 +322,11 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     ): R {
         val api = apiClient(op) ?: throw FileNotFoundException("No auth")
         val kind = resolveKind(api, documentId) ?: throw FileNotFoundException("Not found: $documentId")
+        val uuid = rawUuid(documentId)
         return try {
-            block(api, kind, rawUuid(documentId))
+            val result = block(api, kind, uuid)
+            documentRows.evict(uuid)
+            result
         } catch (e: InternxtApiException) {
             Log.w(TAG, "$op $documentId failed: ${e.javaClass.simpleName}: ${e.message}")
             throw FileNotFoundException(e.message)
@@ -356,7 +369,9 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     }
 
     private fun invalidateChildren(parentDocumentId: String) {
-        folderLoads.remove(parentDocumentId)
+        folderLoads.remove(parentDocumentId)?.let { load ->
+            documentRows.evictAll(synchronized(load) { load.rows.toList() })
+        }
         notifyChildren(parentDocumentId)
     }
 
@@ -412,6 +427,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         }
         try {
             val fresh = fetchAllRows(api, parentUuid)
+            documentRows.putAll(fresh)
             synchronized(load) {
                 load.rows.clear()
                 load.rows.addAll(fresh)
@@ -734,8 +750,22 @@ class InternxtDocumentsProvider : DocumentsProvider() {
     private fun resolveBucket(api: InternxtApiClient, parentUuid: String): String {
         val parent = api.getFolder(parentUuid)
             ?: throw IOException("Parent folder not found: $parentUuid")
+        // The API only populates `bucket` on the root folder; subfolders return null,
+        // so uploads into subfolders fall back to the user's (root) bucket.
         return parent.bucket
-            ?: throw IOException("Parent folder $parentUuid has no bucket")
+            ?: rootBucket(api)
+            ?: throw IOException("Parent folder $parentUuid has no bucket and root bucket is unavailable")
+    }
+
+    private fun rootBucket(api: InternxtApiClient): String? {
+        cachedRootBucket?.let { return it }
+        val rootUuid = authManager?.authenticatedRootUuid() ?: return null
+        val bucket = api.getFolder(rootUuid)?.bucket
+        if (bucket != null) {
+            Log.d(TAG, "resolveBucket: using root bucket fallback rootUuid=$rootUuid")
+            cachedRootBucket = bucket
+        }
+        return bucket
     }
 
     private fun prepareEncryption(mnemonic: String, bucketId: String): EncryptionContext {
