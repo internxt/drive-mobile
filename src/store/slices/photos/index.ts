@@ -1,6 +1,7 @@
 import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Platform } from 'react-native';
+import appService from 'src/services/AppService';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
 import { networkMonitorService, NetworkStateType } from 'src/services/NetworkMonitorService';
@@ -387,6 +388,10 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
 export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/runBackupCycle',
   async (_, { getState, dispatch }) => {
+    if (!appService.isPhotosEnabled) {
+      return;
+    }
+
     const { syncStatus } = getState().photos;
     if (syncStatus === 'scanning' || syncStatus === 'uploading' || syncStatus === 'pausing') {
       return;

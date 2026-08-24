@@ -60,7 +60,7 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
   };
 
   return (
-    <BottomModal isOpen={isOpen} onClosed={handleClose} topDecoration={false} backdropPressToClose ignoreSafeAreaTop>
+    <BottomModal isOpen={isOpen} onClosed={handleClose} topDecoration={false} backdropPressToClose>
       <ScrollView
         contentContainerStyle={[tailwind('px-5 pb-6'), styles.contentContainer]}
         showsVerticalScrollIndicator={false}

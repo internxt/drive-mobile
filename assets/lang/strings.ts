@@ -858,6 +858,7 @@ const translations = {
       SignOutModal: {
         title: 'Log out from this account?',
         signingOut: 'Saving your latest Photos data…',
+        signingOutGeneric: 'Signing out…',
       },
       ConfirmMoveItemModal: {
         title: 'Move {0} item(s) from',
@@ -1868,6 +1869,7 @@ const translations = {
       SignOutModal: {
         title: '¿Salir de esta cuenta?',
         signingOut: 'Guardando tus últimos datos de Photos…',
+        signingOutGeneric: 'Cerrando sesión…',
       },
       ConfirmMoveItemModal: {
         title: 'Mover {0} item(s) desde',

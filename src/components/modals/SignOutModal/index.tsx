@@ -3,6 +3,7 @@ import { View } from 'react-native';
 
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
+import appService from '../../../services/AppService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { authSelectors, authThunks } from '../../../store/slices/auth';
 import { uiActions } from '../../../store/slices/ui';
@@ -57,7 +58,9 @@ function SignOutModal({ onSignedOut }: SignOutModalProps): JSX.Element {
             <LoadingSpinner size={40} />
           </View>
           <AppText style={tailwind('text-gray-80 text-center text-base mt-5')} medium>
-            {strings.modals.SignOutModal.signingOut}
+            {appService.isPhotosEnabled
+              ? strings.modals.SignOutModal.signingOut
+              : strings.modals.SignOutModal.signingOutGeneric}
           </AppText>
         </View>
       ) : (
