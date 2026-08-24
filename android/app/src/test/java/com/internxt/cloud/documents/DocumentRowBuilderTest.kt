@@ -9,6 +9,10 @@ import org.junit.Test
 
 class DocumentRowBuilderTest {
 
+    companion object {
+        private const val UPDATED_AT = "2026-01-11T00:00:00.000Z"
+    }
+
     @Test
     fun folderRowFields() {
         val folder = DriveFolder(
@@ -17,7 +21,7 @@ class DocumentRowBuilderTest {
             parentUuid = "parent-uuid",
             bucket = null,
             createdAt = null,
-            updatedAt = "2026-01-11T00:00:00.000Z",
+            updatedAt = UPDATED_AT,
         )
 
         val row = DocumentRowBuilder.folderRow(folder)
@@ -44,7 +48,7 @@ class DocumentRowBuilderTest {
             bucket = "bucket-id",
             folderUuid = "parent-uuid",
             createdAt = null,
-            updatedAt = "2026-01-11T00:00:00.000Z",
+            updatedAt = UPDATED_AT,
             fileId = "file-id-1",
         )
 
@@ -96,7 +100,7 @@ class DocumentRowBuilderTest {
 
     @Test
     fun parseIsoToMillisHandlesValidInput() {
-        assertEquals(1768089600000L, DocumentRowBuilder.parseIsoToMillis("2026-01-11T00:00:00.000Z"))
+        assertEquals(1768089600000L, DocumentRowBuilder.parseIsoToMillis(UPDATED_AT))
     }
 
     @Test

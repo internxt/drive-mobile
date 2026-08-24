@@ -8,6 +8,13 @@ import org.junit.Test
 
 class DocumentRowCacheTest {
 
+    companion object {
+        private const val FOLDER_UUID = "folder-uuid"
+        private const val FILE_UUID = "file-uuid"
+        private const val FOLDER_DOC_ID = "f:$FOLDER_UUID"
+        private const val FILE_DOC_ID = "d:$FILE_UUID"
+    }
+
     private lateinit var cache: DocumentRowCache
 
     @Before
@@ -22,13 +29,13 @@ class DocumentRowCacheTest {
 
     @Test
     fun `when putAll receives listing rows, then they are retrievable by decoded uuid`() {
-        val folderRow = row("f:folder-uuid", "Documents")
-        val fileRow = row("d:file-uuid", "report.pdf")
+        val folderRow = row(FOLDER_DOC_ID, "Documents")
+        val fileRow = row(FILE_DOC_ID, "report.pdf")
 
         cache.putAll(listOf(folderRow, fileRow))
 
-        assertEquals(folderRow, cache["folder-uuid"])
-        assertEquals(fileRow, cache["file-uuid"])
+        assertEquals(folderRow, cache[FOLDER_UUID])
+        assertEquals(fileRow, cache[FILE_UUID])
     }
 
     @Test
@@ -49,33 +56,33 @@ class DocumentRowCacheTest {
 
     @Test
     fun `when put stores a row under a uuid, then a later put overwrites it`() {
-        cache.put("file-uuid", row("d:file-uuid", "old.pdf"))
-        val renamed = row("d:file-uuid", "new.pdf")
+        cache.put(FILE_UUID, row(FILE_DOC_ID, "old.pdf"))
+        val renamed = row(FILE_DOC_ID, "new.pdf")
 
-        cache.put("file-uuid", renamed)
+        cache.put(FILE_UUID, renamed)
 
-        assertEquals(renamed, cache["file-uuid"])
+        assertEquals(renamed, cache[FILE_UUID])
     }
 
     @Test
     fun `when evict removes a uuid, then only that entry is gone`() {
-        cache.putAll(listOf(row("d:file-uuid"), row("f:folder-uuid")))
+        cache.putAll(listOf(row(FILE_DOC_ID), row(FOLDER_DOC_ID)))
 
-        cache.evict("file-uuid")
+        cache.evict(FILE_UUID)
 
-        assertNull(cache["file-uuid"])
-        assertEquals(row("f:folder-uuid"), cache["folder-uuid"])
+        assertNull(cache[FILE_UUID])
+        assertEquals(row(FOLDER_DOC_ID), cache[FOLDER_UUID])
     }
 
     @Test
     fun `when evictAll receives stale rows, then their uuids are removed and others remain`() {
         val staying = row("d:kept-uuid")
-        cache.putAll(listOf(row("d:file-uuid"), row("f:folder-uuid"), staying))
+        cache.putAll(listOf(row(FILE_DOC_ID), row(FOLDER_DOC_ID), staying))
 
-        cache.evictAll(listOf(row("d:file-uuid"), row("f:folder-uuid")))
+        cache.evictAll(listOf(row(FILE_DOC_ID), row(FOLDER_DOC_ID)))
 
-        assertNull(cache["file-uuid"])
-        assertNull(cache["folder-uuid"])
+        assertNull(cache[FILE_UUID])
+        assertNull(cache[FOLDER_UUID])
         assertEquals(staying, cache["kept-uuid"])
     }
 

@@ -21,7 +21,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         // TODO: cleanup any resources
     }
 
-    func item(for identifier: NSFileProviderItemIdentifier, request: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
+    func item(for identifier: NSFileProviderItemIdentifier, request _: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
         if identifier == .rootContainer {
             let rootItem = FileProviderItem.root(displayName: rootDisplayName)
             completionHandler(rootItem, nil)
@@ -52,7 +52,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         return progress
     }
 
-    func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version requestedVersion: NSFileProviderItemVersion?, request: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
+    func fetchContents(for itemIdentifier: NSFileProviderItemIdentifier, version _: NSFileProviderItemVersion?, request _: NSFileProviderRequest, completionHandler: @escaping (URL?, NSFileProviderItem?, Error?) -> Void) -> Progress {
         guard let decoded = FileProviderItemID.decode(itemIdentifier), decoded.kind == .file else {
             completionHandler(nil, nil, NSFileProviderError(.noSuchItem))
             return Progress()
@@ -79,7 +79,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         return progress
     }
 
-    func createItem(basedOn itemTemplate: NSFileProviderItem, fields: NSFileProviderItemFields, contents url: URL?, options: NSFileProviderCreateItemOptions = [], request: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
+    func createItem(basedOn itemTemplate: NSFileProviderItem, fields _: NSFileProviderItemFields, contents url: URL?, options _: NSFileProviderCreateItemOptions = [], request _: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
         guard let driveAPI = DriveAPIFactory.make(), let networkFacade = NetworkFacadeFactory.make() else {
             completionHandler(nil, [], false, NSFileProviderError(.notAuthenticated))
             return Progress()
@@ -181,7 +181,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         return progress
     }
 
-    func modifyItem(_ item: NSFileProviderItem, baseVersion version: NSFileProviderItemVersion, changedFields: NSFileProviderItemFields, contents newContents: URL?, options: NSFileProviderModifyItemOptions = [], request: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
+    func modifyItem(_ item: NSFileProviderItem, baseVersion _: NSFileProviderItemVersion, changedFields: NSFileProviderItemFields, contents _: URL?, options _: NSFileProviderModifyItemOptions = [], request _: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, NSFileProviderItemFields, Bool, Error?) -> Void) -> Progress {
         let shouldRename = changedFields.contains(.filename)
         let shouldMove = changedFields.contains(.parentItemIdentifier)
 
@@ -232,7 +232,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         return progress
     }
 
-    func deleteItem(identifier: NSFileProviderItemIdentifier, baseVersion version: NSFileProviderItemVersion, options: NSFileProviderDeleteItemOptions = [], request: NSFileProviderRequest, completionHandler: @escaping (Error?) -> Void) -> Progress {
+    func deleteItem(identifier: NSFileProviderItemIdentifier, baseVersion _: NSFileProviderItemVersion, options _: NSFileProviderDeleteItemOptions = [], request _: NSFileProviderRequest, completionHandler: @escaping (Error?) -> Void) -> Progress {
         guard let driveAPI = DriveAPIFactory.make(), let trashAPI = DriveAPIFactory.makeTrash() else {
             completionHandler(NSFileProviderError(.notAuthenticated))
             return Progress()
@@ -257,7 +257,7 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         return progress
     }
 
-    func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier, request: NSFileProviderRequest) throws -> NSFileProviderEnumerator {
+    func enumerator(for containerItemIdentifier: NSFileProviderItemIdentifier, request _: NSFileProviderRequest) throws -> NSFileProviderEnumerator {
         return FileProviderEnumerator(enumeratedItemIdentifier: containerItemIdentifier)
     }
 }

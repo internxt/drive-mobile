@@ -24,5 +24,7 @@ private fun Response.closeQuietly() {
     try {
         close()
     } catch (_: Throwable) {
+        // Intentionally empty: close() failures on an already-abandoned response are irrelevant
+        // and must not mask the coroutine's cancellation or original result.
     }
 }
