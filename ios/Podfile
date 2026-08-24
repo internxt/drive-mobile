@@ -68,6 +68,17 @@ target 'Internxt' do
       end
     end
 
+    # IDZSwiftCommonCrypto is built twice (rn-crypto pod + InternxtSwiftCore SPM
+    # dependency); both run ExtractAppIntentsMetadata into the same archive path.
+    # Neither defines App Intents, so skip extraction for the Pods copy.
+    installer.pods_project.targets.each do |target|
+      if target.name == 'IDZSwiftCommonCrypto'
+        target.build_configurations.each do |config|
+          config.build_settings['LM_SKIP_METADATA_EXTRACTION'] = 'YES'
+        end
+      end
+    end
+
     # Fix: fmt/glog consteval incompatibility with Xcode 26 / Apple Clang 17.
     # consteval in C++20 is strictly enforced; forcing c++17 disables it entirely
     # in fmt (FMT_CONSTEVAL becomes a no-op when __cpp_consteval is not defined).
