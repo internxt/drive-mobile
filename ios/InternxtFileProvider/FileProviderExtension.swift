@@ -18,7 +18,8 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     }
 
     func invalidate() {
-        // TODO: cleanup any resources
+    // Nothing to cancel: operations run in unretained Tasks that complete on
+    // their own, and the system ignores their callbacks after invalidation.
     }
 
     func item(for identifier: NSFileProviderItemIdentifier, request _: NSFileProviderRequest, completionHandler: @escaping (NSFileProviderItem?, Error?) -> Void) -> Progress {
