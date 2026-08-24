@@ -21,6 +21,9 @@ class InternxtApiClientTest {
         private const val PARENT_UUID = "parent-uuid"
         private const val BUCKET_ID = "bucket-id"
         private const val NEW_FOLDER_NAME = "New Folder"
+        private const val FILE_UUID_1 = "file-uuid-1"
+        private const val FOLDER_UUID_1 = "folder-uuid-1"
+        private const val MISSING_UUID = "missing-uuid"
     }
 
     @Before
@@ -58,7 +61,7 @@ class InternxtApiClientTest {
             {
               "files": [
                 {
-                  "uuid": "file-uuid-1",
+                  "uuid": "$FILE_UUID_1",
                   "plainName": "report.pdf",
                   "type": "pdf",
                   "size": 102400,
@@ -76,7 +79,7 @@ class InternxtApiClientTest {
 
         assertEquals(1, files.size)
         val file = files[0]
-        assertEquals("file-uuid-1", file.uuid)
+        assertEquals(FILE_UUID_1, file.uuid)
         assertEquals("report.pdf", file.plainName)
         assertEquals("pdf", file.type)
         assertEquals(102400L, file.size)
@@ -118,7 +121,7 @@ class InternxtApiClientTest {
         enqueueJson("", code = 404)
 
         assertThrows(InternxtApiException.NotFoundException::class.java) {
-            client.listFolderFiles("missing-uuid")
+            client.listFolderFiles(MISSING_UUID)
         }
     }
 
@@ -174,7 +177,7 @@ class InternxtApiClientTest {
             {
               "folders": [
                 {
-                  "uuid": "folder-uuid-1",
+                  "uuid": "$FOLDER_UUID_1",
                   "plainName": "Documents",
                   "parentUuid": "$PARENT_UUID",
                   "bucket": "$BUCKET_ID",
@@ -190,7 +193,7 @@ class InternxtApiClientTest {
 
         assertEquals(1, folders.size)
         val folder = folders[0]
-        assertEquals("folder-uuid-1", folder.uuid)
+        assertEquals(FOLDER_UUID_1, folder.uuid)
         assertEquals("Documents", folder.plainName)
         assertEquals(PARENT_UUID, folder.parentUuid)
         assertEquals(BUCKET_ID, folder.bucket)
@@ -227,7 +230,7 @@ class InternxtApiClientTest {
             {
               "files": [
                 {
-                  "uuid": "file-uuid-1",
+                  "uuid": "$FILE_UUID_1",
                   "plainName": "report.pdf",
                   "type": null,
                   "bucket": null,
@@ -258,7 +261,7 @@ class InternxtApiClientTest {
             {
               "files": [
                 {
-                  "uuid": "file-uuid-1",
+                  "uuid": "$FILE_UUID_1",
                   "plainName": "big.bin",
                   "size": "9999999999"
                 }
@@ -274,56 +277,56 @@ class InternxtApiClientTest {
 
     @Test
     fun getFolderHitsMetaEndpointAndReturnsParsedFolder() {
-        enqueueJson("""{"uuid":"folder-uuid-1","plainName":"Documents"}""")
+        enqueueJson("""{"uuid":"$FOLDER_UUID_1","plainName":"Documents"}""")
 
-        val folder = client.getFolder("folder-uuid-1")
+        val folder = client.getFolder(FOLDER_UUID_1)
 
-        assertEquals("folder-uuid-1", folder?.uuid)
+        assertEquals(FOLDER_UUID_1, folder?.uuid)
         assertEquals("Documents", folder?.plainName)
 
         val recorded = server.takeRequest()
         assertEquals("GET", recorded.method)
-        assertEquals("/folders/folder-uuid-1/meta", recorded.path)
+        assertEquals("/folders/$FOLDER_UUID_1/meta", recorded.path)
     }
 
     @Test
     fun getFolderReturnsNullWhenNotFound() {
         enqueueJson("", code = 404)
 
-        assertNull(client.getFolder("missing-uuid"))
+        assertNull(client.getFolder(MISSING_UUID))
     }
 
     @Test
     fun getFileHitsMetaEndpointAndReturnsParsedFile() {
-        enqueueJson("""{"uuid":"file-uuid-1","plainName":"report.pdf","type":"pdf","size":102400}""")
+        enqueueJson("""{"uuid":"$FILE_UUID_1","plainName":"report.pdf","type":"pdf","size":102400}""")
 
-        val file = client.getFile("file-uuid-1")
+        val file = client.getFile(FILE_UUID_1)
 
-        assertEquals("file-uuid-1", file?.uuid)
+        assertEquals(FILE_UUID_1, file?.uuid)
         assertEquals("report.pdf", file?.plainName)
         assertEquals(102400L, file?.size)
 
         val recorded = server.takeRequest()
         assertEquals("GET", recorded.method)
-        assertEquals("/files/file-uuid-1/meta", recorded.path)
+        assertEquals("/files/$FILE_UUID_1/meta", recorded.path)
     }
 
     @Test
     fun getFileReturnsNullWhenNotFound() {
         enqueueJson("", code = 404)
 
-        assertNull(client.getFile("missing-uuid"))
+        assertNull(client.getFile(MISSING_UUID))
     }
 
     @Test
     fun renameFilePutsPlainNameToMetaEndpoint() {
         enqueueJson("")
 
-        client.renameFile("file-uuid-1", "renamed.pdf")
+        client.renameFile(FILE_UUID_1, "renamed.pdf")
 
         val recorded = server.takeRequest()
         assertEquals("PUT", recorded.method)
-        assertEquals("/files/file-uuid-1/meta", recorded.path)
+        assertEquals("/files/$FILE_UUID_1/meta", recorded.path)
         assertEquals("renamed.pdf", JSONObject(recorded.body.readUtf8()).getString("plainName"))
     }
 
@@ -331,35 +334,35 @@ class InternxtApiClientTest {
     fun renameFolderPutsPlainNameToMetaEndpoint() {
         enqueueJson("")
 
-        client.renameFolder("folder-uuid-1", "Renamed")
+        client.renameFolder(FOLDER_UUID_1, "Renamed")
 
         val recorded = server.takeRequest()
         assertEquals("PUT", recorded.method)
-        assertEquals("/folders/folder-uuid-1/meta", recorded.path)
+        assertEquals("/folders/$FOLDER_UUID_1/meta", recorded.path)
         assertEquals("Renamed", JSONObject(recorded.body.readUtf8()).getString("plainName"))
     }
 
     @Test
     fun moveFilePatchesDestinationPayload() {
-        enqueueJson("""{"uuid":"file-uuid-1","folderUuid":"$PARENT_UUID"}""")
+        enqueueJson("""{"uuid":"$FILE_UUID_1","folderUuid":"$PARENT_UUID"}""")
 
-        client.moveFile("file-uuid-1", PARENT_UUID)
+        client.moveFile(FILE_UUID_1, PARENT_UUID)
 
         val recorded = server.takeRequest()
         assertEquals("PATCH", recorded.method)
-        assertEquals("/files/file-uuid-1", recorded.path)
+        assertEquals("/files/$FILE_UUID_1", recorded.path)
         assertEquals(PARENT_UUID, JSONObject(recorded.body.readUtf8()).getString("destinationFolder"))
     }
 
     @Test
     fun moveFolderPatchesDestinationPayload() {
-        enqueueJson("""{"uuid":"folder-uuid-1","parentUuid":"$PARENT_UUID"}""")
+        enqueueJson("""{"uuid":"$FOLDER_UUID_1","parentUuid":"$PARENT_UUID"}""")
 
-        client.moveFolder("folder-uuid-1", PARENT_UUID)
+        client.moveFolder(FOLDER_UUID_1, PARENT_UUID)
 
         val recorded = server.takeRequest()
         assertEquals("PATCH", recorded.method)
-        assertEquals("/folders/folder-uuid-1", recorded.path)
+        assertEquals("/folders/$FOLDER_UUID_1", recorded.path)
         assertEquals(PARENT_UUID, JSONObject(recorded.body.readUtf8()).getString("destinationFolder"))
     }
 
@@ -369,8 +372,8 @@ class InternxtApiClientTest {
 
         client.sendToTrash(
             listOf(
-                TrashItem("file-uuid-1", TrashItem.Type.FILE),
-                TrashItem("folder-uuid-1", TrashItem.Type.FOLDER),
+                TrashItem(FILE_UUID_1, TrashItem.Type.FILE),
+                TrashItem(FOLDER_UUID_1, TrashItem.Type.FOLDER),
             )
         )
 
@@ -379,9 +382,9 @@ class InternxtApiClientTest {
         assertEquals("/storage/trash/add", recorded.path)
         val items = JSONObject(recorded.body.readUtf8()).getJSONArray("items")
         assertEquals(2, items.length())
-        assertEquals("file-uuid-1", items.getJSONObject(0).getString("uuid"))
+        assertEquals(FILE_UUID_1, items.getJSONObject(0).getString("uuid"))
         assertEquals("file", items.getJSONObject(0).getString("type"))
-        assertEquals("folder-uuid-1", items.getJSONObject(1).getString("uuid"))
+        assertEquals(FOLDER_UUID_1, items.getJSONObject(1).getString("uuid"))
         assertEquals("folder", items.getJSONObject(1).getString("type"))
     }
 

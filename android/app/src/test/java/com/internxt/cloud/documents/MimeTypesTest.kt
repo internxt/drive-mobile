@@ -5,11 +5,16 @@ import org.junit.Test
 
 class MimeTypesTest {
 
+    companion object {
+        private const val APPLICATION_PDF = "application/pdf"
+        private const val IMAGE_JPEG = "image/jpeg"
+    }
+
     @Test
     fun mapsKnownExtensions() {
-        assertEquals("application/pdf", MimeTypes.fromExtension("pdf"))
-        assertEquals("image/jpeg", MimeTypes.fromExtension("jpg"))
-        assertEquals("image/jpeg", MimeTypes.fromExtension("jpeg"))
+        assertEquals(APPLICATION_PDF, MimeTypes.fromExtension("pdf"))
+        assertEquals(IMAGE_JPEG, MimeTypes.fromExtension("jpg"))
+        assertEquals(IMAGE_JPEG, MimeTypes.fromExtension("jpeg"))
         assertEquals("image/png", MimeTypes.fromExtension("png"))
         assertEquals("video/mp4", MimeTypes.fromExtension("mp4"))
         assertEquals("audio/mpeg", MimeTypes.fromExtension("mp3"))
@@ -22,14 +27,14 @@ class MimeTypesTest {
 
     @Test
     fun isCaseInsensitive() {
-        assertEquals("application/pdf", MimeTypes.fromExtension("PDF"))
-        assertEquals("image/jpeg", MimeTypes.fromExtension("JPG"))
-        assertEquals("image/jpeg", MimeTypes.fromExtension("Jpeg"))
+        assertEquals(APPLICATION_PDF, MimeTypes.fromExtension("PDF"))
+        assertEquals(IMAGE_JPEG, MimeTypes.fromExtension("JPG"))
+        assertEquals(IMAGE_JPEG, MimeTypes.fromExtension("Jpeg"))
     }
 
     @Test
     fun trimsWhitespace() {
-        assertEquals("application/pdf", MimeTypes.fromExtension("  pdf  "))
+        assertEquals(APPLICATION_PDF, MimeTypes.fromExtension("  pdf  "))
     }
 
     @Test

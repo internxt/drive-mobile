@@ -5,6 +5,7 @@ jest.mock('../../../services/native/InternxtAuthCredentialsModule', () => ({
 
 jest.mock('@internxt-mobile/services/common', () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
+  BaseLogger: jest.fn().mockImplementation(() => ({ info: jest.fn(), warn: jest.fn(), error: jest.fn() })),
   imageService: {},
   PROFILE_PICTURE_CACHE_KEY: 'profile-picture',
   SdkManager: { init: jest.fn(), setApiSecurity: jest.fn(), getInstance: jest.fn() },

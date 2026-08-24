@@ -53,7 +53,7 @@ class FileProviderEnumerator: NSObject, NSFileProviderEnumerator {
     super.init()
   }
 
-  func invalidate() {}
+  func invalidate() { /* Nothing to cancel: enumeration Tasks are not retained, run to completion on their own, and the system ignores observer callbacks after invalidation. */ }
 
   func enumerateItems(for observer: NSFileProviderEnumerationObserver, startingAt page: NSFileProviderPage) {
     guard !isWorkingSet, FileProviderItemID.isDriveFolderContainer(enumeratedItemIdentifier) else {
