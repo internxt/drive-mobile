@@ -20,24 +20,28 @@ class FileProviderItem: NSObject, NSFileProviderItem {
   private let createdAt: String?
   private let sizeInBytes: String?
 
+  struct Metadata {
+    var fileExtension: String? = nil
+    var createdAt: String? = nil
+    var updatedAt: String? = nil
+    var sizeInBytes: String? = nil
+  }
+
   private init(
     identifier: NSFileProviderItemIdentifier,
     parent: NSFileProviderItemIdentifier,
     name: String,
     kind: DriveItemKind,
-    fileExtension: String?,
-    createdAt: String?,
-    updatedAt: String?,
-    sizeInBytes: String?
+    metadata: Metadata
   ) {
     self.identifier = identifier
     self.parent = parent
     self.name = name
     self.kind = kind
-    self.fileExtension = fileExtension
-    self.createdAt = createdAt
-    self.updatedAt = updatedAt
-    self.sizeInBytes = sizeInBytes
+    self.fileExtension = metadata.fileExtension
+    self.createdAt = metadata.createdAt
+    self.updatedAt = metadata.updatedAt
+    self.sizeInBytes = metadata.sizeInBytes
   }
 
   convenience init(folder: GetFolderFoldersResult, parent: NSFileProviderItemIdentifier) {
@@ -46,10 +50,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: parent,
       name: folder.plainName ?? folder.name,
       kind: .folder,
-      fileExtension: nil,
-      createdAt: folder.createdAt,
-      updatedAt: folder.updatedAt,
-      sizeInBytes: nil
+      metadata: Metadata(createdAt: folder.createdAt, updatedAt: folder.updatedAt)
     )
   }
 
@@ -59,10 +60,12 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: parent,
       name: file.plainName ?? file.name ?? file.uuid,
       kind: .file,
-      fileExtension: file.type,
-      createdAt: file.createdAt,
-      updatedAt: file.updatedAt,
-      sizeInBytes: file.size
+      metadata: Metadata(
+        fileExtension: file.type,
+        createdAt: file.createdAt,
+        updatedAt: file.updatedAt,
+        sizeInBytes: file.size
+      )
     )
   }
 
@@ -72,10 +75,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: parent,
       name: folder.plainName ?? folder.name,
       kind: .folder,
-      fileExtension: nil,
-      createdAt: folder.createdAt,
-      updatedAt: folder.updatedAt,
-      sizeInBytes: nil
+      metadata: Metadata(createdAt: folder.createdAt, updatedAt: folder.updatedAt)
     )
   }
 
@@ -85,10 +85,12 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: parent,
       name: file.plain_name,
       kind: .file,
-      fileExtension: file.type,
-      createdAt: file.createdAt,
-      updatedAt: file.updatedAt,
-      sizeInBytes: file.size
+      metadata: Metadata(
+        fileExtension: file.type,
+        createdAt: file.createdAt,
+        updatedAt: file.updatedAt,
+        sizeInBytes: file.size
+      )
     )
   }
 
@@ -100,10 +102,12 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: item.parentItemIdentifier,
       name: baseName,
       kind: decoded.kind,
-      fileExtension: newExtension,
-      createdAt: iso8601String(from: item.creationDate ?? nil),
-      updatedAt: iso8601String(from: item.contentModificationDate ?? nil),
-      sizeInBytes: (item.documentSize ?? nil)?.stringValue
+      metadata: Metadata(
+        fileExtension: newExtension,
+        createdAt: iso8601String(from: item.creationDate ?? nil),
+        updatedAt: iso8601String(from: item.contentModificationDate ?? nil),
+        sizeInBytes: (item.documentSize ?? nil)?.stringValue
+      )
     )
   }
 
@@ -129,10 +133,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: .rootContainer,
       name: displayName,
       kind: .folder,
-      fileExtension: nil,
-      createdAt: nil,
-      updatedAt: nil,
-      sizeInBytes: nil
+      metadata: Metadata()
     )
   }
 
@@ -142,10 +143,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: FileProviderItemID.parentIdentifier(folderUuid: folderMeta.parentUuid),
       name: folderMeta.plainName ?? folderMeta.name ?? identifier.rawValue,
       kind: .folder,
-      fileExtension: nil,
-      createdAt: folderMeta.createdAt,
-      updatedAt: folderMeta.updatedAt,
-      sizeInBytes: nil
+      metadata: Metadata(createdAt: folderMeta.createdAt, updatedAt: folderMeta.updatedAt)
     )
   }
 
@@ -155,10 +153,12 @@ class FileProviderItem: NSObject, NSFileProviderItem {
       parent: FileProviderItemID.parentIdentifier(folderUuid: fileMeta.folderUuid),
       name: fileMeta.plainName ?? fileMeta.name,
       kind: .file,
-      fileExtension: fileMeta.type,
-      createdAt: fileMeta.createdAt,
-      updatedAt: fileMeta.updatedAt,
-      sizeInBytes: fileMeta.size
+      metadata: Metadata(
+        fileExtension: fileMeta.type,
+        createdAt: fileMeta.createdAt,
+        updatedAt: fileMeta.updatedAt,
+        sizeInBytes: fileMeta.size
+      )
     )
   }
 
