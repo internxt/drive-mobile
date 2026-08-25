@@ -605,6 +605,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             throw FileNotFoundException("Folder creation failed: ${e.message}")
         }
         invalidateChildren(parentDocumentId)
+        documentRows.put(folder.uuid, DocumentRowBuilder.folderRow(folder))
         return DocumentId.encodeFolder(folder.uuid)
     }
 
