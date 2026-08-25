@@ -95,6 +95,9 @@ jest.mock('src/services/photos/PhotoCloudBrowser', () => ({
   photoCloudBrowser: {
     listDeviceFolders: jest.fn().mockResolvedValue([]),
     syncAllHistory: jest.fn().mockResolvedValue(undefined),
+    cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
+    recordSyncedAsset: jest.fn().mockResolvedValue(undefined),
+    subscribeToCloudIndexUpdates: jest.fn().mockReturnValue(jest.fn()),
   },
 }));
 
@@ -211,6 +214,9 @@ describe('photos slice', () => {
     mockPhotoSyncManifestService.restoreManifest.mockResolvedValue(null);
     mockCloudBrowser.listDeviceFolders.mockResolvedValue([]);
     mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
+    mockCloudBrowser.cleanupOrphanedAssetSync.mockResolvedValue(0);
+    mockCloudBrowser.recordSyncedAsset.mockResolvedValue(undefined);
+    mockCloudBrowser.subscribeToCloudIndexUpdates.mockReturnValue(jest.fn());
     // Prevent checkPermissionRevocationThunk from overwriting permissionStatus with undefined
     mockPermissionService.getStatus.mockResolvedValue('granted');
     mockHasPhotosFeatureAccess.mockReturnValue(true);
@@ -1818,7 +1824,13 @@ describe('photos slice', () => {
 
       await store.dispatch(uploadAssetsManuallyThunk({ assetIds: ['a1'], signal: makeSignal() })).unwrap();
 
-      expect(mockPhotosLocalDB.markSynced).toHaveBeenCalledWith('a1', 'remote-1', 12345);
+      expect(mockPhotosLocalDB.markSynced).toHaveBeenCalledWith('a1', 'remote-1', 12345, {
+        thumbnailBucketId: undefined,
+        thumbnailBucketFile: undefined,
+        thumbnailType: undefined,
+        contentFileId: undefined,
+        bucket: undefined,
+      });
       expect(store.getState().photos.uploadingAssetIds).toEqual([]);
       expect(mockPhotosLocalDB.markPendingBulk).not.toHaveBeenCalled();
     });

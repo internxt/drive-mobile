@@ -114,6 +114,7 @@ const persistPhotosSettings = async (state: PhotosState): Promise<void> => {
 };
 
 let unsubscribeNetworkRecovery: (() => void) | null = null;
+let unsubscribeCloudIndexUpdates: (() => void) | null = null;
 
 export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: RootState }>(
   'photos/setState',
@@ -129,6 +130,11 @@ export const hydratePhotosStateThunk = createAsyncThunk<void, void, { state: Roo
         logger.info('[Photos] Network recovered — resuming backup cycle');
         dispatch(runBackupCycleThunk());
       }
+    });
+
+    unsubscribeCloudIndexUpdates?.();
+    unsubscribeCloudIndexUpdates = photoCloudBrowser.subscribeToCloudIndexUpdates(() => {
+      dispatch(photosSlice.actions.incrementCloudFetchRevision());
     });
 
     await photosLocalDB.init();
@@ -301,7 +307,10 @@ export const runDiscoveryThunk = createAsyncThunk<void, void, { state: RootState
         photosLocalDB.markPendingEditBulk(editedAssets.map(transformToPendingEntry)),
       ]);
       const localAssetIdSet = new Set(scannedAssets.map((a) => a.id));
-      const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(localAssetIdSet);
+      const orphanedAssetsSyncRemovedCount = await photoCloudBrowser.cleanupOrphanedAssetSync(
+        localAssetIdSet,
+        getState().photos.deviceId,
+      );
       if (orphanedAssetsSyncRemovedCount > 0) {
         logger.info(
           `[Discovery] Removed ${orphanedAssetsSyncRemovedCount} asset_sync entries for locally deleted assets`,

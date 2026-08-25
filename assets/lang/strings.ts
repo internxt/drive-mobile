@@ -229,7 +229,7 @@ const translations = {
           deletedFromCloud: 'Deleted from the cloud',
           backup: 'Backup',
           uploading: 'Uploading',
-          burstBadge: 'Burst',
+          burstBadge: 'BURST',
           burstIncomplete: 'Burst not fully backed up. Grant full Photos access to back up all burst photos.',
           burstPhotosUnit: 'photos',
           metadata: {
@@ -1239,7 +1239,7 @@ const translations = {
           deletedFromCloud: 'Eliminado de la nube',
           backup: 'Copia de seguridad',
           uploading: 'Subiendo',
-          burstBadge: 'Ráfaga',
+          burstBadge: 'BURST',
           burstIncomplete:
             'Ráfaga incompleta. Para respaldar todas las fotos de la ráfaga, concede acceso completo a Fotos.',
           burstPhotosUnit: 'fotos',
