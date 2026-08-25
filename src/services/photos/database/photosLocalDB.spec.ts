@@ -26,10 +26,39 @@ describe('photosLocalDB', () => {
     await photosLocalDB.init();
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(8);
+    // 8 create table/index statements + 5 `ALTER TABLE asset_sync ADD COLUMN` migration
+    // statements (migrateAssetSyncColumns — additive columns for installs predating them).
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(13);
     const statements = mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS asset_sync'))).toBe(true);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS cloud_asset'))).toBe(true);
+    expect(statements.some((s) => s.includes('ALTER TABLE asset_sync ADD COLUMN thumbnail_bucket_id'))).toBe(true);
+  });
+
+  test('when the ALTER TABLE migration finds a column that already exists, then the duplicate column error is swallowed', async () => {
+    mockSqlite.executeSql.mockImplementation(async (_name, stmt) => {
+      if (typeof stmt === 'string' && stmt.includes('ALTER TABLE asset_sync ADD COLUMN')) {
+        throw new Error('duplicate column name: thumbnail_bucket_id');
+      }
+      return [];
+    });
+
+    await expect(photosLocalDB.init()).resolves.toBeUndefined();
+
+    mockSqlite.executeSql.mockResolvedValue([]); // restore the default for later tests
+  });
+
+  test('when the ALTER TABLE migration fails for a reason other than a duplicate column, then it rethrows', async () => {
+    mockSqlite.executeSql.mockImplementation(async (_name, stmt) => {
+      if (typeof stmt === 'string' && stmt.includes('ALTER TABLE asset_sync ADD COLUMN')) {
+        throw new Error('disk I/O error');
+      }
+      return [];
+    });
+
+    await expect(photosLocalDB.init()).rejects.toThrow('disk I/O error');
+
+    mockSqlite.executeSql.mockResolvedValue([]); // restore the default for later tests
   });
 
   test('when the database is initialized a second time, then no database calls are made', async () => {
@@ -111,6 +140,14 @@ describe('photosLocalDB', () => {
     expect(paramsList).toEqual([['asset-1'], ['asset-2'], ['asset-3']]);
   });
 
+  test('when getting orphaned asset_sync ids, then only the ones missing from the given local set are returned', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([{ asset_id: 'asset-1' }, { asset_id: 'asset-2' }]);
+
+    const orphanIds = await photosLocalDB.getOrphanedAssetSyncIds(new Set(['asset-1']));
+
+    expect(orphanIds).toEqual(['asset-2']);
+  });
+
   test('when a file size is cached for an asset, then the file size and asset id are passed to the database', async () => {
     await photosLocalDB.cacheAssetFileSize('asset-3', 204800);
 
@@ -127,14 +164,36 @@ describe('photosLocalDB', () => {
     const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
     expect(stmt).toContain('\'synced\'');
     expect(stmt).toContain('unixepoch()');
-    expect(params).toEqual(['asset-1', 'remote-file-id', 1714000000]);
+    expect(params).toEqual(['asset-1', 'remote-file-id', 1714000000, null, null, null, null, null]);
   });
 
   test('when a photo is marked as synced without a modification time, then the modification time is stored as null', async () => {
     await photosLocalDB.markSynced('asset-1', 'remote-file-id', null);
 
     const [, , params] = mockSqlite.executeSql.mock.calls[0];
-    expect(params).toEqual(['asset-1', 'remote-file-id', null]);
+    expect(params).toEqual(['asset-1', 'remote-file-id', null, null, null, null, null, null]);
+  });
+
+  test('when a photo is marked as synced with thumbnail refs from the upload, then they are persisted', async () => {
+    await photosLocalDB.markSynced('asset-1', 'remote-file-id', 1714000000, {
+      thumbnailBucketId: 'bucket-1',
+      thumbnailBucketFile: 'thumb-file-1',
+      thumbnailType: 'jpg',
+      contentFileId: 'content-file-1',
+      bucket: 'bucket-1',
+    });
+
+    const [, , params] = mockSqlite.executeSql.mock.calls[0];
+    expect(params).toEqual([
+      'asset-1',
+      'remote-file-id',
+      1714000000,
+      'bucket-1',
+      'thumb-file-1',
+      'jpg',
+      'content-file-1',
+      'bucket-1',
+    ]);
   });
 
   test('when a photo upload fails without an error message, then it is marked as failed with a null message', async () => {
@@ -517,6 +576,15 @@ describe('photosLocalDB cloud asset methods', () => {
     const result = await photosLocalDB.getCloudAssetById('non-existent');
 
     expect(result).toBeNull();
+  });
+
+  test('when known cloud asset remote ids are looked up for a device/month, then rows with discoveredAt 0 are excluded from the query', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([]);
+
+    await photosLocalDB.getCloudAssetRemoteIdsByDeviceAndMonth('device-1', 2024, 6);
+
+    const [, stmt] = mockSqlite.getAllAsync.mock.calls[0];
+    expect(stmt).toContain('discovered_at != 0');
   });
 
   test('when a cloud asset is upserted, then all its fields are passed to the database', async () => {

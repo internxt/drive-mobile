@@ -27,7 +27,13 @@ const statements = {
       is_burst                    INTEGER NOT NULL DEFAULT 0,
       burst_id                    TEXT,
       burst_member_remote_file_ids TEXT,
-      burst_member_count          INTEGER
+      burst_member_count          INTEGER,
+      -- Captured from the upload/replace call itself (see migrateAddColumns below for existing installs).
+      thumbnail_bucket_id         TEXT,
+      thumbnail_bucket_file       TEXT,
+      thumbnail_type              TEXT,
+      content_file_id             TEXT,
+      bucket                      TEXT
     );
   `,
   createIndex: `CREATE INDEX IF NOT EXISTS idx_asset_sync_status ON ${TABLE_NAME}(status);`,
@@ -68,20 +74,27 @@ const statements = {
   `,
 
   markSynced: `
-    INSERT INTO ${TABLE_NAME} (asset_id, status, remote_file_id, synced_at, last_attempt_at, modification_time)
-    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?)
+    INSERT INTO ${TABLE_NAME} (asset_id, status, remote_file_id, synced_at, last_attempt_at, modification_time,
+                               thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, content_file_id, bucket)
+    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, ?, ?, ?, ?, ?)
     ON CONFLICT(asset_id) DO UPDATE SET
-      status            = 'synced',
-      remote_file_id    = excluded.remote_file_id,
-      synced_at         = excluded.synced_at,
-      last_attempt_at   = excluded.last_attempt_at,
-      modification_time = excluded.modification_time;
+      status                 = 'synced',
+      remote_file_id         = excluded.remote_file_id,
+      synced_at              = excluded.synced_at,
+      last_attempt_at        = excluded.last_attempt_at,
+      modification_time      = excluded.modification_time,
+      thumbnail_bucket_id    = COALESCE(excluded.thumbnail_bucket_id, ${TABLE_NAME}.thumbnail_bucket_id),
+      thumbnail_bucket_file  = COALESCE(excluded.thumbnail_bucket_file, ${TABLE_NAME}.thumbnail_bucket_file),
+      thumbnail_type         = COALESCE(excluded.thumbnail_type, ${TABLE_NAME}.thumbnail_type),
+      content_file_id        = COALESCE(excluded.content_file_id, ${TABLE_NAME}.content_file_id),
+      bucket                 = COALESCE(excluded.bucket, ${TABLE_NAME}.bucket);
   `,
 
   markSyncedLivePhoto: `
     INSERT INTO ${TABLE_NAME} (asset_id, status, remote_file_id, synced_at, last_attempt_at, modification_time,
-                               is_live_photo, paired_video_remote_file_id, paired_video_status)
-    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?)
+                               is_live_photo, paired_video_remote_file_id, paired_video_status,
+                               thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, content_file_id, bucket)
+    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(asset_id) DO UPDATE SET
       status                      = 'synced',
       remote_file_id              = excluded.remote_file_id,
@@ -90,14 +103,20 @@ const statements = {
       modification_time           = excluded.modification_time,
       is_live_photo               = 1,
       paired_video_remote_file_id = excluded.paired_video_remote_file_id,
-      paired_video_status         = excluded.paired_video_status;
+      paired_video_status         = excluded.paired_video_status,
+      thumbnail_bucket_id         = COALESCE(excluded.thumbnail_bucket_id, ${TABLE_NAME}.thumbnail_bucket_id),
+      thumbnail_bucket_file       = COALESCE(excluded.thumbnail_bucket_file, ${TABLE_NAME}.thumbnail_bucket_file),
+      thumbnail_type              = COALESCE(excluded.thumbnail_type, ${TABLE_NAME}.thumbnail_type),
+      content_file_id             = COALESCE(excluded.content_file_id, ${TABLE_NAME}.content_file_id),
+      bucket                      = COALESCE(excluded.bucket, ${TABLE_NAME}.bucket);
   `,
 
   // BURST: marks a burst representative as synced with its member uuids (iOS only).
   markSyncedBurst: `
     INSERT INTO ${TABLE_NAME} (asset_id, status, remote_file_id, synced_at, last_attempt_at, modification_time,
-                               is_burst, burst_id, burst_member_remote_file_ids, burst_member_count)
-    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?, ?)
+                               is_burst, burst_id, burst_member_remote_file_ids, burst_member_count,
+                               thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, content_file_id, bucket)
+    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(asset_id) DO UPDATE SET
       status                       = 'synced',
       remote_file_id               = excluded.remote_file_id,
@@ -107,7 +126,12 @@ const statements = {
       is_burst                     = 1,
       burst_id                     = excluded.burst_id,
       burst_member_remote_file_ids = excluded.burst_member_remote_file_ids,
-      burst_member_count           = excluded.burst_member_count;
+      burst_member_count           = excluded.burst_member_count,
+      thumbnail_bucket_id          = COALESCE(excluded.thumbnail_bucket_id, ${TABLE_NAME}.thumbnail_bucket_id),
+      thumbnail_bucket_file        = COALESCE(excluded.thumbnail_bucket_file, ${TABLE_NAME}.thumbnail_bucket_file),
+      thumbnail_type               = COALESCE(excluded.thumbnail_type, ${TABLE_NAME}.thumbnail_type),
+      content_file_id              = COALESCE(excluded.content_file_id, ${TABLE_NAME}.content_file_id),
+      bucket                       = COALESCE(excluded.bucket, ${TABLE_NAME}.bucket);
   `,
 
   markError: `
@@ -130,7 +154,8 @@ const statements = {
            created_at, last_attempt_at, modification_time,
            file_name, file_size, creation_time, width, height, duration, media_type,
            is_live_photo, paired_video_remote_file_id, paired_video_status,
-           is_burst, burst_id, burst_member_remote_file_ids, burst_member_count
+           is_burst, burst_id, burst_member_remote_file_ids, burst_member_count,
+           thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, content_file_id, bucket
     FROM ${TABLE_NAME} WHERE asset_id = ?;
   `,
   getSyncedInList: (placeholders: string) =>
@@ -241,4 +266,13 @@ const statements = {
   `,
 };
 
-export default { TABLE_NAME, statements };
+// Adds the thumbnail/content columns to existing installs. See photosLocalDB.migrateAssetSyncColumns.
+const migrateAddColumns = [
+  `ALTER TABLE ${TABLE_NAME} ADD COLUMN thumbnail_bucket_id TEXT;`,
+  `ALTER TABLE ${TABLE_NAME} ADD COLUMN thumbnail_bucket_file TEXT;`,
+  `ALTER TABLE ${TABLE_NAME} ADD COLUMN thumbnail_type TEXT;`,
+  `ALTER TABLE ${TABLE_NAME} ADD COLUMN content_file_id TEXT;`,
+  `ALTER TABLE ${TABLE_NAME} ADD COLUMN bucket TEXT;`,
+];
+
+export default { TABLE_NAME, statements, migrateAddColumns };

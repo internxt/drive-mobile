@@ -5,7 +5,7 @@ import { logger } from 'src/services/common';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
 import { buildBurstBaseSet, linkBurst } from './burst/BurstCloudLinker';
 import { isBurstMemberPlainName } from './burst/burst.constants';
-import { BurstRole, CloudAssetEntry, LivePhotoRole, photosLocalDB } from './database/photosLocalDB';
+import { AssetSyncEntry, BurstRole, CloudAssetEntry, LivePhotoRole, photosLocalDB } from './database/photosLocalDB';
 import {
   getPairedVideoPlainNameFromPhoto,
   getPhotoPlainNameFromPairedVideo,
@@ -67,14 +67,290 @@ const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Prom
 };
 
 class PhotoCloudBrowserService {
+  private readonly cloudIndexUpdateSubscribers = new Set<() => void>();
+
+  private readonly inFlightMonthBackfills = new Map<string, Promise<number>>();
+  private readonly pendingMonthBackfillReruns = new Set<string>();
+
   constructor(
     private readonly folderService: typeof driveFolderService,
     private readonly localDB: typeof photosLocalDB,
   ) {}
 
+  subscribeToCloudIndexUpdates(callback: () => void): () => void {
+    this.cloudIndexUpdateSubscribers.add(callback);
+    return () => {
+      this.cloudIndexUpdateSubscribers.delete(callback);
+    };
+  }
+
+  /** Resolves once every queued month backfill (see `queueMonthBackfill`), including trailing re-runs, has settled. */
+  async waitForPendingCloudIndexUpdates(): Promise<void> {
+    while (this.inFlightMonthBackfills.size > 0) {
+      await Promise.all(this.inFlightMonthBackfills.values());
+    }
+  }
+
+  private notifyCloudIndexUpdated(): void {
+    this.cloudIndexUpdateSubscribers.forEach((callback) => {
+      try {
+        callback();
+      } catch (error) {
+        logger.error('[CloudBrowser] Cloud index update subscriber failed', { error });
+      }
+    });
+  }
+
   async listDeviceFolders(): Promise<{ uuid: string }[]> {
     const devices = await photosDeviceService.listDevices();
     return devices.filter((device) => device.status === 'EXISTS').map((device) => ({ uuid: device.uuid }));
+  }
+
+  /**
+   * Writes a `cloud_asset` row for a just-synced asset directly, without fetching Drive. Always
+   * called after `asset_sync` is marked synced, regardless of which upload/replace path produced
+   * it. Maps whatever `asset_sync` already knows (thumbnail, content refs, burst/Live Photo
+   * pairing); fields it doesn't have preserve the value already in `cloud_asset`, if any. Queues
+   * a background backfill whenever the thumbnail or content refs (`contentFileId`/`bucket`) are
+   * still missing, so the row converges without waiting for the month's TTL. No-op if there's no
+   * fresh thumbnail data and a complete row already exists for this asset.
+   *
+   * @param assetId - Local asset id whose `asset_sync` row was just marked synced.
+   * @param deviceId - This device's folder uuid, or null if unknown (no-op in that case).
+   */
+  async recordSyncedAsset(assetId: string, deviceId: string | null): Promise<void> {
+    if (!deviceId) {
+      logger.info(`[CloudBrowser] recordSyncedAsset skipped — assetId=${assetId}, no deviceId`);
+      return;
+    }
+    const assetEntry = await this.localDB.getStatus(assetId);
+    if (!assetEntry?.remoteFileId) {
+      logger.info(`[CloudBrowser] recordSyncedAsset skipped — assetId=${assetId}, no remoteFileId in asset_sync`);
+      return;
+    }
+
+    const existing = await this.localDB.getCloudAssetById(assetEntry.remoteFileId);
+
+    if (!assetEntry.thumbnailBucketId && existing?.thumbnailBucketId) {
+      logger.info(
+        `[CloudBrowser] recordSyncedAsset skipped — remoteFileId=${assetEntry.remoteFileId} already complete in cloud index`,
+      );
+      return;
+    }
+
+    const entry = this.buildCloudAssetEntry(assetEntry, deviceId, existing);
+    if (assetEntry.thumbnailBucketId) {
+      // Must run before the upsert — it reads the thumbnail_bucket_file still in cloud_asset.
+      await this.evictStaleThumbnailCacheFiles([entry]);
+    }
+    await this.localDB.upsertCloudAsset(entry);
+
+    const hasFullContentRefs = !!(assetEntry.contentFileId && assetEntry.bucket);
+    if (assetEntry.thumbnailBucketId && hasFullContentRefs) {
+      logger.info(
+        `[CloudBrowser] Recorded synced asset in cloud index (complete, no fetch) — remoteFileId=${assetEntry.remoteFileId}`,
+      );
+      return;
+    }
+
+    logger.info(
+      `[CloudBrowser] Recorded synced asset in cloud index (${assetEntry.thumbnailBucketId ? 'content refs pending' : 'thumbnail pending'}) — remoteFileId=${assetEntry.remoteFileId}`,
+    );
+    this.queueMonthBackfill(deviceId, assetEntry.creationTime, 'after upload');
+  }
+
+  /**
+   * Fires a `fetchMonth({force: true})` in the background for the month containing
+   * `creationTimeMs`. Coalesces with any backfill already in flight for the same device/month
+   * (see `inFlightMonthBackfills`) instead of starting a redundant one.
+   *
+   * @param deviceId - Device folder uuid whose month should be re-fetched.
+   * @param creationTimeMs - Creation time (ms) of the asset that triggered this backfill; used
+   *   only to resolve which year/month to fetch. No-op if null.
+   * @param context - Short label included in log lines to distinguish callers (e.g. "after upload").
+   */
+  private queueMonthBackfill(deviceId: string, creationTimeMs: number | null, context: string): void {
+    if (!creationTimeMs) {
+      return;
+    }
+    const date = new Date(creationTimeMs);
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const key = `${deviceId}:${year}:${month}`;
+
+    if (this.inFlightMonthBackfills.has(key)) {
+      this.pendingMonthBackfillReruns.add(key);
+      logger.info(
+        `[CloudBrowser] Backfill ${context} — device=${deviceId} ${year}/${month} already in flight, scheduled a re-run after it`,
+      );
+      return;
+    }
+
+    const backfill = this.fetchMonth({
+      deviceId,
+      deviceFolderUuid: deviceId,
+      year,
+      month,
+      force: true,
+      currentDeviceId: deviceId,
+    })
+      .then((count) => {
+        logger.info(
+          `[CloudBrowser] Backfill ${context} — device=${deviceId} ${year}/${month}, ${count} file(s) upserted`,
+        );
+        if (count > 0) {
+          this.notifyCloudIndexUpdated();
+        }
+        return count;
+      })
+      .catch((err: unknown) => {
+        logger.warn(`[CloudBrowser] Backfill ${context} failed for ${deviceId} ${year}/${month}: ${err}`);
+        return 0;
+      })
+      .finally(() => {
+        this.inFlightMonthBackfills.delete(key);
+        if (this.pendingMonthBackfillReruns.delete(key)) {
+          this.queueMonthBackfill(deviceId, creationTimeMs, context);
+        }
+      });
+
+    this.inFlightMonthBackfills.set(key, backfill);
+  }
+
+  /**
+   * Builds a `cloud_asset` row from an `asset_sync` entry, mapping over whatever this call
+   * already knows (thumbnail/content refs, burst/Live Photo pairing) and leaving the rest null.
+   * Safe to write partially — `upsertCloudAsset`'s COALESCE semantics preserve any field a
+   * previous real fetch already populated instead of overwriting it with null.
+   *
+   * @param entry - The `asset_sync` row to build from.
+   * @param deviceId - This device's folder uuid.
+   * @param existing - The current `cloud_asset` row for this remoteFileId, if any — used to carry
+   *   over fields this call can't determine (currently `isFavorite`).
+   * @returns The corresponding `cloud_asset` row, ready to upsert.
+   */
+  private buildCloudAssetEntry(
+    entry: AssetSyncEntry,
+    deviceId: string,
+    existing?: CloudAssetEntry | null,
+  ): CloudAssetEntry {
+    const folderDate = entry.creationTime
+      ? (() => {
+          const d = new Date(entry.creationTime as number);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        })()
+      : 0;
+    return {
+      remoteFileId: entry.remoteFileId as string,
+      deviceId,
+      folderDate,
+      fileName: entry.fileName ?? entry.assetId,
+      fileSize: entry.fileSize,
+      fileId: entry.contentFileId,
+      bucket: entry.bucket,
+      thumbnailPath: null,
+      thumbnailBucketId: entry.thumbnailBucketId,
+      thumbnailBucketFile: entry.thumbnailBucketFile,
+      thumbnailType: entry.thumbnailType,
+      // Local capture time, used as a proxy until a real fetch overwrites it with Drive's own value.
+      creationTimeApi: entry.creationTime,
+      ...this.buildLivePhotoAndBurstFields(entry),
+      discoveredAt: 0,
+      uploadedAt: entry.syncedAt ?? Date.now(),
+      isFavorite: existing?.isFavorite ?? false,
+    };
+  }
+
+  /**
+   * Derives the Live Photo/burst pairing fields shared by both direct-write `cloud_asset`
+   * builders. `entry.isLivePhoto`/`entry.isBurst` and their pairing ids are known from
+   * `asset_sync` regardless of whether the thumbnail/content refs are present.
+   *
+   * @param entry - The `asset_sync` row to derive pairing from.
+   * @returns `isLivePhoto`, `livePhotoRole`, `pairedRemoteFileId`, `burstRole`, `burstGroupId`.
+   */
+  private buildLivePhotoAndBurstFields(
+    entry: AssetSyncEntry,
+  ): Pick<CloudAssetEntry, 'isLivePhoto' | 'livePhotoRole' | 'pairedRemoteFileId' | 'burstRole' | 'burstGroupId'> {
+    return {
+      isLivePhoto: entry.isLivePhoto,
+      livePhotoRole: entry.isLivePhoto ? 'photo' : undefined,
+      pairedRemoteFileId: entry.isLivePhoto ? entry.pairedVideoRemoteFileId : undefined,
+      burstRole: entry.isBurst ? 'representative' : undefined,
+      // entry.remoteFileId, not entry.burstId (a different, local id) — see BurstCloudLinker.linkBurst.
+      burstGroupId: entry.isBurst ? (entry.remoteFileId ?? undefined) : undefined,
+    };
+  }
+
+  private async preserveCloudVisibilityForOrphans(entries: AssetSyncEntry[], deviceId: string): Promise<void> {
+    const monthsToBackfill = new Map<string, number>();
+    for (const entry of entries) {
+      if (!entry.remoteFileId) {
+        logger.info(
+          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId} skipped, never had a remote backup`,
+        );
+        continue;
+      }
+      const existing = await this.localDB.getCloudAssetById(entry.remoteFileId);
+      logger.info(
+        `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId}, remoteFileId=${entry.remoteFileId}, hasExistingCloudRow=${!!existing}`,
+      );
+      if (!existing) {
+        await this.localDB.upsertCloudAsset(this.buildCloudAssetEntry(entry, deviceId));
+        logger.info(
+          `[CloudBrowser] Synthesized cloud entry before local delete — remoteFileId=${entry.remoteFileId}, fileName=${entry.fileName ?? 'unknown'}`,
+        );
+      }
+      if (entry.creationTime) {
+        const date = new Date(entry.creationTime);
+        monthsToBackfill.set(`${date.getFullYear()}:${date.getMonth() + 1}`, entry.creationTime);
+      }
+    }
+    for (const creationTimeMs of monthsToBackfill.values()) {
+      this.queueMonthBackfill(deviceId, creationTimeMs, 'after local delete');
+    }
+  }
+
+  /**
+   * Removes `asset_sync` rows for locally-deleted assets that had a remote backup but no
+   * `cloud_asset` row yet (upload happened inside the cloud-sync TTL window, or on a build
+   * predating this fix) — without this, the asset would vanish from the timeline entirely
+   * instead of surfacing as cloud-only. Inserts a minimal `cloud_asset` row synchronously
+   * (from data already in `asset_sync`, so it works offline) and kicks off a best-effort
+   * background refresh of the asset's day-folder to fill in real thumbnails/pairing.
+   *
+   * @param assetIds - Ids of the local assets to remove from `asset_sync`.
+   * @param deviceId - This device's folder uuid, or null if unknown (skips the cloud-visibility
+   *   preservation — the rows are still deleted).
+   */
+  async deleteAssetSyncPreservingCloudVisibility(assetIds: string[], deviceId: string | null): Promise<void> {
+    if (assetIds.length === 0) {
+      return;
+    }
+    if (deviceId) {
+      const entries = (await Promise.all(assetIds.map((id) => this.localDB.getStatus(id)))).filter(
+        (e): e is AssetSyncEntry => e !== null,
+      );
+      await this.preserveCloudVisibilityForOrphans(entries, deviceId);
+    }
+    await this.localDB.deleteAssetSyncBulk(assetIds);
+  }
+
+  /**
+   * Removes `asset_sync` rows for assets no longer present on the device, preserving cloud
+   * visibility for any that had a remote backup (see `deleteAssetSyncPreservingCloudVisibility`).
+   *
+   * @param localAssetIds - Ids of the assets currently on the device.
+   * @param deviceId - This device's folder uuid, or null if unknown.
+   * @returns The number of `asset_sync` rows removed.
+   */
+  async cleanupOrphanedAssetSync(localAssetIds: Set<string>, deviceId: string | null): Promise<number> {
+    const orphanAssetsIds = await this.localDB.getOrphanedAssetSyncIds(localAssetIds);
+    if (orphanAssetsIds.length === 0) {
+      return 0;
+    }
+    await this.deleteAssetSyncPreservingCloudVisibility(orphanAssetsIds, deviceId);
+    return orphanAssetsIds.length;
   }
 
   async fetchMonth(params: {
@@ -83,17 +359,27 @@ class PhotoCloudBrowserService {
     year: number;
     month: number;
     onMonthFetched?: () => void;
+    force?: boolean;
+    currentDeviceId?: string;
   }): Promise<number> {
-    const { deviceId, deviceFolderUuid, year, month, onMonthFetched } = params;
-    const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
-    if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
+    const { deviceId, deviceFolderUuid, year, month, onMonthFetched, force, currentDeviceId } = params;
+    if (!force) {
+      const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
+      if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) {
+        return 0;
+      }
+    }
 
     const yearFolder = await this.findChildFolder(deviceFolderUuid, String(year));
-    if (!yearFolder) return 0;
+    if (!yearFolder) {
+      return 0;
+    }
 
     const monthStr = String(month).padStart(2, '0');
     const monthFolder = await this.findChildFolder(yearFolder.uuid, monthStr);
-    if (!monthFolder) return 0;
+    if (!monthFolder) {
+      return 0;
+    }
 
     return this.fetchMonthFromFolder({
       deviceId,
@@ -101,7 +387,8 @@ class PhotoCloudBrowserService {
       year,
       month,
       onMonthFetched,
-      currentDeviceId: undefined,
+      force,
+      currentDeviceId,
       cycleStartedAt: Date.now(),
     });
   }
@@ -141,6 +428,16 @@ class PhotoCloudBrowserService {
     await this.purgeDeletedDevices(devices, onMonthFetched);
 
     const months = await this.discoverAvailableMonths(devices);
+
+    // Own device's most recent months first: workers pull from the front of this array, so a
+    // manual refresh surfaces the user's own recent changes without waiting behind other devices.
+    months.sort((a, b) => {
+      const aOwn = a.deviceId === currentDeviceId ? 0 : 1;
+      const bOwn = b.deviceId === currentDeviceId ? 0 : 1;
+      if (aOwn !== bOwn) return aOwn - bOwn;
+      if (a.year !== b.year) return b.year - a.year;
+      return b.month - a.month;
+    });
 
     if (months.length === 0) {
       logger.info('[CloudBrowser] Discovery found no months in cloud');
@@ -556,7 +853,9 @@ class PhotoCloudBrowserService {
       return;
     }
 
-    const cachedRefs = await this.localDB.getCachedThumbnailRefs(entriesWithThumbnail.map((entry) => entry.remoteFileId));
+    const cachedRefs = await this.localDB.getCachedThumbnailRefs(
+      entriesWithThumbnail.map((entry) => entry.remoteFileId),
+    );
     const stalePaths = entriesWithThumbnail
       .map((entry) => {
         const cached = cachedRefs.get(entry.remoteFileId);

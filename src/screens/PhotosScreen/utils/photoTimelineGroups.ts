@@ -2,6 +2,7 @@ import * as MediaLibrary from 'expo-media-library';
 import { isVideoExtension } from 'src/services/drive/file/utils/exifHelpers';
 import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
 import { isLivePhotoAsset } from 'src/services/photos/livePhoto.constants';
+import { resolveAssetCreationTime } from 'src/services/photos/utils/resolveAssetCreationTime';
 import { PhotosDisabledReason, PhotoSyncStatus } from 'src/store/slices/photos';
 import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
@@ -172,6 +173,7 @@ export const cloudEntryToPhotoItem = (entry: CloudAssetEntry): CloudPhotoItem =>
   thumbnailType: entry.thumbnailType,
   deviceId: entry.deviceId,
   folderDate: entry.folderDate,
+  creationTimeApi: entry.creationTimeApi,
   fileName: entry.fileName,
   isLivePhoto: entry.isLivePhoto,
   pairedVideoRemoteFileId: entry.pairedRemoteFileId ?? undefined,
@@ -180,6 +182,15 @@ export const cloudEntryToPhotoItem = (entry: CloudAssetEntry): CloudPhotoItem =>
   uploadedAt: entry.uploadedAt,
   isFavorite: entry.isFavorite ?? false,
 });
+
+const getTimelineItemTimestamp = (item: TimelinePhotoItem): number =>
+  item.type === 'cloud-only' ? (resolveAssetCreationTime(item.creationTimeApi, item.folderDate) ?? item.folderDate) : item.createdAt;
+
+const sortByRealTimeDesc = (photos: TimelinePhotoItem[]): TimelinePhotoItem[] =>
+  [...photos].sort((a, b) => {
+    const diff = getTimelineItemTimestamp(b) - getTimelineItemTimestamp(a);
+    return diff !== 0 ? diff : a.id.localeCompare(b.id);
+  });
 
 export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: CloudPhotoItem[]): PhotoDateGroup[] => {
   if (cloudItems.length === 0) return localGroups;
@@ -204,13 +215,13 @@ export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: 
     if (!extra) {
       return group; // no cloud additions — preserve reference so FlashList skips these cells
     }
-    return { ...group, photos: [...group.photos, ...extra] };
+    return { ...group, photos: sortByRealTimeDesc([...group.photos, ...extra]) };
   });
 
   for (const [key, photos] of cloudByKey) {
     if (processedKeys.has(key)) continue;
     const date = new Date(key);
-    result.push({ id: key, label: getDateLabel(date, now), photos });
+    result.push({ id: key, label: getDateLabel(date, now), photos: sortByRealTimeDesc(photos) });
   }
 
   return result.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
