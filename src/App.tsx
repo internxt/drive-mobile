@@ -249,13 +249,7 @@ function AppContent(): JSX.Element {
                     onClose={onChangeProfilePictureModalClosed}
                   />
                   <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
-                  <SignOutModal
-                    onSignedOut={() => {
-                      if (navigationRef.isReady()) {
-                        navigationRef.reset({ index: 0, routes: [{ name: 'SignIn' }] });
-                      }
-                    }}
-                  />
+                  <SignOutModal />
                 </Portal.Host>
               </DriveContextProvider>
             ) : (

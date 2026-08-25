@@ -13,11 +13,7 @@ import LoadingSpinner from '../../LoadingSpinner';
 import UserProfilePicture from '../../UserProfilePicture';
 import CenterModal from '../CenterModal';
 
-interface SignOutModalProps {
-  readonly onSignedOut: () => void;
-}
-
-function SignOutModal({ onSignedOut }: SignOutModalProps): JSX.Element {
+function SignOutModal(): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const userFullName = useAppSelector(authSelectors.userFullName);
@@ -41,7 +37,6 @@ function SignOutModal({ onSignedOut }: SignOutModalProps): JSX.Element {
     await dispatch(authThunks.signOutThunk({ reason: 'manual' }));
     isSigningOutRef.current = false;
     setIsSigningOut(false);
-    onSignedOut();
     onClosed();
   };
 

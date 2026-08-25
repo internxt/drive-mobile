@@ -5,7 +5,6 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 import { useEffect } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { authThunks } from 'src/store/slices/auth';
 import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
@@ -60,7 +59,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       } catch {
         const isDeletingAccount = await asyncStorageService.getItem(AsyncStorageKey.IsDeletingAccount);
         if (isDeletingAccount) {
-          dispatch(authThunks.signOutThunk({ reason: 'manual' }));
           props.navigation.replace('DeactivatedAccount');
         }
       }
