@@ -1,4 +1,4 @@
-import { MagnifyingGlass, XCircle } from 'phosphor-react-native';
+import { MagnifyingGlassIcon, XCircleIcon } from 'phosphor-react-native';
 import { createRef, useState } from 'react';
 import { StyleProp, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -50,7 +50,7 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
           <View style={tailwind('flex-row items-center')}>
             {!isFocused && (
               <View style={tailwind('pl-3')}>
-                <MagnifyingGlass color={getColor('text-gray-40')} size={18} />
+                <MagnifyingGlassIcon color={getColor('text-gray-40')} size={18} />
               </View>
             )}
 
@@ -62,8 +62,14 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
               value={props.value}
               style={[
                 styles.fontWeight.regular,
-                tailwind('text-base pl-3 h-9 flex-1'),
-                { marginBottom: 2, color: getColor('text-gray-100') },
+                tailwind('pl-3 h-9 flex-1'),
+                {
+                  fontSize: 16,
+                  color: getColor('text-gray-100'),
+                  paddingVertical: 0,
+                  textAlignVertical: 'center',
+                  includeFontPadding: false,
+                },
               ]}
               placeholder={props.placeholder || ''}
               placeholderTextColor={getColor('text-gray-80')}
@@ -72,7 +78,7 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
             {!!props.value && (
               <TouchableOpacity onPress={onClearButtonPressed}>
                 <View style={tailwind('py-1.5 px-3 items-center justify-center')}>
-                  <XCircle weight="fill" color={getColor('text-gray-40')} size={24} />
+                  <XCircleIcon weight="fill" color={getColor('text-gray-40')} size={24} />
                 </View>
               </TouchableOpacity>
             )}

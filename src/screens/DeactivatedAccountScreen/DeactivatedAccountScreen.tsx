@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { RootStackScreenProps } from '../../types/navigation';
 import InternxtLogo from '../../../assets/logo.svg';
 import AppScreen from '../../components/AppScreen';
 import AppButton from '../../components/AppButton';
@@ -12,12 +11,15 @@ import { Dimensions, Linking, View } from 'react-native';
 import AppVersionWidget from 'src/components/AppVersionWidget';
 import { LinearGradient } from 'expo-linear-gradient';
 import appService from 'src/services/AppService';
+import { useAppDispatch } from 'src/store/hooks';
+import { authThunks } from 'src/store/slices/auth';
 
-export function DeactivatedAccountScreen({ navigation }: RootStackScreenProps<'DeactivatedAccount'>): JSX.Element {
+export function DeactivatedAccountScreen(): JSX.Element {
   const tailwind = useTailwind();
+  const dispatch = useAppDispatch();
 
   const handleGoToSignIn = () => {
-    navigation.replace('SignIn');
+    dispatch(authThunks.signOutThunk({ reason: 'manual' }));
   };
   const handleGoToSignUp = async () => {
     const webAuthUrl = appService.urls.webAuth.signup;
