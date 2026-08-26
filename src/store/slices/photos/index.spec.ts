@@ -104,6 +104,12 @@ jest.mock('src/store/slices/storage', () => ({
   },
 }));
 
+jest.mock('src/services/AppService', () => ({
+  ...jest.requireActual('src/services/AppService'),
+  __esModule: true,
+  default: { isPhotosEnabled: true },
+}));
+
 jest.mock('./selectors', () => ({
   hasPhotosFeatureAccess: jest.fn().mockReturnValue(true),
 }));
