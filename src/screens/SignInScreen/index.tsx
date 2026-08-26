@@ -69,7 +69,6 @@ function SignInScreen(): JSX.Element {
   return (
     <AppScreen
       safeAreaTop
-      safeAreaBottom
       style={[tailwind('h-full px-6'), { backgroundColor: isDark ? 'transparent' : getColor('bg-surface') }]}
     >
       {isDark ? (
