@@ -38,7 +38,6 @@ interface ActionRowProps {
   isLast?: boolean;
 }
 
-const SEPARATOR_COLOR = '#f9f9fc';
 const SLIDE_DISTANCE = 600;
 
 const ActionRow = ({ icon, label, onPress, isDestructive, isLast }: ActionRowProps): JSX.Element => {
@@ -51,7 +50,12 @@ const ActionRow = ({ icon, label, onPress, isDestructive, isLast }: ActionRowPro
       style={[tailwind('flex-row items-center px-4'), styles.row]}
       hitSlop={{ top: 2, bottom: 2 }}
     >
-      <View style={[styles.rowInner, !isLast && { borderBottomColor: SEPARATOR_COLOR, borderBottomWidth: 1 }]}>
+      <View
+        style={[
+          styles.rowInner,
+          !isLast && { borderBottomColor: getColor('border-gray-10'), borderBottomWidth: StyleSheet.hairlineWidth },
+        ]}
+      >
         <View style={styles.iconContainer}>{icon}</View>
         <AppText
           medium
@@ -206,7 +210,12 @@ const MoreActionsBottomSheet = ({
             <View style={[tailwind('bg-gray-20'), { width: 48, height: 4, borderRadius: 2, marginTop: 8 }]} />
           </View>
 
-          <View style={[styles.rowInner, { borderBottomColor: SEPARATOR_COLOR, borderBottomWidth: 1 }]}>
+          <View
+            style={[
+              styles.rowInner,
+              { borderBottomColor: getColor('border-gray-10'), borderBottomWidth: StyleSheet.hairlineWidth },
+            ]}
+          >
             <CaretLeftIcon size={24} color={getColor('text-primary')} />
             <AppText medium style={tailwind('text-base text-primary ml-1')}>
               {actionStrings.back}

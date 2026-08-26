@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import strings from 'assets/lang/strings';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StatusBar, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -53,9 +53,18 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     }
   }, []);
 
-  const handleSwipeDown = useCallback(() => {
+  const hasClosedRef = useRef(false);
+  const closePreview = useCallback(() => {
+    if (hasClosedRef.current) {
+      return;
+    }
+    hasClosedRef.current = true;
     navigation.goBack();
   }, [navigation]);
+
+  const handleSwipeDown = useCallback(() => {
+    closePreview();
+  }, [closePreview]);
 
   const exitVideoMode = useCallback(() => {
     setHasVideoStarted(false);
@@ -63,17 +72,13 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     setIsUiVisible(true);
   }, [resetVideoPlayer]);
 
-  const closePreviewScreen = useCallback(() => {
-    navigation.goBack();
-  }, [navigation]);
-
   const handleClose = useCallback(() => {
     if (hasVideoStarted) {
       exitVideoMode();
     } else {
-      closePreviewScreen();
+      closePreview();
     }
-  }, [hasVideoStarted, exitVideoMode, closePreviewScreen]);
+  }, [hasVideoStarted, exitVideoMode, closePreview]);
 
   const handleVideoPlay = useCallback(() => {
     setHasVideoStarted(true);
@@ -132,8 +137,8 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     }, [onItemChanged]),
     onAfterTrash: useCallback(async () => {
       await onItemChanged?.();
-      navigation.goBack();
-    }, [onItemChanged, navigation]),
+      closePreview();
+    }, [onItemChanged, closePreview]),
     onAfterRestore: useCallback(
       async (restoredItems: TimelinePhotoItem[]) => {
         for (const restoredItem of restoredItems) {

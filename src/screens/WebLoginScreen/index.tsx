@@ -48,16 +48,16 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
           privateKey,
         });
 
-        await dispatch(
-          authThunks.signInThunk({
-            user: result.user,
-            token: result.token,
-            newToken: result.newToken,
-          }),
-        ).unwrap();
-
         setLoadingState('success');
-        setTimeout(() => navigation.replace('TabExplorer', { screen: 'Home' }), 800);
+        setTimeout(() => {
+          dispatch(
+            authThunks.signInThunk({
+              user: result.user,
+              token: result.token,
+              newToken: result.newToken,
+            }),
+          );
+        }, 800);
       } catch (error) {
         const castedError = errorService.castError(error);
         setLoadingState('error');

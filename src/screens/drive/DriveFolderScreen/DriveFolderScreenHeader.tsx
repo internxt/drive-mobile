@@ -133,7 +133,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
           onFocusChange={handleSearchInputFocusChange}
         />
       </Animated.View>
-      <Animated.View
+      {/* <Animated.View
         style={[
           tailwind('overflow-hidden px-4'),
           { height: globalSearchButtonHeight, opacity: globalSearchButtonOpacity },
@@ -144,7 +144,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
             {strings.screens.drive.searchInAllFolders}
           </AppText>
         </TouchableOpacity>
-      </Animated.View>
+      </Animated.View> */}
 
       <View style={[tailwind('flex-row justify-between items-center px-4')]}>
         <TouchableOpacity onPress={onSortButtonPress}>
