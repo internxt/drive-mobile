@@ -21,6 +21,20 @@ enum FileProviderDomainManager {
       completion(isNotFound(removeError) ? nil : removeError)
     }
   }
+  
+  static func stabilize(completion: @escaping (Error?) -> Void) {
+    guard let manager = NSFileProviderManager(for: domain) else {
+      completion(NSError(
+        domain: "FileProviderDomainManager",
+        code: -1,
+        userInfo: [NSLocalizedDescriptionKey: "No NSFileProviderManager for domain \(domainIdentifier.rawValue)"]
+      ))
+      return
+    }
+    manager.waitForStabilization { error in
+      completion(error)
+    }
+  }
 
   static func signalEnumeration(completion: @escaping (Error?) -> Void) {
     signalEnumeration(for: .workingSet, completion: completion)

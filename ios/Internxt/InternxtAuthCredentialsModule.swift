@@ -30,6 +30,11 @@ class InternxtAuthCredentialsModule: NSObject {
         if let signalError = signalError {
           NSLog("InternxtAuthCredentialsModule: signalEnumeration failed (ignored): \(signalError.localizedDescription)")
         }
+        FileProviderDomainManager.stabilize { stabilizeError in
+          if let stabilizeError = stabilizeError {
+            NSLog("InternxtAuthCredentialsModule: stabilize failed (ignored): \(stabilizeError.localizedDescription)")
+          }
+        }
         resolver(nil)
       }
     }
