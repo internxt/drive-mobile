@@ -96,7 +96,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 130
-        versionName "1.11.1"
+        versionName "1.11.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
         buildConfigField "String", "INTERNXT_CLIENT_NAME", "\"${packageJson.name}\""
