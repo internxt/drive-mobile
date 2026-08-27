@@ -282,7 +282,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
                 DocumentId.Kind.FOLDER -> api.renameFolder(uuid, displayName)
             }
             notifyEncodedParent(parent) { encoded ->
-                patchRowDisplayName(encoded, documentId, displayName)
+                patchRowRenamed(encoded, documentId, displayName)
             }
             null
         }
@@ -375,10 +375,16 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         notifyChildren(parentDocumentId)
     }
 
-    private fun patchRowDisplayName(parentDocumentId: String, documentId: String, displayName: String) {
+    private fun patchRowRenamed(parentDocumentId: String, documentId: String, displayName: String) {
         updateRows(parentDocumentId) { rows ->
             val idx = rows.indexOfFirst { it[Document.COLUMN_DOCUMENT_ID] == documentId }
-            if (idx >= 0) rows[idx] = rows[idx] + (Document.COLUMN_DISPLAY_NAME to displayName)
+            if (idx >= 0) {
+                rows[idx] = rows[idx] +
+                    mapOf(
+                        Document.COLUMN_DISPLAY_NAME to displayName,
+                        Document.COLUMN_LAST_MODIFIED to System.currentTimeMillis(),
+                    )
+            }
         }
     }
 

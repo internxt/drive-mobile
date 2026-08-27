@@ -222,15 +222,28 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                     try await mutationService.move(decoded, toParentUuid: destinationFolderUuid)
                 }
                 progress.completedUnitCount = 1
-                let modified = shouldRename
-                    ? (FileProviderItem.renamed(from: item, newFilename: newFilename) ?? item)
-                    : item
+                let modified = await Self.resolveModifiedItem(
+                    item, decoded: decoded, shouldRename: shouldRename, mutationService: mutationService
+                )
                 completionHandler(modified, [], false, nil)
             } catch {
                 completionHandler(nil, [], false, FileProviderErrorMapper.lookupError(from: error))
             }
         }
         return progress
+    }
+
+    private static func resolveModifiedItem(
+        _ item: NSFileProviderItem,
+        decoded: (kind: DriveItemKind, uuid: String),
+        shouldRename: Bool,
+        mutationService: FileProviderMutationService
+    ) async -> NSFileProviderItem {
+        if let resolved = try? await mutationService.resolveItem(decoded, identifier: item.itemIdentifier) {
+            return resolved
+        }
+        guard shouldRename else { return item }
+        return FileProviderItem.renamed(from: item, newFilename: item.filename) ?? item
     }
 
     func deleteItem(identifier: NSFileProviderItemIdentifier, baseVersion _: NSFileProviderItemVersion, options _: NSFileProviderDeleteItemOptions = [], request _: NSFileProviderRequest, completionHandler: @escaping (Error?) -> Void) -> Progress {
