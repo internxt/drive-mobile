@@ -11,7 +11,21 @@ class DocumentRowBuilderTest {
 
     companion object {
         private const val UPDATED_AT = "2026-01-11T00:00:00.000Z"
+        private const val REPORT_PDF = "report.pdf"
+        private const val PDF_MIME = "application/pdf"
     }
+
+    private fun driveFile(plainName: String, type: String?) = DriveFile(
+        uuid = "file-uuid",
+        plainName = plainName,
+        type = type,
+        size = 0L,
+        bucket = null,
+        folderUuid = null,
+        createdAt = null,
+        updatedAt = null,
+        fileId = null,
+    )
 
     @Test
     fun folderRowFields() {
@@ -36,13 +50,14 @@ class DocumentRowBuilderTest {
             Document.FLAG_SUPPORTS_MOVE
         assertEquals(expectedFolderFlags, row[Document.COLUMN_FLAGS])
         assertNull(row[Document.COLUMN_SIZE])
+        assertEquals("parent-uuid", row[DocumentRowBuilder.COLUMN_PARENT_UUID])
     }
 
     @Test
     fun fileRowFields() {
         val file = DriveFile(
             uuid = "file-uuid",
-            plainName = "report.pdf",
+            plainName = "report",
             type = "pdf",
             size = 102400L,
             bucket = "bucket-id",
@@ -55,31 +70,44 @@ class DocumentRowBuilderTest {
         val row = DocumentRowBuilder.fileRow(file)
 
         assertEquals("d:file-uuid", row[Document.COLUMN_DOCUMENT_ID])
-        assertEquals("application/pdf", row[Document.COLUMN_MIME_TYPE])
-        assertEquals("report.pdf", row[Document.COLUMN_DISPLAY_NAME])
+        assertEquals(PDF_MIME, row[Document.COLUMN_MIME_TYPE])
+        assertEquals(REPORT_PDF, row[Document.COLUMN_DISPLAY_NAME])
         assertEquals(1768089600000L, row[Document.COLUMN_LAST_MODIFIED])
         val expectedFileFlags = Document.FLAG_SUPPORTS_RENAME or
             Document.FLAG_SUPPORTS_DELETE or
             Document.FLAG_SUPPORTS_MOVE
         assertEquals(expectedFileFlags, row[Document.COLUMN_FLAGS])
         assertEquals(102400L, row[Document.COLUMN_SIZE])
+        assertEquals("parent-uuid", row[DocumentRowBuilder.COLUMN_PARENT_UUID])
+    }
+
+    @Test
+    fun fileRowJoinsPlainNameAndType() {
+        val row = DocumentRowBuilder.fileRow(driveFile("report", "pdf"))
+
+        assertEquals(REPORT_PDF, row[Document.COLUMN_DISPLAY_NAME])
+        assertEquals(PDF_MIME, row[Document.COLUMN_MIME_TYPE])
+    }
+
+    @Test
+    fun fileRowDoesNotDuplicateExtensionAlreadyInPlainName() {
+        val row = DocumentRowBuilder.fileRow(driveFile(REPORT_PDF, "PDF"))
+
+        assertEquals(REPORT_PDF, row[Document.COLUMN_DISPLAY_NAME])
+        assertEquals(PDF_MIME, row[Document.COLUMN_MIME_TYPE])
+    }
+
+    @Test
+    fun fileRowWithNullTypeKeepsPlainNameAndDerivesMime() {
+        val row = DocumentRowBuilder.fileRow(driveFile(REPORT_PDF, null))
+
+        assertEquals(REPORT_PDF, row[Document.COLUMN_DISPLAY_NAME])
+        assertEquals(PDF_MIME, row[Document.COLUMN_MIME_TYPE])
     }
 
     @Test
     fun fileRowUnknownExtensionFallsBackToOctetStream() {
-        val file = DriveFile(
-            uuid = "file-uuid",
-            plainName = "weird.xyz",
-            type = "xyz",
-            size = 0L,
-            bucket = null,
-            folderUuid = null,
-            createdAt = null,
-            updatedAt = null,
-            fileId = null,
-        )
-
-        val row = DocumentRowBuilder.fileRow(file)
+        val row = DocumentRowBuilder.fileRow(driveFile("weird.xyz", "xyz"))
 
         assertEquals("application/octet-stream", row[Document.COLUMN_MIME_TYPE])
         assertEquals("weird.xyz", row[Document.COLUMN_DISPLAY_NAME])

@@ -1,6 +1,7 @@
 package com.internxt.cloud.documents
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class DocumentNamingTest {
@@ -60,6 +61,65 @@ class DocumentNamingTest {
     fun joinNameTypeWithoutTypeReturnsName() {
         assertEquals("report", DocumentNaming.joinNameType("report", null))
         assertEquals("report", DocumentNaming.joinNameType("report", ""))
+    }
+
+    @Test
+    fun joinNameTypeDoesNotDuplicateExistingSuffix() {
+        assertEquals(REPORT_PDF, DocumentNaming.joinNameType(REPORT_PDF, "pdf"))
+    }
+
+    @Test
+    fun joinNameTypeTreatsExistingSuffixCaseInsensitively() {
+        assertEquals("report.PDF", DocumentNaming.joinNameType("report.PDF", "pdf"))
+    }
+
+    @Test
+    fun joinNameTypeRoundTripsSplitNameExt() {
+        val (base, ext) = DocumentNaming.splitNameExt(REPORT_PDF)
+
+        assertEquals(REPORT_PDF, DocumentNaming.joinNameType(base, ext.removePrefix(".")))
+    }
+
+    @Test
+    fun extensionOfPrefersType() {
+        assertEquals("pdf", DocumentNaming.extensionOf("report", "pdf"))
+    }
+
+    @Test
+    fun extensionOfFallsBackToPlainNameWhenTypeMissing() {
+        assertEquals("pdf", DocumentNaming.extensionOf(REPORT_PDF, null))
+        assertEquals("pdf", DocumentNaming.extensionOf(REPORT_PDF, ""))
+    }
+
+    @Test
+    fun extensionOfIsNullWithoutAnyExtension() {
+        assertNull(DocumentNaming.extensionOf(FOLDER_NAME, null))
+    }
+
+    @Test
+    fun renameTargetWithExtensionRemovedKeepsBaseAndType() {
+        assertEquals("images-8" to "images-8.jpeg", DocumentNaming.renameTarget("images-8", "jpeg"))
+    }
+
+    @Test
+    fun renameTargetWithNewBaseAndSameExtension() {
+        assertEquals("holiday" to "holiday.jpeg", DocumentNaming.renameTarget("holiday.jpeg", "jpeg"))
+    }
+
+    @Test
+    fun renameTargetWithChangedExtensionKeepsCurrentType() {
+        assertEquals("holiday" to "holiday.jpeg", DocumentNaming.renameTarget("holiday.png", "jpeg"))
+    }
+
+    @Test
+    fun renameTargetBlankBaseIsInvalid() {
+        assertNull(DocumentNaming.renameTarget("   ", "jpeg"))
+        assertNull(DocumentNaming.renameTarget("", null))
+    }
+
+    @Test
+    fun renameTargetWithoutTypeUsesBaseAsDisplayName() {
+        assertEquals("notes" to "notes", DocumentNaming.renameTarget("notes", null))
     }
 
     companion object {

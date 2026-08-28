@@ -73,8 +73,8 @@ class InternxtApiClient(
         return parseFolder(executeApiRequest(req))
     }
 
-    fun renameFile(fileUuid: String, newName: String) {
-        val payload = JSONObject().put("plainName", newName)
+    fun renameFile(fileUuid: String, plainName: String) {
+        val payload = JSONObject().put("plainName", plainName)
         val req = driveRequest(driveUrl("files/$fileUuid/meta"))
             .put(payload.toString().toRequestBody(JSON))
             .build()

@@ -29,6 +29,18 @@ object DocumentNaming {
         return if (hasExt) name.substring(0, dot) to name.substring(dot) else name to ""
     }
 
-    fun joinNameType(plainName: String, type: String?): String =
-        if (type.isNullOrBlank()) plainName else "$plainName.$type"
+    fun joinNameType(plainName: String, type: String?): String {
+        if (type.isNullOrBlank()) return plainName
+        val alreadySuffixed = plainName.endsWith(".$type", ignoreCase = true)
+        return if (alreadySuffixed) plainName else "$plainName.$type"
+    }
+
+    fun extensionOf(plainName: String, type: String?): String? =
+        type?.takeIf { it.isNotBlank() } ?: splitNameExt(plainName).second.removePrefix(".").takeIf { it.isNotEmpty() }
+
+    fun renameTarget(requestedDisplayName: String, currentType: String?): Pair<String, String>? {
+        val newBase = splitNameExt(requestedDisplayName.trim()).first
+        if (newBase.isBlank()) return null
+        return newBase to joinNameType(newBase, currentType)
+    }
 }

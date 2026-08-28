@@ -322,12 +322,12 @@ class InternxtApiClientTest {
     fun renameFilePutsPlainNameToMetaEndpoint() {
         enqueueJson("")
 
-        client.renameFile(FILE_UUID_1, "renamed.pdf")
+        client.renameFile(FILE_UUID_1, "renamed")
 
         val recorded = server.takeRequest()
         assertEquals("PUT", recorded.method)
         assertEquals("/files/$FILE_UUID_1/meta", recorded.path)
-        assertEquals("renamed.pdf", JSONObject(recorded.body.readUtf8()).getString("plainName"))
+        assertEquals("""{"plainName":"renamed"}""", recorded.body.readUtf8())
     }
 
     @Test

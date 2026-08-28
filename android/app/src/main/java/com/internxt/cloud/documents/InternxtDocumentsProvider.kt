@@ -145,17 +145,19 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             return cursor
         }
 
-        val api = apiClient(op = "queryDocument")
-        val row = if (api == null) null else try {
-            runBlockingIo { fetchDocumentRow(api, decoded?.kind, uuid) }
-        } catch (e: InternxtApiException) {
-            Log.w(TAG, "queryDocument id=$id failed: ${e.javaClass.simpleName}: ${e.message}")
-            null
-        }
-
-        row?.let { documentRows.put(uuid, it) }
+        val row = loadDocumentRow("queryDocument", decoded?.kind, uuid)
         cursor.addDocumentRow(row ?: DocumentRowBuilder.folderRow(uuid = uuid, displayName = uuid))
         return cursor
+    }
+
+    private fun loadDocumentRow(op: String, kind: DocumentId.Kind?, uuid: String): Map<String, Any?>? {
+        val api = apiClient(op) ?: return null
+        return try {
+            runBlockingIo { fetchDocumentRow(api, kind, uuid) }?.also { documentRows.put(uuid, it) }
+        } catch (e: InternxtApiException) {
+            Log.w(TAG, "$op uuid=$uuid failed: ${e.javaClass.simpleName}: ${e.message}")
+            null
+        }
     }
 
     private fun fetchDocumentRow(
@@ -167,6 +169,26 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         DocumentId.Kind.FILE -> api.getFile(uuid)?.let(DocumentRowBuilder::fileRow)
         null -> api.getFolder(uuid)?.let(DocumentRowBuilder::folderRow)
             ?: api.getFile(uuid)?.let(DocumentRowBuilder::fileRow)
+    }
+
+    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
+        if (parentDocumentId == documentId) return true
+        val parent = DocumentId.decode(parentDocumentId)
+        if (parent?.kind != DocumentId.Kind.FOLDER) return false
+        val child = if (DocumentId.isUploadToken(documentId)) {
+            pendingUploads[DocumentId.decodeUpload(documentId)]
+                ?.let { DocumentId.Decoded(DocumentId.Kind.FOLDER, it.parentUuid) }
+        } else {
+            DocumentId.decode(documentId)
+        }
+        if (child == null) return false
+        val rootUuid = authManager?.authenticatedRootUuid()
+        return DocumentAncestry.isDescendant(child.uuid, parent.uuid) { uuid ->
+            if (uuid == rootUuid) return@isDescendant null
+            val kind = if (uuid == child.uuid) child.kind else DocumentId.Kind.FOLDER
+            val row = documentRows[uuid] ?: loadDocumentRow("isChildDocument", kind, uuid)
+            row?.get(DocumentRowBuilder.COLUMN_PARENT_UUID) as? String
+        }
     }
 
     override fun queryChildDocuments(
@@ -276,16 +298,27 @@ class InternxtDocumentsProvider : DocumentsProvider() {
 
     override fun renameDocument(documentId: String, displayName: String): String? =
         mutate("renameDocument", documentId) { api, kind, uuid ->
-            val parent = parentUuidOf(api, kind, uuid)
-            when (kind) {
-                DocumentId.Kind.FILE -> api.renameFile(uuid, displayName)
-                DocumentId.Kind.FOLDER -> api.renameFolder(uuid, displayName)
+            val (parent, newDisplayName) = when (kind) {
+                DocumentId.Kind.FILE -> renameFile(api, uuid, displayName)
+                DocumentId.Kind.FOLDER -> {
+                    val parent = parentUuidOf(api, kind, uuid)
+                    api.renameFolder(uuid, displayName)
+                    parent to displayName
+                }
             }
             notifyEncodedParent(parent) { encoded ->
-                patchRowRenamed(encoded, documentId, displayName)
+                patchRowRenamed(encoded, documentId, newDisplayName)
             }
             null
         }
+
+    private fun renameFile(api: InternxtApiClient, uuid: String, displayName: String): Pair<String?, String> {
+        val file = api.getFile(uuid) ?: throw FileNotFoundException("Not found: $uuid")
+        val (newBase, newDisplayName) = DocumentNaming.renameTarget(displayName, file.type)
+            ?: throw FileNotFoundException("Invalid name: $displayName")
+        if (newBase != file.plainName) api.renameFile(uuid, newBase)
+        return file.folderUuid to newDisplayName
+    }
 
     override fun moveDocument(
         sourceDocumentId: String,
@@ -302,7 +335,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
             notifyChildren(it)
         }
         invalidateChildren(targetParentDocumentId)
-        null
+        sourceDocumentId
     }
 
     override fun deleteDocument(documentId: String) {
