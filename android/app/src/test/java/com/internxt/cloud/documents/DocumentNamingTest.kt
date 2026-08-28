@@ -8,18 +8,18 @@ class DocumentNamingTest {
 
     @Test
     fun uniqueNameReturnsRequestedWhenNoCollision() {
-        assertEquals("Reports", DocumentNaming.uniqueName("Reports", setOf("Photos", "Music")))
+        assertEquals(REPORTS, DocumentNaming.uniqueName(REPORTS, setOf("Photos", "Music")))
     }
 
     @Test
     fun uniqueNameAppendsSuffixOnCollision() {
-        assertEquals("Reports (1)", DocumentNaming.uniqueName("Reports", setOf("Reports")))
+        assertEquals("Reports (1)", DocumentNaming.uniqueName(REPORTS, setOf(REPORTS)))
     }
 
     @Test
     fun uniqueNameSkipsTakenSuffixes() {
-        val existing = setOf("Reports", "Reports (1)", "Reports (2)")
-        assertEquals("Reports (3)", DocumentNaming.uniqueName("Reports", existing))
+        val existing = setOf(REPORTS, "Reports (1)", "Reports (2)")
+        assertEquals("Reports (3)", DocumentNaming.uniqueName(REPORTS, existing))
     }
 
     @Test
@@ -54,13 +54,13 @@ class DocumentNamingTest {
 
     @Test
     fun joinNameTypeAppendsType() {
-        assertEquals(REPORT_PDF, DocumentNaming.joinNameType("report", "pdf"))
+        assertEquals(REPORT_PDF, DocumentNaming.joinNameType(REPORT, "pdf"))
     }
 
     @Test
     fun joinNameTypeWithoutTypeReturnsName() {
-        assertEquals("report", DocumentNaming.joinNameType("report", null))
-        assertEquals("report", DocumentNaming.joinNameType("report", ""))
+        assertEquals(REPORT, DocumentNaming.joinNameType(REPORT, null))
+        assertEquals(REPORT, DocumentNaming.joinNameType(REPORT, ""))
     }
 
     @Test
@@ -82,7 +82,7 @@ class DocumentNamingTest {
 
     @Test
     fun extensionOfPrefersType() {
-        assertEquals("pdf", DocumentNaming.extensionOf("report", "pdf"))
+        assertEquals("pdf", DocumentNaming.extensionOf(REPORT, "pdf"))
     }
 
     @Test
@@ -103,12 +103,12 @@ class DocumentNamingTest {
 
     @Test
     fun renameTargetWithNewBaseAndSameExtension() {
-        assertEquals("holiday" to "holiday.jpeg", DocumentNaming.renameTarget("holiday.jpeg", "jpeg"))
+        assertEquals("holiday" to HOLIDAY_JPEG, DocumentNaming.renameTarget(HOLIDAY_JPEG, "jpeg"))
     }
 
     @Test
     fun renameTargetWithChangedExtensionKeepsCurrentType() {
-        assertEquals("holiday" to "holiday.jpeg", DocumentNaming.renameTarget("holiday.png", "jpeg"))
+        assertEquals("holiday" to HOLIDAY_JPEG, DocumentNaming.renameTarget("holiday.png", "jpeg"))
     }
 
     @Test
@@ -119,11 +119,15 @@ class DocumentNamingTest {
 
     @Test
     fun renameTargetWithoutTypeUsesBaseAsDisplayName() {
-        assertEquals("notes" to "notes", DocumentNaming.renameTarget("notes", null))
+        assertEquals(NOTES to NOTES, DocumentNaming.renameTarget(NOTES, null))
     }
 
     companion object {
         private const val FOLDER_NAME = "My Folder"
+        private const val HOLIDAY_JPEG = "holiday.jpeg"
+        private const val NOTES = "notes"
+        private const val REPORT = "report"
+        private const val REPORTS = "Reports"
         private const val REPORT_PDF = "report.pdf"
     }
 }

@@ -13,6 +13,7 @@ class DocumentRowBuilderTest {
         private const val UPDATED_AT = "2026-01-11T00:00:00.000Z"
         private const val REPORT_PDF = "report.pdf"
         private const val PDF_MIME = "application/pdf"
+        private const val PARENT_UUID = "parent-uuid"
     }
 
     private fun driveFile(plainName: String, type: String?) = DriveFile(
@@ -32,7 +33,7 @@ class DocumentRowBuilderTest {
         val folder = DriveFolder(
             uuid = "folder-uuid",
             plainName = "Documents",
-            parentUuid = "parent-uuid",
+            parentUuid = PARENT_UUID,
             bucket = null,
             createdAt = null,
             updatedAt = UPDATED_AT,
@@ -50,7 +51,7 @@ class DocumentRowBuilderTest {
             Document.FLAG_SUPPORTS_MOVE
         assertEquals(expectedFolderFlags, row[Document.COLUMN_FLAGS])
         assertNull(row[Document.COLUMN_SIZE])
-        assertEquals("parent-uuid", row[DocumentRowBuilder.COLUMN_PARENT_UUID])
+        assertEquals(PARENT_UUID, row[DocumentRowBuilder.COLUMN_PARENT_UUID])
     }
 
     @Test
@@ -61,7 +62,7 @@ class DocumentRowBuilderTest {
             type = "pdf",
             size = 102400L,
             bucket = "bucket-id",
-            folderUuid = "parent-uuid",
+            folderUuid = PARENT_UUID,
             createdAt = null,
             updatedAt = UPDATED_AT,
             fileId = "file-id-1",
@@ -78,7 +79,7 @@ class DocumentRowBuilderTest {
             Document.FLAG_SUPPORTS_MOVE
         assertEquals(expectedFileFlags, row[Document.COLUMN_FLAGS])
         assertEquals(102400L, row[Document.COLUMN_SIZE])
-        assertEquals("parent-uuid", row[DocumentRowBuilder.COLUMN_PARENT_UUID])
+        assertEquals(PARENT_UUID, row[DocumentRowBuilder.COLUMN_PARENT_UUID])
     }
 
     @Test
