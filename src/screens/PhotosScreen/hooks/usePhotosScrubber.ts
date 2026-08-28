@@ -198,7 +198,6 @@ export const usePhotosScrubber = ({
     return markers;
   }, [yearAnchors, cellSize, contentTopInset, numColumns, maxScroll, railHeight]);
 
-  // Worklets cannot read an RN Animated value, so scrollY is mirrored into a shared value.
   useEffect(() => {
     const id = scrollY.addListener(({ value }) => {
       scrollYShared.value = value;

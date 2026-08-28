@@ -18,18 +18,14 @@ export interface TimelineLayoutMetrics {
   numColumns: number;
 }
 
-const formatMonthLabel = (date: Date): string =>
-  date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+const formatMonthLabel = (date: Date): string => date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
 /**
  * Derives the year and month anchors used to position the scrubber rail.
  *
- * Year anchors sit on the LAST (oldest) boundary of each year — reaching "2023" on the rail means
- * you've scrolled through all of 2023, down to its earliest month, not that you've just entered it
- * from 2024. Month anchors sit on the FIRST (newest) boundary of each month instead, because
- * findAnchorForIndex needs that to correctly attribute every index within a month to that month
- * (see the inline comment below for why the two can't share the same rule). Both results are
- * ordered by `startIndex` ascending and can be binary searched.
+ * Year anchors sit on the LAST (oldest) boundary of each year; month anchors sit on the FIRST
+ * (newest) boundary of each month instead. Both results are ordered by `startIndex` ascending and
+ * can be binary searched.
  *
  * @param boundaries day boundaries of the flat timeline, ordered by `startIndex` ascending.
  */
@@ -55,19 +51,11 @@ export const buildTimelineDateIndex = (boundaries: GroupBoundary[]): TimelineDat
     const year = date.getFullYear();
     const monthKey = `${year}-${date.getMonth()}`;
 
-    // Anchor at the boundary right before the year changes — the LAST (oldest) day of this year,
-    // not the first. Static label position, never looked up by index, so which boundary within the
-    // year it lands on doesn't affect correctness — only where it reads on the rail.
     const nextYear = validEntries[i + 1]?.date.getFullYear() ?? null;
     if (year !== nextYear) {
       yearAnchors.push({ startIndex: boundary.startIndex, label: `${year}` });
     }
 
-    // Anchor at the FIRST (newest) day of the month, unlike yearAnchors above: findAnchorForIndex
-    // looks up "the last anchor with startIndex <= index" so the drag pill can label every index
-    // scrolled through — that only attributes indices to the right month if the anchor sits at the
-    // start of the month's span. Anchoring at the end instead would make the pill show the previous
-    // (more recent) month for nearly the whole scroll through any given month.
     if (monthKey !== lastMonthKey) {
       monthAnchors.push({ startIndex: boundary.startIndex, label: formatMonthLabel(date) });
       lastMonthKey = monthKey;
@@ -90,8 +78,7 @@ export const getOffsetForIndex = ({
   cellSize,
   contentTopInset,
   numColumns,
-}: TimelineLayoutMetrics & { index: number }): number =>
-  contentTopInset + Math.floor(index / numColumns) * cellSize;
+}: TimelineLayoutMetrics & { index: number }): number => contentTopInset + Math.floor(index / numColumns) * cellSize;
 
 /**
  * Index of the first item on the row visible at the given scroll offset. Inverse of

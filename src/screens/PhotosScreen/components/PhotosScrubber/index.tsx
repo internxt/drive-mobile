@@ -71,8 +71,6 @@ const PhotosScrubber = ({ scrubber }: PhotosScrubberProps): JSX.Element | null =
     scrubberRef.current.onScrubEnd();
   }, []);
 
-  // translateY positions the handle's TOP edge, but the finger should line up with its CENTRE,
-  // hence the -SCRUBBER_HANDLE_SIZE/2 offset.
   const handleStyle = useAnimatedStyle(() => {
     const maxScroll = drag.maxScroll.value;
     const scrollFraction = maxScroll > 0 ? Math.min(1, Math.max(0, drag.scrollY.value / maxScroll)) : 0;
@@ -134,7 +132,6 @@ const PhotosScrubber = ({ scrubber }: PhotosScrubberProps): JSX.Element | null =
 
   return (
     <Animated.View pointerEvents="box-none" style={[styles.container, { top: railTop, height: railHeight, opacity }]}>
-      {/* Kept mounted rather than conditional on isScrubbing, so the fade out is visible. */}
       <Animated.View pointerEvents="none" style={{ opacity: yearMarkersOpacity }}>
         {yearMarkers.map((marker) => (
           <View
@@ -171,7 +168,6 @@ const styles = StyleSheet.create({
   },
   yearMarker: {
     position: 'absolute',
-    // Same horizontal spot the floating month pill sits at during a drag — see PILL_RIGHT_OFFSET.
     right: PILL_RIGHT_OFFSET,
     height: SCRUBBER_YEAR_MARKER_HEIGHT,
     justifyContent: 'center',

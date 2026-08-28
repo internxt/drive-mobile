@@ -293,7 +293,6 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
 
-    // boundaries holds one entry per day, so this scan is long in a large library.
     const currentBoundary = useMemo(
       () => boundaries.find((b) => b.id === topGroupId) ?? boundaries[0],
       [boundaries, topGroupId],
