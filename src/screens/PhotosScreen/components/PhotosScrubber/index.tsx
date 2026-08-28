@@ -1,10 +1,9 @@
 import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
 import { useCallback, useMemo, useRef, useSyncExternalStore } from 'react';
-import { Animated, Platform, StyleSheet, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, { useAnimatedStyle } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import { getRailAnchorForScroll } from '../../utils/photoTimelineLayout';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
@@ -16,6 +15,7 @@ import {
   SCRUBBER_YEAR_MARKER_HEIGHT,
   ScrubberMonthLabelStore,
 } from '../../hooks/usePhotosScrubber';
+import { getRailAnchorForScroll } from '../../utils/photoTimelineLayout';
 
 interface PhotosScrubberProps {
   scrubber: PhotosScrubberResult;
@@ -94,7 +94,7 @@ const PhotosScrubber = ({ scrubber }: PhotosScrubberProps): JSX.Element | null =
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .enabled(isAvailable && Platform.OS !== 'android')
+        .enabled(isAvailable)
         .maxPointers(1)
         .hitSlop(SCRUBBER_HANDLE_HIT_MARGIN)
         // Not .onStart(), which only fires past Pan's activation threshold — holding the handle
