@@ -12,6 +12,11 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
   const userRef = useRef(user);
   userRef.current = user;
 
+  // item.thumbnailPath lags behind until useCloudAssets reloads, so the reset below has to key off
+  // an actual change of id or path — not off retryCount, which would wipe a just-fetched thumbnail.
+  const lastItemIdRef = useRef(item.id);
+  const lastThumbnailPathPropRef = useRef(item.thumbnailPath);
+
   const onImageError = useCallback(() => {
     photosLocalDB.setCloudThumbnailPath(item.id, null);
     setLocalPath(null);
@@ -19,8 +24,12 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
   }, [item.id]);
 
   useEffect(() => {
-    // FlashList recycles cells: reset to the new item's persisted path before checking
-    if (retryCount === 0) {
+    const idChanged = lastItemIdRef.current !== item.id;
+    const persistedPathChanged = lastThumbnailPathPropRef.current !== item.thumbnailPath;
+    lastItemIdRef.current = item.id;
+    lastThumbnailPathPropRef.current = item.thumbnailPath;
+
+    if (idChanged || persistedPathChanged) {
       setLocalPath(item.thumbnailPath);
     }
 

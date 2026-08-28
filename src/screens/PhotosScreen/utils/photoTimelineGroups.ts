@@ -242,14 +242,31 @@ export const buildFlatTimeline = (groups: TimelineDateGroup[]): FlatTimeline => 
   return { photos, boundaries };
 };
 
-export const findGroupForIndex = (boundaries: GroupBoundary[], itemIndex: number): GroupBoundary | undefined => {
-  let result: GroupBoundary | undefined;
-  for (const boundary of boundaries) {
-    if (boundary.startIndex <= itemIndex) {
-      result = boundary;
+/**
+ * Last item at or before the given index, or undefined when the index precedes every item. Runs a
+ * binary search, so it is also safe to call on every frame of a drag (see
+ * photoTimelineLayout.ts's findAnchorForIndex, the other caller of this same search).
+ *
+ * @param items items ordered by `startIndex` ascending.
+ * @param index item index in the flat timeline.
+ */
+export const findLastAtOrBefore = <T extends { startIndex: number }>(items: T[], index: number): T | undefined => {
+  let low = 0;
+  let high = items.length - 1;
+  let result: T | undefined;
+
+  while (low <= high) {
+    const middle = (low + high) >> 1;
+    if (items[middle].startIndex <= index) {
+      result = items[middle];
+      low = middle + 1;
     } else {
-      break;
+      high = middle - 1;
     }
   }
+
   return result;
 };
+
+export const findGroupForIndex = (boundaries: GroupBoundary[], itemIndex: number): GroupBoundary | undefined =>
+  findLastAtOrBefore(boundaries, itemIndex);
