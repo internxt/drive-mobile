@@ -7,6 +7,7 @@ import {
   findAnchorForIndex,
   getIndexForOffset,
   getOffsetForIndex,
+  getRailAnchorForScroll,
   getTimelineContentHeight,
 } from '../utils/photoTimelineLayout';
 
@@ -75,10 +76,7 @@ interface PhotosScrubberConfig {
   scrollToOffset: (offset: number) => void;
 }
 
-/**
- * Handle position inputs, as shared values so the gesture worklet and the animated style can read
- * them without touching the JS thread.
- */
+/** Handle position inputs, readable from both the gesture worklet and the animated style. */
 export interface ScrubberDragValues {
   /** Rail length in pixels. The handle's centre is clamped to [0, railHeight]. */
   railHeight: SharedValue<number>;
@@ -100,7 +98,6 @@ export interface ScrubberDragValues {
 
 export interface PhotosScrubberResult {
   isAvailable: boolean;
-  isScrubbing: boolean;
   opacity: Animated.Value;
   yearMarkersOpacity: Animated.Value;
   railTop: number;
@@ -132,20 +129,6 @@ export const usePhotosScrubber = ({
   const [isVisible, setIsVisible] = useState(false);
   const [isScrubbing, setIsScrubbing] = useState(false);
 
-  const dragTranslateY = useSharedValue(0);
-  const dragStartCenterY = useSharedValue(0);
-  const dragIsDragging = useSharedValue(false);
-  const dragIsReleasing = useSharedValue(false);
-  const railHeightShared = useSharedValue(0);
-  const maxScrollShared = useSharedValue(0);
-  const scrollYShared = useSharedValue(0);
-
-  const monthLabelStore = useRef(createMonthLabelStore()).current;
-
-  const opacity = useRef(new Animated.Value(0)).current;
-  const yearMarkersOpacity = useRef(new Animated.Value(0)).current;
-  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const isScrubbingRef = useRef(isScrubbing);
   isScrubbingRef.current = isScrubbing;
 
@@ -170,96 +153,19 @@ export const usePhotosScrubber = ({
   const isAvailableRef = useRef(isAvailable);
   isAvailableRef.current = isAvailable;
 
-  const { yearAnchors, monthAnchors } = useMemo(() => buildTimelineDateIndex(boundaries), [boundaries]);
-
-  const monthAnchorsRef = useRef(monthAnchors);
-  monthAnchorsRef.current = monthAnchors;
-
   const scrubMetricsRef = useRef({ railHeight, maxScroll, cellSize, contentTopInset, numColumns });
   scrubMetricsRef.current = { railHeight, maxScroll, cellSize, contentTopInset, numColumns };
 
   const scrollToOffsetRef = useRef(scrollToOffset);
   scrollToOffsetRef.current = scrollToOffset;
 
-  const yearMarkers = useMemo(() => {
-    const markers: ScrubberYearMarker[] = [];
-    let lastKeptY = Number.NEGATIVE_INFINITY;
-
-    for (const anchor of yearAnchors) {
-      const offset = getOffsetForIndex({ index: anchor.startIndex, cellSize, contentTopInset, numColumns });
-      const y = clampFraction(offset / maxScroll) * railHeight;
-      if (y - lastKeptY < SCRUBBER_YEAR_LABEL_MIN_GAP) {
-        continue;
-      }
-      markers.push({ label: anchor.label, y });
-      lastKeptY = y;
-    }
-
-    return markers;
-  }, [yearAnchors, cellSize, contentTopInset, numColumns, maxScroll, railHeight]);
-
-  useEffect(() => {
-    const id = scrollY.addListener(({ value }) => {
-      scrollYShared.value = value;
-    });
-    return () => scrollY.removeListener(id);
-  }, [scrollY, scrollYShared]);
-
-  const clearHideTimeout = useCallback(() => {
-    if (hideTimeoutRef.current !== null) {
-      clearTimeout(hideTimeoutRef.current);
-      hideTimeoutRef.current = null;
-    }
-  }, []);
-
-  const lastScrollAtRef = useRef(0);
-
-  const runHideTickRef = useRef<() => void>(null!);
-  runHideTickRef.current = () => {
-    hideTimeoutRef.current = null;
-    if (isScrubbingRef.current) {
-      return;
-    }
-    const idleFor = Date.now() - lastScrollAtRef.current;
-    if (idleFor < SCRUBBER_IDLE_HIDE_MS) {
-      hideTimeoutRef.current = setTimeout(() => runHideTickRef.current(), SCRUBBER_IDLE_HIDE_MS - idleFor);
-      return;
-    }
-    setIsVisible(false);
-  };
-
-  // No-op when a timer is already pending; the pending one re-arms itself with the time left, so
-  // at most one is ever alive.
-  const armHideTimer = useCallback((delay: number) => {
-    if (hideTimeoutRef.current !== null) {
-      return;
-    }
-    hideTimeoutRef.current = setTimeout(() => runHideTickRef.current(), delay);
-  }, []);
-
-  const notifyScroll = useCallback(() => {
-    if (!isAvailableRef.current || isScrubbingRef.current) {
-      return;
-    }
-    lastScrollAtRef.current = Date.now();
-    setIsVisible(true);
-    armHideTimer(SCRUBBER_IDLE_HIDE_MS);
-  }, [armHideTimer]);
-
-  const updateMonthLabelForOffset = useCallback(
-    (offset: number) => {
-      const { cellSize: rowHeight, contentTopInset: topInset, numColumns: columns } = scrubMetricsRef.current;
-      const index = getIndexForOffset({ offset, cellSize: rowHeight, contentTopInset: topInset, numColumns: columns });
-      const anchor = findAnchorForIndex(monthAnchorsRef.current, index);
-      monthLabelStore.set(anchor?.label ?? null);
-    },
-    [monthLabelStore],
-  );
-
-  useEffect(() => {
-    railHeightShared.value = railHeight;
-    maxScrollShared.value = maxScroll;
-  }, [railHeight, maxScroll, railHeightShared, maxScrollShared]);
+  const dragTranslateY = useSharedValue(0);
+  const dragStartCenterY = useSharedValue(0);
+  const dragIsDragging = useSharedValue(false);
+  const dragIsReleasing = useSharedValue(false);
+  const railHeightShared = useSharedValue(0);
+  const maxScrollShared = useSharedValue(0);
+  const scrollYShared = useSharedValue(0);
 
   const drag = useMemo(
     () => ({
@@ -282,6 +188,100 @@ export const usePhotosScrubber = ({
     ],
   );
 
+  useEffect(() => {
+    railHeightShared.value = railHeight;
+    maxScrollShared.value = maxScroll;
+  }, [railHeight, maxScroll, railHeightShared, maxScrollShared]);
+
+  useEffect(() => {
+    const id = scrollY.addListener(({ value }) => {
+      scrollYShared.value = value;
+    });
+    return () => scrollY.removeListener(id);
+  }, [scrollY, scrollYShared]);
+
+  const { yearAnchors, monthAnchors } = useMemo(() => buildTimelineDateIndex(boundaries), [boundaries]);
+
+  const monthAnchorsRef = useRef(monthAnchors);
+  monthAnchorsRef.current = monthAnchors;
+
+  const yearMarkers = useMemo(() => {
+    const markers: ScrubberYearMarker[] = [];
+    let lastKeptY = Number.NEGATIVE_INFINITY;
+
+    for (const anchor of yearAnchors) {
+      const offset = getOffsetForIndex({ index: anchor.startIndex, cellSize, contentTopInset, numColumns });
+      const y = clampFraction(offset / maxScroll) * railHeight;
+      if (y - lastKeptY < SCRUBBER_YEAR_LABEL_MIN_GAP) {
+        continue;
+      }
+      markers.push({ label: anchor.label, y });
+      lastKeptY = y;
+    }
+
+    return markers;
+  }, [yearAnchors, cellSize, contentTopInset, numColumns, maxScroll, railHeight]);
+
+  const monthLabelStoreRef = useRef<WritableMonthLabelStore | null>(null);
+  if (monthLabelStoreRef.current === null) {
+    monthLabelStoreRef.current = createMonthLabelStore();
+  }
+  const monthLabelStore = monthLabelStoreRef.current;
+
+  const updateMonthLabelForOffset = useCallback(
+    (offset: number) => {
+      const { cellSize: rowHeight, contentTopInset: topInset, numColumns: columns } = scrubMetricsRef.current;
+      const index = getIndexForOffset({ offset, cellSize: rowHeight, contentTopInset: topInset, numColumns: columns });
+      const anchor = findAnchorForIndex(monthAnchorsRef.current, index);
+      monthLabelStore.set(anchor?.label ?? null);
+    },
+    [monthLabelStore],
+  );
+
+  const opacity = useRef(new Animated.Value(0)).current;
+  const yearMarkersOpacity = useRef(new Animated.Value(0)).current;
+
+  const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastScrollAtRef = useRef(0);
+
+  const clearHideTimeout = useCallback(() => {
+    if (hideTimeoutRef.current !== null) {
+      clearTimeout(hideTimeoutRef.current);
+      hideTimeoutRef.current = null;
+    }
+  }, []);
+
+  const runHideTickRef = useRef<() => void>(null!);
+  runHideTickRef.current = () => {
+    hideTimeoutRef.current = null;
+    if (isScrubbingRef.current) {
+      return;
+    }
+    const idleFor = Date.now() - lastScrollAtRef.current;
+    if (idleFor < SCRUBBER_IDLE_HIDE_MS) {
+      hideTimeoutRef.current = setTimeout(() => runHideTickRef.current(), SCRUBBER_IDLE_HIDE_MS - idleFor);
+      return;
+    }
+    setIsVisible(false);
+  };
+
+  // The pending timer re-arms itself with the idle time left, so skipping here loses nothing.
+  const armHideTimer = useCallback((delay: number) => {
+    if (hideTimeoutRef.current !== null) {
+      return;
+    }
+    hideTimeoutRef.current = setTimeout(() => runHideTickRef.current(), delay);
+  }, []);
+
+  const notifyScroll = useCallback(() => {
+    if (!isAvailableRef.current || isScrubbingRef.current) {
+      return;
+    }
+    lastScrollAtRef.current = Date.now();
+    setIsVisible(true);
+    armHideTimer(SCRUBBER_IDLE_HIDE_MS);
+  }, [armHideTimer]);
+
   const releaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearReleaseTimeout = useCallback(() => {
@@ -293,11 +293,12 @@ export const usePhotosScrubber = ({
 
   // Hands the handle back to the scroll only once the scroll agrees with where it is being held.
   useAnimatedReaction(
-    () => {
-      const maxScroll = maxScrollShared.value;
-      const scrollFraction = maxScroll > 0 ? Math.min(1, Math.max(0, scrollYShared.value / maxScroll)) : 0;
-      return scrollFraction * railHeightShared.value;
-    },
+    () =>
+      getRailAnchorForScroll({
+        scrollY: scrollYShared.value,
+        maxScroll: maxScrollShared.value,
+        railHeight: railHeightShared.value,
+      }),
     (scrollAnchor) => {
       if (!dragIsReleasing.value) {
         return;
@@ -337,6 +338,11 @@ export const usePhotosScrubber = ({
     clearReleaseTimeout();
     releaseTimeoutRef.current = setTimeout(() => {
       releaseTimeoutRef.current = null;
+      // A new drag clears isReleasing from its worklet, which lands before onScrubStart gets to
+      // cancel this timer.
+      if (!dragIsReleasing.value) {
+        return;
+      }
       dragIsReleasing.value = false;
       dragIsDragging.value = false;
     }, SCRUBBER_RELEASE_TIMEOUT_MS);
@@ -363,12 +369,33 @@ export const usePhotosScrubber = ({
     }).start();
   }, [isScrubbing, yearMarkersOpacity]);
 
+  useEffect(() => {
+    if (isAvailable) {
+      return;
+    }
+    clearHideTimeout();
+    clearReleaseTimeout();
+    dragIsDragging.value = false;
+    dragIsReleasing.value = false;
+    dragTranslateY.value = 0;
+    monthLabelStore.set(null);
+    setIsScrubbing(false);
+    setIsVisible(false);
+  }, [
+    isAvailable,
+    clearHideTimeout,
+    clearReleaseTimeout,
+    dragIsDragging,
+    dragIsReleasing,
+    dragTranslateY,
+    monthLabelStore,
+  ]);
+
   useEffect(() => clearHideTimeout, [clearHideTimeout]);
   useEffect(() => clearReleaseTimeout, [clearReleaseTimeout]);
 
   return {
     isAvailable,
-    isScrubbing,
     opacity,
     yearMarkersOpacity,
     railTop: SCRUBBER_RAIL_TOP_INSET,

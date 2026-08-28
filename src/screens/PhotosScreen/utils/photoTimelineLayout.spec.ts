@@ -4,6 +4,7 @@ import {
   findAnchorForIndex,
   getIndexForOffset,
   getOffsetForIndex,
+  getRailAnchorForScroll,
   getTimelineContentHeight,
 } from './photoTimelineLayout';
 
@@ -15,7 +16,7 @@ const makeBoundary = (overrides: Partial<GroupBoundary> = {}): GroupBoundary => 
   ...overrides,
 });
 
-describe('buildTimelineDateIndex', () => {
+describe('building the year and month anchors of the timeline', () => {
   test('when the timeline spans several years, then one anchor is produced per year', () => {
     const boundaries: GroupBoundary[] = [
       makeBoundary({ startIndex: 0, id: new Date(2026, 7, 1).toDateString() }),
@@ -76,7 +77,7 @@ describe('buildTimelineDateIndex', () => {
   });
 });
 
-describe('getOffsetForIndex / getIndexForOffset', () => {
+describe('converting between an item position and a scroll offset', () => {
   test('when an item index is given, then its pixel offset accounts for the header inset and the row height', () => {
     const offset = getOffsetForIndex({ index: 7, cellSize: 120, contentTopInset: 64, numColumns: 3 });
 
@@ -105,7 +106,29 @@ describe('getOffsetForIndex / getIndexForOffset', () => {
   });
 });
 
-describe('findAnchorForIndex', () => {
+describe('placing the scrubber handle for a scroll position', () => {
+  test('when the list is scrolled halfway, then the handle sits halfway down the rail', () => {
+    expect(getRailAnchorForScroll({ scrollY: 500, maxScroll: 1000, railHeight: 400 })).toBe(200);
+  });
+
+  test('when the list is at the very top, then the handle sits at the top of the rail', () => {
+    expect(getRailAnchorForScroll({ scrollY: 0, maxScroll: 1000, railHeight: 400 })).toBe(0);
+  });
+
+  test('when the list is scrolled past its end, then the handle stops at the bottom of the rail', () => {
+    expect(getRailAnchorForScroll({ scrollY: 1800, maxScroll: 1000, railHeight: 400 })).toBe(400);
+  });
+
+  test('when the list is overscrolled above the top, then the handle stops at the top of the rail', () => {
+    expect(getRailAnchorForScroll({ scrollY: -120, maxScroll: 1000, railHeight: 400 })).toBe(0);
+  });
+
+  test('when there is nothing to scroll, then the handle sits at the top of the rail', () => {
+    expect(getRailAnchorForScroll({ scrollY: 300, maxScroll: 0, railHeight: 400 })).toBe(0);
+  });
+});
+
+describe('finding the anchor that owns a given item position', () => {
   test('when the index precedes every anchor, then no anchor is returned', () => {
     const anchors = [{ startIndex: 10, label: 'a' }];
 
@@ -125,7 +148,7 @@ describe('findAnchorForIndex', () => {
   });
 });
 
-describe('getTimelineContentHeight', () => {
+describe('measuring the total height of the timeline', () => {
   test('when the content is shorter than the viewport, then the scroll range never collapses to zero', () => {
     const contentHeight = getTimelineContentHeight({
       itemCount: 3,

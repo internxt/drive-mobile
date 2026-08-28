@@ -4,6 +4,7 @@ import { Animated, Platform, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Reanimated, { useAnimatedStyle } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import { getRailAnchorForScroll } from '../../utils/photoTimelineLayout';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
@@ -72,9 +73,13 @@ const PhotosScrubber = ({ scrubber }: PhotosScrubberProps): JSX.Element | null =
   }, []);
 
   const handleStyle = useAnimatedStyle(() => {
-    const maxScroll = drag.maxScroll.value;
-    const scrollFraction = maxScroll > 0 ? Math.min(1, Math.max(0, drag.scrollY.value / maxScroll)) : 0;
-    const anchor = drag.isDragging.value ? drag.startCenterY.value : scrollFraction * drag.railHeight.value;
+    const anchor = drag.isDragging.value
+      ? drag.startCenterY.value
+      : getRailAnchorForScroll({
+          scrollY: drag.scrollY.value,
+          maxScroll: drag.maxScroll.value,
+          railHeight: drag.railHeight.value,
+        });
 
     return { transform: [{ translateY: anchor + drag.translateY.value - SCRUBBER_HANDLE_SIZE / 2 }] };
   });
@@ -90,15 +95,23 @@ const PhotosScrubber = ({ scrubber }: PhotosScrubberProps): JSX.Element | null =
     () =>
       Gesture.Pan()
         .enabled(isAvailable && Platform.OS !== 'android')
+        .maxPointers(1)
         .hitSlop(SCRUBBER_HANDLE_HIT_MARGIN)
         // Not .onStart(), which only fires past Pan's activation threshold — holding the handle
         // without moving has to reveal the year markers.
         .onTouchesDown(() => {
+          // Touch callbacks fire per pointer, so a second finger would otherwise re-pin the anchor
+          // mid-drag.
+          if (drag.isDragging.value) {
+            return;
+          }
           // Not in startScrub: that arrives a beat later, and a first onUpdate would then clamp
           // against the previous drag's anchor.
-          const maxScroll = drag.maxScroll.value;
-          const scrollFraction = maxScroll > 0 ? Math.min(1, Math.max(0, drag.scrollY.value / maxScroll)) : 0;
-          drag.startCenterY.value = scrollFraction * drag.railHeight.value;
+          drag.startCenterY.value = getRailAnchorForScroll({
+            scrollY: drag.scrollY.value,
+            maxScroll: drag.maxScroll.value,
+            railHeight: drag.railHeight.value,
+          });
           drag.translateY.value = 0;
           drag.isDragging.value = true;
           // Stops a previous release still settling from unpinning this drag.

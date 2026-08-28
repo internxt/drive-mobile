@@ -3,7 +3,6 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRe
 import { Animated, LayoutChangeEvent, Platform, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
-import { ScrubbingContext } from '../context/ScrubbingContext';
 import { useDragSelectGesture } from '../hooks/useDragSelectGesture';
 import { usePhotosScrubber } from '../hooks/usePhotosScrubber';
 import { PhotoBackupState, PhotoDateGroup, TimelinePhotoItem } from '../types';
@@ -321,58 +320,56 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     ) : undefined;
 
     return (
-      <ScrubbingContext.Provider value={scrubber.isScrubbing}>
-        <GestureDetector gesture={gesture}>
-          <View style={tailwind('flex-1')} onLayout={onContainerLayoutMerged}>
-            <FlashList
-              ref={flashListRef}
-              data={photos}
-              renderItem={renderItem}
-              keyExtractor={keyExtractor}
-              numColumns={NUM_COLUMNS}
-              extraData={extraData}
-              ListHeaderComponent={measuredListHeader}
-              ListEmptyComponent={isEmpty ? <PhotosEmptyState /> : undefined}
-              contentContainerStyle={contentContainerStyle}
-              showsVerticalScrollIndicator={false}
-              onEndReached={onEndReached}
-              onEndReachedThreshold={0.5}
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              onViewableItemsChanged={onViewableItemsChanged}
-              viewabilityConfig={VIEWABILITY_CONFIG}
-              onScroll={onScroll}
-              scrollEventThrottle={16}
-              progressViewOffset={Platform.OS === 'android' ? HEADER_HEIGHT : 0}
-              maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
-              drawDistance={500}
-            />
+      <GestureDetector gesture={gesture}>
+        <View style={tailwind('flex-1')} onLayout={onContainerLayoutMerged}>
+          <FlashList
+            ref={flashListRef}
+            data={photos}
+            renderItem={renderItem}
+            keyExtractor={keyExtractor}
+            numColumns={NUM_COLUMNS}
+            extraData={extraData}
+            ListHeaderComponent={measuredListHeader}
+            ListEmptyComponent={isEmpty ? <PhotosEmptyState /> : undefined}
+            contentContainerStyle={contentContainerStyle}
+            showsVerticalScrollIndicator={false}
+            onEndReached={onEndReached}
+            onEndReachedThreshold={0.5}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={VIEWABILITY_CONFIG}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            progressViewOffset={Platform.OS === 'android' ? HEADER_HEIGHT : 0}
+            maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
+            drawDistance={500}
+          />
 
-            {!isEmpty && currentBoundary && (
-              <>
-                <Animated.View
-                  pointerEvents="none"
-                  style={[styles.headerOverlay, { opacity: isIosRefreshing ? 0 : solidOpacity }]}
-                >
-                  <PhotosGroupHeader label={currentBoundary.label} syncStatus={overlaySyncStatus} isSticky={false} />
-                </Animated.View>
-                <Animated.View style={[styles.headerOverlay, { opacity: floatingOpacity }]}>
-                  <PhotosGroupHeader
-                    label={currentBoundary.label}
-                    syncStatus={overlaySyncStatus}
-                    isSticky
-                    onPausePress={onPausePress}
-                    onResumePress={onResumePress}
-                    onRetryPress={onRetryPress}
-                  />
-                </Animated.View>
-              </>
-            )}
+          {!isEmpty && currentBoundary && (
+            <>
+              <Animated.View
+                pointerEvents="none"
+                style={[styles.headerOverlay, { opacity: isIosRefreshing ? 0 : solidOpacity }]}
+              >
+                <PhotosGroupHeader label={currentBoundary.label} syncStatus={overlaySyncStatus} isSticky={false} />
+              </Animated.View>
+              <Animated.View style={[styles.headerOverlay, { opacity: floatingOpacity }]}>
+                <PhotosGroupHeader
+                  label={currentBoundary.label}
+                  syncStatus={overlaySyncStatus}
+                  isSticky
+                  onPausePress={onPausePress}
+                  onResumePress={onResumePress}
+                  onRetryPress={onRetryPress}
+                />
+              </Animated.View>
+            </>
+          )}
 
-            {!isEmpty && <PhotosScrubber scrubber={scrubber} />}
-          </View>
-        </GestureDetector>
-      </ScrubbingContext.Provider>
+          {!isEmpty && <PhotosScrubber scrubber={scrubber} />}
+        </View>
+      </GestureDetector>
     );
   },
 );

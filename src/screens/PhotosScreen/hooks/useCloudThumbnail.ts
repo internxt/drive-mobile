@@ -12,8 +12,8 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
   const userRef = useRef(user);
   userRef.current = user;
 
-  // item.thumbnailPath lags behind until useCloudAssets reloads, so the reset below has to key off
-  // an actual change of id or path — not off retryCount, which would wipe a just-fetched thumbnail.
+  // The effect below also runs on retryCount, so id and path changes are tracked explicitly to tell
+  // a recycle or a backfill apart from a retry.
   const lastItemIdRef = useRef(item.id);
   const lastThumbnailPathPropRef = useRef(item.thumbnailPath);
 
@@ -33,14 +33,17 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
       setLocalPath(item.thumbnailPath);
     }
 
+    // retryCount belongs to the cell, which FlashList recycles across items, so it only counts as a
+    // retry for the item that actually failed — otherwise one failed image would make every later
+    // item in that cell refetch a thumbnail it already has on disk.
+    const isRetry = retryCount > 0 && !idChanged;
+    if (!isRetry && item.thumbnailPath) {
+      return;
+    }
+
     const thumbnailBucketId = item.thumbnailBucketId;
     const thumbnailBucketFile = item.thumbnailBucketFile;
     const currentUser = userRef.current;
-
-    // On first mount: skip if path already persisted. On retry (image load failed): always re-fetch.
-    if (retryCount === 0 && item.thumbnailPath) {
-      return;
-    }
     if (!thumbnailBucketId || !thumbnailBucketFile || !currentUser) {
       return;
     }

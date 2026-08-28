@@ -103,6 +103,28 @@ export const getIndexForOffset = ({
 };
 
 /**
+ * Position along the scrubber rail, in pixels from its top, matching a scroll offset. Clamped to
+ * [0, railHeight]. Callable from a worklet and from the JS thread.
+ *
+ * @param params.scrollY scroll offset in pixels.
+ * @param params.maxScroll maximum scroll offset in pixels.
+ * @param params.railHeight rail length in pixels.
+ */
+export const getRailAnchorForScroll = ({
+  scrollY,
+  maxScroll,
+  railHeight,
+}: {
+  scrollY: number;
+  maxScroll: number;
+  railHeight: number;
+}): number => {
+  'worklet';
+  const fraction = maxScroll > 0 ? Math.min(1, Math.max(0, scrollY / maxScroll)) : 0;
+  return fraction * railHeight;
+};
+
+/**
  * Total scrollable content height of the timeline, derived from the item count instead of measured,
  * so it is available on the first render.
  *
@@ -123,8 +145,7 @@ export const getTimelineContentHeight = ({
 
 /**
  * Last anchor starting at or before the given item index, or undefined when the index precedes
- * every anchor. Runs a binary search (via findLastAtOrBefore), so it is safe to call on every
- * frame of a drag.
+ * every anchor. Runs a binary search.
  *
  * @param anchors anchors ordered by `startIndex` ascending.
  * @param index item index in the flat timeline.

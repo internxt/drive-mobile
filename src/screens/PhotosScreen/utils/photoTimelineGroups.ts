@@ -244,8 +244,7 @@ export const buildFlatTimeline = (groups: TimelineDateGroup[]): FlatTimeline => 
 
 /**
  * Last item at or before the given index, or undefined when the index precedes every item. Runs a
- * binary search, so it is also safe to call on every frame of a drag (see
- * photoTimelineLayout.ts's findAnchorForIndex, the other caller of this same search).
+ * binary search.
  *
  * @param items items ordered by `startIndex` ascending.
  * @param index item index in the flat timeline.
