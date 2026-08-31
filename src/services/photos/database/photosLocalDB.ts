@@ -98,9 +98,16 @@ export interface AssetSyncEntry {
   burstId: string | null;
   burstMemberRemoteFileIds: string[] | null;
   burstMemberCount: number | null;
+  /** Thumbnail/content refs captured straight from the upload that produced this asset — present
+   * only when this device generated them itself (see PhotoCloudBrowser.recordSyncedAsset). */
+  thumbnailBucketId: string | null;
+  thumbnailBucketFile: string | null;
+  thumbnailType: string | null;
+  contentFileId: string | null;
+  bucket: string | null;
 }
 
-interface AssetSyncRow {
+export interface AssetSyncRow {
   asset_id: string;
   status: AssetSyncStatus;
   remote_file_id: string | null;
@@ -125,6 +132,11 @@ interface AssetSyncRow {
   burst_id: string | null;
   burst_member_remote_file_ids: string | null;
   burst_member_count: number | null;
+  thumbnail_bucket_id: string | null;
+  thumbnail_bucket_file: string | null;
+  thumbnail_type: string | null;
+  content_file_id: string | null;
+  bucket: string | null;
 }
 
 export interface SyncedAssetInfo {
@@ -271,7 +283,30 @@ const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
   burstId: row.burst_id,
   burstMemberRemoteFileIds: row.burst_member_remote_file_ids ? JSON.parse(row.burst_member_remote_file_ids) : null,
   burstMemberCount: row.burst_member_count,
+  thumbnailBucketId: row.thumbnail_bucket_id,
+  thumbnailBucketFile: row.thumbnail_bucket_file,
+  thumbnailType: row.thumbnail_type,
+  contentFileId: row.content_file_id,
+  bucket: row.bucket,
 });
+
+/** Thumbnail/content refs captured from a successful upload/replace call, passed to markSynced*
+ * so recordSyncedAsset can later write a complete cloud_asset row without fetching Drive. */
+export interface SyncedThumbnailRefs {
+  thumbnailBucketId?: string;
+  thumbnailBucketFile?: string;
+  thumbnailType?: string;
+  contentFileId?: string;
+  bucket?: string;
+}
+
+const toThumbnailRefParams = (refs?: SyncedThumbnailRefs): (string | null)[] => [
+  refs?.thumbnailBucketId ?? null,
+  refs?.thumbnailBucketFile ?? null,
+  refs?.thumbnailType ?? null,
+  refs?.contentFileId ?? null,
+  refs?.bucket ?? null,
+];
 
 const toMarkPendingParams = (assetId: string, mediaInfo?: AssetMediaInfo) => [
   assetId,
@@ -292,6 +327,7 @@ class PhotosLocalDB {
     this.initPromise ??= (async () => {
       await sqliteService.open(DB_NAME);
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createTable);
+      await this.migrateAssetSyncColumns();
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createIndex);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createTable);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexCreated);
@@ -301,6 +337,21 @@ class PhotosLocalDB {
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexBurstGroup);
     })();
     return this.initPromise;
+  }
+
+  /**
+   * Adds the thumbnail columns to `asset_sync`.
+   */
+  private async migrateAssetSyncColumns(): Promise<void> {
+    for (const statement of assetSyncTable.migrateAddColumns) {
+      try {
+        await sqliteService.executeSql(DB_NAME, statement);
+      } catch (err) {
+        if (!String(err).includes('duplicate column name')) {
+          throw err;
+        }
+      }
+    }
   }
 
   /**
@@ -332,11 +383,17 @@ class PhotosLocalDB {
     );
   }
 
-  async markSynced(assetId: string, remoteFileId: string, modificationTime: number | null): Promise<void> {
+  async markSynced(
+    assetId: string,
+    remoteFileId: string,
+    modificationTime: number | null,
+    thumbnailRefs?: SyncedThumbnailRefs,
+  ): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSynced, [
       assetId,
       remoteFileId,
       modificationTime,
+      ...toThumbnailRefParams(thumbnailRefs),
     ]);
   }
 
@@ -346,6 +403,7 @@ class PhotosLocalDB {
     modificationTime: number | null,
     pairedVideoRemoteFileId: string | null,
     pairedVideoStatus: PairedVideoStatus,
+    thumbnailRefs?: SyncedThumbnailRefs,
   ): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSyncedLivePhoto, [
       assetId,
@@ -353,6 +411,7 @@ class PhotosLocalDB {
       modificationTime,
       pairedVideoRemoteFileId,
       pairedVideoStatus,
+      ...toThumbnailRefParams(thumbnailRefs),
     ]);
   }
 
@@ -533,17 +592,20 @@ class PhotosLocalDB {
     );
   }
 
-  async cleanupOrphanedAssetSync(localAssetIds: Set<string>): Promise<number> {
-    const allsyncedAssets = await sqliteService.getAllAsync<{ asset_id: string }>(
+  /**
+   * Ids of `asset_sync` rows tracked locally whose asset is no longer on the device
+   * (`localAssetIds`). Read-only — callers decide what to do with the diff (see
+   * `PhotoCloudBrowser.deleteAssetSyncPreservingCloudVisibility`, which preserves cloud
+   * visibility for any orphan that had a remote backup before removing its row).
+   *
+   * @param localAssetIds - Ids of the assets currently on the device.
+   */
+  async getOrphanedAssetSyncIds(localAssetIds: Set<string>): Promise<string[]> {
+    const allSyncedAssets = await sqliteService.getAllAsync<{ asset_id: string }>(
       DB_NAME,
       assetSyncTable.statements.getAllTrackedAssetIds,
     );
-    const orphanAssetsIds = allsyncedAssets.filter((a) => !localAssetIds.has(a.asset_id)).map((a) => a.asset_id);
-    if (orphanAssetsIds.length === 0) {
-      return 0;
-    }
-    await this.deleteAssetSyncBulk(orphanAssetsIds);
-    return orphanAssetsIds.length;
+    return allSyncedAssets.filter((a) => !localAssetIds.has(a.asset_id)).map((a) => a.asset_id);
   }
 
   async reset(): Promise<void> {
@@ -699,6 +761,7 @@ class PhotosLocalDB {
     burstId: string,
     memberUuids: string[],
     memberCount: number | null,
+    thumbnailRefs?: SyncedThumbnailRefs,
   ): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSyncedBurst, [
       assetId,
@@ -707,6 +770,7 @@ class PhotosLocalDB {
       burstId,
       JSON.stringify(memberUuids),
       memberCount,
+      ...toThumbnailRefParams(thumbnailRefs),
     ]);
   }
 

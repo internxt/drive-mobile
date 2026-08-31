@@ -2,6 +2,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import * as MediaLibrary from 'expo-media-library';
 import { AppState } from 'react-native';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
+import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { useAppSelector } from 'src/store/hooks';
 import { useLocalAssets } from './useLocalAssets';
 
@@ -18,6 +19,12 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     getSyncedEntries: jest.fn(),
     getIncompleteBurstAssets: jest.fn().mockResolvedValue([]),
     deleteAssetSyncBulk: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('src/services/photos/PhotoCloudBrowser', () => ({
+  photoCloudBrowser: {
+    deleteAssetSyncPreservingCloudVisibility: jest.fn().mockResolvedValue(undefined),
     cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
   },
 }));
@@ -28,6 +35,7 @@ jest.mock('src/store/hooks', () => ({
 
 const mockMediaLibrary = MediaLibrary as jest.Mocked<typeof MediaLibrary>;
 const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
+const mockPhotoCloudBrowser = photoCloudBrowser as jest.Mocked<typeof photoCloudBrowser>;
 const mockUseAppSelector = useAppSelector as jest.Mock;
 const photosState = {
   syncStatus: 'idle',
@@ -35,6 +43,7 @@ const photosState = {
   sessionUploadedAssets: 0,
   isFetchingCloudHistory: false,
   permissionStatus: 'granted' as const,
+  deviceId: 'device-1' as string | null,
 };
 
 const makeAsset = (id: string, creationTime = 1000): MediaLibrary.Asset =>
@@ -55,6 +64,7 @@ beforeEach(() => {
     uploadingAssetIds: [],
     sessionUploadedAssets: 0,
     isFetchingCloudHistory: false,
+    deviceId: 'device-1',
   });
   mockUseAppSelector.mockImplementation((selector: (state: { photos: typeof photosState }) => unknown) =>
     selector({ photos: photosState }),
@@ -405,8 +415,8 @@ describe('useLocalAssets', () => {
       await Promise.all([secondReload, firstReload]);
     });
 
-    expect(mockPhotosLocalDB.cleanupOrphanedAssetSync).toHaveBeenCalledTimes(1);
-    expect(mockPhotosLocalDB.cleanupOrphanedAssetSync).toHaveBeenCalledWith(new Set(['a9']));
+    expect(mockPhotoCloudBrowser.cleanupOrphanedAssetSync).toHaveBeenCalledTimes(1);
+    expect(mockPhotoCloudBrowser.cleanupOrphanedAssetSync).toHaveBeenCalledWith(new Set(['a9']), 'device-1');
   });
 
   test('when sync status changes and there are assets loaded, then synced ids refresh from the database', async () => {
@@ -481,7 +491,7 @@ describe('useLocalAssets', () => {
 
     expect(result.current.assets.find((a) => a.id === 'old')).toBeUndefined();
     expect(result.current.assets).toHaveLength(2);
-    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['old']);
+    expect(mockPhotoCloudBrowser.deleteAssetSyncPreservingCloudVisibility).toHaveBeenCalledWith(['old'], 'device-1');
     expect(result.current.localDeletionDetectedCount).toBe(1);
     // getAssetsAsync should NOT have been called for the incremental update
     expect(mockMediaLibrary.getAssetsAsync).toHaveBeenCalledTimes(1);

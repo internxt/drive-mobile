@@ -54,6 +54,14 @@ export interface PhotoUploadResult {
   photoUuid: string;
   pairedVideoUuid?: string;
   burst?: { burstId: string; memberUuids: string[] };
+  /**
+   * Thumbnail/content refs already computed by this upload/replace call. Undefined whenever
+   * this call didn't generate them itself (e.g. the `FileAlreadyExistsError` recovery path, or a
+   * failed thumbnail upload).
+   */
+  thumbnail?: UploadedThumbnailRef;
+  contentFileId?: string;
+  bucketId?: string;
 }
 
 /**
@@ -372,7 +380,8 @@ const uploadPairedVideo = async (params: {
  * @param params.credentials - Encryption key and bridge credentials for the upload.
  * @param params.onProgress - Called with the upload progress ratio (0-1).
  * @param params.signal - Aborts the upload when triggered.
- * @returns UUID of the replaced or newly created Drive entry.
+ * @returns UUID of the replaced or newly created Drive entry, plus the content/thumbnail refs
+ *   this call generated — `thumbnail` is always populated, since a replace always regenerates it.
  */
 const replaceRemoteFile = async (params: {
   localFilePath: string;
@@ -388,7 +397,7 @@ const replaceRemoteFile = async (params: {
   credentials: UploadCredentials;
   onProgress?: (ratio: number) => void;
   signal?: AbortSignal;
-}): Promise<string> => {
+}): Promise<{ photoUuid: string; contentFileId: string; bucketId: string; thumbnail: UploadedThumbnailRef | null }> => {
   const {
     localFilePath,
     thumbnailSource,
@@ -424,9 +433,10 @@ const replaceRemoteFile = async (params: {
   }
 
   let photoUuid = existingRemoteFileId;
+  let thumbnail: UploadedThumbnailRef | null;
   try {
     await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
-    await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials);
+    thumbnail = await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials);
   } catch (replaceError) {
     if (!isDeletedOrTrashedError(replaceError)) {
       logger.error(`Failed to replace file entry for ${existingRemoteFileId}:`, replaceError);
@@ -443,11 +453,11 @@ const replaceRemoteFile = async (params: {
       modificationTime: modificationIso,
       creationTime: creationIso,
     });
-    await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
+    thumbnail = await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
     photoUuid = driveFile.uuid;
   }
 
-  return photoUuid;
+  return { photoUuid, contentFileId: fileId, bucketId, thumbnail };
 };
 
 export const PhotoUploadService = {
@@ -502,7 +512,7 @@ export const PhotoUploadService = {
             signal,
           });
 
-          await uploadThumbnailForAsset(asset.uri, fileExtension, photoUuid, credentials);
+          const thumbnail = await uploadThumbnailForAsset(asset.uri, fileExtension, photoUuid, credentials);
 
           const pairedVideoUuid = await uploadPairedVideo({
             videoLocalPath,
@@ -515,7 +525,12 @@ export const PhotoUploadService = {
             signal,
           });
 
-          return { photoUuid, pairedVideoUuid: pairedVideoUuid ?? undefined };
+          return {
+            photoUuid,
+            pairedVideoUuid: pairedVideoUuid ?? undefined,
+            thumbnail: thumbnail ?? undefined,
+            bucketId: credentials.bucketId,
+          };
         } finally {
           await cleanupTempFile(photoLocalPath);
           await cleanupTempFile(videoLocalPath);
@@ -570,7 +585,7 @@ export const PhotoUploadService = {
         creationTime: creationIso,
       });
 
-      await uploadThumbnailForAsset(thumbnailSource, fileExtension, photoUuid, credentials);
+      const thumbnail = await uploadThumbnailForAsset(thumbnailSource, fileExtension, photoUuid, credentials);
 
       logger.info(`[PhotoUploadService] BURST block reached — assetId=${asset.id} plainName=${plainName}`);
       const burst = await uploadBurstMembersIfBurst({
@@ -585,7 +600,13 @@ export const PhotoUploadService = {
         onEvent,
       });
 
-      return { photoUuid, ...(burst ? { burst } : {}) };
+      return {
+        photoUuid,
+        ...(burst ? { burst } : {}),
+        thumbnail: thumbnail ?? undefined,
+        contentFileId: fileId,
+        bucketId,
+      };
     } finally {
       await cleanupTempFile(tempPath);
     }
@@ -633,7 +654,12 @@ export const PhotoUploadService = {
             bridgePass,
           };
 
-          const photoUuid = await replaceRemoteFile({
+          const {
+            photoUuid,
+            contentFileId,
+            bucketId,
+            thumbnail,
+          } = await replaceRemoteFile({
             localFilePath: photoLocalPath,
             thumbnailSource: asset.uri,
             existingRemoteFileId,
@@ -660,7 +686,13 @@ export const PhotoUploadService = {
             signal,
           });
 
-          return { photoUuid, pairedVideoUuid: pairedVideoUuid ?? undefined };
+          return {
+            photoUuid,
+            pairedVideoUuid: pairedVideoUuid ?? undefined,
+            thumbnail: thumbnail ?? undefined,
+            contentFileId,
+            bucketId,
+          };
         } finally {
           await cleanupTempFile(photoLocalPath);
           await cleanupTempFile(videoLocalPath);
@@ -682,7 +714,12 @@ export const PhotoUploadService = {
     const credentials: UploadCredentials = { bucketId: photosBucket, encryptionKey, bridgeUser, bridgePass };
 
     try {
-      const photoUuid = await replaceRemoteFile({
+      const {
+        photoUuid,
+        contentFileId,
+        bucketId,
+        thumbnail,
+      } = await replaceRemoteFile({
         localFilePath,
         thumbnailSource: thumbnailUri ?? localFilePath,
         existingRemoteFileId,
@@ -710,7 +747,13 @@ export const PhotoUploadService = {
         onEvent,
       });
 
-      return { photoUuid, ...(burst ? { burst } : {}) };
+      return {
+        photoUuid,
+        ...(burst ? { burst } : {}),
+        thumbnail: thumbnail ?? undefined,
+        contentFileId,
+        bucketId,
+      };
     } finally {
       await cleanupTempFile(tempPath);
     }

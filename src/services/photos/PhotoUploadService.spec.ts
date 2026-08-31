@@ -118,7 +118,7 @@ beforeEach(() => {
   mockUploadFile.mockResolvedValueOnce('bucket-file-id').mockResolvedValueOnce('thumb-bucket-file-id');
 
   mockCheckFileExistence.mockResolvedValue({ existentFiles: [] });
-  mockCreateFileEntry.mockResolvedValue({ uuid: 'drive-file-uuid' });
+  mockCreateFileEntry.mockResolvedValue({ uuid: 'drive-file-uuid', createdAt: '2024-06-15T12:30:00.000Z' });
   mockReplaceFileEntry.mockResolvedValue(undefined);
 
   mockIsThumbnailSupported.mockReturnValue(true);
@@ -156,6 +156,19 @@ describe('PhotoUploadService.upload', () => {
     expect(result.photoUuid).toBe('drive-file-uuid');
   });
 
+  test('when uploading a supported image, then the thumbnail ref and content fileId/bucket already computed are returned so the caller can skip a Drive fetch', async () => {
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result.thumbnail).toEqual({
+      bucketId: PHOTOS_BUCKET,
+      bucketFile: 'thumb-bucket-file-id',
+      type: 'JPEG',
+      localPath: undefined,
+    });
+    expect(result.contentFileId).toBe('bucket-file-id');
+    expect(result.bucketId).toBe(PHOTOS_BUCKET);
+  });
+
   test('when the photo already exists in Drive, then its existing uuid is returned without uploading again', async () => {
     mockCheckFileExistence.mockResolvedValue({ existentFiles: [{ uuid: 'existing-uuid' }] });
 
@@ -164,6 +177,15 @@ describe('PhotoUploadService.upload', () => {
     expect(result.photoUuid).toBe('existing-uuid');
     expect(mockUploadFile).not.toHaveBeenCalled();
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
+  });
+
+  test('when the photo already exists in Drive, then no thumbnail/content refs are returned — the caller falls back to a fetch-based backfill', async () => {
+    mockCheckFileExistence.mockResolvedValue({ existentFiles: [{ uuid: 'existing-uuid' }] });
+
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result.thumbnail).toBeUndefined();
+    expect(result.contentFileId).toBeUndefined();
   });
 
   test('when the network layer throws an abort error, then the abort error propagates with its name intact and is not wrapped', async () => {
@@ -279,6 +301,19 @@ describe('PhotoUploadService.replace', () => {
   test('when replacing an asset, then the existing remote file id is returned', async () => {
     const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
     expect(result.photoUuid).toBe('existing-remote-id');
+  });
+
+  test('when replacing an asset, then the new thumbnail ref and content fileId/bucket are returned so the caller can write a complete cloud_asset row without a fetch', async () => {
+    const result = await PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result.thumbnail).toEqual({
+      bucketId: PHOTOS_BUCKET,
+      bucketFile: 'thumb-bucket-file-id',
+      type: 'JPEG',
+      localPath: undefined,
+    });
+    expect(result.contentFileId).toBe('bucket-file-id');
+    expect(result.bucketId).toBe(PHOTOS_BUCKET);
   });
 
   test('when thumbnail generation fails during a replace, then the replace still returns the existing remote file id', async () => {
