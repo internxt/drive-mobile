@@ -69,7 +69,6 @@ const LIST_PADDING_BOTTOM = 80;
 
 // Hoisted so the FlashList does not see a new object identity on every render.
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
-const MAINTAIN_VISIBLE_CONTENT_POSITION = { disabled: true } as const;
 const CONTENT_STYLE_EMPTY = { paddingBottom: LIST_PADDING_BOTTOM, flexGrow: 1 };
 const CONTENT_STYLE = { paddingTop: HEADER_HEIGHT, paddingBottom: LIST_PADDING_BOTTOM };
 const CONTENT_STYLE_REFRESHING = { paddingTop: 0, paddingBottom: LIST_PADDING_BOTTOM };
@@ -77,6 +76,7 @@ const CONTENT_STYLE_REFRESHING = { paddingTop: 0, paddingBottom: LIST_PADDING_BO
 interface PhotosTimelineProps {
   assetsGroupsByDate: TimelineDateGroup[];
   isLoading?: boolean;
+  isTimelineReady?: boolean;
   onPhotoPress?: (id: string) => void;
   onPhotoLongPress?: (id: string) => void;
   isSelectMode?: boolean;
@@ -100,6 +100,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     {
       assetsGroupsByDate,
       isLoading,
+      isTimelineReady,
       onPhotoPress,
       onPhotoLongPress,
       isSelectMode,
@@ -290,6 +291,8 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       wasIosRefreshingRef.current = isIosRefreshing;
     }, [isIosRefreshing]);
 
+    const maintainVisibleContentPosition = useMemo(() => ({ disabled: !isTimelineReady }), [isTimelineReady]);
+
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
 
     const currentBoundary = useMemo(
@@ -342,7 +345,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             onScroll={onScroll}
             scrollEventThrottle={16}
             progressViewOffset={Platform.OS === 'android' ? HEADER_HEIGHT : 0}
-            maintainVisibleContentPosition={MAINTAIN_VISIBLE_CONTENT_POSITION}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
             drawDistance={500}
           />
 
