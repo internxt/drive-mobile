@@ -110,6 +110,8 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         newToken: credentials.photosToken,
       });
 
+      await syncNativeCredentials(credentials.photosToken, credentials.user);
+
       dispatch(
         authActions.setSignInData({
           token: credentials.accessToken,
