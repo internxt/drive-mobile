@@ -95,6 +95,7 @@ jest.mock('src/services/photos/PhotoCloudBrowser', () => ({
   photoCloudBrowser: {
     listDeviceFolders: jest.fn().mockResolvedValue([]),
     syncAllHistory: jest.fn().mockResolvedValue(undefined),
+    syncDeltaChanges: jest.fn().mockResolvedValue(undefined),
     cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
     recordSyncedAsset: jest.fn().mockResolvedValue(undefined),
     subscribeToCloudIndexUpdates: jest.fn().mockReturnValue(jest.fn()),
@@ -135,6 +136,8 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     hasAnyAssetSyncEntry: jest.fn().mockResolvedValue(true),
     reset: jest.fn().mockResolvedValue(undefined),
     resetCloudAssets: jest.fn().mockResolvedValue(undefined),
+    seedDayFoldersFromCloudAssets: jest.fn().mockResolvedValue(0),
+    countKnownFolders: jest.fn().mockResolvedValue({ months: 0, days: 0 }),
   },
 }));
 
@@ -218,8 +221,11 @@ describe('photos slice', () => {
     mockPhotoSyncManifestService.uploadManifest.mockResolvedValue(undefined);
     mockPhotoSyncManifestService.maybeUploadManifest.mockResolvedValue(undefined);
     mockPhotoSyncManifestService.restoreManifest.mockResolvedValue(null);
+    mockPhotosLocalDB.seedDayFoldersFromCloudAssets.mockResolvedValue(0);
+    mockPhotosLocalDB.countKnownFolders.mockResolvedValue({ months: 0, days: 0 });
     mockCloudBrowser.listDeviceFolders.mockResolvedValue([]);
     mockCloudBrowser.syncAllHistory.mockResolvedValue(undefined);
+    mockCloudBrowser.syncDeltaChanges.mockResolvedValue(undefined);
     mockCloudBrowser.cleanupOrphanedAssetSync.mockResolvedValue(0);
     mockCloudBrowser.recordSyncedAsset.mockResolvedValue(undefined);
     mockCloudBrowser.subscribeToCloudIndexUpdates.mockReturnValue(jest.fn());
@@ -666,6 +672,34 @@ describe('photos slice', () => {
       await store.dispatch(runFullCloudHistorySyncThunk());
 
       expect(store.getState().photos.isFetchingCloudHistory).toBe(false);
+    });
+
+    test('when the walk finishes, then the delta check runs afterwards against what the walk wrote', async () => {
+      const order: string[] = [];
+      mockCloudBrowser.syncAllHistory.mockImplementationOnce(async () => {
+        order.push('walk');
+      });
+      mockCloudBrowser.syncDeltaChanges.mockImplementationOnce(async () => {
+        order.push('delta');
+      });
+
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true }));
+
+      await store.dispatch(runFullCloudHistorySyncThunk());
+
+      expect(order).toEqual(['walk', 'delta']);
+    });
+
+    test('when the walk fails, then the delta check is not run on top of an unfinished walk', async () => {
+      mockCloudBrowser.syncAllHistory.mockRejectedValueOnce(new Error('cloud sync failed'));
+
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true }));
+
+      await store.dispatch(runFullCloudHistorySyncThunk());
+
+      expect(mockCloudBrowser.syncDeltaChanges).not.toHaveBeenCalled();
     });
 
     test('when triggered as a force refresh, then the cache is bypassed', async () => {

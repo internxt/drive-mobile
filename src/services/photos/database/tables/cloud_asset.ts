@@ -146,6 +146,12 @@ const statements = {
     WHERE remote_file_id IN (${placeholders});
   `,
 
+  getByFolderUuids: (placeholders: string) => `
+    SELECT ${COLUMNS}
+    FROM ${TABLE_NAME}
+    WHERE folder_uuid IN (${placeholders});
+  `,
+
   setThumbnailPath: `
     UPDATE ${TABLE_NAME} SET thumbnail_path = ? WHERE remote_file_id = ?;
   `,

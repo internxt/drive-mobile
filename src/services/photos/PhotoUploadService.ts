@@ -62,6 +62,8 @@ export interface PhotoUploadResult {
   thumbnail?: UploadedThumbnailRef;
   contentFileId?: string;
   bucketId?: string;
+  /** uuid of the day folder the asset landed in, so `cloud_asset` can be written without a fetch. */
+  folderUuid?: string;
 }
 
 /**
@@ -188,7 +190,7 @@ const uploadAssetToBucket = async (
   const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type: fileExtension }]);
   if (existentFiles.length > 0) {
     await cleanupTempFile(tempPath);
-    throw new FileAlreadyExistsError(`${plainName}.${fileExtension}`, existentFiles[0].uuid);
+    throw new FileAlreadyExistsError(`${plainName}.${fileExtension}`, existentFiles[0].uuid, folderUuid);
   }
 
   let fileId: string;
@@ -397,7 +399,13 @@ const replaceRemoteFile = async (params: {
   credentials: UploadCredentials;
   onProgress?: (ratio: number) => void;
   signal?: AbortSignal;
-}): Promise<{ photoUuid: string; contentFileId: string; bucketId: string; thumbnail: UploadedThumbnailRef | null }> => {
+}): Promise<{
+  photoUuid: string;
+  contentFileId: string;
+  bucketId: string;
+  thumbnail: UploadedThumbnailRef | null;
+  folderUuid: string;
+}> => {
   const {
     localFilePath,
     thumbnailSource,
@@ -457,7 +465,7 @@ const replaceRemoteFile = async (params: {
     photoUuid = driveFile.uuid;
   }
 
-  return { photoUuid, contentFileId: fileId, bucketId, thumbnail };
+  return { photoUuid, contentFileId: fileId, bucketId, thumbnail, folderUuid };
 };
 
 export const PhotoUploadService = {
@@ -530,6 +538,7 @@ export const PhotoUploadService = {
             pairedVideoUuid: pairedVideoUuid ?? undefined,
             thumbnail: thumbnail ?? undefined,
             bucketId: credentials.bucketId,
+            folderUuid,
           };
         } finally {
           await cleanupTempFile(photoLocalPath);
@@ -554,7 +563,7 @@ export const PhotoUploadService = {
           uploadMember: uploadSingleFile,
           onEvent,
         });
-        return { photoUuid: err.existingUuid, ...(burst ? { burst } : {}) };
+        return { photoUuid: err.existingUuid, ...(burst ? { burst } : {}), folderUuid: err.folderUuid };
       }
       throw err;
     }
@@ -606,6 +615,7 @@ export const PhotoUploadService = {
         thumbnail: thumbnail ?? undefined,
         contentFileId: fileId,
         bucketId,
+        folderUuid,
       };
     } finally {
       await cleanupTempFile(tempPath);
@@ -654,12 +664,7 @@ export const PhotoUploadService = {
             bridgePass,
           };
 
-          const {
-            photoUuid,
-            contentFileId,
-            bucketId,
-            thumbnail,
-          } = await replaceRemoteFile({
+          const { photoUuid, contentFileId, bucketId, thumbnail } = await replaceRemoteFile({
             localFilePath: photoLocalPath,
             thumbnailSource: asset.uri,
             existingRemoteFileId,
@@ -692,6 +697,7 @@ export const PhotoUploadService = {
             thumbnail: thumbnail ?? undefined,
             contentFileId,
             bucketId,
+            folderUuid,
           };
         } finally {
           await cleanupTempFile(photoLocalPath);
@@ -714,12 +720,7 @@ export const PhotoUploadService = {
     const credentials: UploadCredentials = { bucketId: photosBucket, encryptionKey, bridgeUser, bridgePass };
 
     try {
-      const {
-        photoUuid,
-        contentFileId,
-        bucketId,
-        thumbnail,
-      } = await replaceRemoteFile({
+      const { photoUuid, contentFileId, bucketId, thumbnail } = await replaceRemoteFile({
         localFilePath,
         thumbnailSource: thumbnailUri ?? localFilePath,
         existingRemoteFileId,
@@ -753,6 +754,7 @@ export const PhotoUploadService = {
         thumbnail: thumbnail ?? undefined,
         contentFileId,
         bucketId,
+        folderUuid,
       };
     } finally {
       await cleanupTempFile(tempPath);
