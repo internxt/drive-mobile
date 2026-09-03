@@ -26,6 +26,7 @@ export interface CloudPhotoItem {
   deviceId: string;
   /** Time of the cloud day-folder this asset was discovered in. Used for timeline day-grouping. */
   folderDate: number;
+  creationTimeApi?: number | null;
   fileName: string;
   isLivePhoto?: boolean;
   // uuid of the paired .mov cloud asset (for isLivePhoto and cloud-only)

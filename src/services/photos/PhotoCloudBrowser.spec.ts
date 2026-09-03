@@ -33,6 +33,10 @@ jest.mock('./database/photosLocalDB', () => ({
     deleteCloudAssetsByDevice: jest.fn(),
     resetSyncedToPending: jest.fn(),
     getCachedThumbnailRefs: jest.fn(),
+    getStatus: jest.fn(),
+    getCloudAssetById: jest.fn(),
+    deleteAssetSyncBulk: jest.fn().mockResolvedValue(undefined),
+    getOrphanedAssetSyncIds: jest.fn().mockResolvedValue([]),
   },
 }));
 
@@ -70,6 +74,12 @@ const makeDevice = (uuid: string, plainName: string, status: 'EXISTS' | 'TRASHED
   plainName,
   bucket: 'photos-bucket',
   status,
+});
+
+afterEach(async () => {
+  // queueMonthBackfill fires fire-and-forget — drain it so a test's dangling backfill can't run
+  // during a later test and steal its mockResolvedValueOnce queue or its coalescing key.
+  await photoCloudBrowser.waitForPendingCloudIndexUpdates();
 });
 
 beforeEach(() => {
@@ -120,6 +130,404 @@ describe('PhotoCloudBrowser.listDeviceFolders', () => {
 
     expect(result).toHaveLength(1);
     expect(result[0].uuid).toBe('d1-uuid');
+  });
+});
+
+const makeAssetSyncEntry = (overrides: Record<string, unknown> = {}) =>
+  ({
+    assetId: 'asset-1',
+    status: 'synced',
+    remoteFileId: 'remote-1',
+    syncedAt: 1718000000000,
+    deletedAt: null,
+    errorMessage: null,
+    attemptCount: 0,
+    createdAt: 1717900000000,
+    lastAttemptAt: null,
+    modificationTime: null,
+    fileName: 'photo.jpg',
+    fileSize: 2048,
+    creationTime: new Date('2024-06-15T10:30:00Z').getTime(),
+    width: null,
+    height: null,
+    duration: null,
+    mediaType: null,
+    isLivePhoto: false,
+    pairedVideoRemoteFileId: null,
+    pairedVideoStatus: null,
+    isBurst: false,
+    burstId: null,
+    burstMemberRemoteFileIds: null,
+    burstMemberCount: null,
+    ...overrides,
+  }) as never;
+
+describe('PhotoCloudBrowser.recordSyncedAsset', () => {
+  test('when an asset just finished syncing, then it is recorded in the cloud index with the day it was taken and no discovery timestamp', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        remoteFileId: 'remote-1',
+        deviceId: 'device-1',
+        folderDate: new Date(2024, 5, 15).getTime(),
+        fileName: 'photo.jpg',
+        fileSize: 2048,
+        discoveredAt: 0,
+        uploadedAt: 1718000000000,
+        isFavorite: false,
+        // Real local capture time, used as a proxy so the timeline can interleave this row
+        // correctly (BUGFIX_CROSS_PLATFORM_PHOTO_ORDER.md Parte 2) before any real Drive fetch
+        // converges creationTimeApi to Drive's own value.
+        creationTimeApi: new Date('2024-06-15T10:30:00Z').getTime(),
+      }),
+    );
+  });
+
+  test('when the synced asset has fresh thumbnail data, then the complete cloud entry also carries the real local capture time as creationTimeApi', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeAssetSyncEntry({ thumbnailBucketId: 'thumb-bucket-1', thumbnailBucketFile: 'thumb-file-1' }),
+    );
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ creationTimeApi: new Date('2024-06-15T10:30:00Z').getTime() }),
+    );
+  });
+
+  test('when an asset just finished syncing, then a background refresh is kicked off so the thumbnail (missing from the minimal row) converges quickly', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth').mockResolvedValue(0);
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(fetchMonthSpy).toHaveBeenCalledWith({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-1',
+      year: 2024,
+      month: 6,
+      force: true,
+      currentDeviceId: 'device-1',
+    });
+    fetchMonthSpy.mockRestore();
+  });
+
+  test('when the asset synced through any path — Live Photo, burst, replace, or a recovered duplicate — then it is still recorded, since this reads back asset_sync instead of depending on which upload path ran', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry({ isLivePhoto: true }));
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalled();
+  });
+
+  test('when no device id is known, then nothing is recorded', async () => {
+    await photoCloudBrowser.recordSyncedAsset('asset-1', null);
+
+    expect(mockPhotosLocalDB.getStatus).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
+  });
+
+  test('when the asset has no remote file id yet, then nothing is recorded', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry({ remoteFileId: null }));
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
+  });
+
+  test('when the synced asset has fresh thumbnail data from the upload, then a complete cloud entry is written without calling fetchMonth', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeAssetSyncEntry({
+        thumbnailBucketId: 'thumb-bucket-1',
+        thumbnailBucketFile: 'thumb-file-1',
+        thumbnailType: 'jpg',
+        contentFileId: 'content-file-1',
+        bucket: 'bucket-1',
+      }),
+    );
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth');
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        remoteFileId: 'remote-1',
+        deviceId: 'device-1',
+        thumbnailBucketId: 'thumb-bucket-1',
+        thumbnailBucketFile: 'thumb-file-1',
+        thumbnailType: 'jpg',
+        fileId: 'content-file-1',
+        bucket: 'bucket-1',
+        discoveredAt: 0,
+      }),
+    );
+    expect(fetchMonthSpy).not.toHaveBeenCalled();
+    fetchMonthSpy.mockRestore();
+  });
+
+  test('when the asset is a burst representative with fresh thumbnail data, then burstGroupId is the representative own remote file id, not the local burst id', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeAssetSyncEntry({
+        thumbnailBucketId: 'thumb-bucket-1',
+        thumbnailBucketFile: 'thumb-file-1',
+        thumbnailType: 'jpg',
+        contentFileId: 'content-file-1',
+        bucket: 'bucket-1',
+        isBurst: true,
+        burstId: 'local-burst-asset-id',
+      }),
+    );
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ burstRole: 'representative', burstGroupId: 'remote-1' }),
+    );
+  });
+
+  test('when the asset is a Live Photo with fresh thumbnail data, then livePhotoRole and pairedRemoteFileId are set directly from asset_sync', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeAssetSyncEntry({
+        thumbnailBucketId: 'thumb-bucket-1',
+        thumbnailBucketFile: 'thumb-file-1',
+        thumbnailType: 'jpg',
+        isLivePhoto: true,
+        pairedVideoRemoteFileId: 'paired-remote-1',
+      }),
+    );
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ livePhotoRole: 'photo', pairedRemoteFileId: 'paired-remote-1' }),
+    );
+  });
+
+  test('when a Live Photo has a thumbnail but no content file id yet, then a minimal entry is written and a backfill is queued instead of a null file id', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeAssetSyncEntry({
+        thumbnailBucketId: 'thumb-bucket-1',
+        thumbnailBucketFile: 'thumb-file-1',
+        thumbnailType: 'jpg',
+        contentFileId: null,
+        bucket: null,
+        isLivePhoto: true,
+        pairedVideoRemoteFileId: 'paired-remote-1',
+      }),
+    );
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth').mockResolvedValueOnce(0);
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(expect.objectContaining({ fileId: null }));
+    expect(fetchMonthSpy).toHaveBeenCalled();
+    fetchMonthSpy.mockRestore();
+  });
+
+  test('when the cloud entry already has a favorite mark, then a direct write from this device does not clear it', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeAssetSyncEntry({
+        thumbnailBucketId: 'thumb-bucket-1',
+        thumbnailBucketFile: 'thumb-file-1',
+        thumbnailType: 'jpg',
+        contentFileId: 'content-file-1',
+        bucket: 'bucket-1',
+      }),
+    );
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce({ isFavorite: true } as never);
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(expect.objectContaining({ isFavorite: true }));
+  });
+
+  test('when there is no fresh thumbnail data but a complete cloud entry already exists, then nothing is written and no backfill is queued', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce({ thumbnailBucketId: 'thumb-bucket-1' } as never);
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth');
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
+    expect(fetchMonthSpy).not.toHaveBeenCalled();
+    fetchMonthSpy.mockRestore();
+  });
+
+  test('when there is no fresh thumbnail data and no existing complete entry, then the minimal entry is written and a backfill is queued', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null);
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth').mockResolvedValue(0);
+
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ remoteFileId: 'remote-1', thumbnailBucketId: undefined }),
+    );
+    expect(fetchMonthSpy).toHaveBeenCalledWith({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-1',
+      year: 2024,
+      month: 6,
+      force: true,
+      currentDeviceId: 'device-1',
+    });
+    fetchMonthSpy.mockRestore();
+  });
+});
+
+describe('PhotoCloudBrowser month backfill coalescing', () => {
+  test('when a second backfill is queued for the same device/month while the first is still in flight, then only one extra fetchMonth call runs (not one per asset)', async () => {
+    let resolveFirstFetch!: (count: number) => void;
+    const firstFetch = new Promise<number>((resolve) => {
+      resolveFirstFetch = resolve;
+    });
+    const fetchMonthSpy = jest
+      .spyOn(photoCloudBrowser, 'fetchMonth')
+      .mockReturnValueOnce(firstFetch)
+      .mockResolvedValueOnce(1);
+
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry({ assetId: 'asset-1', remoteFileId: 'remote-1' }));
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null);
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry({ assetId: 'asset-2', remoteFileId: 'remote-2' }));
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null);
+    await photoCloudBrowser.recordSyncedAsset('asset-2', 'device-1');
+
+    // The second call arrived while the first fetchMonth was still in flight — it must not
+    // trigger a second Drive call, only mark the key for a trailing re-run.
+    expect(fetchMonthSpy).toHaveBeenCalledTimes(1);
+
+    resolveFirstFetch(0);
+    await photoCloudBrowser.waitForPendingCloudIndexUpdates();
+
+    // Exactly one coalesced re-run happened after the first call settled — not a second full
+    // fetchMonth per queued asset.
+    expect(fetchMonthSpy).toHaveBeenCalledTimes(2);
+    fetchMonthSpy.mockRestore();
+  });
+
+  test('when no backfill was queued while the first one was in flight, then no trailing re-run happens', async () => {
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth').mockResolvedValue(0);
+
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null);
+    await photoCloudBrowser.recordSyncedAsset('asset-1', 'device-1');
+    await photoCloudBrowser.waitForPendingCloudIndexUpdates();
+
+    expect(fetchMonthSpy).toHaveBeenCalledTimes(1);
+    fetchMonthSpy.mockRestore();
+  });
+});
+
+describe('PhotoCloudBrowser.deleteAssetSyncPreservingCloudVisibility', () => {
+  test('when the cloud index has no entry for the backed-up photo, then a minimal cloud entry is created before the sync row is removed', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null);
+
+    await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ remoteFileId: 'remote-1', deviceId: 'device-1', fileName: 'photo.jpg' }),
+    );
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-1']);
+  });
+
+  test('when the cloud index already has the photo, then no extra entry is created', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce({
+      remoteFileId: 'remote-1',
+      deviceId: 'device-1',
+      folderDate: 1,
+      fileName: 'x',
+    } as never);
+
+    await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-1']);
+  });
+
+  test('when the cloud index already has the photo but it may only be a thumbnail-less minimal row, then a background refresh is still kicked off', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce({
+      remoteFileId: 'remote-1',
+      deviceId: 'device-1',
+      folderDate: 1,
+      fileName: 'x',
+    } as never);
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth').mockResolvedValue(0);
+
+    await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], 'device-1');
+
+    expect(fetchMonthSpy).toHaveBeenCalledWith({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-1',
+      year: 2024,
+      month: 6,
+      force: true,
+      currentDeviceId: 'device-1',
+    });
+    fetchMonthSpy.mockRestore();
+  });
+
+  test('when the deleted asset was never backed up, then nothing is added to the cloud index', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry({ status: 'pending', remoteFileId: null }));
+
+    await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], 'device-1');
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-1']);
+  });
+
+  test('when no device id is known, then the sync row is still removed but cloud visibility is not touched', async () => {
+    await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], null);
+
+    expect(mockPhotosLocalDB.getStatus).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-1']);
+  });
+
+  test('when a minimal entry is created, then a background refresh of that day is kicked off to fill in real thumbnails', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null);
+    const fetchMonthSpy = jest.spyOn(photoCloudBrowser, 'fetchMonth').mockResolvedValue(0);
+
+    await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], 'device-1');
+
+    expect(fetchMonthSpy).toHaveBeenCalledWith({
+      deviceId: 'device-1',
+      deviceFolderUuid: 'device-1',
+      year: 2024,
+      month: 6,
+      force: true,
+      currentDeviceId: 'device-1',
+    });
+    fetchMonthSpy.mockRestore();
+  });
+});
+
+describe('PhotoCloudBrowser.cleanupOrphanedAssetSync', () => {
+  test('when there are orphaned asset_sync entries, then they are removed and the count reflects it', async () => {
+    mockPhotosLocalDB.getOrphanedAssetSyncIds.mockResolvedValueOnce(['asset-2']);
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry({ assetId: 'asset-2' }));
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null);
+
+    const removedCount = await photoCloudBrowser.cleanupOrphanedAssetSync(new Set(['asset-1']), 'device-1');
+
+    expect(removedCount).toBe(1);
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-2']);
+  });
+
+  test('when there are no orphaned asset_sync entries, then nothing is deleted', async () => {
+    mockPhotosLocalDB.getOrphanedAssetSyncIds.mockResolvedValueOnce([]);
+
+    const removedCount = await photoCloudBrowser.cleanupOrphanedAssetSync(new Set(['asset-1']), 'device-1');
+
+    expect(removedCount).toBe(0);
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).not.toHaveBeenCalled();
   });
 });
 
@@ -344,6 +752,29 @@ describe('PhotoCloudBrowser.syncAllHistory', () => {
 
     expect(mockPhotosLocalDB.getCloudFetchCacheAge.mock.calls[0]).toEqual(['d1-uuid', 2024, 3]);
     expect(mockPhotosLocalDB.getCloudFetchCacheAge.mock.calls[1]).toEqual(['d1-uuid', 2023, 6]);
+  });
+
+  test('when the current device and another device both have months to sync, then the current device is checked first', async () => {
+    mockDeviceService.listDevices.mockResolvedValueOnce([
+      makeDevice('other-uuid', 'Internxt iPad'),
+      makeDevice('current-uuid', 'Internxt iPhone'),
+    ]);
+    const otherYear = makeFolder('other-y-uuid', '2024');
+    const otherMonth = makeFolder('other-m-uuid', '01');
+    const currentYear = makeFolder('current-y-uuid', '2024');
+    const currentMonth = makeFolder('current-m-uuid', '01');
+    mockPhotosLocalDB.getCloudFetchCacheAge.mockResolvedValue(null);
+    mockFolderService.getFolderFolders
+      .mockResolvedValueOnce({ folders: [otherYear] } as never)
+      .mockResolvedValueOnce({ folders: [currentYear] } as never)
+      .mockResolvedValueOnce({ folders: [otherMonth] } as never)
+      .mockResolvedValueOnce({ folders: [currentMonth] } as never)
+      .mockResolvedValue({ folders: [] } as never);
+
+    await photoCloudBrowser.syncAllHistory({ currentDeviceId: 'current-uuid' });
+
+    expect(mockPhotosLocalDB.getCloudFetchCacheAge.mock.calls[0]).toEqual(['current-uuid', 2024, 1]);
+    expect(mockPhotosLocalDB.getCloudFetchCacheAge.mock.calls[1]).toEqual(['other-uuid', 2024, 1]);
   });
 
   test('when isCancelled returns true, then fewer months are fetched than discovered', async () => {
