@@ -364,6 +364,7 @@ export const runFullCloudHistorySyncThunk = createAsyncThunk<void, { force?: boo
       await photoCloudBrowser.syncDeltaChanges({
         isCancelled: () => !getState().photos.enabled,
         currentDeviceId: getState().photos.deviceId ?? undefined,
+        onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
       });
     } catch (error) {
       logger.error('[CloudHistorySync] Error during full cloud history sync', { error });

@@ -674,10 +674,10 @@ describe('photos slice', () => {
       expect(store.getState().photos.isFetchingCloudHistory).toBe(false);
     });
 
-    test('when the walk finishes, then the delta check runs afterwards against what the walk wrote', async () => {
+    test('when the full sync finishes, then the delta check runs afterwards against what it wrote', async () => {
       const order: string[] = [];
       mockCloudBrowser.syncAllHistory.mockImplementationOnce(async () => {
-        order.push('walk');
+        order.push('fullSync');
       });
       mockCloudBrowser.syncDeltaChanges.mockImplementationOnce(async () => {
         order.push('delta');
@@ -688,10 +688,10 @@ describe('photos slice', () => {
 
       await store.dispatch(runFullCloudHistorySyncThunk());
 
-      expect(order).toEqual(['walk', 'delta']);
+      expect(order).toEqual(['fullSync', 'delta']);
     });
 
-    test('when the walk fails, then the delta check is not run on top of an unfinished walk', async () => {
+    test('when the full sync fails, then the delta check is not run on top of an unfinished sync', async () => {
       mockCloudBrowser.syncAllHistory.mockRejectedValueOnce(new Error('cloud sync failed'));
 
       const store = makeStore();

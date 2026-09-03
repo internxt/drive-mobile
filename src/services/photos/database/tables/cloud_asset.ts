@@ -174,14 +174,6 @@ const statements = {
     WHERE device_id = ? AND folder_date >= ? AND folder_date < ? AND discovered_at != 0;
   `,
 
-  getLatestDiscoveredAt: `
-    SELECT MAX(discovered_at) AS latest
-    FROM ${TABLE_NAME}
-    WHERE device_id = ?
-      AND folder_date >= ?
-      AND folder_date <  ?;
-  `,
-
   getMonthsByDevice: `
     SELECT DISTINCT
       CAST(strftime('%Y', folder_date / 1000, 'unixepoch') AS INTEGER) AS year,

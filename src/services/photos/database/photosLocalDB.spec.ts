@@ -26,9 +26,9 @@ describe('photosLocalDB', () => {
     await photosLocalDB.init();
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
-    // 11 create table/index statements + 6 `ALTER TABLE asset_sync ADD COLUMN` migration
-    // statements (migrateAssetSyncColumns — additive columns for installs predating them).
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(17);
+    // 11 create table/index statements + 9 `ALTER TABLE … ADD COLUMN` migration statements
+    // (6 on asset_sync, 3 on photo_month_sync — additive columns for installs predating them).
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(20);
     const statements = mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS asset_sync'))).toBe(true);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS cloud_asset'))).toBe(true);
@@ -858,33 +858,6 @@ describe('photosLocalDB cloud asset methods', () => {
     expect(params).toEqual(['remote-1']);
   });
 
-  test('when there are no cloud entries for a given month, then the cache age is null', async () => {
-    mockSqlite.getFirstAsync.mockResolvedValueOnce({ latest: null });
-
-    const result = await photosLocalDB.getCloudFetchCacheAge('device-1', 2024, 6);
-
-    expect(result).toBeNull();
-  });
-
-  test('when cloud entries exist for a given month, then the most recent discovered at timestamp is returned', async () => {
-    mockSqlite.getFirstAsync.mockResolvedValueOnce({ latest: 1718100000000 });
-
-    const result = await photosLocalDB.getCloudFetchCacheAge('device-1', 2024, 6);
-
-    expect(result).toBe(1718100000000);
-  });
-
-  test('when fetching cache age for a month, then the correct month boundaries are passed as timestamps', async () => {
-    mockSqlite.getFirstAsync.mockResolvedValueOnce({ latest: null });
-
-    await photosLocalDB.getCloudFetchCacheAge('device-1', 2024, 6);
-
-    const [, , params] = mockSqlite.getFirstAsync.mock.calls[0];
-    const expectedFrom = new Date(2024, 5, 1).getTime();
-    const expectedTo = new Date(2024, 6, 1).getTime();
-    expect(params).toEqual(['device-1', expectedFrom, expectedTo]);
-  });
-
   test('when synced remote file ids are fetched, then the result is a set of all returned ids', async () => {
     mockSqlite.getAllAsync.mockResolvedValueOnce([{ remote_file_id: 'r1' }, { remote_file_id: 'r2' }]);
 
@@ -1203,8 +1176,8 @@ describe('photosLocalDB month and day folder tracking', () => {
 
   test('when months are recorded, then each one is written with its folder identifier', async () => {
     await photosLocalDB.upsertMonthSyncEntries([
-      { deviceId: 'device-1', year: 2026, month: 9, monthFolderUuid: 'month-uuid-1', lastSyncedAt: null },
-      { deviceId: 'device-1', year: 2026, month: 8, monthFolderUuid: 'month-uuid-2', lastSyncedAt: null },
+      { deviceId: 'device-1', year: 2026, month: 9, monthFolderUuid: 'month-uuid-1' },
+      { deviceId: 'device-1', year: 2026, month: 8, monthFolderUuid: 'month-uuid-2' },
     ]);
 
     const [, stmt, paramsList] = mockSqlite.executeBulk.mock.calls[0];
@@ -1223,12 +1196,15 @@ describe('photosLocalDB month and day folder tracking', () => {
 
   test('when a month folder is recorded again with a different identifier, then its progress mark is cleared', async () => {
     await photosLocalDB.upsertMonthSyncEntries([
-      { deviceId: 'device-1', year: 2026, month: 9, monthFolderUuid: 'month-uuid-1', lastSyncedAt: null },
+      { deviceId: 'device-1', year: 2026, month: 9, monthFolderUuid: 'month-uuid-1' },
     ]);
 
     const [, stmt] = mockSqlite.executeBulk.mock.calls[0];
-    expect(stmt).toContain('last_synced_at    = CASE');
-    expect(stmt).toContain('ELSE NULL');
+    const collapsed = (stmt as string).replace(/\s+/g, ' ');
+    for (const mark of ['last_server_updated_at', 'last_delta_check_at', 'last_full_sync_at']) {
+      expect(collapsed).toContain(`${mark} = CASE`);
+    }
+    expect(collapsed).toContain('ELSE NULL');
   });
 
   test('when a month is forgotten, then its day folders are forgotten with it', async () => {
@@ -1329,5 +1305,35 @@ describe('photosLocalDB month and day folder tracking', () => {
     expect(statements.some((stmt) => stmt.includes('DELETE FROM photo_month_sync'))).toBe(true);
     expect(statements.some((stmt) => stmt.includes('DELETE FROM photo_day_folder'))).toBe(true);
     expect(mockSqlite.executeSql.mock.calls.every(([, , params]) => params?.[0] === 'device-1')).toBe(true);
+  });
+
+  test('when a month is recorded as fully synced, then the moment and the folder it was read from are stored', async () => {
+    await photosLocalDB.markMonthFullySynced({
+      deviceId: 'device-1',
+      year: 2026,
+      month: 9,
+      monthFolderUuid: 'month-uuid',
+      fullySyncedAt: 1788350000000,
+    });
+
+    const [, stmt, params] = mockSqlite.executeSql.mock.calls[0];
+    expect(stmt).toContain('last_full_sync_at');
+    expect(params).toEqual(['device-1', 2026, 9, 'month-uuid', 1788350000000]);
+  });
+
+  test('when a month has never been fully synced, then it has no timestamp', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ last_full_sync_at: null });
+
+    const result = await photosLocalDB.getMonthLastFullSyncAt('device-1', 2026, 9);
+
+    expect(result).toBeNull();
+  });
+
+  test('when a month has been fully synced, then its timestamp is returned', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ last_full_sync_at: 1788350000000 });
+
+    const result = await photosLocalDB.getMonthLastFullSyncAt('device-1', 2026, 9);
+
+    expect(result).toBe(1788350000000);
   });
 });

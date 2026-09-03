@@ -144,13 +144,27 @@ export interface AssetSyncRow {
   folder_uuid: string | null;
 }
 
+/** A month folder's identity, without the marks the full sync and the delta keep on their own. */
+export type PhotoMonthFolderRef = Omit<
+  PhotoMonthSyncEntry,
+  'lastServerUpdatedAt' | 'lastDeltaCheckAt' | 'lastFullSyncAt'
+>;
+
 export interface PhotoMonthSyncEntry {
   deviceId: string;
   year: number;
   month: number;
   monthFolderUuid: string;
-  /** Newest `updatedAt` already applied to `cloud_asset` for this month. Null until a delta ran. */
-  lastSyncedAt: number | null;
+  /**
+   * The delta's cursor into the server's content: the newest `updatedAt` it has applied. A Drive
+   * timestamp, so it stays old for an old month however recently the delta ran — never read it as
+   * "when we last checked". Null until a delta ran.
+   */
+  lastServerUpdatedAt: number | null;
+  /** Local clock, when the delta last asked about this month. Null until it asked. */
+  lastDeltaCheckAt: number | null;
+  /** Local clock, when the full sync last read this month. Null until it read it. */
+  lastFullSyncAt: number | null;
 }
 
 interface PhotoMonthSyncRow {
@@ -158,7 +172,9 @@ interface PhotoMonthSyncRow {
   year: number;
   month: number;
   month_folder_uuid: string;
-  last_synced_at: number | null;
+  last_server_updated_at: number | null;
+  last_delta_check_at: number | null;
+  last_full_sync_at: number | null;
 }
 
 const rowToMonthSyncEntry = (row: PhotoMonthSyncRow): PhotoMonthSyncEntry => ({
@@ -166,7 +182,9 @@ const rowToMonthSyncEntry = (row: PhotoMonthSyncRow): PhotoMonthSyncEntry => ({
   year: row.year,
   month: row.month,
   monthFolderUuid: row.month_folder_uuid,
-  lastSyncedAt: row.last_synced_at,
+  lastServerUpdatedAt: row.last_server_updated_at,
+  lastDeltaCheckAt: row.last_delta_check_at,
+  lastFullSyncAt: row.last_full_sync_at,
 });
 
 export interface PhotoDayFolderEntry {
@@ -385,7 +403,7 @@ class PhotosLocalDB {
     this.initPromise ??= (async () => {
       await sqliteService.open(DB_NAME);
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createTable);
-      await this.migrateAssetSyncColumns();
+      await this.migrateAddColumns(assetSyncTable.migrateAddColumns);
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createIndex);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createTable);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexCreated);
@@ -394,6 +412,7 @@ class PhotosLocalDB {
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexRole);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexBurstGroup);
       await sqliteService.executeSql(DB_NAME, photoMonthSyncTable.statements.createTable);
+      await this.migrateAddColumns(photoMonthSyncTable.migrateAddColumns);
       await sqliteService.executeSql(DB_NAME, photoDayFolderTable.statements.createTable);
       await sqliteService.executeSql(DB_NAME, photoDayFolderTable.statements.createIndexMonth);
     })();
@@ -401,10 +420,12 @@ class PhotosLocalDB {
   }
 
   /**
-   * Adds the thumbnail columns to `asset_sync`.
+   * Applies additive column migrations, skipping the ones an install already has.
+   *
+   * @param statements - `ALTER TABLE … ADD COLUMN` statements to apply.
    */
-  private async migrateAssetSyncColumns(): Promise<void> {
-    for (const statement of assetSyncTable.migrateAddColumns) {
+  private async migrateAddColumns(statements: string[]): Promise<void> {
+    for (const statement of statements) {
       try {
         await sqliteService.executeSql(DB_NAME, statement);
       } catch (err) {
@@ -950,24 +971,13 @@ class PhotosLocalDB {
     });
   }
 
-  async getCloudFetchCacheAge(deviceId: string, year: number, month: number): Promise<number | null> {
-    const from = new Date(year, month - 1, 1).getTime();
-    const to = new Date(year, month, 1).getTime();
-    const row = await sqliteService.getFirstAsync<{ latest: number | null }>(
-      DB_NAME,
-      cloudAssetTable.statements.getLatestDiscoveredAt,
-      [deviceId, from, to],
-    );
-    return row?.latest ?? null;
-  }
-
   /**
-   * Records a month folder for a device. Clears that month's `last_synced_at` when the folder uuid
-   * changed, so a recreated month goes back through the full walk.
+   * Records a month folder for a device. Clears that month's `last_server_updated_at` when the folder uuid
+   * changed, so a recreated month goes back through the full sync.
    *
    * @param entries - One per month discovered, with the month folder's uuid.
    */
-  async upsertMonthSyncEntries(entries: PhotoMonthSyncEntry[]): Promise<void> {
+  async upsertMonthSyncEntries(entries: PhotoMonthFolderRef[]): Promise<void> {
     if (entries.length === 0) return;
     await sqliteService.executeBulk(
       DB_NAME,
@@ -977,20 +987,83 @@ class PhotosLocalDB {
   }
 
   /**
+   * Records that the delta asked about a month, regardless of whether it found any changes.
+   *
+   * @param deviceId - Device folder uuid.
+   * @param year - Year of the month.
+   * @param month - Month, 1-12.
+   * @param checkedAt - When the delta asked.
+   */
+  async setMonthLastDeltaCheckAt(deviceId: string, year: number, month: number, checkedAt: number): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, photoMonthSyncTable.statements.setLastDeltaCheckAt, [
+      checkedAt,
+      deviceId,
+      year,
+      month,
+    ]);
+  }
+
+  /**
    * Moves a month's delta high-water mark forward.
    *
    * @param deviceId - Device folder uuid.
    * @param year - Year of the month.
    * @param month - Month, 1-12.
-   * @param lastSyncedAt - Newest `updatedAt` already applied to `cloud_asset` for that month.
+   * @param lastServerUpdatedAt - Newest `updatedAt` already applied to `cloud_asset` for that month.
    */
-  async setMonthLastSyncedAt(deviceId: string, year: number, month: number, lastSyncedAt: number): Promise<void> {
-    await sqliteService.executeSql(DB_NAME, photoMonthSyncTable.statements.setLastSyncedAt, [
-      lastSyncedAt,
+  async setMonthLastServerUpdatedAt(
+    deviceId: string,
+    year: number,
+    month: number,
+    lastServerUpdatedAt: number,
+  ): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, photoMonthSyncTable.statements.setLastServerUpdatedAt, [
+      lastServerUpdatedAt,
       deviceId,
       year,
       month,
     ]);
+  }
+
+  /**
+   * Records that the full sync read a month, creating the row if discovery had not reached it yet.
+   *
+   * @param params.deviceId - Device folder uuid.
+   * @param params.year - Year of the month.
+   * @param params.month - Month, 1-12.
+   * @param params.monthFolderUuid - uuid of the month folder that was read.
+   * @param params.fullySyncedAt - When the full sync read it.
+   */
+  async markMonthFullySynced(params: {
+    deviceId: string;
+    year: number;
+    month: number;
+    monthFolderUuid: string;
+    fullySyncedAt: number;
+  }): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, photoMonthSyncTable.statements.markFullySynced, [
+      params.deviceId,
+      params.year,
+      params.month,
+      params.monthFolderUuid,
+      params.fullySyncedAt,
+    ]);
+  }
+
+  /**
+   * When the full sync last read a month, or null if it never did.
+   *
+   * @param deviceId - Device folder uuid.
+   * @param year - Year of the month.
+   * @param month - Month, 1-12.
+   */
+  async getMonthLastFullSyncAt(deviceId: string, year: number, month: number): Promise<number | null> {
+    const row = await sqliteService.getFirstAsync<{ last_full_sync_at: number | null }>(
+      DB_NAME,
+      photoMonthSyncTable.statements.getLastFullSyncAt,
+      [deviceId, year, month],
+    );
+    return row?.last_full_sync_at ?? null;
   }
 
   async getMonthSyncEntriesByDevice(deviceId: string): Promise<PhotoMonthSyncEntry[]> {
@@ -1033,11 +1106,7 @@ class PhotosLocalDB {
   async deleteDayFolders(dayFolderUuids: string[]): Promise<void> {
     if (dayFolderUuids.length === 0) return;
     const placeholders = this.buildInClausePlaceholders(dayFolderUuids);
-    await sqliteService.executeSql(
-      DB_NAME,
-      photoDayFolderTable.statements.deleteByUuids(placeholders),
-      dayFolderUuids,
-    );
+    await sqliteService.executeSql(DB_NAME, photoDayFolderTable.statements.deleteByUuids(placeholders), dayFolderUuids);
   }
 
   async countKnownFolders(): Promise<{ months: number; days: number }> {
@@ -1070,7 +1139,7 @@ class PhotosLocalDB {
 
     for (const asset of assets) {
       if (!asset.folderUuid || byUuid.has(asset.folderUuid)) continue;
-      // Local getters, matching how the walk derives folder_date. `strftime(..., 'unixepoch')`
+      // Local getters, matching how the full sync derives folder_date. `strftime(..., 'unixepoch')`
       // would read it as UTC and shift days either side of midnight.
       const folderDate = new Date(asset.folderDate);
       byUuid.set(asset.folderUuid, {
