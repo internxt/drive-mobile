@@ -15,9 +15,7 @@ export const FOLDER_DELTA_MAX_FOLDER_UUIDS = 31;
 export interface FolderDeltaChangesParams {
   /** Day-folder uuids to ask changes for. At most `FOLDER_DELTA_MAX_FOLDER_UUIDS`. */
   folderUuids: string[];
-  /** ISO8601. Files changed after this instant. Required unless `cursor` is given. */
   updatedAt?: string;
-  /** Opaque cursor from a previous page's `nextCursor`. */
   cursor?: string;
   /** Page size, max 1000. */
   limit?: number;
