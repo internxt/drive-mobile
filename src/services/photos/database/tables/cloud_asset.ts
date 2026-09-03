@@ -146,6 +146,12 @@ const statements = {
     WHERE remote_file_id IN (${placeholders});
   `,
 
+  getByFolderUuids: (placeholders: string) => `
+    SELECT ${COLUMNS}
+    FROM ${TABLE_NAME}
+    WHERE folder_uuid IN (${placeholders});
+  `,
+
   setThumbnailPath: `
     UPDATE ${TABLE_NAME} SET thumbnail_path = ? WHERE remote_file_id = ?;
   `,
@@ -166,14 +172,6 @@ const statements = {
   getRemoteIdsByDeviceAndMonth: `
     SELECT remote_file_id FROM ${TABLE_NAME}
     WHERE device_id = ? AND folder_date >= ? AND folder_date < ? AND discovered_at != 0;
-  `,
-
-  getLatestDiscoveredAt: `
-    SELECT MAX(discovered_at) AS latest
-    FROM ${TABLE_NAME}
-    WHERE device_id = ?
-      AND folder_date >= ?
-      AND folder_date <  ?;
   `,
 
   getMonthsByDevice: `

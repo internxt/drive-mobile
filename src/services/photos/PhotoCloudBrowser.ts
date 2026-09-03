@@ -2,10 +2,19 @@ import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { FetchPaginatedFolder, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { logger } from 'src/services/common';
-import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
+import { driveFolderService, FOLDER_DELTA_MAX_FOLDER_UUIDS } from 'src/services/drive/folder/driveFolder.service';
 import { buildBurstBaseSet, linkBurst } from './burst/BurstCloudLinker';
 import { isBurstMemberPlainName } from './burst/burst.constants';
-import { AssetSyncEntry, BurstRole, CloudAssetEntry, LivePhotoRole, photosLocalDB } from './database/photosLocalDB';
+import {
+  AssetSyncEntry,
+  BurstRole,
+  CloudAssetEntry,
+  LivePhotoRole,
+  PhotoDayFolderEntry,
+  PhotoMonthFolderRef,
+  PhotoMonthSyncEntry,
+  photosLocalDB,
+} from './database/photosLocalDB';
 import {
   getPairedVideoPlainNameFromPhoto,
   getPhotoPlainNameFromPairedVideo,
@@ -64,6 +73,215 @@ const fetchAllPages = async <T>(fetcher: (offset: number) => Promise<T[]>): Prom
     offset += PAGE_SIZE;
   } while (batch.length === PAGE_SIZE);
   return alltItems;
+};
+
+/** Asked window is widened by this much because the endpoint's `updatedAt` filter is strict `>`. */
+const DELTA_OVERLAP_MS = 60 * 1000;
+const RECENT_MONTHS_ALWAYS_CHECKED = 12;
+
+/** How long since the delta last asked about a non-recent month before it asks again. */
+const OLDER_MONTH_DELTA_TTL_MS = 30 * 60 * 1000;
+
+/**
+ * How long since the delta last asked about a month before the full sync has to read it instead. Well
+ * inside the ~180 days a tombstone survives before hard delete, so a deletion can never slip past
+ * both paths.
+ */
+const DELTA_COVERAGE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_LOGGED_FILES = 10;
+
+/** What a delta pass applied to one month. */
+export interface DeltaMonthReport {
+  entries: CloudAssetEntry[];
+  deletedIds: string[];
+  addedDayFolders: number;
+  removedDayFolders: number;
+  returnedFileCount: number;
+  /** How many deleted files arrived under each status, lowercased. */
+  deletedByStatus: Record<string, number>;
+  /** Deleted files, named, so a deletion made elsewhere can be recognised in the log. */
+  deletedFiles: { remoteFileId: string; fileName: string; status: string }[];
+  /** Files that arrived alive with no row in the local index — a new upload or a restore. */
+  newOrRestoredFiles: { remoteFileId: string; fileName: string }[];
+}
+
+interface MonthStructureRefresh {
+  dayFolders: PhotoDayFolderEntry[];
+  addedFolders: PhotoDayFolderEntry[];
+  removedFolders: PhotoDayFolderEntry[];
+}
+
+/** Renders the per-status counts of deleted files as `: 1 trashed, 7 deleted`, or nothing if there are none. */
+const formatStatusBreakdown = (deletedByStatus: Record<string, number>): string => {
+  const parts = Object.entries(deletedByStatus).map(([status, count]) => `${count} ${status}`);
+  return parts.length > 0 ? `: ${parts.join(', ')}` : '';
+};
+
+const isDeletedStatus = (status: string | undefined | null): boolean => {
+  const normalized = status?.toLowerCase();
+  return normalized === 'trashed' || normalized === 'deleted';
+};
+
+const formatMonthLabel = (month: { deviceId: string; year: number; month: number }): string =>
+  `device=${month.deviceId} ${month.year}/${String(month.month).padStart(2, '0')}`;
+
+const toDayFolderEntry = (
+  folder: FetchPaginatedFolder,
+  month: { deviceId: string; year: number; month: number },
+): PhotoDayFolderEntry => {
+  const parsedDay = Number.parseInt(folder.plainName ?? '', 10);
+  return {
+    dayFolderUuid: folder.uuid,
+    deviceId: month.deviceId,
+    year: month.year,
+    month: month.month,
+    day: Number.isNaN(parsedDay) ? 1 : parsedDay,
+  };
+};
+
+const groupByFolderUuid = (files: DriveFileData[]): Map<string, DriveFileData[]> => {
+  const grouped = new Map<string, DriveFileData[]>();
+  for (const file of files) {
+    const folderUuid = file.folderUuid;
+    if (!folderUuid) continue;
+    const group = grouped.get(folderUuid);
+    if (group) group.push(file);
+    else grouped.set(folderUuid, [file]);
+  }
+  return grouped;
+};
+
+/** Warns when a file's `creationTime` falls on a different day than the folder holding it. */
+const warnOnCreationTimeDayMismatch = (files: DriveFileData[], dayFolder: PhotoDayFolderEntry, label: string): void => {
+  for (const file of files) {
+    if (!file.creationTime) continue;
+    const creationDate = new Date(file.creationTime);
+    if (creationDate.getDate() !== dayFolder.day || creationDate.getMonth() + 1 !== dayFolder.month) {
+      logger.warn(
+        `[CloudDelta] ${label} — ${file.uuid} sits in day folder ${dayFolder.day} but its creation time says ` +
+          `${creationDate.getMonth() + 1}/${creationDate.getDate()} — trusting the folder`,
+      );
+    }
+  }
+};
+
+/**
+ * Summarises what a delta pass is about to apply to one month.
+ *
+ * @param params.structure - Day folders added or removed since the last cycle.
+ * @param params.entries - Entries the delta will upsert.
+ * @param params.files - Every file the delta returned, whatever its status.
+ * @param params.deleted - The subset of files reported as trashed or deleted.
+ * @param params.knownAssets - Rows already stored for the same day folders, used to tell a file
+ * that is new or restored from one the index already had.
+ */
+const buildMonthReport = (params: {
+  structure: MonthStructureRefresh;
+  entries: CloudAssetEntry[];
+  files: DriveFileData[];
+  deleted: DriveFileData[];
+  knownAssets: CloudAssetEntry[];
+}): DeltaMonthReport => {
+  const { structure, entries, files, deleted, knownAssets } = params;
+  const knownRemoteIds = new Set(knownAssets.map((asset) => asset.remoteFileId));
+
+  const newOrRestoredFiles = entries
+    .filter((entry) => !knownRemoteIds.has(entry.remoteFileId))
+    .map((entry) => ({ remoteFileId: entry.remoteFileId, fileName: entry.fileName }));
+
+  const deletedByStatus = deleted.reduce<Record<string, number>>((counts, file) => {
+    const status = file.status?.toLowerCase() ?? 'unknown';
+    counts[status] = (counts[status] ?? 0) + 1;
+    return counts;
+  }, {});
+
+  return {
+    entries,
+    deletedIds: deleted.map((file) => file.uuid),
+    deletedFiles: deleted.map((file) => ({
+      remoteFileId: file.uuid,
+      fileName: file.plainName ?? file.name,
+      status: file.status?.toLowerCase() ?? 'unknown',
+    })),
+    newOrRestoredFiles,
+    addedDayFolders: structure.addedFolders.length,
+    removedDayFolders: structure.removedFolders.length,
+    returnedFileCount: files.length,
+    deletedByStatus,
+  };
+};
+
+const monthKey = (year: number, month: number): string => `${year}-${month}`;
+
+const deviceMonthKey = (deviceId: string, year: number, month: number): string =>
+  `${deviceId}:${monthKey(year, month)}`;
+
+/**
+ * Orders months the way the user notices them: their own device before the others, most recent
+ * month first. The timeline opens at the top, so this is the order in which changes surface — both
+ * paths sort by it so neither leaves the month the user is looking at until last.
+ */
+const byOwnDeviceThenNewest =
+  (currentDeviceId: string | undefined) =>
+  (a: PhotoMonthFolderRef, b: PhotoMonthFolderRef): number => {
+    const ownership = Number(a.deviceId !== currentDeviceId) - Number(b.deviceId !== currentDeviceId);
+    if (ownership !== 0) return ownership;
+    if (a.year !== b.year) return b.year - a.year;
+    return b.month - a.month;
+  };
+
+/** Keys of the last `RECENT_MONTHS_ALWAYS_CHECKED` calendar months, most recent first. */
+const buildRecentMonthKeys = (now: Date): Set<string> => {
+  const keys = new Set<string>();
+  for (let offset = 0; offset < RECENT_MONTHS_ALWAYS_CHECKED; offset++) {
+    const target = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+    keys.add(monthKey(target.getFullYear(), target.getMonth() + 1));
+  }
+  return keys;
+};
+
+/**
+ * Picks the months worth asking the delta for. The recent window is asked on every cycle, because
+ * that is where edits and deletions land. Older months carry their own TTL so the whole tree stays
+ * covered without paying for it every time.
+ *
+ * The TTL is measured against `lastDeltaCheckAt`, never `lastServerUpdatedAt`: the latter is a
+ * Drive timestamp, so an old month would always look overdue and the TTL would throttle nothing.
+ */
+const selectMonthsToCheck = (months: PhotoMonthSyncEntry[], now: Date): PhotoMonthSyncEntry[] => {
+  const recentKeys = buildRecentMonthKeys(now);
+  return months.filter((month) => {
+    if (recentKeys.has(monthKey(month.year, month.month))) return true;
+    if (month.lastDeltaCheckAt === null) return true;
+    return now.getTime() - month.lastDeltaCheckAt >= OLDER_MONTH_DELTA_TTL_MS;
+  });
+};
+
+/**
+ * Picks the months the full sync still has to read: the ones the delta has never asked about, and
+ * the ones it has not reached for long enough that a tombstone could have been hard-deleted behind
+ * it.
+ *
+ * Like the delta's own TTL, this is measured against `lastDeltaCheckAt` and never
+ * `lastServerUpdatedAt` — a Drive timestamp would leave every old month permanently overdue and the
+ * full sync would never shrink.
+ *
+ * @param months - Months discovered in Drive this cycle.
+ * @param knownByKey - What the local index knows about each of them.
+ * @param force - A manual refresh, which fully syncs everything without exception.
+ */
+const selectMonthsToFullSync = <T extends { deviceId: string; year: number; month: number }>(
+  months: T[],
+  knownByKey: Map<string, PhotoMonthSyncEntry>,
+  force: boolean,
+  now: Date,
+): T[] => {
+  if (force) return months;
+  return months.filter((month) => {
+    const known = knownByKey.get(deviceMonthKey(month.deviceId, month.year, month.month));
+    if (!known?.lastDeltaCheckAt) return true;
+    return now.getTime() - known.lastDeltaCheckAt >= DELTA_COVERAGE_MAX_AGE_MS;
+  });
 };
 
 class PhotoCloudBrowserService {
@@ -248,6 +466,7 @@ class PhotoCloudBrowserService {
       fileSize: entry.fileSize,
       fileId: entry.contentFileId,
       bucket: entry.bucket,
+      folderUuid: entry.folderUuid,
       thumbnailPath: null,
       thumbnailBucketId: entry.thumbnailBucketId,
       thumbnailBucketFile: entry.thumbnailBucketFile,
@@ -364,8 +583,8 @@ class PhotoCloudBrowserService {
   }): Promise<number> {
     const { deviceId, deviceFolderUuid, year, month, onMonthFetched, force, currentDeviceId } = params;
     if (!force) {
-      const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
-      if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) {
+      const lastFullSyncAt = await this.localDB.getMonthLastFullSyncAt(deviceId, year, month);
+      if (lastFullSyncAt !== null && Date.now() - lastFullSyncAt < CACHE_TTL_MS) {
         return 0;
       }
     }
@@ -429,43 +648,58 @@ class PhotoCloudBrowserService {
 
     const months = await this.discoverAvailableMonths(devices);
 
-    // Own device's most recent months first: workers pull from the front of this array, so a
-    // manual refresh surfaces the user's own recent changes without waiting behind other devices.
-    months.sort((a, b) => {
-      const aOwn = a.deviceId === currentDeviceId ? 0 : 1;
-      const bOwn = b.deviceId === currentDeviceId ? 0 : 1;
-      if (aOwn !== bOwn) return aOwn - bOwn;
-      if (a.year !== b.year) return b.year - a.year;
-      return b.month - a.month;
-    });
+    // Workers pull from the front of this array, so the user's own recent months are refreshed
+    // without waiting behind other devices.
+    months.sort(byOwnDeviceThenNewest(currentDeviceId));
+
+    const knownMonths = await this.listKnownMonths(devices);
+    const knownByKey = new Map(
+      knownMonths.map((entry): [string, PhotoMonthSyncEntry] => [
+        deviceMonthKey(entry.deviceId, entry.year, entry.month),
+        entry,
+      ]),
+    );
+    const monthsToFullSync = selectMonthsToFullSync(months, knownByKey, force ?? false, new Date());
 
     if (months.length === 0) {
       logger.info('[CloudBrowser] Discovery found no months in cloud');
     } else {
       logger.info(
-        `[CloudBrowser] Discovered ${months.length} months across ${devices.length} device(s)${force ? ' — TTL bypassed (force refresh)' : ''}`,
+        `[CloudBrowser] Discovered ${months.length} months across ${devices.length} device(s)` +
+          `${force ? ' — TTL bypassed (force refresh)' : ''} — full-syncing ${monthsToFullSync.length}, ` +
+          `${months.length - monthsToFullSync.length} left to the delta`,
       );
       const CONCURRENCY = 3;
       let cursor = 0;
+      const staleMonths: string[] = [];
       const worker = async (): Promise<void> => {
-        while (cursor < months.length) {
+        while (cursor < monthsToFullSync.length) {
           if (isCancelled?.()) {
             return;
           }
-          const target = months[cursor++];
-          await this.fetchMonthFromFolder({
-            deviceId: target.deviceId,
-            monthFolderUuid: target.monthFolderUuid,
-            year: target.year,
-            month: target.month,
-            onMonthFetched,
-            force,
-            currentDeviceId,
-            cycleStartedAt,
-          });
+          const target = monthsToFullSync[cursor++];
+          try {
+            await this.fetchMonthFromFolder({
+              deviceId: target.deviceId,
+              monthFolderUuid: target.monthFolderUuid,
+              year: target.year,
+              month: target.month,
+              onMonthFetched,
+              force,
+              currentDeviceId,
+              cycleStartedAt,
+            });
+          } catch (error) {
+            staleMonths.push(formatMonthLabel(target));
+            logger.error(`[CloudBrowser] ${formatMonthLabel(target)} — could not be refreshed`, { error });
+          }
         }
       };
       await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+
+      if (staleMonths.length > 0) {
+        logger.warn(`[CloudBrowser] ${staleMonths.length} month(s) left stale this cycle: ${staleMonths.join(', ')}`);
+      }
     }
 
     if (isCancelled?.()) {
@@ -474,6 +708,280 @@ class PhotoCloudBrowserService {
     }
 
     await this.reconcileDeletedMonths({ devices, discoveredMonths: months, currentDeviceId, cycleStartedAt });
+  }
+
+  /**
+   * Delta path — looks for changes in each due month without listing its files, using the folder
+   * delta endpoint, and applies them to the local index. Months from every device are checked in one
+   * pass ordered by `byOwnDeviceThenNewest`, so what the user is looking at is refreshed first.
+   *
+   * @param options.currentDeviceId - This device's own folder uuid, or undefined if unknown.
+   * @param options.isCancelled - Polled between months to abort early.
+   * @param options.onMonthFetched - Called once per month that changed anything.
+   */
+  async syncDeltaChanges(options: {
+    currentDeviceId: string | undefined;
+    isCancelled?: () => boolean;
+    onMonthFetched?: () => void;
+  }): Promise<void> {
+    const devices = await this.listDeviceFolders();
+    const knownMonths = await this.listKnownMonths(devices);
+    const monthsToCheck = selectMonthsToCheck(knownMonths, new Date()).sort(
+      byOwnDeviceThenNewest(options.currentDeviceId),
+    );
+
+    if (monthsToCheck.length === 0) {
+      logger.info('[CloudDelta] No month is due a check');
+      return;
+    }
+
+    for (const month of monthsToCheck) {
+      if (options.isCancelled?.()) return;
+      try {
+        const report = await this.syncMonthChanges(month, month.deviceId === options.currentDeviceId);
+        if (report && (report.entries.length > 0 || report.deletedIds.length > 0)) {
+          options.onMonthFetched?.();
+        }
+      } catch (error) {
+        logger.error(`[CloudDelta] ${formatMonthLabel(month)} — delta failed`, { error });
+      }
+    }
+  }
+
+  /**
+   * Checks one month for changes and applies them: refreshes its day folders, asks the delta
+   * endpoint for the files that moved, and stores the result.
+   *
+   * @param month - Month to check, with the folder uuid and the point its last delta reached.
+   * @param isCurrentDevice - Whether the month belongs to this device.
+   * @returns The pass's report, or null if the month folder is gone or holds no day folders.
+   */
+  async syncMonthChanges(month: PhotoMonthSyncEntry, isCurrentDevice = false): Promise<DeltaMonthReport | null> {
+    const label = formatMonthLabel(month);
+
+    const structure = await this.refreshMonthStructure(month);
+    if (!structure) {
+      logger.info(`[CloudDelta] ${label} — month folder is gone, leaving it to the full sync`);
+      return null;
+    }
+
+    const dayFolderUuids = structure.dayFolders.map((folder) => folder.dayFolderUuid);
+    if (dayFolderUuids.length === 0) {
+      logger.info(`[CloudDelta] ${label} — month has no day folders`);
+      return null;
+    }
+
+    const files = await this.fetchDeltaFiles(dayFolderUuids, month.lastServerUpdatedAt);
+    const deleted = files.filter((file) => isDeletedStatus(file.status));
+    const alive = files.filter((file) => !isDeletedStatus(file.status));
+
+    const knownAssets = await this.localDB.getCloudAssetsByFolderUuids(dayFolderUuids);
+    const deletedIds = new Set(deleted.map((file) => file.uuid));
+    const entries = this.buildDeltaEntries({ alive, knownAssets, deletedIds, structure, label });
+
+    const report = buildMonthReport({ structure, entries, files, deleted, knownAssets });
+
+    await this.applyDeltaChanges({ month, entries, deleted, files, isCurrentDevice });
+    this.logDeltaCycle(label, report, alive.length, deleted.length);
+    return report;
+  }
+
+  /**
+   * Lists the month's day folders in Drive and diffs them against the ones already known, so a day
+   * created or removed since the last cycle is picked up before the file delta is asked for.
+   *
+   * @param month - Month being checked, carrying the folder uuid to list.
+   * @returns The month's day folders plus what changed, or null if the month folder is gone.
+   */
+  private async refreshMonthStructure(month: PhotoMonthSyncEntry): Promise<MonthStructureRefresh | null> {
+    let cloudFolders: FetchPaginatedFolder[];
+    try {
+      cloudFolders = await this.listAllFolders(month.monthFolderUuid);
+    } catch (error) {
+      logger.warn(`[CloudDelta] ${formatMonthLabel(month)} — could not list day folders`, { error });
+      return null;
+    }
+
+    const dayFolders = cloudFolders.map((folder) => toDayFolderEntry(folder, month));
+    const knownFolders = await this.localDB.getDayFoldersByMonth(month.deviceId, month.year, month.month);
+    const knownUuids = new Set(knownFolders.map((folder) => folder.dayFolderUuid));
+    const cloudUuids = new Set(dayFolders.map((folder) => folder.dayFolderUuid));
+
+    const addedFolders = dayFolders.filter((folder) => !knownUuids.has(folder.dayFolderUuid));
+    const removedFolders = knownFolders.filter((folder) => !cloudUuids.has(folder.dayFolderUuid));
+
+    await this.localDB.upsertDayFolders(addedFolders);
+    await this.localDB.deleteDayFolders(removedFolders.map((folder) => folder.dayFolderUuid));
+
+    return { dayFolders, addedFolders, removedFolders };
+  }
+
+  /** Follows the delta endpoint's cursor pagination for every batch of day folders it accepts at once. */
+  private async fetchDeltaFiles(
+    dayFolderUuids: string[],
+    lastServerUpdatedAt: number | null,
+  ): Promise<DriveFileData[]> {
+    const since = Math.max(0, (lastServerUpdatedAt ?? 0) - DELTA_OVERLAP_MS);
+    const updatedAt = new Date(since).toISOString();
+    const files: DriveFileData[] = [];
+
+    for (let i = 0; i < dayFolderUuids.length; i += FOLDER_DELTA_MAX_FOLDER_UUIDS) {
+      const folderUuids = dayFolderUuids.slice(i, i + FOLDER_DELTA_MAX_FOLDER_UUIDS);
+      let cursor: string | undefined;
+      do {
+        const page = await this.folderService.getFolderDeltaChanges({ folderUuids, updatedAt, cursor });
+        files.push(...page.files);
+        cursor = page.nextCursor ?? undefined;
+      } while (cursor);
+    }
+
+    return files;
+  }
+
+  /**
+   * Builds the cloud asset entries the delta would write, pairing Live Photos and bursts against
+   * the union of what the local index already holds for these day folders and what just arrived.
+   *
+   * @param params.alive - Files from the delta that are not trashed or deleted.
+   * @param params.knownAssets - Assets already stored for the same day folders.
+   * @param params.deletedIds - Remote file ids the delta reports as trashed or deleted, which must
+   * not pair with anything nor count as a burst base.
+   * @param params.structure - The month's day folders, used to date each file by its folder.
+   * @param params.label - Month label used for logging.
+   */
+  private buildDeltaEntries(params: {
+    alive: DriveFileData[];
+    knownAssets: CloudAssetEntry[];
+    deletedIds: Set<string>;
+    structure: MonthStructureRefresh;
+    label: string;
+  }): CloudAssetEntry[] {
+    const { alive, knownAssets, deletedIds, structure, label } = params;
+
+    const survivingAssets = knownAssets.filter((asset) => !deletedIds.has(asset.remoteFileId));
+    const knownNames = survivingAssets.map((asset) => asset.plainName ?? null);
+
+    const plainNameIndex = new Map<string, string>();
+    for (const asset of survivingAssets) {
+      if (asset.plainName) plainNameIndex.set(asset.plainName.toLowerCase(), asset.remoteFileId);
+    }
+    for (const [plainName, uuid] of this.buildPlainNameIndex(alive)) {
+      plainNameIndex.set(plainName, uuid);
+    }
+
+    const burstBaseSet = buildBurstBaseSet([
+      ...knownNames,
+      ...alive.map((file) => file.plainName ?? file.name ?? null),
+    ]);
+
+    const dayFolderByUuid = new Map(structure.dayFolders.map((folder) => [folder.dayFolderUuid, folder]));
+    const now = Date.now();
+    const entries: CloudAssetEntry[] = [];
+
+    for (const [folderUuid, filesInFolder] of groupByFolderUuid(alive)) {
+      const dayFolder = dayFolderByUuid.get(folderUuid);
+      if (!dayFolder) {
+        logger.warn(`[CloudDelta] ${label} — ${filesInFolder.length} file(s) in unknown day folder ${folderUuid}`);
+        continue;
+      }
+      const folderDate = new Date(dayFolder.year, dayFolder.month - 1, dayFolder.day).getTime();
+      warnOnCreationTimeDayMismatch(filesInFolder, dayFolder, label);
+
+      entries.push(
+        ...this.buildCloudAssetEntries({
+          files: filesInFolder,
+          plainNameIndex,
+          burstBaseSet,
+          deviceId: dayFolder.deviceId,
+          folderDate,
+          now,
+        }),
+      );
+    }
+
+    return entries;
+  }
+
+  /**
+   * Applies a month's delta to the local index: stores what arrived alive, forgets what arrived
+   * deleted, brings back what reappeared, and moves the month's high-water mark forward.
+   *
+   * @param params.month - Month the changes belong to.
+   * @param params.entries - Entries to store.
+   * @param params.deleted - Files the delta reported as trashed or deleted.
+   * @param params.files - Every file the delta returned, used for the new high-water mark.
+   * @param params.isCurrentDevice - Whether the month belongs to this device, which is the only
+   * one whose backup status is meaningful locally.
+   */
+  private async applyDeltaChanges(params: {
+    month: PhotoMonthSyncEntry;
+    entries: CloudAssetEntry[];
+    deleted: DriveFileData[];
+    files: DriveFileData[];
+    isCurrentDevice: boolean;
+  }): Promise<void> {
+    const { month, entries, deleted, files, isCurrentDevice } = params;
+    const { deviceId, year, month: monthNumber } = month;
+
+    await this.evictStaleThumbnailCacheFiles(entries);
+    for (const entry of entries) {
+      await this.localDB.upsertCloudAsset(entry);
+    }
+
+    for (const file of deleted) {
+      await this.localDB.markCloudDeleted(file.uuid);
+      await this.localDB.deleteCloudAsset(file.uuid);
+    }
+
+    if (isCurrentDevice && entries.length > 0) {
+      const cloudDeletedIds = await this.localDB.getCloudDeletedRemoteIdsByCreationMonth(year, monthNumber);
+      const reappeared = entries.map((entry) => entry.remoteFileId).filter((id) => cloudDeletedIds.has(id));
+      if (reappeared.length > 0) {
+        await this.localDB.revertCloudDeleted(reappeared);
+        logger.info(`[CloudDelta] ${formatMonthLabel(month)} — ${reappeared.length} photo(s) back from deleted`);
+      }
+    }
+
+    await this.localDB.setMonthLastDeltaCheckAt(deviceId, year, monthNumber, Date.now());
+
+    const newestUpdatedAt = files.reduce(
+      (newest, file) => Math.max(newest, file.updatedAt ? new Date(file.updatedAt).getTime() : 0),
+      month.lastServerUpdatedAt ?? 0,
+    );
+    if (newestUpdatedAt > 0) {
+      await this.localDB.setMonthLastServerUpdatedAt(deviceId, year, monthNumber, newestUpdatedAt);
+    }
+
+    if (entries.length > 0 || deleted.length > 0) {
+      this.notifyCloudIndexUpdated();
+    }
+  }
+
+  /** Logs what the delta did for one month, plus the first few discrepancies behind its counters. */
+  private logDeltaCycle(label: string, report: DeltaMonthReport, aliveCount: number, deletedCount: number): void {
+    logger.info(
+      `[CloudDelta] ${label} — days +${report.addedDayFolders}/-${report.removedDayFolders} | ` +
+        `${report.returnedFileCount} file(s): ${aliveCount} alive, ` +
+        `${deletedCount} deleted${formatStatusBreakdown(report.deletedByStatus)} | ` +
+        `${report.newOrRestoredFiles.length} new or restored`,
+    );
+
+    if (report.deletedFiles.length > 0) {
+      logger.info(
+        `[CloudDelta] ${label} — deleted: ${report.deletedFiles
+          .slice(0, MAX_LOGGED_FILES)
+          .map((file) => `${file.fileName} (${file.remoteFileId}, ${file.status})`)
+          .join(', ')}`,
+      );
+    }
+    if (report.newOrRestoredFiles.length > 0) {
+      logger.info(
+        `[CloudDelta] ${label} — new or restored: ${report.newOrRestoredFiles
+          .slice(0, MAX_LOGGED_FILES)
+          .map((file) => `${file.fileName} (${file.remoteFileId})`)
+          .join(', ')}`,
+      );
+    }
   }
 
   private async fetchMonthFromFolder(params: {
@@ -488,24 +996,41 @@ class PhotoCloudBrowserService {
   }): Promise<number> {
     const { deviceId, monthFolderUuid, year, month, onMonthFetched, force, currentDeviceId, cycleStartedAt } = params;
     if (!force) {
-      const cacheAge = await this.localDB.getCloudFetchCacheAge(deviceId, year, month);
-      if (cacheAge !== null && Date.now() - cacheAge < CACHE_TTL_MS) return 0;
+      const lastFullSyncAt = await this.localDB.getMonthLastFullSyncAt(deviceId, year, month);
+      if (lastFullSyncAt !== null && Date.now() - lastFullSyncAt < CACHE_TTL_MS) return 0;
     }
 
     const dayFolders = await this.listAllFolders(monthFolderUuid);
     const now = Date.now();
     let count = 0;
     const foundIds = new Set<string>();
+    const dayFolderEntries: PhotoDayFolderEntry[] = [];
 
     for (const dayFolder of dayFolders) {
       const day = Number.parseInt(dayFolder.plainName ?? '', 10);
-      const folderDate = new Date(year, month - 1, Number.isNaN(day) ? 1 : day).getTime();
+      const resolvedDay = Number.isNaN(day) ? 1 : day;
+      const folderDate = new Date(year, month - 1, resolvedDay).getTime();
+      dayFolderEntries.push({
+        dayFolderUuid: dayFolder.uuid,
+        deviceId,
+        year,
+        month,
+        day: resolvedDay,
+      });
 
       const files = await this.listFilesWithThumbnails(dayFolder.uuid);
       const existingFiles = files.filter((f) => !f.status || f.status.toLowerCase() === 'exists');
 
       const plainNameIndex = this.buildPlainNameIndex(existingFiles);
-      const entries = this.buildCloudAssetEntries({ files: existingFiles, plainNameIndex, deviceId, folderDate, now });
+      const burstBaseSet = buildBurstBaseSet(existingFiles.map((f) => f.plainName ?? f.name ?? null));
+      const entries = this.buildCloudAssetEntries({
+        files: existingFiles,
+        plainNameIndex,
+        burstBaseSet,
+        deviceId,
+        folderDate,
+        now,
+      });
 
       await this.evictStaleThumbnailCacheFiles(entries);
 
@@ -515,6 +1040,9 @@ class PhotoCloudBrowserService {
         await this.localDB.upsertCloudAsset(entry);
       }
     }
+
+    await this.localDB.upsertDayFolders(dayFolderEntries);
+    await this.localDB.markMonthFullySynced({ deviceId, year, month, monthFolderUuid, fullySyncedAt: now });
 
     await this.reconcileCloudDeletions({ deviceId, year, month, foundIds, currentDeviceId, cycleStartedAt });
 
@@ -672,8 +1200,8 @@ class PhotoCloudBrowserService {
       `[CloudBrowser] Purging ${orphanedDeviceIds.length} deleted device(s) from local DB: ${orphanedDeviceIds.join(', ')}`,
     );
     for (const deviceId of orphanedDeviceIds) {
-      await this.localDB.deleteCloudAssetsByDevice(deviceId);
-      logger.info(`[CloudBrowser] Purged all cloud_asset rows for deleted device=${deviceId}`);
+      await this.localDB.deleteDeviceData(deviceId);
+      logger.info(`[CloudBrowser] Purged all local data for deleted device=${deviceId}`);
     }
     onPurged?.();
   }
@@ -748,12 +1276,25 @@ class PhotoCloudBrowserService {
     return monthsForDevice;
   }
 
+  /** Every month the local index knows across the given devices, in no particular order. */
+  private async listKnownMonths(devices: { uuid: string }[]): Promise<PhotoMonthSyncEntry[]> {
+    const perDevice = await Promise.all(devices.map((device) => this.localDB.getMonthSyncEntriesByDevice(device.uuid)));
+    return perDevice.flat();
+  }
+
   private async discoverAvailableMonths(
     devices: { uuid: string }[],
   ): Promise<{ deviceId: string; year: number; month: number; monthFolderUuid: string }[]> {
     const monthsPerDevice = await Promise.all(devices.map((device) => this.discoverMonthsForDevice(device)));
     const allMonths = monthsPerDevice.flat();
-    allMonths.sort((a, b) => b.year - a.year || b.month - a.month);
+    await this.localDB.upsertMonthSyncEntries(
+      allMonths.map(({ deviceId, year, month, monthFolderUuid }) => ({
+        deviceId,
+        year,
+        month,
+        monthFolderUuid,
+      })),
+    );
     return allMonths;
   }
 
@@ -766,21 +1307,34 @@ class PhotoCloudBrowserService {
     return index;
   }
 
+  /**
+   * Maps Drive files to cloud asset entries, resolving Live Photo pairs and burst links.
+   *
+   * @param params.files - Files to map, all belonging to the same day folder.
+   * @param params.plainNameIndex - Lowercased plain name to file uuid, covering every candidate a
+   * pair or burst link can point at.
+   * @param params.burstBaseSet - Base plain names that have at least one `.burst.N` child among
+   * those same candidates.
+   * @param params.deviceId - Device the day folder belongs to.
+   * @param params.folderDate - Timestamp of the day folder.
+   * @param params.now - Discovery timestamp written to every entry.
+   */
   private buildCloudAssetEntries({
     files,
     plainNameIndex,
+    burstBaseSet,
     deviceId,
     folderDate,
     now,
   }: {
     files: DriveFileData[];
     plainNameIndex: Map<string, string>;
+    burstBaseSet: Set<string>;
     deviceId: string;
     folderDate: number;
     now: number;
   }): CloudAssetEntry[] {
     const entries: CloudAssetEntry[] = [];
-    const burstBaseSet = buildBurstBaseSet(files.map((f) => f.plainName ?? f.name ?? null));
 
     for (const file of files) {
       const baseName = file.plainName ?? file.name;

@@ -344,6 +344,12 @@ export const runFullCloudHistorySyncThunk = createAsyncThunk<void, { force?: boo
     dispatch(photosSlice.actions.setIsFetchingCloudHistory(true));
     try {
       await photosLocalDB.init();
+
+      const seededDayFolders = await photosLocalDB.seedDayFoldersFromCloudAssets();
+      if (seededDayFolders > 0) {
+        logger.info(`[CloudDelta] Seeded ${seededDayFolders} day folder(s) from the local cloud index`);
+      }
+
       await photoCloudBrowser.syncAllHistory({
         force,
         onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
@@ -351,6 +357,15 @@ export const runFullCloudHistorySyncThunk = createAsyncThunk<void, { force?: boo
         currentDeviceId: getState().photos.deviceId ?? undefined,
       });
       logger.info('[CloudHistorySync] Full history sync complete');
+
+      const known = await photosLocalDB.countKnownFolders();
+      logger.info(`[CloudDelta] Known folders — ${known.months} month(s), ${known.days} day folder(s)`);
+
+      await photoCloudBrowser.syncDeltaChanges({
+        isCancelled: () => !getState().photos.enabled,
+        currentDeviceId: getState().photos.deviceId ?? undefined,
+        onMonthFetched: () => dispatch(photosSlice.actions.incrementCloudFetchRevision()),
+      });
     } catch (error) {
       logger.error('[CloudHistorySync] Error during full cloud history sync', { error });
     } finally {

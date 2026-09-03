@@ -4,13 +4,13 @@ import { Platform } from 'react-native';
 import { AbortError } from 'src/network/errors';
 import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
 import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
-import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
+import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { photoSyncManifestService } from 'src/services/photos/PhotoSyncManifestService';
 import { AssetUploadJob, PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { PhotoUploadEvent, PhotoUploadResult, uploadSingleFile } from 'src/services/photos/PhotoUploadService';
 import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
-import { AssetSyncStatus, photosLocalDB, SyncedThumbnailRefs } from 'src/services/photos/database/photosLocalDB';
+import { AssetSyncStatus, photosLocalDB, SyncedUploadRefs } from 'src/services/photos/database/photosLocalDB';
 import { isPermissionActive } from 'src/services/photos/photoPermissionService';
 import { logger } from '../../../../services/common';
 import { RootState } from '../../../index';
@@ -66,12 +66,13 @@ export const completeSyncForAsset = async (
 
   // Undefined fields here fall back to their existing asset_sync value (COALESCE in
   // markSynced*'s SQL), not overwritten with null.
-  const thumbnailRefs: SyncedThumbnailRefs = {
+  const uploadRefs: SyncedUploadRefs = {
     thumbnailBucketId: result.thumbnail?.bucketId,
     thumbnailBucketFile: result.thumbnail?.bucketFile,
     thumbnailType: result.thumbnail?.type,
     contentFileId: result.contentFileId,
     bucket: result.bucketId,
+    folderUuid: result.folderUuid,
   };
 
   if (result.burst) {
@@ -82,13 +83,13 @@ export const completeSyncForAsset = async (
       result.burst.burstId,
       result.burst.memberUuids,
       result.burst.memberUuids.length,
-      thumbnailRefs,
+      uploadRefs,
     );
   } else if (status?.isBurst) {
     // BURST: representative detected in discovery (is_burst=1) but exportBurstMembers returned 0
     // members — most likely limited photo access ("Selected Photos"). Mark synced with
     // memberCount=null so the retry pass re-attempts member export on the next upload cycle.
-    await photosLocalDB.markSyncedBurst(assetId, result.photoUuid, modificationTime, assetId, [], null, thumbnailRefs);
+    await photosLocalDB.markSyncedBurst(assetId, result.photoUuid, modificationTime, assetId, [], null, uploadRefs);
   } else if (result.pairedVideoUuid !== undefined) {
     await photosLocalDB.markSyncedLivePhoto(
       assetId,
@@ -96,12 +97,12 @@ export const completeSyncForAsset = async (
       modificationTime,
       result.pairedVideoUuid,
       'synced',
-      thumbnailRefs,
+      uploadRefs,
     );
   } else if (status?.isLivePhoto) {
-    await photosLocalDB.markSyncedLivePhoto(assetId, result.photoUuid, modificationTime, null, 'error', thumbnailRefs);
+    await photosLocalDB.markSyncedLivePhoto(assetId, result.photoUuid, modificationTime, null, 'error', uploadRefs);
   } else {
-    await photosLocalDB.markSynced(assetId, result.photoUuid, modificationTime, thumbnailRefs);
+    await photosLocalDB.markSynced(assetId, result.photoUuid, modificationTime, uploadRefs);
   }
 
   // Always runs, regardless of which branch above wrote asset_sync — see recordSyncedAsset's
