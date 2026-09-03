@@ -18,6 +18,7 @@ import { uiActions } from '../../../../store/slices/ui';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
 import { uploadService } from '../../../common/network/upload/upload.service';
+import { notifyParentChanged } from '../../../native/InternxtSignalingModule';
 import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
 import { FileSizeExceededError, isFileSizeExceededError } from './fileSizeErrors';
 import { BucketNotFoundError } from './upload.errors';
@@ -228,6 +229,7 @@ export async function uploadSingleFile(
       await uploadFile(file, 'document');
     }
     uploadSuccess(file);
+    void notifyParentChanged(file.parentUuid);
   } catch (e) {
     if (e instanceof EmptyFileNotAllowedError) {
       dispatch(uiActions.setShowEmptyFileNotAllowedModal(true));
