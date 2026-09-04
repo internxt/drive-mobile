@@ -100,6 +100,8 @@ export enum AsyncStorageKey {
   SecurityAlertDismissed = 'securityAlertDismissed',
   LastSecurityHash = 'lastSecurityHash',
   ScreenProtectionEnabled = 'screenProtectionEnabled',
+  MailAccountPrivateKey = 'mailAccountPrivateKey',
+  MyMailEmailAdress = 'myMailEmailAdress',
   PhotosSettings = 'photosSettings',
   PhotosDiscoverSeen = 'photosDiscoverSeen',
   PhotosAccessCache = 'photosAccessCache',

@@ -1,7 +1,10 @@
 import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+export type ActiveSpace = 'drive' | 'mail';
+
 export interface UIState {
+  activeSpace: ActiveSpace;
   searchActive: boolean;
   fileViewMode: DriveListViewMode;
   showItemModal: boolean;
@@ -32,6 +35,7 @@ export interface UIState {
 }
 
 const initialState: UIState = {
+  activeSpace: 'mail',
   searchActive: false,
   fileViewMode: DriveListViewMode.List,
   showItemModal: false,
@@ -67,6 +71,9 @@ export const uiSlice = createSlice({
   reducers: {
     resetState(state) {
       Object.assign(state, initialState);
+    },
+    setActiveSpace: (state, action: PayloadAction<ActiveSpace>) => {
+      state.activeSpace = action.payload;
     },
     setSearchActive: (state, action: PayloadAction<boolean>) => {
       state.searchActive = action.payload;

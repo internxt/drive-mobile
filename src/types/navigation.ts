@@ -28,6 +28,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
+  ComposeEmail: undefined;
   PhotoPreview: {
     initialId: string;
     items: TimelinePhotoItem[];
@@ -66,6 +67,16 @@ export type DriveStackParamList = {
     parentUuid?: string;
   };
 };
+
+export type MailStackParamList = {
+  MailboxList: undefined;
+  EmailDetail: { emailId: string };
+};
+
+export type MailScreenProps<Screen extends keyof MailStackParamList> = NativeStackScreenProps<
+  MailStackParamList,
+  Screen
+>;
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
   NativeStackScreenProps<DriveStackParamList, Screen>,

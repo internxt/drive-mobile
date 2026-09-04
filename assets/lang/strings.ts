@@ -39,10 +39,12 @@ const translations = {
     tabs: {
       Home: 'Home',
       Drive: 'Drive',
+      Mail: 'Mail',
       Add: 'Add',
       Shared: 'Shared',
       Photos: 'Photos',
       Settings: 'Settings',
+      NewEmail: 'New Message',
     },
     subscriptions: {
       free: 'Free plan',
@@ -355,6 +357,26 @@ const translations = {
           message: 'Try interacting with your files',
         },
       },
+      mail: {
+        title: 'Mail',
+        empty: {
+          inbox: 'Inbox is empty',
+          drafts: 'Drafts is empty',
+          sent: 'Sent is empty',
+          spam: 'Spam is empty',
+          trash: 'Trash is empty',
+        },
+        mailboxes: {
+          inbox: 'Inbox',
+          drafts: 'Drafts',
+          sent: 'Sent',
+          spam: 'Spam',
+          trash: 'Trash',
+        },
+      },
+      compose_email: {
+        title: 'New message',
+      },
       shared: {
         title: 'Shared',
         empty: {
@@ -512,6 +534,7 @@ const translations = {
       },
     },
     buttons: {
+      send: 'Send',
       fixPhoto: 'Repair photo',
       goBackToSignIn: 'Go back to login',
 
@@ -590,6 +613,9 @@ const translations = {
       undo: 'Undo',
     },
     inputs: {
+      to: 'To',
+      subject: 'Subject',
+      body: 'Message',
       name: 'Name',
       email: 'Email',
       password: 'Password',
@@ -604,6 +630,9 @@ const translations = {
     },
     placeholders: {
       folderName: 'Folder name',
+      emailRecipient: 'recipient@example.com',
+      emailSubject: 'Subject',
+      emailBody: 'Write your message...',
     },
     components: {
       DriveList: {
@@ -1048,10 +1077,12 @@ const translations = {
     tabs: {
       Home: 'Inicio',
       Drive: 'Drive',
+      Mail: 'Correo',
       Add: 'Añadir',
       Shared: 'Compartido',
       Photos: 'Fotos',
       Settings: 'Ajustes',
+      NewEmail: 'Nuevo mensaje',
     },
     subscriptions: {
       free: 'Plan gratuito',
@@ -1367,6 +1398,26 @@ const translations = {
           message: 'Intenta interactuar con tus archivos',
         },
       },
+      mail: {
+        title: 'Correo',
+        empty: {
+          inbox: 'Bandeja de entrada está vacía',
+          drafts: 'Borradores está vacía',
+          sent: 'Enviados está vacía',
+          spam: 'Spam está vacía',
+          trash: 'Papelera está vacía',
+        },
+        mailboxes: {
+          inbox: 'Bandeja de entrada',
+          drafts: 'Borradores',
+          sent: 'Enviados',
+          spam: 'Spam',
+          trash: 'Papelera',
+        },
+      },
+      compose_email: {
+        title: 'Nuevo mensaje',
+      },
       shared: {
         title: 'Compartido',
         empty: {
@@ -1521,6 +1572,7 @@ const translations = {
       },
     },
     buttons: {
+      send: 'Enviar',
       fixPhoto: 'Reparar foto',
       goBackToSignIn: 'Volver al login',
       duplicate: 'Duplicar',
@@ -1599,6 +1651,9 @@ const translations = {
       undo: 'Deshacer',
     },
     inputs: {
+      to: 'Para',
+      subject: 'Asunto',
+      body: 'Mensaje',
       name: 'Nombre',
       email: 'Correo electrónico',
       password: 'Contraseña',
@@ -1613,6 +1668,9 @@ const translations = {
     },
     placeholders: {
       folderName: 'Nombre de carpeta',
+      emailRecipient: 'destinatario@ejemplo.com',
+      emailSubject: 'Asunto',
+      emailBody: 'Escribe tu mensaje...',
     },
     components: {
       DriveList: {

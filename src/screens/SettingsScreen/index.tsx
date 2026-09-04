@@ -61,6 +61,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
   const networkCondition = useAppSelector((state) => state.photos.networkCondition);
   const showBilling = useAppSelector(paymentsSelectors.shouldShowBilling);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
+  const activeSpace = useAppSelector((state) => state.ui.activeSpace);
   const profileAvatar = useProfileAvatar();
   const userFullName = useAppSelector(authSelectors.userFullName);
 
@@ -338,7 +339,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   ),
                   onPress: undefined,
                 },
-              ]}
+              ].filter((item) => !(item.key === 'trash' && activeSpace === 'mail'))}
             />
 
             {/* PHOTOS */}
