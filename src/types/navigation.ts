@@ -1,3 +1,5 @@
+import type { DrawerScreenProps } from '@react-navigation/drawer';
+import { MailboxId } from './mail';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -53,6 +55,7 @@ export type RootScreenNavigationProp<Screen extends keyof RootStackParamList> = 
 export type TabExplorerStackParamList = {
   Home: undefined;
   Drive: { sharedFolderId: number } | undefined;
+  Mail: undefined;
   Add: undefined;
   Shared: undefined;
   Photos: undefined;
@@ -68,10 +71,23 @@ export type DriveStackParamList = {
   };
 };
 
+export type MailDrawerParamList = {
+  [MailboxId.Inbox]: undefined;
+  [MailboxId.Sent]: undefined;
+  [MailboxId.Drafts]: undefined;
+  [MailboxId.Spam]: undefined;
+  [MailboxId.Trash]: undefined;
+};
+
 export type MailStackParamList = {
-  MailboxList: undefined;
+  MailboxDrawer: undefined;
   EmailDetail: { emailId: string };
 };
+
+export type MailboxScreenProps = CompositeScreenProps<
+  DrawerScreenProps<MailDrawerParamList, MailboxId>,
+  MailScreenProps<keyof MailStackParamList>
+>;
 
 export type MailScreenProps<Screen extends keyof MailStackParamList> = NativeStackScreenProps<
   MailStackParamList,
