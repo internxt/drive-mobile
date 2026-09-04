@@ -1,0 +1,718 @@
+import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
+import * as MediaLibrary from 'expo-media-library';
+import { Platform } from 'react-native';
+import { getEnvironmentConfigFromUser } from 'src/lib/network';
+import { uploadFile } from 'src/network/upload';
+import { constants } from 'src/services/AppService';
+import asyncStorageService from 'src/services/AsyncStorageService';
+import { HTTP_BAD_REQUEST, HTTP_CONFLICT } from 'src/services/common/httpStatusCodes';
+import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
+import { generateThumbnail } from 'src/services/common/media/thumbnail.generation';
+import { uploadService } from 'src/services/common/network/upload/upload.service';
+import fileSystemService from 'src/services/FileSystemService';
+import { logger } from '../common';
+import { uploadBurstMembersForExistingRepresentative, uploadBurstMembersIfBurst } from './burst/BurstUploadHandler';
+import { FileAlreadyExistsError } from './errors';
+import { getPairedVideoPlainNameFromPhoto, isLivePhotoAsset } from './livePhoto.constants';
+import { exportLivePhotoComponents } from './LivePhotoNativeModule';
+import { photoBackupFolders } from './PhotoBackupFolders';
+import { photoMediaLibraryService } from './PhotoMediaLibraryService';
+import {
+  ANDROID_CONTENT_URI_SCHEME,
+  ICLOUD_URI_SCHEME,
+  extractExtensionFromContentUri,
+  splitFileNameAndExtension,
+  stripFileScheme,
+  stripFileSchemeAndFragment,
+} from './PhotoUploadService.utils';
+
+const TEMP_FILE_PREFIX = 'photo_upload_';
+
+export interface UploadCredentials {
+  bucketId: string;
+  encryptionKey: string;
+  bridgeUser: string;
+  bridgePass: string;
+}
+
+interface FileUploadResult {
+  fileId: string;
+  bucketId: string;
+  fileSize: number;
+  plainName: string;
+  fileExtension: string;
+  modificationIso: string;
+  creationIso: string;
+  folderUuid: string;
+  localFilePath: string;
+  thumbnailSource: string;
+  tempPath?: string;
+  credentials: UploadCredentials;
+}
+
+export interface PhotoUploadResult {
+  photoUuid: string;
+  pairedVideoUuid?: string;
+  burst?: { burstId: string; memberUuids: string[] };
+}
+
+/**
+ * Domain events emitted during an upload, opaque to PhotoUploadQueue. Lets sub-features (burst,
+ * paired video, ...) report progress without growing the queue/service interfaces with feature-named
+ * callbacks.
+ */
+export type PhotoUploadEvent = { type: 'burst-member-total'; total: number } | { type: 'burst-member-uploaded' };
+
+interface UploadOptions {
+  onProgress?: (ratio: number) => void;
+  signal?: AbortSignal;
+  onEvent?: (event: PhotoUploadEvent) => void;
+}
+
+const resolveLocalPath = async (
+  asset: MediaLibrary.Asset,
+): Promise<{ localPath: string; tempPath?: string; thumbnailUri?: string }> => {
+  if (Platform.OS === 'ios') {
+    const assetInfo = await photoMediaLibraryService.getAssetInfo(asset.id, { shouldDownloadFromNetwork: true });
+    const rawUri = assetInfo.localUri ?? asset.uri;
+    if (!rawUri || rawUri.startsWith(ICLOUD_URI_SCHEME)) {
+      throw new Error(`Asset ${asset.id} has no local URI — may be stored in iCloud`);
+    }
+
+    // Videos in the Photos Library are only accessible via PHAsset URI (ph://) for
+    // AVFoundation-based operations like thumbnail generation. Direct /var/mobile/Media/DCIM/
+    // paths fail with NSCocoaErrorDomain 257 (no permission) when passed to AVAssetImageGenerator.
+    return { localPath: stripFileSchemeAndFragment(rawUri), thumbnailUri: asset.uri };
+  }
+
+  const uri = asset.uri;
+  if (uri.startsWith(ANDROID_CONTENT_URI_SCHEME)) {
+    const ext = extractExtensionFromContentUri(uri);
+    const tempPath = `${fileSystemService.getCacheDir()}/${TEMP_FILE_PREFIX}${asset.id}.${ext}`;
+    await fileSystemService.copyFile(uri, tempPath);
+    return { localPath: tempPath, tempPath };
+  }
+  return { localPath: stripFileScheme(uri) };
+};
+
+export const uploadSingleFile = async (params: {
+  localFilePath: string;
+  folderUuid: string;
+  plainName: string;
+  fileExtension: string;
+  creationIso: string;
+  modificationIso: string;
+  credentials: UploadCredentials;
+  onProgress?: (ratio: number) => void;
+  signal?: AbortSignal;
+}): Promise<string> => {
+  const {
+    localFilePath,
+    folderUuid,
+    plainName,
+    fileExtension,
+    creationIso,
+    modificationIso,
+    credentials,
+    onProgress,
+    signal,
+  } = params;
+  const { bucketId, encryptionKey, bridgeUser, bridgePass } = credentials;
+
+  const fileStat = await fileSystemService.stat(localFilePath);
+
+  const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type: fileExtension }]);
+  if (existentFiles.length > 0) {
+    return existentFiles[0].uuid;
+  }
+
+  let fileId: string;
+  try {
+    fileId = await uploadFile(
+      localFilePath,
+      bucketId,
+      encryptionKey,
+      constants.BRIDGE_URL,
+      { user: bridgeUser, pass: bridgePass },
+      { notifyProgress: onProgress, signal },
+    );
+  } catch (uploadError) {
+    if (uploadError instanceof Error && uploadError.name !== 'Error') throw uploadError;
+    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
+    throw new Error(`Bucket upload failed for ${plainName}.${fileExtension}: ${message}`);
+  }
+
+  return createFileEntryOrFetchExisting({
+    fileId,
+    type: fileExtension,
+    size: fileStat.size,
+    plainName,
+    bucket: bucketId,
+    folderUuid,
+    modificationTime: modificationIso,
+    creationTime: creationIso,
+  });
+};
+
+const uploadAssetToBucket = async (
+  asset: MediaLibrary.Asset,
+  deviceId: string,
+  photosBucket: string,
+  onProgress?: (ratio: number) => void,
+  signal?: AbortSignal,
+): Promise<FileUploadResult> => {
+  const { localPath: localFilePath, tempPath, thumbnailUri } = await resolveLocalPath(asset);
+
+  const createdDate = new Date(asset.creationTime);
+  const creationIso = createdDate.toISOString();
+  const modificationIso = new Date(asset.modificationTime).toISOString();
+
+  const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
+
+  const [fileStat, user, folderUuid] = await Promise.all([
+    fileSystemService.stat(localFilePath),
+    asyncStorageService.getUser(),
+    photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate),
+  ]);
+  const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+  const bucketId = photosBucket;
+
+  const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type: fileExtension }]);
+  if (existentFiles.length > 0) {
+    await cleanupTempFile(tempPath);
+    throw new FileAlreadyExistsError(`${plainName}.${fileExtension}`, existentFiles[0].uuid);
+  }
+
+  let fileId: string;
+  try {
+    fileId = await uploadFile(
+      localFilePath,
+      bucketId,
+      encryptionKey,
+      constants.BRIDGE_URL,
+      { user: bridgeUser, pass: bridgePass },
+      { notifyProgress: onProgress, signal },
+    );
+  } catch (uploadError) {
+    await cleanupTempFile(tempPath);
+    if (uploadError instanceof Error && uploadError.name !== 'Error') {
+      throw uploadError;
+    }
+    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
+    throw new Error(`Bucket upload failed for ${asset.filename}: ${message}`);
+  }
+
+  return {
+    fileId,
+    bucketId,
+    fileSize: fileStat.size,
+    plainName,
+    fileExtension,
+    modificationIso,
+    creationIso,
+    folderUuid,
+    localFilePath,
+    thumbnailSource: thumbnailUri ?? localFilePath,
+    tempPath,
+    credentials: { bucketId, encryptionKey, bridgeUser, bridgePass },
+  };
+};
+
+const isDeletedOrTrashedError = (error: unknown): boolean => {
+  const status = (error as { status?: unknown })?.status;
+  return status === HTTP_BAD_REQUEST;
+};
+
+const cleanupTempFile = async (tempPath?: string): Promise<void> => {
+  if (!tempPath) return;
+  await fileSystemService.unlinkIfExists(tempPath);
+};
+
+export interface UploadedThumbnailRef {
+  bucketId: string;
+  bucketFile: string;
+  type: string;
+  /** Local path of the generated thumbnail file. Only set when `keepTempFile` is true. */
+  localPath?: string;
+}
+
+export const uploadThumbnailForAsset = async (
+  localFilePath: string,
+  fileExtension: string,
+  fileUuid: string,
+  credentials: UploadCredentials,
+  keepTempFile = false,
+): Promise<UploadedThumbnailRef | null> => {
+  if (!isThumbnailSupported(fileExtension)) return null;
+
+  let thumbnailPath: string | undefined;
+  let succeeded = false;
+  try {
+    const thumbnail = await generateThumbnail(localFilePath, fileExtension);
+    thumbnailPath = thumbnail.path;
+
+    const thumbnailFileId = await uploadFile(
+      thumbnail.path,
+      credentials.bucketId,
+      credentials.encryptionKey,
+      constants.BRIDGE_URL,
+      { user: credentials.bridgeUser, pass: credentials.bridgePass },
+      {},
+    );
+
+    await uploadService.createThumbnailEntry({
+      fileUuid,
+      type: thumbnail.type,
+      size: thumbnail.size,
+      maxWidth: thumbnail.width,
+      maxHeight: thumbnail.height,
+      bucketId: credentials.bucketId,
+      bucketFile: thumbnailFileId,
+      encryptVersion: EncryptionVersion.Aes03,
+    });
+
+    succeeded = true;
+    return {
+      bucketId: credentials.bucketId,
+      bucketFile: thumbnailFileId,
+      type: thumbnail.type,
+      localPath: keepTempFile ? thumbnailPath : undefined,
+    };
+  } catch (err) {
+    logger.error(`Failed to upload thumbnail for file ${fileUuid} (ext=${fileExtension}, path=${localFilePath}):`, err);
+    return null;
+  } finally {
+    if (!keepTempFile || !succeeded) {
+      await cleanupTempFile(thumbnailPath);
+    }
+  }
+};
+
+const createFileEntryOrFetchExisting = async (params: {
+  fileId: string;
+  type: string;
+  size: number;
+  plainName: string;
+  bucket: string;
+  folderUuid: string;
+  modificationTime: string;
+  creationTime: string;
+}): Promise<string> => {
+  const { plainName, type, folderUuid } = params;
+  try {
+    const driveFile = await uploadService.createFileEntry({
+      ...params,
+      encryptVersion: EncryptionVersion.Aes03,
+    });
+    return driveFile.uuid;
+  } catch (err) {
+    if ((err as { status?: number })?.status !== HTTP_CONFLICT) {
+      throw err;
+    }
+    const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type }]);
+    if (!existentFiles[0]?.uuid) {
+      throw err;
+    }
+    return existentFiles[0].uuid;
+  }
+};
+
+const uploadPairedVideo = async (params: {
+  videoLocalPath: string;
+  videoFileName: string;
+  photoPlainName: string;
+  folderUuid: string;
+  creationIso: string;
+  modificationIso: string;
+  credentials: UploadCredentials;
+  signal?: AbortSignal;
+}): Promise<string | null> => {
+  const {
+    videoLocalPath,
+    videoFileName,
+    photoPlainName,
+    folderUuid,
+    creationIso,
+    modificationIso,
+    credentials,
+    signal,
+  } = params;
+  const { fileExtension } = splitFileNameAndExtension(videoFileName);
+  const pairedVideoPlainName = getPairedVideoPlainNameFromPhoto(photoPlainName);
+  try {
+    return await uploadSingleFile({
+      localFilePath: videoLocalPath,
+      folderUuid,
+      plainName: pairedVideoPlainName,
+      fileExtension,
+      creationIso,
+      modificationIso,
+      credentials,
+      signal,
+    });
+  } catch (err) {
+    logger.error(`[PhotoUploadService] Failed to upload Live Photo paired video for photo "${photoPlainName}":`, err);
+    return null;
+  }
+};
+
+/**
+ * Uploads a file's bytes and swaps them into an existing Drive entry, falling back to creating
+ * a new entry if the existing one was deleted or trashed.
+ * @param params.localFilePath - Path of the local file to upload.
+ * @param params.thumbnailSource - Path/URI to generate the thumbnail from.
+ * @param params.existingRemoteFileId - UUID of the Drive entry to replace.
+ * @param params.plainName - File name without extension.
+ * @param params.fileExtension - File extension, without the leading dot.
+ * @param params.fileSize - Size of the local file, in bytes.
+ * @param params.folderUuid - Destination folder UUID, used only if a new entry has to be created.
+ * @param params.bucketId - Network bucket to upload the bytes to.
+ * @param params.modificationIso - Asset modification time, ISO 8601.
+ * @param params.creationIso - Asset creation time, ISO 8601.
+ * @param params.credentials - Encryption key and bridge credentials for the upload.
+ * @param params.onProgress - Called with the upload progress ratio (0-1).
+ * @param params.signal - Aborts the upload when triggered.
+ * @returns UUID of the replaced or newly created Drive entry.
+ */
+const replaceRemoteFile = async (params: {
+  localFilePath: string;
+  thumbnailSource: string;
+  existingRemoteFileId: string;
+  plainName: string;
+  fileExtension: string;
+  fileSize: number;
+  folderUuid: string;
+  bucketId: string;
+  modificationIso: string;
+  creationIso: string;
+  credentials: UploadCredentials;
+  onProgress?: (ratio: number) => void;
+  signal?: AbortSignal;
+}): Promise<string> => {
+  const {
+    localFilePath,
+    thumbnailSource,
+    existingRemoteFileId,
+    plainName,
+    fileExtension,
+    fileSize,
+    folderUuid,
+    bucketId,
+    modificationIso,
+    creationIso,
+    credentials,
+    onProgress,
+    signal,
+  } = params;
+
+  let fileId: string;
+  try {
+    fileId = await uploadFile(
+      localFilePath,
+      bucketId,
+      credentials.encryptionKey,
+      constants.BRIDGE_URL,
+      { user: credentials.bridgeUser, pass: credentials.bridgePass },
+      { notifyProgress: onProgress, signal },
+    );
+  } catch (uploadError) {
+    if (uploadError instanceof Error && uploadError.name !== 'Error') {
+      throw uploadError;
+    }
+    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
+    throw new Error(`Bucket upload failed for ${plainName}.${fileExtension}: ${message}`);
+  }
+
+  let photoUuid = existingRemoteFileId;
+  try {
+    await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
+    await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials);
+  } catch (replaceError) {
+    if (!isDeletedOrTrashedError(replaceError)) {
+      logger.error(`Failed to replace file entry for ${existingRemoteFileId}:`, replaceError);
+      throw replaceError;
+    }
+    const driveFile = await uploadService.createFileEntry({
+      fileId,
+      type: fileExtension,
+      size: fileSize,
+      plainName,
+      bucket: bucketId,
+      folderUuid,
+      encryptVersion: EncryptionVersion.Aes03,
+      modificationTime: modificationIso,
+      creationTime: creationIso,
+    });
+    await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
+    photoUuid = driveFile.uuid;
+  }
+
+  return photoUuid;
+};
+
+export const PhotoUploadService = {
+  async upload(
+    asset: MediaLibrary.Asset,
+    deviceId: string,
+    photosBucket: string,
+    options: UploadOptions = {},
+  ): Promise<PhotoUploadResult> {
+    const { onProgress, signal, onEvent } = options;
+    const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
+
+    if (livePhoto) {
+      // TODO: duplicated in replace() — only the persist step differs (uploadSingleFile vs replaceFileEntry).
+      // Extract to PhotoLiveUploadHandler or similar
+      let components;
+      try {
+        components = await exportLivePhotoComponents(asset.id);
+      } catch (livePhotoErr) {
+        logger.warn(
+          `[PhotoUploadService] exportLivePhotoComponents failed, falling back to photo-only upload: ${livePhotoErr}`,
+        );
+        components = null;
+      }
+
+      if (components) {
+        const photoLocalPath = stripFileSchemeAndFragment(components.photo.uri);
+        const videoLocalPath = stripFileSchemeAndFragment(components.video.uri);
+
+        try {
+          const createdDate = new Date(asset.creationTime);
+          const creationIso = createdDate.toISOString();
+          const modificationIso = new Date(asset.modificationTime).toISOString();
+          const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
+
+          const [user, folderUuid] = await Promise.all([
+            asyncStorageService.getUser(),
+            photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate),
+          ]);
+          const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+          const credentials: UploadCredentials = { bucketId: photosBucket, encryptionKey, bridgeUser, bridgePass };
+
+          const photoUuid = await uploadSingleFile({
+            localFilePath: photoLocalPath,
+            folderUuid,
+            plainName,
+            fileExtension,
+            creationIso,
+            modificationIso,
+            credentials,
+            onProgress,
+            signal,
+          });
+
+          await uploadThumbnailForAsset(asset.uri, fileExtension, photoUuid, credentials);
+
+          const pairedVideoUuid = await uploadPairedVideo({
+            videoLocalPath,
+            videoFileName: components.video.fileName,
+            photoPlainName: plainName,
+            folderUuid,
+            creationIso,
+            modificationIso,
+            credentials,
+            signal,
+          });
+
+          return { photoUuid, pairedVideoUuid: pairedVideoUuid ?? undefined };
+        } finally {
+          await cleanupTempFile(photoLocalPath);
+          await cleanupTempFile(videoLocalPath);
+        }
+      }
+    }
+
+    let fileUploadResult: FileUploadResult;
+    try {
+      fileUploadResult = await uploadAssetToBucket(asset, deviceId, photosBucket, onProgress, signal);
+    } catch (err) {
+      if (err instanceof FileAlreadyExistsError) {
+        logger.info(
+          `[PhotoUploadService] FileAlreadyExists path — assetId=${asset.id} existingUuid=${err.existingUuid}`,
+        );
+        const burst = await uploadBurstMembersForExistingRepresentative({
+          asset,
+          deviceId,
+          photosBucket,
+          signal,
+          uploadMember: uploadSingleFile,
+          onEvent,
+        });
+        return { photoUuid: err.existingUuid, ...(burst ? { burst } : {}) };
+      }
+      throw err;
+    }
+
+    const {
+      fileId,
+      bucketId,
+      fileSize,
+      plainName,
+      fileExtension,
+      modificationIso,
+      creationIso,
+      folderUuid,
+      thumbnailSource,
+      tempPath,
+      credentials,
+    } = fileUploadResult;
+
+    try {
+      const photoUuid = await createFileEntryOrFetchExisting({
+        fileId,
+        type: fileExtension,
+        size: fileSize,
+        plainName,
+        bucket: bucketId,
+        folderUuid,
+        modificationTime: modificationIso,
+        creationTime: creationIso,
+      });
+
+      await uploadThumbnailForAsset(thumbnailSource, fileExtension, photoUuid, credentials);
+
+      logger.info(`[PhotoUploadService] BURST block reached — assetId=${asset.id} plainName=${plainName}`);
+      const burst = await uploadBurstMembersIfBurst({
+        assetId: asset.id,
+        representativePlainName: plainName,
+        folderUuid,
+        creationIso,
+        modificationIso,
+        credentials,
+        signal,
+        uploadMember: uploadSingleFile,
+        onEvent,
+      });
+
+      return { photoUuid, ...(burst ? { burst } : {}) };
+    } finally {
+      await cleanupTempFile(tempPath);
+    }
+  },
+
+  async replace(
+    asset: MediaLibrary.Asset,
+    existingRemoteFileId: string,
+    deviceId: string,
+    photosBucket: string,
+    options: UploadOptions = {},
+  ): Promise<PhotoUploadResult> {
+    const { onProgress, signal, onEvent } = options;
+    const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
+
+    if (livePhoto) {
+      let components;
+      try {
+        components = await exportLivePhotoComponents(asset.id);
+      } catch (livePhotoErr) {
+        logger.warn(
+          `[PhotoUploadService] exportLivePhotoComponents failed during replace, falling back to photo-only: ${livePhotoErr}`,
+        );
+        components = null;
+      }
+
+      if (components) {
+        const photoLocalPath = stripFileSchemeAndFragment(components.photo.uri);
+        const videoLocalPath = stripFileSchemeAndFragment(components.video.uri);
+
+        try {
+          const createdDate = new Date(asset.creationTime);
+          const creationIso = createdDate.toISOString();
+          const modificationIso = new Date(asset.modificationTime).toISOString();
+          const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
+
+          const photoFileStat = await fileSystemService.stat(photoLocalPath);
+          const user = await asyncStorageService.getUser();
+          const folderUuid = await photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate);
+          const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+          const credentials: UploadCredentials = {
+            bucketId: photosBucket,
+            encryptionKey,
+            bridgeUser,
+            bridgePass,
+          };
+
+          const photoUuid = await replaceRemoteFile({
+            localFilePath: photoLocalPath,
+            thumbnailSource: asset.uri,
+            existingRemoteFileId,
+            plainName,
+            fileExtension,
+            fileSize: photoFileStat.size,
+            folderUuid,
+            bucketId: photosBucket,
+            modificationIso,
+            creationIso,
+            credentials,
+            onProgress,
+            signal,
+          });
+
+          const pairedVideoUuid = await uploadPairedVideo({
+            videoLocalPath,
+            videoFileName: components.video.fileName,
+            photoPlainName: plainName,
+            folderUuid,
+            creationIso,
+            modificationIso,
+            credentials,
+            signal,
+          });
+
+          return { photoUuid, pairedVideoUuid: pairedVideoUuid ?? undefined };
+        } finally {
+          await cleanupTempFile(photoLocalPath);
+          await cleanupTempFile(videoLocalPath);
+        }
+      }
+    }
+
+    const { localPath: localFilePath, tempPath, thumbnailUri } = await resolveLocalPath(asset);
+
+    const createdDate = new Date(asset.creationTime);
+    const creationIso = createdDate.toISOString();
+    const modificationIso = new Date(asset.modificationTime).toISOString();
+    const { plainName, fileExtension } = splitFileNameAndExtension(asset.filename);
+
+    const fileStat = await fileSystemService.stat(localFilePath);
+    const user = await asyncStorageService.getUser();
+    const folderUuid = await photoBackupFolders.getOrCreateFolderForDate(deviceId, createdDate);
+    const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
+    const credentials: UploadCredentials = { bucketId: photosBucket, encryptionKey, bridgeUser, bridgePass };
+
+    try {
+      const photoUuid = await replaceRemoteFile({
+        localFilePath,
+        thumbnailSource: thumbnailUri ?? localFilePath,
+        existingRemoteFileId,
+        plainName,
+        fileExtension,
+        fileSize: fileStat.size,
+        folderUuid,
+        bucketId: photosBucket,
+        modificationIso,
+        creationIso,
+        credentials,
+        onProgress,
+        signal,
+      });
+
+      const burst = await uploadBurstMembersIfBurst({
+        assetId: asset.id,
+        representativePlainName: plainName,
+        folderUuid,
+        creationIso,
+        modificationIso,
+        credentials,
+        signal,
+        uploadMember: uploadSingleFile,
+        onEvent,
+      });
+
+      return { photoUuid, ...(burst ? { burst } : {}) };
+    } finally {
+      await cleanupTempFile(tempPath);
+    }
+  },
+};

@@ -4,10 +4,12 @@ import { Platform } from 'react-native';
 import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 
+import { logger } from '../logger';
 import { stripFileUri, toFileUri } from '../uri/uriHelpers';
 import {
   IMAGE_THUMBNAIL_EXTENSIONS,
   PDF_THUMBNAIL_QUALITY,
+  RAW_IMAGE_THUMBNAIL_EXTENSIONS,
   THUMBNAIL_JPEG_COMPRESS,
   THUMBNAIL_MAX_WIDTH,
   VIDEO_THUMBNAIL_DIR_SIZE,
@@ -17,7 +19,7 @@ import type { GeneratedThumbnail } from './thumbnail.types';
 
 const statSize = async (path: string): Promise<number> => Number((await RNFS.stat(path)).size);
 
-const generateImageThumbnailAndroid = async (sourcePath: string): Promise<GeneratedThumbnail> => {
+const generateImageThumbnailViaManipulator = async (sourcePath: string): Promise<GeneratedThumbnail> => {
   const imageManipulatorContext = ImageManipulator.manipulate(toFileUri(sourcePath));
   imageManipulatorContext.resize({ width: THUMBNAIL_MAX_WIDTH });
   const imageRef = await imageManipulatorContext.renderAsync();
@@ -43,7 +45,10 @@ const generateMediaThumbnail = async (sourcePath: string): Promise<GeneratedThum
 // instead of expo-image-manipulator: subsampled decode avoids loading the full bitmap
 // into memory, preventing jetsam kills in the share extension
 export const generateImageThumbnail = async (sourcePath: string): Promise<GeneratedThumbnail> =>
-  Platform.OS === 'android' ? generateImageThumbnailAndroid(sourcePath) : generateMediaThumbnail(sourcePath);
+  Platform.OS === 'android' ? generateImageThumbnailViaManipulator(sourcePath) : generateMediaThumbnail(sourcePath);
+
+export const generateRawImageThumbnail = (sourcePath: string): Promise<GeneratedThumbnail> =>
+  generateImageThumbnailViaManipulator(sourcePath);
 
 export const generateVideoThumbnail = (sourcePath: string): Promise<GeneratedThumbnail> =>
   generateMediaThumbnail(sourcePath);
@@ -56,7 +61,19 @@ export const generatePdfThumbnail = async (sourcePath: string): Promise<Generate
 
 export const generateThumbnail = async (sourcePath: string, extension: string): Promise<GeneratedThumbnail> => {
   const extensionLower = extension.toLowerCase();
-  if (IMAGE_THUMBNAIL_EXTENSIONS.has(extensionLower)) return generateImageThumbnail(sourcePath);
-  if (VIDEO_THUMBNAIL_EXTENSIONS.has(extensionLower)) return generateVideoThumbnail(sourcePath);
-  return generatePdfThumbnail(sourcePath);
+  try {
+    if (RAW_IMAGE_THUMBNAIL_EXTENSIONS.has(extensionLower)) {
+      return await generateRawImageThumbnail(sourcePath);
+    }
+    if (IMAGE_THUMBNAIL_EXTENSIONS.has(extensionLower)) {
+      return await generateImageThumbnail(sourcePath);
+    }
+    if (VIDEO_THUMBNAIL_EXTENSIONS.has(extensionLower)) {
+      return await generateVideoThumbnail(sourcePath);
+    }
+    return await generatePdfThumbnail(sourcePath);
+  } catch (error) {
+    logger.error(`[thumbnail.generation] Failed to generate thumbnail for ${sourcePath}: ${error}`);
+    throw error;
+  }
 };

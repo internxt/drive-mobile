@@ -1,4 +1,4 @@
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer, NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { useRef } from 'react';
 import { View } from 'react-native';
 
@@ -6,8 +6,11 @@ import { RootStackParamList } from '../types/navigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import RootNavigator from './RootNavigator';
 
-export default function Navigation() {
-  const navigationRef = useNavigationContainerRef<RootStackParamList>();
+interface NavigationProps {
+  readonly navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>;
+}
+
+export default function Navigation({ navigationRef }: NavigationProps) {
   const routeNameRef = useRef<string>();
 
   return (

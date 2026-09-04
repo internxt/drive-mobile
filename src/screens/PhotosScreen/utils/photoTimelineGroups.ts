@@ -1,0 +1,255 @@
+import * as MediaLibrary from 'expo-media-library';
+import { isVideoExtension } from 'src/services/drive/file/utils/exifHelpers';
+import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
+import { isLivePhotoAsset } from 'src/services/photos/livePhoto.constants';
+import { PhotosDisabledReason, PhotoSyncStatus } from 'src/store/slices/photos';
+import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
+import { TimelineDateGroup } from '../components/PhotosTimeline';
+import { CloudPhotoItem, PhotoBackupState, PhotoDateGroup, PhotoItem, TimelinePhotoItem } from '../types';
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+export const formatVideoDuration = (seconds: number): string => {
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+};
+
+export const getDateLabel = (date: Date, now: Date): string => {
+  const todayDateString = now.toDateString();
+  const yesterDateString = new Date(now.getTime() - MS_PER_DAY).toDateString();
+
+  if (date.toDateString() === todayDateString) return 'Today';
+  if (date.toDateString() === yesterDateString) return 'Yesterday';
+
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  }
+
+  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+export const assetToPhotoItem = (
+  asset: MediaLibrary.Asset,
+  syncedIds: Set<string>,
+  uploadingIdSet: Set<string>,
+  burstRepresentativeIdSet?: Set<string>,
+  incompleteBurstIdSet?: Set<string>,
+  cloudDeletedIds?: Set<string>,
+): PhotoItem => {
+  let backupState: PhotoBackupState;
+  if (uploadingIdSet.has(asset.id)) {
+    backupState = 'uploading';
+  } else if (syncedIds.has(asset.id)) {
+    backupState = 'backed';
+  } else if (cloudDeletedIds?.has(asset.id)) {
+    backupState = 'cloud-deleted';
+  } else {
+    backupState = 'not-backed';
+  }
+
+  const isVideo = asset.mediaType === MediaLibrary.MediaType.video;
+  return {
+    id: asset.id,
+    type: 'local',
+    uri: asset.uri,
+    createdAt: asset.creationTime,
+    modificationTime: asset.modificationTime,
+    backupState,
+    mediaType: isVideo ? 'video' : 'photo',
+    duration: isVideo ? formatVideoDuration(asset.duration) : undefined,
+    isLivePhoto: isLivePhotoAsset(asset),
+    isBurst: burstRepresentativeIdSet?.has(asset.id) ?? false,
+    isBurstUploadIncomplete: incompleteBurstIdSet?.has(asset.id) ?? false,
+  };
+};
+
+export const groupAssetsByDate = (
+  assets: MediaLibrary.Asset[],
+  syncedIds: Set<string>,
+  uploadingIdSet: Set<string>,
+  burstRepresentativeIdSet?: Set<string>,
+  incompleteBurstIdSet?: Set<string>,
+  cloudDeletedIds?: Set<string>,
+): PhotoDateGroup[] => {
+  const now = new Date();
+  const groupMap = new Map<string, { label: string; photos: PhotoItem[] }>();
+
+  for (const asset of assets) {
+    const date = new Date(asset.creationTime);
+    const groupKey = date.toDateString();
+
+    let group = groupMap.get(groupKey);
+    if (!group) {
+      group = { label: getDateLabel(date, now), photos: [] };
+      groupMap.set(groupKey, group);
+    }
+    group.photos.push(
+      assetToPhotoItem(
+        asset,
+        syncedIds,
+        uploadingIdSet,
+        burstRepresentativeIdSet,
+        incompleteBurstIdSet,
+        cloudDeletedIds,
+      ),
+    );
+  }
+
+  return Array.from(groupMap.entries()).map(([key, { label, photos }]) => ({
+    id: key,
+    label,
+    photos,
+  }));
+};
+
+export const getGroupSyncStatus = ({
+  group,
+  syncStatus,
+  remainingCount,
+  backupProgress,
+  isFetchingCloudHistory,
+  isPaused,
+  disabledReason,
+  assetUploadErroredCount,
+}: {
+  group: PhotoDateGroup;
+  syncStatus: PhotoSyncStatus;
+  remainingCount: number;
+  backupProgress: number | undefined;
+  isFetchingCloudHistory: boolean;
+  isPaused: boolean;
+  disabledReason: PhotosDisabledReason;
+  assetUploadErroredCount: number;
+}): GroupSyncStatus => {
+  if (disabledReason === 'quota-exceeded') {
+    return { type: 'paused-storage-full' };
+  }
+
+  if (isPaused) {
+    return syncStatus === 'pausing' ? { type: 'pausing' } : { type: 'paused', count: remainingCount };
+  }
+
+  switch (syncStatus) {
+    case 'scanning':
+      return { type: 'scanning' };
+    case 'uploading':
+      return { type: 'uploading', count: remainingCount, backupProgress };
+    case 'pausing':
+      return { type: 'pausing' };
+    case 'synced':
+      if (isFetchingCloudHistory) {
+        return { type: 'fetching' };
+      }
+      if (assetUploadErroredCount > 0) {
+        return { type: 'upload-error', count: assetUploadErroredCount };
+      }
+      return { type: 'completed' };
+    case 'paused':
+      return { type: 'paused', count: remainingCount };
+    case 'paused-no-wifi':
+      return { type: 'paused-no-wifi' };
+    case 'paused-no-connection':
+      return { type: 'paused-no-connection' };
+    default:
+      if (isFetchingCloudHistory) {
+        return { type: 'fetching' };
+      }
+      if (assetUploadErroredCount > 0) {
+        return { type: 'upload-error', count: assetUploadErroredCount };
+      }
+      return { type: 'count', count: group.photos.length };
+  }
+};
+
+export const cloudEntryToPhotoItem = (entry: CloudAssetEntry): CloudPhotoItem => ({
+  id: entry.remoteFileId,
+  type: 'cloud-only',
+  mediaType: isVideoExtension(entry.fileName.split('.').pop() ?? '') ? 'video' : 'photo',
+  thumbnailPath: entry.thumbnailPath,
+  thumbnailBucketId: entry.thumbnailBucketId,
+  thumbnailBucketFile: entry.thumbnailBucketFile,
+  thumbnailType: entry.thumbnailType,
+  deviceId: entry.deviceId,
+  folderDate: entry.folderDate,
+  fileName: entry.fileName,
+  isLivePhoto: entry.isLivePhoto,
+  pairedVideoRemoteFileId: entry.pairedRemoteFileId ?? undefined,
+  isBurst: entry.burstRole === 'representative',
+  burstGroupId: entry.burstGroupId ?? undefined,
+  uploadedAt: entry.uploadedAt,
+  isFavorite: entry.isFavorite ?? false,
+});
+
+export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: CloudPhotoItem[]): PhotoDateGroup[] => {
+  if (cloudItems.length === 0) return localGroups;
+
+  const now = new Date();
+
+  const cloudByKey = new Map<string, CloudPhotoItem[]>();
+  for (const item of cloudItems) {
+    const key = new Date(item.folderDate).toDateString();
+    let list = cloudByKey.get(key);
+    if (!list) {
+      list = [];
+      cloudByKey.set(key, list);
+    }
+    list.push(item);
+  }
+
+  const processedKeys = new Set<string>();
+  const result: PhotoDateGroup[] = localGroups.map((group) => {
+    processedKeys.add(group.id);
+    const extra = cloudByKey.get(group.id);
+    if (!extra) {
+      return group; // no cloud additions — preserve reference so FlashList skips these cells
+    }
+    return { ...group, photos: [...group.photos, ...extra] };
+  });
+
+  for (const [key, photos] of cloudByKey) {
+    if (processedKeys.has(key)) continue;
+    const date = new Date(key);
+    result.push({ id: key, label: getDateLabel(date, now), photos });
+  }
+
+  return result.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
+};
+
+export interface GroupBoundary {
+  startIndex: number;
+  id: string;
+  label: string;
+  syncStatus: GroupSyncStatus;
+}
+
+export interface FlatTimeline {
+  photos: TimelinePhotoItem[];
+  boundaries: GroupBoundary[];
+}
+
+export const buildFlatTimeline = (groups: TimelineDateGroup[]): FlatTimeline => {
+  const photos: TimelinePhotoItem[] = [];
+  const boundaries: GroupBoundary[] = [];
+
+  for (const { group, syncStatus } of groups) {
+    boundaries.push({ startIndex: photos.length, id: group.id, label: group.label, syncStatus });
+    for (const photo of group.photos) {
+      photos.push(photo);
+    }
+  }
+
+  return { photos, boundaries };
+};
+
+export const findGroupForIndex = (boundaries: GroupBoundary[], itemIndex: number): GroupBoundary | undefined => {
+  let result: GroupBoundary | undefined;
+  for (const boundary of boundaries) {
+    if (boundary.startIndex <= itemIndex) {
+      result = boundary;
+    } else {
+      break;
+    }
+  }
+  return result;
+};

@@ -6,16 +6,8 @@ import { DriveListType } from '@internxt-mobile/types/drive/ui';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  SafeAreaView,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, TextInput, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from 'src/components/AppText';
 import DriveList from 'src/components/drive/lists/DriveList/DriveList';
 import useGetColor from 'src/hooks/useColor';
@@ -39,6 +31,7 @@ interface GlobalSearchModalProps {
 export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, onClose, onItemPress }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const insets = useSafeAreaInsets();
   const [inputRef, setInputRef] = useState<TextInput | null>(null);
   const [isNavigating, setIsNavigating] = useState(false);
   const navigation = useNavigation<DriveScreenProps<'DriveFolder'>['navigation']>();
@@ -273,8 +266,19 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
   };
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="fullScreen">
-      <SafeAreaView style={[tailwind('flex-1'), { backgroundColor: getColor('bg-surface') }]}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      statusBarTranslucent
+      navigationBarTranslucent
+    >
+      <View
+        style={[
+          tailwind('flex-1'),
+          { backgroundColor: getColor('bg-surface'), paddingTop: insets.top, paddingBottom: insets.bottom },
+        ]}
+      >
         <KeyboardAvoidingView style={tailwind('flex-1')} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           {/* Header */}
           <View style={tailwind('flex-row items-center px-4 py-3 border-b border-gray-5')}>
@@ -299,9 +303,19 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
                 onChangeText={updateQuery}
                 placeholder={strings.modals.GlobalSearchModal.searchPlaceholder}
                 placeholderTextColor={getColor('text-gray-40')}
-                style={[tailwind('flex-1 ml-2 text-base'), { color: getColor('text-gray-100') }]}
+                style={[
+                  tailwind('flex-1 ml-2'),
+                  {
+                    fontSize: 16,
+                    color: getColor('text-gray-100'),
+                    paddingVertical: 0,
+                    textAlignVertical: 'center',
+                    includeFontPadding: false,
+                  },
+                ]}
                 autoCapitalize="none"
                 autoCorrect={false}
+                spellCheck={false}
                 returnKeyType="search"
                 editable={!isNavigating}
               />
@@ -363,7 +377,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
             renderEmptyState()
           )}
         </KeyboardAvoidingView>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };

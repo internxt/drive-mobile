@@ -1,6 +1,6 @@
+import { Image } from 'expo-image';
 import React, { useEffect, useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
-import FastImage from 'react-native-fast-image';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import { useAppSelector } from '../../store/hooks';
@@ -37,14 +37,14 @@ const UserProfilePicture = (props: UserProfilePictureProps) => {
       ]}
     >
       {hasValidAvatar ? (
-        <FastImage
+        <Image
           source={{ uri: props.uri as string }}
           style={{
             height: props.size,
             width: props.size,
             borderRadius: props.size / 2,
           }}
-          resizeMode={FastImage.resizeMode.cover}
+          contentFit="cover"
           onError={() => {
             setImageError(true);
           }}

@@ -2,11 +2,14 @@ import { DisplayPrice, Invoice, PaymentMethod, UserSubscription } from '@internx
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import strings from 'assets/lang/strings';
 import _ from 'lodash';
+import asyncStorageService from 'src/services/AsyncStorageService';
 import authService from 'src/services/AuthService';
 import notificationsService from 'src/services/NotificationsService';
 import paymentService from 'src/services/PaymentService';
 import { RootState } from 'src/store';
-import { NotificationType } from 'src/types';
+import { AsyncStorageKey, NotificationType } from 'src/types';
+
+const PHOTOS_ACCESS_TTL_MS = 24 * 60 * 60 * 1000;
 
 export type Paypal = {
   paypal?: {
@@ -26,6 +29,7 @@ export interface PaymentsState {
   sessionId: string;
   invoices: Invoice[] | null;
   defaultPaymentMethod: DefaultPaymentMethod | null;
+  photosAccess?: boolean;
 }
 
 const initialState: PaymentsState = {
@@ -52,6 +56,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
         dispatch(loadInvoicesThunk());
         dispatch(loadDefaultPaymentMethodThunk());
         dispatch(checkShouldDisplayBilling());
+        dispatch(loadFileLimitsThunk());
       }
     } catch (err) {
       // Pass
@@ -96,6 +101,28 @@ const checkShouldDisplayBilling = createAsyncThunk<boolean, void, { state: RootS
   },
 );
 
+const loadFileLimitsThunk = createAsyncThunk<{ photosAccess: boolean } | null, void, { state: RootState }>(
+  'payments/loadFileLimits',
+  async () => {
+    const cached = await asyncStorageService.getItem(AsyncStorageKey.PhotosAccessCache);
+    if (cached) {
+      const { photosAccess, cachedAt } = JSON.parse(cached) as { photosAccess: boolean; cachedAt: number };
+      if (Date.now() - cachedAt < PHOTOS_ACCESS_TTL_MS) {
+        return { photosAccess };
+      }
+    }
+
+    const limits = await paymentService.getFileLimits();
+    if (limits) {
+      await asyncStorageService.saveItem(
+        AsyncStorageKey.PhotosAccessCache,
+        JSON.stringify({ photosAccess: limits.photosAccess, cachedAt: Date.now() }),
+      );
+    }
+    return limits;
+  },
+);
+
 const cancelSubscriptionThunk = createAsyncThunk<void, void, { state: RootState }>(
   'payments/cancelSubscription',
   async () => {
@@ -112,6 +139,9 @@ export const paymentsSlice = createSlice({
     },
     setSubscriptionAsFree: (state) => {
       state.subscription = { type: 'free' };
+    },
+    setPhotosAccess: (state, action: PayloadAction<boolean>) => {
+      state.photosAccess = action.payload;
     },
   },
   extraReducers(builder) {
@@ -148,6 +178,12 @@ export const paymentsSlice = createSlice({
       state.showBilling = false;
     });
 
+    builder.addCase(loadFileLimitsThunk.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.photosAccess = action.payload.photosAccess;
+      }
+    });
+
     builder.addCase(cancelSubscriptionThunk.rejected, () => {
       notificationsService.show({ type: NotificationType.Error, text1: strings.errors.cancelSubscription });
     });
@@ -162,6 +198,7 @@ export const paymentsSelectors = {
   hasSubscription: (state: RootState) => state.payments.subscription.type === 'subscription',
   hasLifetime: (state: RootState) => state.payments.subscription.type === 'lifetime',
   shouldShowBilling: (state: RootState) => state.payments.showBilling,
+  hasPhotosAccess: (state: RootState) => state.payments.photosAccess ?? false,
 };
 
 export const paymentsThunks = {
@@ -169,6 +206,7 @@ export const paymentsThunks = {
   loadPricesThunk,
   loadUserSubscriptionThunk,
   loadInvoicesThunk,
+  loadFileLimitsThunk,
   cancelSubscriptionThunk,
   checkShouldDisplayBilling,
 };

@@ -141,7 +141,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
           'react-native-gesture-handler',
           'react-native-video',
           'react-native-webview',
-          'react-native-fast-image',
           'react-native-svg',
           '@shopify/flash-list',
           'react-native-pdf',

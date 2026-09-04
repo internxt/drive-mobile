@@ -605,6 +605,8 @@ export const driveSlice = createSlice({
   },
 });
 
+let hasLoggedMissingBucket = false;
+
 export const driveSelectors = {
   absolutePath: (state: RootState) => {
     return state.drive.navigationStack.reduce((result, item) => result + item.name + '/', '/');
@@ -618,7 +620,14 @@ export const driveSelectors = {
     const { folderContent, uploadingFiles, searchString, currentFolderId } = state.drive;
     const bucket = state.auth.user?.bucket;
 
-    if (!bucket) throw new Error('Bucket not found');
+    if (!bucket) {
+      if (!hasLoggedMissingBucket) {
+        hasLoggedMissingBucket = true;
+        logger.warn('[Drive] driveItems selector evaluated with no bucket, returning empty result');
+      }
+      return { uploading: [], items: [] };
+    }
+    hasLoggedMissingBucket = false;
     let items = folderContent;
 
     if (searchString) {

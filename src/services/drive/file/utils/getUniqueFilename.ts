@@ -1,4 +1,4 @@
-import renameIfNeeded from '@internxt/lib/dist/src/items/renameIfNeeded';
+import renameIfNeeded from '@internxt/lib/dist/items/renameIfNeeded';
 import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
 
 export type CheckDuplicates = (

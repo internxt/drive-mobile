@@ -1,11 +1,13 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
-import { Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 
 import {
   EnvelopeIcon,
   FolderSimpleIcon,
   GearIcon,
   HouseIcon,
+  ImageIcon,
   NotePencilIcon,
   PlusCircleIcon,
   UsersIcon,
@@ -15,21 +17,40 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 import { useLanguage } from '../../hooks/useLanguage';
-import { RootScreenNavigationProp } from '../../types/navigation';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { uiActions } from '../../store/slices/ui';
 import globalStyle from '../../styles/global';
+import { RootScreenNavigationProp } from '../../types/navigation';
+
+const TAB_BAR_HEIGHT = 56;
+
+const DRIVE_ONLY_TABS = new Set(['Home', 'Drive', 'Add', 'Photos']);
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const activeSpace = useAppSelector((state) => state.ui.activeSpace);
+  const isHidden = useAppSelector((state) => state.ui.isTabBarHidden);
   useLanguage();
+
+  const heightAnim = useRef(new Animated.Value(isHidden ? 0 : TAB_BAR_HEIGHT)).current;
+
+  useEffect(() => {
+    Animated.timing(heightAnim, {
+      toValue: isHidden ? 0 : TAB_BAR_HEIGHT,
+      duration: 250,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: false,
+    }).start();
+  }, [isHidden]);
 
   const tabs = {
     Home: { label: strings.tabs.Home, icon: HouseIcon },
+    Drive: { label: strings.tabs.Drive, icon: FolderSimpleIcon },
     Add: { label: strings.tabs.Add, icon: PlusCircleIcon },
+    Shared: { label: strings.tabs.Shared, icon: UsersIcon },
+    Photos: { label: strings.tabs.Photos, icon: ImageIcon },
     Settings: { label: strings.tabs.Settings, icon: GearIcon },
   };
 
@@ -152,9 +173,48 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     );
   };
 
+  const renderSpaceSwitcherOption = (space: 'drive' | 'mail') => {
+    const isActive = activeSpace === space;
+    const Icon = space === 'drive' ? FolderSimpleIcon : EnvelopeIcon;
+    const label = space === 'drive' ? strings.tabs.Drive : strings.tabs.Mail;
+
+    return (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        style={[
+          tailwind('flex-1 flex-row items-center justify-center rounded-full py-2'),
+          isActive && {
+            backgroundColor: getColor('bg-surface'),
+            shadowColor: getColor('text-gray-100'),
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+            shadowOffset: { width: 0, height: 1 },
+            elevation: 1,
+          },
+        ]}
+        onPress={() => onDriveOrMailSpaceSelected(space)}
+      >
+        <Icon
+          weight={isActive ? 'fill' : undefined}
+          color={isActive ? getColor('text-primary') : getColor('text-gray-50')}
+          size={18}
+        />
+        <Text
+          style={[
+            tailwind('ml-2 text-sm'),
+            { color: isActive ? getColor('text-primary') : getColor('text-gray-50') },
+            isActive ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
+          ]}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   const items = props.state.routes
-    .filter((route) => Object.keys(tabs).includes(route.name) || route.name === 'Shared')
-    .filter((route) => !(activeSpace === 'mail' && (route.name === 'Home' || route.name === 'Add')))
+    .filter((route) => Object.keys(tabs).includes(route.name))
+    .filter((route) => !(activeSpace === 'mail' && DRIVE_ONLY_TABS.has(route.name)))
     .map((route) => {
       const isFocused = props.state.routes[props.state.index]?.key === route.key;
       return route.name === 'Shared' ? renderSharedTab(route, isFocused) : renderRegularTab(route, isFocused);
@@ -162,85 +222,30 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
 
   return (
     <View style={{ backgroundColor: getColor('bg-surface') }}>
-      {driveRoute && (
+      {driveRoute && !isHidden && (
         <View style={tailwind('px-4 pt-2 pb-1')}>
           <View style={[tailwind('flex-row rounded-full'), { padding: 4, backgroundColor: getColor('bg-gray-5') }]}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={[
-                tailwind('flex-1 flex-row items-center justify-center rounded-full py-2'),
-                activeSpace === 'drive' && {
-                  backgroundColor: getColor('bg-surface'),
-                  shadowColor: getColor('text-gray-100'),
-                  shadowOpacity: 0.08,
-                  shadowRadius: 4,
-                  shadowOffset: { width: 0, height: 1 },
-                  elevation: 1,
-                },
-              ]}
-              onPress={() => onDriveOrMailSpaceSelected('drive')}
-            >
-              <FolderSimpleIcon
-                weight={activeSpace === 'drive' ? 'fill' : undefined}
-                color={activeSpace === 'drive' ? getColor('text-primary') : getColor('text-gray-50')}
-                size={18}
-              />
-              <Text
-                style={[
-                  tailwind('ml-2 text-sm'),
-                  { color: activeSpace === 'drive' ? getColor('text-primary') : getColor('text-gray-50') },
-                  activeSpace === 'drive' ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-                ]}
-              >
-                {strings.tabs.Drive}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={[
-                tailwind('flex-1 flex-row items-center justify-center rounded-full py-2'),
-                activeSpace === 'mail' && {
-                  backgroundColor: getColor('bg-surface'),
-                  shadowColor: getColor('text-gray-100'),
-                  shadowOpacity: 0.08,
-                  shadowRadius: 4,
-                  shadowOffset: { width: 0, height: 1 },
-                  elevation: 1,
-                },
-              ]}
-              onPress={() => onDriveOrMailSpaceSelected('mail')}
-            >
-              <EnvelopeIcon
-                weight={activeSpace === 'mail' ? 'fill' : undefined}
-                color={activeSpace === 'mail' ? getColor('text-primary') : getColor('text-gray-50')}
-                size={18}
-              />
-              <Text
-                style={[
-                  tailwind('ml-2 text-sm'),
-                  { color: activeSpace === 'mail' ? getColor('text-primary') : getColor('text-gray-50') },
-                  activeSpace === 'mail' ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-                ]}
-              >
-                {strings.tabs.Mail}
-              </Text>
-            </TouchableOpacity>
+            {renderSpaceSwitcherOption('drive')}
+            {renderSpaceSwitcherOption('mail')}
           </View>
         </View>
       )}
 
-      <View
-        style={[
-          tailwind('flex-row px-2 justify-around items-center'),
-          {
-            borderTopWidth: 1,
-            borderTopColor: getColor('border-gray-10'),
-          },
-        ]}
-      >
-        {items}
-      </View>
+      <Animated.View style={{ height: heightAnim, overflow: 'hidden' }}>
+        <View
+          style={[
+            tailwind('flex-row px-2 justify-around items-center'),
+            {
+              height: TAB_BAR_HEIGHT,
+              backgroundColor: getColor('bg-surface'),
+              borderTopWidth: 1,
+              borderTopColor: getColor('border-gray-10'),
+            },
+          ]}
+        >
+          {items}
+        </View>
+      </Animated.View>
     </View>
   );
 }

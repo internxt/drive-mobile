@@ -31,6 +31,7 @@ export interface UIState {
   showEmptyFileNotAllowedModal: boolean;
   fileSizeExceededMessage: string | null;
   showNotEnoughDeviceSpaceModal: boolean;
+  isTabBarHidden: boolean;
 }
 
 const initialState: UIState = {
@@ -61,6 +62,7 @@ const initialState: UIState = {
   showEmptyFileNotAllowedModal: false,
   fileSizeExceededMessage: null,
   showNotEnoughDeviceSpaceModal: false,
+  isTabBarHidden: false,
 };
 
 export const uiSlice = createSlice({
@@ -145,6 +147,9 @@ export const uiSlice = createSlice({
     },
     setShowNotEnoughDeviceSpaceModal: (state, action: PayloadAction<boolean>) => {
       state.showNotEnoughDeviceSpaceModal = action.payload;
+    },
+    setIsTabBarHidden: (state, action: PayloadAction<boolean>) => {
+      state.isTabBarHidden = action.payload;
     },
   },
 });

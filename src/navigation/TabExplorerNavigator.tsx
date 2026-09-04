@@ -5,30 +5,31 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/
 import { useEffect } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import SecurityModal from 'src/components/modals/SecurityModal';
-import { authThunks } from 'src/store/slices/auth';
+import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import AddModal from '../components/modals/AddModal';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
-import MoveItemsModal from '../components/modals/MoveItemsModal';
-import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import EmptyFileNotAllowedModal from '../components/modals/EmptyFileNotAllowedModal';
 import FileSizeExceededModal from '../components/modals/FileSizeExceededModal';
+import MoveItemsModal from '../components/modals/MoveItemsModal';
 import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
+import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
-import SignOutModal from '../components/modals/SignOutModal';
 import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
 import MailboxListScreen from '../screens/mail/MailboxListScreen';
+import { useDiscoverPhotosSheet } from '../screens/HomeScreen/useDiscoverPhotosSheet';
+import PhotosScreen from '../screens/PhotosScreen';
+import DiscoverPhotosBottomSheet from '../screens/PhotosScreen/DiscoverPhotosBottomSheet';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { uiActions } from '../store/slices/ui';
 import { AsyncStorageKey } from '../types';
-import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
+import { RootStackScreenProps, TabExplorerScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
 import { MailNavigator } from './MailNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
@@ -41,9 +42,9 @@ const LAUNCH_ON_ROUTE_ON_DEV_MODE: keyof TabExplorerStackParamList | undefined =
   : undefined;
 
 // The Home tab shows Recents in Drive space, or the Inbox in Mail space
-function TabHomeScreen(): JSX.Element {
+function TabHomeScreen(props: TabExplorerScreenProps<'Home'>): JSX.Element {
   const activeSpace = useAppSelector((state) => state.ui.activeSpace);
-  return activeSpace === 'mail' ? <MailboxListScreen /> : <HomeScreen />;
+  return activeSpace === 'mail' ? <MailboxListScreen /> : <HomeScreen {...props} />;
 }
 
 // The Drive tab shows the Drive file browser or the Mail folder browser, depending on the active space
@@ -57,8 +58,9 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   const dispatch = useAppDispatch();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
-  const { isSecurityModalOpen } = useAppSelector((state) => state.ui);
-  const onSecurityModalClosed = () => dispatch(uiActions.setIsSecurityModalOpen(false));
+  const discoverSheet = useDiscoverPhotosSheet(
+    appService.isPhotosEnabled ? () => props.navigation.navigate('TabExplorer', { screen: 'Photos' }) : () => undefined,
+  );
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', handleOnAppStateChange);
@@ -67,17 +69,18 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
 
   async function handleOnAppStateChange(state: AppStateStatus) {
     if (state === 'active') {
+      if (appService.isPhotosEnabled) dispatch(runBackupCycleThunk());
       try {
         await dispatch(storageThunks.loadLimitThunk()).unwrap();
       } catch {
         const isDeletingAccount = await asyncStorageService.getItem(AsyncStorageKey.IsDeletingAccount);
         if (isDeletingAccount) {
-          dispatch(authThunks.signOutThunk({ reason: 'manual' }));
           props.navigation.replace('DeactivatedAccount');
         }
       }
     }
   }
+
   return (
     <View
       style={{ ...tailwind('h-full'), backgroundColor: getColor('bg-surface'), paddingBottom: safeAreaInsets.bottom }}
@@ -95,9 +98,20 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         <Tab.Screen name="Drive" component={TabDriveOrMailScreen} options={{ lazy: false }} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
-        <Tab.Screen name="Settings" component={SettingsNavigator} options={{ lazy: false }} />
+        {appService.isPhotosEnabled ? (
+          <Tab.Screen name="Photos" component={PhotosScreen} />
+        ) : (
+          <Tab.Screen name="Settings" component={SettingsNavigator} />
+        )}
       </Tab.Navigator>
 
+      {appService.isPhotosEnabled && (
+        <DiscoverPhotosBottomSheet
+          isOpen={discoverSheet.isOpen}
+          onDismiss={discoverSheet.onDismiss}
+          onStartPhotos={discoverSheet.onStartPhotos}
+        />
+      )}
       <AddModal />
       <DriveItemInfoModal />
       <SharedLinkInfoModal />
@@ -107,8 +121,6 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
       <EmptyFileNotAllowedModal />
       <FileSizeExceededModal />
       <NotEnoughDeviceSpaceModal />
-      <SignOutModal />
-      <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
     </View>
   );
 }

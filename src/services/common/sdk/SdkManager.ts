@@ -100,8 +100,17 @@ export class SdkManager {
       token: this.getApiSecurity().newToken,
     });
   }
+
+  /** Mail SDK */
   get mail() {
     return MailApi.client(constants.MAIL_API_URL, SdkManager.getAppDetails(), {
+      token: this.getApiSecurity().newToken,
+    });
+  }
+
+  /** Photos SDK */
+  get photos() {
+    return Drive.Photos.client(constants.DRIVE_NEW_API_URL, SdkManager.getAppDetails(), {
       token: this.getApiSecurity().newToken,
     });
   }

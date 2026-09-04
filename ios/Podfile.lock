@@ -1,6 +1,8 @@
 PODS:
   - EASClient (1.0.8):
     - ExpoModulesCore
+  - EXApplication (7.0.8):
+    - ExpoModulesCore
   - EXConstants (18.0.13):
     - ExpoModulesCore
   - EXImageLoader (6.0.0):
@@ -46,6 +48,13 @@ PODS:
     - ExpoModulesCore
   - ExpoFont (14.0.12):
     - ExpoModulesCore
+  - ExpoImage (3.0.11):
+    - ExpoModulesCore
+    - libavif/libdav1d
+    - SDWebImage (~> 5.21.0)
+    - SDWebImageAVIFCoder (~> 0.11.0)
+    - SDWebImageSVGCoder (~> 1.7.0)
+    - SDWebImageWebPCoder (~> 0.14.6)
   - ExpoImageManipulator (14.0.8):
     - EXImageLoader
     - ExpoModulesCore
@@ -88,6 +97,8 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - ExpoNetwork (8.0.8):
+    - ExpoModulesCore
   - ExpoScreenOrientation (9.0.9):
     - ExpoModulesCore
     - hermes-engine
@@ -183,6 +194,11 @@ PODS:
     - Yoga
   - jail-monkey (2.8.4):
     - React-Core
+  - libavif/core (1.0.0)
+  - libavif/libdav1d (1.0.0):
+    - libavif/core
+    - libdav1d (>= 0.6.0)
+  - libdav1d (1.2.0)
   - libwebp (1.5.0):
     - libwebp/demux (= 1.5.0)
     - libwebp/mux (= 1.5.0)
@@ -2153,10 +2169,6 @@ PODS:
     - Yoga
   - RNDeviceInfo (8.7.1):
     - React-Core
-  - RNFastImage (8.6.3):
-    - React-Core
-    - SDWebImage (~> 5.11.1)
-    - SDWebImageWebPCoder (~> 0.8.4)
   - RNFileViewer (2.1.5):
     - React-Core
   - RNGestureHandler (2.28.0):
@@ -2442,16 +2454,22 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - SDWebImage (5.11.1):
-    - SDWebImage/Core (= 5.11.1)
-  - SDWebImage/Core (5.11.1)
-  - SDWebImageWebPCoder (0.8.5):
+  - SDWebImage (5.21.7):
+    - SDWebImage/Core (= 5.21.7)
+  - SDWebImage/Core (5.21.7)
+  - SDWebImageAVIFCoder (0.11.1):
+    - libavif/core (>= 0.11.0)
+    - SDWebImage (~> 5.10)
+  - SDWebImageSVGCoder (1.7.0):
+    - SDWebImage/Core (~> 5.6)
+  - SDWebImageWebPCoder (0.14.6):
     - libwebp (~> 1.0)
-    - SDWebImage/Core (~> 5.10)
+    - SDWebImage/Core (~> 5.17)
   - Yoga (0.0.0)
 
 DEPENDENCIES:
   - EASClient (from `../node_modules/expo-eas-client/ios`)
+  - EXApplication (from `../node_modules/expo-application/ios`)
   - EXConstants (from `../node_modules/expo-constants/ios`)
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - EXJSONUtils (from `../node_modules/expo-json-utils/ios`)
@@ -2463,6 +2481,7 @@ DEPENDENCIES:
   - ExpoDocumentPicker (from `../node_modules/expo-document-picker/ios`)
   - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
+  - ExpoImage (from `../node_modules/expo-image/ios`)
   - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoImagePicker (from `../node_modules/expo-image-picker/ios`)
   - ExpoKeepAwake (from `../node_modules/expo-keep-awake/ios`)
@@ -2472,6 +2491,7 @@ DEPENDENCIES:
   - ExpoLocalization (from `../node_modules/expo-localization/ios`)
   - ExpoMediaLibrary (from `../node_modules/expo-media-library/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
+  - ExpoNetwork (from `../node_modules/expo-network/ios`)
   - ExpoScreenOrientation (from `../node_modules/expo-screen-orientation/ios`)
   - ExpoSecureStore (from `../node_modules/expo-secure-store/ios`)
   - ExpoShareExtension (from `../node_modules/expo-share-extension/ios`)
@@ -2568,7 +2588,6 @@ DEPENDENCIES:
   - "rn-crypto (from `../node_modules/@internxt/rn-crypto`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
-  - RNFastImage (from `../node_modules/react-native-fast-image`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNPermissions (from `../node_modules/react-native-permissions`)
@@ -2582,14 +2601,20 @@ DEPENDENCIES:
 SPEC REPOS:
   trunk:
     - IDZSwiftCommonCrypto
+    - libavif
+    - libdav1d
     - libwebp
     - ReachabilitySwift
     - SDWebImage
+    - SDWebImageAVIFCoder
+    - SDWebImageSVGCoder
     - SDWebImageWebPCoder
 
 EXTERNAL SOURCES:
   EASClient:
     :path: "../node_modules/expo-eas-client/ios"
+  EXApplication:
+    :path: "../node_modules/expo-application/ios"
   EXConstants:
     :path: "../node_modules/expo-constants/ios"
   EXImageLoader:
@@ -2612,6 +2637,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
+  ExpoImage:
+    :path: "../node_modules/expo-image/ios"
   ExpoImageManipulator:
     :path: "../node_modules/expo-image-manipulator/ios"
   ExpoImagePicker:
@@ -2630,6 +2657,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-media-library/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
+  ExpoNetwork:
+    :path: "../node_modules/expo-network/ios"
   ExpoScreenOrientation:
     :path: "../node_modules/expo-screen-orientation/ios"
   ExpoSecureStore:
@@ -2821,8 +2850,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
-  RNFastImage:
-    :path: "../node_modules/react-native-fast-image"
   RNFileViewer:
     :path: "../node_modules/react-native-file-viewer"
   RNGestureHandler:
@@ -2844,6 +2871,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   EASClient: 40dd9e740684782610c49becab2643782ea1a20c
+  EXApplication: 1e98d4b1dccdf30627f92917f4b2c5a53c330e5f
   EXConstants: fce59a631a06c4151602843667f7cfe35f81e271
   EXImageLoader: 189e3476581efe3ad4d1d3fb4735b7179eb26f05
   EXJSONUtils: 1d3e4590438c3ee593684186007028a14b3686cd
@@ -2855,6 +2883,7 @@ SPEC CHECKSUMS:
   ExpoDocumentPicker: 7cd9e71a0f66fb19eb0a586d6f26eee1284692e0
   ExpoFileSystem: a8e7fb1e958471764fb48d281cf9fa81a9e4d77c
   ExpoFont: dfb7c572372b610da45b41e3b436321fd6a97215
+  ExpoImage: 686f972bff29525733aa13357f6691dc90aa03d8
   ExpoImageManipulator: 607a5c8c88085381639458a46cc55fb9d3869148
   ExpoImagePicker: ade85e148f735fc7e6f27dfe3eef28eb3887e90a
   ExpoKeepAwake: 55f75eca6499bb9e4231ebad6f3e9cb8f99c0296
@@ -2864,6 +2893,7 @@ SPEC CHECKSUMS:
   ExpoLocalization: d936ff63557366e2e487264f5b495b1f0637fabd
   ExpoMediaLibrary: a3093b04365b245bb23b25b6eba84eb6ab55fecb
   ExpoModulesCore: 9e6a5514828e7dd5ded9e99d33557be2d284e660
+  ExpoNetwork: ee1fb67b0de59ab7f36794caf8242955dd8ae046
   ExpoScreenOrientation: 4a7d3cead7465ba6520ef80df919cda595554594
   ExpoSecureStore: d32f751874a2ceb5aaeebeb3578e165c1ba2b24a
   ExpoShareExtension: 7419f38b5c8f9cde0ce094449b4e95efeca2f4de
@@ -2879,6 +2909,8 @@ SPEC CHECKSUMS:
   IDZSwiftCommonCrypto: aefd3487b88dc3d7a1de2553188c720ac3194940
   internxt-mobile-sdk: d86ba9c38ea72fa0bc07757cc4479bf166dba0de
   jail-monkey: e057abe7b37f84e1763491eb72113efd334a6de0
+  libavif: 5f8e715bea24debec477006f21ef9e95432e254d
+  libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   NetworkCache: 75ee7d510387c3ad7631059d995f1863519caf03
   RCTDeprecation: 943572d4be82d480a48f4884f670135ae30bf990
@@ -2962,7 +2994,6 @@ SPEC CHECKSUMS:
   rn-crypto: 4c27d5ae8ab4fad9a7f4c91fe7a6989172a09e82
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
   RNDeviceInfo: d3e91ffb33ee97a7982108476edb68cb3672efa6
-  RNFastImage: 462a183c4b0b6b26fdfd639e1ed6ba37536c3b87
   RNFileViewer: 4b5d83358214347e4ab2d4ca8d5c1c90d869e251
   RNGestureHandler: 2914750df066d89bf9d8f48a10ad5f0051108ac3
   RNPermissions: 3118e6558c4e97a2f3c67643710b6869650c0a2e
@@ -2971,10 +3002,12 @@ SPEC CHECKSUMS:
   RNShare: 06d69a0de7cc111302172cd8bd6d228462a6bbc1
   RNSVG: 31d6639663c249b7d5abc9728dde2041eb2a3c34
   RNWorklets: 76fce72926e28e304afb44f0da23b2d24f2c1fa0
-  SDWebImage: a7f831e1a65eb5e285e3fb046a23fcfbf08e696d
-  SDWebImageWebPCoder: 908b83b6adda48effe7667cd2b7f78c897e5111d
+  SDWebImage: e9fc87c1aab89a8ab1bbd74eba378c6f53be8abf
+  SDWebImageAVIFCoder: afe194a084e851f70228e4be35ef651df0fc5c57
+  SDWebImageSVGCoder: 15a300a97ec1c8ac958f009c02220ac0402e936c
+  SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
 
-PODFILE CHECKSUM: 4181b7b17d76289deba649e281254c0cc71c420e
+PODFILE CHECKSUM: ad998c6337cfc81591a69440b19d65a401345467
 
 COCOAPODS: 1.16.2

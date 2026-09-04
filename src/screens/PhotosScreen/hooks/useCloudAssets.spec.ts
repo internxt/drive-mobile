@@ -1,0 +1,241 @@
+import { act, renderHook } from '@testing-library/react-native';
+import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
+import { useAppSelector } from 'src/store/hooks';
+import { useCloudAssets } from './useCloudAssets';
+
+jest.useFakeTimers();
+
+jest.mock('src/services/photos/database/photosLocalDB', () => ({
+  photosLocalDB: {
+    init: jest.fn().mockResolvedValue(undefined),
+    getAllCloudAssets: jest.fn(),
+    getSyncedRemoteFileIds: jest.fn(),
+  },
+}));
+
+jest.mock('src/store/hooks', () => ({
+  useAppSelector: jest.fn(),
+}));
+
+const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
+const mockUseAppSelector = useAppSelector as jest.Mock;
+
+const makeStoreState = (overrides: { cloudFetchRevision?: number } = {}) => ({
+  cloudFetchRevision: overrides.cloudFetchRevision ?? 0,
+});
+
+const flushAsync = async () => {
+  await Promise.resolve();
+  await Promise.resolve();
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  jest.clearAllTimers();
+  mockPhotosLocalDB.getAllCloudAssets.mockResolvedValue([]);
+  mockPhotosLocalDB.getSyncedRemoteFileIds.mockResolvedValue(new Set());
+  mockUseAppSelector.mockImplementation((selector: (s: { photos: ReturnType<typeof makeStoreState> }) => unknown) =>
+    selector({ photos: makeStoreState() }),
+  );
+});
+
+describe('useCloudAssets', () => {
+  test('when the hook mounts, then cloud items are loaded from the database', async () => {
+    mockPhotosLocalDB.getAllCloudAssets.mockResolvedValueOnce([
+      {
+        remoteFileId: 'r1',
+        deviceId: 'device-1',
+        folderDate: 1000,
+        uploadedAt: 1000,
+        isFavorite: false,
+        fileName: 'photo.jpg',
+        fileSize: null,
+        fileId: null,
+        thumbnailPath: null,
+        thumbnailBucketId: null,
+        thumbnailBucketFile: null,
+        thumbnailType: null,
+        discoveredAt: 1000,
+      },
+    ]);
+
+    const { result } = renderHook(() => useCloudAssets());
+
+    // Flush mount effect only — do not run timers so the debounce from cloudFetchRevision has not yet fired
+    await act(flushAsync);
+
+    expect(result.current.cloudItems).toHaveLength(1);
+    expect(result.current.cloudItems[0].id).toBe('r1');
+  });
+
+  test('when cloud fetch revision increments, then cloud items reload from the database after debounce', async () => {
+    mockPhotosLocalDB.getAllCloudAssets
+      .mockResolvedValueOnce([]) // immediate mount effect
+      .mockResolvedValueOnce([
+        {
+          remoteFileId: 'r2',
+          deviceId: 'device-1',
+          folderDate: 2000,
+          uploadedAt: 2000,
+          isFavorite: false,
+          fileName: 'photo2.jpg',
+          fileSize: null,
+          fileId: null,
+          thumbnailPath: null,
+          thumbnailBucketId: null,
+          thumbnailBucketFile: null,
+          thumbnailType: null,
+          discoveredAt: 2000,
+        },
+      ]);
+
+    const { result, rerender } = renderHook(() => useCloudAssets());
+
+    await act(flushAsync);
+    expect(result.current.cloudItems).toHaveLength(0);
+
+    mockUseAppSelector.mockImplementation((selector: (s: { photos: ReturnType<typeof makeStoreState> }) => unknown) =>
+      selector({ photos: makeStoreState({ cloudFetchRevision: 1 }) }),
+    );
+
+    await act(async () => {
+      rerender({});
+      // Advance past the 500ms debounce, then flush the async reload
+      jest.runAllTimers();
+      await flushAsync();
+    });
+
+    expect(result.current.cloudItems).toHaveLength(1);
+    expect(result.current.cloudItems[0].id).toBe('r2');
+  });
+
+  test('when reloadCloud is called, then cloud items reload from the database immediately', async () => {
+    mockPhotosLocalDB.getAllCloudAssets
+      .mockResolvedValueOnce([]) // mount
+      .mockResolvedValueOnce([
+        {
+          remoteFileId: 'r3',
+          deviceId: 'device-1',
+          folderDate: 3000,
+          uploadedAt: 3000,
+          isFavorite: false,
+          fileName: 'photo3.jpg',
+          fileSize: null,
+          fileId: null,
+          thumbnailPath: null,
+          thumbnailBucketId: null,
+          thumbnailBucketFile: null,
+          thumbnailType: null,
+          discoveredAt: 3000,
+        },
+      ]);
+
+    const { result } = renderHook(() => useCloudAssets());
+
+    await act(flushAsync);
+    expect(result.current.cloudItems).toHaveLength(0);
+
+    await act(async () => {
+      await result.current.reloadCloud();
+    });
+
+    expect(result.current.cloudItems).toHaveLength(1);
+    expect(result.current.cloudItems[0].id).toBe('r3');
+  });
+
+  test('when a device filter id is provided, then it is passed to the database query', async () => {
+    const { result } = renderHook(() => useCloudAssets('device-2'));
+
+    await act(flushAsync);
+
+    expect(mockPhotosLocalDB.getAllCloudAssets).toHaveBeenCalledWith('device-2');
+    expect(result.current.cloudItems).toEqual([]);
+  });
+
+  test('when no device filter id is provided, then all devices are queried', async () => {
+    renderHook(() => useCloudAssets());
+
+    await act(flushAsync);
+
+    expect(mockPhotosLocalDB.getAllCloudAssets).toHaveBeenCalledWith(undefined);
+  });
+
+  test('when the device filter id changes, then the previous filter cloud items are cleared before the new query resolves', async () => {
+    mockPhotosLocalDB.getAllCloudAssets
+      .mockResolvedValueOnce([
+        {
+          remoteFileId: 'device-1-photo',
+          deviceId: 'device-1',
+          folderDate: 1000,
+          uploadedAt: 1000,
+          isFavorite: false,
+          fileName: 'photo.jpg',
+          fileSize: null,
+          fileId: null,
+          thumbnailPath: null,
+          thumbnailBucketId: null,
+          thumbnailBucketFile: null,
+          thumbnailType: null,
+          discoveredAt: 1000,
+        },
+      ])
+      .mockImplementationOnce(() => new Promise(() => undefined)); // never resolves for device-2
+
+    const { result, rerender } = renderHook(({ deviceFilterId }) => useCloudAssets(deviceFilterId), {
+      initialProps: { deviceFilterId: 'device-1' },
+    });
+
+    await act(flushAsync);
+    expect(result.current.cloudItems.map((item) => item.id)).toEqual(['device-1-photo']);
+
+    await act(async () => {
+      rerender({ deviceFilterId: 'device-2' });
+      await flushAsync();
+    });
+
+    expect(result.current.cloudItems).toEqual([]);
+  });
+
+  test('when synced remote ids overlap with cloud assets, then duplicates are excluded', async () => {
+    mockPhotosLocalDB.getAllCloudAssets.mockResolvedValueOnce([
+      {
+        remoteFileId: 'r1',
+        deviceId: 'device-1',
+        folderDate: 1000,
+        uploadedAt: 1000,
+        isFavorite: false,
+        fileName: 'photo.jpg',
+        fileSize: null,
+        fileId: null,
+        thumbnailPath: null,
+        thumbnailBucketId: null,
+        thumbnailBucketFile: null,
+        thumbnailType: null,
+        discoveredAt: 1000,
+      },
+      {
+        remoteFileId: 'r2',
+        deviceId: 'device-1',
+        folderDate: 2000,
+        uploadedAt: 2000,
+        isFavorite: false,
+        fileName: 'photo2.jpg',
+        fileSize: null,
+        fileId: null,
+        thumbnailPath: null,
+        thumbnailBucketId: null,
+        thumbnailBucketFile: null,
+        thumbnailType: null,
+        discoveredAt: 2000,
+      },
+    ]);
+    mockPhotosLocalDB.getSyncedRemoteFileIds.mockResolvedValueOnce(new Set(['r1']));
+
+    const { result } = renderHook(() => useCloudAssets());
+
+    await act(flushAsync);
+
+    expect(result.current.cloudItems).toHaveLength(1);
+    expect(result.current.cloudItems[0].id).toBe('r2');
+  });
+});

@@ -10,4 +10,5 @@ export const SdkManagerMock: SdkManager = {
   share: jest.fn()(),
   trash: jest.fn()(),
   mail: jest.fn()(),
+  photos: jest.fn()(),
 };
