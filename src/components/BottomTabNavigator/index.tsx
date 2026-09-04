@@ -1,29 +1,26 @@
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Animated, Easing, Text, TouchableWithoutFeedback, View } from 'react-native';
 
-import {
-  EnvelopeIcon,
-  FolderSimpleIcon,
-  GearIcon,
-  HouseIcon,
-  ImageIcon,
-  NotePencilIcon,
-  PlusCircleIcon,
-  UsersIcon,
-} from 'phosphor-react-native';
+import { GearIcon, HouseIcon, ImageIcon, NotePencilIcon, PlusCircleIcon, UsersIcon } from 'phosphor-react-native';
+import { logger } from '@internxt-mobile/services/common';
+import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 import { useLanguage } from '../../hooks/useLanguage';
 import { RootScreenNavigationProp } from '../../types/navigation';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { storageThunks } from '../../store/slices/storage';
-import { uiActions } from '../../store/slices/ui';
+import { ActiveSpace, uiActions } from '../../store/slices/ui';
 import globalStyle from '../../styles/global';
+import SpaceSwitcher from '../SpaceSwitcher';
 
 const TAB_BAR_HEIGHT = 56;
 
+const MAIL_ROUTE = 'Mail';
+const DRIVE_ROUTE = 'Drive';
+
+const spaceForRoute = (routeName: string): ActiveSpace => (routeName === MAIL_ROUTE ? 'mail' : 'drive');
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -51,13 +48,27 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     Settings: { label: strings.tabs.Settings, icon: GearIcon },
   };
 
-  const driveRoute = props.state.routes.find((route) => route.name === 'Drive');
+  const focusedRouteName = props.state.routes[props.state.index]?.name;
 
-  const onDriveOrMailSpaceSelected = (space: 'drive' | 'mail') => {
-    if (!driveRoute) return;
+  useEffect(() => {
+    const spaceOnScreen = spaceForRoute(focusedRouteName);
+    if (spaceOnScreen !== activeSpace) {
+      dispatch(uiActions.setActiveSpace(spaceOnScreen));
+    }
+  }, [focusedRouteName, activeSpace, dispatch]);
+
+  const driveRoute = props.state.routes.find((route) => route.name === DRIVE_ROUTE);
+
+  const onDriveOrMailSpaceSelected = (space: ActiveSpace) => {
+    const targetRouteName = space === 'mail' ? MAIL_ROUTE : DRIVE_ROUTE;
+    const targetRoute = props.state.routes.find((route) => route.name === targetRouteName);
+    if (!targetRoute) {
+      logger.error(`No tab route named ${targetRouteName}; available: ${props.state.routes.map((r) => r.name)}`);
+      return;
+    }
     dispatch(uiActions.setActiveSpace(space));
-    if (props.state.routes[props.state.index].key !== driveRoute.key) {
-      props.navigation.navigate(driveRoute.name);
+    if (props.state.routes[props.state.index].key !== targetRoute.key) {
+      props.navigation.navigate(targetRoute.name);
     }
   };
 
@@ -81,7 +92,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         key={route.key}
         accessibilityRole="button"
         accessibilityLabel={options.tabBarAccessibilityLabel}
-        testID={options.tabBarTestID}
+        testID={options.tabBarButtonTestID}
         onPress={() => onSharedOrComposePressed(route)}
       >
         <View style={tailwind('h-14 items-center justify-center flex-1')}>
@@ -143,7 +154,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         accessibilityRole="button"
         accessibilityState={isFocused ? { selected: true } : {}}
         accessibilityLabel={options.tabBarAccessibilityLabel}
-        testID={options.tabBarTestID}
+        testID={options.tabBarButtonTestID}
         onPress={() => onRegularTabPress(route, isFocused)}
         onLongPress={() => onLongPressTab(route)}
       >
@@ -180,73 +191,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
 
   return (
     <View style={{ backgroundColor: getColor('bg-surface') }}>
-      {driveRoute && (
-        <View style={tailwind('px-4 pt-2 pb-1')}>
-          <View style={[tailwind('flex-row rounded-full'), { padding: 4, backgroundColor: getColor('bg-gray-5') }]}>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={[
-                tailwind('flex-1 flex-row items-center justify-center rounded-full py-2'),
-                activeSpace === 'drive' && {
-                  backgroundColor: getColor('bg-surface'),
-                  shadowColor: getColor('text-gray-100'),
-                  shadowOpacity: 0.08,
-                  shadowRadius: 4,
-                  shadowOffset: { width: 0, height: 1 },
-                  elevation: 1,
-                },
-              ]}
-              onPress={() => onDriveOrMailSpaceSelected('drive')}
-            >
-              <FolderSimpleIcon
-                weight={activeSpace === 'drive' ? 'fill' : undefined}
-                color={activeSpace === 'drive' ? getColor('text-primary') : getColor('text-gray-50')}
-                size={18}
-              />
-              <Text
-                style={[
-                  tailwind('ml-2 text-sm'),
-                  { color: activeSpace === 'drive' ? getColor('text-primary') : getColor('text-gray-50') },
-                  activeSpace === 'drive' ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-                ]}
-              >
-                {strings.tabs.Drive}
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={[
-                tailwind('flex-1 flex-row items-center justify-center rounded-full py-2'),
-                activeSpace === 'mail' && {
-                  backgroundColor: getColor('bg-surface'),
-                  shadowColor: getColor('text-gray-100'),
-                  shadowOpacity: 0.08,
-                  shadowRadius: 4,
-                  shadowOffset: { width: 0, height: 1 },
-                  elevation: 1,
-                },
-              ]}
-              onPress={() => onDriveOrMailSpaceSelected('mail')}
-            >
-              <EnvelopeIcon
-                weight={activeSpace === 'mail' ? 'fill' : undefined}
-                color={activeSpace === 'mail' ? getColor('text-primary') : getColor('text-gray-50')}
-                size={18}
-              />
-              <Text
-                style={[
-                  tailwind('ml-2 text-sm'),
-                  { color: activeSpace === 'mail' ? getColor('text-primary') : getColor('text-gray-50') },
-                  activeSpace === 'mail' ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-                ]}
-              >
-                {strings.tabs.Mail}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
+      {driveRoute && !isHidden && <SpaceSwitcher onSelectSpace={onDriveOrMailSpaceSelected} />}
 
       <Animated.View style={{ height: heightAnim, overflow: 'hidden' }}>
         <View

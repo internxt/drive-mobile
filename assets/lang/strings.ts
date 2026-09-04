@@ -373,6 +373,7 @@ const translations = {
           spam: 'Spam',
           trash: 'Trash',
         },
+        openMailboxes: 'Open mailboxes',
       },
       compose_email: {
         title: 'New message',
@@ -1414,6 +1415,7 @@ const translations = {
           spam: 'Spam',
           trash: 'Papelera',
         },
+        openMailboxes: 'Abrir bandejas',
       },
       compose_email: {
         title: 'Nuevo mensaje',
