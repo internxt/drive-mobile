@@ -1,7 +1,6 @@
 import appService from '@internxt-mobile/services/AppService';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useEffect } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,14 +21,12 @@ import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
-import MailboxListScreen from '../screens/mail/MailboxListScreen';
 import { useDiscoverPhotosSheet } from '../screens/HomeScreen/useDiscoverPhotosSheet';
 import PhotosScreen from '../screens/PhotosScreen';
 import DiscoverPhotosBottomSheet from '../screens/PhotosScreen/DiscoverPhotosBottomSheet';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
-import { uiActions } from '../store/slices/ui';
+import { useAppDispatch } from '../store/hooks';
 import { AsyncStorageKey } from '../types';
-import { RootStackScreenProps, TabExplorerScreenProps, TabExplorerStackParamList } from '../types/navigation';
+import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
 import { MailNavigator } from './MailNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
@@ -40,18 +37,6 @@ const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 const LAUNCH_ON_ROUTE_ON_DEV_MODE: keyof TabExplorerStackParamList | undefined = appService.isDevMode
   ? undefined
   : undefined;
-
-// The Home tab shows Recents in Drive space, or the Inbox in Mail space
-function TabHomeScreen(props: TabExplorerScreenProps<'Home'>): JSX.Element {
-  const activeSpace = useAppSelector((state) => state.ui.activeSpace);
-  return activeSpace === 'mail' ? <MailboxListScreen /> : <HomeScreen {...props} />;
-}
-
-// The Drive tab shows the Drive file browser or the Mail folder browser, depending on the active space
-function TabDriveOrMailScreen(): JSX.Element {
-  const activeSpace = useAppSelector((state) => state.ui.activeSpace);
-  return activeSpace === 'mail' ? <MailNavigator /> : <DriveNavigator />;
-}
 
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
   const tailwind = useTailwind();
@@ -92,10 +77,12 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
           headerShown: false,
           tabBarShowLabel: true,
           lazy: true,
+          animation: 'fade',
         }}
       >
-        <Tab.Screen name="Home" component={TabHomeScreen} />
-        <Tab.Screen name="Drive" component={TabDriveOrMailScreen} options={{ lazy: false }} />
+        <Tab.Screen name="Home" component={HomeScreen} />
+        <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
+        <Tab.Screen name="Mail" component={MailNavigator} />
         <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
         {appService.isPhotosEnabled ? (
