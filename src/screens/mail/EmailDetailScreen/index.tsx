@@ -13,6 +13,7 @@ import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { downloadDecryptAndOpenAttachment } from '../../../services/mail/mailAttachment.service';
+import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import {
   decryptAndCacheFullEmail,
   getCachedEmail,
@@ -62,8 +63,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
           const decrypted = await decryptAndCacheFullEmail(message.id, encryption, privateKey);
           return { message, decryptedBody: decrypted.text, attachmentsSessionKey: decrypted.attachmentsSessionKey };
         } catch (error) {
-          // eslint-disable-next-line no-console
-          console.warn(`Failed to decrypt message ${message.id}`, error);
+          logger.error(`Failed to decrypt message ${message.id}`, error);
         }
       }
 
@@ -89,8 +89,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       const latest = sorted[sorted.length - 1];
       if (latest && !latest.isRead) {
         markEmailRead(latest.id).catch((error) => {
-          // eslint-disable-next-line no-console
-          console.warn('Failed to mark email as read', error);
+          logger.error('Failed to mark email as read', error);
         });
       }
     } catch {
@@ -114,8 +113,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       await markEmailUnread(latest.id);
       navigation.goBack();
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Failed to mark email unread', error);
+      logger.error('Failed to mark email unread', error);
     } finally {
       setIsUpdating(false);
     }
@@ -131,8 +129,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       );
       navigation.goBack();
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn(`Failed to move thread to ${mailbox}`, error);
+      logger.error(`Failed to move thread to ${mailbox}`, error);
     } finally {
       setIsUpdating(false);
     }
@@ -163,8 +160,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
         type: attachment.type,
         attachmentsSessionKey,
       }).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to open attachment', error);
+        logger.error('Failed to open attachment', error);
       });
     };
 
