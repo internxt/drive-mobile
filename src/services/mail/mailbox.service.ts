@@ -11,11 +11,12 @@ import {
   EmailCreatedResponse,
   LookupRecipientKeysResponse,
   UpdateEmailRequest,
+  EmailDomainsResponse,
 } from '@internxt/sdk/dist/mail/types';
 
 const DEFAULT_LIMIT = 50;
 
-class MailboxService {
+export class MailboxService {
   private readonly sdk: SdkManager;
   constructor(sdk: SdkManager) {
     this.sdk = sdk;
@@ -52,6 +53,13 @@ class MailboxService {
    */
   public async getMailAccountKeys(address?: string): Promise<MailAccountKeysResponse> {
     return this.sdk.mail.getMailAccountKeys(address);
+  }
+
+  /**
+   * Gets the domains the server treats as internal.
+   */
+  public async getActiveDomains(): Promise<EmailDomainsResponse> {
+    return this.sdk.mail.getActiveDomains();
   }
 
   /**
