@@ -13,17 +13,57 @@ import { RootStackScreenProps } from '../../../types/navigation';
 import * as ImagePicker from 'expo-image-picker';
 import { pick } from '@react-native-documents/picker';
 import AppText from '../../../components/AppText';
-import { encryptAndSendEmail, sendEmail } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { encryptAndSendEmail } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { InternxtRecipientKeyMissingError, MailErrorName } from '@internxt-mobile/services/mail/errors';
+import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 
-const INTERNAL_MAIL_DOMAINS = ['@inxt.com', '@inxt.me'];
 type PickedAttachment = { uri: string; name: string; type: string };
+type SendErrorMessages = typeof strings.screens.compose_email.errors;
 
-function shouldEncryptFor(recipients: Array<{ email: string }>): boolean {
-  if (recipients.length === 0) {
-    return false;
+/**
+ * Pulls the server side of a failed request out of an SDK error, which carries the
+ * response body and request id that the error message alone does not include.
+ *
+ * @param error - Error thrown by the mail SDK.
+ * @returns The status, response body and request id, when the error carries them.
+ */
+const describeRequestFailure = (error: unknown): Record<string, unknown> => {
+  const cause = (error as { cause?: unknown })?.cause;
+  const source = (cause ?? error ?? {}) as { status?: number; data?: unknown; xRequestId?: string };
+
+  return { status: source.status, responseBody: source.data, requestId: source.xRequestId, cause };
+};
+
+export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: SendErrorMessages) => string>([
+  [MailErrorName.NoRecipients, (_, messages) => messages.noRecipients],
+  [
+    MailErrorName.InternxtRecipientKeyMissing,
+    (error, messages) =>
+      error instanceof InternxtRecipientKeyMissingError
+        ? (strings.formatString(messages.internxtKeyMissing, error.addresses.join(', ')) as string)
+        : messages.sendFailed,
+  ],
+  [MailErrorName.RecipientKeyLookupFailed, (_, messages) => messages.keyLookupFailed],
+  [MailErrorName.ActiveDomainsUnavailable, (_, messages) => messages.domainsUnavailable],
+  [MailErrorName.ServerPublicKeyMissing, (_, messages) => messages.serverKeyMissing],
+]);
+
+/**
+ * Turns a send failure into the reason shown to the user.
+ *
+ * @param error - Error thrown while sending.
+ * @returns The localized reason, or the generic one when the failure is not a known mail error.
+ */
+export const getSendErrorMessage = (error: unknown): string => {
+  const messages = strings.screens.compose_email.errors;
+  if (!(error instanceof Error)) {
+    return messages.sendFailed;
   }
-  return recipients.every((r) => INTERNAL_MAIL_DOMAINS.some((domain) => r.email.toLowerCase().endsWith(domain)));
-}
+
+  const messageResolver = SEND_ERROR_MESSAGES.get(error.name);
+
+  return messageResolver ? messageResolver(error, messages) : messages.sendFailed;
+};
 
 export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element {
   const tailwind = useTailwind();
@@ -87,26 +127,24 @@ export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'Compose
 
   const onSend = async () => {
     setIsSending(true);
+    let wasSent = false;
     try {
       const toAddresses = to
         .split(',')
         .map((email) => email.trim())
         .filter((email) => email.length > 0);
-      const recipients = toAddresses.map((email) => ({ email }));
-      const isEncrypted = shouldEncryptFor(recipients);
 
-      if (isEncrypted) {
-        await encryptAndSendEmail(toAddresses, subject, body, attachments);
-      } else {
-        await sendEmail(toAddresses, subject, body, attachments);
-      }
-
-      navigation.goBack();
+      await encryptAndSendEmail(toAddresses, subject, body, attachments);
+      wasSent = true;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Failed to send email', error);
+      logger.error('Failed to send email', error, describeRequestFailure(error));
+      Alert.alert(strings.screens.compose_email.errors.title, getSendErrorMessage(error));
     } finally {
       setIsSending(false);
+    }
+
+    if (wasSent) {
+      navigation.goBack();
     }
   };
   return (
