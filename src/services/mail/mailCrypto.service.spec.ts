@@ -1,4 +1,7 @@
+import * as crypto from 'internxt-crypto';
+import strings from '../../../assets/lang/strings';
 import AppService from '../AppService';
+import { logger } from '../common/logger/logger.service';
 import {
   ActiveDomainsUnavailableError,
   InternxtRecipientKeyMissingError,
@@ -45,32 +48,36 @@ jest.mock('internxt-crypto', () => ({
   encryptEmailHybridForMultipleRecipients: jest.fn(),
 }));
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const crypto = require('internxt-crypto');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { logger } = require('../common/logger/logger.service');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const strings = require('../../../assets/lang/strings').default;
-
 const SENDER = { address: 'me@inxt.me', publicKey: 'sender-key' };
+const SERVER_PUBLIC_KEY = 'test-server-public-key';
 const ACTIVE_DOMAINS = [{ domain: 'inxt.me' }];
 
 const getActiveDomainsMock = mailboxService.getActiveDomains as jest.Mock;
 const getMailAccountKeysMock = mailboxService.getMailAccountKeys as jest.Mock;
 const sendEmailMock = mailboxService.sendEmail as jest.Mock;
 const getPublicKeysMock = recipientKeysService.getPublicKeys as jest.Mock;
-const encryptMock = crypto.encryptEmailHybridForMultipleRecipients as jest.Mock;
+const encryptMock = jest.mocked(crypto.encryptEmailHybridForMultipleRecipients);
 
 const sentBody = () => sendEmailMock.mock.calls[0][0];
 
-const wrappedFor = (address: string) =>
-  encryptMock.mock.calls[0][1].find((r: { email: string }) => r.email === address);
+const wrappedFor = (address: string) => {
+  const recipient = encryptMock.mock.calls[0][1].find((candidate) => candidate.email === address);
+  if (!recipient) {
+    throw new Error(`The message was encrypted without a wrap for ${address}`);
+  }
+  return recipient;
+};
 
 const keyAsText = (recipient: { publicHybridKey: Uint8Array }) => new TextDecoder().decode(recipient.publicHybridKey);
 
 describe('Sending an encrypted email', () => {
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.spyOn(AppService, 'constants', 'get').mockReturnValue({ SERVER_PUBLIC_KEY });
     getActiveDomainsMock.mockResolvedValue(ACTIVE_DOMAINS);
     getMailAccountKeysMock.mockResolvedValue(SENDER);
     sendEmailMock.mockResolvedValue({ id: 'sent-id' });
@@ -89,7 +96,7 @@ describe('Sending an encrypted email', () => {
     await encryptAndSendEmail(['friend@inxt.me', 'someone@gmail.com'], 'Subject', 'Body');
 
     expect(keyAsText(wrappedFor('friend@inxt.me'))).toBe('friend-key');
-    expect(keyAsText(wrappedFor('someone@gmail.com'))).toBe('test-server-public-key');
+    expect(keyAsText(wrappedFor('someone@gmail.com'))).toBe(SERVER_PUBLIC_KEY);
   });
 
   test('when a recipient with an internal domain has no published key, then sending fails instead of delivering an unreadable message', async () => {
