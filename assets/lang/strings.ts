@@ -381,6 +381,8 @@ const translations = {
         errors: {
           title: 'Message not sent',
           noRecipients: 'Add at least one recipient before sending.',
+          primaryRecipientMissing: 'Add at least one recipient in the To field. Copy and blind copy cannot travel on their own.',
+          blindCopyNotDeliverable: "Bcc isn't available for encrypted emails yet. Move the recipient to To or Cc.",
           internxtKeyMissing:
             'These recipients cannot receive encrypted mail yet: {0}. They need to open Internxt Mail once before you can write to them.',
           keyLookupFailed: 'We could not check the recipients encryption keys. Check your connection and try again.',
@@ -626,6 +628,9 @@ const translations = {
     },
     inputs: {
       to: 'To',
+      cc: 'Cc',
+      bcc: 'Bcc',
+      from: 'From',
       subject: 'Subject',
       body: 'Message',
       name: 'Name',
@@ -1434,6 +1439,10 @@ const translations = {
         errors: {
           title: 'Mensaje no enviado',
           noRecipients: 'Añade al menos un destinatario antes de enviar.',
+          primaryRecipientMissing:
+            'Añade al menos un destinatario en el campo Para. Las copias no pueden viajar solas.',
+          blindCopyNotDeliverable:
+            'Cco aún no está disponible para correos cifrados. Mueve el destinatario a Para o Cc.',
           internxtKeyMissing:
             'Estos destinatarios todavía no pueden recibir correo cifrado: {0}. Necesitan abrir Internxt Mail una vez antes de que puedas escribirles.',
           keyLookupFailed:
@@ -1678,6 +1687,9 @@ const translations = {
     },
     inputs: {
       to: 'Para',
+      cc: 'Cc',
+      bcc: 'Cco',
+      from: 'De',
       subject: 'Asunto',
       body: 'Mensaje',
       name: 'Nombre',

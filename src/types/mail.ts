@@ -1,3 +1,18 @@
+export type MailAttachment = {
+  uri: string;
+  name: string;
+  type: string;
+};
+
+export type OutgoingEmail = {
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  text: string;
+  files?: MailAttachment[];
+};
+
 export enum MailboxId {
   Inbox = 'inbox',
   Drafts = 'drafts',

@@ -1,80 +1,46 @@
-import { useState } from 'react';
-import { ScrollView, View, TouchableOpacity, Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
+import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
 
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../../components/AppButton';
 import AppScreen from '../../../components/AppScreen';
 import AppScreenTitle from '../../../components/AppScreenTitle';
-import AppTextInput from '../../../components/AppTextInput';
+import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { RootStackScreenProps } from '../../../types/navigation';
 import * as ImagePicker from 'expo-image-picker';
 import { pick } from '@react-native-documents/picker';
-import AppText from '../../../components/AppText';
 import { encryptAndSendEmail } from '@internxt-mobile/services/mail/mailCrypto.service';
-import { InternxtRecipientKeyMissingError, MailErrorName } from '@internxt-mobile/services/mail/errors';
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
-
-type PickedAttachment = { uri: string; name: string; type: string };
-type SendErrorMessages = typeof strings.screens.compose_email.errors;
-
-/**
- * Pulls the server side of a failed request out of an SDK error, which carries the
- * response body and request id that the error message alone does not include.
- *
- * @param error - Error thrown by the mail SDK.
- * @returns The status, response body and request id, when the error carries them.
- */
-const describeRequestFailure = (error: unknown): Record<string, unknown> => {
-  const cause = (error as { cause?: unknown })?.cause;
-  const source = (cause ?? error ?? {}) as { status?: number; data?: unknown; xRequestId?: string };
-
-  return { status: source.status, responseBody: source.data, requestId: source.xRequestId, cause };
-};
-
-export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: SendErrorMessages) => string>([
-  [MailErrorName.NoRecipients, (_, messages) => messages.noRecipients],
-  [
-    MailErrorName.InternxtRecipientKeyMissing,
-    (error, messages) =>
-      error instanceof InternxtRecipientKeyMissingError
-        ? (strings.formatString(messages.internxtKeyMissing, error.addresses.join(', ')) as string)
-        : messages.sendFailed,
-  ],
-  [MailErrorName.RecipientKeyLookupFailed, (_, messages) => messages.keyLookupFailed],
-  [MailErrorName.ActiveDomainsUnavailable, (_, messages) => messages.domainsUnavailable],
-  [MailErrorName.ServerPublicKeyMissing, (_, messages) => messages.serverKeyMissing],
-]);
-
-/**
- * Turns a send failure into the reason shown to the user.
- *
- * @param error - Error thrown while sending.
- * @returns The localized reason, or the generic one when the failure is not a known mail error.
- */
-export const getSendErrorMessage = (error: unknown): string => {
-  const messages = strings.screens.compose_email.errors;
-  if (!(error instanceof Error)) {
-    return messages.sendFailed;
-  }
-
-  const messageResolver = SEND_ERROR_MESSAGES.get(error.name);
-
-  return messageResolver ? messageResolver(error, messages) : messages.sendFailed;
-};
+import asyncStorageService from '../../../services/AsyncStorageService';
+import { AsyncStorageKey } from '../../../types';
+import { MailAttachment } from '../../../types/mail';
+import { ComposeFieldRow } from './components/ComposeFieldRow';
+import { describeRequestFailure, getSendErrorMessage } from './sendErrors';
+import { composeFieldTextStyle } from './components/composeFieldStyles';
+import { RecipientRow } from './components/RecipientRow';
 
 export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
 
-  const [to, setTo] = useState('');
+  const [to, setTo] = useState<string[]>([]);
+  const [cc, setCc] = useState<string[]>([]);
+  const [bcc, setBcc] = useState<string[]>([]);
+  const [isExtraRecipientsSectionOpen, setIsExtraRecipientsSectionOpen] = useState(false);
+  const [senderAddress, setSenderAddress] = useState('');
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
-  const [attachments, setAttachments] = useState<PickedAttachment[]>([]);
+  const [attachments, setAttachments] = useState<MailAttachment[]>([]);
   const [isSending, setIsSending] = useState(false);
+
+  useEffect(() => {
+    asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSenderAddress(address ?? ''));
+  }, []);
 
   const onCancel = () => navigation.goBack();
 
@@ -129,12 +95,7 @@ export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'Compose
     setIsSending(true);
     let wasSent = false;
     try {
-      const toAddresses = to
-        .split(',')
-        .map((email) => email.trim())
-        .filter((email) => email.length > 0);
-
-      await encryptAndSendEmail(toAddresses, subject, body, attachments);
+      await encryptAndSendEmail({ to, cc, bcc, subject, text: body, files: attachments });
       wasSent = true;
     } catch (error) {
       logger.error('Failed to send email', error, describeRequestFailure(error));
@@ -147,62 +108,95 @@ export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'Compose
       navigation.goBack();
     }
   };
+
+  const canSend = to.length > 0 && !!subject && !isSending;
+  const hasExtraRecipients = cc.length > 0 || bcc.length > 0;
+  const areExtraRecipientsVisible = isExtraRecipientsSectionOpen || hasExtraRecipients;
+  const CaretIcon = areExtraRecipientsVisible ? CaretUpIcon : CaretDownIcon;
+
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('flex-1 flex-grow')}>
-      <AppScreenTitle text={strings.screens.compose_email.title} onBackButtonPressed={onCancel} />
+      <AppScreenTitle
+        text={strings.screens.compose_email.title}
+        onBackButtonPressed={onCancel}
+        rightSlot={
+          <TouchableOpacity disabled={!canSend} onPress={onSend}>
+            <AppText medium style={[{ color: getColor('text-primary') }, !canSend && tailwind('opacity-50')]}>
+              {strings.buttons.send}
+            </AppText>
+          </TouchableOpacity>
+        }
+      />
 
-      <ScrollView style={tailwind('px-4')} keyboardShouldPersistTaps="handled">
-        <AppTextInput
-          containerStyle={tailwind('mb-4')}
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <RecipientRow
           label={strings.inputs.to}
-          value={to}
-          onChangeText={setTo}
-          placeholder={strings.placeholders.emailRecipient}
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="email-address"
+          recipients={to}
+          onChangeRecipients={setTo}
+          renderAppend={
+            !hasExtraRecipients && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={`${strings.inputs.cc} · ${strings.inputs.bcc}`}
+                onPress={() => setIsExtraRecipientsSectionOpen(!isExtraRecipientsSectionOpen)}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={tailwind('pl-2 py-1')}
+              >
+                <CaretIcon size={20} color={getColor('text-gray-50')} />
+              </TouchableOpacity>
+            )
+          }
         />
-        <AppTextInput
-          containerStyle={tailwind('mb-4')}
-          label={strings.inputs.subject}
-          value={subject}
-          onChangeText={setSubject}
-          placeholder={strings.placeholders.emailSubject}
-        />
-        <AppTextInput
-          containerStyle={tailwind('mb-4')}
-          wrapperStyle={{ minHeight: 160, alignItems: 'flex-start' }}
-          label={strings.inputs.body}
+
+        {areExtraRecipientsVisible && (
+          <>
+            <RecipientRow label={strings.inputs.cc} recipients={cc} onChangeRecipients={setCc} />
+            <RecipientRow label={strings.inputs.bcc} recipients={bcc} onChangeRecipients={setBcc} />
+          </>
+        )}
+
+        {!!senderAddress && (
+          <ComposeFieldRow label={strings.inputs.from}>
+            <Text style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}>{senderAddress}</Text>
+          </ComposeFieldRow>
+        )}
+
+        <ComposeFieldRow label={strings.inputs.subject}>
+          <TextInput
+            accessibilityLabel={strings.inputs.subject}
+            value={subject}
+            onChangeText={setSubject}
+            placeholder={strings.placeholders.emailSubject}
+            placeholderTextColor={getColor('text-gray-40')}
+            style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}
+          />
+        </ComposeFieldRow>
+
+        <TextInput
+          accessibilityLabel={strings.inputs.body}
           value={body}
           onChangeText={setBody}
           placeholder={strings.placeholders.emailBody}
+          placeholderTextColor={getColor('text-gray-40')}
           multiline
           textAlignVertical="top"
-          style={{ minHeight: 160, color: getColor('text-gray-100') }}
+          style={[tailwind('px-4 py-3 text-base'), { minHeight: 200, color: getColor('text-gray-100') }]}
         />
-        <AppButton title="Add attachment" type="secondary" onPress={onAddAttachment} />
-        {attachments.map((a) => (
-          <View key={a.uri} style={tailwind('flex-row items-center justify-between py-2')}>
-            <AppTextInput
-              editable={false}
-              value={a.name}
-              containerStyle={tailwind('flex-1 mr-2')}
-              style={{ color: getColor('text-gray-100') }}
-            />
-            <TouchableOpacity onPress={() => onRemoveAttachment(a.uri)}>
-              <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
-            </TouchableOpacity>
-          </View>
-        ))}
+
+        <View style={tailwind('px-4')}>
+          <AppButton title="Add attachment" type="secondary" onPress={onAddAttachment} />
+          {attachments.map((attachment) => (
+            <View key={attachment.uri} style={tailwind('flex-row items-center justify-between py-2')}>
+              <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
+                {attachment.name}
+              </AppText>
+              <TouchableOpacity onPress={() => onRemoveAttachment(attachment.uri)}>
+                <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
       </ScrollView>
-      <View style={[tailwind('px-4 pt-3'), { borderTopWidth: 1, borderTopColor: getColor('border-gray-5') }]}>
-        <AppButton
-          title={strings.buttons.send}
-          type="accept"
-          onPress={onSend}
-          disabled={!to || !subject || isSending}
-        />
-      </View>
     </AppScreen>
   );
 }
