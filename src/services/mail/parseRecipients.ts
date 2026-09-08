@@ -57,8 +57,8 @@ const splitEntries = (value: string): string[] => {
  * @returns The address, or null when the entry does not hold a valid one.
  */
 const extractEmail = (entry: string): string | null => {
-  const angled = entry.match(/<([^<>]*)>/);
-  const candidate = (angled ? angled[1] : entry)
+  const addressInAngleBrackets = /<([^<>]*)>/.exec(entry);
+  const candidate = (addressInAngleBrackets ? addressInAngleBrackets[1] : entry)
     .trim()
     .replace(/^["']|["']$/g, '')
     .trim();
