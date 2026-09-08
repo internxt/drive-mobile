@@ -19,7 +19,7 @@ import asyncStorageService from '../../../services/AsyncStorageService';
 import { AsyncStorageKey } from '../../../types';
 import { MailAttachment } from '../../../types/mail';
 import { ComposeFieldRow } from './components/ComposeFieldRow';
-import { describeRequestFailure, getSendErrorMessage } from './sendErrors';
+import { describeSendFailure, getSendErrorMessage } from './sendErrors';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { RecipientRow } from './components/RecipientRow';
 
@@ -98,7 +98,7 @@ export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'Compose
       await encryptAndSendEmail({ to, cc, bcc, subject, text: body, files: attachments });
       wasSent = true;
     } catch (error) {
-      logger.error('Failed to send email', error, describeRequestFailure(error));
+      logger.error('Failed to send email', error, describeSendFailure(error));
       Alert.alert(strings.screens.compose_email.errors.title, getSendErrorMessage(error));
     } finally {
       setIsSending(false);
