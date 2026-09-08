@@ -4,8 +4,10 @@ import AppService from '../AppService';
 import { logger } from '../common/logger/logger.service';
 import {
   ActiveDomainsUnavailableError,
+  BlindCopyNotDeliverableError,
   InternxtRecipientKeyMissingError,
   NoRecipientsError,
+  PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
 } from './errors';
 import { decryptPreviews, encryptAndSendEmail } from './mailCrypto.service';
@@ -70,6 +72,9 @@ const wrappedFor = (address: string) => {
 
 const keyAsText = (recipient: { publicHybridKey: Uint8Array }) => new TextDecoder().decode(recipient.publicHybridKey);
 
+const recipientsAskedToEncrypt = (): string[] =>
+  encryptMock.mock.calls[0][1].map((recipient: { email: string }) => recipient.email);
+
 describe('Sending an encrypted email', () => {
   afterEach(() => {
     jest.restoreAllMocks();
@@ -93,7 +98,7 @@ describe('Sending an encrypted email', () => {
       { address: 'someone@gmail.com', publicKey: null },
     ]);
 
-    await encryptAndSendEmail(['friend@inxt.me', 'someone@gmail.com'], 'Subject', 'Body');
+    await encryptAndSendEmail({ to: ['friend@inxt.me', 'someone@gmail.com'], subject: 'Subject', text: 'Body' });
 
     expect(keyAsText(wrappedFor('friend@inxt.me'))).toBe('friend-key');
     expect(keyAsText(wrappedFor('someone@gmail.com'))).toBe(SERVER_PUBLIC_KEY);
@@ -102,16 +107,16 @@ describe('Sending an encrypted email', () => {
   test('when a recipient with an internal domain has no published key, then sending fails instead of delivering an unreadable message', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: null }]);
 
-    await expect(encryptAndSendEmail(['friend@inxt.me'], 'Subject', 'Body')).rejects.toBeInstanceOf(
-      InternxtRecipientKeyMissingError,
-    );
+    await expect(
+      encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: 'Body' }),
+    ).rejects.toBeInstanceOf(InternxtRecipientKeyMissingError);
     expect(sendEmailMock).not.toHaveBeenCalled();
   });
 
   test('when every recipient is external, then the message is still encrypted', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'someone@gmail.com', publicKey: null }]);
 
-    await encryptAndSendEmail(['someone@gmail.com'], 'Subject', 'Body');
+    await encryptAndSendEmail({ to: ['someone@gmail.com'], subject: 'Subject', text: 'Body' });
 
     expect(sentBody().encryption.encryptedText).toBe('text');
     expect(sentBody().textBody).toBeUndefined();
@@ -120,7 +125,7 @@ describe('Sending an encrypted email', () => {
   test('when a message is sent, then the sender can decrypt it from the sent folder', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
 
-    await encryptAndSendEmail(['friend@inxt.me'], 'Subject', 'Body');
+    await encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: 'Body' });
 
     expect(keyAsText(wrappedFor(SENDER.address))).toBe('sender-key');
   });
@@ -131,7 +136,7 @@ describe('Sending an encrypted email', () => {
       { address: 'someone@gmail.com', publicKey: null },
     ]);
 
-    await encryptAndSendEmail(['friend@inxt.me', 'someone@gmail.com'], 'Subject', 'Body');
+    await encryptAndSendEmail({ to: ['friend@inxt.me', 'someone@gmail.com'], subject: 'Subject', text: 'Body' });
 
     expect(sentBody().deliveryMode).toBe('EXTERNAL');
   });
@@ -139,7 +144,7 @@ describe('Sending an encrypted email', () => {
   test('when every recipient has an active domain, then the message is sent in internal delivery mode', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
 
-    await encryptAndSendEmail(['friend@inxt.me'], 'Subject', 'Body');
+    await encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: 'Body' });
 
     expect(sentBody().deliveryMode).toBe('INTERNXT');
   });
@@ -147,14 +152,16 @@ describe('Sending an encrypted email', () => {
   test('when the list of active domains cannot be fetched, then sending is blocked instead of guessing the delivery mode', async () => {
     getActiveDomainsMock.mockRejectedValue(new Error('network down'));
 
-    await expect(encryptAndSendEmail(['friend@inxt.me'], 'Subject', 'Body')).rejects.toBeInstanceOf(
-      ActiveDomainsUnavailableError,
-    );
+    await expect(
+      encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: 'Body' }),
+    ).rejects.toBeInstanceOf(ActiveDomainsUnavailableError);
     expect(sendEmailMock).not.toHaveBeenCalled();
   });
 
   test('when there is nobody to send the message to, then sending is blocked before any key is requested', async () => {
-    await expect(encryptAndSendEmail([], 'Subject', 'Body')).rejects.toBeInstanceOf(NoRecipientsError);
+    await expect(encryptAndSendEmail({ to: [], subject: 'Subject', text: 'Body' })).rejects.toBeInstanceOf(
+      NoRecipientsError,
+    );
 
     expect(getPublicKeysMock).not.toHaveBeenCalled();
     expect(sendEmailMock).not.toHaveBeenCalled();
@@ -164,16 +171,16 @@ describe('Sending an encrypted email', () => {
     getActiveDomainsMock.mockResolvedValue([]);
     getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
 
-    await expect(encryptAndSendEmail(['friend@inxt.me'], 'Subject', 'Body')).rejects.toBeInstanceOf(
-      ActiveDomainsUnavailableError,
-    );
+    await expect(
+      encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: 'Body' }),
+    ).rejects.toBeInstanceOf(ActiveDomainsUnavailableError);
     expect(sendEmailMock).not.toHaveBeenCalled();
   });
 
   test('when the sender writes to their own address, then only one wrap is built for them', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: SENDER.address, publicKey: 'stale-key' }]);
 
-    await encryptAndSendEmail([SENDER.address], 'Subject', 'Body');
+    await encryptAndSendEmail({ to: [SENDER.address], subject: 'Subject', text: 'Body' });
 
     const wrapsForSender = encryptMock.mock.calls[0][1].filter(
       (recipient: { email: string }) => recipient.email === SENDER.address,
@@ -182,10 +189,161 @@ describe('Sending an encrypted email', () => {
     expect(keyAsText(wrapsForSender[0])).toBe('sender-key');
   });
 
+  test('when there are recipients in copy, then they get their own wrap and travel in the copy field', async () => {
+    getPublicKeysMock.mockResolvedValue([
+      { address: 'friend@inxt.me', publicKey: 'friend-key' },
+      { address: 'watcher@inxt.me', publicKey: 'watcher-key' },
+    ]);
+
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me'],
+      cc: ['watcher@inxt.me'],
+      subject: 'Subject',
+      text: 'Body',
+    });
+
+    expect(keyAsText(wrappedFor('watcher@inxt.me'))).toBe('watcher-key');
+    expect(sentBody().to).toEqual([{ email: 'friend@inxt.me' }]);
+    expect(sentBody().cc).toEqual([{ email: 'watcher@inxt.me' }]);
+  });
+
+  test('when a message with a blind copy recipient leaves Internxt, then it is sent and the blind copy travels in its own field', async () => {
+    getPublicKeysMock.mockResolvedValue([
+      { address: 'someone@gmail.com', publicKey: null },
+      { address: 'hidden@inxt.me', publicKey: 'hidden-key' },
+    ]);
+
+    await encryptAndSendEmail({
+      to: ['someone@gmail.com'],
+      bcc: ['hidden@inxt.me'],
+      subject: 'Subject',
+      text: 'Body',
+    });
+
+    expect(sentBody().deliveryMode).toBe('EXTERNAL');
+    expect(sentBody().bcc).toEqual([{ email: 'hidden@inxt.me' }]);
+    expect(sentBody().to).toEqual([{ email: 'someone@gmail.com' }]);
+    expect(sentBody().cc).toBeUndefined();
+    expect(keyAsText(wrappedFor('hidden@inxt.me'))).toBe('hidden-key');
+  });
+
+  test('when every recipient is on an Internxt domain and one of them is in blind copy, then sending is blocked because the envelope names them all', async () => {
+    await expect(
+      encryptAndSendEmail({
+        to: ['friend@inxt.me'],
+        bcc: ['hidden@inxt.me'],
+        subject: 'Subject',
+        text: 'Body',
+      }),
+    ).rejects.toBeInstanceOf(BlindCopyNotDeliverableError);
+
+    expect(getPublicKeysMock).not.toHaveBeenCalled();
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when a message has nobody in the main recipient field, then sending is blocked even if there are recipients in copy', async () => {
+    await expect(
+      encryptAndSendEmail({ to: [], cc: ['watcher@inxt.me'], subject: 'Subject', text: 'Body' }),
+    ).rejects.toBeInstanceOf(PrimaryRecipientMissingError);
+
+    expect(getPublicKeysMock).not.toHaveBeenCalled();
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when a message goes to both an Internxt address and an outside one and has a blind copy, then it is sent because it leaves Internxt', async () => {
+    getPublicKeysMock.mockResolvedValue([
+      { address: 'friend@inxt.me', publicKey: 'friend-key' },
+      { address: 'someone@gmail.com', publicKey: null },
+      { address: 'hidden@inxt.me', publicKey: 'hidden-key' },
+    ]);
+
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me', 'someone@gmail.com'],
+      bcc: ['hidden@inxt.me'],
+      subject: 'Subject',
+      text: 'Body',
+    });
+
+    expect(sentBody().deliveryMode).toBe('EXTERNAL');
+    expect(sentBody().to).toEqual([{ email: 'friend@inxt.me' }, { email: 'someone@gmail.com' }]);
+    expect(sentBody().bcc).toEqual([{ email: 'hidden@inxt.me' }]);
+    expect(recipientsAskedToEncrypt()).toEqual([
+      'friend@inxt.me',
+      'someone@gmail.com',
+      'hidden@inxt.me',
+      SENDER.address,
+    ]);
+  });
+
+  test('when the only recipient outside Internxt is the one in blind copy, then the message is still sent outside Internxt', async () => {
+    getPublicKeysMock.mockResolvedValue([
+      { address: 'friend@inxt.me', publicKey: 'friend-key' },
+      { address: 'someone@gmail.com', publicKey: null },
+    ]);
+
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me'],
+      bcc: ['someone@gmail.com'],
+      subject: 'Subject',
+      text: 'Body',
+    });
+
+    expect(sentBody().deliveryMode).toBe('EXTERNAL');
+    expect(sentBody().bcc).toEqual([{ email: 'someone@gmail.com' }]);
+  });
+
+  test('when the only recipient in blind copy is already a main recipient, then the message is sent and nobody stays hidden', async () => {
+    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
+
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me'],
+      bcc: ['Friend@INXT.me'],
+      subject: 'Subject',
+      text: 'Body',
+    });
+
+    expect(sentBody().to).toEqual([{ email: 'friend@inxt.me' }]);
+    expect(sentBody().bcc).toBeUndefined();
+  });
+
+  test('when someone in blind copy is already in copy, then they only travel in the copy field', async () => {
+    getPublicKeysMock.mockResolvedValue([
+      { address: 'friend@inxt.me', publicKey: 'friend-key' },
+      { address: 'watcher@inxt.me', publicKey: 'watcher-key' },
+      { address: 'someone@gmail.com', publicKey: null },
+    ]);
+
+    await encryptAndSendEmail({
+      to: ['someone@gmail.com'],
+      cc: ['watcher@inxt.me'],
+      bcc: ['Watcher@INXT.me'],
+      subject: 'Subject',
+      text: 'Body',
+    });
+
+    expect(sentBody().cc).toEqual([{ email: 'watcher@inxt.me' }]);
+    expect(sentBody().bcc).toBeUndefined();
+  });
+
+  test('when someone is both a main recipient and in copy, then they are only wrapped once and stay in the main field', async () => {
+    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
+
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me'],
+      cc: ['Friend@INXT.me'],
+      subject: 'Subject',
+      text: 'Body',
+    });
+
+    expect(getPublicKeysMock).toHaveBeenCalledWith(['friend@inxt.me']);
+    expect(sentBody().to).toEqual([{ email: 'friend@inxt.me' }]);
+    expect(sentBody().cc).toBeUndefined();
+  });
+
   test('when the same recipient is typed twice, then they are only asked for once and appear once in the message', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
 
-    await encryptAndSendEmail(['Friend@inxt.me', 'friend@INXT.me'], 'Subject', 'Body');
+    await encryptAndSendEmail({ to: ['Friend@inxt.me', 'friend@INXT.me'], subject: 'Subject', text: 'Body' });
 
     expect(getPublicKeysMock).toHaveBeenCalledWith(['friend@inxt.me']);
     expect(sentBody().to).toEqual([{ email: 'friend@inxt.me' }]);
@@ -207,9 +365,9 @@ describe('Sending without the server public key configured', () => {
   test('when an external recipient needs the server key and it is not configured, then sending is blocked', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'someone@gmail.com', publicKey: null }]);
 
-    await expect(encryptAndSendEmail(['someone@gmail.com'], 'Subject', 'Body')).rejects.toBeInstanceOf(
-      ServerPublicKeyMissingError,
-    );
+    await expect(
+      encryptAndSendEmail({ to: ['someone@gmail.com'], subject: 'Subject', text: 'Body' }),
+    ).rejects.toBeInstanceOf(ServerPublicKeyMissingError);
     expect(sendEmailMock).not.toHaveBeenCalled();
   });
 });
