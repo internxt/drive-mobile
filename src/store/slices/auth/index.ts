@@ -13,6 +13,7 @@ import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
 import { clearCredentials, setCredentials } from '../../../services/native/InternxtAuthCredentialsModule';
 import notificationsService from '../../../services/NotificationsService';
+import { clearMailLocalData } from '../../../services/mail/clearMailLocalData';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
@@ -250,6 +251,7 @@ export const signOutThunk = createAsyncThunk<
     authService.signout(payload.reason).catch(errorService.reportError);
     drive.clear().catch(errorService.reportError);
     await clearCredentials().catch(errorService.reportError);
+    clearMailLocalData().catch(errorService.reportError);
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveActions.resetState());
