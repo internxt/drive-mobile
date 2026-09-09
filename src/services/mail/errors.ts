@@ -17,7 +17,7 @@ export class NoRecipientsError extends Error {
 
 export class InternxtRecipientKeyMissingError extends Error {
   constructor(public readonly addresses: string[]) {
-    super(`No published key for Internxt recipients: ${addresses.join(', ')}`);
+    super('No published key for some Internxt recipients');
     this.name = MailErrorName.InternxtRecipientKeyMissing;
   }
 }
