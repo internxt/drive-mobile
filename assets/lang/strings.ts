@@ -375,6 +375,8 @@ const translations = {
         },
         openMailboxes: 'Open mailboxes',
         unableToDecryptPreview: 'This message could not be decrypted',
+        showRemoteImages: 'Show images',
+        remoteImagesBlocked: 'Images in this message are blocked',
       },
       compose_email: {
         title: 'New message',
@@ -1433,6 +1435,8 @@ const translations = {
         },
         openMailboxes: 'Abrir bandejas',
         unableToDecryptPreview: 'No se ha podido descifrar este mensaje',
+        showRemoteImages: 'Mostrar imágenes',
+        remoteImagesBlocked: 'Las imágenes de este mensaje están bloqueadas',
       },
       compose_email: {
         title: 'Nuevo mensaje',
