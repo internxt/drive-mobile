@@ -24,6 +24,13 @@ const untranspiledModulePatterns = [
   'p-limit',
   'yocto-queue',
   'mime',
+  'sanitize-html',
+  'htmlparser2',
+  'domhandler',
+  'domutils',
+  'dom-serializer',
+  'domelementtype',
+  'entities',
 ];
 
 const config: Config.InitialOptions = {
