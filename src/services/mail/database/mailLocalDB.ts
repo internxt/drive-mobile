@@ -59,13 +59,14 @@ class MailLocalDB {
     }
   }
 
+  /**
+   * Deletes every cached message and leaves the database closed. The next read or write creates
+   * it again, empty.
+   */
   public async resetDatabase(): Promise<void> {
     await this.ensureInit();
-    await sqliteService.executeSql(MAIL_DB_NAME, mailEmailTable.statements.dropTable);
-    await sqliteService.close(MAIL_DB_NAME);
     await sqliteService.delete(MAIL_DB_NAME);
     this.initPromise = null;
-    await this.ensureInit();
   }
 }
 
