@@ -17,7 +17,7 @@ import {
 import { buildEmailDocument } from '../../../services/mail/emailBody/emailDocument';
 import { useEmailBodyHeight } from './hooks/useEmailBodyHeight';
 
-const OPENABLE_SCHEMES = ['http:', 'https:', 'mailto:', 'tel:'];
+const OPENABLE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
 const GENERIC_USER_AGENT = 'Mozilla/5.0 (Mobile)';
 
 export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bodySource: EmailBodySource }) => {
@@ -55,7 +55,7 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
     }
 
     const scheme = request.url.slice(0, request.url.indexOf(':') + 1).toLowerCase();
-    if (OPENABLE_SCHEMES.includes(scheme)) {
+    if (OPENABLE_SCHEMES.has(scheme)) {
       Linking.openURL(request.url).catch((error) => logger.error('Could not open a link from an email:', error));
     }
     return false;
