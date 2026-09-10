@@ -1850,10 +1850,10 @@
   dependencies:
     buffer "^6.0.3"
 
-"@internxt/sdk@1.17.19":
-  version "1.17.19"
-  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.17.19.tgz#84373d19c18079ae2b0f94525e915b3edc80f8e3"
-  integrity sha512-Aa12X7A6fhDXr5s3IBey9qOJuq46DY8KYGveeKKqHr7IQIv21a6J4klOIvb0/sf7GLRHEkBR5hA4XHPv5tVX0g==
+"@internxt/sdk@1.20.2":
+  version "1.20.2"
+  resolved "https://registry.yarnpkg.com/@internxt/sdk/-/sdk-1.20.2.tgz#243d7a387391a5073f4f257c031c91f019f12b7e"
+  integrity sha512-ba64BskBjRWYeWajs3EJIb2YgKQXIIP8coLIpGrxxgAPESr6j4FLDyREvRHaaobJfG7vTMmkRcypK9I7Flyyrw==
   dependencies:
     axios "^1.16.0"
 
