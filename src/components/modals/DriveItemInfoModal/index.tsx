@@ -12,6 +12,7 @@ import { logger } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import drive from '@internxt-mobile/services/drive';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
+import { notifyParentChanged } from '@internxt-mobile/services/native/InternxtSignalingModule';
 import { Abortable } from '@internxt-mobile/types/index';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import {
@@ -108,6 +109,13 @@ function DriveItemInfoModal(): JSX.Element {
 
       () => handleUndoMoveToTrash(),
     );
+
+    if (success) {
+      const parentFolderUuid = isFolder ? item.parentUuid : item.folderUuid;
+      if (parentFolderUuid) {
+        void notifyParentChanged(parentFolderUuid);
+      }
+    }
 
     if (success && dbItem?.id) {
       await driveLocalDB.deleteItem({ id: dbItem.id });

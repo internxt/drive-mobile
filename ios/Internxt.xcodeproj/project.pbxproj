@@ -13,20 +13,61 @@
 		1A3E7803EDA342F39787DC8F /* PHAssetExportModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9949B2A33B5D4CA2BD828B67 /* PHAssetExportModule.swift */; };
 		2F8E878CDCAC7D5C07B5C670 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 37A2C3A4643426D3F429F041 /* PrivacyInfo.xcprivacy */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
+		512CF1042062583CD79DC618 /* InternxtSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = DE1D47552F87AB4000E14783 /* InternxtSwiftCore */; };
+		517593AA71C926C43E076321 /* FileProviderExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47632F87A94000E14783 /* FileProviderExtension.swift */; };
 		5EECD9AA8FE2941A3CB8B8EF /* libPods-InternxtShareExtension.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 92F299358DE5ADDA8D13CA27 /* libPods-InternxtShareExtension.a */; };
 		7D373856C83A43879BFBE604 /* InternxtShareExtension.appex in Copy Files */ = {isa = PBXBuildFile; fileRef = 7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */; };
+		AB12CD34EF56AB78CD90EF12 /* InternxtFileProvider.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		8F8148045BC14A539BD1917D /* ShareExtensionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A6F72E1B98D469883DAFB30 /* ShareExtensionViewController.swift */; };
 		9DB4D633CA40422A956585FD /* PHAssetExportModule.m in Sources */ = {isa = PBXBuildFile; fileRef = D330686328BD4286AB778B88 /* PHAssetExportModule.m */; };
 		A1B2C3D4E5F601234567890A /* PHBurstExportModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6012345678901 /* PHBurstExportModule.swift */; };
 		A1B2C3D4E5F601234567890B /* PHBurstExportModule.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6012345678902 /* PHBurstExportModule.m */; };
-		AC90D7AE08E1AB3023417F70 /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2CA5C712E32AED3D806BBC6 /* libPods-Internxt.a */; };
+		AA0100012F87A94000E14783 /* SharedAuthKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */; };
+		AA0100032F87A94000E14783 /* FileProviderDomainManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */; };
+		AA0100052F87A94000E14783 /* InternxtAuthCredentialsModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */; };
+		AA0100072F87A94000E14783 /* InternxtAuthCredentialsModule.m in Sources */ = {isa = PBXBuildFile; fileRef = AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */; };
+		AA0100082F87A94000E14783 /* SharedAuthKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */; };
+		AB1D47702F87A94000E14783 /* FileProviderItemIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */; };
+		AB1D47712F87A94000E14783 /* DriveAPIFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */; };
+		AB1D47802F87A94000E14783 /* NetworkFacadeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */; };
+		AB1D47812F87A94000E14783 /* SharedKeychainCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */; };
+		AB1D47902F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */; };
+		AB1D47922F87A94000E14783 /* FileProviderUploadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47932F87A94000E14783 /* FileProviderUploadService.swift */; };
+		AB1D47942F87A94000E14783 /* FileProviderDownloadService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47952F87A94000E14783 /* FileProviderDownloadService.swift */; };
+		AB1D47962F87A94000E14783 /* FileProviderMutationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47972F87A94000E14783 /* FileProviderMutationService.swift */; };
+		ABEEE0748E6ACDC97FD4A52E /* libPods-Internxt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F2CA5C712E32AED3D806BBC6 /* libPods-Internxt.a */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
+		CEF3BECD880147688CACD8B5 /* FileProviderEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */; };
 		DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */; };
 		DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
+		E969AA12C7375D21048F65E7 /* libPods-InternxtFileProvider.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B795FB0D0D82BE9A80DF7EBF /* libPods-InternxtFileProvider.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
+		F603918B0E78918549FB9494 /* FileProviderItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47652F87A94000E14783 /* FileProviderItem.swift */; };
+		FB1D480012F87A94000E14783 /* FileProviderErrorMapperTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB1D480112F87A94000E14783 /* FileProviderErrorMapperTests.swift */; };
+		FB1D480212F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */; };
+		FB1D480312F87A94000E14783 /* InternxtSwiftCore in Frameworks */ = {isa = PBXBuildFile; productRef = FB1D480412F87A94000E14783 /* InternxtSwiftCore */; };
+		FB1D481012F87A94000E14783 /* FileProviderMutationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB1D481112F87A94000E14783 /* FileProviderMutationTests.swift */; };
+		FB1D481212F87A94000E14783 /* FileProviderItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47652F87A94000E14783 /* FileProviderItem.swift */; };
+		FB1D481312F87A94000E14783 /* FileProviderItemIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */; };
+		FB1D481412F87A94000E14783 /* FileProviderMutationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47972F87A94000E14783 /* FileProviderMutationService.swift */; };
+		FB1D481512F87A94000E14783 /* SharedAuthKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */; };
+		FF2010002F90000000E14783 /* FileProviderModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010002F90000000E14783 /* FileProviderModule.swift */; };
+		FF2010012F90000000E14783 /* FileProviderModule.m in Sources */ = {isa = PBXBuildFile; fileRef = FF1010012F90000000E14783 /* FileProviderModule.m */; };
+		FF2010022F90000000E14783 /* SyncAnchorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010022F90000000E14783 /* SyncAnchorStore.swift */; };
+		FF2010032F90000000E14783 /* SyncAnchorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010022F90000000E14783 /* SyncAnchorStore.swift */; };
+		FF2010042F90000000E14783 /* SyncAnchorStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010022F90000000E14783 /* SyncAnchorStore.swift */; };
+		FF2010052F90000000E14783 /* SyncAnchorStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1010032F90000000E14783 /* SyncAnchorStoreTests.swift */; };
+		FF2010062F90000000E14783 /* FileProviderItemIdentifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		DE1D474D2F87A94000E14783 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DE1D47402F87A94000E14783;
+			remoteInfo = InternxtFileProvider;
+		};
 		DEA227B339134920AF95B704 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
@@ -43,6 +84,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
+				AB12CD34EF56AB78CD90EF12 /* InternxtFileProvider.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -72,15 +114,37 @@
 		8519E68C15D0C6CCDC034276 /* Pods-InternxtShareExtension.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtShareExtension.release.xcconfig"; path = "Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension.release.xcconfig"; sourceTree = "<group>"; };
 		92F299358DE5ADDA8D13CA27 /* libPods-InternxtShareExtension.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtShareExtension.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9949B2A33B5D4CA2BD828B67 /* PHAssetExportModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PHAssetExportModule.swift; path = Internxt/PHAssetExportModule.swift; sourceTree = "<group>"; };
+		9EBA538C165E183B083F129B /* Pods-InternxtFileProvider.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtFileProvider.release.xcconfig"; path = "Target Support Files/Pods-InternxtFileProvider/Pods-InternxtFileProvider.release.xcconfig"; sourceTree = "<group>"; };
 		A1B2C3D4E5F6012345678901 /* PHBurstExportModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PHBurstExportModule.swift; path = Internxt/PHBurstExportModule.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6012345678902 /* PHBurstExportModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PHBurstExportModule.m; path = Internxt/PHBurstExportModule.m; sourceTree = "<group>"; };
 		A4921399A370F5CE6EE7EA0F /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-InternxtShareExtension/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SharedAuthKeychain.swift; path = Internxt/SharedAuthKeychain.swift; sourceTree = "<group>"; };
+		AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileProviderDomainManager.swift; path = Internxt/FileProviderDomainManager.swift; sourceTree = "<group>"; };
+		AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = InternxtAuthCredentialsModule.swift; path = Internxt/InternxtAuthCredentialsModule.swift; sourceTree = "<group>"; };
+		AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = InternxtAuthCredentialsModule.m; path = Internxt/InternxtAuthCredentialsModule.m; sourceTree = "<group>"; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Internxt/SplashScreen.storyboard; sourceTree = "<group>"; };
+		AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderItemIdentifier.swift; sourceTree = "<group>"; };
+		AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriveAPIFactory.swift; sourceTree = "<group>"; };
+		AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkFacadeFactory.swift; sourceTree = "<group>"; };
+		AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedKeychainCredentials.swift; sourceTree = "<group>"; };
+		AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderErrorMapper.swift; sourceTree = "<group>"; };
+		AB1D47932F87A94000E14783 /* FileProviderUploadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderUploadService.swift; sourceTree = "<group>"; };
+		AB1D47952F87A94000E14783 /* FileProviderDownloadService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderDownloadService.swift; sourceTree = "<group>"; };
+		AB1D47972F87A94000E14783 /* FileProviderMutationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderMutationService.swift; sourceTree = "<group>"; };
+		AEF5ED5D913A5F0C6A1779E7 /* Pods-InternxtFileProvider.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-InternxtFileProvider.debug.xcconfig"; path = "Target Support Files/Pods-InternxtFileProvider/Pods-InternxtFileProvider.debug.xcconfig"; sourceTree = "<group>"; };
+		B795FB0D0D82BE9A80DF7EBF /* libPods-InternxtFileProvider.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-InternxtFileProvider.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		BD55E1E535AECF7719BDD772 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Internxt/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		D330686328BD4286AB778B88 /* PHAssetExportModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = PHAssetExportModule.m; path = Internxt/PHAssetExportModule.m; sourceTree = "<group>"; };
 		D83881814DD0A20237F63249 /* Pods-Internxt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.release.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.release.xcconfig"; sourceTree = "<group>"; };
 		DAE15E8DB4DF4E048E04B0E0 /* Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = InternxtFileProvider.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE1D47632F87A94000E14783 /* FileProviderExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderExtension.swift; sourceTree = "<group>"; };
+		DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderEnumerator.swift; sourceTree = "<group>"; };
+		DE1D47652F87A94000E14783 /* FileProviderItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderItem.swift; sourceTree = "<group>"; };
+		DE1D47662F87A94000E14783 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DE1D47672F87A94000E14783 /* InternxtFileProvider.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = InternxtFileProvider.entitlements; sourceTree = "<group>"; };
+		DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = InternxtFileProvider.plist; sourceTree = "<group>"; };
 		DE74E3972FACD7205D98C2BD /* Pods-Internxt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Internxt.debug.xcconfig"; path = "Target Support Files/Pods-Internxt/Pods-Internxt.debug.xcconfig"; sourceTree = "<group>"; };
 		DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = AppGroupPendingShareModule.m; path = Internxt/AppGroupPendingShareModule.m; sourceTree = "<group>"; };
 		DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppGroupPendingShareModule.swift; path = Internxt/AppGroupPendingShareModule.swift; sourceTree = "<group>"; };
@@ -88,6 +152,13 @@
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Internxt/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* Internxt-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Internxt-Bridging-Header.h"; path = "Internxt/Internxt-Bridging-Header.h"; sourceTree = "<group>"; };
 		F2CA5C712E32AED3D806BBC6 /* libPods-Internxt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Internxt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB1D480112F87A94000E14783 /* FileProviderErrorMapperTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderErrorMapperTests.swift; sourceTree = "<group>"; };
+		FB1D480512F87A94000E14783 /* InternxtFileProviderTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = InternxtFileProviderTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FB1D481112F87A94000E14783 /* FileProviderMutationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileProviderMutationTests.swift; sourceTree = "<group>"; };
+		FF1010002F90000000E14783 /* FileProviderModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FileProviderModule.swift; path = Internxt/FileProviderModule.swift; sourceTree = "<group>"; };
+		FF1010012F90000000E14783 /* FileProviderModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = FileProviderModule.m; path = Internxt/FileProviderModule.m; sourceTree = "<group>"; };
+		FF1010022F90000000E14783 /* SyncAnchorStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncAnchorStore.swift; sourceTree = "<group>"; };
+		FF1010032F90000000E14783 /* SyncAnchorStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncAnchorStoreTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,7 +166,16 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC90D7AE08E1AB3023417F70 /* libPods-Internxt.a in Frameworks */,
+				ABEEE0748E6ACDC97FD4A52E /* libPods-Internxt.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2A04AF4D95A14473303BAABA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				512CF1042062583CD79DC618 /* InternxtSwiftCore in Frameworks */,
+				E969AA12C7375D21048F65E7 /* libPods-InternxtFileProvider.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,6 +187,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		FB1D480612F87A94000E14783 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB1D480312F87A94000E14783 /* InternxtSwiftCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -115,6 +203,12 @@
 			children = (
 				DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */,
 				DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */,
+				AA0100002F87A94000E14783 /* SharedAuthKeychain.swift */,
+				AA0100022F87A94000E14783 /* FileProviderDomainManager.swift */,
+				AA0100042F87A94000E14783 /* InternxtAuthCredentialsModule.swift */,
+				AA0100062F87A94000E14783 /* InternxtAuthCredentialsModule.m */,
+				FF1010002F90000000E14783 /* FileProviderModule.swift */,
+				FF1010012F90000000E14783 /* FileProviderModule.m */,
 				D330686328BD4286AB778B88 /* PHAssetExportModule.m */,
 				9949B2A33B5D4CA2BD828B67 /* PHAssetExportModule.swift */,
 				A1B2C3D4E5F6012345678902 /* PHBurstExportModule.m */,
@@ -136,6 +230,7 @@
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				F2CA5C712E32AED3D806BBC6 /* libPods-Internxt.a */,
 				92F299358DE5ADDA8D13CA27 /* libPods-InternxtShareExtension.a */,
+				B795FB0D0D82BE9A80DF7EBF /* libPods-InternxtFileProvider.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -165,6 +260,8 @@
 				D83881814DD0A20237F63249 /* Pods-Internxt.release.xcconfig */,
 				7C701A830CDF1F4D18966C60 /* Pods-InternxtShareExtension.debug.xcconfig */,
 				8519E68C15D0C6CCDC034276 /* Pods-InternxtShareExtension.release.xcconfig */,
+				AEF5ED5D913A5F0C6A1779E7 /* Pods-InternxtFileProvider.debug.xcconfig */,
+				9EBA538C165E183B083F129B /* Pods-InternxtFileProvider.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -181,6 +278,8 @@
 			children = (
 				13B07FAE1A68108700A75B9A /* Internxt */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
+				DE1D47442F87A94000E14783 /* InternxtFileProvider */,
+				FB1D480712F87A94000E14783 /* InternxtFileProviderTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				7151A997BCA04521BD294E7B /* InternxtShareExtension */,
@@ -197,6 +296,8 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* Internxt.app */,
 				7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */,
+				DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */,
+				FB1D480512F87A94000E14783 /* InternxtFileProviderTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -227,6 +328,38 @@
 			name = InternxtShareExtension;
 			sourceTree = "<group>";
 		};
+		DE1D47442F87A94000E14783 /* InternxtFileProvider */ = {
+			isa = PBXGroup;
+			children = (
+				DE1D47632F87A94000E14783 /* FileProviderExtension.swift */,
+				FF1010022F90000000E14783 /* SyncAnchorStore.swift */,
+				DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */,
+				DE1D47652F87A94000E14783 /* FileProviderItem.swift */,
+				AB1D47912F87A94000E14783 /* FileProviderErrorMapper.swift */,
+				AB1D47932F87A94000E14783 /* FileProviderUploadService.swift */,
+				AB1D47952F87A94000E14783 /* FileProviderDownloadService.swift */,
+				AB1D47972F87A94000E14783 /* FileProviderMutationService.swift */,
+				AB1D47722F87A94000E14783 /* FileProviderItemIdentifier.swift */,
+				AB1D47732F87A94000E14783 /* DriveAPIFactory.swift */,
+				AB1D47822F87A94000E14783 /* NetworkFacadeFactory.swift */,
+				AB1D47832F87A94000E14783 /* SharedKeychainCredentials.swift */,
+				DE1D47662F87A94000E14783 /* Info.plist */,
+				DE1D47672F87A94000E14783 /* InternxtFileProvider.entitlements */,
+				DE1D47682F87A94000E14783 /* InternxtFileProvider.plist */,
+			);
+			path = InternxtFileProvider;
+			sourceTree = "<group>";
+		};
+		FB1D480712F87A94000E14783 /* InternxtFileProviderTests */ = {
+			isa = PBXGroup;
+			children = (
+				FB1D480112F87A94000E14783 /* FileProviderErrorMapperTests.swift */,
+				FB1D481112F87A94000E14783 /* FileProviderMutationTests.swift */,
+				FF1010032F90000000E14783 /* SyncAnchorStoreTests.swift */,
+			);
+			path = InternxtFileProviderTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -249,6 +382,7 @@
 			);
 			dependencies = (
 				03ED76FE58CE4782913172E7 /* PBXTargetDependency */,
+				DE1D474E2F87A94000E14783 /* PBXTargetDependency */,
 			);
 			name = Internxt;
 			productName = Internxt;
@@ -277,16 +411,56 @@
 			productReference = 7F5486528A7D46DD91A7910F /* InternxtShareExtension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		DE1D47402F87A94000E14783 /* InternxtFileProvider */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DE1D47532F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProvider" */;
+			buildPhases = (
+				74E905CB0B70CDBE606791CD /* [CP] Check Pods Manifest.lock */,
+				DE1D473D2F87A94000E14783 /* Sources */,
+				DE1D473F2F87A94000E14783 /* Resources */,
+				2A04AF4D95A14473303BAABA /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = InternxtFileProvider;
+			packageProductDependencies = (
+				DE1D47552F87AB4000E14783 /* InternxtSwiftCore */,
+			);
+			productName = InternxtFileProvider;
+			productReference = DE1D47412F87A94000E14783 /* InternxtFileProvider.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		FB1D480812F87A94000E14783 /* InternxtFileProviderTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FB1D480912F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProviderTests" */;
+			buildPhases = (
+				FB1D480A12F87A94000E14783 /* Sources */,
+				FB1D480612F87A94000E14783 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = InternxtFileProviderTests;
+			packageProductDependencies = (
+				FB1D480412F87A94000E14783 /* InternxtSwiftCore */,
+			);
+			productName = InternxtFileProviderTests;
+			productReference = FB1D480512F87A94000E14783 /* InternxtFileProviderTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		83CBB9F71A601CBA00E9B192 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 2640;
 				LastUpgradeCheck = 1130;
 				TargetAttributes = {
 					13B07F861A680F5B00A75B9A = {
-						DevelopmentTeam = JR4S3SY396;
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
 					};
@@ -294,6 +468,12 @@
 						DevelopmentTeam = JR4S3SY396;
 						LastSwiftMigration = 1250;
 						ProvisioningStyle = Automatic;
+					};
+					DE1D47402F87A94000E14783 = {
+						CreatedOnToolsVersion = 26.4;
+					};
+					FB1D480812F87A94000E14783 = {
+						CreatedOnToolsVersion = 26.4;
 					};
 				};
 			};
@@ -306,12 +486,17 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				13B07F861A680F5B00A75B9A /* Internxt */,
 				573EC8782D084646801534FA /* InternxtShareExtension */,
+				DE1D47402F87A94000E14783 /* InternxtFileProvider */,
+				FB1D480812F87A94000E14783 /* InternxtFileProviderTests */,
 			);
 		};
 /* End PBXProject section */
@@ -329,6 +514,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		2F5766E756C84914803E7082 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE1D473F2F87A94000E14783 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -443,6 +635,28 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-InternxtShareExtension/Pods-InternxtShareExtension-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		74E905CB0B70CDBE606791CD /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-InternxtFileProvider-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
 		90134DAC718F4FE0B3AB7B91 /* Start Packager */ = {
@@ -604,6 +818,14 @@
 				1818AB341F31CC033FFF750B /* ExpoModulesProvider.swift in Sources */,
 				DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */,
 				DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */,
+				AA0100012F87A94000E14783 /* SharedAuthKeychain.swift in Sources */,
+				AA0100032F87A94000E14783 /* FileProviderDomainManager.swift in Sources */,
+				AA0100052F87A94000E14783 /* InternxtAuthCredentialsModule.swift in Sources */,
+				AA0100072F87A94000E14783 /* InternxtAuthCredentialsModule.m in Sources */,
+				FF2010002F90000000E14783 /* FileProviderModule.swift in Sources */,
+				FF2010012F90000000E14783 /* FileProviderModule.m in Sources */,
+				FF2010032F90000000E14783 /* SyncAnchorStore.swift in Sources */,
+				FF2010062F90000000E14783 /* FileProviderItemIdentifier.swift in Sources */,
 				1A3E7803EDA342F39787DC8F /* PHAssetExportModule.swift in Sources */,
 				9DB4D633CA40422A956585FD /* PHAssetExportModule.m in Sources */,
 				A1B2C3D4E5F601234567890A /* PHBurstExportModule.swift in Sources */,
@@ -620,6 +842,42 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		DE1D473D2F87A94000E14783 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FF2010022F90000000E14783 /* SyncAnchorStore.swift in Sources */,
+				AB1D47902F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */,
+				AB1D47922F87A94000E14783 /* FileProviderUploadService.swift in Sources */,
+				AB1D47942F87A94000E14783 /* FileProviderDownloadService.swift in Sources */,
+				AB1D47962F87A94000E14783 /* FileProviderMutationService.swift in Sources */,
+				AB1D47702F87A94000E14783 /* FileProviderItemIdentifier.swift in Sources */,
+				AB1D47712F87A94000E14783 /* DriveAPIFactory.swift in Sources */,
+				AB1D47802F87A94000E14783 /* NetworkFacadeFactory.swift in Sources */,
+				AB1D47812F87A94000E14783 /* SharedKeychainCredentials.swift in Sources */,
+				AA0100082F87A94000E14783 /* SharedAuthKeychain.swift in Sources */,
+				F603918B0E78918549FB9494 /* FileProviderItem.swift in Sources */,
+				517593AA71C926C43E076321 /* FileProviderExtension.swift in Sources */,
+				CEF3BECD880147688CACD8B5 /* FileProviderEnumerator.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FB1D480A12F87A94000E14783 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FB1D480012F87A94000E14783 /* FileProviderErrorMapperTests.swift in Sources */,
+				FB1D480212F87A94000E14783 /* FileProviderErrorMapper.swift in Sources */,
+				FB1D481012F87A94000E14783 /* FileProviderMutationTests.swift in Sources */,
+				FF2010042F90000000E14783 /* SyncAnchorStore.swift in Sources */,
+				FF2010052F90000000E14783 /* SyncAnchorStoreTests.swift in Sources */,
+				FB1D481212F87A94000E14783 /* FileProviderItem.swift in Sources */,
+				FB1D481312F87A94000E14783 /* FileProviderItemIdentifier.swift in Sources */,
+				FB1D481412F87A94000E14783 /* FileProviderMutationService.swift in Sources */,
+				FB1D481512F87A94000E14783 /* SharedAuthKeychain.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -627,6 +885,11 @@
 			isa = PBXTargetDependency;
 			target = 573EC8782D084646801534FA /* InternxtShareExtension */;
 			targetProxy = DEA227B339134920AF95B704 /* PBXContainerItemProxy */;
+		};
+		DE1D474E2F87A94000E14783 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DE1D47402F87A94000E14783 /* InternxtFileProvider */;
+			targetProxy = DE1D474D2F87A94000E14783 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -878,6 +1141,154 @@
 			};
 			name = Release;
 		};
+		DE1D47502F87A94000E14783 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = AEF5ED5D913A5F0C6A1779E7 /* Pods-InternxtFileProvider.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = InternxtFileProvider/InternxtFileProvider.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = JR4S3SY396;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = InternxtFileProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = InternxtFileProvider;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.10.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProvider;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DE1D47512F87A94000E14783 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9EBA538C165E183B083F129B /* Pods-InternxtFileProvider.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CODE_SIGN_ENTITLEMENTS = InternxtFileProvider/InternxtFileProvider.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = JR4S3SY396;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = InternxtFileProvider/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = InternxtFileProvider;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MARKETING_VERSION = 1.10.0;
+				MTL_FAST_MATH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProvider;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		FB1D480B12F87A94000E14783 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProviderTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		FB1D480C12F87A94000E14783 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGNING_ALLOWED = NO;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = com.internxt.snacks.InternxtFileProviderTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -908,7 +1319,49 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		DE1D47532F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProvider" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE1D47502F87A94000E14783 /* Debug */,
+				DE1D47512F87A94000E14783 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		FB1D480912F87A94000E14783 /* Build configuration list for PBXNativeTarget "InternxtFileProviderTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FB1D480B12F87A94000E14783 /* Debug */,
+				FB1D480C12F87A94000E14783 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/internxt/swift-core";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DE1D47552F87AB4000E14783 /* InternxtSwiftCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */;
+			productName = InternxtSwiftCore;
+		};
+		FB1D480412F87A94000E14783 /* InternxtSwiftCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE1D47542F87AB4000E14783 /* XCRemoteSwiftPackageReference "swift-core" */;
+			productName = InternxtSwiftCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }

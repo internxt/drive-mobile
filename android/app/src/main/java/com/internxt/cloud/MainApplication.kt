@@ -13,6 +13,9 @@ import com.facebook.react.common.ReleaseLevel
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint
 import com.facebook.react.defaults.DefaultReactNativeHost
 
+import com.internxt.cloud.auth.InternxtAuthCredentialsPackage
+import com.internxt.cloud.documents.signaling.InternxtSignalingPackage
+
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
 
@@ -24,6 +27,8 @@ class MainApplication : Application(), ReactApplication {
         override fun getPackages(): List<ReactPackage> =
             PackageList(this).packages.apply {
               add(ShareIntentPackage())
+              add(InternxtAuthCredentialsPackage())
+              add(InternxtSignalingPackage())
             }
 
           override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"
