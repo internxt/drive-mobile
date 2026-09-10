@@ -15,6 +15,7 @@ import {
 } from 'internxt-crypto';
 import strings from '../../../assets/lang/strings';
 import { AsyncStorageKey } from '../../types';
+import { MailAttachment, OutgoingEmail } from '../../types/mail';
 import AppService from '../AppService';
 import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common/logger/logger.service';
@@ -22,8 +23,10 @@ import { AcceptedEncodings, fs } from '../FileSystemService';
 import { CachedDecryptedEmail, mailLocalDB } from './database/mailLocalDB';
 import {
   ActiveDomainsUnavailableError,
+  BlindCopyNotDeliverableError,
   InternxtRecipientKeyMissingError,
   NoRecipientsError,
+  PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
 } from './errors';
 import { mailboxService } from './mailbox.service';
@@ -163,9 +166,9 @@ export const decryptAttachmentData = async (
 };
 
 const encryptAttachmentForUpload = async (
-  file: { uri: string; name: string; type: string },
+  file: MailAttachment,
   attachmentsSessionKey: Uint8Array,
-): Promise<{ uri: string; name: string; type: string }> => {
+): Promise<MailAttachment> => {
   const rawBuffer = await fs.readFile(file.uri);
   const encryptedBytes = await encryptSymmetrically(attachmentsSessionKey, new Uint8Array(rawBuffer));
   const encryptedPath = fs.tmpFilePath(`${file.name}.enc`);
@@ -232,7 +235,7 @@ const resolveWrapKeys = async (
     throw new ServerPublicKeyMissingError();
   }
   if (addressesWithoutKey.length > 0) {
-    logger.info(`Wrapping with the server key for: ${addressesWithoutKey.join(', ')}`);
+    logger.info(`Wrapping with the server key for ${addressesWithoutKey.length} recipients`);
   }
 
   return recipientKeys.map((recipient) => ({
@@ -244,24 +247,46 @@ const resolveWrapKeys = async (
 /**
  * Encrypts an email and sends it, giving every recipient their own wrap of the session key.
  *
- * @param to - Recipient addresses as typed by the user; duplicates and casing are normalized.
- * @param subject - Subject line, which travels in cleartext because the server indexes it.
- * @param text - Body of the message.
- * @param files - Attachments to encrypt and upload before sending.
+ * @param email - The message to send.
+ * @param email.to - Recipient addresses as typed by the user; duplicates and casing are normalized.
+ * @param email.cc - Addresses in copy, normalized like `to`.
+ * @param email.bcc - Addresses in blind copy, normalized like `to`.
+ * @param email.subject - Subject line, which travels in cleartext because the server indexes it.
+ * @param email.text - Body of the message.
+ * @param email.files - Attachments to encrypt and upload before sending.
  * @throws NoRecipientsError when there is nobody to send the message to.
+ * @throws PrimaryRecipientMissingError when everybody is in copy; the server needs at least one
+ * recipient in `to`.
+ * @throws BlindCopyNotDeliverableError when the email is delivered inside Internxt and has blind
+ * copy recipients: every recipient reads the same envelope, and the envelope names them all.
  */
-export const encryptAndSendEmail = async (
-  to: string[],
-  subject: string,
-  text: string,
-  files: { uri: string; name: string; type: string }[] = [],
-): Promise<void> => {
-  const addresses = uniqueEmailAddresses(to);
+export const encryptAndSendEmail = async ({
+  to,
+  cc = [],
+  bcc = [],
+  subject,
+  text,
+  files = [],
+}: OutgoingEmail): Promise<void> => {
+  const toAddresses = uniqueEmailAddresses(to);
+  const ccAddresses = uniqueEmailAddresses(cc).filter((address) => !toAddresses.includes(address));
+  const bccAddresses = uniqueEmailAddresses(bcc).filter(
+    (address) => !toAddresses.includes(address) && !ccAddresses.includes(address),
+  );
+  const addresses = [...toAddresses, ...ccAddresses, ...bccAddresses];
   if (addresses.length === 0) {
     throw new NoRecipientsError();
   }
+  if (toAddresses.length === 0) {
+    throw new PrimaryRecipientMissingError();
+  }
 
   const activeDomains = await getActiveDomains();
+  const deliveryMode: DeliveryMode = classifyRecipients(addresses, activeDomains).allInternxt ? 'INTERNXT' : 'EXTERNAL';
+
+  if (deliveryMode === 'INTERNXT' && bccAddresses.length > 0) {
+    throw new BlindCopyNotDeliverableError();
+  }
 
   const [wrapKeys, senderKeys] = await Promise.all([
     resolveWrapKeys(addresses, activeDomains, AppService.constants.SERVER_PUBLIC_KEY),
@@ -296,10 +321,10 @@ export const encryptAndSendEmail = async (
 
   const { encryptedKeys, encEmail } = await encryptEmailHybridForMultipleRecipients(email, recipients);
 
-  const deliveryMode: DeliveryMode = classifyRecipients(addresses, activeDomains).allInternxt ? 'INTERNXT' : 'EXTERNAL';
-
   const body: SendEmailRequest = {
-    to: addresses.map((email) => ({ email })),
+    to: toAddresses.map((email) => ({ email })),
+    ...(ccAddresses.length > 0 ? { cc: ccAddresses.map((email) => ({ email })) } : {}),
+    ...(bccAddresses.length > 0 ? { bcc: bccAddresses.map((email) => ({ email })) } : {}),
     subject,
     deliveryMode,
     encryption: {
