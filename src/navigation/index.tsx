@@ -1,4 +1,4 @@
-import { NavigationContainer, NavigationContainerRefWithCurrent } from '@react-navigation/native';
+import { DefaultTheme, NavigationContainer, NavigationContainerRefWithCurrent } from '@react-navigation/native';
 import { useRef } from 'react';
 import { View } from 'react-native';
 
@@ -16,6 +16,7 @@ export default function Navigation({ navigationRef }: NavigationProps) {
   return (
     <NavigationContainer
       theme={{
+        ...DefaultTheme,
         dark: false,
         colors: {
           background: '#ffffff',
