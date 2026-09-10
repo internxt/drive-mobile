@@ -45,6 +45,7 @@ jest.mock('../../../services/AsyncStorageService', () => ({
 jest.mock('../../../services/AuthService', () => ({
   __esModule: true,
   default: {
+    authTokenHasExpired: jest.fn().mockReturnValue(false),
     emitLoginEvent: jest.fn(),
     emitLogoutEvent: jest.fn(),
     signout: jest.fn().mockResolvedValue(undefined),
@@ -58,7 +59,7 @@ jest.mock('../../../services/UserService', () => ({ __esModule: true, default: {
 
 import authService from '../../../services/AuthService';
 import { clearCredentials, setCredentials } from '../../../services/native/InternxtAuthCredentialsModule';
-import { refreshTokensThunk, signInThunk, signOutThunk } from './index';
+import { refreshTokensThunk, signInThunk, signOutThunk, silentSignInThunk } from './index';
 
 const setCredentialsMock = setCredentials as jest.Mock;
 const clearCredentialsMock = clearCredentials as jest.Mock;
@@ -83,7 +84,7 @@ describe('auth thunks native credentials handoff', () => {
     jest.clearAllMocks();
   });
 
-  it('when the login completes, then the wrapper receives the new token', async () => {
+  test('when the login completes, then the wrapper receives the new token', async () => {
     await runThunk(signInThunk({ user, token: 'access-token', newToken: 'login-new-token' }));
 
     expect(setCredentialsMock).toHaveBeenCalledWith(
@@ -91,7 +92,7 @@ describe('auth thunks native credentials handoff', () => {
     );
   });
 
-  it('when the token is refreshed in the foreground, then the wrapper receives the refreshed token', async () => {
+  test('when the token is refreshed in the foreground, then the wrapper receives the refreshed token', async () => {
     refreshAuthTokenMock.mockResolvedValue({ token: 'access-2', newToken: 'refreshed-new-token' });
     getAuthCredentialsMock.mockResolvedValue({
       credentials: { accessToken: 'access-2', photosToken: 'refreshed-new-token', user },
@@ -102,7 +103,19 @@ describe('auth thunks native credentials handoff', () => {
     expect(setCredentialsMock).toHaveBeenCalledWith(expect.objectContaining({ bearerToken: 'refreshed-new-token' }));
   });
 
-  it('when the logout completes, then clearCredentials is invoked', async () => {
+  test('when an existing session is restored at startup, then the wrapper receives the stored token', async () => {
+    getAuthCredentialsMock.mockResolvedValue({
+      credentials: { accessToken: 'access-3', photosToken: 'stored-new-token', user },
+    });
+
+    await runThunk(silentSignInThunk());
+
+    expect(setCredentialsMock).toHaveBeenCalledWith(
+      expect.objectContaining({ bearerToken: 'stored-new-token', driveBaseUrl: 'https://drive' }),
+    );
+  });
+
+  test('when the logout completes, then clearCredentials is invoked', async () => {
     await runThunk(signOutThunk({ reason: 'manual' }));
 
     expect(clearCredentialsMock).toHaveBeenCalledTimes(1);
