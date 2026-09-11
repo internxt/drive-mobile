@@ -1,12 +1,10 @@
 import { AttachmentRef, DeliveryMode, EmailSummaryResponse, SendEmailRequest } from '@internxt/sdk/dist/mail/types';
-import uuid from 'react-native-uuid';
 import {
   Email,
   KeystoreType,
   base64ToUint8Array,
   decryptEmailHybrid,
   decryptEmailPreviewHybrid,
-  decryptSymmetrically,
   encryptEmailHybridForMultipleRecipients,
   encryptSymmetrically,
   genSymmetricKey,
@@ -14,16 +12,17 @@ import {
   uint8ArrayToBase64,
   uint8ToUTF8,
 } from 'internxt-crypto';
+import uuid from 'react-native-uuid';
 import strings from '../../../assets/lang/strings';
 import { AsyncStorageKey } from '../../types';
-import { MailAttachment, OutgoingEmail, OutgoingReply } from '../../types/mail';
+import { MailAttachment, OutgoingEmail, OutgoingForward, OutgoingReply, SendProgress } from '../../types/mail';
 import AppService from '../AppService';
 import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common/logger/logger.service';
 import { AcceptedEncodings, fs } from '../FileSystemService';
+import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
 import { CachedDecryptedEmail, mailLocalDB } from './database/mailLocalDB';
 import { plainTextToHtml } from './emailBody/emailBodyContent';
-import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
 import {
   ActiveDomainsUnavailableError,
   AttachmentTooLargeError,
@@ -34,6 +33,12 @@ import {
   PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
 } from './errors';
+import {
+  discardMaterializedAttachments,
+  materializeForwardedAttachments,
+  type MaterializedAttachment,
+} from './forwardAttachments';
+import { composeForwardedBody, previewOfForward } from './forwardBody';
 import { mailboxService } from './mailbox.service';
 import { classifyRecipients, isInternxtDomain, uniqueEmailAddresses } from './mailDomain';
 import { recipientKeysService } from './recipientKeys.service';
@@ -164,14 +169,6 @@ export const getCachedEmail = async (emailId: string): Promise<CachedDecryptedEm
 
 export const removeCachedEmail = async (emailId: string): Promise<void> => {
   await mailLocalDB.deleteCachedEmail(emailId);
-};
-
-export const decryptAttachmentData = async (
-  data: Uint8Array,
-  attachmentsSessionKeyB64: string,
-): Promise<Uint8Array> => {
-  const key = base64ToUint8Array(attachmentsSessionKeyB64);
-  return decryptSymmetrically(key, data);
 };
 
 /**
@@ -343,11 +340,10 @@ export const normalizeRecipients = ({
  * markup, so plain text would reach them with its line breaks collapsed.
  * @param email.preview - Opening of the body as plain text, shown in the mailbox list before the
  * message is read.
- * @param email.files - Attachments to encrypt and upload, one after another: each one is held whole
- * in memory while it is encrypted and turned into base64.
+ * @param email.files - Attachments to encrypt and upload.
+ * @param email.onStage - Called as the attachments are uploaded, so a send can be followed from the
+ * screen.
  * @returns The encrypted envelope of the message and its uploaded attachments.
- * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
- * @throws AttachmentUploadFailedError when an attachment cannot be encrypted or uploaded.
  * @throws InternxtRecipientKeyMissingError when an internal recipient publishes no key.
  * @throws ServerPublicKeyMissingError when an external recipient has nobody to wrap their copy with.
  */
@@ -357,13 +353,14 @@ export const encryptMessageForRecipients = async ({
   body,
   preview,
   files = [],
+  onStage,
 }: {
   allAddresses: string[];
   activeDomains: ActiveDomain[];
   body: string;
   preview: string;
   files?: MailAttachment[];
-}): Promise<EncryptedMessagePayload> => {
+} & SendProgress): Promise<EncryptedMessagePayload> => {
   assertAttachmentsFitTheServer(files);
 
   const [wrapKeys, senderKeys] = await Promise.all([
@@ -384,6 +381,7 @@ export const encryptMessageForRecipients = async ({
   const uploadedAttachments: AttachmentRef[] = [];
 
   for (const file of files) {
+    onStage?.({ name: 'uploadingAttachments', current: uploadedAttachments.length + 1, total: files.length });
     uploadedAttachments.push(await uploadAttachment(file, attachmentsSessionKey));
   }
 
@@ -450,13 +448,20 @@ const toEmailAddresses = (addresses: string[]) => addresses.map((email) => ({ em
  * @param email.subject - Subject line, which travels in cleartext because the server indexes it.
  * @param email.text - Body of the message.
  * @param email.files - Attachments to encrypt and upload before sending.
+ * @param progress - How the send reports what it is doing.
+ * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
  * @throws NoRecipientsError when there is nobody to send the message to.
  * @throws PrimaryRecipientMissingError when everybody is in copy; the server needs at least one
  * recipient in `to`.
  * @throws BlindCopyNotDeliverableError when the email is delivered inside Internxt and has blind
  * copy recipients: every recipient reads the same envelope, and the envelope names them all.
+ * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
+ * @throws AttachmentUploadFailedError when an attachment cannot be encrypted or uploaded.
  */
-export const encryptAndSendEmail = async ({ to, cc, bcc, subject, text, files }: OutgoingEmail): Promise<void> => {
+export const encryptAndSendEmail = async (
+  { to, cc, bcc, subject, text, files }: OutgoingEmail,
+  { onStage }: SendProgress = {},
+): Promise<void> => {
   const { toAddresses, ccAddresses, bccAddresses, allAddresses } = normalizeRecipients({ to, cc, bcc });
   const { deliveryMode, activeDomains } = await resolveDelivery(allAddresses);
   assertBlindCopyIsDeliverable(deliveryMode, bccAddresses);
@@ -467,7 +472,10 @@ export const encryptAndSendEmail = async ({ to, cc, bcc, subject, text, files }:
     body: plainTextToHtml(text),
     preview: previewOf(text),
     files,
+    onStage,
   });
+
+  onStage?.({ name: 'sending' });
 
   await mailboxService.sendEmail({
     to: toEmailAddresses(toAddresses),
@@ -498,22 +506,17 @@ export const encryptAndSendEmail = async ({ to, cc, bcc, subject, text, files }:
  * @param reply.subject - Subject line of the reply.
  * @param reply.text - Body of the reply.
  * @param reply.files - Attachments to encrypt and upload before sending.
+ * @param progress - How the send reports what it is doing.
+ * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
  * @throws NoRecipientsError when there is nobody to send the reply to.
  * @throws PrimaryRecipientMissingError when everybody is in copy.
  * @throws BlindCopyNotDeliverableError when the reply is delivered inside Internxt and has blind
  * copy recipients.
  */
-export const encryptAndSendReply = async ({
-  inReplyTo,
-  replyAll,
-  keepServerDerivedRecipients,
-  to,
-  cc,
-  bcc,
-  subject,
-  text,
-  files,
-}: OutgoingReply): Promise<void> => {
+export const encryptAndSendReply = async (
+  { inReplyTo, replyAll, keepServerDerivedRecipients, to, cc, bcc, subject, text, files }: OutgoingReply,
+  { onStage }: SendProgress = {},
+): Promise<void> => {
   const { toAddresses, ccAddresses, bccAddresses, allAddresses } = normalizeRecipients({ to, cc, bcc });
   const { deliveryMode, activeDomains } = await resolveDelivery(allAddresses);
   assertBlindCopyIsDeliverable(deliveryMode, bccAddresses);
@@ -524,8 +527,10 @@ export const encryptAndSendReply = async ({
     body: plainTextToHtml(text),
     preview: previewOf(text),
     files,
+    onStage,
   });
 
+  onStage?.({ name: 'sending' });
   await mailboxService.replyEmail(inReplyTo, {
     replyAll,
     ...(keepServerDerivedRecipients ? {} : { to: toEmailAddresses(toAddresses) }),
@@ -536,6 +541,95 @@ export const encryptAndSendReply = async ({
     encryption,
     ...(attachments.length > 0 ? { attachments } : {}),
   });
+};
+
+/**
+ * Encrypts a forwarded message and sends it, keeping it in the thread of the message it forwards
+ * and carrying its attachments.
+ *
+ * There is no endpoint for forwarding: it is a send that names the original, so the thread holds.
+ * The attachments of the original are encrypted for it alone, so they are downloaded, decrypted and
+ * encrypted again for this message. That work runs after the recipients are checked, so a message
+ * that is going to be rejected never downloads anything, and nothing readable is left on the device
+ * once the send is over, whether it succeeded or not.
+ *
+ * @param forward - The message to forward.
+ * @param forward.forwardedMessageId - Id of the message being forwarded.
+ * @param forward.note - What the user wrote above the quoted original.
+ * @param forward.quote - The original, quoted under its header.
+ * @param forward.forwardedAttachments - Attachments of the original, which travel along.
+ * @param forward.to - Recipients of the forwarded message.
+ * @param forward.cc - Addresses in copy, normalized like `to`.
+ * @param forward.bcc - Addresses in blind copy, normalized like `to`.
+ * @param forward.subject - Subject line of the forwarded message.
+ * @param forward.files - Attachments the user added on top of the ones of the original.
+ * @param forward.areAttachmentsEncrypted - Whether the attachments of the original are encrypted.
+ * @param progress - How the send reports what it is doing.
+ * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
+ * @throws NoRecipientsError when there is nobody to forward the message to.
+ * @throws PrimaryRecipientMissingError when everybody is in copy.
+ * @throws BlindCopyNotDeliverableError when the message is delivered inside Internxt and has blind
+ * copy recipients.
+ * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
+ * @throws ForwardedAttachmentsNotDecryptableError when the original could not be decrypted on this
+ * device, so its attachments cannot be forwarded.
+ * @throws ForwardedAttachmentUnavailableError when an attachment of the original cannot be taken out
+ * of it, so nothing is sent instead of a message with files missing.
+ */
+export const encryptAndSendForward = async (
+  {
+    forwardedMessageId,
+    note,
+    quote,
+    forwardedAttachments,
+    areAttachmentsEncrypted,
+    to,
+    cc,
+    bcc,
+    subject,
+    files = [],
+  }: OutgoingForward,
+  { onStage }: SendProgress = {},
+): Promise<void> => {
+  const { toAddresses, ccAddresses, bccAddresses, allAddresses } = normalizeRecipients({ to, cc, bcc });
+  const { deliveryMode, activeDomains } = await resolveDelivery(allAddresses);
+  assertBlindCopyIsDeliverable(deliveryMode, bccAddresses);
+
+  let materialized: MaterializedAttachment[] = [];
+
+  try {
+    if (forwardedAttachments.length > 0) {
+      materialized = await materializeForwardedAttachments({
+        forwardedMessageId,
+        attachments: forwardedAttachments,
+        areAttachmentsEncrypted,
+        onAttachmentProgress: (current, total) => onStage?.({ name: 'downloadingAttachments', current, total }),
+      });
+    }
+
+    const { encryption, attachments } = await encryptMessageForRecipients({
+      allAddresses,
+      activeDomains,
+      body: composeForwardedBody(note, quote),
+      preview: previewOf(previewOfForward(note, quote)),
+      files: [...materialized.map(({ attachment }) => attachment), ...files],
+      onStage,
+    });
+
+    onStage?.({ name: 'sending' });
+    await mailboxService.sendEmail({
+      to: toEmailAddresses(toAddresses),
+      ...(ccAddresses.length > 0 ? { cc: toEmailAddresses(ccAddresses) } : {}),
+      ...(bccAddresses.length > 0 ? { bcc: toEmailAddresses(bccAddresses) } : {}),
+      subject,
+      deliveryMode,
+      encryption,
+      inReplyToEmailId: forwardedMessageId,
+      ...(attachments.length > 0 ? { attachments } : {}),
+    });
+  } finally {
+    await discardMaterializedAttachments(materialized);
+  }
 };
 
 export const moveThreadToMailbox = async (threadMessageIds: string[], mailbox: 'trash' | 'spam'): Promise<void> => {

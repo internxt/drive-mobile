@@ -6,7 +6,9 @@ export const MailErrorName = {
   ServerPublicKeyMissing: 'ServerPublicKeyMissingError',
   BlindCopyNotDeliverable: 'BlindCopyNotDeliverableError',
   PrimaryRecipientMissing: 'PrimaryRecipientMissingError',
+  ForwardedAttachmentUnavailable: 'ForwardedAttachmentUnavailableError',
   AttachmentTooLarge: 'AttachmentTooLargeError',
+  ForwardedAttachmentsNotDecryptable: 'ForwardedAttachmentsNotDecryptableError',
   AttachmentUploadFailed: 'AttachmentUploadFailedError',
 } as const;
 
@@ -61,10 +63,28 @@ export class PrimaryRecipientMissingError extends Error {
   }
 }
 
+export class ForwardedAttachmentUnavailableError extends Error {
+  constructor(
+    public readonly attachmentName: string,
+    cause?: unknown,
+  ) {
+    super(`Could not take the attachment ${attachmentName} out of the message being forwarded`);
+    this.name = MailErrorName.ForwardedAttachmentUnavailable;
+    this.cause = cause;
+  }
+}
+
 export class AttachmentTooLargeError extends Error {
   constructor(public readonly attachmentName: string) {
     super(`The attachment ${attachmentName} is over the size the server accepts`);
     this.name = MailErrorName.AttachmentTooLarge;
+  }
+}
+
+export class ForwardedAttachmentsNotDecryptableError extends Error {
+  constructor() {
+    super('The message being forwarded could not be decrypted, so its attachments cannot travel');
+    this.name = MailErrorName.ForwardedAttachmentsNotDecryptable;
   }
 }
 

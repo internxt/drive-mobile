@@ -1,6 +1,6 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import dayjs from 'dayjs';
-import { ArrowBendDoubleUpLeftIcon, ArrowBendUpLeftIcon } from 'phosphor-react-native';
+import { ArrowBendDoubleUpLeftIcon, ArrowBendUpLeftIcon, ArrowBendUpRightIcon } from 'phosphor-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
@@ -36,12 +36,12 @@ const MessageAction = ({
       onPress={onPress}
       disabled={isDisabled}
       style={[
-        tailwind('flex-1 flex-row items-center justify-center rounded-full py-3'),
+        tailwind('flex-1 flex-row items-center justify-center rounded-full px-2 py-3'),
         { backgroundColor: getColor('bg-gray-5') },
       ]}
     >
       <ActionIcon color={getColor('text-gray-80')} size={18} />
-      <AppText numberOfLines={1} style={[tailwind('ml-2 text-sm'), { color: getColor('text-gray-80') }]}>
+      <AppText numberOfLines={1} style={[tailwind('ml-1.5 text-sm'), { color: getColor('text-gray-80') }]}>
         {label}
       </AppText>
     </TouchableOpacity>
@@ -54,9 +54,12 @@ export const ThreadMessageCard = ({
   isExpanded,
   isBusy,
   hasSeparator,
+  canReplyAll,
+  canForward,
   onToggleExpanded,
   onReply,
   onReplyAll,
+  onForward,
   onPressAttachment,
 }: {
   message: EmailResponse;
@@ -64,9 +67,12 @@ export const ThreadMessageCard = ({
   isExpanded: boolean;
   isBusy: boolean;
   hasSeparator: boolean;
+  canReplyAll: boolean;
+  canForward: boolean;
   onToggleExpanded: () => void;
   onReply: () => void;
   onReplyAll: () => void;
+  onForward: () => void;
   onPressAttachment: (attachment: NonNullable<EmailResponse['attachments']>[number]) => void;
 }) => {
   const tailwind = useTailwind();
@@ -162,13 +168,28 @@ export const ThreadMessageCard = ({
 
           <View style={tailwind('flex-row mt-4')}>
             <MessageAction label={actions.reply} icon={ArrowBendUpLeftIcon} isDisabled={isBusy} onPress={onReply} />
-            <View style={tailwind('w-3')} />
-            <MessageAction
-              label={actions.replyAll}
-              icon={ArrowBendDoubleUpLeftIcon}
-              isDisabled={isBusy}
-              onPress={onReplyAll}
-            />
+            {canReplyAll && (
+              <>
+                <View style={tailwind('w-2')} />
+                <MessageAction
+                  label={actions.replyAll}
+                  icon={ArrowBendDoubleUpLeftIcon}
+                  isDisabled={isBusy}
+                  onPress={onReplyAll}
+                />
+              </>
+            )}
+            {canForward && (
+              <>
+                <View style={tailwind('w-2')} />
+                <MessageAction
+                  label={actions.forward}
+                  icon={ArrowBendUpRightIcon}
+                  isDisabled={isBusy}
+                  onPress={onForward}
+                />
+              </>
+            )}
           </View>
         </View>
       )}
