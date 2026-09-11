@@ -26,6 +26,21 @@ const uniqueAddresses = (addresses: EmailAddress[], excludedAddresses: string[] 
 };
 
 /**
+ * Tells whether two lists name the same people, whatever the order they are written in, the case
+ * of their addresses or how many times each one is repeated.
+ *
+ * @param addresses - One of the lists to compare.
+ * @param otherAddresses - The list to compare it against.
+ * @returns Whether both lists name the same people.
+ */
+export const hasSameAddresses = (addresses: string[], otherAddresses: string[]): boolean => {
+  const addressKeys = new Set(addresses.map(addressKey));
+  const otherAddressKeys = new Set(otherAddresses.map(addressKey));
+
+  return addressKeys.size === otherAddressKeys.size && [...addressKeys].every((key) => otherAddressKeys.has(key));
+};
+
+/**
  * Works out who a reply is addressed to. Must return the same recipients as `deriveReplyRecipients`
  * in `mail-server` (`src/modules/email/threading.ts`), which is what actually addresses the reply:
  * the client seals one wrap of the session key per recipient before the server sees the request, so

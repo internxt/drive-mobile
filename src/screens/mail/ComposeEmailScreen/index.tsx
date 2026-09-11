@@ -5,6 +5,7 @@ import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { encryptAndSendEmail, encryptAndSendReply } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { hasSameAddresses } from '@internxt-mobile/services/mail/replyRecipients';
 import { pick } from '@react-native-documents/picker';
 import * as ImagePicker from 'expo-image-picker';
 import strings from '../../../../assets/lang/strings';
@@ -22,10 +23,6 @@ import { ComposeFieldRow } from './components/ComposeFieldRow';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { RecipientRow } from './components/RecipientRow';
 import { describeSendFailure, getSendErrorMessage } from './sendErrors';
-
-const hasSameToAddresses = (composedToAddresses: string[], derivedToAddresses: string[]): boolean =>
-  composedToAddresses.length === derivedToAddresses.length &&
-  [...composedToAddresses].sort().join() === [...derivedToAddresses].sort().join();
 
 export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element {
   const tailwind = useTailwind();
@@ -105,7 +102,7 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
         await encryptAndSendReply({
           inReplyTo: reply.repliedMessageId,
           replyAll: reply.replyAll,
-          keepServerDerivedRecipients: hasSameToAddresses(to, reply.to),
+          keepServerDerivedRecipients: hasSameAddresses(to, reply.to),
           to,
           cc,
           bcc,

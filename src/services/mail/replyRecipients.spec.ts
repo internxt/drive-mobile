@@ -1,4 +1,4 @@
-import { deriveReplyRecipients, RepliedMessage } from './replyRecipients';
+import { deriveReplyRecipients, hasSameAddresses, RepliedMessage } from './replyRecipients';
 
 const SELF = 'me@inxt.eu';
 
@@ -126,5 +126,40 @@ describe('Working out who a reply is addressed to', () => {
 
     expect(to).toEqual([{ name: 'The Sender', email: 'sender@inxt.eu' }]);
     expect(cc).toEqual([{ name: 'Someone', email: 'someone@inxt.eu' }]);
+  });
+});
+
+
+describe('Telling whether two lists name the same people', () => {
+  test('when both lists hold the same addresses in a different order, then they name the same people', () => {
+    expect(hasSameAddresses(['one@inxt.eu', 'two@inxt.eu'], ['two@inxt.eu', 'one@inxt.eu'])).toBe(true);
+  });
+
+  test('when the same address is written in a different case, then it still names the same person', () => {
+    expect(hasSameAddresses(['Ada@Inxt.eu'], ['ada@inxt.eu'])).toBe(true);
+  });
+
+  test('when an address is written with spaces around it, then it still names the same person', () => {
+    expect(hasSameAddresses([' ada@inxt.eu '], ['ada@inxt.eu'])).toBe(true);
+  });
+
+  test('when one list repeats an address the other one does not hold, then they name different people', () => {
+    expect(hasSameAddresses(['one@inxt.eu', 'one@inxt.eu'], ['one@inxt.eu', 'two@inxt.eu'])).toBe(false);
+  });
+
+  test('when a list only repeats what it already holds, then both still name the same people', () => {
+    expect(hasSameAddresses(['one@inxt.eu', 'one@inxt.eu'], ['one@inxt.eu'])).toBe(true);
+  });
+
+  test('when one list holds somebody the other one does not, then they name different people', () => {
+    expect(hasSameAddresses(['one@inxt.eu'], ['one@inxt.eu', 'two@inxt.eu'])).toBe(false);
+  });
+
+  test('when the addresses of each list join into the same text, then they are still told apart', () => {
+    expect(hasSameAddresses(['ab@inxt.eu'], ['a@inxt.eu', 'b@inxt.eu'])).toBe(false);
+  });
+
+  test('when both lists are empty, then they name the same people', () => {
+    expect(hasSameAddresses([], [])).toBe(true);
   });
 });
