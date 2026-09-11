@@ -63,6 +63,18 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
 
   const areImagesBlocked = !areRemoteImagesAllowed && body.hasImagesHostedElsewhere;
 
+  if (bodySource.type === 'encryptedUnreadable') {
+    return (
+      <View
+        style={[tailwind('flex-row items-center rounded-lg px-3 py-3'), { backgroundColor: getColor('bg-gray-5') }]}
+      >
+        <AppText style={[tailwind('flex-1 text-sm'), { color: getColor('text-gray-60') }]}>
+          {strings.screens.mail.unableToDecryptPreview}
+        </AppText>
+      </View>
+    );
+  }
+
   return (
     <View>
       {areImagesBlocked && (
