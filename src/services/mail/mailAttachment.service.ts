@@ -1,6 +1,6 @@
 import { uint8ArrayToBase64 } from 'internxt-crypto';
 import { AcceptedEncodings, fs } from '../FileSystemService';
-import { decryptAttachmentData } from './mailCrypto.service';
+import { decryptAttachmentData } from './attachmentCrypto';
 import { mailboxService } from './mailbox.service';
 
 export type AttachmentToOpen = {

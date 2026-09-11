@@ -129,7 +129,6 @@ describe('Working out who a reply is addressed to', () => {
   });
 });
 
-
 describe('Telling whether two lists name the same people', () => {
   test('when both lists hold the same addresses in a different order, then they name the same people', () => {
     expect(hasSameAddresses(['one@inxt.eu', 'two@inxt.eu'], ['two@inxt.eu', 'one@inxt.eu'])).toBe(true);
