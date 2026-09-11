@@ -29,6 +29,33 @@ const HTML_ENTITY_BY_CHARACTER: Record<string, string> = {
 export const escapeHtml = (text: string): string =>
   text.replace(/[&<>"']/g, (character) => HTML_ENTITY_BY_CHARACTER[character]);
 
+const CHARACTER_BY_HTML_ENTITY: Record<string, string> = {
+  '&lt;': '<',
+  '&gt;': '>',
+  '&quot;': '"',
+  '&#39;': '\'',
+  '&nbsp;': ' ',
+  '&amp;': '&',
+};
+
+const HTML_ENTITY_PATTERN = /&lt;|&gt;|&quot;|&#39;|&nbsp;|&amp;/g;
+const TAG_PATTERN = /<[^>]*>/g;
+const BLANKS_PATTERN = /\s+/g;
+
+/**
+ * Reads a body written as markup as the text it displays: no tags, no entities, and the blank space
+ * of the markup collapsed the way a browser would collapse it.
+ *
+ * @param html a body written as markup
+ * @returns the text that body shows, in one run
+ */
+export const plainTextFromHtml = (html: string): string =>
+  html
+    .replace(TAG_PATTERN, ' ')
+    .replace(HTML_ENTITY_PATTERN, (entity) => CHARACTER_BY_HTML_ENTITY[entity])
+    .replace(BLANKS_PATTERN, ' ')
+    .trim();
+
 const REMOTE_IMAGE_PATTERN = /<img\b[^>]*\ssrc\s*=\s*["']https?:/i;
 const OPENING_MARKUP_PATTERN = /^(?:<!doctype\s|<!--|<\?|<[a-z][a-z0-9]*(?:\s[^>]*)?\/?>)/i;
 const EMBEDDED_MARKUP_PATTERN = /<\/[a-z][a-z0-9]*\s*>|<(?:br|hr|img|p|div|table|tr|td|ul|ol|li)\b[^>]*>/i;

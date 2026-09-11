@@ -384,6 +384,7 @@ const translations = {
         actions: {
           reply: 'Reply',
           replyAll: 'Reply all',
+          forward: 'Forward',
           markUnread: 'Unread',
           spam: 'Spam',
           trash: 'Trash',
@@ -392,10 +393,29 @@ const translations = {
       compose_email: {
         title: 'New message',
         replyTitle: 'Reply',
+        forwardTitle: 'Forward',
+        forwardedFrom: 'Forwarded message from {0}',
+        showForwarded: 'Show',
+        hideForwarded: 'Hide',
+        forward: {
+          prefix: 'Fwd:',
+          header: '---------- Forwarded message ----------',
+          from: 'From:',
+          date: 'Date:',
+          subject: 'Subject:',
+          to: 'To:',
+          cc: 'Cc:',
+        },
+        progress: {
+          downloadingAttachments: 'Preparing attachments ({0}/{1})',
+          uploadingAttachments: 'Encrypting and uploading attachments ({0}/{1})',
+          sending: 'Sending…',
+        },
         errors: {
           title: 'Message not sent',
           noRecipients: 'Add at least one recipient before sending.',
-          primaryRecipientMissing: 'Add at least one recipient in the To field. Copy and blind copy cannot travel on their own.',
+          primaryRecipientMissing:
+            'Add at least one recipient in the To field. Copy and blind copy cannot travel on their own.',
           blindCopyNotDeliverable: "Bcc isn't available for encrypted emails yet. Move the recipient to To or Cc.",
           internxtKeyMissing:
             'These recipients cannot receive encrypted mail yet: {0}. They need to open Internxt Mail once before you can write to them.',
@@ -403,9 +423,13 @@ const translations = {
           domainsUnavailable: 'We could not verify the recipient addresses. Check your connection and try again.',
           serverKeyMissing: 'Sending to addresses outside Internxt is not available right now.',
           sendFailed: 'The message could not be sent. Try again in a moment.',
+          forwardedAttachmentUnavailable:
+            'The attachment {0} could not be prepared, so nothing was sent. Remove it from the message or try again.',
           attachmentTooLarge: 'The attachment {0} is larger than the {1} the server accepts.',
           attachmentUploadFailed:
             'The attachment {0} could not be uploaded, so nothing was sent. Try again in a moment.',
+          forwardedAttachmentsNotDecryptable:
+            'This message could not be decrypted on this device, so its attachments cannot be forwarded.',
         },
       },
       shared: {
@@ -1459,6 +1483,7 @@ const translations = {
         actions: {
           reply: 'Responder',
           replyAll: 'Responder a todos',
+          forward: 'Reenviar',
           markUnread: 'No leído',
           spam: 'Spam',
           trash: 'Papelera',
@@ -1467,6 +1492,24 @@ const translations = {
       compose_email: {
         title: 'Nuevo mensaje',
         replyTitle: 'Responder',
+        forwardTitle: 'Reenviar',
+        forwardedFrom: 'Mensaje reenviado de {0}',
+        showForwarded: 'Mostrar',
+        hideForwarded: 'Ocultar',
+        forward: {
+          prefix: 'Fwd:',
+          header: '---------- Mensaje reenviado ----------',
+          from: 'De:',
+          date: 'Fecha:',
+          subject: 'Asunto:',
+          to: 'Para:',
+          cc: 'Cc:',
+        },
+        progress: {
+          downloadingAttachments: 'Preparando adjuntos ({0}/{1})',
+          uploadingAttachments: 'Cifrando y subiendo adjuntos ({0}/{1})',
+          sending: 'Enviando…',
+        },
         errors: {
           title: 'Mensaje no enviado',
           noRecipients: 'Añade al menos un destinatario antes de enviar.',
@@ -1482,9 +1525,13 @@ const translations = {
             'No hemos podido verificar las direcciones de los destinatarios. Revisa tu conexión e inténtalo de nuevo.',
           serverKeyMissing: 'El envío a direcciones de fuera de Internxt no está disponible ahora mismo.',
           sendFailed: 'No se ha podido enviar el mensaje. Inténtalo de nuevo en un momento.',
+          forwardedAttachmentUnavailable:
+            'No se ha podido preparar el adjunto {0}, así que no se ha enviado nada. Quítalo del mensaje o inténtalo de nuevo.',
           attachmentTooLarge: 'El adjunto {0} pesa más de los {1} que acepta el servidor.',
           attachmentUploadFailed:
             'No se ha podido subir el adjunto {0}, así que no se ha enviado nada. Inténtalo de nuevo en un momento.',
+          forwardedAttachmentsNotDecryptable:
+            'Este mensaje no se ha podido descifrar en este dispositivo, así que sus adjuntos no se pueden reenviar.',
         },
       },
       shared: {

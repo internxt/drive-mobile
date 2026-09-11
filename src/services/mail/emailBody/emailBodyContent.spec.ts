@@ -1,6 +1,13 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 
-import { buildEmailBodyHtml, hasRemoteImages, isMarkupBody, plainTextToHtml, resolveEmailBody } from './emailBodyContent';
+import {
+  buildEmailBodyHtml,
+  hasRemoteImages,
+  isMarkupBody,
+  plainTextFromHtml,
+  plainTextToHtml,
+  resolveEmailBody,
+} from './emailBodyContent';
 
 const anEmail = (fields: Partial<EmailResponse>): EmailResponse => ({ ...fields }) as EmailResponse;
 
@@ -187,5 +194,27 @@ describe('Telling whether a decrypted body was written with formatting', () => {
 
   test('when the body is empty, then it is not read as formatted', () => {
     expect(isMarkupBody('')).toBe(false);
+  });
+});
+
+describe('Reading a formatted body as the text it displays', () => {
+  test('when the body has tags, then only the text between them is left', () => {
+    expect(plainTextFromHtml('<p>Here are <b>the numbers</b></p>')).toBe('Here are the numbers');
+  });
+
+  test('when the body has characters written as entities, then they are read as the characters they stand for', () => {
+    expect(plainTextFromHtml('<div>Ana &lt;ana@inxt.me&gt; &amp; Bea</div>')).toBe('Ana <ana@inxt.me> & Bea');
+  });
+
+  test('when the body holds blank space of its own, then it is collapsed the way a browser collapses it', () => {
+    expect(plainTextFromHtml('<p>Here are</p>\n\n   <p>the numbers</p>')).toBe('Here are the numbers');
+  });
+
+  test('when the body separates words only with tags, then the words do not end up stuck together', () => {
+    expect(plainTextFromHtml('<td>Invoice</td><td>September</td>')).toBe('Invoice September');
+  });
+
+  test('when the body holds a space written as an entity, then it is read as a space', () => {
+    expect(plainTextFromHtml('<p>Invoice&nbsp;September</p>')).toBe('Invoice September');
   });
 });

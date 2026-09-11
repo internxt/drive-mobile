@@ -13,6 +13,7 @@ import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
+import { buildForwardedQuote, forwardedSubject } from '../../../services/mail/forwardBody';
 import { downloadDecryptAndOpenAttachment } from '../../../services/mail/mailAttachment.service';
 import {
   decryptAndCacheFullEmail,
@@ -50,6 +51,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   const [hasError, setHasError] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [expandedMessageIds, setExpandedMessageIds] = useState<string[]>([]);
+  const [selfAddress, setSelfAddress] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToEnd = useRef(false);
 
@@ -114,6 +116,10 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     loadThread();
   }, [loadThread]);
 
+  useEffect(() => {
+    asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSelfAddress(address ?? ''));
+  }, []);
+
   const onBackButtonPressed = () => navigation.goBack();
 
   const onMarkUnread = async () => {
@@ -136,10 +142,9 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     );
   };
 
-  const onReply = async (message: EmailResponse, replyAll: boolean) => {
+  const onReply = (message: EmailResponse, replyAll: boolean) => {
     if (isUpdating) return;
 
-    const selfAddress = (await asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress)) ?? '';
     const { to, cc } = deriveReplyRecipients(message, selfAddress, replyAll);
     const subject = /^\s*re:/i.test(message.subject) ? message.subject : `Re: ${message.subject}`;
 
@@ -150,6 +155,25 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
         subject,
         to: to.map((recipient) => recipient.email),
         cc: cc.map((recipient) => recipient.email),
+      },
+    });
+  };
+
+  const onForward = ({ message, bodySource }: ResolvedMessage) => {
+    if (isUpdating || bodySource.type === 'encryptedUnreadable') {
+      return;
+    }
+
+    const sender = message.from?.[0];
+
+    navigation.navigate('ComposeEmail', {
+      forward: {
+        forwardedMessageId: message.id,
+        subject: forwardedSubject(message.subject),
+        quote: buildForwardedQuote(message, bodySource),
+        attachments: (message.attachments ?? []).map(({ blobId, name, type, size }) => ({ blobId, name, type, size })),
+        areAttachmentsEncrypted: bodySource.type !== 'plain',
+        originalSender: sender?.name || sender?.email || '',
       },
     });
   };
@@ -209,9 +233,12 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
           isExpanded={expandedMessageIds.includes(message.id)}
           isBusy={isUpdating}
           hasSeparator={hasSeparator}
+          canReplyAll={deriveReplyRecipients(message, selfAddress, true).cc.length > 0}
+          canForward={bodySource.type !== 'encryptedUnreadable'}
           onToggleExpanded={() => onToggleExpanded(message.id)}
           onReply={() => onReply(message, false)}
           onReplyAll={() => onReply(message, true)}
+          onForward={() => onForward(entry)}
           onPressAttachment={onPressAttachment}
         />
       </View>

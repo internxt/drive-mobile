@@ -1,10 +1,14 @@
 import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
-import { encryptAndSendEmail, encryptAndSendReply } from '@internxt-mobile/services/mail/mailCrypto.service';
+import {
+  encryptAndSendEmail,
+  encryptAndSendForward,
+  encryptAndSendReply,
+} from '@internxt-mobile/services/mail/mailCrypto.service';
 import { hasSameAddresses } from '@internxt-mobile/services/mail/replyRecipients';
 import { pick } from '@react-native-documents/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -17,29 +21,54 @@ import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { AsyncStorageKey } from '../../../types';
-import { MailAttachment } from '../../../types/mail';
+import { ForwardedAttachment, MailAttachment, SendStage } from '../../../types/mail';
 import { RootStackScreenProps } from '../../../types/navigation';
 import { ComposeFieldRow } from './components/ComposeFieldRow';
+import { ForwardedQuote } from './components/ForwardedQuote';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { RecipientRow } from './components/RecipientRow';
 import { describeSendFailure, getSendErrorMessage } from './sendErrors';
+
+/**
+ * Says what a send is doing right now, which matters when it has to prepare attachments before it
+ * can even start.
+ *
+ * @param stage - How far along the send is.
+ * @returns What to show while that step runs.
+ */
+const describeSendStage = (stage: SendStage): string => {
+  const { progress } = strings.screens.compose_email;
+
+  switch (stage.name) {
+    case 'downloadingAttachments':
+      return strings.formatString(progress.downloadingAttachments, stage.current, stage.total) as string;
+    case 'uploadingAttachments':
+      return strings.formatString(progress.uploadingAttachments, stage.current, stage.total) as string;
+    case 'sending':
+      return progress.sending;
+  }
+};
 
 export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
 
-  const reply = route.params?.reply;
+  const params = route.params;
+  const reply = params && 'reply' in params ? params.reply : undefined;
+  const forward = params && 'forward' in params ? params.forward : undefined;
 
   const [to, setTo] = useState<string[]>(reply?.to ?? []);
   const [cc, setCc] = useState<string[]>(reply?.cc ?? []);
   const [bcc, setBcc] = useState<string[]>([]);
   const [isExtraRecipientsSectionOpen, setIsExtraRecipientsSectionOpen] = useState(false);
   const [senderAddress, setSenderAddress] = useState('');
-  const [subject, setSubject] = useState(reply?.subject ?? '');
+  const [subject, setSubject] = useState(reply?.subject ?? forward?.subject ?? '');
   const [body, setBody] = useState('');
   const [attachments, setAttachments] = useState<MailAttachment[]>([]);
+  const [forwardedAttachments, setForwardedAttachments] = useState<ForwardedAttachment[]>(forward?.attachments ?? []);
   const [isSending, setIsSending] = useState(false);
+  const [sendStage, setSendStage] = useState<SendStage | null>(null);
 
   useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSenderAddress(address ?? ''));
@@ -96,24 +125,47 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
     setAttachments((prev) => prev.filter((a) => a.uri !== uri));
   };
 
+  const onRemoveForwardedAttachment = (blobId: string) => {
+    setForwardedAttachments((prev) => prev.filter((attachment) => attachment.blobId !== blobId));
+  };
+
   const onSend = async () => {
     setIsSending(true);
     let wasSent = false;
     try {
-      if (reply) {
-        await encryptAndSendReply({
-          inReplyTo: reply.repliedMessageId,
-          replyAll: reply.replyAll,
-          keepServerDerivedRecipients: hasSameAddresses(to, reply.to),
-          to,
-          cc,
-          bcc,
-          subject,
-          text: body,
-          files: attachments,
-        });
+      if (forward) {
+        await encryptAndSendForward(
+          {
+            forwardedMessageId: forward.forwardedMessageId,
+            note: body,
+            quote: forward.quote,
+            forwardedAttachments,
+            areAttachmentsEncrypted: forward.areAttachmentsEncrypted,
+            to,
+            cc,
+            bcc,
+            subject,
+            files: attachments,
+          },
+          { onStage: setSendStage },
+        );
+      } else if (reply) {
+        await encryptAndSendReply(
+          {
+            inReplyTo: reply.repliedMessageId,
+            replyAll: reply.replyAll,
+            keepServerDerivedRecipients: hasSameAddresses(to, reply.to),
+            to,
+            cc,
+            bcc,
+            subject,
+            text: body,
+            files: attachments,
+          },
+          { onStage: setSendStage },
+        );
       } else {
-        await encryptAndSendEmail({ to, cc, bcc, subject, text: body, files: attachments });
+        await encryptAndSendEmail({ to, cc, bcc, subject, text: body, files: attachments }, { onStage: setSendStage });
       }
       wasSent = true;
     } catch (error) {
@@ -121,6 +173,7 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
       Alert.alert(strings.screens.compose_email.errors.title, getSendErrorMessage(error));
     } finally {
       setIsSending(false);
+      setSendStage(null);
     }
 
     if (wasSent) {
@@ -128,6 +181,8 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
     }
   };
 
+  const { title, replyTitle, forwardTitle } = strings.screens.compose_email;
+  const composeTitle = forward ? forwardTitle : reply ? replyTitle : title;
   const canSend = to.length > 0 && !!subject && !isSending;
   const hasExtraRecipients = cc.length > 0 || bcc.length > 0;
   const areExtraRecipientsVisible = isExtraRecipientsSectionOpen || hasExtraRecipients;
@@ -136,7 +191,7 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('flex-1 flex-grow')}>
       <AppScreenTitle
-        text={reply ? strings.screens.compose_email.replyTitle : strings.screens.compose_email.title}
+        text={composeTitle}
         onBackButtonPressed={onCancel}
         rightSlot={
           <TouchableOpacity disabled={!canSend} onPress={onSend}>
@@ -146,6 +201,15 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
           </TouchableOpacity>
         }
       />
+
+      {!!sendStage && (
+        <View style={[tailwind('flex-row items-center px-4 py-2'), { backgroundColor: getColor('bg-gray-5') }]}>
+          <ActivityIndicator size="small" color={getColor('text-primary')} />
+          <AppText style={[tailwind('ml-2 text-sm'), { color: getColor('text-gray-60') }]}>
+            {describeSendStage(sendStage)}
+          </AppText>
+        </View>
+      )}
 
       <ScrollView keyboardShouldPersistTaps="handled">
         <RecipientRow
@@ -202,8 +266,20 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
           style={[tailwind('px-4 py-3 text-base'), { minHeight: 200, color: getColor('text-gray-100') }]}
         />
 
+        {!!forward && <ForwardedQuote quote={forward.quote} originalSender={forward.originalSender} />}
+
         <View style={tailwind('px-4')}>
           <AppButton title="Add attachment" type="secondary" onPress={onAddAttachment} />
+          {forwardedAttachments.map((attachment) => (
+            <View key={attachment.blobId} style={tailwind('flex-row items-center justify-between py-2')}>
+              <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
+                {attachment.name}
+              </AppText>
+              <TouchableOpacity onPress={() => onRemoveForwardedAttachment(attachment.blobId)}>
+                <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
+              </TouchableOpacity>
+            </View>
+          ))}
           {attachments.map((attachment) => (
             <View key={attachment.uri} style={tailwind('flex-row items-center justify-between py-2')}>
               <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>

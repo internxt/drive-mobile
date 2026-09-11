@@ -15,7 +15,7 @@ import {
   type EmailBodySource,
 } from '../../../services/mail/emailBody/emailBodyContent';
 import { buildEmailDocument } from '../../../services/mail/emailBody/emailDocument';
-import { useEmailBodyHeight } from './hooks/useEmailBodyHeight';
+import { useEmailBodyHeight } from '../hooks/useEmailBodyHeight';
 
 const OPENABLE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
 const GENERIC_USER_AGENT = 'Mozilla/5.0 (Mobile)';

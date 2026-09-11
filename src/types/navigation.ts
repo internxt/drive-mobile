@@ -1,5 +1,5 @@
 import type { DrawerScreenProps } from '@react-navigation/drawer';
-import { MailboxId, ReplyComposeParams } from './mail';
+import { ForwardComposeParams, MailboxId, ReplyComposeParams } from './mail';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -30,7 +30,7 @@ export type RootStackParamList = {
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
   DrivePreview: undefined;
-  ComposeEmail: { reply: ReplyComposeParams } | undefined;
+  ComposeEmail: { reply: ReplyComposeParams } | { forward: ForwardComposeParams } | undefined;
   PhotoPreview: {
     initialId: string;
     items: TimelinePhotoItem[];
