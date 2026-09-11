@@ -8,6 +8,7 @@ import {
   DownloadAttachmentResponse,
   UploadAttachmentResponse,
   SendEmailRequest,
+  ReplyEmailRequest,
   EmailCreatedResponse,
   LookupRecipientKeysResponse,
   UpdateEmailRequest,
@@ -76,6 +77,10 @@ export class MailboxService {
   public async uploadAttachment(file: { uri: string; name: string; type: string }): Promise<UploadAttachmentResponse> {
     const { promise } = this.sdk.mail.uploadAttachment(file as unknown as File);
     return promise;
+  }
+
+  public async replyEmail(emailId: string, body: ReplyEmailRequest): Promise<EmailCreatedResponse> {
+    return this.sdk.mail.replyEmail(emailId, body);
   }
 
   public async sendEmail(body: SendEmailRequest): Promise<EmailCreatedResponse> {
