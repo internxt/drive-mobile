@@ -21,6 +21,7 @@ import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common/logger/logger.service';
 import { AcceptedEncodings, fs } from '../FileSystemService';
 import { CachedDecryptedEmail, mailLocalDB } from './database/mailLocalDB';
+import { plainTextToHtml } from './emailBody/emailBodyContent';
 import {
   ActiveDomainsUnavailableError,
   BlindCopyNotDeliverableError,
@@ -303,8 +304,10 @@ export const normalizeRecipients = ({
  * @param email - The message to encrypt.
  * @param email.allAddresses - Every address of the message, in any field.
  * @param email.activeDomains - Domains the mail server serves, used to tell internal recipients apart.
- * @param email.text - Body of the message.
- * @param email.preview - Opening of the body, shown in the mailbox list before the message is read.
+ * @param email.body - Body of the message, as markup: every client that reads it renders it as
+ * markup, so plain text would reach them with its line breaks collapsed.
+ * @param email.preview - Opening of the body as plain text, shown in the mailbox list before the
+ * message is read.
  * @param email.files - Attachments to encrypt and upload.
  * @returns The encrypted envelope of the message and its uploaded attachments.
  * @throws InternxtRecipientKeyMissingError when an internal recipient publishes no key.
@@ -313,13 +316,13 @@ export const normalizeRecipients = ({
 export const encryptMessageForRecipients = async ({
   allAddresses,
   activeDomains,
-  text,
+  body,
   preview,
   files = [],
 }: {
   allAddresses: string[];
   activeDomains: ActiveDomain[];
-  text: string;
+  body: string;
   preview: string;
   files?: MailAttachment[];
 }): Promise<EncryptedMessagePayload> => {
@@ -349,7 +352,7 @@ export const encryptMessageForRecipients = async ({
     );
   }
 
-  const email: Email = { text, preview, attachmentsSessionKey };
+  const email: Email = { text: body, preview, attachmentsSessionKey };
   const { encryptedKeys, encEmail } = await encryptEmailHybridForMultipleRecipients(email, recipients);
 
   return {
@@ -426,7 +429,7 @@ export const encryptAndSendEmail = async ({ to, cc, bcc, subject, text, files }:
   const { encryption, attachments } = await encryptMessageForRecipients({
     allAddresses,
     activeDomains,
-    text,
+    body: plainTextToHtml(text),
     preview: previewOf(text),
     files,
   });
@@ -483,7 +486,7 @@ export const encryptAndSendReply = async ({
   const { encryption, attachments } = await encryptMessageForRecipients({
     allAddresses,
     activeDomains,
-    text,
+    body: plainTextToHtml(text),
     preview: previewOf(text),
     files,
   });
