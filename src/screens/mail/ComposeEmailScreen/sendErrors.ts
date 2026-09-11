@@ -1,5 +1,12 @@
 import strings from '../../../../assets/lang/strings';
-import { InternxtRecipientKeyMissingError, MailErrorName } from '../../../services/mail/errors';
+import prettysize from 'prettysize';
+import { MAX_ATTACHMENT_BYTES } from '../../../services/mail/attachmentLimits';
+import {
+  AttachmentTooLargeError,
+  AttachmentUploadFailedError,
+  InternxtRecipientKeyMissingError,
+  MailErrorName,
+} from '../../../services/mail/errors';
 
 type SendErrorMessages = typeof strings.screens.compose_email.errors;
 
@@ -58,6 +65,24 @@ export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: Send
   [MailErrorName.ActiveDomainsUnavailable, (_, messages) => messages.domainsUnavailable],
   [MailErrorName.ServerPublicKeyMissing, (_, messages) => messages.serverKeyMissing],
   [MailErrorName.BlindCopyNotDeliverable, (_, messages) => messages.blindCopyNotDeliverable],
+  [
+    MailErrorName.AttachmentTooLarge,
+    (error, messages) =>
+      error instanceof AttachmentTooLargeError
+        ? (strings.formatString(
+            messages.attachmentTooLarge,
+            error.attachmentName,
+            prettysize(MAX_ATTACHMENT_BYTES, true),
+          ) as string)
+        : messages.sendFailed,
+  ],
+  [
+    MailErrorName.AttachmentUploadFailed,
+    (error, messages) =>
+      error instanceof AttachmentUploadFailedError
+        ? (strings.formatString(messages.attachmentUploadFailed, error.attachmentName) as string)
+        : messages.sendFailed,
+  ],
 ]);
 
 /**
