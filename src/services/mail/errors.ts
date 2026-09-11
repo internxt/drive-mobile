@@ -6,6 +6,8 @@ export const MailErrorName = {
   ServerPublicKeyMissing: 'ServerPublicKeyMissingError',
   BlindCopyNotDeliverable: 'BlindCopyNotDeliverableError',
   PrimaryRecipientMissing: 'PrimaryRecipientMissingError',
+  AttachmentTooLarge: 'AttachmentTooLargeError',
+  AttachmentUploadFailed: 'AttachmentUploadFailedError',
 } as const;
 
 export class NoRecipientsError extends Error {
@@ -56,5 +58,23 @@ export class PrimaryRecipientMissingError extends Error {
   constructor() {
     super('An email needs at least one recipient in the to field');
     this.name = MailErrorName.PrimaryRecipientMissing;
+  }
+}
+
+export class AttachmentTooLargeError extends Error {
+  constructor(public readonly attachmentName: string) {
+    super(`The attachment ${attachmentName} is over the size the server accepts`);
+    this.name = MailErrorName.AttachmentTooLarge;
+  }
+}
+
+export class AttachmentUploadFailedError extends Error {
+  constructor(
+    public readonly attachmentName: string,
+    cause?: unknown,
+  ) {
+    super(`Could not upload the attachment ${attachmentName}`);
+    this.name = MailErrorName.AttachmentUploadFailed;
+    this.cause = cause;
   }
 }

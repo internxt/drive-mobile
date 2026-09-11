@@ -4,12 +4,15 @@ import AppService from '../AppService';
 import { logger } from '../common/logger/logger.service';
 import {
   ActiveDomainsUnavailableError,
+  AttachmentTooLargeError,
+  AttachmentUploadFailedError,
   BlindCopyNotDeliverableError,
   InternxtRecipientKeyMissingError,
   NoRecipientsError,
   PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
 } from './errors';
+import { fs } from '../FileSystemService';
 import { decryptPreviews, encryptAndSendEmail, encryptAndSendReply } from './mailCrypto.service';
 import { mailboxService } from './mailbox.service';
 import { recipientKeysService } from './recipientKeys.service';
@@ -21,6 +24,17 @@ jest.mock('./mailbox.service', () => ({
     sendEmail: jest.fn(),
     replyEmail: jest.fn(),
     uploadAttachment: jest.fn(),
+  },
+}));
+
+jest.mock('../FileSystemService', () => ({
+  AcceptedEncodings: { Base64: 'base64' },
+  fs: {
+    tmpFilePath: (name: string) => `/tmp/${name}`,
+    pathToUri: (path: string) => path,
+    readFile: jest.fn().mockResolvedValue(Buffer.from('the attachment')),
+    createFile: jest.fn(),
+    unlinkIfExists: jest.fn(),
   },
 }));
 
@@ -37,6 +51,11 @@ jest.mock('../AsyncStorageService', () => ({
   default: { getItem: jest.fn().mockResolvedValue('me@inxt.me'), saveItem: jest.fn() },
 }));
 
+jest.mock('react-native-uuid', () => ({
+  __esModule: true,
+  default: { v4: () => 'a-temporary-name' },
+}));
+
 jest.mock('internxt-crypto', () => ({
   KeystoreType: { ENCRYPTION: 'encryption' },
   genSymmetricKey: () => new Uint8Array([1, 2, 3]),
@@ -45,7 +64,7 @@ jest.mock('internxt-crypto', () => ({
   uint8ToUTF8: (value: Uint8Array) => new TextDecoder().decode(value),
   openEncryptionKeystore: jest.fn(),
   decryptSymmetrically: jest.fn(),
-  encryptSymmetrically: jest.fn(),
+  encryptSymmetrically: jest.fn().mockResolvedValue(new Uint8Array([9, 9, 9])),
   decryptEmailHybrid: jest.fn(),
   decryptEmailPreviewHybrid: jest.fn(),
   encryptEmailHybridForMultipleRecipients: jest.fn(),
@@ -388,6 +407,111 @@ describe('Sending an encrypted email', () => {
 
     expect(getPublicKeysMock).toHaveBeenCalledWith(['friend@inxt.me']);
     expect(sentBody().to).toEqual([{ email: 'friend@inxt.me' }]);
+  });
+});
+
+describe('Sending a message with an attachment', () => {
+  const uploadAttachmentMock = mailboxService.uploadAttachment as jest.Mock;
+  const unlinkIfExistsMock = fs.unlinkIfExists as jest.Mock;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(AppService, 'constants', 'get').mockReturnValue({ SERVER_PUBLIC_KEY });
+    getActiveDomainsMock.mockResolvedValue(ACTIVE_DOMAINS);
+    getMailAccountKeysMock.mockResolvedValue(SENDER);
+    sendEmailMock.mockResolvedValue({ id: 'sent-id' });
+    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
+    uploadAttachmentMock.mockResolvedValue({
+      blobId: 'new-blob',
+      name: 'report.pdf',
+      type: 'application/pdf',
+      size: 1024,
+    });
+    encryptMock.mockResolvedValue({
+      encryptedKeys: [{ encryptedForEmail: 'someone', encryptedKey: 'k', hybridCiphertext: 'c' }],
+      encEmail: { encText: 'text', encPreview: 'preview', encAttachmentsSessionKey: 'attachments' },
+    });
+  });
+
+  test('when an attachment has been uploaded, then the encrypted copy of it is not left on the device', async () => {
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me'],
+      subject: 'Subject',
+      text: 'Body',
+      files: [{ uri: '/tmp/report.pdf', name: 'report.pdf', type: 'application/pdf' }],
+    });
+
+    expect(unlinkIfExistsMock).toHaveBeenCalledWith('/tmp/a-temporary-name');
+  });
+
+  test('when an attachment is over the size the server takes, then it is refused before anything is uploaded', async () => {
+    await expect(
+      encryptAndSendEmail({
+        to: ['friend@inxt.me'],
+        subject: 'Subject',
+        text: 'Body',
+        files: [{ uri: '/tmp/huge.zip', name: 'huge.zip', type: 'application/zip', size: 30 * 1024 * 1024 }],
+      }),
+    ).rejects.toBeInstanceOf(AttachmentTooLargeError);
+
+    expect(uploadAttachmentMock).not.toHaveBeenCalled();
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when an attachment cannot be uploaded, then the message is not sent and the attachment is named', async () => {
+    uploadAttachmentMock.mockRejectedValue(new Error('the server is unreachable'));
+
+    await expect(
+      encryptAndSendEmail({
+        to: ['friend@inxt.me'],
+        subject: 'Subject',
+        text: 'Body',
+        files: [{ uri: '/tmp/report.pdf', name: 'report.pdf', type: 'application/pdf' }],
+      }),
+    ).rejects.toMatchObject({ name: new AttachmentUploadFailedError('report.pdf').name, attachmentName: 'report.pdf' });
+
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when an attachment upload fails, then the encrypted copy is still deleted', async () => {
+    uploadAttachmentMock.mockRejectedValue(new Error('the server is unreachable'));
+
+    await expect(
+      encryptAndSendEmail({
+        to: ['friend@inxt.me'],
+        subject: 'Subject',
+        text: 'Body',
+        files: [{ uri: '/tmp/report.pdf', name: 'report.pdf', type: 'application/pdf' }],
+      }),
+    ).rejects.toThrow();
+
+    expect(unlinkIfExistsMock).toHaveBeenCalledWith('/tmp/a-temporary-name');
+  });
+
+  test('when a message carries several attachments, then they are uploaded one after another', async () => {
+    let uploadsInFlight = 0;
+    let mostUploadsAtOnce = 0;
+    uploadAttachmentMock.mockImplementation(async () => {
+      uploadsInFlight += 1;
+      mostUploadsAtOnce = Math.max(mostUploadsAtOnce, uploadsInFlight);
+      await Promise.resolve();
+      uploadsInFlight -= 1;
+      return { blobId: 'new-blob', name: 'report.pdf', type: 'application/pdf', size: 1024 };
+    });
+
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me'],
+      subject: 'Subject',
+      text: 'Body',
+      files: [
+        { uri: '/tmp/one.pdf', name: 'one.pdf', type: 'application/pdf' },
+        { uri: '/tmp/two.pdf', name: 'two.pdf', type: 'application/pdf' },
+        { uri: '/tmp/three.pdf', name: 'three.pdf', type: 'application/pdf' },
+      ],
+    });
+
+    expect(uploadAttachmentMock).toHaveBeenCalledTimes(3);
+    expect(mostUploadsAtOnce).toBe(1);
   });
 });
 

@@ -52,10 +52,11 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
       const results = await pick({ allowMultiSelection: true });
       setAttachments((prev) => [
         ...prev,
-        ...results.map((r) => ({
-          uri: r.uri,
-          name: r.name ?? 'attachment',
-          type: r.type ?? 'application/octet-stream',
+        ...results.map((result) => ({
+          uri: result.uri,
+          name: result.name ?? 'attachment',
+          type: result.type ?? 'application/octet-stream',
+          size: result.size ?? undefined,
         })),
       ]);
     } catch {
@@ -78,6 +79,7 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
         uri: asset.uri,
         name: asset.fileName ?? `photo-${Date.now()}.jpg`,
         type: asset.mimeType ?? 'image/jpeg',
+        size: asset.fileSize,
       })),
     ]);
   };
