@@ -403,6 +403,9 @@ const translations = {
           domainsUnavailable: 'We could not verify the recipient addresses. Check your connection and try again.',
           serverKeyMissing: 'Sending to addresses outside Internxt is not available right now.',
           sendFailed: 'The message could not be sent. Try again in a moment.',
+          attachmentTooLarge: 'The attachment {0} is larger than the {1} the server accepts.',
+          attachmentUploadFailed:
+            'The attachment {0} could not be uploaded, so nothing was sent. Try again in a moment.',
         },
       },
       shared: {
@@ -1479,6 +1482,9 @@ const translations = {
             'No hemos podido verificar las direcciones de los destinatarios. Revisa tu conexión e inténtalo de nuevo.',
           serverKeyMissing: 'El envío a direcciones de fuera de Internxt no está disponible ahora mismo.',
           sendFailed: 'No se ha podido enviar el mensaje. Inténtalo de nuevo en un momento.',
+          attachmentTooLarge: 'El adjunto {0} pesa más de los {1} que acepta el servidor.',
+          attachmentUploadFailed:
+            'No se ha podido subir el adjunto {0}, así que no se ha enviado nada. Inténtalo de nuevo en un momento.',
         },
       },
       shared: {

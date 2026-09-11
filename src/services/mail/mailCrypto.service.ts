@@ -1,4 +1,5 @@
 import { AttachmentRef, DeliveryMode, EmailSummaryResponse, SendEmailRequest } from '@internxt/sdk/dist/mail/types';
+import uuid from 'react-native-uuid';
 import {
   Email,
   KeystoreType,
@@ -22,8 +23,11 @@ import { logger } from '../common/logger/logger.service';
 import { AcceptedEncodings, fs } from '../FileSystemService';
 import { CachedDecryptedEmail, mailLocalDB } from './database/mailLocalDB';
 import { plainTextToHtml } from './emailBody/emailBodyContent';
+import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
 import {
   ActiveDomainsUnavailableError,
+  AttachmentTooLargeError,
+  AttachmentUploadFailedError,
   BlindCopyNotDeliverableError,
   InternxtRecipientKeyMissingError,
   NoRecipientsError,
@@ -170,17 +174,48 @@ export const decryptAttachmentData = async (
   return decryptSymmetrically(key, data);
 };
 
-const encryptAttachmentForUpload = async (
-  file: MailAttachment,
-  attachmentsSessionKey: Uint8Array,
-): Promise<MailAttachment> => {
-  const rawBuffer = await fs.readFile(file.uri);
-  const encryptedBytes = await encryptSymmetrically(attachmentsSessionKey, new Uint8Array(rawBuffer));
-  const encryptedPath = fs.tmpFilePath(`${file.name}.enc`);
-  await fs.unlinkIfExists(encryptedPath);
-  await fs.createFile(encryptedPath, uint8ArrayToBase64(encryptedBytes), AcceptedEncodings.Base64);
+/**
+ * Encrypts an attachment, uploads it, and leaves nothing encrypted behind on the device. The name of
+ * the file travels in the upload itself, never in the path of the temporary copy.
+ *
+ * @param file - The attachment to upload.
+ * @param attachmentsSessionKey - Key the attachments of this message are encrypted with.
+ * @returns The reference the message carries the attachment by.
+ * @throws AttachmentUploadFailedError when the attachment cannot be encrypted or uploaded.
+ */
+const uploadAttachment = async (file: MailAttachment, attachmentsSessionKey: Uint8Array): Promise<AttachmentRef> => {
+  const encryptedPath = fs.tmpFilePath(uuid.v4() as string);
 
-  return { uri: fs.pathToUri(encryptedPath), name: file.name, type: file.type };
+  try {
+    const rawBuffer = await fs.readFile(file.uri);
+    const encryptedBytes = await encryptSymmetrically(attachmentsSessionKey, new Uint8Array(rawBuffer));
+    await fs.createFile(encryptedPath, uint8ArrayToBase64(encryptedBytes), AcceptedEncodings.Base64);
+
+    const { blobId, name, type, size } = await mailboxService.uploadAttachment({
+      uri: fs.pathToUri(encryptedPath),
+      name: file.name,
+      type: file.type,
+    });
+
+    return { blobId, name, type, size };
+  } catch (error) {
+    throw new AttachmentUploadFailedError(file.name, error);
+  } finally {
+    await fs.unlinkIfExists(encryptedPath);
+  }
+};
+
+/**
+ * Refuses an attachment the server would not take, before anything is encrypted or uploaded.
+ *
+ * @param files - The attachments of the message.
+ * @throws AttachmentTooLargeError when one of them is over the size the server accepts.
+ */
+const assertAttachmentsFitTheServer = (files: MailAttachment[]): void => {
+  const oversized = files.find((file) => file.size !== undefined && file.size > MAX_ATTACHMENT_BYTES);
+  if (oversized) {
+    throw new AttachmentTooLargeError(oversized.name);
+  }
 };
 
 /**
@@ -308,8 +343,11 @@ export const normalizeRecipients = ({
  * markup, so plain text would reach them with its line breaks collapsed.
  * @param email.preview - Opening of the body as plain text, shown in the mailbox list before the
  * message is read.
- * @param email.files - Attachments to encrypt and upload.
+ * @param email.files - Attachments to encrypt and upload, one after another: each one is held whole
+ * in memory while it is encrypted and turned into base64.
  * @returns The encrypted envelope of the message and its uploaded attachments.
+ * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
+ * @throws AttachmentUploadFailedError when an attachment cannot be encrypted or uploaded.
  * @throws InternxtRecipientKeyMissingError when an internal recipient publishes no key.
  * @throws ServerPublicKeyMissingError when an external recipient has nobody to wrap their copy with.
  */
@@ -326,6 +364,8 @@ export const encryptMessageForRecipients = async ({
   preview: string;
   files?: MailAttachment[];
 }): Promise<EncryptedMessagePayload> => {
+  assertAttachmentsFitTheServer(files);
+
   const [wrapKeys, senderKeys] = await Promise.all([
     resolveWrapKeys(allAddresses, activeDomains, AppService.constants.SERVER_PUBLIC_KEY),
     mailboxService.getMailAccountKeys(),
@@ -341,15 +381,10 @@ export const encryptMessageForRecipients = async ({
   );
 
   const attachmentsSessionKey = genSymmetricKey();
-  let uploadedAttachments: AttachmentRef[] = [];
-  if (files.length > 0) {
-    uploadedAttachments = await Promise.all(
-      files.map(async (file) => {
-        const encryptedFile = await encryptAttachmentForUpload(file, attachmentsSessionKey);
-        const result = await mailboxService.uploadAttachment(encryptedFile);
-        return { blobId: result.blobId, name: result.name, type: result.type, size: result.size };
-      }),
-    );
+  const uploadedAttachments: AttachmentRef[] = [];
+
+  for (const file of files) {
+    uploadedAttachments.push(await uploadAttachment(file, attachmentsSessionKey));
   }
 
   const email: Email = { text: body, preview, attachmentsSessionKey };
