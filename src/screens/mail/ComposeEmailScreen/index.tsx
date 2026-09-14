@@ -1,14 +1,16 @@
-import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
-import { useEffect, useState } from 'react';
+import { CaretDownIcon, CaretUpIcon, LockKeyIcon } from 'phosphor-react-native';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
+import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import {
   encryptAndSendEmail,
   encryptAndSendForward,
   encryptAndSendReply,
 } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { MailDomain } from '@internxt-mobile/services/mail/mailDomain';
 import { hasSameAddresses } from '@internxt-mobile/services/mail/replyRecipients';
 import { pick } from '@react-native-documents/picker';
 import * as ImagePicker from 'expo-image-picker';
@@ -27,7 +29,14 @@ import { ComposeFieldRow } from './components/ComposeFieldRow';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { ForwardedQuote } from './components/ForwardedQuote';
 import { RecipientRow } from './components/RecipientRow';
+import { useComposeRecipients } from './hooks/useComposeRecipients';
 import { describeSendFailure, getSendErrorMessage } from './sendErrors';
+import {
+  RecipientField,
+  canSendMessage,
+  hasCopyOrBlindCopyRecipients,
+  isEndToEndEncrypted,
+} from './utils/composeRecipients';
 
 const describeSendStage = (stage: SendStage): string => {
   const { progress } = strings.screens.compose_email;
@@ -42,7 +51,7 @@ const describeSendStage = (stage: SendStage): string => {
   }
 };
 
-export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element {
+export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
@@ -51,9 +60,18 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
   const reply = params && 'reply' in params ? params.reply : undefined;
   const forward = params && 'forward' in params ? params.forward : undefined;
 
-  const [to, setTo] = useState<string[]>(reply?.to ?? []);
-  const [cc, setCc] = useState<string[]>(reply?.cc ?? []);
-  const [bcc, setBcc] = useState<string[]>([]);
+  const {
+    recipients,
+    pendingText,
+    changePendingText,
+    addTypedRecipients,
+    removeRecipient,
+    resolveRecipientsForSending,
+  } = useComposeRecipients({
+    to: reply?.to,
+    cc: reply?.cc,
+  });
+  const [activeDomains, setActiveDomains] = useState<MailDomain[] | null>(null);
   const [isExtraRecipientsSectionOpen, setIsExtraRecipientsSectionOpen] = useState(false);
   const [senderAddress, setSenderAddress] = useState('');
   const [subject, setSubject] = useState(reply?.subject ?? forward?.subject ?? '');
@@ -62,9 +80,14 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
   const [forwardedAttachments, setForwardedAttachments] = useState<ForwardedAttachment[]>(forward?.attachments ?? []);
   const [isSending, setIsSending] = useState(false);
   const [sendStage, setSendStage] = useState<SendStage | null>(null);
+  const isSendInProgressRef = useRef(false);
 
   useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSenderAddress(address ?? ''));
+    mailboxService
+      .getActiveDomains()
+      .then(setActiveDomains)
+      .catch((error) => logger.error('Failed to fetch the active mail domains', error));
   }, []);
 
   const onCancel = () => navigation.goBack();
@@ -123,6 +146,20 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
   };
 
   const onSend = async () => {
+    if (isSendInProgressRef.current) {
+      return;
+    }
+    const { recipients: recipientsForSending, unreadableRecipientText } = resolveRecipientsForSending();
+    if (unreadableRecipientText.length > 0) {
+      const { errors } = strings.screens.compose_email;
+      Alert.alert(
+        errors.title,
+        strings.formatString(errors.unreadableRecipient, unreadableRecipientText.join(', ')) as string,
+      );
+      return;
+    }
+    const { to, cc, bcc } = recipientsForSending;
+    isSendInProgressRef.current = true;
     setIsSending(true);
     let wasSent = false;
     try {
@@ -165,6 +202,7 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
       logger.error('Failed to send email', error, describeSendFailure(error));
       Alert.alert(strings.screens.compose_email.errors.title, getSendErrorMessage(error));
     } finally {
+      isSendInProgressRef.current = false;
       setIsSending(false);
       setSendStage(null);
     }
@@ -176,8 +214,17 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
 
   const { title, replyTitle, forwardTitle } = strings.screens.compose_email;
   const composeTitle = forward ? forwardTitle : reply ? replyTitle : title;
-  const canSend = to.length > 0 && !!subject && !isSending;
-  const hasExtraRecipients = cc.length > 0 || bcc.length > 0;
+  const canSend = canSendMessage({ recipients, pendingText, subject, isSending });
+  const hasExtraRecipients = hasCopyOrBlindCopyRecipients(recipients, pendingText);
+  const isMessageEndToEndEncrypted = isEndToEndEncrypted(recipients, pendingText, activeDomains);
+
+  const recipientRowPropsForField = (field: RecipientField) => ({
+    recipients: recipients[field],
+    pendingText: pendingText[field],
+    onChangePendingText: (typedText: string) => changePendingText(field, typedText),
+    onFinishEntry: (typedText: string) => addTypedRecipients(field, typedText),
+    onRemoveRecipient: (address: string) => removeRecipient(field, address),
+  });
   const areExtraRecipientsVisible = isExtraRecipientsSectionOpen || hasExtraRecipients;
   const CaretIcon = areExtraRecipientsVisible ? CaretUpIcon : CaretDownIcon;
 
@@ -207,8 +254,7 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
       <ScrollView keyboardShouldPersistTaps="handled">
         <RecipientRow
           label={strings.inputs.to}
-          recipients={to}
-          onChangeRecipients={setTo}
+          {...recipientRowPropsForField('to')}
           renderAppend={
             !hasExtraRecipients && (
               <TouchableOpacity
@@ -226,14 +272,33 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
 
         {areExtraRecipientsVisible && (
           <>
-            <RecipientRow label={strings.inputs.cc} recipients={cc} onChangeRecipients={setCc} />
-            <RecipientRow label={strings.inputs.bcc} recipients={bcc} onChangeRecipients={setBcc} />
+            <RecipientRow label={strings.inputs.cc} {...recipientRowPropsForField('cc')} />
+            <RecipientRow label={strings.inputs.bcc} {...recipientRowPropsForField('bcc')} />
           </>
         )}
 
         {!!senderAddress && (
-          <ComposeFieldRow label={strings.inputs.from}>
-            <Text style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}>{senderAddress}</Text>
+          <ComposeFieldRow
+            label={strings.inputs.from}
+            renderAppend={
+              isMessageEndToEndEncrypted && (
+                <View
+                  style={[
+                    tailwind('flex-row items-center rounded-full px-2 py-1 ml-2'),
+                    { borderWidth: 1, borderColor: getColor('border-green') },
+                  ]}
+                >
+                  <LockKeyIcon size={12} weight="fill" color={getColor('text-green')} />
+                  <AppText style={[tailwind('ml-1 text-xs'), { color: getColor('text-green') }]}>
+                    {strings.screens.compose_email.endToEndEncrypted}
+                  </AppText>
+                </View>
+              )
+            }
+          >
+            <Text numberOfLines={1} style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}>
+              {senderAddress}
+            </Text>
           </ComposeFieldRow>
         )}
 
@@ -287,4 +352,4 @@ export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'
       </ScrollView>
     </AppScreen>
   );
-}
+};
