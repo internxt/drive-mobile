@@ -1,6 +1,13 @@
-type MailDomain = { domain: string };
+/** A domain the mail server serves. */
+export type MailDomain = { domain: string };
 
-const normalizeAddress = (address: string): string => address.trim().toLowerCase();
+/**
+ * Puts an address in the form two addresses are compared in.
+ *
+ * @param address - Email address, in any casing and with surrounding spaces allowed.
+ * @returns The address trimmed and lowercased.
+ */
+export const normalizeAddress = (address: string): string => address.trim().toLowerCase();
 
 /**
  * Extracts the domain part of an email address.
