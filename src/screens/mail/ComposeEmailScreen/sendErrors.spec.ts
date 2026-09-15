@@ -1,11 +1,13 @@
 import strings from '../../../../assets/lang/strings';
+import { HTTP_INTERNAL_SERVER_ERROR, HTTP_TOO_MANY_REQUESTS } from '../../../services/common/httpStatusCodes';
 import {
+  AttachmentUploadFailedError,
   BlindCopyNotDeliverableError,
   InternxtRecipientKeyMissingError,
   MailErrorName,
   PrimaryRecipientMissingError,
 } from '../../../services/mail/errors';
-import { SEND_ERROR_MESSAGES, describeSendFailure, getSendErrorMessage } from './sendErrors';
+import { SEND_ERROR_MESSAGES, describeSendFailure, getSendErrorMessage, isSendRateLimited } from './sendErrors';
 
 const messages = strings.screens.compose_email.errors;
 
@@ -55,7 +57,7 @@ describe('Describing a failed send for the logs', () => {
   test('when the server answer holds the request that failed, then neither the recipients nor the message reach the description', () => {
     const failure = {
       cause: {
-        status: 500,
+        status: HTTP_INTERNAL_SERVER_ERROR,
         xRequestId: 'abc',
         data: {
           message: 'delivery failed',
@@ -85,5 +87,26 @@ describe('Describing a failed send for the logs', () => {
 
     expect(error.message).not.toContain('one@inxt.me');
     expect(error.stack).not.toContain('one@inxt.me');
+  });
+});
+
+describe('Explaining a send that reached the sending limit', () => {
+  const throttledRequestError = () => Object.assign(new Error('Too many requests'), { status: HTTP_TOO_MANY_REQUESTS });
+
+  test('when the account reached its sending limit, then the reason says so instead of the generic one', () => {
+    expect(getSendErrorMessage(throttledRequestError())).toBe(messages.sendRateLimited);
+  });
+
+  test('when a send was throttled, then it is recognised as having reached the sending limit', () => {
+    expect(isSendRateLimited(throttledRequestError())).toBe(true);
+    expect(isSendRateLimited(Object.assign(new Error('Server error'), { status: HTTP_INTERNAL_SERVER_ERROR }))).toBe(
+      false,
+    );
+  });
+
+  test('when uploading an attachment reached the limit, then the reason still names the attachment', () => {
+    const reason = getSendErrorMessage(new AttachmentUploadFailedError('plan.pdf', throttledRequestError()));
+
+    expect(reason).toContain('plan.pdf');
   });
 });
