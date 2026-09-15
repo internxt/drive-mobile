@@ -1,3 +1,5 @@
+import type { AttachmentRef } from '@internxt/sdk/dist/mail/types';
+
 export type MailAttachment = {
   uri: string;
   name: string;
@@ -76,6 +78,29 @@ export type SendStage =
   | { name: 'uploadingAttachments'; current: number; total: number }
   | { name: 'sending' };
 
+/** Attachments a draft already carries, uploaded and encrypted with the key of that draft, in base64. */
+export type DraftAttachments = {
+  attachmentsSessionKey: string;
+  attachments: AttachmentRef[];
+};
+
+/** What the draft of a message holds: its recipients, subject, body as typed, and the attachments it carries. */
+export type DraftContent = {
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  subject: string;
+  body: string;
+  draftAttachments: DraftAttachments | null;
+};
+
+export type OutgoingNewEmail = OutgoingEmail & {
+  /** Id of the draft the message was written in, which the server destroys once the message is sent. */
+  draftId?: string;
+  /** Attachments the draft already carries, which travel without being uploaded again. */
+  draftAttachments?: DraftAttachments;
+};
+
 /** What the message detail hands to the compose screen so it opens as a reply. */
 export type ReplyComposeParams = {
   repliedMessageId: string;
@@ -94,6 +119,11 @@ export type ForwardComposeParams = {
   areAttachmentsEncrypted: boolean;
   /** Who wrote the original, shown in the compose screen as the origin of the quote. */
   originalSender: string;
+};
+
+/** What the mailbox list hands to the compose screen so it opens a draft. */
+export type DraftComposeParams = {
+  draftId: string;
 };
 
 export enum MailboxId {

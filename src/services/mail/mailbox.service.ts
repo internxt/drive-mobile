@@ -12,6 +12,7 @@ import {
   EmailCreatedResponse,
   LookupRecipientKeysResponse,
   UpdateEmailRequest,
+  DraftEmailRequest,
   EmailDomainsResponse,
 } from '@internxt/sdk/dist/mail/types';
 
@@ -89,6 +90,34 @@ export class MailboxService {
 
   public async getRecipientsWithPublicKeys(addresses: string[]): Promise<LookupRecipientKeysResponse> {
     return this.sdk.mail.lookupRecipientKeys(addresses);
+  }
+
+  /**
+   * Creates a draft
+   */
+  public async saveDraft(body: DraftEmailRequest): Promise<EmailResponse> {
+    return this.sdk.mail.saveDraft(body);
+  }
+
+  /**
+   * Replaces a draft with a new one, which gets a new id
+   */
+  public async updateDraft(draftId: string, body: DraftEmailRequest): Promise<EmailResponse> {
+    return this.sdk.mail.updateDraft(draftId, body);
+  }
+
+  /**
+   * Gets the draft with the corresponding id
+   */
+  public async getDraft(draftId: string): Promise<EmailResponse> {
+    return this.sdk.mail.getDraft(draftId);
+  }
+
+  /**
+   * Discards the draft with the corresponding id
+   */
+  public async discardDraft(draftId: string): Promise<void> {
+    return this.sdk.mail.discardDraft(draftId);
   }
 
   public async updateEmail(emailId: string, body: UpdateEmailRequest): Promise<void> {
