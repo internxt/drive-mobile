@@ -1,5 +1,6 @@
 import prettysize from 'prettysize';
 import strings from '../../../../assets/lang/strings';
+import { HTTP_TOO_MANY_REQUESTS } from '../../../services/common/httpStatusCodes';
 import { MAX_ATTACHMENT_BYTES } from '../../../services/mail/attachmentLimits';
 import {
   AttachmentTooLargeError,
@@ -7,6 +8,7 @@ import {
   ForwardedAttachmentUnavailableError,
   InternxtRecipientKeyMissingError,
   MailErrorName,
+  readHttpStatus,
 } from '../../../services/mail/errors';
 
 type SendErrorMessages = typeof strings.screens.compose_email.errors;
@@ -43,10 +45,10 @@ const readServerReason = (responseBody: unknown): string | undefined => {
  */
 export const describeSendFailure = (error: unknown): Record<string, unknown> => {
   const cause = (error as { cause?: unknown })?.cause;
-  const requestFailure = (cause ?? error ?? {}) as { status?: number; data?: unknown; xRequestId?: string };
+  const requestFailure = (cause ?? error ?? {}) as { data?: unknown; xRequestId?: string };
 
   return {
-    status: requestFailure.status,
+    status: readHttpStatus(error),
     reason: readServerReason(requestFailure.data),
     requestId: requestFailure.xRequestId,
   };
@@ -95,10 +97,19 @@ export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: Send
 ]);
 
 /**
+ * Tells whether a send was refused because the account reached its sending limit for now.
+ *
+ * @param error - Error thrown while sending.
+ * @returns Whether the server throttled the send.
+ */
+export const isSendRateLimited = (error: unknown): boolean => readHttpStatus(error) === HTTP_TOO_MANY_REQUESTS;
+
+/**
  * Turns a send failure into the reason shown to the user.
  *
  * @param error - Error thrown while sending.
- * @returns The localized reason, or the generic one when the failure is not a known mail error.
+ * @returns The localized reason of a known mail error, the sending limit when the server throttled the
+ * send, or the generic reason otherwise.
  */
 export const getSendErrorMessage = (error: unknown): string => {
   const messages = strings.screens.compose_email.errors;
@@ -107,6 +118,9 @@ export const getSendErrorMessage = (error: unknown): string => {
   }
 
   const messageResolver = SEND_ERROR_MESSAGES.get(error.name);
+  if (messageResolver) {
+    return messageResolver(error, messages);
+  }
 
-  return messageResolver ? messageResolver(error, messages) : messages.sendFailed;
+  return isSendRateLimited(error) ? messages.sendRateLimited : messages.sendFailed;
 };
