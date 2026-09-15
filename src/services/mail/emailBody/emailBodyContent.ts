@@ -56,6 +56,53 @@ export const plainTextFromHtml = (html: string): string =>
     .replace(BLANKS_PATTERN, ' ')
     .trim();
 
+const EMBEDDED_CODE_PATTERN = /<(style|script)\b[^>]*>[\s\S]*?<\/\1\s*>/gi;
+const LINE_BREAK_BETWEEN_TAGS_PATTERN = />[ \t]*\r?\n\s*</g;
+const LINE_BREAK_TAG_BEFORE_BLOCK_END_PATTERN = /<br\s*\/?>\s*(<\/(?:p|div|li|h[1-6]|tr|blockquote)\s*>)/gi;
+const LINE_BREAK_TAG_PATTERN = /<br\s*\/?>/gi;
+const BLOCK_START_AFTER_TEXT_PATTERN = /([^>\n])(<(?:p|div|li|ul|ol|h[1-6]|tr|table|blockquote)\b)/gi;
+const CLOSING_BLOCK_TAG_PATTERN = /<\/(?:p|div|li|h[1-6]|tr|blockquote)\s*>/gi;
+const EDITABLE_HTML_ENTITY_PATTERN = /&(?:lt|gt|quot|nbsp|amp|#\d+|#x[0-9a-f]+);/gi;
+const TRAILING_LINE_BREAKS_PATTERN = /\n+$/;
+const HEXADECIMAL_RADIX = 16;
+const NON_BREAKING_SPACE_CODE_POINT = 160;
+const LAST_UNICODE_CODE_POINT = 0x10ffff;
+
+const decodeHtmlEntity = (entity: string): string => {
+  const lowercaseEntity = entity.toLowerCase();
+  if (!lowercaseEntity.startsWith('&#')) {
+    return CHARACTER_BY_HTML_ENTITY[lowercaseEntity];
+  }
+
+  const codePoint = lowercaseEntity.startsWith('&#x')
+    ? parseInt(lowercaseEntity.slice(3, -1), HEXADECIMAL_RADIX)
+    : Number(lowercaseEntity.slice(2, -1));
+  if (codePoint === NON_BREAKING_SPACE_CODE_POINT) {
+    return ' ';
+  }
+  return codePoint > 0 && codePoint <= LAST_UNICODE_CODE_POINT ? String.fromCodePoint(codePoint) : entity;
+};
+
+/**
+ * Reads a body written as markup back as text that can be edited in a plain text field, keeping its
+ * line breaks: a line break tag or the end of a paragraph becomes a line break, and the text inside
+ * the markup keeps the line breaks it already had.
+ *
+ * @param html a body written as markup
+ * @returns the text the body holds, with its line breaks
+ */
+export const editableTextFromHtml = (html: string): string =>
+  html
+    .replace(EMBEDDED_CODE_PATTERN, '')
+    .replace(LINE_BREAK_BETWEEN_TAGS_PATTERN, '><')
+    .replace(LINE_BREAK_TAG_BEFORE_BLOCK_END_PATTERN, '$1')
+    .replace(LINE_BREAK_TAG_PATTERN, '\n')
+    .replace(BLOCK_START_AFTER_TEXT_PATTERN, '$1\n$2')
+    .replace(CLOSING_BLOCK_TAG_PATTERN, '\n')
+    .replace(TAG_PATTERN, '')
+    .replace(EDITABLE_HTML_ENTITY_PATTERN, decodeHtmlEntity)
+    .replace(TRAILING_LINE_BREAKS_PATTERN, '');
+
 const REMOTE_IMAGE_PATTERN = /<img\b[^>]*\ssrc\s*=\s*["']https?:/i;
 const OPENING_MARKUP_PATTERN = /^(?:<!doctype\s|<!--|<\?|<[a-z][a-z0-9]*(?:\s[^>]*)?\/?>)/i;
 const EMBEDDED_MARKUP_PATTERN = /<\/[a-z][a-z0-9]*\s*>|<(?:br|hr|img|p|div|table|tr|td|ul|ol|li)\b[^>]*>/i;
