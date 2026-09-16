@@ -5,8 +5,8 @@ import {
   DraftEmailRequest,
   EmailCreatedResponse,
   EmailDomainsResponse,
+  EmailListResponse,
   EmailResponse,
-  EmailSummaryResponse,
   LookupRecipientKeysResponse,
   MailAccountKeysResponse,
   MailboxResponse,
@@ -15,9 +15,10 @@ import {
   UpdateEmailRequest,
   UploadAttachmentResponse,
 } from '@internxt/sdk/dist/mail/types';
+import { MailboxId } from '../../types/mail';
 import { AttachmentUploadAbortedError } from './errors';
 
-const DEFAULT_LIMIT = 50;
+export const MAILBOX_PAGE_SIZE = 25;
 
 export class MailboxService {
   private readonly sdk: SdkManager;
@@ -26,15 +27,15 @@ export class MailboxService {
   }
 
   /**
-   * Lists emails of the user
+   * Lists one page of the emails of a mailbox, newest first.
+   *
+   * @param mailbox - The mailbox to list.
+   * @param options - Where the page starts.
+   * @param options.anchorId - The anchor the previous page returned; the first page is listed when omitted.
+   * @returns The emails of the page, whether the mailbox has more, and the anchor of the next page.
    */
-  public async listEmails(
-    mailbox: 'inbox' | 'drafts' | 'sent' | 'trash' | 'spam' | 'archive',
-    limit = DEFAULT_LIMIT,
-    position = 0,
-  ): Promise<EmailSummaryResponse[]> {
-    const response = await this.sdk.mail.listEmails({ mailbox, limit, position });
-    return response.emails;
+  public async listEmails(mailbox: MailboxId, { anchorId }: { anchorId?: string } = {}): Promise<EmailListResponse> {
+    return this.sdk.mail.listEmails({ mailbox, limit: MAILBOX_PAGE_SIZE, anchorId });
   }
 
   /**
