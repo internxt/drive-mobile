@@ -5,6 +5,7 @@ import { logger } from '../common/logger/logger.service';
 import {
   ActiveDomainsUnavailableError,
   AttachmentTooLargeError,
+  AttachmentUploadAbortedError,
   AttachmentUploadFailedError,
   BlindCopyNotDeliverableError,
   ForwardedAttachmentUnavailableError,
@@ -16,8 +17,15 @@ import {
 } from './errors';
 import { SendStage } from '../../types/mail';
 import { fs } from '../FileSystemService';
+import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
 import { discardMaterializedAttachments, materializeForwardedAttachments } from './forwardAttachments';
-import { decryptPreviews, encryptAndSendEmail, encryptAndSendForward, encryptAndSendReply } from './mailCrypto.service';
+import {
+  decryptPreviews,
+  encryptAndSendEmail,
+  encryptAndSendForward,
+  encryptAndSendReply,
+  uploadAttachment,
+} from './mailCrypto.service';
 import { mailboxService } from './mailbox.service';
 import { recipientKeysService } from './recipientKeys.service';
 
@@ -419,108 +427,76 @@ describe('Sending an encrypted email', () => {
   });
 });
 
-describe('Sending a message with an attachment', () => {
+describe('Uploading an attachment', () => {
   const uploadAttachmentMock = mailboxService.uploadAttachment as jest.Mock;
   const unlinkIfExistsMock = fs.unlinkIfExists as jest.Mock;
+  const aReportFile = { uri: '/tmp/report.pdf', name: 'report.pdf', type: 'application/pdf' };
+  const attachmentsSessionKey = new Uint8Array([1, 2, 3]);
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(AppService, 'constants', 'get').mockReturnValue({ SERVER_PUBLIC_KEY });
-    getActiveDomainsMock.mockResolvedValue(ACTIVE_DOMAINS);
-    getMailAccountKeysMock.mockResolvedValue(SENDER);
-    sendEmailMock.mockResolvedValue({ id: 'sent-id' });
-    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
     uploadAttachmentMock.mockResolvedValue({
       blobId: 'new-blob',
       name: 'report.pdf',
       type: 'application/pdf',
       size: 1024,
     });
-    encryptMock.mockResolvedValue({
-      encryptedKeys: [{ encryptedForEmail: 'someone', encryptedKey: 'k', hybridCiphertext: 'c' }],
-      encEmail: { encText: 'text', encPreview: 'preview', encAttachmentsSessionKey: 'attachments' },
-    });
+  });
+
+  test('when a file is read to be uploaded, then no more than the size the server accepts is read', async () => {
+    await uploadAttachment(aReportFile, attachmentsSessionKey);
+
+    expect(fs.readFile).toHaveBeenCalledWith(aReportFile.uri, MAX_ATTACHMENT_BYTES + 1, 0);
+  });
+
+  test('when the upload was aborted before the file is encrypted, then nothing is encrypted or uploaded', async () => {
+    const abortController = new AbortController();
+    abortController.abort();
+
+    await expect(uploadAttachment(aReportFile, attachmentsSessionKey, abortController.signal)).rejects.toBeInstanceOf(
+      AttachmentUploadAbortedError,
+    );
+    expect(crypto.encryptSymmetrically).not.toHaveBeenCalled();
+    expect(uploadAttachmentMock).not.toHaveBeenCalled();
+  });
+
+  test('when an upload can be cancelled, then the way to cancel it reaches the server request', async () => {
+    const abortController = new AbortController();
+
+    await uploadAttachment(aReportFile, attachmentsSessionKey, abortController.signal);
+
+    expect(uploadAttachmentMock).toHaveBeenCalledWith(expect.any(Object), abortController.signal);
+  });
+
+  test('when a file turns out to be over the size the server takes once it is read, then it is refused and nothing is uploaded', async () => {
+    (fs.readFile as jest.Mock).mockResolvedValueOnce(Buffer.alloc(MAX_ATTACHMENT_BYTES + 1));
+
+    await expect(uploadAttachment(aReportFile, attachmentsSessionKey)).rejects.toBeInstanceOf(AttachmentTooLargeError);
+    expect(uploadAttachmentMock).not.toHaveBeenCalled();
   });
 
   test('when an attachment has been uploaded, then the encrypted copy of it is not left on the device', async () => {
-    await encryptAndSendEmail({
-      to: ['friend@inxt.me'],
-      subject: 'Subject',
-      text: 'Body',
-      files: [{ uri: '/tmp/report.pdf', name: 'report.pdf', type: 'application/pdf' }],
-    });
+    const uploadedAttachment = await uploadAttachment(aReportFile, attachmentsSessionKey);
 
+    expect(uploadedAttachment).toEqual({ blobId: 'new-blob', name: 'report.pdf', type: 'application/pdf', size: 1024 });
     expect(unlinkIfExistsMock).toHaveBeenCalledWith('/tmp/a-temporary-name');
   });
 
-  test('when an attachment is over the size the server takes, then it is refused before anything is uploaded', async () => {
-    await expect(
-      encryptAndSendEmail({
-        to: ['friend@inxt.me'],
-        subject: 'Subject',
-        text: 'Body',
-        files: [{ uri: '/tmp/huge.zip', name: 'huge.zip', type: 'application/zip', size: 30 * 1024 * 1024 }],
-      }),
-    ).rejects.toBeInstanceOf(AttachmentTooLargeError);
-
-    expect(uploadAttachmentMock).not.toHaveBeenCalled();
-    expect(sendEmailMock).not.toHaveBeenCalled();
-  });
-
-  test('when an attachment cannot be uploaded, then the message is not sent and the attachment is named', async () => {
+  test('when an attachment cannot be uploaded, then the failure names the attachment', async () => {
     uploadAttachmentMock.mockRejectedValue(new Error('the server is unreachable'));
 
-    await expect(
-      encryptAndSendEmail({
-        to: ['friend@inxt.me'],
-        subject: 'Subject',
-        text: 'Body',
-        files: [{ uri: '/tmp/report.pdf', name: 'report.pdf', type: 'application/pdf' }],
-      }),
-    ).rejects.toMatchObject({ name: new AttachmentUploadFailedError('report.pdf').name, attachmentName: 'report.pdf' });
-
-    expect(sendEmailMock).not.toHaveBeenCalled();
+    await expect(uploadAttachment(aReportFile, attachmentsSessionKey)).rejects.toMatchObject({
+      name: new AttachmentUploadFailedError('report.pdf').name,
+      attachmentName: 'report.pdf',
+    });
   });
 
   test('when an attachment upload fails, then the encrypted copy is still deleted', async () => {
     uploadAttachmentMock.mockRejectedValue(new Error('the server is unreachable'));
 
-    await expect(
-      encryptAndSendEmail({
-        to: ['friend@inxt.me'],
-        subject: 'Subject',
-        text: 'Body',
-        files: [{ uri: '/tmp/report.pdf', name: 'report.pdf', type: 'application/pdf' }],
-      }),
-    ).rejects.toThrow();
+    await expect(uploadAttachment(aReportFile, attachmentsSessionKey)).rejects.toThrow();
 
     expect(unlinkIfExistsMock).toHaveBeenCalledWith('/tmp/a-temporary-name');
-  });
-
-  test('when a message carries several attachments, then they are uploaded one after another', async () => {
-    let uploadsInFlight = 0;
-    let mostUploadsAtOnce = 0;
-    uploadAttachmentMock.mockImplementation(async () => {
-      uploadsInFlight += 1;
-      mostUploadsAtOnce = Math.max(mostUploadsAtOnce, uploadsInFlight);
-      await Promise.resolve();
-      uploadsInFlight -= 1;
-      return { blobId: 'new-blob', name: 'report.pdf', type: 'application/pdf', size: 1024 };
-    });
-
-    await encryptAndSendEmail({
-      to: ['friend@inxt.me'],
-      subject: 'Subject',
-      text: 'Body',
-      files: [
-        { uri: '/tmp/one.pdf', name: 'one.pdf', type: 'application/pdf' },
-        { uri: '/tmp/two.pdf', name: 'two.pdf', type: 'application/pdf' },
-        { uri: '/tmp/three.pdf', name: 'three.pdf', type: 'application/pdf' },
-      ],
-    });
-
-    expect(uploadAttachmentMock).toHaveBeenCalledTimes(3);
-    expect(mostUploadsAtOnce).toBe(1);
   });
 });
 
@@ -595,6 +571,19 @@ describe('Sending an encrypted reply', () => {
       encryptedKeys: [{ encryptedForEmail: 'someone', encryptedKey: 'k', hybridCiphertext: 'c' }],
       encEmail: { encText: 'text', encPreview: 'preview', encAttachmentsSessionKey: 'attachments' },
     });
+  });
+
+  test('when attachments were uploaded while the reply was written, then they travel with it under their key', async () => {
+    const alreadyUploaded = { blobId: 'uploaded-blob', name: 'notes.txt', type: 'text/plain', size: 5 };
+
+    await encryptAndSendReply({
+      ...reply,
+      uploadedAttachments: { attachmentsSessionKey: 'the-compose-key', attachments: [alreadyUploaded] },
+    });
+
+    expect(replyRequestBody().attachments).toEqual([alreadyUploaded]);
+    expect(encryptMock.mock.calls[0][0].attachmentsSessionKey).toEqual(new TextEncoder().encode('the-compose-key'));
+    expect(mailboxService.uploadAttachment).not.toHaveBeenCalled();
   });
 
   test('when a reply is sent, then it travels to the message being answered and never as a new message', async () => {
@@ -741,6 +730,16 @@ describe('Forwarding a message', () => {
     ]);
   });
 
+  test('when an attachment of the original cannot be uploaded again, then the forward is not sent', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport]);
+    uploadAttachmentMock.mockRejectedValue(new Error('the server is unreachable'));
+
+    await expect(encryptAndSendForward({ ...forward, forwardedAttachments: [aReport] })).rejects.toBeInstanceOf(
+      AttachmentUploadFailedError,
+    );
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
   test('when an attachment of the original cannot be taken out of it, then nothing is sent', async () => {
     materializeMock.mockRejectedValue(new ForwardedAttachmentUnavailableError('report.pdf'));
 
@@ -815,20 +814,12 @@ describe('Forwarding a message', () => {
     ]);
   });
 
-  test('when a message carries several attachments, then the last one is told as the last of them, and not left out', async () => {
-    materializeMock.mockResolvedValue([]);
+  test('when the original carries several attachments, then the last one is told as the last of them, and not left out', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport, aMaterializedReport]);
     const stages: SendStage[] = [];
 
-    await encryptAndSendEmail(
-      {
-        to: ['friend@inxt.me'],
-        subject: 'Subject',
-        text: 'Body',
-        files: [
-          { uri: '/tmp/one.pdf', name: 'one.pdf', type: 'application/pdf' },
-          { uri: '/tmp/two.pdf', name: 'two.pdf', type: 'application/pdf' },
-        ],
-      },
+    await encryptAndSendForward(
+      { ...forward, forwardedAttachments: [aReport, aReport] },
       { onStage: (stage) => stages.push(stage) },
     );
 
@@ -837,6 +828,57 @@ describe('Forwarding a message', () => {
       { name: 'uploadingAttachments', current: 2, total: 2 },
       { name: 'sending' },
     ]);
+  });
+
+  test('when the original carries several attachments, then they are uploaded one after another', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport, aMaterializedReport, aMaterializedReport]);
+    let uploadsInFlight = 0;
+    let mostUploadsAtOnce = 0;
+    uploadAttachmentMock.mockImplementation(async () => {
+      uploadsInFlight += 1;
+      mostUploadsAtOnce = Math.max(mostUploadsAtOnce, uploadsInFlight);
+      await Promise.resolve();
+      uploadsInFlight -= 1;
+      return { blobId: 'new-blob', name: 'report.pdf', type: 'application/pdf', size: 1024 };
+    });
+
+    await encryptAndSendForward({ ...forward, forwardedAttachments: [aReport, aReport, aReport] });
+
+    expect(uploadAttachmentMock).toHaveBeenCalledTimes(3);
+    expect(mostUploadsAtOnce).toBe(1);
+  });
+
+  test('when an attachment of the original is over the size the server takes, then nothing is uploaded or sent', async () => {
+    const aHugeMaterializedArchive = {
+      attachment: { uri: '/tmp/huge.zip', name: 'huge.zip', type: 'application/zip', size: MAX_ATTACHMENT_BYTES + 1 },
+      path: '/tmp/huge.zip',
+    };
+    materializeMock.mockResolvedValue([aHugeMaterializedArchive]);
+
+    await expect(encryptAndSendForward({ ...forward, forwardedAttachments: [aReport] })).rejects.toBeInstanceOf(
+      AttachmentTooLargeError,
+    );
+
+    expect(uploadAttachmentMock).not.toHaveBeenCalled();
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when attachments were uploaded while the forward was written, then they travel with the ones of the original, all under the same key', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport]);
+    const alreadyUploaded = { blobId: 'uploaded-blob', name: 'notes.txt', type: 'text/plain', size: 5 };
+
+    await encryptAndSendForward({
+      ...forward,
+      forwardedAttachments: [aReport],
+      uploadedAttachments: { attachmentsSessionKey: 'the-compose-key', attachments: [alreadyUploaded] },
+    });
+
+    expect(uploadAttachmentMock).toHaveBeenCalledTimes(1);
+    expect(sentBody().attachments).toEqual([
+      alreadyUploaded,
+      { blobId: 'new-blob', name: 'report.pdf', type: 'application/pdf', size: 1024 },
+    ]);
+    expect(encryptMock.mock.calls[0][0].attachmentsSessionKey).toEqual(new TextEncoder().encode('the-compose-key'));
   });
 
   test('when a send has nothing to upload, then it is not said to be uploading anything', async () => {
@@ -881,22 +923,18 @@ describe('Sending a message written in a draft', () => {
     expect(sentBody()).not.toHaveProperty('draftId');
   });
 
-  test('when the draft already carries attachments, then they travel without being uploaded again and the new ones use the same key', async () => {
+  test('when attachments were uploaded while the message was written, then they travel without being uploaded again under their key', async () => {
     const keptAttachment = { blobId: 'kept-blob', name: 'kept.pdf', type: 'application/pdf', size: 5 };
 
     await encryptAndSendEmail({
       to: ['friend@inxt.me'],
       subject: 'Subject',
       text: 'Body',
-      files: [{ uri: '/tmp/new.pdf', name: 'new.pdf', type: 'application/pdf' }],
-      draftAttachments: { attachmentsSessionKey: 'the-draft-key', attachments: [keptAttachment] },
+      uploadedAttachments: { attachmentsSessionKey: 'the-draft-key', attachments: [keptAttachment] },
     });
 
-    expect(uploadAttachmentMock).toHaveBeenCalledTimes(1);
-    expect(sentBody().attachments).toEqual([
-      keptAttachment,
-      { blobId: 'new-blob', name: 'new.pdf', type: 'application/pdf', size: 20 },
-    ]);
+    expect(uploadAttachmentMock).not.toHaveBeenCalled();
+    expect(sentBody().attachments).toEqual([keptAttachment]);
     expect(encryptMock.mock.calls[0][0].attachmentsSessionKey).toEqual(new TextEncoder().encode('the-draft-key'));
   });
 });

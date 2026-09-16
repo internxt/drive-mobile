@@ -5,7 +5,7 @@ import { DraftContent } from '../../types/mail';
 import { HTTP_CONFLICT, HTTP_NOT_FOUND } from '../common/httpStatusCodes';
 import { logger } from '../common/logger/logger.service';
 import { editableTextFromHtml, isMarkupBody, plainTextToHtml } from './emailBody/emailBodyContent';
-import { readHttpStatus } from './errors';
+import { readHttpStatus } from './errorDescription';
 import { mailboxService } from './mailbox.service';
 import {
   decryptFullEmail,
@@ -123,11 +123,10 @@ const readDraftBody = async (
 
   const privateKey = await getPrivateHybridKey(mnemonic);
   const { text, attachmentsSessionKey } = await decryptFullEmail(parseEncryptionBlock(storedBody), privateKey);
-  const attachments = draft.attachments ?? [];
 
   return {
     body: isMarkupBody(text) ? editableTextFromHtml(text) : text,
-    draftAttachments: attachments.length > 0 ? { attachmentsSessionKey, attachments } : null,
+    draftAttachments: { attachmentsSessionKey, attachments: draft.attachments ?? [] },
   };
 };
 

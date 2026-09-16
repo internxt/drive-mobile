@@ -148,6 +148,19 @@ describe('Saving the draft of a message', () => {
     expect(saveDraftMock).not.toHaveBeenCalled();
   });
 
+  test('when a new message holds nothing but the key for its attachments, then no draft is created', async () => {
+    const savedDraftId = await saveDraft({
+      draftId: null,
+      content: {
+        ...EMPTY_DRAFT_CONTENT,
+        draftAttachments: { attachmentsSessionKey: 'the-compose-key', attachments: [] },
+      },
+    });
+
+    expect(savedDraftId).toBeNull();
+    expect(saveDraftMock).not.toHaveBeenCalled();
+  });
+
   test('when a draft carries attachments, then they are saved with it and keep the key they were encrypted with', async () => {
     const draftAttachments = { attachmentsSessionKey: 'the-draft-key', attachments: [A_KEPT_ATTACHMENT] };
 
@@ -200,7 +213,15 @@ describe('Opening a draft to keep writing it', () => {
     const openedDraft = await openDraft({ draftId: 'draft-1', mnemonic: 'the words' });
 
     expect(openedDraft.body).toBe('Hello\nsee you');
-    expect(openedDraft.draftAttachments).toBeNull();
+  });
+
+  test('when a draft without attachments is opened, then the key its attachments are encrypted with still comes back', async () => {
+    getDraftMock.mockResolvedValue({ id: 'draft-1', to: [], subject: 'Plans', textBody: 'ENCRYPTED envelope' });
+    decryptFullEmailMock.mockResolvedValue({ text: 'Hello', attachmentsSessionKey: 'the-draft-key' });
+
+    const openedDraft = await openDraft({ draftId: 'draft-1', mnemonic: 'the words' });
+
+    expect(openedDraft.draftAttachments).toEqual({ attachmentsSessionKey: 'the-draft-key', attachments: [] });
   });
 
   test('when a draft was stored without encryption, then its body is read as it is', async () => {

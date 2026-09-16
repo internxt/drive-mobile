@@ -13,7 +13,7 @@ export type OutgoingEmail = {
   bcc?: string[];
   subject: string;
   text: string;
-  files?: MailAttachment[];
+  uploadedAttachments?: UploadedAttachments;
 };
 
 export type OutgoingReply = OutgoingEmail & {
@@ -51,7 +51,8 @@ export type SendStage =
   | { name: 'uploadingAttachments'; current: number; total: number }
   | { name: 'sending' };
 
-export type DraftAttachments = {
+/** Attachments already uploaded, and the key they were encrypted with, in base64. */
+export type UploadedAttachments = {
   attachmentsSessionKey: string;
   attachments: AttachmentRef[];
 };
@@ -62,12 +63,11 @@ export type DraftContent = {
   bcc: string[];
   subject: string;
   body: string;
-  draftAttachments: DraftAttachments | null;
+  draftAttachments: UploadedAttachments | null;
 };
 
 export type OutgoingNewEmail = OutgoingEmail & {
   draftId?: string;
-  draftAttachments?: DraftAttachments;
 };
 
 /** What the message detail hands to the compose screen so it opens as a reply. */
