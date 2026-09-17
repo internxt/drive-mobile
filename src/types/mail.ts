@@ -2,7 +2,6 @@ export type MailAttachment = {
   uri: string;
   name: string;
   type: string;
-  /** Size in bytes, when whoever picked the file reported it. */
   size?: number;
 };
 
