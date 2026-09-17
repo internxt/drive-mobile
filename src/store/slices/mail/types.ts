@@ -3,7 +3,6 @@ import { EntityState } from '@reduxjs/toolkit';
 
 import { MailboxId } from '../../../types/mail';
 
-/** How far the list of one mailbox has been loaded, and whether loading it is in progress or failed. */
 export type MailboxListState = {
   emailIds: string[];
   hasMoreMails: boolean;
