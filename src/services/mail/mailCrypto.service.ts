@@ -547,34 +547,19 @@ export const encryptAndSendReply = async (
  * Encrypts a forwarded message and sends it, keeping it in the thread of the message it forwards
  * and carrying its attachments.
  *
- * There is no endpoint for forwarding: it is a send that names the original, so the thread holds.
  * The attachments of the original are encrypted for it alone, so they are downloaded, decrypted and
- * encrypted again for this message. That work runs after the recipients are checked, so a message
- * that is going to be rejected never downloads anything, and nothing readable is left on the device
- * once the send is over, whether it succeeded or not.
+ * encrypted again for this message. That work runs after the recipients are checked, and nothing
+ * readable is left on the device once the send is over, whether it succeeded or not.
  *
- * @param forward - The message to forward.
- * @param forward.forwardedMessageId - Id of the message being forwarded.
- * @param forward.note - What the user wrote above the quoted original.
- * @param forward.quote - The original, quoted under its header.
- * @param forward.forwardedAttachments - Attachments of the original, which travel along.
- * @param forward.to - Recipients of the forwarded message.
- * @param forward.cc - Addresses in copy, normalized like `to`.
- * @param forward.bcc - Addresses in blind copy, normalized like `to`.
- * @param forward.subject - Subject line of the forwarded message.
- * @param forward.files - Attachments the user added on top of the ones of the original.
- * @param forward.areAttachmentsEncrypted - Whether the attachments of the original are encrypted.
- * @param progress - How the send reports what it is doing.
- * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
  * @throws NoRecipientsError when there is nobody to forward the message to.
  * @throws PrimaryRecipientMissingError when everybody is in copy.
  * @throws BlindCopyNotDeliverableError when the message is delivered inside Internxt and has blind
  * copy recipients.
  * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
  * @throws ForwardedAttachmentsNotDecryptableError when the original could not be decrypted on this
- * device, so its attachments cannot be forwarded.
+ * device.
  * @throws ForwardedAttachmentUnavailableError when an attachment of the original cannot be taken out
- * of it, so nothing is sent instead of a message with files missing.
+ * of it.
  */
 export const encryptAndSendForward = async (
   {

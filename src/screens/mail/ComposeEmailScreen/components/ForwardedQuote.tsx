@@ -11,14 +11,6 @@ import { buildEmailDocument } from '../../../../services/mail/emailBody/emailDoc
 import { ForwardedQuote as ForwardedQuoteContent } from '../../../../types/mail';
 import { useEmailBodyHeight } from '../../hooks/useEmailBodyHeight';
 
-/**
- * Shows what a forward carries below what the user writes: who wrote the original and, once opened,
- * the quote exactly as it is going to travel. It is never editable, because the quote keeps the
- * format of the original and the compose screen writes plain text.
- *
- * @param params.quote - The quoted original the forward travels with.
- * @param params.originalSender - Who wrote the original.
- */
 export const ForwardedQuote = ({ quote, originalSender }: { quote: ForwardedQuoteContent; originalSender: string }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
