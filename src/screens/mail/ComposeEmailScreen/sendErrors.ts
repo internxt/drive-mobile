@@ -4,17 +4,44 @@ import { InternxtRecipientKeyMissingError, MailErrorName } from '../../../servic
 type SendErrorMessages = typeof strings.screens.compose_email.errors;
 
 /**
- * Pulls the server side of a failed request out of an SDK error, which carries the
- * response body and request id that the error message alone does not include.
+ * Reads the reason out of a response body, which is either the text itself or an object with the
+ * reason under `message` or `error`.
+ *
+ * @param responseBody - Body of the failed response, in whatever shape the server sent it.
+ * @returns The reason, or undefined when the body does not hold one.
+ */
+const readServerReason = (responseBody: unknown): string | undefined => {
+  if (typeof responseBody === 'string') {
+    return responseBody;
+  }
+  if (responseBody !== null && typeof responseBody === 'object') {
+    const { message, error } = responseBody as { message?: unknown; error?: unknown };
+    const reason = message ?? error;
+    if (typeof reason === 'string') {
+      return reason;
+    }
+  }
+
+  return undefined;
+};
+
+/**
+ * Describes a failed send for the log: the status, the reason and the request id. The response
+ * body and the raw SDK error are left out, because the log is written to a file on the device and
+ * they carry the recipients and the message envelope.
  *
  * @param error - Error thrown by the mail SDK.
- * @returns The status, response body and request id, when the error carries them.
+ * @returns The status, the reason and the request id, when the error carries them.
  */
-export const describeRequestFailure = (error: unknown): Record<string, unknown> => {
+export const describeSendFailure = (error: unknown): Record<string, unknown> => {
   const cause = (error as { cause?: unknown })?.cause;
-  const source = (cause ?? error ?? {}) as { status?: number; data?: unknown; xRequestId?: string };
+  const requestFailure = (cause ?? error ?? {}) as { status?: number; data?: unknown; xRequestId?: string };
 
-  return { status: source.status, responseBody: source.data, requestId: source.xRequestId, cause };
+  return {
+    status: requestFailure.status,
+    reason: readServerReason(requestFailure.data),
+    requestId: requestFailure.xRequestId,
+  };
 };
 
 export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: SendErrorMessages) => string>([
