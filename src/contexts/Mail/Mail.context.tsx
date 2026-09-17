@@ -8,7 +8,6 @@ type UnreadByMailbox = Partial<Record<MailboxId, number>>;
 
 export interface MailContextValue {
   unreadByMailbox: UnreadByMailbox;
-  /** Re-fetches the mailboxes and their unread counts. Callers own the failure */
   refreshMailboxes: () => Promise<void>;
 }
 
