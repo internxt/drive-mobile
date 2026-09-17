@@ -4,6 +4,8 @@ export const MailErrorName = {
   RecipientKeyLookupFailed: 'RecipientKeyLookupFailedError',
   ActiveDomainsUnavailable: 'ActiveDomainsUnavailableError',
   ServerPublicKeyMissing: 'ServerPublicKeyMissingError',
+  BlindCopyNotDeliverable: 'BlindCopyNotDeliverableError',
+  PrimaryRecipientMissing: 'PrimaryRecipientMissingError',
 } as const;
 
 export class NoRecipientsError extends Error {
@@ -40,5 +42,19 @@ export class ServerPublicKeyMissingError extends Error {
   constructor() {
     super('SERVER_PUBLIC_KEY is not configured');
     this.name = MailErrorName.ServerPublicKeyMissing;
+  }
+}
+
+export class BlindCopyNotDeliverableError extends Error {
+  constructor() {
+    super('Blind copy recipients are not deliverable when the email is delivered inside Internxt');
+    this.name = MailErrorName.BlindCopyNotDeliverable;
+  }
+}
+
+export class PrimaryRecipientMissingError extends Error {
+  constructor() {
+    super('An email needs at least one recipient in the to field');
+    this.name = MailErrorName.PrimaryRecipientMissing;
   }
 }
