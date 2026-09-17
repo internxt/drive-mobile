@@ -2,6 +2,7 @@ export type MailAttachment = {
   uri: string;
   name: string;
   type: string;
+  size?: number;
 };
 
 export type OutgoingEmail = {
