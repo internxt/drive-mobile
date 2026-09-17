@@ -8,14 +8,16 @@ import type { AppDispatch, RootState } from '../../index';
 import mailReducer, {
   loadFirstPageThunk,
   loadNextPageThunk,
+  loadUnreadCountsThunk,
   mailActions,
   makeSelectMailboxEmails,
   refreshNewestEmailsThunk,
   selectMailboxList,
+  selectUnreadByMailbox,
 } from './index';
 
 jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
-  mailboxService: { listEmails: jest.fn() },
+  mailboxService: { listEmails: jest.fn(), getMailboxes: jest.fn() },
 }));
 
 jest.mock('@internxt-mobile/services/mail/mailCrypto.service', () => ({
@@ -28,6 +30,7 @@ jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
 }));
 
 const listEmailsMock = mailboxService.listEmails as jest.Mock;
+const getMailboxesMock = mailboxService.getMailboxes as jest.Mock;
 const getPrivateHybridKeyMock = getPrivateHybridKey as jest.Mock;
 const decryptPreviewsMock = decryptPreviews as jest.Mock;
 
@@ -76,8 +79,11 @@ const createMailStore = ({ mnemonic }: { mnemonic?: string } = { mnemonic: A_MNE
       selectMailboxEmails(getState(), mailboxId).map((email) => email.id),
     shownEmails: (mailboxId: MailboxId = MailboxId.Inbox) => selectMailboxEmails(getState(), mailboxId),
     listOf: (mailboxId: MailboxId = MailboxId.Inbox) => selectMailboxList(getState(), mailboxId),
+    unreadByMailbox: () => selectUnreadByMailbox(getState()),
   };
 };
+
+const aMailboxWithUnread = (mailboxId: MailboxId, unreadEmails: number) => ({ type: mailboxId, unreadEmails });
 
 const inbox = { mailboxId: MailboxId.Inbox };
 
@@ -554,6 +560,31 @@ describe('Scrolling through a mailbox', () => {
     });
   });
 
+  describe('Unread counts', () => {
+    test('when the mailboxes are loaded, then their unread counts are saved', async () => {
+      getMailboxesMock.mockResolvedValueOnce([
+        aMailboxWithUnread(MailboxId.Inbox, 3),
+        aMailboxWithUnread(MailboxId.Spam, 1),
+      ]);
+      const mail = createMailStore();
+
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      expect(mail.unreadByMailbox()).toEqual({ [MailboxId.Inbox]: 3, [MailboxId.Spam]: 1 });
+    });
+
+    test('when loading the unread counts fails, then the counts already saved are kept', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Inbox, 3)]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+      getMailboxesMock.mockRejectedValueOnce(SERVER_UNREACHABLE);
+
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      expect(mail.unreadByMailbox()).toEqual({ [MailboxId.Inbox]: 3 });
+    });
+  });
+
   describe('Signing out', () => {
     test('when the user signs out, then no mailbox keeps any email', async () => {
       listEmailsMock.mockResolvedValueOnce(aPage([anEmail('private')], { hasMoreMails: true }));
@@ -564,6 +595,16 @@ describe('Scrolling through a mailbox', () => {
 
       expect(mail.shownIds()).toEqual([]);
       expect(mail.listOf().hasMoreMails).toBe(false);
+    });
+
+    test('when the user signs out, then the unread counts are cleared', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Inbox, 3)]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(mailActions.resetState());
+
+      expect(mail.unreadByMailbox()).toEqual({});
     });
   });
 });
