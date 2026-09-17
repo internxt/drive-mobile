@@ -1,5 +1,5 @@
-import { ReactNode, useState } from 'react';
-import { NativeSyntheticEvent, TextInput, TextInputKeyPressEventData, View } from 'react-native';
+import { ReactNode } from 'react';
+import { TextInput, TextInputKeyPressEvent, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import useGetColor from '../../../../hooks/useColor';
@@ -11,62 +11,55 @@ import { RecipientChip } from './RecipientChip';
 type RecipientRowProps = {
   label: string;
   recipients: string[];
-  onChangeRecipients: (recipients: string[]) => void;
+  pendingText: string;
+  onChangePendingText: (text: string) => void;
+  onFinishEntry: (typedText: string) => void;
+  onRemoveRecipient: (address: string) => void;
   renderAppend?: ReactNode;
 };
 
 /**
- * A recipient field: the addresses already added as chips, and an input for the next one. Text
- * that cannot be read as an address stays in the input instead of becoming a chip.
+ * A recipient field: the addresses already added as chips, and an input for the next one. It decides
+ * when an entry is finished.
  *
  * @param props.label - Text shown to the left of the field.
  * @param props.recipients - Addresses currently in the field.
- * @param props.onChangeRecipients - Called with the new list whenever it changes.
+ * @param props.pendingText - What is typed in the field and not yet turned into a recipient.
+ * @param props.onChangePendingText - Called with the text while an entry is being typed.
+ * @param props.onFinishEntry - Called with the typed text once an entry is finished.
+ * @param props.onRemoveRecipient - Called with the address of a recipient taken out of the field.
  * @param props.renderAppend - Element pinned to the right end of the line.
  */
 export const RecipientRow = ({
   label,
   recipients,
-  onChangeRecipients,
+  pendingText,
+  onChangePendingText,
+  onFinishEntry,
+  onRemoveRecipient,
   renderAppend,
 }: RecipientRowProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const [inputValue, setInputValue] = useState('');
-
-  const addRecipients = (value: string) => {
-    const { emails, invalid } = parseRecipients(value);
-    const alreadyAdded = new Set(recipients.map((recipient) => recipient.toLowerCase()));
-    const newRecipients = emails.filter((email) => !alreadyAdded.has(email.toLowerCase()));
-
-    if (newRecipients.length > 0) {
-      onChangeRecipients([...recipients, ...newRecipients]);
-    }
-    setInputValue(invalid.join(', '));
-  };
 
   const onChangeText = (value: string) => {
     const lastCharacter = value.slice(-1);
-    const wasPasted = value.length - inputValue.length > 1;
+    const wasPasted = value.length - pendingText.length > 1;
     const { emails, invalid } = parseRecipients(value);
     const isWholeEntryAnAddress = emails.length > 0 && invalid.length === 0;
 
     const isEntryFinished = isEntryTerminator(lastCharacter) || (lastCharacter === ' ' && isWholeEntryAnAddress);
     if (isEntryFinished || (wasPasted && isWholeEntryAnAddress)) {
-      addRecipients(value);
+      onFinishEntry(value);
       return;
     }
-    setInputValue(value);
+    onChangePendingText(value);
   };
 
-  const onKeyPress = ({ nativeEvent }: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
-    if (nativeEvent.key === 'Backspace' && inputValue.length === 0 && recipients.length > 0) {
-      onChangeRecipients(recipients.slice(0, -1));
+  const onKeyPress = ({ nativeEvent }: TextInputKeyPressEvent) => {
+    if (nativeEvent.key === 'Backspace' && pendingText.length === 0 && recipients.length > 0) {
+      onRemoveRecipient(recipients[recipients.length - 1]);
     }
-  };
-
-  const onRemoveRecipient = (address: string) => {
-    onChangeRecipients(recipients.filter((recipient) => recipient !== address));
   };
 
   return (
@@ -77,12 +70,12 @@ export const RecipientRow = ({
         ))}
         <TextInput
           accessibilityLabel={label}
-          value={inputValue}
+          value={pendingText}
           onChangeText={onChangeText}
           onKeyPress={onKeyPress}
-          onBlur={() => addRecipients(inputValue)}
-          onSubmitEditing={() => addRecipients(inputValue)}
-          blurOnSubmit={false}
+          onBlur={() => onFinishEntry(pendingText)}
+          onSubmitEditing={() => onFinishEntry(pendingText)}
+          submitBehavior="submit"
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="email-address"

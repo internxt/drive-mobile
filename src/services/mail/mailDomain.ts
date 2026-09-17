@@ -1,6 +1,6 @@
-type MailDomain = { domain: string };
+export type MailDomain = { domain: string };
 
-const normalizeAddress = (address: string): string => address.trim().toLowerCase();
+export const normalizeAddress = (address: string): string => address.trim().toLowerCase();
 
 /**
  * Extracts the domain part of an email address.
