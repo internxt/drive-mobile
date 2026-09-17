@@ -1,4 +1,4 @@
-import { EmailListResponse } from '@internxt/sdk/dist/mail/types';
+import { EmailListResponse, MailboxResponse } from '@internxt/sdk/dist/mail/types';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
@@ -9,6 +9,7 @@ import { MailboxId } from '../../../types/mail';
 import type { RootState } from '../../index';
 import { findNextPageAnchorId } from './pagination';
 import { selectLoadedEmails, selectMailboxList } from './selectors';
+import { MailState } from './types';
 
 const MAX_NEXT_PAGE_ATTEMPTS = 2;
 
@@ -132,5 +133,26 @@ export const refreshNewestEmailsThunk = createAsyncThunk<
   },
   {
     condition: ({ mailboxId }, { getState }) => !selectMailboxList(getState(), mailboxId).isRefreshingNewestEmails,
+  },
+);
+
+const toUnreadByMailbox = (mailboxes: MailboxResponse[]): MailState['unreadByMailbox'] =>
+  mailboxes.reduce<MailState['unreadByMailbox']>((counts, mailbox) => {
+    if (mailbox.type) {
+      counts[mailbox.type as MailboxId] = mailbox.unreadEmails;
+    }
+    return counts;
+  }, {});
+
+export const loadUnreadCountsThunk = createAsyncThunk<MailState['unreadByMailbox']>(
+  'mail/loadUnreadCounts',
+  async () => {
+    try {
+      const mailboxes = await mailboxService.getMailboxes();
+      return toUnreadByMailbox(mailboxes);
+    } catch (error) {
+      logger.error('Failed to load mailbox unread counts', describeErrorForLog(error));
+      throw error;
+    }
   },
 );
