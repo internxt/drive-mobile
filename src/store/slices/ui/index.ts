@@ -35,7 +35,7 @@ export interface UIState {
 }
 
 const initialState: UIState = {
-  activeSpace: 'mail',
+  activeSpace: 'drive',
   searchActive: false,
   fileViewMode: DriveListViewMode.List,
   showItemModal: false,
