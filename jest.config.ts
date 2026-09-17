@@ -17,9 +17,13 @@ const untranspiledModulePatterns = [
   'react-native-blob-util',
   '@internxt/rn-crypto',
   '@internxt/lib',
+  'internxt-crypto',
   '@scure/bip39',
   '@scure/base',
   '@noble/hashes',
+  '@noble/curves',
+  '@noble/ciphers',
+  '@noble/post-quantum',
   'uuid',
   'p-limit',
   'yocto-queue',
@@ -39,6 +43,11 @@ const config: Config.InitialOptions = {
   testRegex: ['\\.spec\\.ts$', '\\.spec\\.tsx$'],
   setupFiles: ['./jest.setup.ts'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  transform: {
+    // internxt-crypto's "react-native" export condition resolves to .mjs files, which the
+    // preset's own `\.[jt]sx?$` transform pattern does not match.
+    '\\.mjs$': 'babel-jest',
+  },
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   moduleNameMapper: {
