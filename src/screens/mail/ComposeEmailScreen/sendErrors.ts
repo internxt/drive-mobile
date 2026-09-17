@@ -96,12 +96,6 @@ export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: Send
   [MailErrorName.ForwardedAttachmentsNotDecryptable, (_, messages) => messages.forwardedAttachmentsNotDecryptable],
 ]);
 
-/**
- * Tells whether a send was refused because the account reached its sending limit for now.
- *
- * @param error - Error thrown while sending.
- * @returns Whether the server throttled the send.
- */
 export const isSendRateLimited = (error: unknown): boolean => readHttpStatus(error) === HTTP_TOO_MANY_REQUESTS;
 
 /**
