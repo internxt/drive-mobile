@@ -23,37 +23,21 @@ export type MaterializedAttachment = {
   path: string;
 };
 
-/**
- * Deletes the files written while materializing attachments. Called both when the forward is sent
- * and when it fails, so a decrypted attachment never outlives the send that needed it.
- *
- * @param materialized - The attachments written to the device so far.
- */
+/** Deletes the files written while materializing attachments. */
 export const discardMaterializedAttachments = async (materialized: MaterializedAttachment[]): Promise<void> => {
   await Promise.all(materialized.map(({ path }) => fs.unlinkIfExists(path)));
 };
 
 /**
- * Takes the attachments of a message out of it and leaves them on the device in the clear, so they
- * can be encrypted for the message that forwards them. The server never holds them in a readable
- * form, so there is no way around downloading and decrypting each one.
+ * Takes the attachments of a message out of it and leaves them on the device in the clear.
  *
- * They are fetched one after another on purpose: each one is held whole in memory while it is
- * decrypted and turned into base64, and the server takes them up to 25 MB each.
- *
- * @param params - What to take out of which message.
- * @param params.forwardedMessageId - Id of the message being forwarded.
- * @param params.attachments - Attachments of that message.
- * @param params.areAttachmentsEncrypted - Whether those attachments are encrypted, which is the case
- * for every message that arrived with an envelope.
- * @param params.onAttachmentProgress - Called with the attachment being taken out and how many
- * there are, so a send can be followed.
+ * @param params.onAttachmentProgress - The attachment being taken out and how many there are in total.
  * @returns Each attachment as a file on the device.
  * @throws ForwardedAttachmentsNotDecryptableError when the attachments are encrypted and the key of
- * their message is not on this device, so forwarding them would send bytes nobody can open.
+ * their message is not on this device.
  * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
  * @throws ForwardedAttachmentUnavailableError when an attachment cannot be downloaded, decrypted or
- * written; whatever was written before is deleted first, so nothing is left behind.
+ * written; whatever was written before is deleted first.
  */
 export const materializeForwardedAttachments = async ({
   forwardedMessageId,

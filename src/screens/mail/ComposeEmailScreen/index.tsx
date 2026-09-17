@@ -24,18 +24,11 @@ import { AsyncStorageKey } from '../../../types';
 import { ForwardedAttachment, MailAttachment, SendStage } from '../../../types/mail';
 import { RootStackScreenProps } from '../../../types/navigation';
 import { ComposeFieldRow } from './components/ComposeFieldRow';
-import { ForwardedQuote } from './components/ForwardedQuote';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
+import { ForwardedQuote } from './components/ForwardedQuote';
 import { RecipientRow } from './components/RecipientRow';
 import { describeSendFailure, getSendErrorMessage } from './sendErrors';
 
-/**
- * Says what a send is doing right now, which matters when it has to prepare attachments before it
- * can even start.
- *
- * @param stage - How far along the send is.
- * @returns What to show while that step runs.
- */
 const describeSendStage = (stage: SendStage): string => {
   const { progress } = strings.screens.compose_email;
 

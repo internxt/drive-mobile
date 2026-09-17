@@ -22,12 +22,7 @@ const formatAddress = (address: EmailAddress): string => {
 const formatAddresses = (addresses: EmailAddress[] | undefined): string =>
   (addresses ?? []).map(formatAddress).join(', ');
 
-/**
- * Adds the forward prefix to a subject, unless the subject already carries it.
- *
- * @param subject - Subject of the message being forwarded.
- * @returns The subject the forwarded message is sent with.
- */
+/** Adds the forward prefix to a subject, unless the subject already carries it. */
 export const forwardedSubject = (subject: string): string => {
   const { prefix } = strings.screens.compose_email.forward;
 
@@ -35,15 +30,9 @@ export const forwardedSubject = (subject: string): string => {
 };
 
 /**
- * Quotes a message under a header that names who wrote it, when, and who it went to, the way every
- * other mail client forwards: the original keeps the format it was written in, so a message written
- * with formatting is not flattened on its way out. The quote is markup whichever format the original
- * had, and a quote that was already markup is filtered down to what is safe to display, because the
- * message goes out under the name of whoever forwards it.
- *
- * @param message - The message being forwarded.
- * @param bodySource - Where the body of that message comes from.
- * @returns The quoted original, as markup, and the text of the original on its own.
+ * Quotes a message under a header that names who wrote it, when, and who it went to. The original
+ * keeps the format it was written in. The quote is markup whichever format the original had, and a
+ * quote that was already markup is filtered down to what is safe to display.
  */
 export const buildForwardedQuote = (message: EmailResponse, bodySource: EmailBodySource): ForwardedQuote => {
   const labels = strings.screens.compose_email.forward;
@@ -69,13 +58,9 @@ export const buildForwardedQuote = (message: EmailResponse, bodySource: EmailBod
 };
 
 /**
- * Writes the opening of a forwarded message, which is what the mailbox list shows before the message
- * is opened: what the user wrote, and the body of the original when they wrote nothing. The header
- * of the quote is left out, because every forward carries the same one and it would fill the row
- * before the message itself got a chance to show.
+ * Writes the opening of a forwarded message: what the user wrote, or the body of the original when
+ * they wrote nothing. The header of the quote is left out.
  *
- * @param note - What the user wrote above the quote.
- * @param quote - The quoted original.
  * @returns The opening of the message, as plain text.
  */
 export const previewOfForward = (note: string, quote: ForwardedQuote): string =>
@@ -85,8 +70,6 @@ export const previewOfForward = (note: string, quote: ForwardedQuote): string =>
  * Puts together the body a forwarded message travels with: what the user wrote, and the quoted
  * original below it.
  *
- * @param note - What the user wrote above the quote.
- * @param quote - The quoted original.
  * @returns The body of the forwarded message, as markup.
  */
 export const composeForwardedBody = (note: string, quote: ForwardedQuote): string =>
