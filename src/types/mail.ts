@@ -14,19 +14,11 @@ export type OutgoingEmail = {
 };
 
 export type OutgoingReply = OutgoingEmail & {
-  /** Id of the message being replied to, which is what keeps the reply in its thread. */
   inReplyTo: string;
-  /** Whether the other participants of the original travel in copy. */
   replyAll: boolean;
-  /**
-   * Whether the server addresses the reply on its own. True while the recipients are the ones that
-   * were worked out from the original; false once the user has changed them, and then they travel
-   * in the request.
-   */
   keepServerDerivedRecipients: boolean;
 };
 
-/** What the message detail hands to the compose screen so it opens as a reply. */
 export type ReplyComposeParams = {
   repliedMessageId: string;
   replyAll: boolean;
