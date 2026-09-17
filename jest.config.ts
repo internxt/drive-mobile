@@ -44,8 +44,6 @@ const config: Config.InitialOptions = {
   setupFiles: ['./jest.setup.ts'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
   transform: {
-    // internxt-crypto's "react-native" export condition resolves to .mjs files, which the
-    // preset's own `\.[jt]sx?$` transform pattern does not match.
     '\\.mjs$': 'babel-jest',
   },
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
