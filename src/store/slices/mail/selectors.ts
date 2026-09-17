@@ -10,19 +10,9 @@ import { MailboxListState } from './types';
 
 const NOT_LOADED_MAILBOX_LIST: MailboxListState = createInitialMailboxListState();
 
-/**
- * @param state - The app state.
- * @param mailboxId - The mailbox.
- * @returns How far the mailbox has been loaded; an empty list when it was never loaded.
- */
 export const selectMailboxList = (state: RootState, mailboxId: MailboxId): MailboxListState =>
   state.mail.mailboxes[mailboxId] ?? NOT_LOADED_MAILBOX_LIST;
 
-/**
- * @param state - The app state.
- * @param mailboxId - The mailbox.
- * @returns The emails loaded in the mailbox, in no particular order.
- */
 export const selectLoadedEmails = (state: RootState, mailboxId: MailboxId): EmailSummaryResponse[] => {
   const { entities } = state.mail.emails;
   return selectMailboxList(state, mailboxId).emailIds.flatMap((emailId) => {

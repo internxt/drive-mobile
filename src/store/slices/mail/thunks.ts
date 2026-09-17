@@ -14,7 +14,6 @@ const MAX_NEXT_PAGE_ATTEMPTS = 2;
 
 type MailboxThunkArgument = { mailboxId: MailboxId };
 
-/** Which load from scratch a page belongs to, so a page that arrives after a newer one can be dropped. */
 type StartedWith = { startedWithFirstPageRequestId: string | null };
 
 export type NextPageResult = StartedWith & { nextPage: EmailListResponse | null };
