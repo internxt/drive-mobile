@@ -51,7 +51,6 @@ export type SendStage =
   | { name: 'uploadingAttachments'; current: number; total: number }
   | { name: 'sending' };
 
-/** Attachments already uploaded, and the key they were encrypted with, in base64. */
 export type UploadedAttachments = {
   attachmentsSessionKey: string;
   attachments: AttachmentRef[];
