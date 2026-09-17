@@ -14,7 +14,6 @@ import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { buildForwardedQuote, forwardedSubject } from '../../../services/mail/forwardBody';
-import { downloadDecryptAndOpenAttachment } from '../../../services/mail/mailAttachment.service';
 import {
   decryptAndCacheFullEmail,
   getCachedEmail,
@@ -31,6 +30,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { mailActions } from '../../../store/slices/mail';
 import { AsyncStorageKey } from '../../../types';
 import { MailScreenProps } from '../../../types/navigation';
+import { useOpenAttachment } from './hooks/useOpenAttachment';
 import { ThreadActions } from './ThreadActions';
 import { ThreadMessageCard } from './ThreadMessageCard';
 
@@ -56,6 +56,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   const [selfAddress, setSelfAddress] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToEnd = useRef(false);
+  const { openingAttachmentId, openAttachment } = useOpenAttachment();
 
   const resolveMessage = useCallback(
     async (message: EmailResponse): Promise<ResolvedMessage> => {
@@ -214,17 +215,14 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     const hasSeparator =
       !expandedMessageIds.includes(message.id) && !!nextMessage && !expandedMessageIds.includes(nextMessage.id);
 
-    const onPressAttachment = (attachment: NonNullable<typeof message.attachments>[number]) => {
-      downloadDecryptAndOpenAttachment({
+    const onPressAttachment = (attachment: NonNullable<typeof message.attachments>[number]) =>
+      openAttachment({
         emailId: message.id,
         blobId: attachment.blobId,
         name: attachment.name,
         type: attachment.type,
         attachmentsSessionKey,
-      }).catch((error) => {
-        logger.error('Failed to open attachment', error);
       });
-    };
 
     return (
       <View
@@ -243,6 +241,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
           onReply={() => onReply(message, false)}
           onReplyAll={() => onReply(message, true)}
           onForward={() => onForward(entry)}
+          openingAttachmentId={openingAttachmentId}
           onPressAttachment={onPressAttachment}
         />
       </View>
