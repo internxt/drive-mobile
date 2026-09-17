@@ -10,7 +10,7 @@ import {
   PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
 } from './errors';
-import { decryptPreviews, encryptAndSendEmail } from './mailCrypto.service';
+import { decryptPreviews, encryptAndSendEmail, encryptAndSendReply } from './mailCrypto.service';
 import { mailboxService } from './mailbox.service';
 import { recipientKeysService } from './recipientKeys.service';
 
@@ -19,6 +19,7 @@ jest.mock('./mailbox.service', () => ({
     getActiveDomains: jest.fn(),
     getMailAccountKeys: jest.fn(),
     sendEmail: jest.fn(),
+    replyEmail: jest.fn(),
     uploadAttachment: jest.fn(),
   },
 }));
@@ -389,5 +390,102 @@ describe('Reading a message that cannot be decrypted', () => {
 
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('email-1'), failure);
     expect(email.preview).toBe(strings.screens.mail.unableToDecryptPreview);
+  });
+});
+
+describe('Sending an encrypted reply', () => {
+  const replyEmailMock = mailboxService.replyEmail as jest.Mock;
+  const replyRequestBody = () => replyEmailMock.mock.calls[0][1];
+  const repliedMessageId = () => replyEmailMock.mock.calls[0][0];
+
+  const reply = {
+    inReplyTo: 'original-id',
+    replyAll: false,
+    keepServerDerivedRecipients: true,
+    to: ['friend@inxt.me'],
+    subject: 'Re: Subject',
+    text: 'Body',
+  };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(AppService, 'constants', 'get').mockReturnValue({ SERVER_PUBLIC_KEY });
+    getActiveDomainsMock.mockResolvedValue(ACTIVE_DOMAINS);
+    getMailAccountKeysMock.mockResolvedValue(SENDER);
+    replyEmailMock.mockResolvedValue({ id: 'reply-id' });
+    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
+    encryptMock.mockResolvedValue({
+      encryptedKeys: [{ encryptedForEmail: 'someone', encryptedKey: 'k', hybridCiphertext: 'c' }],
+      encEmail: { encText: 'text', encPreview: 'preview', encAttachmentsSessionKey: 'attachments' },
+    });
+  });
+
+  test('when a reply is sent, then it travels to the message being answered and never as a new message', async () => {
+    await encryptAndSendReply(reply);
+
+    expect(repliedMessageId()).toBe('original-id');
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when the recipients are the ones worked out from the original, then the server is left to address the reply', async () => {
+    await encryptAndSendReply(reply);
+
+    expect(replyRequestBody().to).toBeUndefined();
+  });
+
+  test('when the user has changed the recipients, then they travel in the request instead of being worked out again', async () => {
+    await encryptAndSendReply({ ...reply, keepServerDerivedRecipients: false });
+
+    expect(replyRequestBody().to).toEqual([{ email: 'friend@inxt.me' }]);
+  });
+
+  test('when replying to everybody, then the request says so', async () => {
+    await encryptAndSendReply({ ...reply, replyAll: true });
+
+    expect(replyRequestBody().replyAll).toBe(true);
+  });
+
+  test('when a reply is sent, then it is encrypted and its recipients are wrapped as in any other message', async () => {
+    await encryptAndSendReply(reply);
+
+    expect(replyRequestBody().encryption.encryptedText).toBe('text');
+    expect(keyAsText(wrappedFor('friend@inxt.me'))).toBe('friend-key');
+    expect(keyAsText(wrappedFor(SENDER.address))).toBe('sender-key');
+  });
+
+  test('when every recipient of a reply is internal, then it is delivered inside Internxt', async () => {
+    await encryptAndSendReply(reply);
+
+    expect(replyRequestBody().deliveryMode).toBe('INTERNXT');
+  });
+
+  test('when a reply reaches somebody outside Internxt, then it is delivered externally', async () => {
+    getPublicKeysMock.mockResolvedValue([
+      { address: 'friend@inxt.me', publicKey: 'friend-key' },
+      { address: 'someone@gmail.com', publicKey: null },
+    ]);
+
+    await encryptAndSendReply({ ...reply, cc: ['someone@gmail.com'] });
+
+    expect(replyRequestBody().deliveryMode).toBe('EXTERNAL');
+  });
+
+  test('when a reply stays inside Internxt and somebody is in blind copy, then it is not sent, because the envelope names them all', async () => {
+    await expect(encryptAndSendReply({ ...reply, bcc: ['hidden@inxt.me'] })).rejects.toBeInstanceOf(
+      BlindCopyNotDeliverableError,
+    );
+
+    expect(getPublicKeysMock).not.toHaveBeenCalled();
+    expect(replyEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when a reply has nobody to go to, then it is not sent', async () => {
+    await expect(encryptAndSendReply({ ...reply, to: [] })).rejects.toBeInstanceOf(NoRecipientsError);
+
+    expect(replyEmailMock).not.toHaveBeenCalled();
   });
 });

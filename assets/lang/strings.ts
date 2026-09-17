@@ -378,8 +378,20 @@ const translations = {
         showRemoteImages: 'Show images',
         remoteImagesBlocked: 'Images in this message are blocked',
       },
+      email_detail: {
+        to: 'To:',
+        cc: 'Cc:',
+        actions: {
+          reply: 'Reply',
+          replyAll: 'Reply all',
+          markUnread: 'Unread',
+          spam: 'Spam',
+          trash: 'Trash',
+        },
+      },
       compose_email: {
         title: 'New message',
+        replyTitle: 'Reply',
         errors: {
           title: 'Message not sent',
           noRecipients: 'Add at least one recipient before sending.',
@@ -1438,8 +1450,20 @@ const translations = {
         showRemoteImages: 'Mostrar imágenes',
         remoteImagesBlocked: 'Las imágenes de este mensaje están bloqueadas',
       },
+      email_detail: {
+        to: 'Para:',
+        cc: 'Cc:',
+        actions: {
+          reply: 'Responder',
+          replyAll: 'Responder a todos',
+          markUnread: 'No leído',
+          spam: 'Spam',
+          trash: 'Papelera',
+        },
+      },
       compose_email: {
         title: 'Nuevo mensaje',
+        replyTitle: 'Responder',
         errors: {
           title: 'Mensaje no enviado',
           noRecipients: 'Añade al menos un destinatario antes de enviar.',

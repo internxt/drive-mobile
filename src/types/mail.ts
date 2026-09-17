@@ -13,6 +13,20 @@ export type OutgoingEmail = {
   files?: MailAttachment[];
 };
 
+export type OutgoingReply = OutgoingEmail & {
+  inReplyTo: string;
+  replyAll: boolean;
+  keepServerDerivedRecipients: boolean;
+};
+
+export type ReplyComposeParams = {
+  repliedMessageId: string;
+  replyAll: boolean;
+  subject: string;
+  to: string[];
+  cc: string[];
+};
+
 export enum MailboxId {
   Inbox = 'inbox',
   Drafts = 'drafts',

@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react';
-import { ScrollView, Text, TextInput, TouchableOpacity, View, Alert } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
+import { useEffect, useState } from 'react';
+import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTailwind } from 'tailwind-rn';
 
+import { logger } from '@internxt-mobile/services/common/logger/logger.service';
+import { encryptAndSendEmail, encryptAndSendReply } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { hasSameAddresses } from '@internxt-mobile/services/mail/replyRecipients';
+import { pick } from '@react-native-documents/picker';
+import * as ImagePicker from 'expo-image-picker';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../../components/AppButton';
 import AppScreen from '../../../components/AppScreen';
@@ -10,30 +15,28 @@ import AppScreenTitle from '../../../components/AppScreenTitle';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
-import { RootStackScreenProps } from '../../../types/navigation';
-import * as ImagePicker from 'expo-image-picker';
-import { pick } from '@react-native-documents/picker';
-import { encryptAndSendEmail } from '@internxt-mobile/services/mail/mailCrypto.service';
-import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { AsyncStorageKey } from '../../../types';
 import { MailAttachment } from '../../../types/mail';
+import { RootStackScreenProps } from '../../../types/navigation';
 import { ComposeFieldRow } from './components/ComposeFieldRow';
-import { describeSendFailure, getSendErrorMessage } from './sendErrors';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { RecipientRow } from './components/RecipientRow';
+import { describeSendFailure, getSendErrorMessage } from './sendErrors';
 
-export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element {
+export function ComposeEmailScreen({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
 
-  const [to, setTo] = useState<string[]>([]);
-  const [cc, setCc] = useState<string[]>([]);
+  const reply = route.params?.reply;
+
+  const [to, setTo] = useState<string[]>(reply?.to ?? []);
+  const [cc, setCc] = useState<string[]>(reply?.cc ?? []);
   const [bcc, setBcc] = useState<string[]>([]);
   const [isExtraRecipientsSectionOpen, setIsExtraRecipientsSectionOpen] = useState(false);
   const [senderAddress, setSenderAddress] = useState('');
-  const [subject, setSubject] = useState('');
+  const [subject, setSubject] = useState(reply?.subject ?? '');
   const [body, setBody] = useState('');
   const [attachments, setAttachments] = useState<MailAttachment[]>([]);
   const [isSending, setIsSending] = useState(false);
@@ -95,7 +98,21 @@ export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'Compose
     setIsSending(true);
     let wasSent = false;
     try {
-      await encryptAndSendEmail({ to, cc, bcc, subject, text: body, files: attachments });
+      if (reply) {
+        await encryptAndSendReply({
+          inReplyTo: reply.repliedMessageId,
+          replyAll: reply.replyAll,
+          keepServerDerivedRecipients: hasSameAddresses(to, reply.to),
+          to,
+          cc,
+          bcc,
+          subject,
+          text: body,
+          files: attachments,
+        });
+      } else {
+        await encryptAndSendEmail({ to, cc, bcc, subject, text: body, files: attachments });
+      }
       wasSent = true;
     } catch (error) {
       logger.error('Failed to send email', error, describeSendFailure(error));
@@ -117,7 +134,7 @@ export function ComposeEmailScreen({ navigation }: RootStackScreenProps<'Compose
   return (
     <AppScreen safeAreaTop safeAreaBottom style={tailwind('flex-1 flex-grow')}>
       <AppScreenTitle
-        text={strings.screens.compose_email.title}
+        text={reply ? strings.screens.compose_email.replyTitle : strings.screens.compose_email.title}
         onBackButtonPressed={onCancel}
         rightSlot={
           <TouchableOpacity disabled={!canSend} onPress={onSend}>
