@@ -65,6 +65,18 @@ describe('Holding the recipients of a message being written', () => {
     expect(result.current.recipients).toEqual({ to: ['grace@inxt.me'], cc: [], bcc: [] });
   });
 
+  test('when a draft is loaded with the same address in two fields, then it is kept only in the most visible one and nothing is left typed', () => {
+    const { result } = renderHook(() => useComposeRecipients({}));
+
+    act(() => result.current.changePendingText('cc', 'half typed'));
+    act(() =>
+      result.current.replaceRecipients({ to: ['first@inxt.me'], cc: ['second@inxt.me'], bcc: ['FIRST@inxt.me'] }),
+    );
+
+    expect(result.current.recipients).toEqual({ to: ['first@inxt.me'], cc: ['second@inxt.me'], bcc: [] });
+    expect(result.current.pendingText).toEqual({ to: '', cc: '', bcc: '' });
+  });
+
   test('when a message starts as a reply, then its recipients are the ones it was opened with', () => {
     const { result } = renderHook(() => useComposeRecipients({ to: ['ada@inxt.me'], cc: ['grace@inxt.me'] }));
 
