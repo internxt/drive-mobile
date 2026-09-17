@@ -1,11 +1,14 @@
+import { items } from '@internxt/lib';
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import dayjs from 'dayjs';
 import { ArrowBendDoubleUpLeftIcon, ArrowBendUpLeftIcon, ArrowBendUpRightIcon } from 'phosphor-react-native';
-import { TouchableOpacity, View } from 'react-native';
+import prettysize from 'prettysize';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
+import { getFileTypeIcon } from '../../../helpers/filetypes';
 import useGetColor from '../../../hooks/useColor';
 import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { EmailBody } from './EmailBody';
@@ -13,6 +16,7 @@ import { MessageAvatar } from './MessageAvatar';
 
 const COLLAPSED_AVATAR_SIZE = 32;
 const EXPANDED_AVATAR_SIZE = 40;
+const ATTACHMENT_ICON_SIZE = 32;
 
 const formatAddresses = (recipients: EmailResponse['to'] | undefined): string =>
   (recipients ?? []).map((recipient) => recipient.email).join(', ');
@@ -60,6 +64,7 @@ export const ThreadMessageCard = ({
   onReply,
   onReplyAll,
   onForward,
+  openingAttachmentId,
   onPressAttachment,
 }: {
   message: EmailResponse;
@@ -73,6 +78,7 @@ export const ThreadMessageCard = ({
   onReply: () => void;
   onReplyAll: () => void;
   onForward: () => void;
+  openingAttachmentId: string | null;
   onPressAttachment: (attachment: NonNullable<EmailResponse['attachments']>[number]) => void;
 }) => {
   const tailwind = useTailwind();
@@ -149,20 +155,38 @@ export const ThreadMessageCard = ({
 
           {message.attachments && message.attachments.length > 0 && (
             <View style={tailwind('mt-3')}>
-              {message.attachments.map((attachment) => (
-                <TouchableOpacity
-                  key={attachment.blobId}
-                  style={[
-                    tailwind('flex-row items-center py-3'),
-                    { borderTopWidth: 1, borderTopColor: getColor('border-gray-5') },
-                  ]}
-                  onPress={() => onPressAttachment(attachment)}
-                >
-                  <AppText numberOfLines={1} style={[tailwind('flex-1'), { color: getColor('text-primary') }]}>
-                    {attachment.name}
-                  </AppText>
-                </TouchableOpacity>
-              ))}
+              {message.attachments.map((attachment) => {
+                const FileTypeIcon = getFileTypeIcon(items.getFilenameAndExt(attachment.name).extension);
+                const isOpening = openingAttachmentId === attachment.blobId;
+
+                return (
+                  <TouchableOpacity
+                    key={attachment.blobId}
+                    disabled={!!openingAttachmentId}
+                    style={[
+                      tailwind('flex-row items-center py-3'),
+                      { borderTopWidth: 1, borderTopColor: getColor('border-gray-5') },
+                    ]}
+                    onPress={() => onPressAttachment(attachment)}
+                  >
+                    <View style={[tailwind('items-center justify-center mr-3'), { width: ATTACHMENT_ICON_SIZE }]}>
+                      {isOpening ? (
+                        <ActivityIndicator size="small" color={getColor('text-primary')} />
+                      ) : (
+                        <FileTypeIcon width={ATTACHMENT_ICON_SIZE} height={ATTACHMENT_ICON_SIZE} />
+                      )}
+                    </View>
+                    <View style={tailwind('flex-1')}>
+                      <AppText numberOfLines={1} style={{ color: getColor('text-gray-100') }}>
+                        {attachment.name}
+                      </AppText>
+                      <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-40') }]}>
+                        {prettysize(attachment.size)}
+                      </AppText>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           )}
 
