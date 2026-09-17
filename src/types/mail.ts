@@ -51,13 +51,11 @@ export type SendStage =
   | { name: 'uploadingAttachments'; current: number; total: number }
   | { name: 'sending' };
 
-/** Attachments a draft already carries, uploaded and encrypted with the key of that draft, in base64. */
 export type DraftAttachments = {
   attachmentsSessionKey: string;
   attachments: AttachmentRef[];
 };
 
-/** What the draft of a message holds: its recipients, subject, body as typed, and the attachments it carries. */
 export type DraftContent = {
   to: string[];
   cc: string[];
@@ -68,9 +66,7 @@ export type DraftContent = {
 };
 
 export type OutgoingNewEmail = OutgoingEmail & {
-  /** Id of the draft the message was written in, which the server destroys once the message is sent. */
   draftId?: string;
-  /** Attachments the draft already carries, which travel without being uploaded again. */
   draftAttachments?: DraftAttachments;
 };
 
@@ -92,7 +88,6 @@ export type ForwardComposeParams = {
   originalSender: string;
 };
 
-/** What the mailbox list hands to the compose screen so it opens a draft. */
 export type DraftComposeParams = {
   draftId: string;
 };

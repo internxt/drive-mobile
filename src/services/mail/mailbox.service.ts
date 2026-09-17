@@ -1,19 +1,19 @@
 import { SdkManager } from '@internxt-mobile/services/common';
 import {
-  EmailSummaryResponse,
-  MailboxResponse,
-  EmailResponse,
-  MailAccountKeysResponse,
   DownloadAttachmentPayload,
   DownloadAttachmentResponse,
-  UploadAttachmentResponse,
-  SendEmailRequest,
-  ReplyEmailRequest,
-  EmailCreatedResponse,
-  LookupRecipientKeysResponse,
-  UpdateEmailRequest,
   DraftEmailRequest,
+  EmailCreatedResponse,
   EmailDomainsResponse,
+  EmailResponse,
+  EmailSummaryResponse,
+  LookupRecipientKeysResponse,
+  MailAccountKeysResponse,
+  MailboxResponse,
+  ReplyEmailRequest,
+  SendEmailRequest,
+  UpdateEmailRequest,
+  UploadAttachmentResponse,
 } from '@internxt/sdk/dist/mail/types';
 
 const DEFAULT_LIMIT = 50;
@@ -92,30 +92,18 @@ export class MailboxService {
     return this.sdk.mail.lookupRecipientKeys(addresses);
   }
 
-  /**
-   * Creates a draft
-   */
   public async saveDraft(body: DraftEmailRequest): Promise<EmailResponse> {
     return this.sdk.mail.saveDraft(body);
   }
 
-  /**
-   * Replaces a draft with a new one, which gets a new id
-   */
   public async updateDraft(draftId: string, body: DraftEmailRequest): Promise<EmailResponse> {
     return this.sdk.mail.updateDraft(draftId, body);
   }
 
-  /**
-   * Gets the draft with the corresponding id
-   */
   public async getDraft(draftId: string): Promise<EmailResponse> {
     return this.sdk.mail.getDraft(draftId);
   }
 
-  /**
-   * Discards the draft with the corresponding id
-   */
   public async discardDraft(draftId: string): Promise<void> {
     return this.sdk.mail.discardDraft(draftId);
   }

@@ -79,17 +79,6 @@ const isDraftGoneOrChangedElsewhere = (error: unknown): boolean => {
   return httpStatus === HTTP_CONFLICT || httpStatus === HTTP_NOT_FOUND;
 };
 
-/**
- * Saves the draft of a message: creates it the first time and replaces it after that. A draft that
- * keeps changing elsewhere, or that no longer exists, is saved as a new draft so what was written is
- * not lost. A message with nothing written in it is not saved as a new draft.
- *
- * @param params - The draft to save.
- * @param params.draftId - Id of the draft being replaced, or null when the message has none yet.
- * @param params.content - What the draft holds.
- * @returns The id of the saved draft, which changes every time it is saved, or null when there was
- * nothing to save.
- */
 export const saveDraft = async ({
   draftId,
   content,
@@ -142,16 +131,6 @@ const readDraftBody = async (
   };
 };
 
-/**
- * Opens a draft to keep writing it: fetches it and reads its body back as text that can be edited in
- * a plain text field.
- *
- * @param params - The draft to open.
- * @param params.draftId - Id of the draft.
- * @param params.mnemonic - Mnemonic of the account, which unlocks the key the draft is encrypted with.
- * @returns What the draft holds.
- * @throws Error when the draft cannot be fetched or decrypted.
- */
 export const openDraft = async ({
   draftId,
   mnemonic,
@@ -172,12 +151,6 @@ export const openDraft = async ({
   };
 };
 
-/**
- * Discards a draft. A draft that no longer exists counts as discarded.
- *
- * @param draftId - Id of the draft.
- * @throws Error when the draft exists and cannot be discarded.
- */
 export const discardDraft = async (draftId: string): Promise<void> => {
   try {
     await mailboxService.discardDraft(draftId);
