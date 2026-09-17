@@ -2,33 +2,43 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Text, TouchableWithoutFeedback, View } from 'react-native';
 
-import { GearIcon, HouseIcon, ImageIcon, NotePencilIcon, PlusCircleIcon, UsersIcon } from 'phosphor-react-native';
 import { logger } from '@internxt-mobile/services/common';
+import {
+  FolderSimpleIcon,
+  GearIcon,
+  HouseIcon,
+  ImageIcon,
+  NotePencilIcon,
+  PlusCircleIcon,
+  UsersIcon,
+} from 'phosphor-react-native';
 import { storageThunks } from 'src/store/slices/storage';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 import { useLanguage } from '../../hooks/useLanguage';
-import { RootScreenNavigationProp } from '../../types/navigation';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { ActiveSpace, uiActions } from '../../store/slices/ui';
 import globalStyle from '../../styles/global';
+import { RootScreenNavigationProp } from '../../types/navigation';
 import SpaceSwitcher from '../SpaceSwitcher';
 
 const TAB_BAR_HEIGHT = 56;
+
+const DRIVE_ONLY_TABS = new Set(['Home', 'Drive', 'Add', 'Photos']);
 
 const MAIL_ROUTE = 'Mail';
 const DRIVE_ROUTE = 'Drive';
 
 const spaceForRoute = (routeName: string): ActiveSpace => (routeName === MAIL_ROUTE ? 'mail' : 'drive');
+
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const activeSpace = useAppSelector((state) => state.ui.activeSpace);
-  useLanguage();
-
   const isHidden = useAppSelector((state) => state.ui.isTabBarHidden);
+  useLanguage();
 
   const heightAnim = useRef(new Animated.Value(isHidden ? 0 : TAB_BAR_HEIGHT)).current;
 
@@ -43,7 +53,9 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
 
   const tabs = {
     Home: { label: strings.tabs.Home, icon: HouseIcon },
+    Drive: { label: strings.tabs.Drive, icon: FolderSimpleIcon },
     Add: { label: strings.tabs.Add, icon: PlusCircleIcon },
+    Shared: { label: strings.tabs.Shared, icon: UsersIcon },
     Photos: { label: strings.tabs.Photos, icon: ImageIcon },
     Settings: { label: strings.tabs.Settings, icon: GearIcon },
   };
@@ -182,8 +194,8 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
   };
 
   const items = props.state.routes
-    .filter((route) => Object.keys(tabs).includes(route.name) || route.name === 'Shared')
-    .filter((route) => !(activeSpace === 'mail' && (route.name === 'Home' || route.name === 'Add')))
+    .filter((route) => Object.keys(tabs).includes(route.name))
+    .filter((route) => !(activeSpace === 'mail' && DRIVE_ONLY_TABS.has(route.name)))
     .map((route) => {
       const isFocused = props.state.routes[props.state.index]?.key === route.key;
       return route.name === 'Shared' ? renderSharedTab(route, isFocused) : renderRegularTab(route, isFocused);
