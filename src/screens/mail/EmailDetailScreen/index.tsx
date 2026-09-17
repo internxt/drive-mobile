@@ -2,42 +2,42 @@ import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import dayjs from 'dayjs';
 import { EnvelopeIcon, TrashIcon, WarningIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
-import RenderHtml from 'react-native-render-html';
 
+import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import AppScreenTitle from '../../../components/AppScreenTitle';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
+import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { downloadDecryptAndOpenAttachment } from '../../../services/mail/mailAttachment.service';
-import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import {
   decryptAndCacheFullEmail,
   getCachedEmail,
   getPrivateHybridKey,
   isEncryptedEmailBody,
-  parseEncryptionBlock,
-  markEmailUnread,
   markEmailRead,
+  markEmailUnread,
   moveThreadToMailbox,
+  parseEncryptionBlock,
 } from '../../../services/mail/mailCrypto.service';
 import { mailboxService } from '../../../services/mail/mailbox.service';
 import { useAppSelector } from '../../../store/hooks';
 import { MailScreenProps } from '../../../types/navigation';
+import { EmailBody } from './EmailBody';
 
 type ResolvedMessage = {
   message: EmailResponse;
-  decryptedBody: string | null;
+  bodySource: EmailBodySource;
   attachmentsSessionKey: string | null;
 };
 
 export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailDetail'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { width } = useWindowDimensions();
   const { user } = useAppSelector((state) => state.auth);
   useLanguage();
 
@@ -51,23 +51,29 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
 
   const resolveMessage = useCallback(
     async (message: EmailResponse): Promise<ResolvedMessage> => {
-      const cached = await getCachedEmail(message.id);
-      if (cached) {
-        return { message, decryptedBody: cached.text, attachmentsSessionKey: cached.attachmentsSessionKey };
+      const encryptedEnvelope = message.textBody && isEncryptedEmailBody(message.textBody) ? message.textBody : null;
+      const buildResolvedMessage = (
+        bodySource: EmailBodySource,
+        attachmentsSessionKey: string | null,
+      ): ResolvedMessage => ({ message, bodySource, attachmentsSessionKey });
+
+      const cachedEmail = await getCachedEmail(message.id);
+      if (cachedEmail) {
+        return buildResolvedMessage({ type: 'decrypted', text: cachedEmail.text }, cachedEmail.attachmentsSessionKey);
       }
 
-      if (message.textBody && isEncryptedEmailBody(message.textBody) && user?.mnemonic) {
+      if (encryptedEnvelope && user?.mnemonic) {
         try {
-          const encryption = parseEncryptionBlock(message.textBody);
+          const encryption = parseEncryptionBlock(encryptedEnvelope);
           const privateKey = await getPrivateHybridKey(user.mnemonic);
           const decrypted = await decryptAndCacheFullEmail(message.id, encryption, privateKey);
-          return { message, decryptedBody: decrypted.text, attachmentsSessionKey: decrypted.attachmentsSessionKey };
+          return buildResolvedMessage({ type: 'decrypted', text: decrypted.text }, decrypted.attachmentsSessionKey);
         } catch (error) {
           logger.error(`Failed to decrypt message ${message.id}`, error);
         }
       }
 
-      return { message, decryptedBody: null, attachmentsSessionKey: null };
+      return buildResolvedMessage(encryptedEnvelope ? { type: 'encryptedUnreadable' } : { type: 'plain' }, null);
     },
     [user],
   );
@@ -145,12 +151,10 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   };
 
   const renderMessage = (entry: ResolvedMessage) => {
-    const { message, decryptedBody, attachmentsSessionKey } = entry;
+    const { message, bodySource, attachmentsSessionKey } = entry;
     const isLastMessage = thread[thread.length - 1] === entry;
     const senderLabel = message.from?.[0]?.name || message.from?.[0]?.email || '';
     const recipientsLabel = message.to?.map((recipient) => recipient.name || recipient.email).join(', ') || '';
-    const isRawTextEncrypted = !!message.textBody && isEncryptedEmailBody(message.textBody);
-    const resolvedBody = decryptedBody || (!isRawTextEncrypted ? message.textBody : null) || message.htmlBody || '';
 
     const onPressAttachment = (attachment: NonNullable<typeof message.attachments>[number]) => {
       downloadDecryptAndOpenAttachment({
@@ -187,11 +191,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
         </View>
 
         <View style={tailwind('mt-3')}>
-          <RenderHtml
-            contentWidth={width || 1}
-            source={{ html: resolvedBody }}
-            baseStyle={{ fontSize: 16, color: getColor('text-gray-100'), lineHeight: 22 }}
-          />
+          <EmailBody message={message} bodySource={bodySource} />
         </View>
 
         {message.attachments && message.attachments.length > 0 && (
