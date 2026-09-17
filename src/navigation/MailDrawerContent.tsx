@@ -5,9 +5,10 @@ import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../assets/lang/strings';
 import AppText from '../components/AppText';
-import { useMail } from '../contexts/Mail/Mail.context';
 import useGetColor from '../hooks/useColor';
 import { useLanguage } from '../hooks/useLanguage';
+import { useAppSelector } from '../store/hooks';
+import { selectUnreadByMailbox } from '../store/slices/mail';
 import { MAILBOX_ORDER, MAILBOXES_WITH_UNREAD_BADGE, MailboxId } from '../types/mail';
 
 const MAILBOX_ICONS = {
@@ -21,7 +22,7 @@ const MAILBOX_ICONS = {
 const MailDrawerContent = (props: DrawerContentComponentProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { unreadByMailbox } = useMail();
+  const unreadByMailbox = useAppSelector(selectUnreadByMailbox);
   useLanguage();
 
   const mailboxLabels = strings.screens.mail.mailboxes;
