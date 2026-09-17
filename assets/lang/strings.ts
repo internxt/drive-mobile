@@ -374,9 +374,20 @@ const translations = {
           trash: 'Trash',
         },
         openMailboxes: 'Open mailboxes',
+        unableToDecryptPreview: 'This message could not be decrypted',
       },
       compose_email: {
         title: 'New message',
+        errors: {
+          title: 'Message not sent',
+          noRecipients: 'Add at least one recipient before sending.',
+          internxtKeyMissing:
+            'These recipients cannot receive encrypted mail yet: {0}. They need to open Internxt Mail once before you can write to them.',
+          keyLookupFailed: 'We could not check the recipients encryption keys. Check your connection and try again.',
+          domainsUnavailable: 'We could not verify the recipient addresses. Check your connection and try again.',
+          serverKeyMissing: 'Sending to addresses outside Internxt is not available right now.',
+          sendFailed: 'The message could not be sent. Try again in a moment.',
+        },
       },
       shared: {
         title: 'Shared',
@@ -1416,9 +1427,22 @@ const translations = {
           trash: 'Papelera',
         },
         openMailboxes: 'Abrir bandejas',
+        unableToDecryptPreview: 'No se ha podido descifrar este mensaje',
       },
       compose_email: {
         title: 'Nuevo mensaje',
+        errors: {
+          title: 'Mensaje no enviado',
+          noRecipients: 'Añade al menos un destinatario antes de enviar.',
+          internxtKeyMissing:
+            'Estos destinatarios todavía no pueden recibir correo cifrado: {0}. Necesitan abrir Internxt Mail una vez antes de que puedas escribirles.',
+          keyLookupFailed:
+            'No hemos podido comprobar las claves de cifrado de los destinatarios. Revisa tu conexión e inténtalo de nuevo.',
+          domainsUnavailable:
+            'No hemos podido verificar las direcciones de los destinatarios. Revisa tu conexión e inténtalo de nuevo.',
+          serverKeyMissing: 'El envío a direcciones de fuera de Internxt no está disponible ahora mismo.',
+          sendFailed: 'No se ha podido enviar el mensaje. Inténtalo de nuevo en un momento.',
+        },
       },
       shared: {
         title: 'Compartido',
