@@ -1,9 +1,10 @@
-import strings from '../../../../assets/lang/strings';
 import prettysize from 'prettysize';
+import strings from '../../../../assets/lang/strings';
 import { MAX_ATTACHMENT_BYTES } from '../../../services/mail/attachmentLimits';
 import {
   AttachmentTooLargeError,
   AttachmentUploadFailedError,
+  ForwardedAttachmentUnavailableError,
   InternxtRecipientKeyMissingError,
   MailErrorName,
 } from '../../../services/mail/errors';
@@ -66,14 +67,21 @@ export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: Send
   [MailErrorName.ServerPublicKeyMissing, (_, messages) => messages.serverKeyMissing],
   [MailErrorName.BlindCopyNotDeliverable, (_, messages) => messages.blindCopyNotDeliverable],
   [
+    MailErrorName.ForwardedAttachmentUnavailable,
+    (error, messages) =>
+      error instanceof ForwardedAttachmentUnavailableError
+        ? (strings.formatString(messages.forwardedAttachmentUnavailable, error.attachmentName) as string)
+        : messages.sendFailed,
+  ],
+  [
     MailErrorName.AttachmentTooLarge,
     (error, messages) =>
       error instanceof AttachmentTooLargeError
-        ? (strings.formatString(
+        ? strings.formatString(
             messages.attachmentTooLarge,
             error.attachmentName,
             prettysize(MAX_ATTACHMENT_BYTES, true),
-          ) as string)
+          )
         : messages.sendFailed,
   ],
   [
@@ -83,6 +91,7 @@ export const SEND_ERROR_MESSAGES = new Map<string, (error: Error, messages: Send
         ? (strings.formatString(messages.attachmentUploadFailed, error.attachmentName) as string)
         : messages.sendFailed,
   ],
+  [MailErrorName.ForwardedAttachmentsNotDecryptable, (_, messages) => messages.forwardedAttachmentsNotDecryptable],
 ]);
 
 /**

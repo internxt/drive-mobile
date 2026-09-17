@@ -20,12 +20,51 @@ export type OutgoingReply = OutgoingEmail & {
   keepServerDerivedRecipients: boolean;
 };
 
+export type ForwardedAttachment = {
+  blobId: string;
+  name: string;
+  type: string;
+  size: number;
+};
+
+export type ForwardedQuote = {
+  body: string;
+  originalText: string;
+};
+
+export type OutgoingForward = Omit<OutgoingEmail, 'text'> & {
+  forwardedMessageId: string;
+  note: string;
+  quote: ForwardedQuote;
+  forwardedAttachments: ForwardedAttachment[];
+  areAttachmentsEncrypted: boolean;
+};
+
+export type SendProgress = {
+  onStage?: (stage: SendStage) => void;
+};
+
+export type SendStage =
+  | { name: 'downloadingAttachments'; current: number; total: number }
+  | { name: 'uploadingAttachments'; current: number; total: number }
+  | { name: 'sending' };
+
+/** What the message detail hands to the compose screen so it opens as a reply. */
 export type ReplyComposeParams = {
   repliedMessageId: string;
   replyAll: boolean;
   subject: string;
   to: string[];
   cc: string[];
+};
+
+export type ForwardComposeParams = {
+  forwardedMessageId: string;
+  subject: string;
+  quote: ForwardedQuote;
+  attachments: ForwardedAttachment[];
+  areAttachmentsEncrypted: boolean;
+  originalSender: string;
 };
 
 export enum MailboxId {
