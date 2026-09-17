@@ -15,6 +15,7 @@ import {
   UpdateEmailRequest,
   UploadAttachmentResponse,
 } from '@internxt/sdk/dist/mail/types';
+import { AttachmentUploadAbortedError } from './errors';
 
 const DEFAULT_LIMIT = 50;
 
@@ -75,9 +76,26 @@ export class MailboxService {
     return this.sdk.mail.downloadAttachment(emailId, blobId, query);
   }
 
-  public async uploadAttachment(file: { uri: string; name: string; type: string }): Promise<UploadAttachmentResponse> {
-    const { promise } = this.sdk.mail.uploadAttachment(file as unknown as File);
-    return promise;
+  public uploadAttachment(
+    file: { uri: string; name: string; type: string },
+    abortSignal?: AbortSignal,
+  ): Promise<UploadAttachmentResponse> {
+    if (abortSignal?.aborted) {
+      return Promise.reject(new AttachmentUploadAbortedError());
+    }
+    const { promise: pendingUploadResponse, requestCanceler } = this.sdk.mail.uploadAttachment(file as unknown as File);
+    if (!abortSignal) {
+      return pendingUploadResponse;
+    }
+
+    return new Promise((resolve, reject) => {
+      const cancelUpload = () => {
+        requestCanceler.cancel();
+        reject(new AttachmentUploadAbortedError());
+      };
+      abortSignal.addEventListener('abort', cancelUpload);
+      pendingUploadResponse.then(resolve, reject).finally(() => abortSignal.removeEventListener('abort', cancelUpload));
+    });
   }
 
   public async replyEmail(emailId: string, body: ReplyEmailRequest): Promise<EmailCreatedResponse> {

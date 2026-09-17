@@ -16,24 +16,25 @@ import uuid from 'react-native-uuid';
 import strings from '../../../assets/lang/strings';
 import { AsyncStorageKey } from '../../types';
 import {
-  DraftAttachments,
   MailAttachment,
   OutgoingEmail,
   OutgoingForward,
   OutgoingNewEmail,
   OutgoingReply,
   SendProgress,
+  UploadedAttachments,
 } from '../../types/mail';
 import AppService from '../AppService';
 import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common/logger/logger.service';
 import { AcceptedEncodings, fs } from '../FileSystemService';
-import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
+import { MAX_ATTACHMENT_BYTES, isAttachmentTooLarge } from './attachmentLimits';
 import { CachedDecryptedEmail, DecryptedEmail, mailLocalDB } from './database/mailLocalDB';
 import { plainTextToHtml } from './emailBody/emailBodyContent';
 import {
   ActiveDomainsUnavailableError,
   AttachmentTooLargeError,
+  AttachmentUploadAbortedError,
   AttachmentUploadFailedError,
   BlindCopyNotDeliverableError,
   InternxtRecipientKeyMissingError,
@@ -191,31 +192,54 @@ export const removeCachedEmail = async (emailId: string): Promise<void> => {
   await mailLocalDB.deleteCachedEmail(emailId);
 };
 
+const throwIfUploadAborted = (abortSignal?: AbortSignal): void => {
+  if (abortSignal?.aborted) {
+    throw new AttachmentUploadAbortedError();
+  }
+};
+
 /**
  * Encrypts an attachment, uploads it, and leaves nothing encrypted behind on the device. The name of
  * the file travels in the upload itself, never in the path of the temporary copy.
  *
  * @param file - The attachment to upload.
  * @param attachmentsSessionKey - Key the attachments of this message are encrypted with.
+ * @param abortSignal - Stops the upload when it is aborted.
  * @returns The reference the message carries the attachment by.
+ * @throws AttachmentTooLargeError when the file turns out to be over the size the server accepts.
+ * @throws AttachmentUploadAbortedError when the upload was aborted.
  * @throws AttachmentUploadFailedError when the attachment cannot be encrypted or uploaded.
  */
-const uploadAttachment = async (file: MailAttachment, attachmentsSessionKey: Uint8Array): Promise<AttachmentRef> => {
+export const uploadAttachment = async (
+  file: MailAttachment,
+  attachmentsSessionKey: Uint8Array,
+  abortSignal?: AbortSignal,
+): Promise<AttachmentRef> => {
   const encryptedPath = fs.tmpFilePath(uuid.v4() as string);
 
   try {
-    const rawBuffer = await fs.readFile(file.uri);
+    if (isAttachmentTooLarge(file)) {
+      throw new AttachmentTooLargeError(file.name);
+    }
+    const rawBuffer = await fs.readFile(file.uri, MAX_ATTACHMENT_BYTES + 1, 0);
+    if (isAttachmentTooLarge({ size: rawBuffer.byteLength })) {
+      throw new AttachmentTooLargeError(file.name);
+    }
+    throwIfUploadAborted(abortSignal);
     const encryptedBytes = await encryptSymmetrically(attachmentsSessionKey, new Uint8Array(rawBuffer));
     await fs.createFile(encryptedPath, uint8ArrayToBase64(encryptedBytes), AcceptedEncodings.Base64);
+    throwIfUploadAborted(abortSignal);
 
-    const { blobId, name, type, size } = await mailboxService.uploadAttachment({
-      uri: fs.pathToUri(encryptedPath),
-      name: file.name,
-      type: file.type,
-    });
+    const { blobId, name, type, size } = await mailboxService.uploadAttachment(
+      { uri: fs.pathToUri(encryptedPath), name: file.name, type: file.type },
+      abortSignal,
+    );
 
     return { blobId, name, type, size };
   } catch (error) {
+    if (error instanceof AttachmentTooLargeError || error instanceof AttachmentUploadAbortedError) {
+      throw error;
+    }
     throw new AttachmentUploadFailedError(file.name, error);
   } finally {
     await fs.unlinkIfExists(encryptedPath);
@@ -229,9 +253,9 @@ const uploadAttachment = async (file: MailAttachment, attachmentsSessionKey: Uin
  * @throws AttachmentTooLargeError when one of them is over the size the server accepts.
  */
 const assertAttachmentsFitTheServer = (files: MailAttachment[]): void => {
-  const oversized = files.find((file) => file.size !== undefined && file.size > MAX_ATTACHMENT_BYTES);
-  if (oversized) {
-    throw new AttachmentTooLargeError(oversized.name);
+  const oversizedFile = files.find(isAttachmentTooLarge);
+  if (oversizedFile) {
+    throw new AttachmentTooLargeError(oversizedFile.name);
   }
 };
 
@@ -361,8 +385,8 @@ export const normalizeRecipients = ({
  * @param email.preview - Opening of the body as plain text, shown in the mailbox list before the
  * message is read.
  * @param email.files - Attachments to encrypt and upload.
- * @param email.draftAttachments - Attachments the draft of the message already carries: they travel as they
- * are, and the new ones are encrypted with the same key.
+ * @param email.uploadedAttachments - Attachments uploaded while the message was written: they travel as
+ * they are, and the ones in `files` are encrypted with the same key.
  * @param email.onStage - Called as the attachments are uploaded, so a send can be followed from the
  * screen.
  * @returns The encrypted envelope of the message and its uploaded attachments.
@@ -375,7 +399,7 @@ export const encryptMessageForRecipients = async ({
   body,
   preview,
   files = [],
-  draftAttachments,
+  uploadedAttachments,
   onStage,
 }: {
   allAddresses: string[];
@@ -383,7 +407,7 @@ export const encryptMessageForRecipients = async ({
   body: string;
   preview: string;
   files?: MailAttachment[];
-  draftAttachments?: DraftAttachments;
+  uploadedAttachments?: UploadedAttachments;
 } & SendProgress): Promise<EncryptedMessagePayload> => {
   assertAttachmentsFitTheServer(files);
 
@@ -401,8 +425,8 @@ export const encryptMessageForRecipients = async ({
     }),
   );
 
-  const attachmentsSessionKey = draftAttachments
-    ? base64ToUint8Array(draftAttachments.attachmentsSessionKey)
+  const attachmentsSessionKey = uploadedAttachments
+    ? base64ToUint8Array(uploadedAttachments.attachmentsSessionKey)
     : genSymmetricKey();
   const newlyUploadedAttachments: AttachmentRef[] = [];
 
@@ -422,7 +446,7 @@ export const encryptMessageForRecipients = async ({
       encryptedAttachmentsSessionKey: encEmail.encAttachmentsSessionKey,
       wrappedKeys: encryptedKeys,
     },
-    attachments: [...(draftAttachments?.attachments ?? []), ...newlyUploadedAttachments],
+    attachments: [...(uploadedAttachments?.attachments ?? []), ...newlyUploadedAttachments],
   };
 };
 
@@ -485,11 +509,10 @@ export const toEmailAddresses = (addresses: string[]) => addresses.map((email) =
  * @param email.bcc - Addresses in blind copy, normalized like `to`.
  * @param email.subject - Subject line, which travels in cleartext because the server indexes it.
  * @param email.text - Body of the message.
- * @param email.files - Attachments to encrypt and upload before sending.
  * @param email.draftId - Id of the draft the message was written in, which the server destroys once it is
  * sent.
- * @param email.draftAttachments - Attachments the draft already carries, which travel without being
- * uploaded again.
+ * @param email.uploadedAttachments - Attachments uploaded while the message was written, which travel
+ * without being uploaded again.
  * @param progress - How the send reports what it is doing.
  * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
  * @throws NoRecipientsError when there is nobody to send the message to.
@@ -497,11 +520,9 @@ export const toEmailAddresses = (addresses: string[]) => addresses.map((email) =
  * recipient in `to`.
  * @throws BlindCopyNotDeliverableError when the email is delivered inside Internxt and has blind
  * copy recipients: every recipient reads the same envelope, and the envelope names them all.
- * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
- * @throws AttachmentUploadFailedError when an attachment cannot be encrypted or uploaded.
  */
 export const encryptAndSendEmail = async (
-  { to, cc, bcc, subject, text, files, draftId, draftAttachments }: OutgoingNewEmail,
+  { to, cc, bcc, subject, text, draftId, uploadedAttachments }: OutgoingNewEmail,
   { onStage }: SendProgress = {},
 ): Promise<void> => {
   const { toAddresses, ccAddresses, bccAddresses, allAddresses } = normalizeRecipients({ to, cc, bcc });
@@ -513,8 +534,7 @@ export const encryptAndSendEmail = async (
     activeDomains,
     body: plainTextToHtml(text),
     preview: previewOf(text),
-    files,
-    draftAttachments,
+    uploadedAttachments,
     onStage,
   });
 
@@ -549,7 +569,8 @@ export const encryptAndSendEmail = async (
  * @param reply.bcc - Addresses in blind copy, normalized like `to`.
  * @param reply.subject - Subject line of the reply.
  * @param reply.text - Body of the reply.
- * @param reply.files - Attachments to encrypt and upload before sending.
+ * @param reply.uploadedAttachments - Attachments uploaded while the reply was written, which travel
+ * without being uploaded again.
  * @param progress - How the send reports what it is doing.
  * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
  * @throws NoRecipientsError when there is nobody to send the reply to.
@@ -558,7 +579,7 @@ export const encryptAndSendEmail = async (
  * copy recipients.
  */
 export const encryptAndSendReply = async (
-  { inReplyTo, replyAll, keepServerDerivedRecipients, to, cc, bcc, subject, text, files }: OutgoingReply,
+  { inReplyTo, replyAll, keepServerDerivedRecipients, to, cc, bcc, subject, text, uploadedAttachments }: OutgoingReply,
   { onStage }: SendProgress = {},
 ): Promise<void> => {
   const { toAddresses, ccAddresses, bccAddresses, allAddresses } = normalizeRecipients({ to, cc, bcc });
@@ -570,7 +591,7 @@ export const encryptAndSendReply = async (
     activeDomains,
     body: plainTextToHtml(text),
     preview: previewOf(text),
-    files,
+    uploadedAttachments,
     onStage,
   });
 
@@ -595,11 +616,26 @@ export const encryptAndSendReply = async (
  * encrypted again for this message. That work runs after the recipients are checked, and nothing
  * readable is left on the device once the send is over, whether it succeeded or not.
  *
+ * @param forward - The message to forward.
+ * @param forward.forwardedMessageId - Id of the message being forwarded.
+ * @param forward.note - What the user wrote above the quoted original.
+ * @param forward.quote - The original, quoted under its header.
+ * @param forward.forwardedAttachments - Attachments of the original, which travel along.
+ * @param forward.to - Recipients of the forwarded message.
+ * @param forward.cc - Addresses in copy, normalized like `to`.
+ * @param forward.bcc - Addresses in blind copy, normalized like `to`.
+ * @param forward.subject - Subject line of the forwarded message.
+ * @param forward.uploadedAttachments - Attachments uploaded while the message was written, on top of the
+ * ones of the original, which are encrypted with the same key.
+ * @param forward.areAttachmentsEncrypted - Whether the attachments of the original are encrypted.
+ * @param progress - How the send reports what it is doing.
+ * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
  * @throws NoRecipientsError when there is nobody to forward the message to.
  * @throws PrimaryRecipientMissingError when everybody is in copy.
  * @throws BlindCopyNotDeliverableError when the message is delivered inside Internxt and has blind
  * copy recipients.
  * @throws AttachmentTooLargeError when an attachment is over the size the server accepts.
+ * @throws AttachmentUploadFailedError when an attachment of the original cannot be encrypted or uploaded again.
  * @throws ForwardedAttachmentsNotDecryptableError when the original could not be decrypted on this
  * device.
  * @throws ForwardedAttachmentUnavailableError when an attachment of the original cannot be taken out
@@ -616,7 +652,7 @@ export const encryptAndSendForward = async (
     cc,
     bcc,
     subject,
-    files = [],
+    uploadedAttachments,
   }: OutgoingForward,
   { onStage }: SendProgress = {},
 ): Promise<void> => {
@@ -641,7 +677,8 @@ export const encryptAndSendForward = async (
       activeDomains,
       body: composeForwardedBody(note, quote),
       preview: previewOf(previewOfForward(note, quote)),
-      files: [...materialized.map(({ attachment }) => attachment), ...files],
+      files: materialized.map(({ attachment }) => attachment),
+      uploadedAttachments,
       onStage,
     });
 
