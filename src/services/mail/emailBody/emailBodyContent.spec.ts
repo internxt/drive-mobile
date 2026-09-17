@@ -1,6 +1,6 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 
-import { buildEmailBodyHtml, hasRemoteImages, plainTextToHtml, resolveEmailBody } from './emailBodyContent';
+import { buildEmailBodyHtml, hasRemoteImages, isMarkupBody, plainTextToHtml, resolveEmailBody } from './emailBodyContent';
 
 const anEmail = (fields: Partial<EmailResponse>): EmailResponse => ({ ...fields }) as EmailResponse;
 
@@ -29,6 +29,15 @@ describe('Choosing which body of a message to display', () => {
     expect(resolveEmailBody(message, { type: 'decrypted', text: 'Hello there' })).toEqual({
       content: 'Hello there',
       isHtml: false,
+    });
+  });
+
+  test('when a decrypted message was written with formatting, then it is displayed with that formatting', () => {
+    const message = anEmail({ htmlBody: null, textBody: 'an encrypted payload' });
+
+    expect(resolveEmailBody(message, { type: 'decrypted', text: '<p>Hello <b>there</b></p>' })).toEqual({
+      content: '<p>Hello <b>there</b></p>',
+      isHtml: true,
     });
   });
 
@@ -128,5 +137,55 @@ describe('Knowing whether a message would reach out for its images', () => {
 
   test('when a message only links to a website, then it does not reach out for images', () => {
     expect(hasRemoteImages('<a href="https://somewhere-else.example">Our website</a>')).toBe(false);
+  });
+});
+
+describe('Telling whether a decrypted body was written with formatting', () => {
+  test('when the body opens with a tag, then it is read as formatted', () => {
+    expect(isMarkupBody('<p>Hello there</p>')).toBe(true);
+  });
+
+  test('when the body opens with blank space before its first tag, then it is still read as formatted', () => {
+    expect(isMarkupBody('\n  <div>Hello there</div>')).toBe(true);
+  });
+
+  test('when the body is a whole document, then it is read as formatted', () => {
+    expect(isMarkupBody('<!DOCTYPE html><html><body>Hello there</body></html>')).toBe(true);
+  });
+
+  test('when the body carries a closing tag, then it is read as formatted', () => {
+    expect(isMarkupBody('Here are the numbers</p>')).toBe(true);
+  });
+
+  test('when the body is plain text, then it is not read as formatted', () => {
+    expect(isMarkupBody('Hello there')).toBe(false);
+  });
+
+  test('when the body is plain text that opens with a comparison, then it is not read as formatted', () => {
+    expect(isMarkupBody('5 < 7 is true')).toBe(false);
+  });
+
+  test('when the body opens with a line of text before its first tag, then it is read as formatted', () => {
+    expect(isMarkupBody('Hi there<br>Here are the numbers')).toBe(true);
+  });
+
+  test('when the body opens with a comment, then it is read as formatted', () => {
+    expect(isMarkupBody('<!-- written elsewhere --><p>Here are the numbers</p>')).toBe(true);
+  });
+
+  test('when the body opens with a character the editor left in front of its markup, then it is read as formatted', () => {
+    expect(isMarkupBody('\uFEFF<p>Here are the numbers</p>')).toBe(true);
+  });
+
+  test('when the body is plain text that names a tag in passing, then it is not read as formatted', () => {
+    expect(isMarkupBody('Use the <whatever element for this')).toBe(false);
+  });
+
+  test('when the body is plain text with arrows in it, then it is not read as formatted', () => {
+    expect(isMarkupBody('a -> b, and 5 < 7 > 3')).toBe(false);
+  });
+
+  test('when the body is empty, then it is not read as formatted', () => {
+    expect(isMarkupBody('')).toBe(false);
   });
 });
