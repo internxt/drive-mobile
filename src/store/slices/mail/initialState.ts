@@ -21,4 +21,5 @@ export const createInitialMailState = (): MailState => ({
   emails: emailsAdapter.getInitialState(),
   mailboxes: {},
   unreadByMailbox: {},
+  mailboxTypeById: {},
 });

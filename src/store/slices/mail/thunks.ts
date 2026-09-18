@@ -136,23 +136,28 @@ export const refreshNewestEmailsThunk = createAsyncThunk<
   },
 );
 
-const toUnreadByMailbox = (mailboxes: MailboxResponse[]): MailState['unreadByMailbox'] =>
-  mailboxes.reduce<MailState['unreadByMailbox']>((counts, mailbox) => {
-    if (mailbox.type) {
-      counts[mailbox.type as MailboxId] = mailbox.unreadEmails;
-    }
-    return counts;
-  }, {});
+type MailboxesSummary = Pick<MailState, 'unreadByMailbox' | 'mailboxTypeById'>;
 
-export const loadUnreadCountsThunk = createAsyncThunk<MailState['unreadByMailbox']>(
-  'mail/loadUnreadCounts',
-  async () => {
-    try {
-      const mailboxes = await mailboxService.getMailboxes();
-      return toUnreadByMailbox(mailboxes);
-    } catch (error) {
-      logger.error('Failed to load mailbox unread counts', describeErrorForLog(error));
-      throw error;
-    }
-  },
-);
+const summarizeMailboxes = (mailboxes: MailboxResponse[]): MailboxesSummary =>
+  mailboxes.reduce<MailboxesSummary>(
+    (summary, mailbox) => {
+      if (mailbox.type) {
+        const mailboxId = mailbox.type as MailboxId;
+        summary.unreadByMailbox[mailboxId] = mailbox.unreadEmails;
+        summary.mailboxTypeById[mailbox.id] = mailboxId;
+      }
+      return summary;
+    },
+    { unreadByMailbox: {}, mailboxTypeById: {} },
+  );
+
+/** Loads the unread count of every mailbox and the mailbox each mailbox id belongs to. */
+export const loadUnreadCountsThunk = createAsyncThunk<MailboxesSummary>('mail/loadUnreadCounts', async () => {
+  try {
+    const mailboxes = await mailboxService.getMailboxes();
+    return summarizeMailboxes(mailboxes);
+  } catch (error) {
+    logger.error('Failed to load mailbox unread counts', describeErrorForLog(error));
+    throw error;
+  }
+});
