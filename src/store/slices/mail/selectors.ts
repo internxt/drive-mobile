@@ -31,3 +31,5 @@ export const makeSelectMailboxEmails = () =>
   createSelector([selectLoadedEmails], sortNewestFirst, { memoizeOptions: { resultEqualityCheck: shallowEqual } });
 
 export const selectUnreadByMailbox = (state: RootState): MailState['unreadByMailbox'] => state.mail.unreadByMailbox;
+
+export const selectMailboxTypeById = (state: RootState): MailState['mailboxTypeById'] => state.mail.mailboxTypeById;

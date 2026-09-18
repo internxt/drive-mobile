@@ -1,6 +1,6 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { WarningIcon } from 'phosphor-react-native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
@@ -14,22 +14,19 @@ import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { buildForwardedQuote, forwardedSubject } from '../../../services/mail/forwardBody';
+import { mailboxService } from '../../../services/mail/mailbox.service';
 import {
   decryptAndCacheFullEmail,
   getCachedEmail,
   getPrivateHybridKey,
   isEncryptedEmailBody,
-  markEmailRead,
-  markEmailUnread,
-  moveThreadToMailbox,
   parseEncryptionBlock,
 } from '../../../services/mail/mailCrypto.service';
-import { mailboxService } from '../../../services/mail/mailbox.service';
 import { deriveReplyRecipients } from '../../../services/mail/replyRecipients';
-import { useAppDispatch, useAppSelector } from '../../../store/hooks';
-import { mailActions } from '../../../store/slices/mail';
+import { useAppSelector } from '../../../store/hooks';
 import { AsyncStorageKey } from '../../../types';
 import { MailScreenProps } from '../../../types/navigation';
+import { useEmailThreadMailboxActions } from './hooks/useEmailThreadMailboxActions';
 import { useOpenAttachment } from './hooks/useOpenAttachment';
 import { MessageFooterBar } from './MessageFooterBar';
 import { ThreadActions } from './ThreadActions';
@@ -41,22 +38,21 @@ type ResolvedMessage = {
   attachmentsSessionKey: string | null;
 };
 
-export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailDetail'>): JSX.Element {
+export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailDetail'>): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const { user } = useAppSelector((state) => state.auth);
-  const dispatch = useAppDispatch();
   useLanguage();
 
-  const { emailId } = route.params;
+  const { emailId, mailboxId } = route.params;
   const [thread, setThread] = useState<ResolvedMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [expandedMessageIds, setExpandedMessageIds] = useState<string[]>([]);
   const [selfAddress, setSelfAddress] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToEnd = useRef(false);
+  const lastMessageOffsetRef = useRef(0);
   const { openingAttachmentId, openAttachment } = useOpenAttachment();
 
   const resolveMessage = useCallback(
@@ -104,19 +100,12 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       setThread(resolved);
       const latest = sorted[sorted.length - 1];
       setExpandedMessageIds(latest ? [latest.id] : []);
-      if (latest && !latest.isRead) {
-        markEmailRead(latest.id)
-          .then(() => dispatch(mailActions.threadReadStateChanged({ emailIds: [latest.id], isRead: true })))
-          .catch((error) => {
-            logger.error('Failed to mark email as read', error);
-          });
-      }
     } catch {
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
-  }, [emailId, resolveMessage, dispatch]);
+  }, [emailId, resolveMessage]);
 
   useEffect(() => {
     loadThread();
@@ -126,22 +115,30 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSelfAddress(address ?? ''));
   }, []);
 
-  const onBackButtonPressed = () => navigation.goBack();
+  const threadMessages = useMemo(() => thread.map((entry) => entry.message), [thread]);
+  const latestEntry = thread[thread.length - 1];
 
-  const onMarkUnread = async () => {
-    const latest = thread[thread.length - 1]?.message;
-    if (!latest || isUpdating) return;
-    setIsUpdating(true);
-    try {
-      await markEmailUnread(latest.id);
-      dispatch(mailActions.threadReadStateChanged({ emailIds: [latest.id], isRead: false }));
-      navigation.goBack();
-    } catch (error) {
-      logger.error('Failed to mark email unread', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  const canReplyAllTo = (message: EmailResponse) => deriveReplyRecipients(message, selfAddress, true).cc.length > 0;
+
+  const onReadStateChanged = useCallback((messageId: string, isRead: boolean) => {
+    setThread((entries) =>
+      entries.map((entry) =>
+        entry.message.id === messageId ? { ...entry, message: { ...entry.message, isRead } } : entry,
+      ),
+    );
+  }, []);
+
+  const { messagesInMailbox, isUpdating, markUnread, moveThread, restoreThread, confirmAndDeleteThreadPermanently } =
+    useEmailThreadMailboxActions({
+      messages: threadMessages,
+      mailboxId,
+      selfAddress,
+      onReadStateChanged,
+      reloadThread: loadThread,
+      onFinished: () => navigation.goBack(),
+    });
+
+  const onBackButtonPressed = () => navigation.goBack();
 
   const onToggleExpanded = (messageId: string) => {
     setExpandedMessageIds((expanded) =>
@@ -185,30 +182,6 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     });
   };
 
-  const onMoveThread = async (mailbox: 'trash' | 'spam') => {
-    if (thread.length === 0 || isUpdating) return;
-    setIsUpdating(true);
-    try {
-      const threadMessageIds = thread.map((entry) => entry.message.id);
-      await moveThreadToMailbox(threadMessageIds, mailbox);
-      dispatch(mailActions.threadMovedOut({ emailIds: threadMessageIds }));
-      navigation.goBack();
-    } catch (error) {
-      logger.error(`Failed to move thread to ${mailbox}`, error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const lastMessageOffsetRef = useRef(0);
-
-  const onScrollContentSizeChange = () => {
-    if (!hasScrolledToEnd.current) {
-      hasScrolledToEnd.current = true;
-      scrollViewRef.current?.scrollTo({ y: lastMessageOffsetRef.current, animated: false });
-    }
-  };
-
   const onPressAttachment = (
     { message, attachmentsSessionKey }: ResolvedMessage,
     attachment: NonNullable<EmailResponse['attachments']>[number],
@@ -221,9 +194,12 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       attachmentsSessionKey,
     });
 
-  const canReplyAllTo = (message: EmailResponse) => deriveReplyRecipients(message, selfAddress, true).cc.length > 0;
-
-  const latestEntry = thread[thread.length - 1];
+  const onScrollContentSizeChange = () => {
+    if (!hasScrolledToEnd.current) {
+      hasScrolledToEnd.current = true;
+      scrollViewRef.current?.scrollTo({ y: lastMessageOffsetRef.current, animated: false });
+    }
+  };
 
   const renderMessage = (entry: ResolvedMessage, index: number) => {
     const { message, bodySource } = entry;
@@ -258,20 +234,19 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   };
 
   return (
-    <AppScreen
-      safeAreaTop
-      style={[tailwind('flex-1 flex-grow'), { backgroundColor: getColor('bg-gray-5') }]}
-    >
+    <AppScreen safeAreaTop style={[tailwind('flex-1 flex-grow'), { backgroundColor: getColor('bg-gray-5') }]}>
       <AppScreenTitle
         text={latestEntry?.message.subject || strings.screens.mail.title}
         onBackButtonPressed={onBackButtonPressed}
       />
-      {!isLoading && !hasError && thread.length > 0 && (
+      {!isLoading && !hasError && messagesInMailbox.length > 0 && (
         <ThreadActions
+          mailboxId={mailboxId}
           isDisabled={isUpdating}
-          onMarkUnread={onMarkUnread}
-          onMoveToSpam={() => onMoveThread('spam')}
-          onMoveToTrash={() => onMoveThread('trash')}
+          onMarkUnread={markUnread}
+          onMove={moveThread}
+          onRestore={restoreThread}
+          onDeletePermanently={confirmAndDeleteThreadPermanently}
         />
       )}
       {isLoading && (
@@ -315,4 +290,4 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       )}
     </AppScreen>
   );
-}
+};
