@@ -5,10 +5,11 @@ import { MailboxId } from '../../../types/mail';
 import { createInitialMailboxListState, createInitialMailState, emailsAdapter } from './initialState';
 import { mergeNewestPage } from './pagination';
 import { loadFirstPageThunk, loadNextPageThunk, loadUnreadCountsThunk, refreshNewestEmailsThunk } from './thunks';
-import { MailboxListState, MailState } from './types';
+import { EmailMove, EmailSnapshot, MailboxListState, MailState } from './types';
 
-export { loadFirstPageThunk, loadNextPageThunk, loadUnreadCountsThunk, refreshNewestEmailsThunk } from './thunks';
 export * from './selectors';
+export { loadFirstPageThunk, loadNextPageThunk, loadUnreadCountsThunk, refreshNewestEmailsThunk } from './thunks';
+export type { EmailMove } from './types';
 
 const mailboxListOf = (state: MailState, mailboxId: MailboxId): MailboxListState => {
   const mailboxList = state.mailboxes[mailboxId] ?? createInitialMailboxListState();
@@ -27,6 +28,35 @@ const showOnlyTheseEmails = (state: MailState, mailboxList: MailboxListState, em
   mailboxList.emailIds = emails.map((email) => email.id);
 };
 
+const updateUnreadCount = (state: MailState, mailboxId: MailboxId, difference: number) => {
+  const unreadCount = state.unreadByMailbox[mailboxId];
+  if (unreadCount !== undefined) {
+    state.unreadByMailbox[mailboxId] = Math.max(0, unreadCount + difference);
+  }
+};
+
+const updateUnreadCountOfEmailMailboxes = (state: MailState, email: EmailSnapshot, difference: number) => {
+  email.mailboxIds.forEach((id) => {
+    const mailboxId = state.mailboxTypeById[id];
+    if (mailboxId) {
+      updateUnreadCount(state, mailboxId, difference);
+    }
+  });
+};
+
+const removeEmails = (state: MailState, emailIds: string[]) => {
+  const loadedEmailIds = new Set(emailIds.filter((emailId) => state.emails.entities[emailId]));
+  if (loadedEmailIds.size === 0) {
+    return;
+  }
+  Object.values(state.mailboxes).forEach((mailboxList) => {
+    if (mailboxList) {
+      mailboxList.emailIds = mailboxList.emailIds.filter((emailId) => !loadedEmailIds.has(emailId));
+    }
+  });
+  emailsAdapter.removeMany(state.emails, [...loadedEmailIds]);
+};
+
 const isFromAnEarlierFirstPage = (mailboxList: MailboxListState, startedWithFirstPageRequestId: string | null) =>
   startedWithFirstPageRequestId !== mailboxList.firstPageRequestId;
 
@@ -38,28 +68,38 @@ export const mailSlice = createSlice({
     nextPageRetryRequested: (state, action: PayloadAction<{ mailboxId: MailboxId }>) => {
       mailboxListOf(state, action.payload.mailboxId).hasNextPageFailed = false;
     },
-    threadReadStateChanged: (state, action: PayloadAction<{ emailIds: string[]; isRead: boolean }>) => {
-      const { emailIds, isRead } = action.payload;
-      const loadedEmailIds = emailIds.filter((emailId) => state.emails.entities[emailId]);
-      if (loadedEmailIds.length === 0) {
-        return;
+    threadReadStateChanged: (state, action: PayloadAction<{ emails: EmailSnapshot[]; isRead: boolean }>) => {
+      const { emails, isRead } = action.payload;
+      const changedEmails = emails.filter((email) => email.isRead !== isRead);
+      changedEmails.forEach((email) => updateUnreadCountOfEmailMailboxes(state, email, isRead ? -1 : 1));
+      const loadedEmailIds = changedEmails.map((email) => email.id).filter((emailId) => state.emails.entities[emailId]);
+      if (loadedEmailIds.length > 0) {
+        emailsAdapter.updateMany(
+          state.emails,
+          loadedEmailIds.map((emailId) => ({ id: emailId, changes: { isRead } })),
+        );
       }
-      emailsAdapter.updateMany(
-        state.emails,
-        loadedEmailIds.map((emailId) => ({ id: emailId, changes: { isRead } })),
+    },
+    threadMovedOut: (state, action: PayloadAction<{ moves: EmailMove[] }>) => {
+      const { moves } = action.payload;
+      moves
+        .filter(({ email }) => !email.isRead)
+        .forEach(({ email, toMailboxId }) => {
+          updateUnreadCountOfEmailMailboxes(state, email, -1);
+          updateUnreadCount(state, toMailboxId, 1);
+        });
+      removeEmails(
+        state,
+        moves.map(({ email }) => email.id),
       );
     },
-    threadMovedOut: (state, action: PayloadAction<{ emailIds: string[] }>) => {
-      const movedEmailIds = new Set(action.payload.emailIds.filter((emailId) => state.emails.entities[emailId]));
-      if (movedEmailIds.size === 0) {
-        return;
-      }
-      Object.values(state.mailboxes).forEach((mailboxList) => {
-        if (mailboxList) {
-          mailboxList.emailIds = mailboxList.emailIds.filter((emailId) => !movedEmailIds.has(emailId));
-        }
-      });
-      emailsAdapter.removeMany(state.emails, [...movedEmailIds]);
+    threadDeleted: (state, action: PayloadAction<{ emails: EmailSnapshot[] }>) => {
+      const { emails } = action.payload;
+      emails.filter((email) => !email.isRead).forEach((email) => updateUnreadCountOfEmailMailboxes(state, email, -1));
+      removeEmails(
+        state,
+        emails.map((email) => email.id),
+      );
     },
   },
   extraReducers: (builder) => {
@@ -160,7 +200,8 @@ export const mailSlice = createSlice({
         mailboxList.hasFirstPageFailed = true;
       })
       .addCase(loadUnreadCountsThunk.fulfilled, (state, action) => {
-        state.unreadByMailbox = action.payload;
+        state.unreadByMailbox = action.payload.unreadByMailbox;
+        state.mailboxTypeById = action.payload.mailboxTypeById;
       });
   },
 });

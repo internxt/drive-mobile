@@ -17,6 +17,7 @@ import strings from '../../../assets/lang/strings';
 import { AsyncStorageKey } from '../../types';
 import {
   MailAttachment,
+  MailboxId,
   OutgoingEmail,
   OutgoingForward,
   OutgoingNewEmail,
@@ -31,6 +32,7 @@ import { AcceptedEncodings, fs } from '../FileSystemService';
 import { MAX_ATTACHMENT_BYTES, isAttachmentTooLarge } from './attachmentLimits';
 import { CachedDecryptedEmail, DecryptedEmail, mailLocalDB } from './database/mailLocalDB';
 import { plainTextToHtml } from './emailBody/emailBodyContent';
+import { describeErrorForLog } from './errorDescription';
 import {
   ActiveDomainsUnavailableError,
   AttachmentTooLargeError,
@@ -55,7 +57,6 @@ import { recipientKeysService } from './recipientKeys.service';
 const ENCRYPTED_EMAIL_PREFIX = 'INTERNXT-ENCRYPTED-EMAIL-v1';
 const PREVIEW_LENGTH = 256;
 
-/** A domain the mail server treats as internal. */
 type ActiveDomain = { domain: string };
 
 export type EmailEncryptionBlock = {
@@ -698,9 +699,29 @@ export const encryptAndSendForward = async (
   }
 };
 
-export const moveThreadToMailbox = async (threadMessageIds: string[], mailbox: 'trash' | 'spam'): Promise<void> => {
-  await Promise.all(threadMessageIds.map((id) => mailboxService.updateEmail(id, { mailbox })));
+const requestEach = async <Item>(
+  items: Item[],
+  request: (item: Item) => Promise<void>,
+  failureLogMessage: string,
+): Promise<Item[]> => {
+  const requestOutcomes = await Promise.allSettled(items.map(request));
+  requestOutcomes.forEach((outcome) => {
+    if (outcome.status === 'rejected') {
+      logger.error(failureLogMessage, describeErrorForLog(outcome.reason));
+    }
+  });
+  return items.filter((_, index) => requestOutcomes[index].status === 'fulfilled');
 };
+
+export const moveEmails = <Move extends { email: { id: string }; toMailboxId: MailboxId }>(moves: Move[]) =>
+  requestEach(
+    moves,
+    ({ email, toMailboxId }) => mailboxService.updateEmail(email.id, { mailbox: toMailboxId }),
+    'Failed to move an email',
+  );
+
+export const deleteEmailsPermanently = <Email extends { id: string }>(emails: Email[]) =>
+  requestEach(emails, (email) => mailboxService.deleteEmail(email.id), 'Failed to delete an email');
 
 export const markEmailUnread = async (emailId: string): Promise<void> => {
   await mailboxService.updateEmail(emailId, { isRead: false });

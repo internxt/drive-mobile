@@ -85,7 +85,7 @@ export type MailDrawerParamList = {
 
 export type MailStackParamList = {
   MailboxDrawer: undefined;
-  EmailDetail: { emailId: string };
+  EmailDetail: { emailId: string; mailboxId: MailboxId };
 };
 
 export type MailboxScreenProps = CompositeScreenProps<
