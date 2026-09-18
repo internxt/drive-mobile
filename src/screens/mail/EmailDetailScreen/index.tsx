@@ -14,7 +14,6 @@ import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { buildForwardedQuote, forwardedSubject } from '../../../services/mail/forwardBody';
-import { downloadDecryptAndOpenAttachment } from '../../../services/mail/mailAttachment.service';
 import {
   decryptAndCacheFullEmail,
   getCachedEmail,
@@ -31,6 +30,8 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { mailActions } from '../../../store/slices/mail';
 import { AsyncStorageKey } from '../../../types';
 import { MailScreenProps } from '../../../types/navigation';
+import { useOpenAttachment } from './hooks/useOpenAttachment';
+import { MessageFooterBar } from './MessageFooterBar';
 import { ThreadActions } from './ThreadActions';
 import { ThreadMessageCard } from './ThreadMessageCard';
 
@@ -56,6 +57,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   const [selfAddress, setSelfAddress] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToEnd = useRef(false);
+  const { openingAttachmentId, openAttachment } = useOpenAttachment();
 
   const resolveMessage = useCallback(
     async (message: EmailResponse): Promise<ResolvedMessage> => {
@@ -207,24 +209,28 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     }
   };
 
+  const onPressAttachment = (
+    { message, attachmentsSessionKey }: ResolvedMessage,
+    attachment: NonNullable<EmailResponse['attachments']>[number],
+  ) =>
+    openAttachment({
+      emailId: message.id,
+      blobId: attachment.blobId,
+      name: attachment.name,
+      type: attachment.type,
+      attachmentsSessionKey,
+    });
+
+  const canReplyAllTo = (message: EmailResponse) => deriveReplyRecipients(message, selfAddress, true).cc.length > 0;
+
+  const latestEntry = thread[thread.length - 1];
+
   const renderMessage = (entry: ResolvedMessage, index: number) => {
-    const { message, bodySource, attachmentsSessionKey } = entry;
-    const isLastMessage = thread[thread.length - 1] === entry;
+    const { message, bodySource } = entry;
+    const isLastMessage = latestEntry === entry;
     const nextMessage = thread[index + 1]?.message;
     const hasSeparator =
       !expandedMessageIds.includes(message.id) && !!nextMessage && !expandedMessageIds.includes(nextMessage.id);
-
-    const onPressAttachment = (attachment: NonNullable<typeof message.attachments>[number]) => {
-      downloadDecryptAndOpenAttachment({
-        emailId: message.id,
-        blobId: attachment.blobId,
-        name: attachment.name,
-        type: attachment.type,
-        attachmentsSessionKey,
-      }).catch((error) => {
-        logger.error('Failed to open attachment', error);
-      });
-    };
 
     return (
       <View
@@ -237,13 +243,15 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
           isExpanded={expandedMessageIds.includes(message.id)}
           isBusy={isUpdating}
           hasSeparator={hasSeparator}
-          canReplyAll={deriveReplyRecipients(message, selfAddress, true).cc.length > 0}
+          canReplyAll={canReplyAllTo(message)}
           canForward={bodySource.type !== 'encryptedUnreadable'}
+          hasFooterBar={isLastMessage}
           onToggleExpanded={() => onToggleExpanded(message.id)}
           onReply={() => onReply(message, false)}
           onReplyAll={() => onReply(message, true)}
           onForward={() => onForward(entry)}
-          onPressAttachment={onPressAttachment}
+          openingAttachmentId={openingAttachmentId}
+          onPressAttachment={(attachment) => onPressAttachment(entry, attachment)}
         />
       </View>
     );
@@ -252,11 +260,10 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   return (
     <AppScreen
       safeAreaTop
-      safeAreaBottom
       style={[tailwind('flex-1 flex-grow'), { backgroundColor: getColor('bg-gray-5') }]}
     >
       <AppScreenTitle
-        text={thread[thread.length - 1]?.message.subject || strings.screens.mail.title}
+        text={latestEntry?.message.subject || strings.screens.mail.title}
         onBackButtonPressed={onBackButtonPressed}
       />
       {!isLoading && !hasError && thread.length > 0 && (
@@ -291,6 +298,20 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
         >
           {thread.map(renderMessage)}
         </ScrollView>
+      )}
+
+      {!isLoading && !hasError && latestEntry && (
+        <MessageFooterBar
+          attachments={latestEntry.message.attachments ?? []}
+          openingAttachmentId={openingAttachmentId}
+          isBusy={isUpdating}
+          canReplyAll={canReplyAllTo(latestEntry.message)}
+          canForward={latestEntry.bodySource.type !== 'encryptedUnreadable'}
+          onPressAttachment={(attachment) => onPressAttachment(latestEntry, attachment)}
+          onReply={() => onReply(latestEntry.message, false)}
+          onReplyAll={() => onReply(latestEntry.message, true)}
+          onForward={() => onForward(latestEntry)}
+        />
       )}
     </AppScreen>
   );
