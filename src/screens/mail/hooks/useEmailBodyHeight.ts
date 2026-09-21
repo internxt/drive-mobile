@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 
-const MAX_BODY_HEIGHT = 12000;
 const MIN_REPORTED_HEIGHT_CHANGE = 2;
 const FALLBACK_BODY_HEIGHT = 320;
 const MEASURE_TIMEOUT_MS = 4000;
@@ -54,7 +53,7 @@ export const useEmailBodyHeight = (emailDocument: string): MeasuredEmailBodyHeig
     if (!Number.isFinite(measuredHeight) || measuredHeight <= 0) {
       return;
     }
-    setHeight(Math.min(measuredHeight, MAX_BODY_HEIGHT));
+    setHeight(measuredHeight);
   };
 
   const onMeasureFailed = (reason: unknown) => {

@@ -27,13 +27,12 @@ describe('Measuring how tall a message needs to be', () => {
     expect(result.current.height).toBe(640);
   });
 
-  test('when the message claims to be absurdly tall, then the height is capped', () => {
+  test('when the message is very long, then its whole height is kept', () => {
     const { result } = renderHook(() => useEmailBodyHeight(A_DOCUMENT));
 
-    act(() => result.current.onHeightReported('999999'));
+    act(() => result.current.onHeightReported('51708'));
 
-    expect(result.current.height).toBeLessThan(999999);
-    expect(result.current.height).toBeGreaterThan(0);
+    expect(result.current.height).toBe(51708);
   });
 
   test('when what the message reports is not a number, then it is ignored', () => {
