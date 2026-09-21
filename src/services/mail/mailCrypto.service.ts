@@ -699,7 +699,7 @@ export const encryptAndSendForward = async (
   }
 };
 
-const requestEach = async <Item>(
+const sendRequestsInParallel = async <Item>(
   items: Item[],
   request: (item: Item) => Promise<void>,
   failureLogMessage: string,
@@ -714,14 +714,21 @@ const requestEach = async <Item>(
 };
 
 export const moveEmails = <Move extends { email: { id: string }; toMailboxId: MailboxId }>(moves: Move[]) =>
-  requestEach(
+  sendRequestsInParallel(
     moves,
     ({ email, toMailboxId }) => mailboxService.updateEmail(email.id, { mailbox: toMailboxId }),
     'Failed to move an email',
   );
 
 export const deleteEmailsPermanently = <Email extends { id: string }>(emails: Email[]) =>
-  requestEach(emails, (email) => mailboxService.deleteEmail(email.id), 'Failed to delete an email');
+  sendRequestsInParallel(emails, (email) => mailboxService.deleteEmail(email.id), 'Failed to delete an email');
+
+export const updateEmailsReadState = <Email extends { id: string }>(emails: Email[], isRead: boolean) =>
+  sendRequestsInParallel(
+    emails,
+    (email) => mailboxService.updateEmail(email.id, { isRead }),
+    'Failed to update the read state of an email',
+  );
 
 export const markEmailUnread = async (emailId: string): Promise<void> => {
   await mailboxService.updateEmail(emailId, { isRead: false });
