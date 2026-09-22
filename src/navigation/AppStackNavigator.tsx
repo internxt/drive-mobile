@@ -6,6 +6,7 @@ import { DeactivatedAccountScreen } from '../screens/DeactivatedAccountScreen';
 import DebugScreen from '../screens/DebugScreen';
 import { TrashScreen } from '../screens/common/TrashScreen';
 import { DrivePreviewScreen } from '../screens/drive/DrivePreviewScreen';
+import { ComposeEmailScreen } from '../screens/mail/ComposeEmailScreen';
 import { PhotoPreviewScreen } from '../screens/PhotoPreviewScreen';
 import { SettingsNavigator } from './SettingsNavigator';
 import AuthenticatedNavigator from './TabExplorerNavigator';
@@ -30,6 +31,11 @@ export default function AppStackNavigator(): JSX.Element {
       <Stack.Screen
         name="PhotoPreview"
         component={PhotoPreviewScreen}
+        options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
+      />
+      <Stack.Screen
+        name="ComposeEmail"
+        component={ComposeEmailScreen}
         options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
       />
       {Platform.OS === 'android' && (
