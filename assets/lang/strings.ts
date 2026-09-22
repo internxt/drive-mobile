@@ -388,6 +388,7 @@ const translations = {
       email_detail: {
         to: 'To:',
         cc: 'Cc:',
+        bcc: 'Bcc:',
         attachmentOpenFailed: 'The attachment could not be opened.',
         markUnreadFailed: 'The conversation could not be marked as unread.',
         moveToTrashFailed: 'The conversation could not be moved to Trash.',
@@ -1541,6 +1542,7 @@ const translations = {
       email_detail: {
         to: 'Para:',
         cc: 'Cc:',
+        bcc: 'Cco:',
         attachmentOpenFailed: 'No se ha podido abrir el adjunto.',
         markUnreadFailed: 'No se ha podido marcar la conversación como no leída.',
         moveToTrashFailed: 'No se ha podido mover la conversación a la papelera.',

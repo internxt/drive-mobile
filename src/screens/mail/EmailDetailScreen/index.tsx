@@ -1,7 +1,7 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { WarningIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
@@ -222,7 +222,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
           canReplyAll={canReplyAllTo(message)}
           canForward={bodySource.type !== 'encryptedUnreadable'}
           hasFooterBar={isLastMessage}
-          onToggleExpanded={() => onToggleExpanded(message.id)}
+          onToggleExpanded={isLastMessage ? undefined : () => onToggleExpanded(message.id)}
           onReply={() => onReply(message, false)}
           onReplyAll={() => onReply(message, true)}
           onForward={() => onForward(entry)}
@@ -261,6 +261,11 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
           <AppText style={[tailwind('mt-3 text-center text-gray-50'), { paddingHorizontal: 32 }]}>
             {strings.errors.generic.title}
           </AppText>
+          <TouchableOpacity accessibilityRole="button" onPress={loadThread} style={tailwind('mt-4 px-4 py-2')}>
+            <AppText medium style={{ color: getColor('text-primary') }}>
+              {strings.buttons.tryAgain}
+            </AppText>
+          </TouchableOpacity>
         </View>
       )}
 

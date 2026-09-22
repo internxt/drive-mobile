@@ -9,12 +9,9 @@ import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
-import {
-  buildEmailBodyHtml,
-  hasRemoteImages,
-  type EmailBodySource,
-} from '../../../services/mail/emailBody/emailBodyContent';
+import { buildEmailBodyHtml, type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { buildEmailDocument } from '../../../services/mail/emailBody/emailDocument';
+import { useBlockedRemoteImages } from '../hooks/useBlockedRemoteImages';
 import { useEmailBodyHeight } from '../hooks/useEmailBodyHeight';
 
 const OPENABLE_SCHEMES = new Set(['http:', 'https:', 'mailto:', 'tel:']);
@@ -28,24 +25,28 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
   const backgroundColor = getColor('bg-surface');
   const textColor = getColor('text-gray-100');
 
-  const body = useMemo(() => {
-    const html = buildEmailBodyHtml(message, bodySource);
-    return { html, hasImagesHostedElsewhere: hasRemoteImages(html) };
-  }, [message, bodySource]);
+  const bodyHtml = useMemo(() => buildEmailBodyHtml(message, bodySource), [message, bodySource]);
 
   const emailDocument = useMemo(
-    () => buildEmailDocument(body.html, { backgroundColor, textColor, areRemoteImagesAllowed }),
-    [body.html, backgroundColor, textColor, areRemoteImagesAllowed],
+    () => buildEmailDocument(bodyHtml, { backgroundColor, textColor, areRemoteImagesAllowed }),
+    [bodyHtml, backgroundColor, textColor, areRemoteImagesAllowed],
   );
 
   const { height, heightReporterScript, onHeightReported, onMeasureFailed } = useEmailBodyHeight(emailDocument);
+  const { hasBlockedRemoteImages, isBlockedRemoteImageReport, onBlockedRemoteImageReported } =
+    useBlockedRemoteImages(emailDocument);
 
   useEffect(() => {
     isFirstLoad.current = true;
   }, [emailDocument]);
 
   const onMessageFromBody = (event: WebViewMessageEvent) => {
-    onHeightReported(event.nativeEvent.data);
+    const reportedMessage = event.nativeEvent.data;
+    if (isBlockedRemoteImageReport(reportedMessage)) {
+      onBlockedRemoteImageReported();
+      return;
+    }
+    onHeightReported(reportedMessage);
   };
 
   const onNavigationRequested = (request: ShouldStartLoadRequest) => {
@@ -61,7 +62,7 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
     return false;
   };
 
-  const areImagesBlocked = !areRemoteImagesAllowed && body.hasImagesHostedElsewhere;
+  const areImagesBlocked = !areRemoteImagesAllowed && hasBlockedRemoteImages;
 
   if (bodySource.type === 'encryptedUnreadable') {
     return (
