@@ -20,6 +20,8 @@ export type MailState = {
   mailboxes: Partial<Record<MailboxId, MailboxListState>>;
   unreadByMailbox: Partial<Record<MailboxId, number>>;
   mailboxTypeById: Record<string, MailboxId>;
+  removedEmailIds: string[];
+  removedEmailCountByRequestId: Record<string, number>;
 };
 
 export type EmailSnapshot = Pick<EmailSummaryResponse, 'id' | 'mailboxIds' | 'isRead'>;

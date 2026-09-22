@@ -191,7 +191,7 @@ describe('Acting on a conversation from the mailbox it was opened in', () => {
 
     await act(() => result.current.moveThread(MailboxId.Trash));
 
-    expect(notifications.error).toHaveBeenCalledWith(strings.screens.email_detail.moveFailed);
+    expect(notifications.error).toHaveBeenCalledWith(strings.screens.email_detail.moveToTrashFailed);
     expect(reloadThread).toHaveBeenCalled();
     expect(onFinished).not.toHaveBeenCalled();
   });
@@ -205,7 +205,7 @@ describe('Acting on a conversation from the mailbox it was opened in', () => {
 
     await act(() => result.current.moveThread(MailboxId.Trash));
 
-    expect(notifications.error).toHaveBeenCalledWith(strings.screens.email_detail.moveFailed);
+    expect(notifications.error).toHaveBeenCalledWith(strings.screens.email_detail.moveToTrashFailed);
     expect(reloadThread).not.toHaveBeenCalled();
     expect(onFinished).not.toHaveBeenCalled();
   });
