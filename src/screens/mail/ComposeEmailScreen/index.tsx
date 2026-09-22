@@ -31,6 +31,7 @@ import { ForwardedAttachment, MailAttachment, SendStage } from '../../../types/m
 import { RootStackScreenProps } from '../../../types/navigation';
 import { BlockingLoaderModal } from './components/BlockingLoaderModal';
 import { ComposeAttachmentRow } from './components/ComposeAttachmentRow';
+import { ComposeBodyEditor } from './components/ComposeBodyEditor';
 import { ComposeFieldRow } from './components/ComposeFieldRow';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { ForwardedQuote } from './components/ForwardedQuote';
@@ -88,6 +89,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   const [senderAddress, setSenderAddress] = useState('');
   const [subject, setSubject] = useState(reply?.subject ?? forward?.subject ?? '');
   const [body, setBody] = useState('');
+  const [isBodyReady, setIsBodyReady] = useState(false);
   const [forwardedAttachments, setForwardedAttachments] = useState<ForwardedAttachment[]>(forward?.attachments ?? []);
   const [isSending, setIsSending] = useState(false);
   const [sendStage, setSendStage] = useState<SendStage | null>(null);
@@ -121,6 +123,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
     recipients: addEveryTypedRecipient(recipients, pendingText).recipients,
     subject,
     body,
+    isBodyReady,
     draftAttachments: uploadedAttachments,
     isUploadingAttachments,
     failedAttachmentCount,
@@ -422,16 +425,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
             />
           </ComposeFieldRow>
 
-          <TextInput
-            accessibilityLabel={strings.inputs.body}
-            value={body}
-            onChangeText={setBody}
-            placeholder={strings.placeholders.emailBody}
-            placeholderTextColor={getColor('text-gray-40')}
-            multiline
-            textAlignVertical="top"
-            style={[tailwind('px-4 py-3 text-base'), { minHeight: 200, color: getColor('text-gray-100') }]}
-          />
+          <ComposeBodyEditor initialBody={body} onChangeBody={setBody} onReady={() => setIsBodyReady(true)} />
 
           {!!forward && <ForwardedQuote quote={forward.quote} originalSender={forward.originalSender} />}
 

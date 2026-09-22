@@ -64,7 +64,7 @@ export const buildForwardedQuote = (message: EmailResponse, bodySource: EmailBod
  * @returns The opening of the message, as plain text.
  */
 export const previewOfForward = (note: string, quote: ForwardedQuote): string =>
-  note.trim() || quote.originalText.trim();
+  plainTextFromHtml(note) || quote.originalText.trim();
 
 /**
  * Puts together the body a forwarded message travels with: what the user wrote, and the quoted
@@ -73,4 +73,4 @@ export const previewOfForward = (note: string, quote: ForwardedQuote): string =>
  * @returns The body of the forwarded message, as markup.
  */
 export const composeForwardedBody = (note: string, quote: ForwardedQuote): string =>
-  note.trim() ? `${plainTextToHtml(note)}<br>${quote.body}` : quote.body;
+  plainTextFromHtml(note) ? `${note}<br>${quote.body}` : quote.body;

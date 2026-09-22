@@ -110,7 +110,7 @@ target 'InternxtFileProvider' do
 end
 
 target 'InternxtShareExtension' do     
-  exclude = ["expo-updates", "expo-splash-screen", "expo-dev-client", "react-native-reanimated", "react-native-screens", "react-native-safe-area-context", "react-native-gesture-handler", "react-native-video", "react-native-webview", "react-native-svg", "@shopify/flash-list", "react-native-pdf", "jail-monkey"]
+  exclude = ["expo-updates", "expo-splash-screen", "expo-dev-client", "react-native-reanimated", "react-native-screens", "react-native-safe-area-context", "react-native-gesture-handler", "react-native-video", "react-native-webview", "react-native-svg", "@shopify/flash-list", "react-native-pdf", "jail-monkey", "react-native-enriched-html"]
   use_expo_modules!(exclude: exclude)
   
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
