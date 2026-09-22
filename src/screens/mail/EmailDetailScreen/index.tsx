@@ -1,42 +1,46 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
-import dayjs from 'dayjs';
-import { EnvelopeIcon, TrashIcon, WarningIcon } from 'phosphor-react-native';
+import { WarningIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, ScrollView, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
-import RenderHtml from 'react-native-render-html';
 
+import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import AppScreenTitle from '../../../components/AppScreenTitle';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
+import asyncStorageService from '../../../services/AsyncStorageService';
+import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { downloadDecryptAndOpenAttachment } from '../../../services/mail/mailAttachment.service';
 import {
   decryptAndCacheFullEmail,
   getCachedEmail,
   getPrivateHybridKey,
   isEncryptedEmailBody,
-  parseEncryptionBlock,
-  markEmailUnread,
   markEmailRead,
+  markEmailUnread,
   moveThreadToMailbox,
+  parseEncryptionBlock,
 } from '../../../services/mail/mailCrypto.service';
 import { mailboxService } from '../../../services/mail/mailbox.service';
+import { deriveReplyRecipients } from '../../../services/mail/replyRecipients';
 import { useAppSelector } from '../../../store/hooks';
+import { AsyncStorageKey } from '../../../types';
 import { MailScreenProps } from '../../../types/navigation';
+import { ThreadActions } from './ThreadActions';
+import { ThreadMessageCard } from './ThreadMessageCard';
 
 type ResolvedMessage = {
   message: EmailResponse;
-  decryptedBody: string | null;
+  bodySource: EmailBodySource;
   attachmentsSessionKey: string | null;
 };
 
 export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailDetail'>): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { width } = useWindowDimensions();
   const { user } = useAppSelector((state) => state.auth);
   useLanguage();
 
@@ -45,29 +49,35 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [expandedMessageIds, setExpandedMessageIds] = useState<string[]>([]);
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToEnd = useRef(false);
 
   const resolveMessage = useCallback(
     async (message: EmailResponse): Promise<ResolvedMessage> => {
-      const cached = await getCachedEmail(message.id);
-      if (cached) {
-        return { message, decryptedBody: cached.text, attachmentsSessionKey: cached.attachmentsSessionKey };
+      const encryptedEnvelope = message.textBody && isEncryptedEmailBody(message.textBody) ? message.textBody : null;
+      const buildResolvedMessage = (
+        bodySource: EmailBodySource,
+        attachmentsSessionKey: string | null,
+      ): ResolvedMessage => ({ message, bodySource, attachmentsSessionKey });
+
+      const cachedEmail = await getCachedEmail(message.id);
+      if (cachedEmail) {
+        return buildResolvedMessage({ type: 'decrypted', text: cachedEmail.text }, cachedEmail.attachmentsSessionKey);
       }
 
-      if (message.textBody && isEncryptedEmailBody(message.textBody) && user?.mnemonic) {
+      if (encryptedEnvelope && user?.mnemonic) {
         try {
-          const encryption = parseEncryptionBlock(message.textBody);
+          const encryption = parseEncryptionBlock(encryptedEnvelope);
           const privateKey = await getPrivateHybridKey(user.mnemonic);
           const decrypted = await decryptAndCacheFullEmail(message.id, encryption, privateKey);
-          return { message, decryptedBody: decrypted.text, attachmentsSessionKey: decrypted.attachmentsSessionKey };
+          return buildResolvedMessage({ type: 'decrypted', text: decrypted.text }, decrypted.attachmentsSessionKey);
         } catch (error) {
-          // eslint-disable-next-line no-console
-          console.warn(`Failed to decrypt message ${message.id}`, error);
+          logger.error(`Failed to decrypt message ${message.id}`, error);
         }
       }
 
-      return { message, decryptedBody: null, attachmentsSessionKey: null };
+      return buildResolvedMessage(encryptedEnvelope ? { type: 'encryptedUnreadable' } : { type: 'plain' }, null);
     },
     [user],
   );
@@ -87,10 +97,10 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       const resolved = await Promise.all(sorted.map(resolveMessage));
       setThread(resolved);
       const latest = sorted[sorted.length - 1];
+      setExpandedMessageIds(latest ? [latest.id] : []);
       if (latest && !latest.isRead) {
         markEmailRead(latest.id).catch((error) => {
-          // eslint-disable-next-line no-console
-          console.warn('Failed to mark email as read', error);
+          logger.error('Failed to mark email as read', error);
         });
       }
     } catch {
@@ -114,11 +124,34 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       await markEmailUnread(latest.id);
       navigation.goBack();
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('Failed to mark email unread', error);
+      logger.error('Failed to mark email unread', error);
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const onToggleExpanded = (messageId: string) => {
+    setExpandedMessageIds((expanded) =>
+      expanded.includes(messageId) ? expanded.filter((id) => id !== messageId) : [...expanded, messageId],
+    );
+  };
+
+  const onReply = async (message: EmailResponse, replyAll: boolean) => {
+    if (isUpdating) return;
+
+    const selfAddress = (await asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress)) ?? '';
+    const { to, cc } = deriveReplyRecipients(message, selfAddress, replyAll);
+    const subject = /^\s*re:/i.test(message.subject) ? message.subject : `Re: ${message.subject}`;
+
+    navigation.navigate('ComposeEmail', {
+      reply: {
+        repliedMessageId: message.id,
+        replyAll,
+        subject,
+        to: to.map((recipient) => recipient.email),
+        cc: cc.map((recipient) => recipient.email),
+      },
+    });
   };
 
   const onMoveThread = async (mailbox: 'trash' | 'spam') => {
@@ -131,8 +164,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       );
       navigation.goBack();
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn(`Failed to move thread to ${mailbox}`, error);
+      logger.error(`Failed to move thread to ${mailbox}`, error);
     } finally {
       setIsUpdating(false);
     }
@@ -147,13 +179,12 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     }
   };
 
-  const renderMessage = (entry: ResolvedMessage) => {
-    const { message, decryptedBody, attachmentsSessionKey } = entry;
+  const renderMessage = (entry: ResolvedMessage, index: number) => {
+    const { message, bodySource, attachmentsSessionKey } = entry;
     const isLastMessage = thread[thread.length - 1] === entry;
-    const senderLabel = message.from?.[0]?.name || message.from?.[0]?.email || '';
-    const recipientsLabel = message.to?.map((recipient) => recipient.name || recipient.email).join(', ') || '';
-    const isRawTextEncrypted = !!message.textBody && isEncryptedEmailBody(message.textBody);
-    const resolvedBody = decryptedBody || (!isRawTextEncrypted ? message.textBody : null) || message.htmlBody || '';
+    const nextMessage = thread[index + 1]?.message;
+    const hasSeparator =
+      !expandedMessageIds.includes(message.id) && !!nextMessage && !expandedMessageIds.includes(nextMessage.id);
 
     const onPressAttachment = (attachment: NonNullable<typeof message.attachments>[number]) => {
       downloadDecryptAndOpenAttachment({
@@ -163,8 +194,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
         type: attachment.type,
         attachmentsSessionKey,
       }).catch((error) => {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to open attachment', error);
+        logger.error('Failed to open attachment', error);
       });
     };
 
@@ -172,90 +202,39 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       <View
         key={message.id}
         onLayout={isLastMessage ? (event) => (lastMessageOffsetRef.current = event.nativeEvent.layout.y) : undefined}
-        style={[tailwind('pt-4 pb-4'), { borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') }]}
       >
-        <View style={tailwind('flex-row items-center justify-between')}>
-          <View style={tailwind('flex-1 mr-2')}>
-            <AppText numberOfLines={1} style={[tailwind('text-base'), { color: getColor('text-gray-100') }]}>
-              {senderLabel}
-            </AppText>
-            {!!recipientsLabel && (
-              <AppText numberOfLines={1} style={[tailwind('mt-0.5 text-sm'), { color: getColor('text-gray-40') }]}>
-                {recipientsLabel}
-              </AppText>
-            )}
-          </View>
-          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-40') }]}>
-            {dayjs(message.receivedAt).format('MMM D, YYYY · h:mm A')}
-          </AppText>
-        </View>
-
-        <View style={tailwind('mt-3')}>
-          <RenderHtml
-            contentWidth={width || 1}
-            source={{ html: resolvedBody }}
-            baseStyle={{ fontSize: 16, color: getColor('text-gray-100'), lineHeight: 22 }}
-          />
-        </View>
-
-        {message.attachments && message.attachments.length > 0 && (
-          <View style={tailwind('mt-3')}>
-            {message.attachments.map((attachment) => (
-              <TouchableOpacity
-                key={attachment.blobId}
-                style={[
-                  tailwind('flex-row items-center py-3'),
-                  { borderTopWidth: 1, borderTopColor: getColor('border-gray-5') },
-                ]}
-                onPress={() => onPressAttachment(attachment)}
-              >
-                <AppText numberOfLines={1} style={[tailwind('flex-1'), { color: getColor('text-primary') }]}>
-                  {attachment.name}
-                </AppText>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
+        <ThreadMessageCard
+          message={message}
+          bodySource={bodySource}
+          isExpanded={expandedMessageIds.includes(message.id)}
+          isBusy={isUpdating}
+          hasSeparator={hasSeparator}
+          onToggleExpanded={() => onToggleExpanded(message.id)}
+          onReply={() => onReply(message, false)}
+          onReplyAll={() => onReply(message, true)}
+          onPressAttachment={onPressAttachment}
+        />
       </View>
     );
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaBottom style={tailwind('flex-1 flex-grow')}>
+    <AppScreen
+      safeAreaTop
+      safeAreaBottom
+      style={[tailwind('flex-1 flex-grow'), { backgroundColor: getColor('bg-gray-5') }]}
+    >
       <AppScreenTitle
         text={thread[thread.length - 1]?.message.subject || strings.screens.mail.title}
         onBackButtonPressed={onBackButtonPressed}
       />
       {!isLoading && !hasError && thread.length > 0 && (
-        <View
-          style={[
-            tailwind('flex-row items-center justify-around py-2'),
-            { borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') },
-          ]}
-        >
-          <TouchableOpacity onPress={onMarkUnread} disabled={isUpdating} style={tailwind('items-center px-4 py-2')}>
-            <EnvelopeIcon color={getColor('text-gray-80')} size={22} />
-            <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-80') }]}>Mark unread</AppText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => onMoveThread('spam')}
-            disabled={isUpdating}
-            style={tailwind('items-center px-4 py-2')}
-          >
-            <WarningIcon color={getColor('text-gray-80')} size={22} />
-            <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-80') }]}>Spam</AppText>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => onMoveThread('trash')}
-            disabled={isUpdating}
-            style={tailwind('items-center px-4 py-2')}
-          >
-            <TrashIcon color={getColor('text-gray-80')} size={22} />
-            <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-80') }]}>Trash</AppText>
-          </TouchableOpacity>
-        </View>
+        <ThreadActions
+          isDisabled={isUpdating}
+          onMarkUnread={onMarkUnread}
+          onMoveToSpam={() => onMoveThread('spam')}
+          onMoveToTrash={() => onMoveThread('trash')}
+        />
       )}
       {isLoading && (
         <View style={tailwind('flex-1 items-center justify-center')}>
@@ -273,7 +252,12 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       )}
 
       {!isLoading && !hasError && thread.length > 0 && (
-        <ScrollView ref={scrollViewRef} style={tailwind('flex-1 px-4')} onContentSizeChange={onScrollContentSizeChange}>
+        <ScrollView
+          ref={scrollViewRef}
+          style={tailwind('flex-1')}
+          contentContainerStyle={tailwind('pt-2')}
+          onContentSizeChange={onScrollContentSizeChange}
+        >
           {thread.map(renderMessage)}
         </ScrollView>
       )}

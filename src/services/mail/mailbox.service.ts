@@ -8,14 +8,16 @@ import {
   DownloadAttachmentResponse,
   UploadAttachmentResponse,
   SendEmailRequest,
+  ReplyEmailRequest,
   EmailCreatedResponse,
   LookupRecipientKeysResponse,
   UpdateEmailRequest,
+  EmailDomainsResponse,
 } from '@internxt/sdk/dist/mail/types';
 
 const DEFAULT_LIMIT = 50;
 
-class MailboxService {
+export class MailboxService {
   private readonly sdk: SdkManager;
   constructor(sdk: SdkManager) {
     this.sdk = sdk;
@@ -55,6 +57,13 @@ class MailboxService {
   }
 
   /**
+   * Gets the domains the server treats as internal.
+   */
+  public async getActiveDomains(): Promise<EmailDomainsResponse> {
+    return this.sdk.mail.getActiveDomains();
+  }
+
+  /**
    * Download email attachment
    */
   public async downloadAttachment(
@@ -68,6 +77,10 @@ class MailboxService {
   public async uploadAttachment(file: { uri: string; name: string; type: string }): Promise<UploadAttachmentResponse> {
     const { promise } = this.sdk.mail.uploadAttachment(file as unknown as File);
     return promise;
+  }
+
+  public async replyEmail(emailId: string, body: ReplyEmailRequest): Promise<EmailCreatedResponse> {
+    return this.sdk.mail.replyEmail(emailId, body);
   }
 
   public async sendEmail(body: SendEmailRequest): Promise<EmailCreatedResponse> {

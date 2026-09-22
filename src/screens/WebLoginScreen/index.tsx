@@ -31,7 +31,7 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
         return;
       }
 
-      const { mnemonic, newToken, privateKey } = params;
+      const { mnemonic, newToken } = params;
 
       if (!mnemonic || !newToken) {
         setLoadingState('error');
@@ -42,11 +42,7 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
       }
 
       try {
-        const result = await authService.handleWebLogin({
-          mnemonic,
-          newToken,
-          privateKey,
-        });
+        const result = await authService.handleWebLogin({ mnemonic, newToken });
 
         setLoadingState('success');
         setTimeout(() => {

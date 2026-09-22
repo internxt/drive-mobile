@@ -1,3 +1,5 @@
+import type { DrawerScreenProps } from '@react-navigation/drawer';
+import { MailboxId, ReplyComposeParams } from './mail';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -35,7 +37,7 @@ export type RootStackParamList = {
     onCurrentItemChange?: (itemId: string) => void;
   };
   Settings: undefined;
-  ComposeEmail: undefined;
+  ComposeEmail: { reply: ReplyComposeParams } | undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };
 };
@@ -53,6 +55,7 @@ export type RootScreenNavigationProp<Screen extends keyof RootStackParamList> = 
 export type TabExplorerStackParamList = {
   Home: undefined;
   Drive: { sharedFolderId: number } | undefined;
+  Mail: undefined;
   Add: undefined;
   Shared: undefined;
   Photos: undefined;
@@ -68,14 +71,27 @@ export type DriveStackParamList = {
   };
 };
 
+export type MailDrawerParamList = {
+  [MailboxId.Inbox]: undefined;
+  [MailboxId.Sent]: undefined;
+  [MailboxId.Drafts]: undefined;
+  [MailboxId.Spam]: undefined;
+  [MailboxId.Trash]: undefined;
+};
+
 export type MailStackParamList = {
-  MailboxList: undefined;
+  MailboxDrawer: undefined;
   EmailDetail: { emailId: string };
 };
 
-export type MailScreenProps<Screen extends keyof MailStackParamList> = NativeStackScreenProps<
-  MailStackParamList,
-  Screen
+export type MailboxScreenProps = CompositeScreenProps<
+  DrawerScreenProps<MailDrawerParamList, MailboxId>,
+  MailScreenProps<keyof MailStackParamList>
+>;
+
+export type MailScreenProps<Screen extends keyof MailStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<MailStackParamList, Screen>,
+  RootStackScreenProps<keyof RootStackParamList>
 >;
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<

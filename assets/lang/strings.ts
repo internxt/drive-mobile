@@ -373,9 +373,40 @@ const translations = {
           spam: 'Spam',
           trash: 'Trash',
         },
+        openMailboxes: 'Open mailboxes',
+        unableToDecryptPreview: 'This message could not be decrypted',
+        showRemoteImages: 'Show images',
+        remoteImagesBlocked: 'Images in this message are blocked',
+      },
+      email_detail: {
+        to: 'To:',
+        cc: 'Cc:',
+        actions: {
+          reply: 'Reply',
+          replyAll: 'Reply all',
+          markUnread: 'Unread',
+          spam: 'Spam',
+          trash: 'Trash',
+        },
       },
       compose_email: {
         title: 'New message',
+        replyTitle: 'Reply',
+        errors: {
+          title: 'Message not sent',
+          noRecipients: 'Add at least one recipient before sending.',
+          primaryRecipientMissing: 'Add at least one recipient in the To field. Copy and blind copy cannot travel on their own.',
+          blindCopyNotDeliverable: "Bcc isn't available for encrypted emails yet. Move the recipient to To or Cc.",
+          internxtKeyMissing:
+            'These recipients cannot receive encrypted mail yet: {0}. They need to open Internxt Mail once before you can write to them.',
+          keyLookupFailed: 'We could not check the recipients encryption keys. Check your connection and try again.',
+          domainsUnavailable: 'We could not verify the recipient addresses. Check your connection and try again.',
+          serverKeyMissing: 'Sending to addresses outside Internxt is not available right now.',
+          sendFailed: 'The message could not be sent. Try again in a moment.',
+          attachmentTooLarge: 'The attachment {0} is larger than the {1} the server accepts.',
+          attachmentUploadFailed:
+            'The attachment {0} could not be uploaded, so nothing was sent. Try again in a moment.',
+        },
       },
       shared: {
         title: 'Shared',
@@ -614,6 +645,9 @@ const translations = {
     },
     inputs: {
       to: 'To',
+      cc: 'Cc',
+      bcc: 'Bcc',
+      from: 'From',
       subject: 'Subject',
       body: 'Message',
       name: 'Name',
@@ -1414,9 +1448,44 @@ const translations = {
           spam: 'Spam',
           trash: 'Papelera',
         },
+        openMailboxes: 'Abrir bandejas',
+        unableToDecryptPreview: 'No se ha podido descifrar este mensaje',
+        showRemoteImages: 'Mostrar imágenes',
+        remoteImagesBlocked: 'Las imágenes de este mensaje están bloqueadas',
+      },
+      email_detail: {
+        to: 'Para:',
+        cc: 'Cc:',
+        actions: {
+          reply: 'Responder',
+          replyAll: 'Responder a todos',
+          markUnread: 'No leído',
+          spam: 'Spam',
+          trash: 'Papelera',
+        },
       },
       compose_email: {
         title: 'Nuevo mensaje',
+        replyTitle: 'Responder',
+        errors: {
+          title: 'Mensaje no enviado',
+          noRecipients: 'Añade al menos un destinatario antes de enviar.',
+          primaryRecipientMissing:
+            'Añade al menos un destinatario en el campo Para. Las copias no pueden viajar solas.',
+          blindCopyNotDeliverable:
+            'Cco aún no está disponible para correos cifrados. Mueve el destinatario a Para o Cc.',
+          internxtKeyMissing:
+            'Estos destinatarios todavía no pueden recibir correo cifrado: {0}. Necesitan abrir Internxt Mail una vez antes de que puedas escribirles.',
+          keyLookupFailed:
+            'No hemos podido comprobar las claves de cifrado de los destinatarios. Revisa tu conexión e inténtalo de nuevo.',
+          domainsUnavailable:
+            'No hemos podido verificar las direcciones de los destinatarios. Revisa tu conexión e inténtalo de nuevo.',
+          serverKeyMissing: 'El envío a direcciones de fuera de Internxt no está disponible ahora mismo.',
+          sendFailed: 'No se ha podido enviar el mensaje. Inténtalo de nuevo en un momento.',
+          attachmentTooLarge: 'El adjunto {0} pesa más de los {1} que acepta el servidor.',
+          attachmentUploadFailed:
+            'No se ha podido subir el adjunto {0}, así que no se ha enviado nada. Inténtalo de nuevo en un momento.',
+        },
       },
       shared: {
         title: 'Compartido',
@@ -1652,6 +1721,9 @@ const translations = {
     },
     inputs: {
       to: 'Para',
+      cc: 'Cc',
+      bcc: 'Cco',
+      from: 'De',
       subject: 'Asunto',
       body: 'Mensaje',
       name: 'Nombre',
