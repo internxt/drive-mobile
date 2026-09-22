@@ -1,6 +1,5 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import dayjs from 'dayjs';
-import { ArrowBendDoubleUpLeftIcon, ArrowBendUpLeftIcon, ArrowBendUpRightIcon } from 'phosphor-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
@@ -9,6 +8,8 @@ import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
 import { EmailBody } from './EmailBody';
+import { MessageActions } from './MessageActions';
+import { MessageAttachment, MessageAttachments } from './MessageAttachments';
 import { MessageAvatar } from './MessageAvatar';
 
 const COLLAPSED_AVATAR_SIZE = 32;
@@ -16,37 +17,6 @@ const EXPANDED_AVATAR_SIZE = 40;
 
 const formatAddresses = (recipients: EmailResponse['to'] | undefined): string =>
   (recipients ?? []).map((recipient) => recipient.email).join(', ');
-
-const MessageAction = ({
-  label,
-  icon: ActionIcon,
-  onPress,
-  isDisabled,
-}: {
-  label: string;
-  icon: typeof ArrowBendUpLeftIcon;
-  onPress: () => void;
-  isDisabled: boolean;
-}) => {
-  const tailwind = useTailwind();
-  const getColor = useGetColor();
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={isDisabled}
-      style={[
-        tailwind('flex-1 flex-row items-center justify-center rounded-full px-2 py-3'),
-        { backgroundColor: getColor('bg-gray-5') },
-      ]}
-    >
-      <ActionIcon color={getColor('text-gray-80')} size={18} />
-      <AppText numberOfLines={1} style={[tailwind('ml-1.5 text-sm'), { color: getColor('text-gray-80') }]}>
-        {label}
-      </AppText>
-    </TouchableOpacity>
-  );
-};
 
 export const ThreadMessageCard = ({
   message,
@@ -56,10 +26,12 @@ export const ThreadMessageCard = ({
   hasSeparator,
   canReplyAll,
   canForward,
+  hasFooterBar,
   onToggleExpanded,
   onReply,
   onReplyAll,
   onForward,
+  openingAttachmentId,
   onPressAttachment,
 }: {
   message: EmailResponse;
@@ -69,15 +41,17 @@ export const ThreadMessageCard = ({
   hasSeparator: boolean;
   canReplyAll: boolean;
   canForward: boolean;
+  hasFooterBar: boolean;
   onToggleExpanded: () => void;
   onReply: () => void;
   onReplyAll: () => void;
   onForward: () => void;
-  onPressAttachment: (attachment: NonNullable<EmailResponse['attachments']>[number]) => void;
+  openingAttachmentId: string | null;
+  onPressAttachment: (attachment: MessageAttachment) => void;
 }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { actions, to: toLabel, cc: ccLabel } = strings.screens.email_detail;
+  const { to: toLabel, cc: ccLabel } = strings.screens.email_detail;
 
   const sender = message.from?.[0];
   const senderName = sender?.name;
@@ -147,50 +121,30 @@ export const ThreadMessageCard = ({
         <View style={tailwind('px-4 pb-4')}>
           <EmailBody message={message} bodySource={bodySource} />
 
-          {message.attachments && message.attachments.length > 0 && (
-            <View style={tailwind('mt-3')}>
-              {message.attachments.map((attachment) => (
-                <TouchableOpacity
-                  key={attachment.blobId}
-                  style={[
-                    tailwind('flex-row items-center py-3'),
-                    { borderTopWidth: 1, borderTopColor: getColor('border-gray-5') },
-                  ]}
-                  onPress={() => onPressAttachment(attachment)}
-                >
-                  <AppText numberOfLines={1} style={[tailwind('flex-1'), { color: getColor('text-primary') }]}>
-                    {attachment.name}
-                  </AppText>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
+          {!hasFooterBar && (
+            <>
+              {message.attachments && message.attachments.length > 0 && (
+                <View style={tailwind('mt-3')}>
+                  <MessageAttachments
+                    attachments={message.attachments}
+                    openingAttachmentId={openingAttachmentId}
+                    onPressAttachment={onPressAttachment}
+                  />
+                </View>
+              )}
 
-          <View style={tailwind('flex-row mt-4')}>
-            <MessageAction label={actions.reply} icon={ArrowBendUpLeftIcon} isDisabled={isBusy} onPress={onReply} />
-            {canReplyAll && (
-              <>
-                <View style={tailwind('w-2')} />
-                <MessageAction
-                  label={actions.replyAll}
-                  icon={ArrowBendDoubleUpLeftIcon}
-                  isDisabled={isBusy}
-                  onPress={onReplyAll}
+              <View style={tailwind('mt-4')}>
+                <MessageActions
+                  isBusy={isBusy}
+                  canReplyAll={canReplyAll}
+                  canForward={canForward}
+                  onReply={onReply}
+                  onReplyAll={onReplyAll}
+                  onForward={onForward}
                 />
-              </>
-            )}
-            {canForward && (
-              <>
-                <View style={tailwind('w-2')} />
-                <MessageAction
-                  label={actions.forward}
-                  icon={ArrowBendUpRightIcon}
-                  isDisabled={isBusy}
-                  onPress={onForward}
-                />
-              </>
-            )}
-          </View>
+              </View>
+            </>
+          )}
         </View>
       )}
     </View>
