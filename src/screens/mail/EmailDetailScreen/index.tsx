@@ -27,7 +27,8 @@ import {
 } from '../../../services/mail/mailCrypto.service';
 import { mailboxService } from '../../../services/mail/mailbox.service';
 import { deriveReplyRecipients } from '../../../services/mail/replyRecipients';
-import { useAppSelector } from '../../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../../store/hooks';
+import { mailActions } from '../../../store/slices/mail';
 import { AsyncStorageKey } from '../../../types';
 import { MailScreenProps } from '../../../types/navigation';
 import { ThreadActions } from './ThreadActions';
@@ -43,6 +44,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const { user } = useAppSelector((state) => state.auth);
+  const dispatch = useAppDispatch();
   useLanguage();
 
   const { emailId } = route.params;
@@ -101,16 +103,18 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
       const latest = sorted[sorted.length - 1];
       setExpandedMessageIds(latest ? [latest.id] : []);
       if (latest && !latest.isRead) {
-        markEmailRead(latest.id).catch((error) => {
-          logger.error('Failed to mark email as read', error);
-        });
+        markEmailRead(latest.id)
+          .then(() => dispatch(mailActions.threadReadStateChanged({ emailIds: [latest.id], isRead: true })))
+          .catch((error) => {
+            logger.error('Failed to mark email as read', error);
+          });
       }
     } catch {
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
-  }, [emailId, resolveMessage]);
+  }, [emailId, resolveMessage, dispatch]);
 
   useEffect(() => {
     loadThread();
@@ -128,6 +132,7 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     setIsUpdating(true);
     try {
       await markEmailUnread(latest.id);
+      dispatch(mailActions.threadReadStateChanged({ emailIds: [latest.id], isRead: false }));
       navigation.goBack();
     } catch (error) {
       logger.error('Failed to mark email unread', error);
@@ -182,10 +187,9 @@ export function EmailDetailScreen({ route, navigation }: MailScreenProps<'EmailD
     if (thread.length === 0 || isUpdating) return;
     setIsUpdating(true);
     try {
-      await moveThreadToMailbox(
-        thread.map((entry) => entry.message.id),
-        mailbox,
-      );
+      const threadMessageIds = thread.map((entry) => entry.message.id);
+      await moveThreadToMailbox(threadMessageIds, mailbox);
+      dispatch(mailActions.threadMovedOut({ emailIds: threadMessageIds }));
       navigation.goBack();
     } catch (error) {
       logger.error(`Failed to move thread to ${mailbox}`, error);

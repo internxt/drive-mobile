@@ -17,6 +17,7 @@ import { clearMailLocalData } from '../../../services/mail/clearMailLocalData';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
+import { mailActions } from '../mail';
 import { signOutThunk as photosSignOutThunk } from '../photos';
 import { uiActions } from '../ui';
 export interface AuthState {
@@ -255,6 +256,7 @@ export const signOutThunk = createAsyncThunk<
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveActions.resetState());
+    dispatch(mailActions.resetState());
     dispatch(authActions.setLoggedIn(false));
     authService.emitLogoutEvent();
   } finally {

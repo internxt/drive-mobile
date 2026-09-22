@@ -5,6 +5,7 @@ import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
 import { clearMailLocalData } from '../../../services/mail/clearMailLocalData';
 import { AsyncStorageKey } from '../../../types';
+import { mailActions } from '../mail';
 import authReducer, { authActions, changePasswordThunk, signOutThunk } from './index';
 
 jest.mock('../../../services/mail/clearMailLocalData', () => ({
@@ -13,6 +14,7 @@ jest.mock('../../../services/mail/clearMailLocalData', () => ({
 jest.mock('../photos', () => ({ signOutThunk: jest.fn(() => ({ type: 'photos/signOut' })) }));
 jest.mock('../drive', () => ({ driveActions: { resetState: jest.fn(() => ({ type: 'drive/resetState' })) } }));
 jest.mock('../ui', () => ({ uiActions: { resetState: jest.fn(() => ({ type: 'ui/resetState' })) } }));
+jest.mock('../mail', () => ({ mailActions: { resetState: jest.fn(() => ({ type: 'mail/resetState' })) } }));
 
 jest.mock('@internxt-mobile/services/drive', () => ({
   __esModule: true,
@@ -52,6 +54,14 @@ describe('Signing out', () => {
     await store.dispatch(signOutThunk({ reason: 'manual' }) as never);
 
     expect(clearMailLocalData).toHaveBeenCalledTimes(1);
+  });
+
+  test('when the user signs out, then no mailbox keeps the emails it had loaded', async () => {
+    const store = makeStore();
+
+    await store.dispatch(signOutThunk({ reason: 'manual' }) as never);
+
+    expect(mailActions.resetState).toHaveBeenCalledTimes(1);
   });
 });
 
