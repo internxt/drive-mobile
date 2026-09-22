@@ -10,10 +10,12 @@ export type SqliteMailEmailRow = {
   cached_at: string;
 };
 
-export type CachedDecryptedEmail = {
+export type DecryptedEmail = {
   text: string;
   attachmentsSessionKey: string; // base64
 };
+
+export type CachedDecryptedEmail = DecryptedEmail;
 
 class MailLocalDB {
   private initPromise: Promise<void> | null = null;
