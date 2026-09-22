@@ -7,13 +7,17 @@ import {
   AttachmentTooLargeError,
   AttachmentUploadFailedError,
   BlindCopyNotDeliverableError,
+  ForwardedAttachmentUnavailableError,
+  ForwardedAttachmentsNotDecryptableError,
   InternxtRecipientKeyMissingError,
   NoRecipientsError,
   PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
 } from './errors';
+import { SendStage } from '../../types/mail';
 import { fs } from '../FileSystemService';
-import { decryptPreviews, encryptAndSendEmail, encryptAndSendReply } from './mailCrypto.service';
+import { discardMaterializedAttachments, materializeForwardedAttachments } from './forwardAttachments';
+import { decryptPreviews, encryptAndSendEmail, encryptAndSendForward, encryptAndSendReply } from './mailCrypto.service';
 import { mailboxService } from './mailbox.service';
 import { recipientKeysService } from './recipientKeys.service';
 
@@ -25,6 +29,11 @@ jest.mock('./mailbox.service', () => ({
     replyEmail: jest.fn(),
     uploadAttachment: jest.fn(),
   },
+}));
+
+jest.mock('./forwardAttachments', () => ({
+  materializeForwardedAttachments: jest.fn(),
+  discardMaterializedAttachments: jest.fn(),
 }));
 
 jest.mock('../FileSystemService', () => ({
@@ -659,5 +668,182 @@ describe('Sending an encrypted reply', () => {
     await expect(encryptAndSendReply({ ...reply, to: [] })).rejects.toBeInstanceOf(NoRecipientsError);
 
     expect(replyEmailMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('Forwarding a message', () => {
+  const materializeMock = materializeForwardedAttachments as jest.Mock;
+  const discardMock = discardMaterializedAttachments as jest.Mock;
+  const uploadAttachmentMock = mailboxService.uploadAttachment as jest.Mock;
+
+  const aReport = { blobId: 'blob-1', name: 'report.pdf', type: 'application/pdf', size: 1024 };
+  const aMaterializedReport = {
+    attachment: { uri: '/tmp/blob-1-report.pdf', name: 'report.pdf', type: 'application/pdf' },
+    path: '/tmp/blob-1-report.pdf',
+  };
+
+  const forward = {
+    forwardedMessageId: 'original-id',
+    note: 'Take a look at this',
+    quote: { body: '<p>Quoted original</p>', originalText: 'Quoted original' },
+    forwardedAttachments: [],
+    areAttachmentsEncrypted: true,
+    to: ['friend@inxt.me'],
+    subject: 'Fwd: The offer',
+  };
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(AppService, 'constants', 'get').mockReturnValue({ SERVER_PUBLIC_KEY });
+    getActiveDomainsMock.mockResolvedValue(ACTIVE_DOMAINS);
+    getMailAccountKeysMock.mockResolvedValue(SENDER);
+    sendEmailMock.mockResolvedValue({ id: 'forwarded-id' });
+    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
+    materializeMock.mockResolvedValue([]);
+    uploadAttachmentMock.mockResolvedValue({
+      blobId: 'new-blob',
+      name: 'report.pdf',
+      type: 'application/pdf',
+      size: 1024,
+    });
+    encryptMock.mockResolvedValue({
+      encryptedKeys: [{ encryptedForEmail: 'someone', encryptedKey: 'k', hybridCiphertext: 'c' }],
+      encEmail: { encText: 'text', encPreview: 'preview', encAttachmentsSessionKey: 'attachments' },
+    });
+  });
+
+  test('when a message is forwarded, then it is sent naming the original, so it stays in its thread', async () => {
+    await encryptAndSendForward(forward);
+
+    expect(sentBody().inReplyToEmailId).toBe('original-id');
+  });
+
+  test('when a message is forwarded, then the quoted original travels below what the user wrote', async () => {
+    await encryptAndSendForward(forward);
+
+    const encryptedEmail = encryptMock.mock.calls[0][0];
+    expect(encryptedEmail.text).toContain('Take a look at this');
+    expect(encryptedEmail.text).toContain('<p>Quoted original</p>');
+  });
+
+  test('when the attachments of the original are taken out of it, then they are uploaded again for the new message', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport]);
+
+    await encryptAndSendForward({ ...forward, forwardedAttachments: [aReport] });
+
+    expect(uploadAttachmentMock).toHaveBeenCalledTimes(1);
+    expect(sentBody().attachments).toEqual([
+      { blobId: 'new-blob', name: 'report.pdf', type: 'application/pdf', size: 1024 },
+    ]);
+  });
+
+  test('when an attachment of the original cannot be taken out of it, then nothing is sent', async () => {
+    materializeMock.mockRejectedValue(new ForwardedAttachmentUnavailableError('report.pdf'));
+
+    await expect(encryptAndSendForward({ ...forward, forwardedAttachments: [aReport] })).rejects.toBeInstanceOf(
+      ForwardedAttachmentUnavailableError,
+    );
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when a forward is over, then the attachments written in the clear are deleted', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport]);
+
+    await encryptAndSendForward({ ...forward, forwardedAttachments: [aReport] });
+
+    expect(discardMock).toHaveBeenCalledWith([aMaterializedReport]);
+  });
+
+  test('when sending a forward fails, then the attachments written in the clear are deleted anyway', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport]);
+    sendEmailMock.mockRejectedValue(new Error('the server is unreachable'));
+
+    await expect(encryptAndSendForward({ ...forward, forwardedAttachments: [aReport] })).rejects.toThrow();
+    expect(discardMock).toHaveBeenCalledWith([aMaterializedReport]);
+  });
+
+  test('when a forward cannot be delivered, then its attachments are never downloaded', async () => {
+    await expect(encryptAndSendForward({ ...forward, bcc: ['hidden@inxt.me'] })).rejects.toBeInstanceOf(
+      BlindCopyNotDeliverableError,
+    );
+    expect(materializeMock).not.toHaveBeenCalled();
+  });
+
+  test('when a forward has nobody to go to, then it is not sent', async () => {
+    await expect(encryptAndSendForward({ ...forward, to: [] })).rejects.toBeInstanceOf(NoRecipientsError);
+
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when the original could not be decrypted on this device, then its attachments are asked for anyway and the refusal stops the send', async () => {
+    materializeMock.mockRejectedValue(new ForwardedAttachmentsNotDecryptableError());
+
+    await expect(encryptAndSendForward({ ...forward, forwardedAttachments: [aReport] })).rejects.toBeInstanceOf(
+      ForwardedAttachmentsNotDecryptableError,
+    );
+    expect(sendEmailMock).not.toHaveBeenCalled();
+  });
+
+  test('when the original was never encrypted, then the attachments are taken out of it without asking for a key', async () => {
+    materializeMock.mockResolvedValue([aMaterializedReport]);
+
+    await encryptAndSendForward({ ...forward, forwardedAttachments: [aReport], areAttachmentsEncrypted: false });
+
+    expect(materializeMock).toHaveBeenCalledWith(expect.objectContaining({ areAttachmentsEncrypted: false }));
+  });
+
+  test('when a forward is being sent, then each step it goes through is told', async () => {
+    materializeMock.mockImplementation(async ({ onAttachmentProgress }) => {
+      onAttachmentProgress?.(1, 1);
+      return [aMaterializedReport];
+    });
+    const stages: SendStage[] = [];
+
+    await encryptAndSendForward(
+      { ...forward, forwardedAttachments: [aReport] },
+      { onStage: (stage) => stages.push(stage) },
+    );
+
+    expect(stages).toEqual([
+      { name: 'downloadingAttachments', current: 1, total: 1 },
+      { name: 'uploadingAttachments', current: 1, total: 1 },
+      { name: 'sending' },
+    ]);
+  });
+
+  test('when a message carries several attachments, then the last one is told as the last of them, and not left out', async () => {
+    materializeMock.mockResolvedValue([]);
+    const stages: SendStage[] = [];
+
+    await encryptAndSendEmail(
+      {
+        to: ['friend@inxt.me'],
+        subject: 'Subject',
+        text: 'Body',
+        files: [
+          { uri: '/tmp/one.pdf', name: 'one.pdf', type: 'application/pdf' },
+          { uri: '/tmp/two.pdf', name: 'two.pdf', type: 'application/pdf' },
+        ],
+      },
+      { onStage: (stage) => stages.push(stage) },
+    );
+
+    expect(stages).toEqual([
+      { name: 'uploadingAttachments', current: 1, total: 2 },
+      { name: 'uploadingAttachments', current: 2, total: 2 },
+      { name: 'sending' },
+    ]);
+  });
+
+  test('when a send has nothing to upload, then it is not said to be uploading anything', async () => {
+    const stages: SendStage[] = [];
+
+    await encryptAndSendForward(forward, { onStage: (stage) => stages.push(stage) });
+
+    expect(stages).toEqual([{ name: 'sending' }]);
   });
 });

@@ -1,5 +1,5 @@
 import type { DrawerScreenProps } from '@react-navigation/drawer';
-import { MailboxId, ReplyComposeParams } from './mail';
+import { ForwardComposeParams, MailboxId, ReplyComposeParams } from './mail';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -37,7 +37,7 @@ export type RootStackParamList = {
     onCurrentItemChange?: (itemId: string) => void;
   };
   Settings: undefined;
-  ComposeEmail: { reply: ReplyComposeParams } | undefined;
+  ComposeEmail: { reply: ReplyComposeParams } | { forward: ForwardComposeParams } | undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };
 };
