@@ -60,6 +60,17 @@ export const useComposeRecipients = ({ to = [], cc = [] }: { to?: string[]; cc?:
     }));
   };
 
+  const replaceRecipients = (recipientsToLoad: recipientRules.RecipientsByField) => {
+    const noRecipients: recipientRules.RecipientsByField = { to: [], cc: [], bcc: [] };
+    updateRecipientsState(() => ({
+      recipients: recipientRules.RECIPIENT_FIELDS_BY_VISIBILITY.reduce(
+        (recipientsSoFar, field) => recipientRules.addRecipients(recipientsSoFar, field, recipientsToLoad[field]),
+        noRecipients,
+      ),
+      pendingText: recipientRules.EMPTY_PENDING_RECIPIENT_TEXT,
+    }));
+  };
+
   const resolveRecipientsForSending = (): {
     recipients: recipientRules.RecipientsByField;
     unreadableRecipientText: string[];
@@ -76,6 +87,7 @@ export const useComposeRecipients = ({ to = [], cc = [] }: { to?: string[]; cc?:
     changePendingText,
     addTypedRecipients,
     removeRecipient,
+    replaceRecipients,
     resolveRecipientsForSending,
   };
 };
