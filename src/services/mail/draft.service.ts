@@ -4,7 +4,7 @@ import { base64ToUint8Array, encryptEmailHybridForMultipleRecipients, genSymmetr
 import { DraftContent } from '../../types/mail';
 import { HTTP_CONFLICT, HTTP_NOT_FOUND } from '../common/httpStatusCodes';
 import { logger } from '../common/logger/logger.service';
-import { editableTextFromHtml, isMarkupBody, plainTextToHtml } from './emailBody/emailBodyContent';
+import { plainTextFromHtml } from './emailBody/emailBodyContent';
 import { readHttpStatus } from './errorDescription';
 import { mailboxService } from './mailbox.service';
 import {
@@ -21,7 +21,7 @@ const isDraftContentEmpty = ({ to, cc, bcc, subject, body, draftAttachments }: D
   cc.length === 0 &&
   bcc.length === 0 &&
   subject.trim().length === 0 &&
-  body.trim().length === 0 &&
+  plainTextFromHtml(body).length === 0 &&
   !draftAttachments?.attachments.length;
 
 const buildDraftRequest = async ({
@@ -38,7 +38,7 @@ const buildDraftRequest = async ({
     : genSymmetricKey();
 
   const { encryptedKeys, encEmail } = await encryptEmailHybridForMultipleRecipients(
-    { text: plainTextToHtml(body), preview: previewOf(body), attachmentsSessionKey },
+    { text: body, preview: previewOf(plainTextFromHtml(body)), attachmentsSessionKey },
     [{ email: senderKeys.address.trim().toLowerCase(), publicHybridKey: base64ToUint8Array(senderKeys.publicKey) }],
   );
 
@@ -118,14 +118,14 @@ const readDraftBody = async (
 ): Promise<Pick<DraftContent, 'body' | 'draftAttachments'>> => {
   const storedBody = draft.textBody;
   if (!storedBody || !isEncryptedEmailBody(storedBody)) {
-    return { body: draft.htmlBody ? editableTextFromHtml(draft.htmlBody) : (storedBody ?? ''), draftAttachments: null };
+    return { body: draft.htmlBody || storedBody || '', draftAttachments: null };
   }
 
   const privateKey = await getPrivateHybridKey(mnemonic);
   const { text, attachmentsSessionKey } = await decryptFullEmail(parseEncryptionBlock(storedBody), privateKey);
 
   return {
-    body: isMarkupBody(text) ? editableTextFromHtml(text) : text,
+    body: text,
     draftAttachments: { attachmentsSessionKey, attachments: draft.attachments ?? [] },
   };
 };

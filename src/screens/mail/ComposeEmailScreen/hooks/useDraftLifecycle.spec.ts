@@ -78,6 +78,7 @@ const renderDraftLifecycle = ({
   onDraftOpened = jest.fn(),
   isUploadingAttachments = false,
   failedAttachmentCount = 0,
+  isBodyReady = true,
 }: {
   isEnabled?: boolean;
   draftToOpen?: DraftComposeParams;
@@ -85,6 +86,7 @@ const renderDraftLifecycle = ({
   onDraftOpened?: jest.Mock;
   isUploadingAttachments?: boolean;
   failedAttachmentCount?: number;
+  isBodyReady?: boolean;
 } = {}) => {
   const { navigation, tryToLeave } = createNavigation();
   const rendered = renderHook(
@@ -97,6 +99,7 @@ const renderDraftLifecycle = ({
         recipients: NO_RECIPIENTS,
         subject: '',
         body: '',
+        isBodyReady,
         onDraftOpened,
         ...rerenderProps,
       }),
@@ -576,6 +579,18 @@ describe('Taking care of the draft of a message being written', () => {
 
     expect(rendered.navigation.dispatch).toHaveBeenCalledTimes(1);
     expect(draftAutosave.saveDraftNow).not.toHaveBeenCalled();
+  });
+
+  test('when the body field has not reported the body it starts with, then the draft is not ready to be saved', () => {
+    renderDraftLifecycle({ isBodyReady: false });
+
+    expect(useDraftAutosaveMock).toHaveBeenLastCalledWith(expect.objectContaining({ isContentReady: false }));
+  });
+
+  test('when the body field has reported the body it starts with, then the draft is ready to be saved', () => {
+    renderDraftLifecycle({ isBodyReady: true });
+
+    expect(useDraftAutosaveMock).toHaveBeenLastCalledWith(expect.objectContaining({ isContentReady: true }));
   });
 
   test('when a message that keeps no draft is left while attachments upload, then leaving is not held', () => {

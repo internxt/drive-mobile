@@ -76,6 +76,13 @@ describe('Saving the draft of a message', () => {
     expect(saveDraftMock).not.toHaveBeenCalled();
   });
 
+  test('when a message holds only an empty paragraph, then no draft is created', async () => {
+    const savedDraftId = await saveDraft({ draftId: null, content: { ...EMPTY_DRAFT_CONTENT, body: '<p></p>' } });
+
+    expect(savedDraftId).toBeNull();
+    expect(saveDraftMock).not.toHaveBeenCalled();
+  });
+
   test('when a draft is saved for the first time, then it is created and its id is returned', async () => {
     const savedDraftId = await saveDraft({ draftId: null, content: draftContentWith({ to: ['friend@inxt.me'] }) });
 
@@ -98,11 +105,11 @@ describe('Saving the draft of a message', () => {
     expect(recipientsTheDraftIsEncryptedFor).toEqual(['me@inxt.me']);
   });
 
-  test('when a draft is saved, then its body keeps the line breaks it was written with', async () => {
-    await saveDraft({ draftId: null, content: draftContentWith({ body: 'Hello\n\nsee you' }) });
+  test('when a draft is saved, then its body keeps its formatting and its opening is kept as plain text', async () => {
+    await saveDraft({ draftId: null, content: draftContentWith({ body: '<p>Hello <b>there</b></p>' }) });
 
-    expect(encryptMock.mock.calls[0][0].text).toContain('white-space:pre-wrap');
-    expect(encryptMock.mock.calls[0][0].text).toContain('Hello\n\nsee you');
+    expect(encryptMock.mock.calls[0][0].text).toBe('<p>Hello <b>there</b></p>');
+    expect(encryptMock.mock.calls[0][0].preview).toBe('Hello there');
   });
 
   test('when saving a draft is rejected because it changed elsewhere, then the save is retried', async () => {
@@ -187,7 +194,7 @@ describe('Opening a draft to keep writing it', () => {
       attachments: [A_KEPT_ATTACHMENT],
     });
     decryptFullEmailMock.mockResolvedValue({
-      text: '<div style="white-space:pre-wrap">Hello\n\nsee you &lt;soon&gt;</div>',
+      text: '<p>Hello <b>there</b></p>',
       attachmentsSessionKey: 'the-draft-key',
     });
 
@@ -198,12 +205,12 @@ describe('Opening a draft to keep writing it', () => {
       cc: [],
       bcc: ['hidden@inxt.me'],
       subject: 'Plans',
-      body: 'Hello\n\nsee you <soon>',
+      body: '<p>Hello <b>there</b></p>',
       draftAttachments: { attachmentsSessionKey: 'the-draft-key', attachments: [A_KEPT_ATTACHMENT] },
     });
   });
 
-  test('when a draft written in the browser is opened, then each of its paragraphs becomes a line', async () => {
+  test('when a draft written in the browser is opened, then its body comes back as it was written', async () => {
     getDraftMock.mockResolvedValue({ id: 'draft-1', to: [], subject: 'Plans', textBody: 'ENCRYPTED envelope' });
     decryptFullEmailMock.mockResolvedValue({
       text: '<p>Hello</p><p>see you</p>',
@@ -212,7 +219,7 @@ describe('Opening a draft to keep writing it', () => {
 
     const openedDraft = await openDraft({ draftId: 'draft-1', mnemonic: 'the words' });
 
-    expect(openedDraft.body).toBe('Hello\nsee you');
+    expect(openedDraft.body).toBe('<p>Hello</p><p>see you</p>');
   });
 
   test('when a draft without attachments is opened, then the key its attachments are encrypted with still comes back', async () => {
