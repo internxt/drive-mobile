@@ -397,6 +397,7 @@ const translations = {
         forwardedFrom: 'Forwarded message from {0}',
         showForwarded: 'Show',
         hideForwarded: 'Hide',
+        endToEndEncrypted: 'End-to-end encrypted',
         forward: {
           prefix: 'Fwd:',
           header: '---------- Forwarded message ----------',
@@ -416,6 +417,7 @@ const translations = {
           noRecipients: 'Add at least one recipient before sending.',
           primaryRecipientMissing:
             'Add at least one recipient in the To field. Copy and blind copy cannot travel on their own.',
+          unreadableRecipient: "Can't read {0} as an address. Fix it or remove it before sending.",
           blindCopyNotDeliverable: "Bcc isn't available for encrypted emails yet. Move the recipient to To or Cc.",
           internxtKeyMissing:
             'These recipients cannot receive encrypted mail yet: {0}. They need to open Internxt Mail once before you can write to them.',
@@ -1496,6 +1498,7 @@ const translations = {
         forwardedFrom: 'Mensaje reenviado de {0}',
         showForwarded: 'Mostrar',
         hideForwarded: 'Ocultar',
+        endToEndEncrypted: 'Cifrado de extremo a extremo',
         forward: {
           prefix: 'Fwd:',
           header: '---------- Mensaje reenviado ----------',
@@ -1515,6 +1518,7 @@ const translations = {
           noRecipients: 'Añade al menos un destinatario antes de enviar.',
           primaryRecipientMissing:
             'Añade al menos un destinatario en el campo Para. Las copias no pueden viajar solas.',
+          unreadableRecipient: 'No se puede leer {0} como dirección. Corrígelo o bórralo antes de enviar.',
           blindCopyNotDeliverable:
             'Cco aún no está disponible para correos cifrados. Mueve el destinatario a Para o Cc.',
           internxtKeyMissing:
