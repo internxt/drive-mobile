@@ -1,4 +1,10 @@
-import { AttachmentRef, DeliveryMode, EmailSummaryResponse, SendEmailRequest } from '@internxt/sdk/dist/mail/types';
+import {
+  AttachmentRef,
+  DeliveryMode,
+  EmailListResponse,
+  EmailSummaryResponse,
+  SendEmailRequest,
+} from '@internxt/sdk/dist/mail/types';
 import {
   Email,
   KeystoreType,
@@ -125,6 +131,23 @@ export const decryptPreviews = async (
       }
     }),
   );
+};
+
+/**
+ * Decrypts the previews of a page of emails. The page comes back as it is when there is no mnemonic or the
+ * key cannot be opened.
+ */
+export const decryptListedPreviews = async (page: EmailListResponse, mnemonic?: string): Promise<EmailListResponse> => {
+  if (!mnemonic) {
+    return page;
+  }
+  try {
+    const privateKey = await getPrivateHybridKey(mnemonic);
+    return { ...page, emails: await decryptPreviews(page.emails, privateKey) };
+  } catch (error) {
+    logger.error('Failed to decrypt previews', describeErrorForLog(error));
+    return page;
+  }
 };
 
 export const decryptPreview = async (encryption: EmailEncryptionBlock, privateKey: Uint8Array): Promise<string> => {
