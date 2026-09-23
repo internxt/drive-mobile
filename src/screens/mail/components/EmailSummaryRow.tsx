@@ -19,6 +19,7 @@ export const EmailSummaryRow = ({
   isDraftsMailbox,
   isSelected,
   selectionBox,
+  mailboxLabel,
   onPress,
   onLongPress,
 }: {
@@ -26,6 +27,7 @@ export const EmailSummaryRow = ({
   isDraftsMailbox: boolean;
   isSelected: boolean;
   selectionBox?: ReactNode;
+  mailboxLabel?: string;
   onPress: () => void;
   onLongPress?: () => void;
 }): JSX.Element => {
@@ -87,16 +89,21 @@ export const EmailSummaryRow = ({
             {dayjs(email.receivedAt).format('MMM D')}
           </AppText>
         </View>
-        <AppText
-          numberOfLines={1}
-          style={[
-            tailwind('mt-0.5 text-sm'),
-            { color: getColor('text-gray-100') },
-            isShownAsUnread ? { fontWeight: '600' } : undefined,
-          ]}
-        >
-          {email.subject}
-        </AppText>
+        <View style={tailwind('mt-0.5 flex-row items-center')}>
+          <AppText
+            numberOfLines={1}
+            style={[
+              tailwind('flex-1 text-sm'),
+              { color: getColor('text-gray-100') },
+              isShownAsUnread ? { fontWeight: '600' } : undefined,
+            ]}
+          >
+            {email.subject}
+          </AppText>
+          {mailboxLabel ? (
+            <AppText style={[tailwind('ml-2 text-xs'), { color: getColor('text-gray-40') }]}>{mailboxLabel}</AppText>
+          ) : null}
+        </View>
         <AppText numberOfLines={1} style={[tailwind('mt-0.5 text-sm'), { color: getColor('text-gray-40') }]}>
           {previewText}
         </AppText>

@@ -11,6 +11,7 @@ import {
   MailAccountKeysResponse,
   MailboxResponse,
   ReplyEmailRequest,
+  SearchFiltersQuery,
   SendEmailRequest,
   UpdateEmailRequest,
   UploadAttachmentResponse,
@@ -19,6 +20,9 @@ import { MailboxId } from '../../types/mail';
 import { AttachmentUploadAbortedError } from './errors';
 
 export const MAILBOX_PAGE_SIZE = 25;
+export const SEARCH_PAGE_SIZE = 25;
+
+export type SearchQuery = Omit<SearchFiltersQuery, 'limit' | 'position'>;
 
 export class MailboxService {
   private readonly sdk: SdkManager;
@@ -36,6 +40,19 @@ export class MailboxService {
    */
   public async listEmails(mailbox: MailboxId, { anchorId }: { anchorId?: string } = {}): Promise<EmailListResponse> {
     return this.sdk.mail.listEmails({ mailbox, limit: MAILBOX_PAGE_SIZE, anchorId });
+  }
+
+  /**
+   * Searches the emails of every mailbox, one page at a time.
+   *
+   * @param page.position - How many results come before this page.
+   * @param page.limit - How many results the page holds; `SEARCH_PAGE_SIZE` when omitted.
+   */
+  public async searchEmails(
+    query: SearchQuery,
+    { position, limit = SEARCH_PAGE_SIZE }: { position: number; limit?: number },
+  ): Promise<EmailListResponse> {
+    return this.sdk.mail.search({ ...query, limit, position });
   }
 
   /**

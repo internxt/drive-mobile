@@ -364,6 +364,12 @@ const translations = {
         selectAll: 'Select all',
         deselectAll: 'Deselect all',
         bulkActionFailed: '{0} of {1} conversations could not be updated.',
+        search: {
+          open: 'Search mail',
+          placeholder: 'Search mail',
+          idle: 'Search your emails in every mailbox',
+          noResults: 'No emails match your search',
+        },
         empty: {
           inbox: 'Inbox is empty',
           drafts: 'Drafts is empty',
@@ -1535,6 +1541,12 @@ const translations = {
         selectAll: 'Seleccionar todo',
         deselectAll: 'Desmarcar todo',
         bulkActionFailed: 'No se han podido actualizar {0} de {1} conversaciones.',
+        search: {
+          open: 'Buscar en el correo',
+          placeholder: 'Buscar en el correo',
+          idle: 'Busca tus correos en todas las bandejas',
+          noResults: 'Ningún correo coincide con la búsqueda',
+        },
         empty: {
           inbox: 'Bandeja de entrada está vacía',
           drafts: 'Borradores está vacía',
