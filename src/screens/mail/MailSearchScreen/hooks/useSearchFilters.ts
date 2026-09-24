@@ -1,6 +1,11 @@
 import { useState } from 'react';
 
-import { EMPTY_SEARCH_CRITERIA, SearchCriteria, addEmailEntries } from '@internxt-mobile/services/mail/mailSearch';
+import {
+  DateFilter,
+  EMPTY_SEARCH_CRITERIA,
+  SearchCriteria,
+  addEmailEntries,
+} from '@internxt-mobile/services/mail/mailSearch';
 
 export type EmailFieldType = 'from' | 'to';
 export type ToggleField = 'hasAttachment' | 'isUnread';
@@ -59,6 +64,11 @@ export const useSearchFilters = (search: (searchCriteria: SearchCriteria) => voi
     searchWith({ ...editedSearchCriteria, [field]: !editedSearchCriteria[field] });
   };
 
+  const changeDateFilter = (date: DateFilter) => {
+    setEmailsToSearch(null);
+    searchWith({ ...getSearchCriteriaWithEditedEmails(), date });
+  };
+
   const openEmailSearchInput = (field: EmailFieldType) => {
     if (emailsToSearch?.field === field) {
       closeEmailSearchInput();
@@ -85,6 +95,7 @@ export const useSearchFilters = (search: (searchCriteria: SearchCriteria) => voi
     submitText,
     clearText,
     toggleFilter,
+    changeDateFilter,
     openEmailSearchInput,
     closeEmailSearchInput,
     clearEmailSearchInput,

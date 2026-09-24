@@ -2187,6 +2187,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - RNDateTimePicker (8.4.4):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - RNDeviceInfo (8.7.1):
     - React-Core
   - RNFileViewer (2.1.5):
@@ -2607,6 +2629,7 @@ DEPENDENCIES:
   - "ReactNativeFs (from `../node_modules/@dr.pogodin/react-native-fs`)"
   - "rn-crypto (from `../node_modules/@internxt/rn-crypto`)"
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
+  - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNDeviceInfo (from `../node_modules/react-native-device-info`)
   - RNFileViewer (from `../node_modules/react-native-file-viewer`)
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
@@ -2868,6 +2891,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@internxt/rn-crypto"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
+  RNDateTimePicker:
+    :path: "../node_modules/@react-native-community/datetimepicker"
   RNDeviceInfo:
     :path: "../node_modules/react-native-device-info"
   RNFileViewer:
@@ -3013,6 +3038,7 @@ SPEC CHECKSUMS:
   ReactNativeFs: 601d5cf876d91f779583cef9a7d90d8b45394492
   rn-crypto: 4c27d5ae8ab4fad9a7f4c91fe7a6989172a09e82
   RNCAsyncStorage: 3a4f5e2777dae1688b781a487923a08569e27fe4
+  RNDateTimePicker: be0e44bcb9ed0607c7c5f47dbedd88cf091f6791
   RNDeviceInfo: d3e91ffb33ee97a7982108476edb68cb3672efa6
   RNFileViewer: 4b5d83358214347e4ab2d4ca8d5c1c90d869e251
   RNGestureHandler: 2914750df066d89bf9d8f48a10ad5f0051108ac3
@@ -3028,6 +3054,6 @@ SPEC CHECKSUMS:
   SDWebImageWebPCoder: e38c0a70396191361d60c092933e22c20d5b1380
   Yoga: 5934998fbeaef7845dbf698f698518695ab4cd1a
 
-PODFILE CHECKSUM: 5e7c6e946f98f043d20e27071e57d91a9eed5641
+PODFILE CHECKSUM: a37ef58e20a853612d3ddb230cf31aef60b11e0d
 
 COCOAPODS: 1.16.2

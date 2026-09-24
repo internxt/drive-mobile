@@ -2,10 +2,11 @@ import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { CaretLeftIcon, MagnifyingGlassIcon, WarningIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Keyboard, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
 
+import { ANY_DATE } from '@internxt-mobile/services/mail/mailSearch';
 import { resolveResultMailbox } from '@internxt-mobile/services/mail/threadMailboxes';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
@@ -19,6 +20,7 @@ import { MailboxId } from '../../../types/mail';
 import { MailScreenProps } from '../../../types/navigation';
 import { EmailSummaryRow } from '../components/EmailSummaryRow';
 import { HEADER_ICON_SIZE } from '../components/mailListLayout';
+import { DateFilterModal } from './components/DateFilterModal';
 import { EmailFilterPanel } from './components/EmailFilterPanel';
 import { SearchFilterBar } from './components/SearchFilterBar';
 import { useMailSearch } from './hooks/useMailSearch';
@@ -35,6 +37,7 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
   useLanguage();
   const mailboxTypeById = useAppSelector(selectMailboxTypeById);
   const [text, setText] = useState('');
+  const [isDateFilterOpen, setIsDateFilterOpen] = useState(false);
   const hasBeenFocusedRef = useRef(false);
   const { phase, emails, isLoadingNextPage, hasNextPageFailed, search, retry, refresh, loadNextPage, retryNextPage } =
     useMailSearch();
@@ -44,6 +47,7 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
     submitText,
     clearText,
     toggleFilter,
+    changeDateFilter,
     openEmailSearchInput,
     closeEmailSearchInput,
     clearEmailSearchInput,
@@ -64,6 +68,11 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
     if (!changedText) {
       clearText();
     }
+  };
+
+  const openDateFilter = () => {
+    Keyboard.dismiss();
+    setIsDateFilterOpen(true);
   };
 
   const onOpenResult = (email: EmailSummaryResponse, mailboxId: MailboxId) => {
@@ -188,6 +197,8 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
         expandedEmailSearchInput={emailsToSearch?.field}
         onOpenEmailSearchInput={openEmailSearchInput}
         onClearEmailSearchInput={clearEmailSearchInput}
+        onOpenDateFilter={openDateFilter}
+        onClearDateFilter={() => changeDateFilter(ANY_DATE)}
         onToggleFilter={toggleFilter}
       />
       {emailsToSearch && (
@@ -207,6 +218,12 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
       <Animated.View layout={LinearTransition.duration(EMAIL_PANEL_TRANSITION_DURATION)} style={tailwind('flex-1')}>
         {renderResult()}
       </Animated.View>
+      <DateFilterModal
+        isOpen={isDateFilterOpen}
+        date={searchCriteria.date}
+        onClose={() => setIsDateFilterOpen(false)}
+        onChange={changeDateFilter}
+      />
     </AppScreen>
   );
 };
