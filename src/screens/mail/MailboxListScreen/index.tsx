@@ -1,11 +1,9 @@
 import { useFocusEffect } from '@react-navigation/native';
-import dayjs from 'dayjs';
 import {
   CheckIcon,
   CheckSquareIcon,
   EnvelopeIcon,
   ListIcon,
-  PaperclipIcon,
   SquareIcon,
   WarningIcon,
   XIcon,
@@ -34,23 +32,19 @@ import { loadUnreadCountsThunk } from '../../../store/slices/mail';
 import { useMailboxEmails } from '../../../store/slices/mail/hooks/useMailboxEmails';
 import { MailboxId } from '../../../types/mail';
 import { MailboxScreenProps } from '../../../types/navigation';
+import { EmailSummaryRow } from '../components/EmailSummaryRow';
+import { HEADER_ICON_GAP, HEADER_ICON_SIZE, SELECTION_TRANSITION_DURATION } from '../components/mailListLayout';
 import { useMailboxBulkActions } from './hooks/useMailboxBulkActions';
 import { useMailboxSelection } from './hooks/useMailboxSelection';
 import { MailboxSelectionBar } from './MailboxSelectionBar';
 
-const HEADER_ICON_SIZE = 24;
-const HEADER_ICON_GAP = 12;
-const LEADING_COLUMN_WIDTH = HEADER_ICON_SIZE + HEADER_ICON_GAP;
 const CLOSE_BUTTON_SIZE = 32;
 const SELECTION_BOX_SIZE = 20;
-const UNREAD_DOT_TOP = 6;
 const CLOSE_ICON_SIZE = 18;
 const SELECT_ALL_ICON_SIZE = 16;
 const SELECT_ALL_BORDER_WIDTH = 1;
 const SELECTION_BOX_BORDER_WIDTH = 1.5;
 const CHECK_ICON_SIZE = 14;
-const SELECTION_TRANSITION_DURATION = 150;
-const ROW_HIGHLIGHT_DURATION = 120;
 const LIST_BOTTOM_PADDING_UNDER_SELECTION_BAR = 96;
 
 const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Element => {
@@ -352,83 +346,16 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
             />
           }
           renderItem={({ item }) => {
-            const senderLabel = item.from?.[0]?.name || item.from?.[0]?.email || '';
-            const recipientsLabel = (item.to ?? []).map((recipient) => recipient.name || recipient.email).join(', ');
-            const headlineLabel = isDraftsMailbox ? recipientsLabel || strings.screens.mail.noRecipients : senderLabel;
-            const isShownAsUnread = !item.isRead && !isDraftsMailbox;
-            const previewText = item.preview || '(No preview available)';
             const isSelected = selectedEmailIds.includes(item.id);
             return (
-              <TouchableOpacity
+              <EmailSummaryRow
+                email={item}
+                isDraftsMailbox={isDraftsMailbox}
+                isSelected={isSelected}
+                selectionBox={isSelecting ? renderSelectionBox(isSelected) : undefined}
                 onPress={() => onOpenEmail(item.id)}
                 onLongPress={() => toggleEmailSelection(item.id)}
-                style={[
-                  tailwind('flex-row px-4 py-3'),
-                  { borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') },
-                ]}
-              >
-                {isSelected && (
-                  <Animated.View
-                    entering={FadeIn.duration(ROW_HIGHLIGHT_DURATION)}
-                    exiting={FadeOut.duration(ROW_HIGHLIGHT_DURATION)}
-                    style={[
-                      StyleSheet.absoluteFill,
-                      tailwind('rounded-xl'),
-                      { backgroundColor: getColor('bg-primary-10') },
-                    ]}
-                  />
-                )}
-                <View
-                  style={[
-                    tailwind('items-center'),
-                    { width: LEADING_COLUMN_WIDTH, paddingTop: UNREAD_DOT_TOP, paddingRight: HEADER_ICON_GAP },
-                  ]}
-                >
-                  {isSelecting && renderSelectionBox(isSelected)}
-                  {!isSelecting && isShownAsUnread && (
-                    <Animated.View
-                      entering={FadeIn.duration(SELECTION_TRANSITION_DURATION)}
-                      exiting={FadeOut.duration(SELECTION_TRANSITION_DURATION)}
-                      style={[tailwind('w-2 h-2 rounded-full'), { backgroundColor: getColor('text-primary') }]}
-                    />
-                  )}
-                </View>
-                <View style={tailwind('flex-1')}>
-                  <View style={tailwind('flex-row items-center justify-between')}>
-                    <AppText
-                      numberOfLines={1}
-                      style={[
-                        tailwind('flex-1 mr-2 text-base'),
-                        { color: getColor('text-gray-100') },
-                        isShownAsUnread ? { fontWeight: '600' } : undefined,
-                      ]}
-                    >
-                      {headlineLabel}
-                    </AppText>
-                    {item.hasAttachment && (
-                      <View accessible accessibilityLabel={strings.screens.mail.hasAttachment} style={tailwind('mr-1')}>
-                        <PaperclipIcon size={14} color={getColor('text-gray-40')} />
-                      </View>
-                    )}
-                    <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-40') }]}>
-                      {dayjs(item.receivedAt).format('MMM D')}
-                    </AppText>
-                  </View>
-                  <AppText
-                    numberOfLines={1}
-                    style={[
-                      tailwind('mt-0.5 text-sm'),
-                      { color: getColor('text-gray-100') },
-                      isShownAsUnread ? { fontWeight: '600' } : undefined,
-                    ]}
-                  >
-                    {item.subject}
-                  </AppText>
-                  <AppText numberOfLines={1} style={[tailwind('mt-0.5 text-sm'), { color: getColor('text-gray-40') }]}>
-                    {previewText}
-                  </AppText>
-                </View>
-              </TouchableOpacity>
+              />
             );
           }}
         />

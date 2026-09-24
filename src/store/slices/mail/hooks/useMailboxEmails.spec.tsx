@@ -4,6 +4,7 @@ import { act, renderHook } from '@testing-library/react-native';
 import { ReactNode } from 'react';
 import { Provider } from 'react-redux';
 
+import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { MailboxId } from '../../../../types/mail';
 import mailReducer from '../index';
@@ -14,8 +15,7 @@ jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
 }));
 
 jest.mock('@internxt-mobile/services/mail/mailCrypto.service', () => ({
-  getPrivateHybridKey: jest.fn(),
-  decryptPreviews: jest.fn(),
+  decryptListedPreviews: jest.fn(),
 }));
 
 jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
@@ -23,6 +23,7 @@ jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
 }));
 
 const listEmailsMock = mailboxService.listEmails as jest.Mock;
+const decryptListedPreviewsMock = decryptListedPreviews as jest.Mock;
 
 const anEmail = (id: string, day: number) =>
   ({ id, threadId: id, receivedAt: `2026-09-${String(day).padStart(2, '0')}T10:00:00Z` }) as EmailSummaryResponse;
@@ -39,6 +40,7 @@ const renderMailbox = () => {
 describe('Showing a mailbox on screen', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => page);
   });
 
   test('when the mailbox is loaded, then the screen gets its emails newest first', async () => {

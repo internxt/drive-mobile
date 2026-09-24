@@ -1,6 +1,7 @@
 import * as crypto from 'internxt-crypto';
 import strings from '../../../assets/lang/strings';
 import AppService from '../AppService';
+import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common/logger/logger.service';
 import {
   ActiveDomainsUnavailableError,
@@ -25,6 +26,7 @@ import {
   encryptAndSendForward,
   encryptAndSendReply,
   uploadAttachment,
+  decryptListedPreviews,
 } from './mailCrypto.service';
 import { mailboxService } from './mailbox.service';
 import { recipientKeysService } from './recipientKeys.service';
@@ -525,6 +527,44 @@ describe('Reading a message that cannot be decrypted', () => {
 
     expect(logger.error).toHaveBeenCalledWith(expect.stringContaining('email-1'), failure);
     expect(email.preview).toBe(strings.screens.mail.unableToDecryptPreview);
+  });
+});
+
+describe('Showing the previews of a page of emails', () => {
+  const encryption = {
+    wrappedKeys: [{ encryptedForEmail: 'me@inxt.me', encryptedKey: 'k', hybridCiphertext: 'c' }],
+    encryptedPreview: 'preview',
+  };
+  const aPageWithAnEncryptedEmail = () =>
+    ({ emails: [{ id: 'email-1', preview: '', encryption }], total: 1, hasMoreMails: false }) as never;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('when the account can open its key, then the previews are shown decrypted', async () => {
+    (crypto.decryptEmailPreviewHybrid as jest.Mock).mockResolvedValue({ preview: 'The decrypted preview' });
+
+    const page = await decryptListedPreviews(aPageWithAnEncryptedEmail(), 'a mnemonic');
+
+    expect(page.emails[0].preview).toBe('The decrypted preview');
+  });
+
+  test('when there is no signed-in account, then the page is shown as it came', async () => {
+    const page = await decryptListedPreviews(aPageWithAnEncryptedEmail());
+
+    expect(crypto.decryptEmailPreviewHybrid).not.toHaveBeenCalled();
+    expect(page.emails[0].preview).toBe('');
+  });
+
+  test('when the key cannot be opened, then the page is shown as it came and the reason is logged', async () => {
+    (asyncStorageService.getItem as jest.Mock).mockResolvedValueOnce(null);
+    getMailAccountKeysMock.mockRejectedValueOnce(new Error('the server is unreachable'));
+
+    const page = await decryptListedPreviews(aPageWithAnEncryptedEmail(), 'a mnemonic');
+
+    expect(page.emails[0].preview).toBe('');
+    expect(logger.error).toHaveBeenCalledWith('Failed to decrypt previews', expect.anything());
   });
 });
 
