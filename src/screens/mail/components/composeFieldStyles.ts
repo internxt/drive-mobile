@@ -1,6 +1,6 @@
 import { TextStyle } from 'react-native';
 
-import globalStyles from '../../../../styles/global';
+import globalStyles from '../../../styles/global';
 
 export const COMPOSE_LABEL_WIDTH = 72;
 export const COMPOSE_ROW_HEIGHT = 52;

@@ -2,7 +2,7 @@ import { XIcon } from 'phosphor-react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
-import useGetColor from '../../../../hooks/useColor';
+import useGetColor from '../../../hooks/useColor';
 import { composeFieldTextStyle } from './composeFieldStyles';
 
 type RecipientChipProps = {

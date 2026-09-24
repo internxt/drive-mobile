@@ -1,11 +1,11 @@
 import { fireEvent, render } from '@testing-library/react-native';
 
-import { useComposeRecipients } from '../hooks/useComposeRecipients';
+import { useComposeRecipients } from '../ComposeEmailScreen/hooks/useComposeRecipients';
 import { RecipientRow } from './RecipientRow';
 
 jest.mock('tailwind-rn', () => ({ useTailwind: () => () => ({}) }));
 
-jest.mock('../../../../hooks/useColor', () => ({
+jest.mock('../../../hooks/useColor', () => ({
   __esModule: true,
   default: () => () => '#000000',
 }));

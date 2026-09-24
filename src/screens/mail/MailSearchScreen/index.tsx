@@ -3,9 +3,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import { CaretLeftIcon, MagnifyingGlassIcon, WarningIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, TouchableOpacity, View } from 'react-native';
+import Animated, { FadeInUp, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
 
-import { EMPTY_SEARCH_CRITERIA } from '@internxt-mobile/services/mail/mailSearch';
 import { resolveResultMailbox } from '@internxt-mobile/services/mail/threadMailboxes';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
@@ -19,10 +19,14 @@ import { MailboxId } from '../../../types/mail';
 import { MailScreenProps } from '../../../types/navigation';
 import { EmailSummaryRow } from '../components/EmailSummaryRow';
 import { HEADER_ICON_SIZE } from '../components/mailListLayout';
+import { EmailFilterPanel } from './components/EmailFilterPanel';
+import { SearchFilterBar } from './components/SearchFilterBar';
 import { useMailSearch } from './hooks/useMailSearch';
+import { useSearchFilters } from './hooks/useSearchFilters';
 
 const STATE_ICON_SIZE = 48;
 const STATE_TEXT_HORIZONTAL_PADDING = 32;
+const EMAIL_PANEL_TRANSITION_DURATION = 200;
 const BACK_BUTTON_HIT_SLOP = { top: 10, bottom: 10, left: 10, right: 10 };
 
 export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>): JSX.Element => {
@@ -34,6 +38,17 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
   const hasBeenFocusedRef = useRef(false);
   const { phase, emails, isLoadingNextPage, hasNextPageFailed, search, retry, refresh, loadNextPage, retryNextPage } =
     useMailSearch();
+  const {
+    searchCriteria,
+    emailsToSearch,
+    submitText,
+    clearText,
+    toggleFilter,
+    openEmailSearchInput,
+    closeEmailSearchInput,
+    clearEmailSearchInput,
+    changeEmailSearchInput,
+  } = useSearchFilters(search);
 
   useFocusEffect(
     useCallback(() => {
@@ -47,12 +62,8 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
   const onChangeText = (changedText: string) => {
     setText(changedText);
     if (!changedText) {
-      search(EMPTY_SEARCH_CRITERIA);
+      clearText();
     }
-  };
-
-  const onSubmitSearch = () => {
-    search({ ...EMPTY_SEARCH_CRITERIA, text });
   };
 
   const onOpenResult = (email: EmailSummaryResponse, mailboxId: MailboxId) => {
@@ -169,10 +180,33 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
           autoFocus
           returnKeyType="search"
           onChangeText={onChangeText}
-          onSubmitEditing={onSubmitSearch}
+          onSubmitEditing={() => submitText(text)}
         />
       </View>
-      {renderResult()}
+      <SearchFilterBar
+        searchCriteria={searchCriteria}
+        expandedEmailSearchInput={emailsToSearch?.field}
+        onOpenEmailSearchInput={openEmailSearchInput}
+        onClearEmailSearchInput={clearEmailSearchInput}
+        onToggleFilter={toggleFilter}
+      />
+      {emailsToSearch && (
+        <Animated.View
+          entering={FadeInUp.duration(EMAIL_PANEL_TRANSITION_DURATION)}
+          exiting={FadeOutUp.duration(EMAIL_PANEL_TRANSITION_DURATION)}
+        >
+          <EmailFilterPanel
+            label={strings.screens.mail.search.filters[emailsToSearch.field]}
+            emails={emailsToSearch.emails}
+            pendingText={emailsToSearch.pendingText}
+            onChange={changeEmailSearchInput}
+            onDone={closeEmailSearchInput}
+          />
+        </Animated.View>
+      )}
+      <Animated.View layout={LinearTransition.duration(EMAIL_PANEL_TRANSITION_DURATION)} style={tailwind('flex-1')}>
+        {renderResult()}
+      </Animated.View>
     </AppScreen>
   );
 };
