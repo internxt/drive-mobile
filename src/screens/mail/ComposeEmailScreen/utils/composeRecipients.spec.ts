@@ -202,26 +202,24 @@ describe('Knowing whether the copy fields have to stay visible', () => {
 describe('Knowing whether a message can be sent', () => {
   const MAIN_RECIPIENT_BEING_TYPED = { ...EMPTY_PENDING_RECIPIENT_TEXT, to: 'ada@inxt.me' };
 
-  test('when the only main recipient is typed and the subject is filled, then the message can be sent', () => {
+  test('when the only main recipient is typed, then the message can be sent', () => {
     expect(
       canSendMessage({
         recipients: recipientsByField(),
         pendingText: MAIN_RECIPIENT_BEING_TYPED,
-        subject: 'The numbers',
         isSending: false,
       }),
     ).toBe(true);
   });
 
-  test('when the subject is only blank space, then the message cannot be sent', () => {
+  test('when the subject is empty, then the message can still be sent', () => {
     expect(
       canSendMessage({
-        recipients: recipientsByField(),
-        pendingText: MAIN_RECIPIENT_BEING_TYPED,
-        subject: '   ',
+        recipients: recipientsByField({ to: ['ada@inxt.me'] }),
+        pendingText: EMPTY_PENDING_RECIPIENT_TEXT,
         isSending: false,
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 
   test('when the message is already being sent, then it cannot be sent again', () => {
@@ -229,7 +227,6 @@ describe('Knowing whether a message can be sent', () => {
       canSendMessage({
         recipients: recipientsByField(),
         pendingText: MAIN_RECIPIENT_BEING_TYPED,
-        subject: 'The numbers',
         isSending: true,
       }),
     ).toBe(false);
@@ -240,7 +237,6 @@ describe('Knowing whether a message can be sent', () => {
       canSendMessage({
         recipients: recipientsByField(),
         pendingText: EMPTY_PENDING_RECIPIENT_TEXT,
-        subject: 'The numbers',
         isSending: false,
       }),
     ).toBe(false);

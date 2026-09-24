@@ -302,7 +302,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
     isDraftLoaded &&
     !isUploadingAttachments &&
     failedAttachmentCount === 0 &&
-    canSendMessage({ recipients, pendingText, subject, isSending });
+    canSendMessage({ recipients, pendingText, isSending });
   const hasExtraRecipients = hasCopyOrBlindCopyRecipients(recipients, pendingText);
   const isMessageEndToEndEncrypted = isEndToEndEncrypted(recipients, pendingText, activeDomains);
 
