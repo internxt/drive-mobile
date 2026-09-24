@@ -5,6 +5,7 @@ import { EmailDetailScreen } from 'src/screens/mail/EmailDetailScreen';
 
 import useGetColor from '../hooks/useColor';
 import MailboxListScreen from '../screens/mail/MailboxListScreen';
+import { MailSearchScreen } from '../screens/mail/MailSearchScreen';
 import { MAILBOX_ORDER, MailboxId } from '../types/mail';
 import MailDrawerContent from './MailDrawerContent';
 
@@ -36,6 +37,7 @@ export const MailNavigator = () => {
     <MailStack.Navigator screenOptions={{ headerShown: false }}>
       <MailStack.Screen name="MailboxDrawer" component={MailboxDrawerNavigator} options={{ animation: 'default' }} />
       <MailStack.Screen name="EmailDetail" component={EmailDetailScreen} />
+      <MailStack.Screen name="MailSearch" component={MailSearchScreen} />
     </MailStack.Navigator>
   );
 };
