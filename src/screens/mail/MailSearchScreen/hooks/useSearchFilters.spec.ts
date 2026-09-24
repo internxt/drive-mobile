@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react-native';
 
-import { EMPTY_SEARCH_CRITERIA } from '@internxt-mobile/services/mail/mailSearch';
+import { ANY_DATE, EMPTY_SEARCH_CRITERIA } from '@internxt-mobile/services/mail/mailSearch';
 import { useSearchFilters } from './useSearchFilters';
 
 const renderFilters = () => {
@@ -99,5 +99,37 @@ describe('Filtering a search by emails', () => {
     act(() => result.current.clearEmailSearchInput('to'));
 
     expect(lastSearch()).toEqual({ ...EMPTY_SEARCH_CRITERIA, text: 'invoice' });
+  });
+});
+
+describe('Narrowing a search by date', () => {
+  test('when a date is chosen after a search, then the search runs again with the text and the date', () => {
+    const { result, lastSearch } = renderFilters();
+
+    act(() => result.current.submitText('invoice'));
+    act(() => result.current.changeDateFilter({ preset: 'last7Days' }));
+
+    expect(lastSearch()).toEqual({ ...EMPTY_SEARCH_CRITERIA, text: 'invoice', date: { preset: 'last7Days' } });
+  });
+
+  test('when the date is cleared, then the search runs again without it', () => {
+    const { result, lastSearch } = renderFilters();
+
+    act(() => result.current.submitText('invoice'));
+    act(() => result.current.changeDateFilter({ preset: 'today' }));
+    act(() => result.current.changeDateFilter(ANY_DATE));
+
+    expect(lastSearch()).toEqual({ ...EMPTY_SEARCH_CRITERIA, text: 'invoice' });
+  });
+
+  test('when a date is chosen while an email field is open, then its emails are kept', () => {
+    const { result, lastSearch } = renderFilters();
+
+    act(() => result.current.openEmailSearchInput('from'));
+    act(() => result.current.changeEmailSearchInput({ emails: ['ada@inxt.me'] }));
+    act(() => result.current.changeDateFilter({ preset: 'thisYear' }));
+
+    expect(result.current.emailsToSearch).toBeNull();
+    expect(lastSearch()).toEqual({ ...EMPTY_SEARCH_CRITERIA, from: ['ada@inxt.me'], date: { preset: 'thisYear' } });
   });
 });

@@ -96,4 +96,19 @@ describe('Searching from the search screen', () => {
 
     expect(searchEmailsMock).toHaveBeenCalledWith({ unread: true }, { position: 0, limit: SEARCH_PAGE_SIZE });
   });
+
+  test('when a period is chosen from the date chip, then the server is asked from the start of that period', async () => {
+    const screen = renderSearchScreen();
+    const { filters } = strings.screens.mail.search;
+
+    fireEvent.press(screen.getByText(filters.date));
+    await act(async () => {
+      fireEvent.press(await screen.findByText(filters.datePresets.last7Days));
+    });
+
+    expect(searchEmailsMock).toHaveBeenCalledWith(
+      { after: expect.any(String) },
+      { position: 0, limit: SEARCH_PAGE_SIZE },
+    );
+  });
 });
