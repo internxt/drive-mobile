@@ -369,6 +369,15 @@ const translations = {
           placeholder: 'Search mail',
           idle: 'Search your emails in every mailbox',
           noResults: 'No emails match your search',
+          filters: {
+            from: 'From',
+            to: 'To',
+            hasAttachment: 'Attachments',
+            unread: 'Unread',
+            emailsSummary: '{0}: {1}',
+            moreEmails: '{0} +{1}',
+            done: 'Done',
+          },
         },
         empty: {
           inbox: 'Inbox is empty',
@@ -1546,6 +1555,15 @@ const translations = {
           placeholder: 'Buscar en el correo',
           idle: 'Busca tus correos en todas las bandejas',
           noResults: 'Ningún correo coincide con la búsqueda',
+          filters: {
+            from: 'De',
+            to: 'Para',
+            hasAttachment: 'Adjuntos',
+            unread: 'No leídos',
+            emailsSummary: '{0}: {1}',
+            moreEmails: '{0} +{1}',
+            done: 'Hecho',
+          },
         },
         empty: {
           inbox: 'Bandeja de entrada está vacía',
