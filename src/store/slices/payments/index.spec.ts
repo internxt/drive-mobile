@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import paymentService from 'src/services/PaymentService';
-import { AppDispatch } from 'src/store';
+import { AppDispatch, RootState } from 'src/store';
 import paymentsReducer, { paymentsSelectors, paymentsThunks } from './index';
 
 const makeStore = (preloaded?: Parameters<typeof configureStore>[0]['preloadedState']) => {
@@ -18,6 +18,7 @@ jest.mock('src/services/PaymentService', () => ({
     getDefaultPaymentMethod: jest.fn().mockResolvedValue(null),
     billingEnabled: jest.fn().mockResolvedValue(false),
     getFileLimits: jest.fn(),
+    getMailAccess: jest.fn(),
   },
 }));
 
@@ -57,9 +58,9 @@ describe('payments slice — loadFileLimitsThunk', () => {
 
   test('when a valid cached value exists, then it is used and the backend is not called', async () => {
     mockPaymentService.getFileLimits.mockClear();
-    jest.spyOn(asyncStorageService, 'getItem').mockResolvedValue(
-      JSON.stringify({ photosAccess: true, cachedAt: Date.now() }),
-    );
+    jest
+      .spyOn(asyncStorageService, 'getItem')
+      .mockResolvedValue(JSON.stringify({ photosAccess: true, cachedAt: Date.now() }));
     const store = makeStore();
 
     await store.dispatch(paymentsThunks.loadFileLimitsThunk());
@@ -107,5 +108,77 @@ describe('payments selectors — hasPhotosAccess', () => {
       },
     });
     expect(paymentsSelectors.hasPhotosAccess(store.getState() as any)).toBe(false);
+  });
+});
+
+describe('Knowing whether the plan includes Mail', () => {
+  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+  beforeEach(() => {
+    mockPaymentService.getMailAccess.mockReset();
+    jest.spyOn(asyncStorageService, 'getItem').mockResolvedValue(null);
+    jest.spyOn(asyncStorageService, 'saveItem').mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  test('when the plan includes Mail, then Mail is unlocked', async () => {
+    mockPaymentService.getMailAccess.mockResolvedValue(true);
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(true);
+  });
+
+  test('when the plan does not include Mail, then Mail stays locked', async () => {
+    mockPaymentService.getMailAccess.mockResolvedValue(false);
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(false);
+  });
+
+  test('when the plan has not been checked yet, then Mail is locked', () => {
+    const store = makeStore();
+
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(false);
+  });
+
+  test('when the plan cannot be checked, then the access known before is kept', async () => {
+    mockPaymentService.getMailAccess.mockResolvedValue(null);
+    const store = makeStore({ payments: { ...makeStore().getState().payments, mailAccess: true } });
+
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(true);
+  });
+
+  test('when the plan was checked less than a day ago, then it is not asked again', async () => {
+    jest
+      .spyOn(asyncStorageService, 'getItem')
+      .mockResolvedValue(JSON.stringify({ mailAccess: true, cachedAt: Date.now() }));
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+
+    expect(mockPaymentService.getMailAccess).not.toHaveBeenCalled();
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(true);
+  });
+
+  test('when the plan was checked more than a day ago, then it is asked again', async () => {
+    jest
+      .spyOn(asyncStorageService, 'getItem')
+      .mockResolvedValue(JSON.stringify({ mailAccess: true, cachedAt: Date.now() - ONE_DAY_MS - 1 }));
+    mockPaymentService.getMailAccess.mockResolvedValue(false);
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+
+    expect(mockPaymentService.getMailAccess).toHaveBeenCalledTimes(1);
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(false);
   });
 });

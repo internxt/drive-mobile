@@ -1,12 +1,24 @@
-import { ImageIcon } from 'phosphor-react-native';
+import { Icon } from 'phosphor-react-native';
 import { StyleSheet, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
-import strings from '../../../../assets/lang/strings';
 import LockBadgeIcon from './LockBadgeIcon';
 
-const PhotosLockedOverlay = (): JSX.Element => {
+export type LockedFeatureTexts = {
+  title: string;
+  body: string;
+  upgradeLine: string;
+  upgradeInfoPrefix: string;
+  upgradeInfoHighlight: string;
+};
+
+interface LockedFeatureOverlayProps {
+  icon: Icon;
+  texts: LockedFeatureTexts;
+}
+
+const LockedFeatureOverlay = ({ icon: FeatureIcon, texts }: LockedFeatureOverlayProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
@@ -16,7 +28,7 @@ const PhotosLockedOverlay = (): JSX.Element => {
         <View
           style={[styles.iconTile, { backgroundColor: getColor('bg-gray-1'), borderColor: getColor('border-gray-10') }]}
         >
-          <ImageIcon size={64} color={getColor('text-primary')} weight="regular" />
+          <FeatureIcon size={64} color={getColor('text-primary')} weight="regular" />
           <View style={styles.lockBadge}>
             <LockBadgeIcon size={32} />
           </View>
@@ -24,18 +36,16 @@ const PhotosLockedOverlay = (): JSX.Element => {
 
         <View style={[tailwind('items-center w-full'), styles.textStack]}>
           <AppText semibold style={[tailwind('text-xl text-center'), { color: getColor('text-gray-100') }]}>
-            {strings.screens.photos.photosLocked.title}
+            {texts.title}
+          </AppText>
+          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>{texts.body}</AppText>
+          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
+            {texts.upgradeLine}
           </AppText>
           <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
-            {strings.screens.photos.photosLocked.body}
-          </AppText>
-          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
-            {strings.screens.photos.photosLocked.upgradeLine}
-          </AppText>
-          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
-            {strings.screens.photos.photosLocked.upgradeInfoPrefix}
+            {texts.upgradeInfoPrefix}
             <AppText semibold style={{ color: getColor('text-gray-60') }}>
-              {strings.screens.photos.photosLocked.upgradeInfoHighlight}
+              {texts.upgradeInfoHighlight}
             </AppText>
           </AppText>
         </View>
@@ -79,4 +89,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PhotosLockedOverlay;
+export default LockedFeatureOverlay;

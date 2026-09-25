@@ -2,7 +2,10 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import strings from 'assets/lang/strings';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
+import { ImageIcon } from 'phosphor-react-native';
 import AppScreen from 'src/components/AppScreen';
+import LockedFeatureOverlay from 'src/components/LockedFeatureOverlay';
+import { useLanguage } from 'src/hooks/useLanguage';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { paymentsThunks } from 'src/store/slices/payments';
@@ -25,7 +28,6 @@ import BackupDisabledBanner from './components/BackupDisabledBanner';
 import LimitedAccessBanner from './components/LimitedAccessBanner';
 import MoreActionsBottomSheet from './components/MoreActionsBottomSheet';
 import PhotosHeader from './components/PhotosHeader';
-import PhotosLockedOverlay from './components/PhotosLockedOverlay';
 import PhotosTimeline, { PhotosTimelineHandle } from './components/PhotosTimeline';
 import SelectionToolbar from './components/SelectionToolbar';
 import EnableBackupBottomSheet from './EnableBackupBottomSheet';
@@ -43,6 +45,7 @@ const PhotosScreen = (): JSX.Element => {
   const navigation = useNavigation<TabExplorerScreenNavigationProp<'Photos'>>();
   const enabled = useAppSelector((state) => state.photos.enabled);
   const hasAccess = useAppSelector(hasPhotosFeatureAccess);
+  useLanguage();
   const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
   const [isEnableBackupSheetOpen, setIsEnableBackupSheetOpen] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -264,7 +267,9 @@ const PhotosScreen = (): JSX.Element => {
           onDragUpdate={selection.updateDragSelect}
           onDragEnd={selection.endDragSelect}
         />
-        {accessState.type === 'photos-locked' && <PhotosLockedOverlay />}
+        {accessState.type === 'photos-locked' && (
+          <LockedFeatureOverlay icon={ImageIcon} texts={strings.screens.photos.photosLocked} />
+        )}
       </View>
 
       <SelectionToolbar
