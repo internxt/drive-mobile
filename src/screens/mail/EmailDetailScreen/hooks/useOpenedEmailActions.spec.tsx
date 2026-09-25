@@ -1,4 +1,4 @@
-import { EmailResponse } from '@internxt/sdk/dist/mail/types';
+import { EmailResponse, EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { configureStore } from '@reduxjs/toolkit';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { ReactNode } from 'react';
@@ -17,7 +17,7 @@ import { notifications } from '../../../../services/NotificationsService';
 import mailReducer from '../../../../store/slices/mail';
 import { createInitialMailState } from '../../../../store/slices/mail/initialState';
 import { MailboxId } from '../../../../types/mail';
-import { useEmailThreadMailboxActions } from './useEmailThreadMailboxActions';
+import { useOpenedEmailActions } from './useOpenedEmailActions';
 
 jest.mock('../../../../services/mail/mailCrypto.service', () => ({
   markEmailRead: jest.fn(),
@@ -71,13 +71,15 @@ const aMessage = (
     from: [{ email: sender }],
   }) as EmailResponse;
 
-const renderThreadActions = ({
-  messages,
-  mailboxId,
+const OPENED_EMAIL_ID = 'opened';
+
+const renderEmailActions = ({
+  messages = [],
+  openedEmailSummary = aMessage(OPENED_EMAIL_ID, MailboxId.Inbox) as EmailSummaryResponse,
   areMailboxesKnown = true,
 }: {
-  messages: EmailResponse[];
-  mailboxId: MailboxId;
+  messages?: EmailResponse[];
+  openedEmailSummary?: EmailSummaryResponse;
   areMailboxesKnown?: boolean;
 }) => {
   const store = configureStore({
@@ -88,21 +90,19 @@ const renderThreadActions = ({
   });
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>;
   const onReadStateChanged = jest.fn();
-  const reloadThread = jest.fn().mockResolvedValue(undefined);
   const onFinished = jest.fn();
   const rendered = renderHook(
     () =>
-      useEmailThreadMailboxActions({
+      useOpenedEmailActions({
         messages,
-        mailboxId,
+        openedEmailSummary,
         selfAddress: USER_ADDRESS,
         onReadStateChanged,
-        reloadThread,
         onFinished,
       }),
     { wrapper },
   );
-  return { ...rendered, onReadStateChanged, reloadThread, onFinished };
+  return { ...rendered, onReadStateChanged, onFinished };
 };
 
 const movedTo = () =>
@@ -115,7 +115,7 @@ const pressAlertButton = (buttonText: string) => {
   buttons.find((button) => button.text === buttonText)?.onPress?.();
 };
 
-describe('Acting on a conversation from the mailbox it was opened in', () => {
+describe('Acting on the opened email', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
@@ -125,122 +125,117 @@ describe('Acting on a conversation from the mailbox it was opened in', () => {
     deleteEmailsPermanentlyMock.mockImplementation(async (emails) => emails);
   });
 
-  test('when a conversation is opened, then its latest unread message in that mailbox is marked as read', async () => {
-    const { onReadStateChanged } = renderThreadActions({
+  test('when an unread email is opened, then only that email is marked as read', async () => {
+    const { onReadStateChanged } = renderEmailActions({
       messages: [
-        aMessage('received', MailboxId.Inbox, { isRead: false }),
-        aMessage('reply', MailboxId.Sent, { sender: USER_ADDRESS }),
+        aMessage('older', MailboxId.Inbox, { isRead: false }),
+        aMessage(OPENED_EMAIL_ID, MailboxId.Inbox, { isRead: false }),
       ],
-      mailboxId: MailboxId.Inbox,
     });
 
-    await waitFor(() => expect(onReadStateChanged).toHaveBeenCalledWith('received', true));
+    await waitFor(() => expect(onReadStateChanged).toHaveBeenCalledWith(OPENED_EMAIL_ID, true));
     expect(markEmailReadMock).toHaveBeenCalledTimes(1);
-    expect(markEmailReadMock).toHaveBeenCalledWith('received');
+    expect(markEmailReadMock).toHaveBeenCalledWith(OPENED_EMAIL_ID);
   });
 
-  test('when the mailboxes are not known yet, then they are loaded and no message is acted on', async () => {
+  test('when the mailboxes are not known yet, then they are loaded and the email is not marked as read', async () => {
     getMailboxesMock.mockReturnValue(new Promise(() => undefined));
-    const { result } = renderThreadActions({
-      messages: [aMessage('received', MailboxId.Inbox, { isRead: false })],
-      mailboxId: MailboxId.Inbox,
+    renderEmailActions({
+      messages: [aMessage(OPENED_EMAIL_ID, MailboxId.Inbox, { isRead: false })],
       areMailboxesKnown: false,
     });
 
     await waitFor(() => expect(getMailboxesMock).toHaveBeenCalled());
-    expect(result.current.messagesInMailbox).toEqual([]);
     expect(markEmailReadMock).not.toHaveBeenCalled();
   });
 
-  test('when a conversation is sent to spam, then only its messages in the inbox are moved and the screen is left', async () => {
-    const { result, onFinished } = renderThreadActions({
-      messages: [aMessage('received', MailboxId.Inbox), aMessage('reply', MailboxId.Sent, { sender: USER_ADDRESS })],
-      mailboxId: MailboxId.Inbox,
+  test('when the email is sent to spam, then only that email is moved and the screen is left', async () => {
+    const { result, onFinished } = renderEmailActions({
+      messages: [aMessage('other in inbox', MailboxId.Inbox), aMessage(OPENED_EMAIL_ID, MailboxId.Inbox)],
     });
 
     await act(() => result.current.moveThread(MailboxId.Spam));
 
-    expect(movedTo()).toEqual([['received', MailboxId.Spam]]);
+    expect(movedTo()).toEqual([[OPENED_EMAIL_ID, MailboxId.Spam]]);
     expect(onFinished).toHaveBeenCalled();
   });
 
-  test('when a conversation is restored from the trash, then each message goes back to where it came from', async () => {
-    const { result } = renderThreadActions({
-      messages: [
-        aMessage('received', MailboxId.Trash),
-        aMessage('reply', MailboxId.Trash, { sender: USER_ADDRESS }),
-        aMessage('still in inbox', MailboxId.Inbox),
-      ],
-      mailboxId: MailboxId.Trash,
+  test('when the conversation does not bring the opened email, then the email it was opened with is the one moved', async () => {
+    const openedEmailSummary = aMessage(OPENED_EMAIL_ID, MailboxId.Sent, {
+      sender: USER_ADDRESS,
+    }) as EmailSummaryResponse;
+    const { result } = renderEmailActions({
+      messages: [aMessage('received copy', MailboxId.Inbox, { sender: USER_ADDRESS })],
+      openedEmailSummary,
+    });
+
+    await act(() => result.current.moveThread(MailboxId.Trash));
+
+    expect(movedTo()).toEqual([[OPENED_EMAIL_ID, MailboxId.Trash]]);
+  });
+
+  test('when an email the user sent with themselves in hidden copy is restored, then it goes back to the inbox', async () => {
+    const openedEmailSummary = aMessage(OPENED_EMAIL_ID, MailboxId.Trash, {
+      sender: USER_ADDRESS,
+    }) as EmailSummaryResponse;
+    const emailInConversation = {
+      ...aMessage(OPENED_EMAIL_ID, MailboxId.Trash, { sender: USER_ADDRESS }),
+      to: [{ email: 'another@example.com' }],
+      bcc: [{ email: USER_ADDRESS }],
+    } as EmailResponse;
+    const { result } = renderEmailActions({ messages: [emailInConversation], openedEmailSummary });
+
+    await act(() => result.current.restoreThread());
+
+    expect(movedTo()).toEqual([[OPENED_EMAIL_ID, MailboxId.Inbox]]);
+  });
+
+  test('when an email the user sent is restored from the trash, then it goes back to the sent mailbox', async () => {
+    const { result } = renderEmailActions({
+      messages: [aMessage(OPENED_EMAIL_ID, MailboxId.Trash, { sender: USER_ADDRESS })],
     });
 
     await act(() => result.current.restoreThread());
 
-    expect(movedTo()).toEqual([
-      ['received', MailboxId.Inbox],
-      ['reply', MailboxId.Sent],
-    ]);
+    expect(movedTo()).toEqual([[OPENED_EMAIL_ID, MailboxId.Sent]]);
   });
 
-  test('when only some messages could be moved, then the user is told and the conversation is loaded again', async () => {
-    moveEmailsMock.mockImplementation(async (moves) => moves.slice(0, 1));
-    const { result, onFinished, reloadThread } = renderThreadActions({
-      messages: [aMessage('first', MailboxId.Inbox), aMessage('second', MailboxId.Inbox)],
-      mailboxId: MailboxId.Inbox,
-    });
-
-    await act(() => result.current.moveThread(MailboxId.Trash));
-
-    expect(notifications.error).toHaveBeenCalledWith(strings.screens.email_detail.moveToTrashFailed);
-    expect(reloadThread).toHaveBeenCalled();
-    expect(onFinished).not.toHaveBeenCalled();
-  });
-
-  test('when no message could be moved, then the user is told and the conversation stays as it was', async () => {
+  test('when the email could not be moved, then the user is told and stays on it', async () => {
     moveEmailsMock.mockImplementation(async () => []);
-    const { result, onFinished, reloadThread } = renderThreadActions({
-      messages: [aMessage('received', MailboxId.Inbox)],
-      mailboxId: MailboxId.Inbox,
-    });
+    const { result, onFinished } = renderEmailActions({ messages: [aMessage(OPENED_EMAIL_ID, MailboxId.Inbox)] });
 
     await act(() => result.current.moveThread(MailboxId.Trash));
 
     expect(notifications.error).toHaveBeenCalledWith(strings.screens.email_detail.moveToTrashFailed);
-    expect(reloadThread).not.toHaveBeenCalled();
     expect(onFinished).not.toHaveBeenCalled();
   });
 
-  test('when the user confirms deleting permanently, then only the messages in the trash are deleted', async () => {
-    const { result, onFinished } = renderThreadActions({
-      messages: [aMessage('in trash', MailboxId.Trash), aMessage('still in inbox', MailboxId.Inbox)],
-      mailboxId: MailboxId.Trash,
+  test('when the user confirms deleting permanently, then only that email is deleted', async () => {
+    const { result, onFinished } = renderEmailActions({
+      messages: [aMessage('other in trash', MailboxId.Trash), aMessage(OPENED_EMAIL_ID, MailboxId.Trash)],
     });
 
-    result.current.confirmAndDeleteThreadPermanently();
+    act(() => result.current.confirmAndDeleteThreadPermanently());
     await act(async () => pressAlertButton(strings.screens.email_detail.deleteConfirmation.confirm));
 
-    expect(deleteEmailsPermanentlyMock.mock.calls[0][0].map((email: EmailResponse) => email.id)).toEqual(['in trash']);
+    expect(deleteEmailsPermanentlyMock.mock.calls[0][0].map((email: EmailResponse) => email.id)).toEqual([
+      OPENED_EMAIL_ID,
+    ]);
     expect(onFinished).toHaveBeenCalled();
   });
 
   test('when the user cancels deleting permanently, then nothing is deleted', async () => {
-    const { result } = renderThreadActions({
-      messages: [aMessage('in trash', MailboxId.Trash)],
-      mailboxId: MailboxId.Trash,
-    });
+    const { result } = renderEmailActions({ messages: [aMessage(OPENED_EMAIL_ID, MailboxId.Trash)] });
 
-    result.current.confirmAndDeleteThreadPermanently();
+    act(() => result.current.confirmAndDeleteThreadPermanently());
     await act(async () => pressAlertButton(strings.buttons.cancel));
 
     expect(deleteEmailsPermanentlyMock).not.toHaveBeenCalled();
   });
 
-  test('when marking the conversation as unread fails, then the user is told and stays on it', async () => {
+  test('when marking the email as unread fails, then the user is told and stays on it', async () => {
     markEmailUnreadMock.mockRejectedValue(new Error('the server is unreachable'));
-    const { result, onFinished } = renderThreadActions({
-      messages: [aMessage('received', MailboxId.Inbox)],
-      mailboxId: MailboxId.Inbox,
-    });
+    const { result, onFinished } = renderEmailActions({ messages: [aMessage(OPENED_EMAIL_ID, MailboxId.Inbox)] });
 
     await act(() => result.current.markUnread());
 

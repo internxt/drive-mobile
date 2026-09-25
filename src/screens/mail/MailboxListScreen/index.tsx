@@ -1,3 +1,4 @@
+import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   CheckIcon,
@@ -33,14 +34,14 @@ import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { useAppDispatch } from '../../../store/hooks';
 import { loadUnreadCountsThunk } from '../../../store/slices/mail';
-import { uiActions } from '../../../store/slices/ui';
 import { useMailboxEmails } from '../../../store/slices/mail/hooks/useMailboxEmails';
+import { uiActions } from '../../../store/slices/ui';
 import { MailboxId } from '../../../types/mail';
 import { MailboxScreenProps } from '../../../types/navigation';
 import { EmailSummaryRow } from '../components/EmailSummaryRow';
+import { HEADER_ICON_GAP, HEADER_ICON_SIZE, SELECTION_TRANSITION_DURATION } from '../components/mailListLayout';
 import { MailListSkeleton } from '../components/MailListSkeleton';
 import { RefreshLine } from '../components/RefreshLine';
-import { HEADER_ICON_GAP, HEADER_ICON_SIZE, SELECTION_TRANSITION_DURATION } from '../components/mailListLayout';
 import { useMailboxBulkActions } from './hooks/useMailboxBulkActions';
 import { useMailboxSelection } from './hooks/useMailboxSelection';
 import { MailboxSelectionBar } from './MailboxSelectionBar';
@@ -93,7 +94,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
     moveSelected,
     restoreSelected,
     confirmAndDeleteSelectedPermanently,
-  } = useMailboxBulkActions({ mailboxId: selectedMailboxId, selectedEmails, onFinished: clearSelection });
+  } = useMailboxBulkActions({ selectedEmails, onFinished: clearSelection });
 
   const refreshUnreadCounts = useCallback(() => {
     dispatch(loadUnreadCountsThunk());
@@ -176,16 +177,16 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
 
   const isDraftsMailbox = selectedMailboxId === MailboxId.Drafts;
 
-  const onOpenEmail = (emailId: string) => {
+  const onOpenEmail = (email: EmailSummaryResponse) => {
     if (isSelecting) {
-      toggleEmailSelection(emailId);
+      toggleEmailSelection(email.id);
       return;
     }
     if (isDraftsMailbox) {
-      navigation.navigate('ComposeEmail', { draft: { draftId: emailId } });
+      navigation.navigate('ComposeEmail', { draft: { draftId: email.id } });
       return;
     }
-    navigation.navigate('EmailDetail', { emailId, mailboxId: selectedMailboxId });
+    navigation.navigate('EmailDetail', { email, mailboxId: selectedMailboxId });
   };
 
   const renderSelectionHeader = () => (
@@ -407,7 +408,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
                 isDraftsMailbox={isDraftsMailbox}
                 isSelected={isSelected}
                 selectionBox={isSelecting ? renderSelectionBox(isSelected) : undefined}
-                onPress={() => onOpenEmail(item.id)}
+                onPress={() => onOpenEmail(item)}
                 onLongPress={() => toggleEmailSelection(item.id)}
               />
             );

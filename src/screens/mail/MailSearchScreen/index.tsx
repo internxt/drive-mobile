@@ -81,7 +81,7 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
       navigation.navigate('ComposeEmail', { draft: { draftId: email.id } });
       return;
     }
-    navigation.navigate('EmailDetail', { emailId: email.id, mailboxId });
+    navigation.navigate('EmailDetail', { email, mailboxId });
   };
 
   const renderStateMessage = (icon: JSX.Element, message: string, action?: JSX.Element) => (
