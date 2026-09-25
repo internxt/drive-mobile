@@ -10,6 +10,7 @@ import _ from 'lodash';
 import React, { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
+import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/floatingButtonLayout';
 import { SearchInput } from 'src/components/SearchInput';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
@@ -181,7 +182,7 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
         {(getStatus() === UseCaseStatus.SUCCESS || sharedItems) && (
           <ScrollView
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-            contentContainerStyle={tailwind('flex-grow')}
+            contentContainerStyle={[tailwind('flex-grow'), { paddingBottom: FLOATING_BUTTON_CLEARANCE }]}
             onTouchEnd={handleOnEndOfListReached}
           >
             {renderContent()}

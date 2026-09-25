@@ -6,6 +6,7 @@ import strings from '../../../../assets/lang/strings';
 import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import EmptyList from '../../../components/EmptyList';
+import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/floatingButtonLayout';
 import useGetColor from '../../../hooks/useColor';
 
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
@@ -109,7 +110,10 @@ export function RecentsScreen({
               progressBackgroundColor={getColor('bg-gray-5')}
             />
           }
-          contentContainerStyle={[tailwind('flex-grow'), { backgroundColor: getColor('bg-surface') }]}
+          contentContainerStyle={[
+            tailwind('flex-grow'),
+            { backgroundColor: getColor('bg-surface'), paddingBottom: FLOATING_BUTTON_CLEARANCE },
+          ]}
           style={{ backgroundColor: getColor('bg-surface') }}
         >
           {renderContent()}
