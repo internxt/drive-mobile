@@ -345,7 +345,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
               {strings.formatString(strings.screens.email_detail.messageCount, thread.length)}
             </AppText>
           )}
-          {threadItems.map(renderThreadItem)}
+          {threadItems.map((item, itemIndex) => renderThreadItem(item, itemIndex))}
         </ScrollView>
       )}
 

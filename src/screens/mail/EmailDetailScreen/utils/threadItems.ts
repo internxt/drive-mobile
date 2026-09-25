@@ -17,7 +17,7 @@ export const groupThreadItems = (
   const isHiddenInGap = (messageId: string, index: number) =>
     canGroup && index > 0 && index <= lastGroupableIndex && !expandedMessageIds.includes(messageId);
 
-  const hiddenMessageIds = messageIds.filter(isHiddenInGap);
+  const hiddenMessageIds = messageIds.filter((messageId, index) => isHiddenInGap(messageId, index));
   const items: ThreadItem[] = [];
 
   messageIds.forEach((messageId, index) => {

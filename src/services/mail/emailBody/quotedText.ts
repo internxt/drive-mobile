@@ -15,7 +15,7 @@ type DomElement = Extract<DomNode, { attribs: Record<string, string> }>;
 
 const QUOTE_CONTAINER_CLASS_NAMES = ['gmail_quote', 'yahoo_quoted', 'protonmail_quote'];
 const QUOTE_HEADING_CLASS_NAME = 'moz-cite-prefix';
-const QUOTED_REPLY_HEADER_IDS = ['appendonsend', 'divRplyFwdMsg'];
+const QUOTED_REPLY_HEADER_IDS = new Set(['appendonsend', 'divRplyFwdMsg']);
 const CITED_BLOCKQUOTE_TYPE = 'cite';
 
 const QUOTED_LINE_PATTERN = /^\s*>/;
@@ -35,8 +35,7 @@ const isQuoteContainer = (element: DomElement): boolean =>
   (element.name === 'blockquote' && element.attribs.type === CITED_BLOCKQUOTE_TYPE) ||
   QUOTE_CONTAINER_CLASS_NAMES.some((className) => hasClassName(element, className));
 
-const isQuotedReplyHeader = (element: DomElement): boolean =>
-  QUOTED_REPLY_HEADER_IDS.includes(element.attribs.id ?? '');
+const isQuotedReplyHeader = (element: DomElement): boolean => QUOTED_REPLY_HEADER_IDS.has(element.attribs.id ?? '');
 
 const readTextAfter = (node: DomNode): string => {
   const textParts: string[] = [];
