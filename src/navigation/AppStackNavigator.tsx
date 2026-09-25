@@ -36,7 +36,7 @@ export default function AppStackNavigator(): JSX.Element {
       <Stack.Screen
         name="ComposeEmail"
         component={ComposeEmailScreen}
-        options={{ animation: 'slide_from_bottom', gestureEnabled: false }}
+        options={{ presentation: 'modal', animation: 'slide_from_bottom', gestureEnabled: false }}
       />
       {Platform.OS === 'android' && (
         <Stack.Screen
