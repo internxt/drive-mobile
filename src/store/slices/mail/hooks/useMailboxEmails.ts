@@ -16,22 +16,25 @@ import {
  * The emails of one mailbox, newest first, and the actions that load them.
  *
  * @param mailboxId - The mailbox.
- * @returns The emails, whether the first or a further page is loading or failed, and the actions that
- * load the first page, load and retry the next one, and refresh the newest emails.
+ * @returns The emails, whether the first or a further page is loading or failed, whether the newest emails are
+ * being refreshed, and the actions that load the first page, load and retry the next one, and refresh the newest
+ * emails.
  */
 export const useMailboxEmails = (mailboxId: MailboxId) => {
   const dispatch = useAppDispatch();
   const selectMailboxEmails = useMemo(makeSelectMailboxEmails, []);
   const emails = useAppSelector((state) => selectMailboxEmails(state, mailboxId));
-  const { isLoadingFirstPage, isLoadingNextPage, hasFirstPageFailed, hasNextPageFailed } = useAppSelector((state) => {
-    const mailboxList = selectMailboxList(state, mailboxId);
-    return {
-      isLoadingFirstPage: mailboxList.isLoadingFirstPage,
-      isLoadingNextPage: mailboxList.isLoadingNextPage,
-      hasFirstPageFailed: mailboxList.hasFirstPageFailed,
-      hasNextPageFailed: mailboxList.hasNextPageFailed,
-    };
-  }, shallowEqual);
+  const { isLoadingFirstPage, isLoadingNextPage, isRefreshingNewestEmails, hasFirstPageFailed, hasNextPageFailed } =
+    useAppSelector((state) => {
+      const mailboxList = selectMailboxList(state, mailboxId);
+      return {
+        isLoadingFirstPage: mailboxList.isLoadingFirstPage,
+        isLoadingNextPage: mailboxList.isLoadingNextPage,
+        isRefreshingNewestEmails: mailboxList.isRefreshingNewestEmails,
+        hasFirstPageFailed: mailboxList.hasFirstPageFailed,
+        hasNextPageFailed: mailboxList.hasNextPageFailed,
+      };
+    }, shallowEqual);
 
   const loadFirstPage = useCallback(async () => {
     await dispatch(loadFirstPageThunk({ mailboxId }));
@@ -54,6 +57,7 @@ export const useMailboxEmails = (mailboxId: MailboxId) => {
     emails,
     isLoadingFirstPage,
     isLoadingNextPage,
+    isRefreshingNewestEmails,
     hasFirstPageFailed,
     hasNextPageFailed,
     loadFirstPage,
