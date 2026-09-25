@@ -2,18 +2,18 @@ import { EmailResponse, EmailSummaryResponse } from '@internxt/sdk/dist/mail/typ
 
 import { MAILBOX_ORDER, MailboxId } from '../../types/mail';
 
-export const filterMessagesInMailbox = <Message extends Pick<EmailResponse, 'mailboxIds'>>(
-  messages: Message[],
-  mailboxId: MailboxId,
-  mailboxTypeById: Record<string, MailboxId>,
-): Message[] => messages.filter((message) => message.mailboxIds.some((id) => mailboxTypeById[id] === mailboxId));
+type RestorableMessage = Pick<EmailSummaryResponse, 'isDraft' | 'from' | 'to'> &
+  Partial<Pick<EmailResponse, 'cc' | 'bcc'>>;
 
-export const getRestoreMailbox = (message: Pick<EmailResponse, 'isDraft' | 'from'>, selfAddress: string): MailboxId => {
+export const getRestoreMailbox = (message: RestorableMessage, selfAddress: string): MailboxId => {
   if (message.isDraft) {
     return MailboxId.Drafts;
   }
-  const isSentByTheUser = message.from.some((sender) => sender.email.toLowerCase() === selfAddress.toLowerCase());
-  return isSentByTheUser ? MailboxId.Sent : MailboxId.Inbox;
+  const isSelf = (address: string) => address.toLowerCase() === selfAddress.toLowerCase();
+  const isSentByTheUser = message.from.some((sender) => isSelf(sender.email));
+  const recipients = [...(message.to ?? []), ...(message.cc ?? []), ...(message.bcc ?? [])];
+  const isSentToTheUser = recipients.some((recipient) => isSelf(recipient.email));
+  return isSentByTheUser && !isSentToTheUser ? MailboxId.Sent : MailboxId.Inbox;
 };
 
 /** Returns the mailbox the email is in, or the inbox when it is not known. */

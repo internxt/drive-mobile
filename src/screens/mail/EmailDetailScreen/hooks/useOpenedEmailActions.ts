@@ -1,5 +1,5 @@
-import { EmailResponse } from '@internxt/sdk/dist/mail/types';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { EmailResponse, EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import strings from '../../../../../assets/lang/strings';
 import { logger } from '../../../../services/common/logger/logger.service';
@@ -10,34 +10,35 @@ import {
   markEmailUnread,
   moveEmails,
 } from '../../../../services/mail/mailCrypto.service';
-import { filterMessagesInMailbox, getRestoreMailbox } from '../../../../services/mail/threadMailboxes';
+import { getRestoreMailbox } from '../../../../services/mail/threadMailboxes';
 import { notifications } from '../../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { loadUnreadCountsThunk, mailActions, selectMailboxTypeById } from '../../../../store/slices/mail';
 import { MailboxId } from '../../../../types/mail';
 import { confirmDeletePermanently, getMoveFailedMessage } from '../../threadActionMessages';
 
+type OpenedEmail = Pick<EmailSummaryResponse, 'id' | 'mailboxIds' | 'isRead' | 'isDraft' | 'from' | 'to'> &
+  Partial<Pick<EmailResponse, 'cc' | 'bcc'>>;
+
 /**
- * Runs the actions on the messages that are in `mailboxId`, and marks the latest of them as read once the
- * mailboxes are known, loading them when they are not. While one action runs, the others are ignored.
+ * Runs the actions on the opened email, taken from its conversation or else from the summary it was opened with,
+ * and marks it as read once the mailboxes are known, loading them when they are not. While one action runs, the
+ * others are ignored.
  *
- * @param params.onReadStateChanged - Called after a message is marked read or unread on the server.
- * @param params.reloadThread - Called when an action went through for some of the messages but not all.
- * @param params.onFinished - Called when an action went through for every message.
+ * @param params.onReadStateChanged - Called after the email is marked read or unread on the server.
+ * @param params.onFinished - Called when an action went through.
  */
-export const useEmailThreadMailboxActions = ({
+export const useOpenedEmailActions = ({
   messages,
-  mailboxId,
+  openedEmailSummary,
   selfAddress,
   onReadStateChanged,
-  reloadThread,
   onFinished,
 }: {
   messages: EmailResponse[];
-  mailboxId: MailboxId;
+  openedEmailSummary: OpenedEmail;
   selfAddress: string;
   onReadStateChanged: (messageId: string, isRead: boolean) => void;
-  reloadThread: () => Promise<void>;
   onFinished: () => void;
 }) => {
   const dispatch = useAppDispatch();
@@ -46,11 +47,8 @@ export const useEmailThreadMailboxActions = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const hasMarkedReadRef = useRef(false);
 
-  const messagesInMailbox = useMemo(
-    () => filterMessagesInMailbox(messages, mailboxId, mailboxTypeById),
-    [messages, mailboxId, mailboxTypeById],
-  );
-  const latestMessageInMailbox = messagesInMailbox[messagesInMailbox.length - 1];
+  const openedEmail: OpenedEmail =
+    messages.find((message) => message.id === openedEmailSummary.id) ?? openedEmailSummary;
 
   useEffect(() => {
     if (!areMailboxesKnown) {
@@ -59,31 +57,33 @@ export const useEmailThreadMailboxActions = ({
   }, [areMailboxesKnown, dispatch]);
 
   const updateReadState = useCallback(
-    async (message: EmailResponse, isRead: boolean) => {
-      await (isRead ? markEmailRead(message.id) : markEmailUnread(message.id));
-      dispatch(mailActions.threadReadStateChanged({ emails: [message], isRead }));
-      onReadStateChanged(message.id, isRead);
+    async (email: OpenedEmail, isRead: boolean) => {
+      await (isRead ? markEmailRead(email.id) : markEmailUnread(email.id));
+      dispatch(mailActions.threadReadStateChanged({ emails: [email], isRead }));
+      onReadStateChanged(email.id, isRead);
     },
     [dispatch, onReadStateChanged],
   );
 
   useEffect(() => {
-    if (hasMarkedReadRef.current || !latestMessageInMailbox) {
+    if (hasMarkedReadRef.current || !areMailboxesKnown) {
       return;
     }
     hasMarkedReadRef.current = true;
-    if (!latestMessageInMailbox.isRead) {
-      updateReadState(latestMessageInMailbox, true).catch((error) => {
+    if (!openedEmail.isRead) {
+      updateReadState(openedEmail, true).catch((error) => {
         logger.error('Failed to mark email as read', describeErrorForLog(error));
       });
     }
-  }, [latestMessageInMailbox, updateReadState]);
+  }, [openedEmail, areMailboxesKnown, updateReadState]);
 
   const markUnread = async () => {
-    if (!latestMessageInMailbox || isUpdating) return;
+    if (isUpdating) {
+      return;
+    }
     setIsUpdating(true);
     try {
-      await updateReadState(latestMessageInMailbox, false);
+      await updateReadState(openedEmail, false);
       onFinished();
     } catch (error) {
       logger.error('Failed to mark email unread', describeErrorForLog(error));
@@ -93,52 +93,51 @@ export const useEmailThreadMailboxActions = ({
     }
   };
 
-  const runThreadAction = async <Item>(
-    items: Item[],
+  const runEmailAction = async <Item>(
+    item: Item,
     request: (items: Item[]) => Promise<Item[]>,
     onCompleted: (completedItems: Item[]) => void,
     failureMessage: string,
   ) => {
-    if (isUpdating) return;
+    if (isUpdating) {
+      return;
+    }
     setIsUpdating(true);
     try {
-      const completedItems = await request(items);
-      onCompleted(completedItems);
-      if (completedItems.length < items.length) {
+      const completedItems = await request([item]);
+      if (completedItems.length === 0) {
         notifications.error(failureMessage);
-        if (completedItems.length > 0) {
-          await reloadThread();
-        }
         return;
       }
+      onCompleted(completedItems);
       onFinished();
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const moveMessagesTo = (destinationOf: (message: EmailResponse) => MailboxId, failureMessage: string) =>
-    runThreadAction(
-      messagesInMailbox.map((message) => ({ email: message, toMailboxId: destinationOf(message) })),
+  const moveEmailTo = (toMailboxId: MailboxId, failureMessage: string) =>
+    runEmailAction(
+      { email: openedEmail, toMailboxId },
       moveEmails,
       (completedMoves) => dispatch(mailActions.threadMovedOut({ moves: completedMoves })),
       failureMessage,
     );
 
-  const moveThread = (toMailboxId: MailboxId) => moveMessagesTo(() => toMailboxId, getMoveFailedMessage(toMailboxId));
+  const moveThread = (toMailboxId: MailboxId) => moveEmailTo(toMailboxId, getMoveFailedMessage(toMailboxId));
 
   const restoreThread = () =>
-    moveMessagesTo((message) => getRestoreMailbox(message, selfAddress), strings.screens.email_detail.restoreFailed);
+    moveEmailTo(getRestoreMailbox(openedEmail, selfAddress), strings.screens.email_detail.restoreFailed);
 
   const confirmAndDeleteThreadPermanently = () =>
     confirmDeletePermanently(() =>
-      runThreadAction(
-        messagesInMailbox,
+      runEmailAction(
+        openedEmail,
         deleteEmailsPermanently,
         (deletedEmails) => dispatch(mailActions.threadDeleted({ emails: deletedEmails })),
         strings.screens.email_detail.deleteFailed,
       ),
     );
 
-  return { messagesInMailbox, isUpdating, markUnread, moveThread, restoreThread, confirmAndDeleteThreadPermanently };
+  return { isUpdating, markUnread, moveThread, restoreThread, confirmAndDeleteThreadPermanently };
 };

@@ -1,11 +1,12 @@
-import type { DrawerScreenProps } from '@react-navigation/drawer';
-import { DraftComposeParams, ForwardComposeParams, MailboxId, ReplyComposeParams } from './mail';
+import type { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { DrawerScreenProps } from '@react-navigation/drawer';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TimelinePhotoItem } from '../screens/PhotosScreen/types';
 import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
 import { SharedFile } from '../shareExtension/types';
+import { DraftComposeParams, ForwardComposeParams, MailboxId, ReplyComposeParams } from './mail';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -84,7 +85,7 @@ export type MailDrawerParamList = {
 
 export type MailStackParamList = {
   MailboxDrawer: undefined;
-  EmailDetail: { emailId: string; mailboxId: MailboxId };
+  EmailDetail: { email: EmailSummaryResponse; mailboxId: MailboxId };
   MailSearch: undefined;
 };
 
