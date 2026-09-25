@@ -1,5 +1,5 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
-import { WarningIcon } from 'phosphor-react-native';
+import { CaretLeftIcon, WarningIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -7,7 +7,6 @@ import { useTailwind } from 'tailwind-rn';
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
-import AppScreenTitle from '../../../components/AppScreenTitle';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
@@ -28,9 +27,20 @@ import { AsyncStorageKey } from '../../../types';
 import { MailScreenProps } from '../../../types/navigation';
 import { useEmailThreadMailboxActions } from './hooks/useEmailThreadMailboxActions';
 import { useOpenAttachment } from './hooks/useOpenAttachment';
-import { MessageFooterBar } from './MessageFooterBar';
+import { REPLY_CAPSULE_BOTTOM, REPLY_CAPSULE_HEIGHT, ReplyCapsule } from './ReplyCapsule';
 import { ThreadActions } from './ThreadActions';
+import { ThreadGapPill } from './ThreadGapPill';
 import { ThreadMessageCard } from './ThreadMessageCard';
+import { groupThreadItems, ThreadItem } from './utils/threadItems';
+
+const TOP_BAR_HEIGHT = 48;
+const BACK_ICON_SIZE = 24;
+const SUBJECT_FONT_SIZE = 24;
+const SUBJECT_LINE_HEIGHT = 29;
+const CONTENT_SPACE_UNDER_CAPSULE = 24;
+const TOP_BAR_LEADING_PADDING = 6;
+const TOP_BAR_TRAILING_PADDING = 8;
+const TOUCH_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 type ResolvedMessage = {
   message: EmailResponse;
@@ -49,6 +59,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [expandedMessageIds, setExpandedMessageIds] = useState<string[]>([]);
+  const [isThreadGapOpen, setIsThreadGapOpen] = useState(false);
   const [selfAddress, setSelfAddress] = useState('');
   const scrollViewRef = useRef<ScrollView>(null);
   const hasScrolledToEnd = useRef(false);
@@ -100,6 +111,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
       setThread(resolved);
       const latest = sorted[sorted.length - 1];
       setExpandedMessageIds(latest ? [latest.id] : []);
+      setIsThreadGapOpen(false);
     } catch {
       setHasError(true);
     } finally {
@@ -138,7 +150,12 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
       onFinished: () => navigation.goBack(),
     });
 
-  const onBackButtonPressed = () => navigation.goBack();
+  const onBackButtonPressed = () => {
+    if (!navigation.isFocused()) {
+      return;
+    }
+    navigation.goBack();
+  };
 
   const onToggleExpanded = (messageId: string) => {
     setExpandedMessageIds((expanded) =>
@@ -201,12 +218,16 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
     }
   };
 
-  const renderMessage = (entry: ResolvedMessage, index: number) => {
+  const isThread = thread.length > 1;
+  const threadItems = groupThreadItems(
+    thread.map((entry) => entry.message.id),
+    expandedMessageIds,
+    isThreadGapOpen,
+  );
+
+  const renderMessage = (entry: ResolvedMessage, hasSeparator: boolean) => {
     const { message, bodySource } = entry;
     const isLastMessage = latestEntry === entry;
-    const nextMessage = thread[index + 1]?.message;
-    const hasSeparator =
-      !expandedMessageIds.includes(message.id) && !!nextMessage && !expandedMessageIds.includes(nextMessage.id);
 
     return (
       <View
@@ -216,16 +237,11 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
         <ThreadMessageCard
           message={message}
           bodySource={bodySource}
+          selfAddress={selfAddress}
           isExpanded={expandedMessageIds.includes(message.id)}
-          isBusy={isUpdating}
           hasSeparator={hasSeparator}
-          canReplyAll={canReplyAllTo(message)}
-          canForward={bodySource.type !== 'encryptedUnreadable'}
-          hasFooterBar={isLastMessage}
           onToggleExpanded={isLastMessage ? undefined : () => onToggleExpanded(message.id)}
-          onReply={() => onReply(message, false)}
-          onReplyAll={() => onReply(message, true)}
-          onForward={() => onForward(entry)}
+          onReply={isThread ? () => onReply(message, false) : undefined}
           openingAttachmentId={openingAttachmentId}
           onPressAttachment={(attachment) => onPressAttachment(entry, attachment)}
         />
@@ -233,22 +249,59 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
     );
   };
 
-  return (
-    <AppScreen safeAreaTop style={[tailwind('flex-1 flex-grow'), { backgroundColor: getColor('bg-gray-5') }]}>
-      <AppScreenTitle
-        text={latestEntry?.message.subject || strings.screens.mail.title}
-        onBackButtonPressed={onBackButtonPressed}
-      />
-      {!isLoading && !hasError && messagesInMailbox.length > 0 && (
-        <ThreadActions
-          mailboxId={mailboxId}
-          isDisabled={isUpdating}
-          onMarkUnread={markUnread}
-          onMove={moveThread}
-          onRestore={restoreThread}
-          onDeletePermanently={confirmAndDeleteThreadPermanently}
+  const renderThreadItem = (item: ThreadItem, itemIndex: number) => {
+    if (item.type === 'gap') {
+      return (
+        <ThreadGapPill
+          key="gap"
+          hiddenMessageCount={item.hiddenMessageIds.length}
+          onPress={() => setIsThreadGapOpen(true)}
         />
-      )}
+      );
+    }
+    const entry = thread.find(({ message }) => message.id === item.messageId);
+    const nextItem = threadItems[itemIndex + 1];
+    return entry ? renderMessage(entry, !!nextItem && nextItem.type === 'message') : null;
+  };
+
+  const hasLoadedThread = !isLoading && !hasError && thread.length > 0;
+
+  return (
+    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
+      <View
+        style={[
+          tailwind('flex-row items-center justify-between'),
+          {
+            height: TOP_BAR_HEIGHT,
+            paddingLeft: TOP_BAR_LEADING_PADDING,
+            paddingRight: TOP_BAR_TRAILING_PADDING,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={strings.buttons.back}
+          onPress={onBackButtonPressed}
+          hitSlop={TOUCH_SLOP}
+          style={[tailwind('flex-row items-center flex-shrink'), { paddingRight: TOP_BAR_TRAILING_PADDING }]}
+        >
+          <CaretLeftIcon size={BACK_ICON_SIZE} weight="bold" color={getColor('text-primary')} />
+          <AppText numberOfLines={1} style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
+            {strings.screens.mail.mailboxes[mailboxId]}
+          </AppText>
+        </TouchableOpacity>
+        {!isLoading && !hasError && messagesInMailbox.length > 0 && (
+          <ThreadActions
+            mailboxId={mailboxId}
+            isDisabled={isUpdating}
+            onMarkUnread={markUnread}
+            onMove={moveThread}
+            onRestore={restoreThread}
+            onDeletePermanently={confirmAndDeleteThreadPermanently}
+          />
+        )}
+      </View>
+
       {isLoading && (
         <View style={tailwind('flex-1 items-center justify-center')}>
           <ActivityIndicator color={getColor('text-primary')} />
@@ -269,25 +322,38 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
         </View>
       )}
 
-      {!isLoading && !hasError && thread.length > 0 && (
+      {hasLoadedThread && (
         <ScrollView
           ref={scrollViewRef}
           style={tailwind('flex-1')}
-          contentContainerStyle={tailwind('pt-2')}
+          contentContainerStyle={{
+            paddingBottom: REPLY_CAPSULE_BOTTOM + REPLY_CAPSULE_HEIGHT + CONTENT_SPACE_UNDER_CAPSULE,
+          }}
           onContentSizeChange={onScrollContentSizeChange}
         >
-          {thread.map(renderMessage)}
+          <AppText
+            semibold
+            style={[
+              tailwind('px-4 pt-1 pb-2'),
+              { fontSize: SUBJECT_FONT_SIZE, lineHeight: SUBJECT_LINE_HEIGHT, color: getColor('text-gray-100') },
+            ]}
+          >
+            {latestEntry?.message.subject || strings.screens.mail.title}
+          </AppText>
+          {isThread && (
+            <AppText style={[tailwind('px-4 pb-2 text-sm'), { color: getColor('text-gray-50') }]}>
+              {strings.formatString(strings.screens.email_detail.messageCount, thread.length)}
+            </AppText>
+          )}
+          {threadItems.map(renderThreadItem)}
         </ScrollView>
       )}
 
-      {!isLoading && !hasError && latestEntry && (
-        <MessageFooterBar
-          attachments={latestEntry.message.attachments ?? []}
-          openingAttachmentId={openingAttachmentId}
+      {hasLoadedThread && latestEntry && (
+        <ReplyCapsule
           isBusy={isUpdating}
           canReplyAll={canReplyAllTo(latestEntry.message)}
           canForward={latestEntry.bodySource.type !== 'encryptedUnreadable'}
-          onPressAttachment={(attachment) => onPressAttachment(latestEntry, attachment)}
           onReply={() => onReply(latestEntry.message, false)}
           onReplyAll={() => onReply(latestEntry.message, true)}
           onForward={() => onForward(latestEntry)}
