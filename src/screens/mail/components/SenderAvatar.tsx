@@ -7,6 +7,7 @@ import { getPaletteIndex, initialOf } from './avatarInitial';
 
 const AVATAR_DIMENSIONS = {
   regular: { diameter: 40, fontSize: 15 },
+  medium: { diameter: 32, fontSize: 13 },
   small: { diameter: 24, fontSize: 12 },
 };
 
