@@ -9,9 +9,11 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
-import { HEADER_ICON_GAP, LEADING_COLUMN_WIDTH, SELECTION_TRANSITION_DURATION } from './mailListLayout';
+import { SELECTION_TRANSITION_DURATION } from './mailListLayout';
+import { SENDER_AVATAR_SIZE, SenderAvatar } from './SenderAvatar';
 
-const UNREAD_DOT_TOP = 6;
+const AVATAR_GAP = 12;
+const UNREAD_DOT_SIZE = 8;
 const ROW_HIGHLIGHT_DURATION = 120;
 
 export const EmailSummaryRow = ({
@@ -34,7 +36,9 @@ export const EmailSummaryRow = ({
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
-  const senderLabel = email.from?.[0]?.name || email.from?.[0]?.email || '';
+  const sender = email.from?.[0];
+  const senderLabel = sender?.name || sender?.email || '';
+  const avatarContact = isDraftsMailbox ? email.to?.[0] : sender;
   const recipientsLabel = (email.to ?? []).map((recipient) => recipient.name || recipient.email).join(', ');
   const headlineLabel = isDraftsMailbox ? recipientsLabel || strings.screens.mail.noRecipients : senderLabel;
   const isShownAsUnread = !email.isRead && !isDraftsMailbox;
@@ -55,28 +59,25 @@ export const EmailSummaryRow = ({
       )}
       <View
         style={[
-          tailwind('items-center'),
-          { width: LEADING_COLUMN_WIDTH, paddingTop: UNREAD_DOT_TOP, paddingRight: HEADER_ICON_GAP },
+          tailwind('items-center justify-center'),
+          { width: SENDER_AVATAR_SIZE, height: SENDER_AVATAR_SIZE, marginRight: AVATAR_GAP },
         ]}
       >
-        {selectionBox}
-        {!selectionBox && isShownAsUnread && (
+        {selectionBox ?? (
           <Animated.View
             entering={FadeIn.duration(SELECTION_TRANSITION_DURATION)}
             exiting={FadeOut.duration(SELECTION_TRANSITION_DURATION)}
-            style={[tailwind('w-2 h-2 rounded-full'), { backgroundColor: getColor('text-primary') }]}
-          />
+          >
+            <SenderAvatar name={avatarContact?.name} address={avatarContact?.email ?? ''} />
+          </Animated.View>
         )}
       </View>
       <View style={tailwind('flex-1')}>
         <View style={tailwind('flex-row items-center justify-between')}>
           <AppText
             numberOfLines={1}
-            style={[
-              tailwind('flex-1 mr-2 text-base'),
-              { color: getColor('text-gray-100') },
-              isShownAsUnread ? { fontWeight: '600' } : undefined,
-            ]}
+            semibold={isShownAsUnread}
+            style={[tailwind('flex-1 mr-2 text-base'), { color: getColor('text-gray-100') }]}
           >
             {headlineLabel}
           </AppText>
@@ -88,15 +89,22 @@ export const EmailSummaryRow = ({
           <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-40') }]}>
             {dayjs(email.receivedAt).format('MMM D')}
           </AppText>
+          {isShownAsUnread && (
+            <View
+              accessible
+              accessibilityLabel={strings.screens.mail.unread}
+              style={[
+                tailwind('ml-1.5 rounded-full'),
+                { width: UNREAD_DOT_SIZE, height: UNREAD_DOT_SIZE, backgroundColor: getColor('text-primary') },
+              ]}
+            />
+          )}
         </View>
         <View style={tailwind('mt-0.5 flex-row items-center')}>
           <AppText
             numberOfLines={1}
-            style={[
-              tailwind('flex-1 text-sm'),
-              { color: getColor('text-gray-100') },
-              isShownAsUnread ? { fontWeight: '600' } : undefined,
-            ]}
+            semibold={isShownAsUnread}
+            style={[tailwind('flex-1 text-sm'), { color: getColor('text-gray-100') }]}
           >
             {email.subject}
           </AppText>

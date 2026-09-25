@@ -9,11 +9,13 @@ import {
   WarningIcon,
   XIcon,
 } from 'phosphor-react-native';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   BackHandler,
   FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   RefreshControl,
   StyleSheet,
   TouchableOpacity,
@@ -26,10 +28,12 @@ import { logger } from '@internxt-mobile/services/common';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import AppText from '../../../components/AppText';
+import { FLOATING_BUTTON_CLEARANCE } from '../../../components/FloatingActionButton/floatingButtonLayout';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { useAppDispatch } from '../../../store/hooks';
 import { loadUnreadCountsThunk } from '../../../store/slices/mail';
+import { uiActions } from '../../../store/slices/ui';
 import { useMailboxEmails } from '../../../store/slices/mail/hooks/useMailboxEmails';
 import { MailboxId } from '../../../types/mail';
 import { MailboxScreenProps } from '../../../types/navigation';
@@ -47,6 +51,8 @@ const SELECT_ALL_BORDER_WIDTH = 1;
 const SELECTION_BOX_BORDER_WIDTH = 1.5;
 const CHECK_ICON_SIZE = 14;
 const LIST_BOTTOM_PADDING_UNDER_SELECTION_BAR = 96;
+const COMPOSE_BUTTON_COLLAPSE_OFFSET = 20;
+const SCROLL_EVENT_THROTTLE_MS = 16;
 
 const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Element => {
   const selectedMailboxId = route.name as MailboxId;
@@ -55,6 +61,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   useLanguage();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasLoadedMailboxRef = useRef(false);
+  const isScrolledPastCollapseOffsetRef = useRef(false);
   const dispatch = useAppDispatch();
   const {
     emails,
@@ -110,6 +117,31 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       };
     }, [loadMailboxOnFocus, route.name, clearSelection]),
   );
+
+  useFocusEffect(
+    useCallback(() => {
+      dispatch(uiActions.setIsComposeButtonCollapsed(isScrolledPastCollapseOffsetRef.current));
+    }, [dispatch]),
+  );
+
+  useEffect(() => {
+    dispatch(uiActions.setIsFloatingButtonHidden(isSelecting));
+  }, [isSelecting, dispatch]);
+
+  useEffect(
+    () => () => {
+      dispatch(uiActions.setIsFloatingButtonHidden(false));
+    },
+    [dispatch],
+  );
+
+  const onListScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const isScrolledPastCollapseOffset = event.nativeEvent.contentOffset.y > COMPOSE_BUTTON_COLLAPSE_OFFSET;
+    if (isScrolledPastCollapseOffset !== isScrolledPastCollapseOffsetRef.current) {
+      isScrolledPastCollapseOffsetRef.current = isScrolledPastCollapseOffset;
+      dispatch(uiActions.setIsComposeButtonCollapsed(isScrolledPastCollapseOffset));
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -339,10 +371,12 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
         )}
         <FlatList
           style={tailwind('flex-1')}
-          contentContainerStyle={
-            isSelecting ? { paddingBottom: LIST_BOTTOM_PADDING_UNDER_SELECTION_BAR } : tailwind('pb-8')
-          }
+          contentContainerStyle={{
+            paddingBottom: isSelecting ? LIST_BOTTOM_PADDING_UNDER_SELECTION_BAR : FLOATING_BUTTON_CLEARANCE,
+          }}
           data={emails}
+          onScroll={onListScroll}
+          scrollEventThrottle={SCROLL_EVENT_THROTTLE_MS}
           keyExtractor={(email) => email.id}
           onEndReached={() => loadNextPage()}
           onEndReachedThreshold={0.5}

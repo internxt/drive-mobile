@@ -40,11 +40,9 @@ const translations = {
       Home: 'Home',
       Drive: 'Drive',
       Mail: 'Mail',
-      Add: 'Add',
       Shared: 'Shared',
       Photos: 'Photos',
       Settings: 'Settings',
-      NewEmail: 'New Message',
     },
     subscriptions: {
       free: 'Free plan',
@@ -419,6 +417,7 @@ const translations = {
         showRemoteImages: 'Show images',
         remoteImagesBlocked: 'Images in this message are blocked',
         hasAttachment: 'Has attachments',
+        unread: 'Unread',
       },
       email_detail: {
         to: 'To:',
@@ -800,6 +799,11 @@ const translations = {
       emailBody: 'Write your message...',
     },
     components: {
+      floatingActionButton: {
+        compose: 'Compose',
+        openUploadMenu: 'Add',
+        closeUploadMenu: 'Close',
+      },
       DriveList: {
         noResults: {
           title: 'No results found',
@@ -1243,11 +1247,9 @@ const translations = {
       Home: 'Inicio',
       Drive: 'Drive',
       Mail: 'Correo',
-      Add: 'Añadir',
       Shared: 'Compartido',
       Photos: 'Fotos',
       Settings: 'Ajustes',
-      NewEmail: 'Nuevo mensaje',
     },
     subscriptions: {
       free: 'Plan gratuito',
@@ -1625,6 +1627,7 @@ const translations = {
         showRemoteImages: 'Mostrar imágenes',
         remoteImagesBlocked: 'Las imágenes de este mensaje están bloqueadas',
         hasAttachment: 'Tiene adjuntos',
+        unread: 'No leído',
       },
       email_detail: {
         to: 'Para:',
@@ -2006,6 +2009,11 @@ const translations = {
       emailBody: 'Escribe tu mensaje...',
     },
     components: {
+      floatingActionButton: {
+        compose: 'Redactar',
+        openUploadMenu: 'Añadir',
+        closeUploadMenu: 'Cerrar',
+      },
       DriveList: {
         noResults: {
           title: 'Sin resultados',
