@@ -383,6 +383,7 @@ const translations = {
       email_detail: {
         to: 'To:',
         cc: 'Cc:',
+        attachmentOpenFailed: 'The attachment could not be opened.',
         actions: {
           reply: 'Reply',
           replyAll: 'Reply all',
@@ -1515,6 +1516,7 @@ const translations = {
       email_detail: {
         to: 'Para:',
         cc: 'Cc:',
+        attachmentOpenFailed: 'No se ha podido abrir el adjunto.',
         actions: {
           reply: 'Responder',
           replyAll: 'Responder a todos',

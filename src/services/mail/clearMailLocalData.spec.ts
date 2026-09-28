@@ -1,8 +1,10 @@
 import { clearMailLocalData } from './clearMailLocalData';
 import { mailLocalDB } from './database/mailLocalDB';
+import { clearOpenedAttachments } from './mailAttachment.service';
 import { recipientKeysService } from './recipientKeys.service';
 
 jest.mock('./database/mailLocalDB', () => ({ mailLocalDB: { resetDatabase: jest.fn() } }));
+jest.mock('./mailAttachment.service', () => ({ clearOpenedAttachments: jest.fn() }));
 jest.mock('./recipientKeys.service', () => ({ recipientKeysService: { clear: jest.fn() } }));
 jest.mock('../common/logger/logger.service', () => ({ logger: { info: jest.fn(), error: jest.fn() } }));
 
@@ -13,6 +15,12 @@ describe('Clearing what Mail keeps on the device', () => {
     await clearMailLocalData();
 
     expect(mailLocalDB.resetDatabase).toHaveBeenCalledTimes(1);
+  });
+
+  test('when the mail data is cleared, then the attachments opened on the device are deleted', async () => {
+    await clearMailLocalData();
+
+    expect(clearOpenedAttachments).toHaveBeenCalledTimes(1);
   });
 
   test('when the mail data is cleared, then the resolved recipient keys of the account are forgotten', async () => {
