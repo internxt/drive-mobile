@@ -1,3 +1,5 @@
+import type { AttachmentRef } from '@internxt/sdk/dist/mail/types';
+
 export type MailAttachment = {
   uri: string;
   name: string;
@@ -49,6 +51,25 @@ export type SendStage =
   | { name: 'uploadingAttachments'; current: number; total: number }
   | { name: 'sending' };
 
+export type DraftAttachments = {
+  attachmentsSessionKey: string;
+  attachments: AttachmentRef[];
+};
+
+export type DraftContent = {
+  to: string[];
+  cc: string[];
+  bcc: string[];
+  subject: string;
+  body: string;
+  draftAttachments: DraftAttachments | null;
+};
+
+export type OutgoingNewEmail = OutgoingEmail & {
+  draftId?: string;
+  draftAttachments?: DraftAttachments;
+};
+
 /** What the message detail hands to the compose screen so it opens as a reply. */
 export type ReplyComposeParams = {
   repliedMessageId: string;
@@ -65,6 +86,10 @@ export type ForwardComposeParams = {
   attachments: ForwardedAttachment[];
   areAttachmentsEncrypted: boolean;
   originalSender: string;
+};
+
+export type DraftComposeParams = {
+  draftId: string;
 };
 
 export enum MailboxId {

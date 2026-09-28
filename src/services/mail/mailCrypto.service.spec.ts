@@ -847,3 +847,56 @@ describe('Forwarding a message', () => {
     expect(stages).toEqual([{ name: 'sending' }]);
   });
 });
+
+describe('Sending a message written in a draft', () => {
+  const uploadAttachmentMock = mailboxService.uploadAttachment as jest.Mock;
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(AppService, 'constants', 'get').mockReturnValue({ SERVER_PUBLIC_KEY });
+    getActiveDomainsMock.mockResolvedValue(ACTIVE_DOMAINS);
+    getMailAccountKeysMock.mockResolvedValue(SENDER);
+    sendEmailMock.mockResolvedValue({ id: 'sent-id' });
+    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
+    uploadAttachmentMock.mockResolvedValue({ blobId: 'new-blob', name: 'new.pdf', type: 'application/pdf', size: 20 });
+    encryptMock.mockResolvedValue({
+      encryptedKeys: [{ encryptedForEmail: 'someone', encryptedKey: 'k', hybridCiphertext: 'c' }],
+      encEmail: { encText: 'text', encPreview: 'preview', encAttachmentsSessionKey: 'attachments' },
+    });
+  });
+
+  test('when a message written in a draft is sent, then the draft is named so the server removes it', async () => {
+    await encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: 'Body', draftId: 'draft-1' });
+
+    expect(sentBody().draftId).toBe('draft-1');
+  });
+
+  test('when a message was not written in a draft, then no draft is named', async () => {
+    await encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: 'Body' });
+
+    expect(sentBody()).not.toHaveProperty('draftId');
+  });
+
+  test('when the draft already carries attachments, then they travel without being uploaded again and the new ones use the same key', async () => {
+    const keptAttachment = { blobId: 'kept-blob', name: 'kept.pdf', type: 'application/pdf', size: 5 };
+
+    await encryptAndSendEmail({
+      to: ['friend@inxt.me'],
+      subject: 'Subject',
+      text: 'Body',
+      files: [{ uri: '/tmp/new.pdf', name: 'new.pdf', type: 'application/pdf' }],
+      draftAttachments: { attachmentsSessionKey: 'the-draft-key', attachments: [keptAttachment] },
+    });
+
+    expect(uploadAttachmentMock).toHaveBeenCalledTimes(1);
+    expect(sentBody().attachments).toEqual([
+      keptAttachment,
+      { blobId: 'new-blob', name: 'new.pdf', type: 'application/pdf', size: 20 },
+    ]);
+    expect(encryptMock.mock.calls[0][0].attachmentsSessionKey).toEqual(new TextEncoder().encode('the-draft-key'));
+  });
+});

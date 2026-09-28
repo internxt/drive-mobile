@@ -15,13 +15,21 @@ import {
 import uuid from 'react-native-uuid';
 import strings from '../../../assets/lang/strings';
 import { AsyncStorageKey } from '../../types';
-import { MailAttachment, OutgoingEmail, OutgoingForward, OutgoingReply, SendProgress } from '../../types/mail';
+import {
+  DraftAttachments,
+  MailAttachment,
+  OutgoingEmail,
+  OutgoingForward,
+  OutgoingNewEmail,
+  OutgoingReply,
+  SendProgress,
+} from '../../types/mail';
 import AppService from '../AppService';
 import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common/logger/logger.service';
 import { AcceptedEncodings, fs } from '../FileSystemService';
 import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
-import { CachedDecryptedEmail, mailLocalDB } from './database/mailLocalDB';
+import { CachedDecryptedEmail, DecryptedEmail, mailLocalDB } from './database/mailLocalDB';
 import { plainTextToHtml } from './emailBody/emailBodyContent';
 import {
   ActiveDomainsUnavailableError,
@@ -127,13 +135,21 @@ export const decryptPreview = async (encryption: EmailEncryptionBlock, privateKe
   return preview;
 };
 
-export const decryptAndCacheFullEmail = async (
-  emailId: string,
+/**
+ * Decrypts the full body of a message and the key its attachments are encrypted with.
+ *
+ * @param encryption - The encryption block of the message.
+ * @param privateKey - The private hybrid key of the account reading it.
+ * @returns The body and the attachments session key, in base64.
+ * @throws Error when the block has no full body, holds no wrap for this account, or uses a version that
+ * is no longer supported.
+ */
+export const decryptFullEmail = async (
   encryption: EmailEncryptionBlock,
   privateKey: Uint8Array,
-): Promise<CachedDecryptedEmail> => {
+): Promise<DecryptedEmail> => {
   if (!encryption.encryptedText || !encryption.encryptedAttachmentsSessionKey) {
-    throw new Error(`Encryption block for email ${emailId} is missing full-body fields`);
+    throw new Error('Encryption block is missing full-body fields');
   }
 
   const wrappedKey = await findWrappedKeyForEmail(encryption);
@@ -154,11 +170,15 @@ export const decryptAndCacheFullEmail = async (
     privateKey,
   );
 
-  const decrypted: CachedDecryptedEmail = {
-    text,
-    attachmentsSessionKey: uint8ArrayToBase64(attachmentsSessionKey),
-  };
+  return { text, attachmentsSessionKey: uint8ArrayToBase64(attachmentsSessionKey) };
+};
 
+export const decryptAndCacheFullEmail = async (
+  emailId: string,
+  encryption: EmailEncryptionBlock,
+  privateKey: Uint8Array,
+): Promise<CachedDecryptedEmail> => {
+  const decrypted = await decryptFullEmail(encryption, privateKey);
   await mailLocalDB.saveCachedEmail(emailId, decrypted);
   return decrypted;
 };
@@ -341,6 +361,8 @@ export const normalizeRecipients = ({
  * @param email.preview - Opening of the body as plain text, shown in the mailbox list before the
  * message is read.
  * @param email.files - Attachments to encrypt and upload.
+ * @param email.draftAttachments - Attachments the draft of the message already carries: they travel as they
+ * are, and the new ones are encrypted with the same key.
  * @param email.onStage - Called as the attachments are uploaded, so a send can be followed from the
  * screen.
  * @returns The encrypted envelope of the message and its uploaded attachments.
@@ -353,6 +375,7 @@ export const encryptMessageForRecipients = async ({
   body,
   preview,
   files = [],
+  draftAttachments,
   onStage,
 }: {
   allAddresses: string[];
@@ -360,6 +383,7 @@ export const encryptMessageForRecipients = async ({
   body: string;
   preview: string;
   files?: MailAttachment[];
+  draftAttachments?: DraftAttachments;
 } & SendProgress): Promise<EncryptedMessagePayload> => {
   assertAttachmentsFitTheServer(files);
 
@@ -377,12 +401,14 @@ export const encryptMessageForRecipients = async ({
     }),
   );
 
-  const attachmentsSessionKey = genSymmetricKey();
-  const uploadedAttachments: AttachmentRef[] = [];
+  const attachmentsSessionKey = draftAttachments
+    ? base64ToUint8Array(draftAttachments.attachmentsSessionKey)
+    : genSymmetricKey();
+  const newlyUploadedAttachments: AttachmentRef[] = [];
 
   for (const file of files) {
-    onStage?.({ name: 'uploadingAttachments', current: uploadedAttachments.length + 1, total: files.length });
-    uploadedAttachments.push(await uploadAttachment(file, attachmentsSessionKey));
+    onStage?.({ name: 'uploadingAttachments', current: newlyUploadedAttachments.length + 1, total: files.length });
+    newlyUploadedAttachments.push(await uploadAttachment(file, attachmentsSessionKey));
   }
 
   const email: Email = { text: body, preview, attachmentsSessionKey };
@@ -396,7 +422,7 @@ export const encryptMessageForRecipients = async ({
       encryptedAttachmentsSessionKey: encEmail.encAttachmentsSessionKey,
       wrappedKeys: encryptedKeys,
     },
-    attachments: uploadedAttachments,
+    attachments: [...(draftAttachments?.attachments ?? []), ...newlyUploadedAttachments],
   };
 };
 
@@ -434,9 +460,21 @@ const assertBlindCopyIsDeliverable = (deliveryMode: DeliveryMode, bccAddresses: 
   }
 };
 
-const previewOf = (text: string): string => text.slice(0, PREVIEW_LENGTH);
+/**
+ * Cuts a body down to the opening the mailbox list shows before a message is opened.
+ *
+ * @param text - The body, as plain text.
+ * @returns The first characters of the body.
+ */
+export const previewOf = (text: string): string => text.slice(0, PREVIEW_LENGTH);
 
-const toEmailAddresses = (addresses: string[]) => addresses.map((email) => ({ email }));
+/**
+ * Puts addresses in the shape the mail server takes them in.
+ *
+ * @param addresses - The addresses.
+ * @returns One address entry per address.
+ */
+export const toEmailAddresses = (addresses: string[]) => addresses.map((email) => ({ email }));
 
 /**
  * Encrypts an email and sends it, giving every recipient their own wrap of the session key.
@@ -448,6 +486,10 @@ const toEmailAddresses = (addresses: string[]) => addresses.map((email) => ({ em
  * @param email.subject - Subject line, which travels in cleartext because the server indexes it.
  * @param email.text - Body of the message.
  * @param email.files - Attachments to encrypt and upload before sending.
+ * @param email.draftId - Id of the draft the message was written in, which the server destroys once it is
+ * sent.
+ * @param email.draftAttachments - Attachments the draft already carries, which travel without being
+ * uploaded again.
  * @param progress - How the send reports what it is doing.
  * @param progress.onStage - Called as the send moves on, so the screen can say what it is doing.
  * @throws NoRecipientsError when there is nobody to send the message to.
@@ -459,7 +501,7 @@ const toEmailAddresses = (addresses: string[]) => addresses.map((email) => ({ em
  * @throws AttachmentUploadFailedError when an attachment cannot be encrypted or uploaded.
  */
 export const encryptAndSendEmail = async (
-  { to, cc, bcc, subject, text, files }: OutgoingEmail,
+  { to, cc, bcc, subject, text, files, draftId, draftAttachments }: OutgoingNewEmail,
   { onStage }: SendProgress = {},
 ): Promise<void> => {
   const { toAddresses, ccAddresses, bccAddresses, allAddresses } = normalizeRecipients({ to, cc, bcc });
@@ -472,6 +514,7 @@ export const encryptAndSendEmail = async (
     body: plainTextToHtml(text),
     preview: previewOf(text),
     files,
+    draftAttachments,
     onStage,
   });
 
@@ -485,6 +528,7 @@ export const encryptAndSendEmail = async (
     deliveryMode,
     encryption,
     ...(attachments.length > 0 ? { attachments } : {}),
+    ...(draftId ? { draftId } : {}),
   });
 };
 
