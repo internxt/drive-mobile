@@ -33,9 +33,6 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   const { refreshMailboxes } = useMail();
 
   const loadEmails = useCallback(async () => {
-    if (selectedMailboxId === MailboxId.Drafts) {
-      return;
-    }
     setIsLoadingEmails(true);
     setEmailsError(false);
 
@@ -79,7 +76,13 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
     }
   };
 
+  const isDraftsMailbox = selectedMailboxId === MailboxId.Drafts;
+
   const onOpenEmail = (emailId: string) => {
+    if (isDraftsMailbox) {
+      navigation.navigate('ComposeEmail', { draft: { draftId: emailId } });
+      return;
+    }
     navigation.navigate('EmailDetail', { emailId });
   };
 
@@ -161,6 +164,9 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
           }
           renderItem={({ item }) => {
             const senderLabel = item.from?.[0]?.name || item.from?.[0]?.email || '';
+            const recipientsLabel = (item.to ?? []).map((recipient) => recipient.name || recipient.email).join(', ');
+            const headlineLabel = isDraftsMailbox ? recipientsLabel || strings.screens.mail.noRecipients : senderLabel;
+            const isShownAsUnread = !item.isRead && !isDraftsMailbox;
             const previewText = item.preview || '(No preview available)';
             return (
               <TouchableOpacity
@@ -171,7 +177,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
                 ]}
               >
                 <View style={(tailwind('items-center'), { paddingTop: 6, paddingRight: 8 })}>
-                  {!item.isRead && (
+                  {isShownAsUnread && (
                     <View
                       style={[
                         tailwind('rounded-full'),
@@ -187,10 +193,10 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
                       style={[
                         tailwind('flex-1 mr-2 text-base'),
                         { color: getColor('text-gray-100') },
-                        !item.isRead ? { fontWeight: '600' } : undefined,
+                        isShownAsUnread ? { fontWeight: '600' } : undefined,
                       ]}
                     >
-                      {senderLabel}
+                      {headlineLabel}
                     </AppText>
                     <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-40') }]}>
                       {dayjs(item.receivedAt).format('MMM D')}
@@ -201,7 +207,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
                     style={[
                       tailwind('mt-0.5 text-sm'),
                       { color: getColor('text-gray-100') },
-                      !item.isRead ? { fontWeight: '600' } : undefined,
+                      isShownAsUnread ? { fontWeight: '600' } : undefined,
                     ]}
                   >
                     {item.subject}
@@ -221,9 +227,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   return (
     <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
       {renderHeader()}
-      <View style={tailwind('flex-1')}>
-        {selectedMailboxId === MailboxId.Drafts ? renderEmptyState() : renderEmailListContent()}
-      </View>
+      <View style={tailwind('flex-1')}>{renderEmailListContent()}</View>
     </AppScreen>
   );
 };

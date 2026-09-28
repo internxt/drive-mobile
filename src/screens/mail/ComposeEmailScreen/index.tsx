@@ -1,4 +1,4 @@
-import { CaretDownIcon, CaretUpIcon, LockKeyIcon } from 'phosphor-react-native';
+import { CaretDownIcon, CaretUpIcon, LockKeyIcon, TrashIcon } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
@@ -22,17 +22,21 @@ import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
+import { useAppSelector } from '../../../store/hooks';
 import { AsyncStorageKey } from '../../../types';
 import { ForwardedAttachment, MailAttachment, SendStage } from '../../../types/mail';
 import { RootStackScreenProps } from '../../../types/navigation';
+import { BlockingLoaderModal } from './components/BlockingLoaderModal';
 import { ComposeFieldRow } from './components/ComposeFieldRow';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { ForwardedQuote } from './components/ForwardedQuote';
 import { RecipientRow } from './components/RecipientRow';
 import { useComposeRecipients } from './hooks/useComposeRecipients';
-import { describeSendFailure, getSendErrorMessage } from './sendErrors';
+import { useDraftLifecycle } from './hooks/useDraftLifecycle';
+import { describeSendFailure } from './sendErrors';
 import {
   RecipientField,
+  addEveryTypedRecipient,
   canSendMessage,
   hasCopyOrBlindCopyRecipients,
   isEndToEndEncrypted,
@@ -54,11 +58,14 @@ const describeSendStage = (stage: SendStage): string => {
 export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const { user } = useAppSelector((state) => state.auth);
   useLanguage();
 
   const params = route.params;
   const reply = params && 'reply' in params ? params.reply : undefined;
   const forward = params && 'forward' in params ? params.forward : undefined;
+  const draftToOpen = params && 'draft' in params ? params.draft : undefined;
+  const isDraftKept = !reply && !forward;
 
   const {
     recipients,
@@ -66,6 +73,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
     changePendingText,
     addTypedRecipients,
     removeRecipient,
+    replaceRecipients,
     resolveRecipientsForSending,
   } = useComposeRecipients({
     to: reply?.to,
@@ -81,6 +89,32 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   const [isSending, setIsSending] = useState(false);
   const [sendStage, setSendStage] = useState<SendStage | null>(null);
   const isSendInProgressRef = useRef(false);
+
+  const {
+    isDraftLoaded,
+    draftAttachments,
+    canDiscardDraft,
+    hasFailedToSaveDraft,
+    removeDraftAttachment,
+    confirmAndDiscardDraft,
+    prepareDraftForSending,
+    handleFailedSend,
+    leaveAfterSending,
+    blockingLoaderProps,
+  } = useDraftLifecycle({
+    navigation,
+    draftToOpen,
+    isEnabled: isDraftKept,
+    mnemonic: user?.mnemonic,
+    recipients: addEveryTypedRecipient(recipients, pendingText).recipients,
+    subject,
+    body,
+    onDraftOpened: (openedDraft) => {
+      replaceRecipients({ to: openedDraft.to, cc: openedDraft.cc, bcc: openedDraft.bcc });
+      setSubject(openedDraft.subject);
+      setBody(openedDraft.body);
+    },
+  });
 
   useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSenderAddress(address ?? ''));
@@ -163,6 +197,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
     setIsSending(true);
     let wasSent = false;
     try {
+      const draftIdForSending = await prepareDraftForSending();
       if (forward) {
         await encryptAndSendForward(
           {
@@ -195,12 +230,24 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
           { onStage: setSendStage },
         );
       } else {
-        await encryptAndSendEmail({ to, cc, bcc, subject, text: body, files: attachments }, { onStage: setSendStage });
+        await encryptAndSendEmail(
+          {
+            to,
+            cc,
+            bcc,
+            subject,
+            text: body,
+            files: attachments,
+            draftId: draftIdForSending,
+            draftAttachments: draftAttachments ?? undefined,
+          },
+          { onStage: setSendStage },
+        );
       }
       wasSent = true;
     } catch (error) {
       logger.error('Failed to send email', error, describeSendFailure(error));
-      Alert.alert(strings.screens.compose_email.errors.title, getSendErrorMessage(error));
+      Alert.alert(strings.screens.compose_email.errors.title, await handleFailedSend(error));
     } finally {
       isSendInProgressRef.current = false;
       setIsSending(false);
@@ -208,13 +255,13 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
     }
 
     if (wasSent) {
-      navigation.goBack();
+      leaveAfterSending();
     }
   };
 
   const { title, replyTitle, forwardTitle } = strings.screens.compose_email;
   const composeTitle = forward ? forwardTitle : reply ? replyTitle : title;
-  const canSend = canSendMessage({ recipients, pendingText, subject, isSending });
+  const canSend = isDraftLoaded && canSendMessage({ recipients, pendingText, subject, isSending });
   const hasExtraRecipients = hasCopyOrBlindCopyRecipients(recipients, pendingText);
   const isMessageEndToEndEncrypted = isEndToEndEncrypted(recipients, pendingText, activeDomains);
 
@@ -234,11 +281,24 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
         text={composeTitle}
         onBackButtonPressed={onCancel}
         rightSlot={
-          <TouchableOpacity disabled={!canSend} onPress={onSend}>
-            <AppText medium style={[{ color: getColor('text-primary') }, !canSend && tailwind('opacity-50')]}>
-              {strings.buttons.send}
-            </AppText>
-          </TouchableOpacity>
+          <View style={tailwind('flex-row items-center')}>
+            {canDiscardDraft && !isSending && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={strings.screens.compose_email.draft.discard}
+                onPress={confirmAndDiscardDraft}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                style={tailwind('mr-4')}
+              >
+                <TrashIcon size={22} color={getColor('text-gray-60')} />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity disabled={!canSend} onPress={onSend}>
+              <AppText medium style={[{ color: getColor('text-primary') }, !canSend && tailwind('opacity-50')]}>
+                {strings.buttons.send}
+              </AppText>
+            </TouchableOpacity>
+          </View>
         }
       />
 
@@ -251,105 +311,134 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
         </View>
       )}
 
-      <ScrollView keyboardShouldPersistTaps="handled">
-        <RecipientRow
-          label={strings.inputs.to}
-          {...recipientRowPropsForField('to')}
-          renderAppend={
-            !hasExtraRecipients && (
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={`${strings.inputs.cc} · ${strings.inputs.bcc}`}
-                onPress={() => setIsExtraRecipientsSectionOpen(!isExtraRecipientsSectionOpen)}
-                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                style={tailwind('pl-2 py-1')}
-              >
-                <CaretIcon size={20} color={getColor('text-gray-50')} />
-              </TouchableOpacity>
-            )
-          }
-        />
+      {hasFailedToSaveDraft && (
+        <AppText style={[tailwind('px-4 py-2 text-sm'), { color: getColor('text-red') }]}>
+          {strings.screens.compose_email.draft.notSaved}
+        </AppText>
+      )}
 
-        {areExtraRecipientsVisible && (
-          <>
-            <RecipientRow label={strings.inputs.cc} {...recipientRowPropsForField('cc')} />
-            <RecipientRow label={strings.inputs.bcc} {...recipientRowPropsForField('bcc')} />
-          </>
-        )}
-
-        {!!senderAddress && (
-          <ComposeFieldRow
-            label={strings.inputs.from}
+      {!isDraftLoaded ? (
+        <View style={tailwind('flex-1 items-center justify-center')}>
+          <ActivityIndicator color={getColor('text-primary')} />
+        </View>
+      ) : (
+        <ScrollView keyboardShouldPersistTaps="handled">
+          <RecipientRow
+            label={strings.inputs.to}
+            {...recipientRowPropsForField('to')}
             renderAppend={
-              isMessageEndToEndEncrypted && (
-                <View
-                  style={[
-                    tailwind('flex-row items-center rounded-full px-2 py-1 ml-2'),
-                    { borderWidth: 1, borderColor: getColor('border-green') },
-                  ]}
+              !hasExtraRecipients && (
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={`${strings.inputs.cc} · ${strings.inputs.bcc}`}
+                  onPress={() => setIsExtraRecipientsSectionOpen(!isExtraRecipientsSectionOpen)}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                  style={tailwind('pl-2 py-1')}
                 >
-                  <LockKeyIcon size={12} weight="fill" color={getColor('text-green')} />
-                  <AppText style={[tailwind('ml-1 text-xs'), { color: getColor('text-green') }]}>
-                    {strings.screens.compose_email.endToEndEncrypted}
-                  </AppText>
-                </View>
+                  <CaretIcon size={20} color={getColor('text-gray-50')} />
+                </TouchableOpacity>
               )
             }
-          >
-            <Text numberOfLines={1} style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}>
-              {senderAddress}
-            </Text>
-          </ComposeFieldRow>
-        )}
-
-        <ComposeFieldRow label={strings.inputs.subject}>
-          <TextInput
-            accessibilityLabel={strings.inputs.subject}
-            value={subject}
-            onChangeText={setSubject}
-            placeholder={strings.placeholders.emailSubject}
-            placeholderTextColor={getColor('text-gray-40')}
-            style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}
           />
-        </ComposeFieldRow>
 
-        <TextInput
-          accessibilityLabel={strings.inputs.body}
-          value={body}
-          onChangeText={setBody}
-          placeholder={strings.placeholders.emailBody}
-          placeholderTextColor={getColor('text-gray-40')}
-          multiline
-          textAlignVertical="top"
-          style={[tailwind('px-4 py-3 text-base'), { minHeight: 200, color: getColor('text-gray-100') }]}
-        />
+          {areExtraRecipientsVisible && (
+            <>
+              <RecipientRow label={strings.inputs.cc} {...recipientRowPropsForField('cc')} />
+              <RecipientRow label={strings.inputs.bcc} {...recipientRowPropsForField('bcc')} />
+            </>
+          )}
 
-        {!!forward && <ForwardedQuote quote={forward.quote} originalSender={forward.originalSender} />}
+          {!!senderAddress && (
+            <ComposeFieldRow
+              label={strings.inputs.from}
+              renderAppend={
+                isMessageEndToEndEncrypted && (
+                  <View
+                    style={[
+                      tailwind('flex-row items-center rounded-full px-2 py-1 ml-2'),
+                      { borderWidth: 1, borderColor: getColor('border-green') },
+                    ]}
+                  >
+                    <LockKeyIcon size={12} weight="fill" color={getColor('text-green')} />
+                    <AppText style={[tailwind('ml-1 text-xs'), { color: getColor('text-green') }]}>
+                      {strings.screens.compose_email.endToEndEncrypted}
+                    </AppText>
+                  </View>
+                )
+              }
+            >
+              <Text numberOfLines={1} style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}>
+                {senderAddress}
+              </Text>
+            </ComposeFieldRow>
+          )}
 
-        <View style={tailwind('px-4')}>
-          <AppButton title="Add attachment" type="secondary" onPress={onAddAttachment} />
-          {forwardedAttachments.map((attachment) => (
-            <View key={attachment.blobId} style={tailwind('flex-row items-center justify-between py-2')}>
-              <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
-                {attachment.name}
+          <ComposeFieldRow label={strings.inputs.subject}>
+            <TextInput
+              accessibilityLabel={strings.inputs.subject}
+              value={subject}
+              onChangeText={setSubject}
+              placeholder={strings.placeholders.emailSubject}
+              placeholderTextColor={getColor('text-gray-40')}
+              style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}
+            />
+          </ComposeFieldRow>
+
+          <TextInput
+            accessibilityLabel={strings.inputs.body}
+            value={body}
+            onChangeText={setBody}
+            placeholder={strings.placeholders.emailBody}
+            placeholderTextColor={getColor('text-gray-40')}
+            multiline
+            textAlignVertical="top"
+            style={[tailwind('px-4 py-3 text-base'), { minHeight: 200, color: getColor('text-gray-100') }]}
+          />
+
+          {!!forward && <ForwardedQuote quote={forward.quote} originalSender={forward.originalSender} />}
+
+          <View style={tailwind('px-4')}>
+            <AppButton title="Add attachment" type="secondary" onPress={onAddAttachment} />
+            {forwardedAttachments.map((attachment) => (
+              <View key={attachment.blobId} style={tailwind('flex-row items-center justify-between py-2')}>
+                <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
+                  {attachment.name}
+                </AppText>
+                <TouchableOpacity onPress={() => onRemoveForwardedAttachment(attachment.blobId)}>
+                  <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {draftAttachments?.attachments.map((attachment) => (
+              <View key={attachment.blobId} style={tailwind('flex-row items-center justify-between py-2')}>
+                <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
+                  {attachment.name}
+                </AppText>
+                <TouchableOpacity onPress={() => removeDraftAttachment(attachment.blobId)}>
+                  <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {attachments.map((attachment) => (
+              <View key={attachment.uri} style={tailwind('flex-row items-center justify-between py-2')}>
+                <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
+                  {attachment.name}
+                </AppText>
+                <TouchableOpacity onPress={() => onRemoveAttachment(attachment.uri)}>
+                  <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {isDraftKept && attachments.length > 0 && (
+              <AppText style={[tailwind('mt-2 text-xs'), { color: getColor('text-gray-50') }]}>
+                {strings.screens.compose_email.draft.attachmentsNotSaved}
               </AppText>
-              <TouchableOpacity onPress={() => onRemoveForwardedAttachment(attachment.blobId)}>
-                <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
-              </TouchableOpacity>
-            </View>
-          ))}
-          {attachments.map((attachment) => (
-            <View key={attachment.uri} style={tailwind('flex-row items-center justify-between py-2')}>
-              <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
-                {attachment.name}
-              </AppText>
-              <TouchableOpacity onPress={() => onRemoveAttachment(attachment.uri)}>
-                <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
-              </TouchableOpacity>
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+            )}
+          </View>
+        </ScrollView>
+      )}
+
+      <BlockingLoaderModal {...blockingLoaderProps} />
     </AppScreen>
   );
 };
