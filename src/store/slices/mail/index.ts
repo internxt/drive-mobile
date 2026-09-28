@@ -4,10 +4,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { MailboxId } from '../../../types/mail';
 import { createInitialMailboxListState, createInitialMailState, emailsAdapter } from './initialState';
 import { mergeNewestPage } from './pagination';
-import { loadFirstPageThunk, loadNextPageThunk, refreshNewestEmailsThunk } from './thunks';
+import { loadFirstPageThunk, loadNextPageThunk, loadUnreadCountsThunk, refreshNewestEmailsThunk } from './thunks';
 import { MailboxListState, MailState } from './types';
 
-export { loadFirstPageThunk, loadNextPageThunk, refreshNewestEmailsThunk } from './thunks';
+export { loadFirstPageThunk, loadNextPageThunk, loadUnreadCountsThunk, refreshNewestEmailsThunk } from './thunks';
 export * from './selectors';
 
 const mailboxListOf = (state: MailState, mailboxId: MailboxId): MailboxListState => {
@@ -158,6 +158,9 @@ export const mailSlice = createSlice({
           return;
         }
         mailboxList.hasFirstPageFailed = true;
+      })
+      .addCase(loadUnreadCountsThunk.fulfilled, (state, action) => {
+        state.unreadByMailbox = action.payload;
       });
   },
 });

@@ -13,7 +13,8 @@ import strings from '../../../../assets/lang/strings';
 import { logger } from '@internxt-mobile/services/common';
 import { MailboxId } from '../../../types/mail';
 import { MailboxScreenProps } from '../../../types/navigation';
-import { useMail } from '../../../contexts/Mail/Mail.context';
+import { useAppDispatch } from '../../../store/hooks';
+import { loadUnreadCountsThunk } from '../../../store/slices/mail';
 import { useMailboxEmails } from '../../../store/slices/mail/hooks/useMailboxEmails';
 
 const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Element => {
@@ -23,7 +24,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   useLanguage();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasLoadedMailboxRef = useRef(false);
-  const { refreshMailboxes } = useMail();
+  const dispatch = useAppDispatch();
   const {
     emails,
     isLoadingFirstPage,
@@ -37,8 +38,8 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   } = useMailboxEmails(selectedMailboxId);
 
   const refreshUnreadCounts = useCallback(() => {
-    refreshMailboxes().catch((error) => logger.error('Failed to refresh mailbox unread counts', error));
-  }, [refreshMailboxes]);
+    dispatch(loadUnreadCountsThunk());
+  }, [dispatch]);
 
   const loadMailboxOnFocus = useCallback(async () => {
     if (hasLoadedMailboxRef.current) {

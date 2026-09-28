@@ -6,7 +6,7 @@ import { MailboxId } from '../../../types/mail';
 import type { RootState } from '../../index';
 import { createInitialMailboxListState } from './initialState';
 import { sortNewestFirst } from './pagination';
-import { MailboxListState } from './types';
+import { MailboxListState, MailState } from './types';
 
 const NOT_LOADED_MAILBOX_LIST: MailboxListState = createInitialMailboxListState();
 
@@ -29,3 +29,5 @@ export const selectLoadedEmails = (state: RootState, mailboxId: MailboxId): Emai
  */
 export const makeSelectMailboxEmails = () =>
   createSelector([selectLoadedEmails], sortNewestFirst, { memoizeOptions: { resultEqualityCheck: shallowEqual } });
+
+export const selectUnreadByMailbox = (state: RootState): MailState['unreadByMailbox'] => state.mail.unreadByMailbox;

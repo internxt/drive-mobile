@@ -18,4 +18,5 @@ export type MailboxListState = {
 export type MailState = {
   emails: EntityState<EmailSummaryResponse>;
   mailboxes: Partial<Record<MailboxId, MailboxListState>>;
+  unreadByMailbox: Partial<Record<MailboxId, number>>;
 };
