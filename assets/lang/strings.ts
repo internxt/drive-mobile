@@ -378,6 +378,7 @@ const translations = {
         noRecipients: '(No recipients)',
         showRemoteImages: 'Show images',
         remoteImagesBlocked: 'Images in this message are blocked',
+        hasAttachment: 'Has attachments',
       },
       email_detail: {
         to: 'To:',
@@ -1509,6 +1510,7 @@ const translations = {
         noRecipients: '(Sin destinatarios)',
         showRemoteImages: 'Mostrar imágenes',
         remoteImagesBlocked: 'Las imágenes de este mensaje están bloqueadas',
+        hasAttachment: 'Tiene adjuntos',
       },
       email_detail: {
         to: 'Para:',

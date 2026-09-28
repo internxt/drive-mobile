@@ -1,9 +1,7 @@
-import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
-import { getPrivateHybridKey, decryptPreviews } from '../../../services/mail/mailCrypto.service';
 import { useFocusEffect } from '@react-navigation/native';
 import dayjs from 'dayjs';
-import { EnvelopeIcon, ListIcon, WarningIcon } from 'phosphor-react-native';
-import { useCallback, useState } from 'react';
+import { EnvelopeIcon, ListIcon, PaperclipIcon, WarningIcon } from 'phosphor-react-native';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
@@ -13,64 +11,59 @@ import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import strings from '../../../../assets/lang/strings';
 import { logger } from '@internxt-mobile/services/common';
-import { mailboxService } from '../../../services/mail/mailbox.service';
-import { useAppSelector } from '../../../store/hooks';
 import { MailboxId } from '../../../types/mail';
 import { MailboxScreenProps } from '../../../types/navigation';
 import { useMail } from '../../../contexts/Mail/Mail.context';
-import { groupEmailsByThread } from './groupEmailsByThread';
+import { useMailboxEmails } from '../../../store/slices/mail/hooks/useMailboxEmails';
 
 const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Element => {
   const selectedMailboxId = route.name as MailboxId;
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { user } = useAppSelector((state) => state.auth);
   useLanguage();
-  const [emails, setEmails] = useState<EmailSummaryResponse[]>([]);
-  const [isLoadingEmails, setIsLoadingEmails] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [emailsError, setEmailsError] = useState(false);
+  const hasLoadedMailboxRef = useRef(false);
   const { refreshMailboxes } = useMail();
+  const {
+    emails,
+    isLoadingFirstPage,
+    isLoadingNextPage,
+    hasFirstPageFailed,
+    hasNextPageFailed,
+    loadFirstPage,
+    loadNextPage,
+    retryNextPage,
+    refreshNewestEmails,
+  } = useMailboxEmails(selectedMailboxId);
 
-  const loadEmails = useCallback(async () => {
-    setIsLoadingEmails(true);
-    setEmailsError(false);
-
-    try {
-      let loadedEmails = await mailboxService.listEmails(selectedMailboxId);
-
-      if (user?.mnemonic && user?.email) {
-        try {
-          const privateKey = await getPrivateHybridKey(user.mnemonic);
-          loadedEmails = await decryptPreviews(loadedEmails, privateKey);
-        } catch (error) {
-          logger.error(`Failed to decrypt previews for ${selectedMailboxId}`, error);
-        }
-      }
-
-      setEmails(groupEmailsByThread(loadedEmails));
-    } catch (error) {
-      logger.error(`Failed to list emails for ${selectedMailboxId}`, error);
-      setEmailsError(true);
-    } finally {
-      setIsLoadingEmails(false);
-    }
-
+  const refreshUnreadCounts = useCallback(() => {
     refreshMailboxes().catch((error) => logger.error('Failed to refresh mailbox unread counts', error));
-  }, [user, selectedMailboxId, refreshMailboxes]);
+  }, [refreshMailboxes]);
+
+  const loadMailboxOnFocus = useCallback(async () => {
+    if (hasLoadedMailboxRef.current) {
+      await refreshNewestEmails();
+    } else {
+      hasLoadedMailboxRef.current = true;
+      await loadFirstPage();
+    }
+    refreshUnreadCounts();
+  }, [loadFirstPage, refreshNewestEmails, refreshUnreadCounts]);
 
   useFocusEffect(
     useCallback(() => {
       const timeout = setTimeout(() => {
-        loadEmails().catch((error) => logger.error('Failed to load emails on focus', error));
+        loadMailboxOnFocus().catch((error) => logger.error('Failed to load emails on focus', error));
       }, 0);
       return () => clearTimeout(timeout);
-    }, [loadEmails, route.name]),
+    }, [loadMailboxOnFocus, route.name]),
   );
+
   const onPullToRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await loadEmails();
+      await loadFirstPage();
+      refreshUnreadCounts();
     } finally {
       setIsRefreshing(false);
     }
@@ -111,8 +104,30 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
     </View>
   );
 
+  const renderListFooter = () => {
+    if (isLoadingNextPage) {
+      return (
+        <View style={tailwind('items-center py-4')}>
+          <ActivityIndicator color={getColor('text-primary')} />
+        </View>
+      );
+    }
+    if (hasNextPageFailed) {
+      return (
+        <View style={tailwind('items-center py-2')}>
+          <TouchableOpacity onPress={() => retryNextPage()} style={tailwind('px-4 py-2')}>
+            <AppText medium style={{ color: getColor('text-primary') }}>
+              {strings.buttons.tryAgain}
+            </AppText>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+    return null;
+  };
+
   const renderEmailListContent = () => {
-    if (isLoadingEmails && emails.length === 0) {
+    if (isLoadingFirstPage && emails.length === 0) {
       return (
         <View style={tailwind('flex-1 items-center justify-center')}>
           <ActivityIndicator color={getColor('text-primary')} />
@@ -120,7 +135,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       );
     }
 
-    if (emailsError && emails.length === 0) {
+    if (hasFirstPageFailed && emails.length === 0) {
       return (
         <View style={tailwind('flex-1 items-center justify-center')}>
           <WarningIcon color={getColor('text-gray-30')} size={48} />
@@ -142,7 +157,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
 
     return (
       <>
-        {emailsError && (
+        {hasFirstPageFailed && (
           <View style={[tailwind('flex-row items-center px-4 py-2'), { backgroundColor: getColor('bg-gray-5') }]}>
             <WarningIcon color={getColor('text-gray-50')} size={16} />
             <AppText style={[tailwind('ml-2 flex-1 text-sm'), { color: getColor('text-gray-60') }]}>
@@ -155,6 +170,9 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
           contentContainerStyle={{ paddingBottom: 32 }}
           data={emails}
           keyExtractor={(email) => email.id}
+          onEndReached={() => loadNextPage()}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={renderListFooter}
           refreshControl={
             <RefreshControl
               refreshing={isRefreshing}
@@ -176,7 +194,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
                   { borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') },
                 ]}
               >
-                <View style={(tailwind('items-center'), { paddingTop: 6, paddingRight: 8 })}>
+                <View style={[tailwind('items-center'), { paddingTop: 6, paddingRight: 8 }]}>
                   {isShownAsUnread && (
                     <View
                       style={[
@@ -198,6 +216,11 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
                     >
                       {headlineLabel}
                     </AppText>
+                    {item.hasAttachment && (
+                      <View accessible accessibilityLabel={strings.screens.mail.hasAttachment} style={tailwind('mr-1')}>
+                        <PaperclipIcon size={14} color={getColor('text-gray-40')} />
+                      </View>
+                    )}
                     <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-40') }]}>
                       {dayjs(item.receivedAt).format('MMM D')}
                     </AppText>

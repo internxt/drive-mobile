@@ -1,5 +1,6 @@
 import { SdkManager } from '@internxt-mobile/services/common';
-import { MailboxService } from './mailbox.service';
+import { MailboxId } from '../../types/mail';
+import { MAILBOX_PAGE_SIZE, MailboxService } from './mailbox.service';
 
 jest.mock('@internxt-mobile/services/common', () => ({
   SdkManager: { getInstance: jest.fn() },
@@ -71,5 +72,34 @@ describe('Uploading an attachment to the mail server', () => {
     await expect(uploadInProgress).resolves.toEqual(UPLOADED_ATTACHMENT);
     abortController.abort();
     expect(fakeServerUpload.sdkUploadResult.requestCanceler.cancel).not.toHaveBeenCalled();
+  });
+});
+
+describe('Listing the emails of a mailbox', () => {
+  const PAGE_FROM_SERVER = { emails: [{ id: 'email-1' }], total: 40, hasMoreMails: true, nextAnchor: 'anchor-2' };
+
+  const createServiceListing = (sdkListEmails: jest.Mock) =>
+    new MailboxService({ mail: { listEmails: sdkListEmails } } as unknown as SdkManager);
+
+  test('when the first page is listed, then no anchor is sent and the page size is the fixed one', async () => {
+    const sdkListEmails = jest.fn().mockResolvedValue(PAGE_FROM_SERVER);
+
+    await createServiceListing(sdkListEmails).listEmails(MailboxId.Inbox);
+
+    expect(sdkListEmails).toHaveBeenCalledWith({ mailbox: 'inbox', limit: MAILBOX_PAGE_SIZE, anchorId: undefined });
+  });
+
+  test('when a later page is listed, then it continues from the anchor the previous page gave', async () => {
+    const sdkListEmails = jest.fn().mockResolvedValue(PAGE_FROM_SERVER);
+
+    await createServiceListing(sdkListEmails).listEmails(MailboxId.Sent, { anchorId: 'anchor-2' });
+
+    expect(sdkListEmails).toHaveBeenCalledWith({ mailbox: 'sent', limit: MAILBOX_PAGE_SIZE, anchorId: 'anchor-2' });
+  });
+
+  test('when a page is listed, then whether more remain and where they start come back along with the emails', async () => {
+    const sdkListEmails = jest.fn().mockResolvedValue(PAGE_FROM_SERVER);
+
+    await expect(createServiceListing(sdkListEmails).listEmails(MailboxId.Inbox)).resolves.toEqual(PAGE_FROM_SERVER);
   });
 });
