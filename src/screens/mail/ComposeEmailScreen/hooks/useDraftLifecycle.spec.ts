@@ -1,18 +1,22 @@
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { Alert, AlertButton } from 'react-native';
 
-import { openDraft } from '@internxt-mobile/services/mail/draft.service';
+import { openDraft, saveDraft } from '@internxt-mobile/services/mail/draft.service';
 import strings from '../../../../../assets/lang/strings';
 import { HTTP_NOT_FOUND, HTTP_TOO_MANY_REQUESTS } from '../../../../services/common/httpStatusCodes';
 import { notifications } from '../../../../services/NotificationsService';
-import { DraftComposeParams } from '../../../../types/mail';
+import { DraftComposeParams, UploadedAttachments } from '../../../../types/mail';
 import { RootStackScreenProps } from '../../../../types/navigation';
 import { useDraftAutosave } from './useDraftAutosave';
 import { LEAVE_WITHOUT_SAVING_DELAY_MS, useDraftLifecycle } from './useDraftLifecycle';
 
 jest.mock('./useDraftAutosave', () => ({ useDraftAutosave: jest.fn() }));
 
-jest.mock('@internxt-mobile/services/mail/draft.service', () => ({ openDraft: jest.fn() }));
+jest.mock('@internxt-mobile/services/mail/draft.service', () => ({
+  openDraft: jest.fn(),
+  saveDraft: jest.fn(),
+  discardDraft: jest.fn(),
+}));
 
 jest.mock('../../../../services/NotificationsService', () => ({
   notifications: { error: jest.fn(), success: jest.fn(), info: jest.fn() },
@@ -24,11 +28,14 @@ jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
 
 const useDraftAutosaveMock = useDraftAutosave as jest.Mock;
 const openDraftMock = openDraft as jest.Mock;
+const saveDraftMock = saveDraft as jest.Mock;
 const notifyErrorMock = notifications.error as jest.Mock;
 const notifyInfoMock = notifications.info as jest.Mock;
 
 const LEAVE_ACTION = { type: 'GO_BACK' };
+const RESET_ACTION = { type: 'RESET' };
 const NO_RECIPIENTS = { to: [], cc: [], bcc: [] };
+const NO_UPLOADED_ATTACHMENTS: UploadedAttachments = { attachmentsSessionKey: 'the-compose-key', attachments: [] };
 
 const draftAutosave = {
   hasSavedDraft: true,
@@ -50,12 +57,18 @@ const createNavigation = () => {
     dispatch: jest.fn(),
     goBack: jest.fn(),
   };
-  const tryToLeave = () => {
-    const removalEvent = { preventDefault: jest.fn(), data: { action: LEAVE_ACTION } };
+  const tryToLeave = (leaveAction: { type: string } = LEAVE_ACTION) => {
+    const removalEvent = { preventDefault: jest.fn(), data: { action: leaveAction } };
     act(() => beforeRemoveListener(removalEvent));
     return removalEvent;
   };
   return { navigation, tryToLeave };
+};
+
+type RerenderProps = {
+  isUploadingAttachments: boolean;
+  failedAttachmentCount: number;
+  draftAttachments: UploadedAttachments;
 };
 
 const renderDraftLifecycle = ({
@@ -63,27 +76,36 @@ const renderDraftLifecycle = ({
   draftToOpen,
   mnemonic = 'the words',
   onDraftOpened = jest.fn(),
+  isUploadingAttachments = false,
+  failedAttachmentCount = 0,
 }: {
   isEnabled?: boolean;
   draftToOpen?: DraftComposeParams;
   mnemonic?: string;
   onDraftOpened?: jest.Mock;
+  isUploadingAttachments?: boolean;
+  failedAttachmentCount?: number;
 } = {}) => {
   const { navigation, tryToLeave } = createNavigation();
-  const rendered = renderHook(() =>
-    useDraftLifecycle({
-      navigation: navigation as unknown as RootStackScreenProps<'ComposeEmail'>['navigation'],
-      draftToOpen,
-      isEnabled,
-      mnemonic,
-      recipients: NO_RECIPIENTS,
-      subject: '',
-      body: '',
-      onDraftOpened,
-    }),
+  const rendered = renderHook(
+    (rerenderProps: RerenderProps) =>
+      useDraftLifecycle({
+        navigation: navigation as unknown as RootStackScreenProps<'ComposeEmail'>['navigation'],
+        draftToOpen,
+        isEnabled,
+        mnemonic,
+        recipients: NO_RECIPIENTS,
+        subject: '',
+        body: '',
+        onDraftOpened,
+        ...rerenderProps,
+      }),
+    { initialProps: { isUploadingAttachments, failedAttachmentCount, draftAttachments: NO_UPLOADED_ATTACHMENTS } },
   );
   return { ...rendered, navigation, tryToLeave };
 };
+
+type RenderedDraftLifecycle = ReturnType<typeof renderDraftLifecycle>;
 
 const settlePendingWork = async () => {
   await act(async () => {
@@ -111,6 +133,14 @@ const pressAlertButton = (alertSpy: jest.SpyInstance, buttonStyle: AlertButton['
   act(() => alertButtons.find((button) => button.style === buttonStyle)?.onPress?.());
 };
 
+const pressLoaderAction = ({ result }: RenderedDraftLifecycle, label: string) => {
+  const loaderAction = result.current.blockingLoaderProps.actions.find((action) => action.label === label);
+  if (!loaderAction) {
+    throw new Error(`The loader offers no "${label}" action`);
+  }
+  act(() => loaderAction.onPress());
+};
+
 describe('Taking care of the draft of a message being written', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -129,28 +159,22 @@ describe('Taking care of the draft of a message being written', () => {
 
   test('when a draft is opened, then what it holds is handed to the screen and it counts as loaded', async () => {
     const keptAttachments = { attachmentsSessionKey: 'the-draft-key', attachments: [] };
-    openDraftMock.mockResolvedValue({
+    const openedDraft = {
       to: ['friend@inxt.me'],
       cc: [],
       bcc: [],
       subject: 'Plans',
       body: 'Hello',
       draftAttachments: keptAttachments,
-    });
+    };
+    openDraftMock.mockResolvedValue(openedDraft);
     const onDraftOpened = jest.fn();
 
     const { result } = renderDraftLifecycle({ draftToOpen: { draftId: 'draft-1' }, onDraftOpened });
     expect(result.current.isDraftLoaded).toBe(false);
     await settlePendingWork();
 
-    expect(onDraftOpened).toHaveBeenCalledWith({
-      to: ['friend@inxt.me'],
-      cc: [],
-      bcc: [],
-      subject: 'Plans',
-      body: 'Hello',
-    });
-    expect(result.current.draftAttachments).toEqual(keptAttachments);
+    expect(onDraftOpened).toHaveBeenCalledWith(openedDraft);
     expect(result.current.isDraftLoaded).toBe(true);
   });
 
@@ -205,58 +229,68 @@ describe('Taking care of the draft of a message being written', () => {
   test('when the user leaves with unsaved changes, then the screen stays behind the loader until the draft is saved', async () => {
     draftAutosave.hasUnsavedChanges.mockReturnValue(true);
     const save = saveThatFinishesWhenTold();
-    const { result, navigation, tryToLeave } = renderDraftLifecycle();
+    const rendered = renderDraftLifecycle();
 
-    const removalEvent = tryToLeave();
-    const secondRemovalEvent = tryToLeave();
+    const removalEvent = rendered.tryToLeave();
+    const secondRemovalEvent = rendered.tryToLeave();
 
     expect(removalEvent.preventDefault).toHaveBeenCalled();
     expect(secondRemovalEvent.preventDefault).toHaveBeenCalled();
-    expect(result.current.blockingLoaderProps.isOpen).toBe(true);
+    expect(rendered.result.current.blockingLoaderProps).toMatchObject({ isOpen: true, isLoading: true });
     expect(draftAutosave.saveDraftNow).toHaveBeenCalledTimes(1);
-    expect(navigation.dispatch).not.toHaveBeenCalled();
+    expect(rendered.navigation.dispatch).not.toHaveBeenCalled();
 
     await act(async () => save.finish());
-    await settlePendingWork();
 
-    expect(result.current.blockingLoaderProps.isOpen).toBe(false);
-    expect(navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION);
+    await waitFor(() => expect(rendered.navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION));
+    expect(rendered.result.current.blockingLoaderProps.isOpen).toBe(false);
   });
 
   test('when the screen was left after saving but is still there, then leaving again saves again', async () => {
     draftAutosave.hasUnsavedChanges.mockReturnValue(true);
-    const { tryToLeave } = renderDraftLifecycle();
+    const { navigation, tryToLeave } = renderDraftLifecycle();
 
     tryToLeave();
-    await settlePendingWork();
+    await waitFor(() => expect(navigation.dispatch).toHaveBeenCalledTimes(1));
     const laterRemovalEvent = tryToLeave();
 
     expect(laterRemovalEvent.preventDefault).toHaveBeenCalled();
     expect(draftAutosave.saveDraftNow).toHaveBeenCalledTimes(2);
   });
 
+  test('when the app is reset while the loader is shown, then the reset is not held', () => {
+    draftAutosave.hasUnsavedChanges.mockReturnValue(true);
+    saveThatFinishesWhenTold();
+    const { tryToLeave } = renderDraftLifecycle();
+
+    tryToLeave();
+    const resetEvent = tryToLeave(RESET_ACTION);
+
+    expect(resetEvent.preventDefault).not.toHaveBeenCalled();
+  });
+
   test('when saving before leaving takes too long, then the user can leave without waiting for it', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert');
     jest.useFakeTimers();
     draftAutosave.hasUnsavedChanges.mockReturnValue(true);
     const save = saveThatFinishesWhenTold();
-    const { result, navigation, tryToLeave } = renderDraftLifecycle();
+    const rendered = renderDraftLifecycle();
+    const { draft: draftStrings } = strings.screens.compose_email;
 
-    tryToLeave();
+    rendered.tryToLeave();
     act(() => jest.advanceTimersByTime(LEAVE_WITHOUT_SAVING_DELAY_MS - 1));
-    expect(result.current.blockingLoaderProps.onAction).toBeUndefined();
+    expect(rendered.result.current.blockingLoaderProps.actions).toEqual([]);
 
     act(() => jest.advanceTimersByTime(1));
-    act(() => result.current.blockingLoaderProps.onAction?.());
+    pressLoaderAction(rendered, draftStrings.leaveWithoutSaving);
 
-    expect(navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION);
-    expect(result.current.blockingLoaderProps.isOpen).toBe(false);
+    expect(rendered.navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION);
+    expect(rendered.result.current.blockingLoaderProps.isOpen).toBe(false);
 
     await act(async () => save.fail());
     await settlePendingWork();
 
-    expect(navigation.dispatch).toHaveBeenCalledTimes(1);
-    expect(alertSpy).not.toHaveBeenCalled();
+    expect(rendered.navigation.dispatch).toHaveBeenCalledTimes(1);
+    expect(rendered.result.current.blockingLoaderProps.isOpen).toBe(false);
   });
 
   test('when the screen goes away while the draft is saved before leaving, then no timer is left behind', () => {
@@ -271,44 +305,62 @@ describe('Taking care of the draft of a message being written', () => {
     expect(jest.getTimerCount()).toBe(0);
   });
 
-  test('when saving before leaving fails, then the user stays on the screen and can choose to leave without saving', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert');
+  test('when the screen goes away while the draft is saved before leaving, then nothing navigates once the save ends', async () => {
     draftAutosave.hasUnsavedChanges.mockReturnValue(true);
     const save = saveThatFinishesWhenTold();
-    const { result, navigation, tryToLeave } = renderDraftLifecycle();
+    const { navigation, tryToLeave, unmount } = renderDraftLifecycle();
 
     tryToLeave();
-    await act(async () => save.fail());
+    unmount();
+    await act(async () => save.finish());
     await settlePendingWork();
 
     expect(navigation.dispatch).not.toHaveBeenCalled();
-    expect(result.current.blockingLoaderProps.isOpen).toBe(false);
-    expect(alertSpy.mock.calls[0][0]).toBe(strings.screens.compose_email.draft.saveFailed);
+  });
 
-    pressAlertButton(alertSpy, 'destructive');
+  test('when saving before leaving fails, then the user stays on the screen and can choose to leave without saving', async () => {
+    draftAutosave.hasUnsavedChanges.mockReturnValue(true);
+    const save = saveThatFinishesWhenTold();
+    const rendered = renderDraftLifecycle();
+    const { draft: draftStrings } = strings.screens.compose_email;
 
-    expect(navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION);
+    rendered.tryToLeave();
+    await act(async () => save.fail());
+    await settlePendingWork();
+
+    expect(rendered.navigation.dispatch).not.toHaveBeenCalled();
+    expect(rendered.result.current.blockingLoaderProps).toMatchObject({
+      isOpen: true,
+      isLoading: false,
+      message: draftStrings.saveFailed,
+    });
+
+    pressLoaderAction(rendered, draftStrings.leaveWithoutSaving);
+
+    expect(rendered.navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION);
+    expect(rendered.result.current.blockingLoaderProps.isOpen).toBe(false);
   });
 
   test('when saving before leaving fails and the user keeps editing, then the screen stays and leaving later saves again', async () => {
-    const alertSpy = jest.spyOn(Alert, 'alert');
     draftAutosave.hasUnsavedChanges.mockReturnValue(true);
     const save = saveThatFinishesWhenTold();
-    const { navigation, tryToLeave } = renderDraftLifecycle();
+    const rendered = renderDraftLifecycle();
 
-    tryToLeave();
+    rendered.tryToLeave();
     await act(async () => save.fail());
     await settlePendingWork();
-    pressAlertButton(alertSpy, 'cancel');
-    const laterRemovalEvent = tryToLeave();
+    pressLoaderAction(rendered, strings.screens.compose_email.draft.keepEditing);
 
-    expect(navigation.dispatch).not.toHaveBeenCalled();
+    expect(rendered.result.current.blockingLoaderProps.isOpen).toBe(false);
+
+    const laterRemovalEvent = rendered.tryToLeave();
+
+    expect(rendered.navigation.dispatch).not.toHaveBeenCalled();
     expect(laterRemovalEvent.preventDefault).toHaveBeenCalled();
     expect(draftAutosave.saveDraftNow).toHaveBeenCalledTimes(2);
   });
 
   test('when the message keeps no draft, then leaving is never held for a save', () => {
-    draftAutosave.hasUnsavedChanges.mockReturnValue(false);
     const { tryToLeave } = renderDraftLifecycle({ isEnabled: false });
 
     const removalEvent = tryToLeave();
@@ -450,5 +502,108 @@ describe('Taking care of the draft of a message being written', () => {
 
     expect(draftAutosave.resumeSaving).not.toHaveBeenCalled();
     expect(draftAutosave.saveDraftNow).not.toHaveBeenCalled();
+  });
+
+  test('when the user leaves while attachments are uploading, then the screen waits for them before saving the draft', async () => {
+    const { result, rerender, navigation, tryToLeave } = renderDraftLifecycle({ isUploadingAttachments: true });
+
+    const removalEvent = tryToLeave();
+
+    expect(removalEvent.preventDefault).toHaveBeenCalled();
+    expect(result.current.blockingLoaderProps.message).toBe(strings.screens.compose_email.draft.uploadingAttachments);
+    expect(draftAutosave.saveDraftNow).not.toHaveBeenCalled();
+
+    rerender({ isUploadingAttachments: false, failedAttachmentCount: 0, draftAttachments: NO_UPLOADED_ATTACHMENTS });
+
+    await waitFor(() => expect(navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION));
+    expect(draftAutosave.saveDraftNow).toHaveBeenCalledTimes(1);
+  });
+
+  test('when attachments the screen waited for fail to upload, then the user is asked before leaving without them', async () => {
+    const rendered = renderDraftLifecycle({ isUploadingAttachments: true });
+    const { draft: draftStrings } = strings.screens.compose_email;
+
+    rendered.tryToLeave();
+    rendered.rerender({
+      isUploadingAttachments: false,
+      failedAttachmentCount: 2,
+      draftAttachments: NO_UPLOADED_ATTACHMENTS,
+    });
+
+    expect(rendered.result.current.blockingLoaderProps).toMatchObject({
+      isOpen: true,
+      isLoading: false,
+      message: strings.formatString(draftStrings.attachmentsNotUploaded, 2) as string,
+    });
+    expect(draftAutosave.saveDraftNow).not.toHaveBeenCalled();
+    expect(rendered.navigation.dispatch).not.toHaveBeenCalled();
+
+    pressLoaderAction(rendered, draftStrings.leaveWithoutAttachments);
+
+    await waitFor(() => expect(rendered.navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION));
+    expect(draftAutosave.saveDraftNow).toHaveBeenCalledTimes(1);
+  });
+
+  test('when one attachment already failed and the user keeps editing, then the loader closes and the screen stays', () => {
+    const rendered = renderDraftLifecycle({ failedAttachmentCount: 1 });
+    const { draft: draftStrings } = strings.screens.compose_email;
+
+    const removalEvent = rendered.tryToLeave();
+
+    expect(rendered.result.current.blockingLoaderProps.message).toBe(draftStrings.attachmentNotUploaded);
+
+    pressLoaderAction(rendered, draftStrings.keepEditing);
+
+    expect(removalEvent.preventDefault).toHaveBeenCalled();
+    expect(rendered.result.current.blockingLoaderProps.isOpen).toBe(false);
+    expect(rendered.navigation.dispatch).not.toHaveBeenCalled();
+    expect(draftAutosave.saveDraftNow).not.toHaveBeenCalled();
+  });
+
+  test('when the user leaves without waiting for uploads and they finish afterwards, then nothing is saved and the screen is left once', async () => {
+    jest.useFakeTimers();
+    const rendered = renderDraftLifecycle({ isUploadingAttachments: true });
+
+    rendered.tryToLeave();
+    act(() => jest.advanceTimersByTime(LEAVE_WITHOUT_SAVING_DELAY_MS));
+    pressLoaderAction(rendered, strings.screens.compose_email.draft.leaveWithoutSaving);
+    rendered.rerender({
+      isUploadingAttachments: false,
+      failedAttachmentCount: 0,
+      draftAttachments: NO_UPLOADED_ATTACHMENTS,
+    });
+    await settlePendingWork();
+
+    expect(rendered.navigation.dispatch).toHaveBeenCalledTimes(1);
+    expect(draftAutosave.saveDraftNow).not.toHaveBeenCalled();
+  });
+
+  test('when a message that keeps no draft is left while attachments upload, then leaving is not held', () => {
+    const { tryToLeave } = renderDraftLifecycle({ isEnabled: false, isUploadingAttachments: true });
+
+    expect(tryToLeave().preventDefault).not.toHaveBeenCalled();
+  });
+
+  test('when the last attachment finishes uploading while the screen waits to leave, then the saved draft carries it', async () => {
+    useDraftAutosaveMock.mockImplementation(jest.requireActual('./useDraftAutosave').useDraftAutosave);
+    saveDraftMock.mockResolvedValue('draft-1');
+    const lastAttachment = { blobId: 'last-blob', name: 'last.txt', type: 'text/plain', size: 10 };
+    const { rerender, navigation, tryToLeave, unmount } = renderDraftLifecycle({ isUploadingAttachments: true });
+
+    tryToLeave();
+    rerender({
+      isUploadingAttachments: false,
+      failedAttachmentCount: 0,
+      draftAttachments: { attachmentsSessionKey: 'the-compose-key', attachments: [lastAttachment] },
+    });
+
+    await waitFor(() => expect(navigation.dispatch).toHaveBeenCalledWith(LEAVE_ACTION));
+    expect(saveDraftMock).toHaveBeenCalledWith({
+      draftId: null,
+      content: expect.objectContaining({
+        draftAttachments: { attachmentsSessionKey: 'the-compose-key', attachments: [lastAttachment] },
+      }),
+    });
+    unmount();
   });
 });

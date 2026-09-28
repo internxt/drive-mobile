@@ -4,6 +4,8 @@ import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity
 import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
+import { formatMaxAttachmentSize } from '@internxt-mobile/services/mail/attachmentLimits';
+import { describeErrorForLog } from '@internxt-mobile/services/mail/errorDescription';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import {
   encryptAndSendEmail,
@@ -12,7 +14,7 @@ import {
 } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { MailDomain } from '@internxt-mobile/services/mail/mailDomain';
 import { hasSameAddresses } from '@internxt-mobile/services/mail/replyRecipients';
-import { pick } from '@react-native-documents/picker';
+import { errorCodes, isErrorWithCode, pick } from '@react-native-documents/picker';
 import * as ImagePicker from 'expo-image-picker';
 import strings from '../../../../assets/lang/strings';
 import AppButton from '../../../components/AppButton';
@@ -22,18 +24,20 @@ import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
+import { notifications } from '../../../services/NotificationsService';
 import { useAppSelector } from '../../../store/hooks';
 import { AsyncStorageKey } from '../../../types';
 import { ForwardedAttachment, MailAttachment, SendStage } from '../../../types/mail';
 import { RootStackScreenProps } from '../../../types/navigation';
 import { BlockingLoaderModal } from './components/BlockingLoaderModal';
+import { ComposeAttachmentRow } from './components/ComposeAttachmentRow';
 import { ComposeFieldRow } from './components/ComposeFieldRow';
 import { composeFieldTextStyle } from './components/composeFieldStyles';
 import { ForwardedQuote } from './components/ForwardedQuote';
 import { RecipientRow } from './components/RecipientRow';
+import { useComposeAttachments } from './hooks/useComposeAttachments';
 import { useComposeRecipients } from './hooks/useComposeRecipients';
 import { useDraftLifecycle } from './hooks/useDraftLifecycle';
-import { describeSendFailure } from './sendErrors';
 import {
   RecipientField,
   addEveryTypedRecipient,
@@ -84,18 +88,26 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   const [senderAddress, setSenderAddress] = useState('');
   const [subject, setSubject] = useState(reply?.subject ?? forward?.subject ?? '');
   const [body, setBody] = useState('');
-  const [attachments, setAttachments] = useState<MailAttachment[]>([]);
   const [forwardedAttachments, setForwardedAttachments] = useState<ForwardedAttachment[]>(forward?.attachments ?? []);
   const [isSending, setIsSending] = useState(false);
   const [sendStage, setSendStage] = useState<SendStage | null>(null);
   const isSendInProgressRef = useRef(false);
 
   const {
+    attachments,
+    uploadedAttachments,
+    isUploadingAttachments,
+    failedAttachmentCount,
+    addFiles,
+    retryAttachment,
+    removeAttachment,
+    loadUploadedAttachments,
+  } = useComposeAttachments();
+
+  const {
     isDraftLoaded,
-    draftAttachments,
     canDiscardDraft,
     hasFailedToSaveDraft,
-    removeDraftAttachment,
     confirmAndDiscardDraft,
     prepareDraftForSending,
     handleFailedSend,
@@ -109,10 +121,16 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
     recipients: addEveryTypedRecipient(recipients, pendingText).recipients,
     subject,
     body,
+    draftAttachments: uploadedAttachments,
+    isUploadingAttachments,
+    failedAttachmentCount,
     onDraftOpened: (openedDraft) => {
       replaceRecipients({ to: openedDraft.to, cc: openedDraft.cc, bcc: openedDraft.bcc });
       setSubject(openedDraft.subject);
       setBody(openedDraft.body);
+      if (openedDraft.draftAttachments) {
+        loadUploadedAttachments(openedDraft.draftAttachments);
+      }
     },
   });
 
@@ -126,41 +144,62 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
 
   const onCancel = () => navigation.goBack();
 
+  const addPickedFiles = (pickedFiles: MailAttachment[]) => {
+    const refusedFiles = addFiles(pickedFiles);
+    const { errors } = strings.screens.compose_email;
+    refusedFiles.forEach((refusedFile) =>
+      notifications.error(
+        strings.formatString(errors.attachmentTooLarge, refusedFile.name, formatMaxAttachmentSize()) as string,
+      ),
+    );
+  };
+
   const onPickAttachment = async () => {
+    let pickedFiles: Awaited<ReturnType<typeof pick>>;
     try {
-      const results = await pick({ allowMultiSelection: true });
-      setAttachments((prev) => [
-        ...prev,
-        ...results.map((result) => ({
-          uri: result.uri,
-          name: result.name ?? 'attachment',
-          type: result.type ?? 'application/octet-stream',
-          size: result.size ?? undefined,
-        })),
-      ]);
-    } catch {
-      // user cancelled the picker — nothing to do
+      pickedFiles = await pick({ allowMultiSelection: true });
+    } catch (error) {
+      if (!(isErrorWithCode(error) && error.code === errorCodes.OPERATION_CANCELED)) {
+        logger.error('Failed to pick attachments', describeErrorForLog(error));
+        notifications.error(strings.screens.compose_email.attachments.pickFailed);
+      }
+      return;
     }
+    const readablePickedFiles = pickedFiles.filter((pickedFile) => !pickedFile.error && !pickedFile.isVirtual);
+    if (readablePickedFiles.length < pickedFiles.length) {
+      logger.warn('Some picked files cannot be read', {
+        unreadableFileCount: pickedFiles.length - readablePickedFiles.length,
+      });
+      notifications.error(strings.screens.compose_email.attachments.pickFailed);
+    }
+    addPickedFiles(
+      readablePickedFiles.map((pickedFile) => ({
+        uri: pickedFile.uri,
+        name: pickedFile.name ?? 'attachment',
+        type: pickedFile.type ?? 'application/octet-stream',
+        size: pickedFile.size ?? undefined,
+      })),
+    );
   };
 
   const onPickFromPhotos = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      return;
+    try {
+      const photoPickerResult = await ImagePicker.launchImageLibraryAsync({ allowsMultipleSelection: true });
+      if (photoPickerResult.canceled) {
+        return;
+      }
+      addPickedFiles(
+        photoPickerResult.assets.map((asset) => ({
+          uri: asset.uri,
+          name: asset.fileName ?? `photo-${Date.now()}.jpg`,
+          type: asset.mimeType ?? 'image/jpeg',
+          size: asset.fileSize,
+        })),
+      );
+    } catch (error) {
+      logger.error('Failed to pick photos', describeErrorForLog(error));
+      notifications.error(strings.screens.compose_email.attachments.pickFailed);
     }
-    const result = await ImagePicker.launchImageLibraryAsync({ allowsMultipleSelection: true });
-    if (result.canceled) {
-      return;
-    }
-    setAttachments((prev) => [
-      ...prev,
-      ...result.assets.map((asset) => ({
-        uri: asset.uri,
-        name: asset.fileName ?? `photo-${Date.now()}.jpg`,
-        type: asset.mimeType ?? 'image/jpeg',
-        size: asset.fileSize,
-      })),
-    ]);
   };
 
   const onAddAttachment = () => {
@@ -169,10 +208,6 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
       { text: 'Browse Files', onPress: () => setTimeout(onPickAttachment, 500) },
       { text: 'Cancel', style: 'cancel' },
     ]);
-  };
-
-  const onRemoveAttachment = (uri: string) => {
-    setAttachments((prev) => prev.filter((a) => a.uri !== uri));
   };
 
   const onRemoveForwardedAttachment = (blobId: string) => {
@@ -210,7 +245,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
             cc,
             bcc,
             subject,
-            files: attachments,
+            uploadedAttachments,
           },
           { onStage: setSendStage },
         );
@@ -225,7 +260,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
             bcc,
             subject,
             text: body,
-            files: attachments,
+            uploadedAttachments,
           },
           { onStage: setSendStage },
         );
@@ -237,16 +272,15 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
             bcc,
             subject,
             text: body,
-            files: attachments,
             draftId: draftIdForSending,
-            draftAttachments: draftAttachments ?? undefined,
+            uploadedAttachments,
           },
           { onStage: setSendStage },
         );
       }
       wasSent = true;
     } catch (error) {
-      logger.error('Failed to send email', error, describeSendFailure(error));
+      logger.error('Failed to send email', describeErrorForLog(error));
       Alert.alert(strings.screens.compose_email.errors.title, await handleFailedSend(error));
     } finally {
       isSendInProgressRef.current = false;
@@ -261,7 +295,11 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
 
   const { title, replyTitle, forwardTitle } = strings.screens.compose_email;
   const composeTitle = forward ? forwardTitle : reply ? replyTitle : title;
-  const canSend = isDraftLoaded && canSendMessage({ recipients, pendingText, subject, isSending });
+  const canSend =
+    isDraftLoaded &&
+    !isUploadingAttachments &&
+    failedAttachmentCount === 0 &&
+    canSendMessage({ recipients, pendingText, subject, isSending });
   const hasExtraRecipients = hasCopyOrBlindCopyRecipients(recipients, pendingText);
   const isMessageEndToEndEncrypted = isEndToEndEncrypted(recipients, pendingText, activeDomains);
 
@@ -398,40 +436,32 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
           {!!forward && <ForwardedQuote quote={forward.quote} originalSender={forward.originalSender} />}
 
           <View style={tailwind('px-4')}>
-            <AppButton title="Add attachment" type="secondary" onPress={onAddAttachment} />
+            <AppButton title="Add attachment" type="secondary" disabled={isSending} onPress={onAddAttachment} />
             {forwardedAttachments.map((attachment) => (
-              <View key={attachment.blobId} style={tailwind('flex-row items-center justify-between py-2')}>
-                <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
-                  {attachment.name}
-                </AppText>
-                <TouchableOpacity onPress={() => onRemoveForwardedAttachment(attachment.blobId)}>
-                  <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
-                </TouchableOpacity>
-              </View>
-            ))}
-            {draftAttachments?.attachments.map((attachment) => (
-              <View key={attachment.blobId} style={tailwind('flex-row items-center justify-between py-2')}>
-                <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
-                  {attachment.name}
-                </AppText>
-                <TouchableOpacity onPress={() => removeDraftAttachment(attachment.blobId)}>
-                  <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
-                </TouchableOpacity>
-              </View>
+              <ComposeAttachmentRow
+                key={attachment.blobId}
+                attachment={{
+                  id: attachment.blobId,
+                  name: attachment.name,
+                  status: 'uploaded',
+                  uploadedAttachment: attachment,
+                }}
+                disabled={isSending}
+                onRemove={() => onRemoveForwardedAttachment(attachment.blobId)}
+              />
             ))}
             {attachments.map((attachment) => (
-              <View key={attachment.uri} style={tailwind('flex-row items-center justify-between py-2')}>
-                <AppText numberOfLines={1} style={[tailwind('flex-1 mr-2'), { color: getColor('text-gray-100') }]}>
-                  {attachment.name}
-                </AppText>
-                <TouchableOpacity onPress={() => onRemoveAttachment(attachment.uri)}>
-                  <AppText style={{ color: getColor('text-primary') }}>Remove</AppText>
-                </TouchableOpacity>
-              </View>
+              <ComposeAttachmentRow
+                key={attachment.id}
+                attachment={attachment}
+                disabled={isSending}
+                onRetry={() => retryAttachment(attachment.id)}
+                onRemove={() => removeAttachment(attachment.id)}
+              />
             ))}
-            {isDraftKept && attachments.length > 0 && (
+            {failedAttachmentCount > 0 && (
               <AppText style={[tailwind('mt-2 text-xs'), { color: getColor('text-gray-50') }]}>
-                {strings.screens.compose_email.draft.attachmentsNotSaved}
+                {strings.screens.compose_email.attachments.removeFailedToSend}
               </AppText>
             )}
           </View>

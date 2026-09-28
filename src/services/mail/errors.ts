@@ -10,6 +10,7 @@ export const MailErrorName = {
   AttachmentTooLarge: 'AttachmentTooLargeError',
   ForwardedAttachmentsNotDecryptable: 'ForwardedAttachmentsNotDecryptableError',
   AttachmentUploadFailed: 'AttachmentUploadFailedError',
+  AttachmentUploadAborted: 'AttachmentUploadAbortedError',
 } as const;
 
 export class NoRecipientsError extends Error {
@@ -99,15 +100,9 @@ export class AttachmentUploadFailedError extends Error {
   }
 }
 
-/**
- * Reads the HTTP status of a failed request, whether the error is the one the mail SDK threw or one of
- * these errors wrapping it.
- *
- * @param error - The error thrown by a request.
- * @returns The HTTP status, or undefined when the error does not carry one.
- */
-export const readHttpStatus = (error: unknown): number | undefined => {
-  const requestError = error as { status?: unknown; cause?: { status?: unknown } } | null | undefined;
-  const httpStatus = requestError?.status ?? requestError?.cause?.status;
-  return typeof httpStatus === 'number' ? httpStatus : undefined;
-};
+export class AttachmentUploadAbortedError extends Error {
+  constructor() {
+    super('The attachment upload was aborted');
+    this.name = MailErrorName.AttachmentUploadAborted;
+  }
+}
