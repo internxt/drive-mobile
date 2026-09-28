@@ -22,6 +22,7 @@ import MoveItemsModal from '../components/modals/MoveItemsModal';
 import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
+import { SentMessageSnackbar } from '../components/SentMessageSnackbar';
 import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -53,6 +54,7 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
   const isTabBarHidden = useAppSelector((state) => state.ui.isTabBarHidden);
   const isFloatingButtonHidden = useAppSelector((state) => state.ui.isFloatingButtonHidden);
   const isComposeButtonCollapsed = useAppSelector((state) => state.ui.isComposeButtonCollapsed);
+  const hasSentMessageNotice = useAppSelector((state) => !!state.ui.sentMessageNotice);
 
   const mode = getFloatingButtonMode(tabExplorerState);
   const isComposeUnavailable = mode === 'compose' && (!hasMailAccess || isFloatingButtonHidden);
@@ -65,6 +67,9 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
       onCompose();
       return;
     }
+    if (!isUploadMenuOpen) {
+      dispatch(uiActions.hideSentMessageNotice());
+    }
     dispatch(uiActions.setShowUploadFileModal(!isUploadMenuOpen));
   };
 
@@ -73,6 +78,7 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
       mode={mode}
       isLabelShown={!isComposeButtonCollapsed}
       isMenuOpen={isUploadMenuOpen}
+      isRaised={hasSentMessageNotice}
       onPress={onPress}
     />
   );
@@ -153,6 +159,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
         />
       )}
       <AddModal floatingButton={<TabFloatingButton onCompose={() => props.navigation.navigate('ComposeEmail')} />} />
+      <SentMessageSnackbar />
       <DriveItemInfoModal />
       <SharedLinkInfoModal />
       <MoveItemsModal />

@@ -16,7 +16,6 @@ import {
   PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
 } from './errors';
-import { SendStage } from '../../types/mail';
 import { fs } from '../FileSystemService';
 import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
 import { discardMaterializedAttachments, materializeForwardedAttachments } from './forwardAttachments';
@@ -154,6 +153,17 @@ describe('Sending an encrypted email', () => {
 
     const encryptedEmail = encryptMock.mock.calls[0][0];
     expect(encryptedEmail.text).toBe('<p>Hello <b>there</b></p><ul><li>the numbers</li></ul>');
+  });
+
+  test('when a message has no text, then it is still sent, with an empty body and an empty opening', async () => {
+    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
+
+    await encryptAndSendEmail({ to: ['friend@inxt.me'], subject: 'Subject', text: '' });
+
+    const encryptedEmail = encryptMock.mock.calls[0][0];
+    expect(encryptedEmail.text).toBe('<br>');
+    expect(encryptedEmail.preview).toBe('');
+    expect(sendEmailMock).toHaveBeenCalledTimes(1);
   });
 
   test('when a message has formatting, then the mailbox list shows its opening as plain text', async () => {
@@ -820,41 +830,6 @@ describe('Forwarding a message', () => {
     expect(materializeMock).toHaveBeenCalledWith(expect.objectContaining({ areAttachmentsEncrypted: false }));
   });
 
-  test('when a forward is being sent, then each step it goes through is told', async () => {
-    materializeMock.mockImplementation(async ({ onAttachmentProgress }) => {
-      onAttachmentProgress?.(1, 1);
-      return [aMaterializedReport];
-    });
-    const stages: SendStage[] = [];
-
-    await encryptAndSendForward(
-      { ...forward, forwardedAttachments: [aReport] },
-      { onStage: (stage) => stages.push(stage) },
-    );
-
-    expect(stages).toEqual([
-      { name: 'downloadingAttachments', current: 1, total: 1 },
-      { name: 'uploadingAttachments', current: 1, total: 1 },
-      { name: 'sending' },
-    ]);
-  });
-
-  test('when the original carries several attachments, then the last one is told as the last of them, and not left out', async () => {
-    materializeMock.mockResolvedValue([aMaterializedReport, aMaterializedReport]);
-    const stages: SendStage[] = [];
-
-    await encryptAndSendForward(
-      { ...forward, forwardedAttachments: [aReport, aReport] },
-      { onStage: (stage) => stages.push(stage) },
-    );
-
-    expect(stages).toEqual([
-      { name: 'uploadingAttachments', current: 1, total: 2 },
-      { name: 'uploadingAttachments', current: 2, total: 2 },
-      { name: 'sending' },
-    ]);
-  });
-
   test('when the original carries several attachments, then they are uploaded one after another', async () => {
     materializeMock.mockResolvedValue([aMaterializedReport, aMaterializedReport, aMaterializedReport]);
     let uploadsInFlight = 0;
@@ -904,14 +879,6 @@ describe('Forwarding a message', () => {
       { blobId: 'new-blob', name: 'report.pdf', type: 'application/pdf', size: 1024 },
     ]);
     expect(encryptMock.mock.calls[0][0].attachmentsSessionKey).toEqual(new TextEncoder().encode('the-compose-key'));
-  });
-
-  test('when a send has nothing to upload, then it is not said to be uploading anything', async () => {
-    const stages: SendStage[] = [];
-
-    await encryptAndSendForward(forward, { onStage: (stage) => stages.push(stage) });
-
-    expect(stages).toEqual([{ name: 'sending' }]);
   });
 });
 

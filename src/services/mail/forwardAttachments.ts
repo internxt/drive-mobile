@@ -31,7 +31,6 @@ export const discardMaterializedAttachments = async (materialized: MaterializedA
 /**
  * Takes the attachments of a message out of it and leaves them on the device in the clear.
  *
- * @param params.onAttachmentProgress - The attachment being taken out and how many there are in total.
  * @returns Each attachment as a file on the device.
  * @throws ForwardedAttachmentsNotDecryptableError when the attachments are encrypted and the key of
  * their message is not on this device.
@@ -43,12 +42,10 @@ export const materializeForwardedAttachments = async ({
   forwardedMessageId,
   attachments,
   areAttachmentsEncrypted,
-  onAttachmentProgress,
 }: {
   forwardedMessageId: string;
   attachments: ForwardedAttachment[];
   areAttachmentsEncrypted: boolean;
-  onAttachmentProgress?: (current: number, total: number) => void;
 }): Promise<MaterializedAttachment[]> => {
   const oversized = attachments.find((attachment) => attachment.size > MAX_ATTACHMENT_BYTES);
   if (oversized) {
@@ -65,7 +62,6 @@ export const materializeForwardedAttachments = async ({
   const materialized: MaterializedAttachment[] = [];
 
   for (const attachment of attachments) {
-    onAttachmentProgress?.(materialized.length + 1, attachments.length);
     try {
       materialized.push(await materializeAttachment(forwardedMessageId, attachment, attachmentsSessionKey));
     } catch (error) {
