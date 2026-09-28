@@ -1,3 +1,5 @@
+import { HTTP_FORBIDDEN } from '../common/httpStatusCodes';
+
 /**
  * Reads the HTTP status of a failed request, whether the error is the one the mail SDK threw or one of
  * the mail errors wrapping it.
@@ -9,6 +11,14 @@ export const readHttpStatus = (error: unknown): number | undefined => {
   const requestError = error as { status?: unknown; cause?: { status?: unknown } } | null | undefined;
   const httpStatus = requestError?.status ?? requestError?.cause?.status;
   return typeof httpStatus === 'number' ? httpStatus : undefined;
+};
+
+const MAIL_NOT_SET_UP_CODE = 'MAIL_NOT_SETUP';
+
+export const isMailNotSetUpError = (error: unknown): boolean => {
+  const cause = (error as { cause?: unknown } | null | undefined)?.cause;
+  const requestFailure = (cause ?? error ?? {}) as { data?: { code?: unknown } | null };
+  return readHttpStatus(error) === HTTP_FORBIDDEN && requestFailure.data?.code === MAIL_NOT_SET_UP_CODE;
 };
 
 export const MAX_LOGGED_REASON_LENGTH = 200;

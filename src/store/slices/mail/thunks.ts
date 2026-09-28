@@ -2,7 +2,7 @@ import { EmailListResponse, MailboxResponse } from '@internxt/sdk/dist/mail/type
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
-import { describeErrorForLog } from '@internxt-mobile/services/mail/errorDescription';
+import { describeErrorForLog, isMailNotSetUpError } from '@internxt-mobile/services/mail/errorDescription';
 import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { MailboxId } from '../../../types/mail';
@@ -137,6 +137,9 @@ export const loadUnreadCountsThunk = createAsyncThunk<MailboxesSummary>('mail/lo
     const mailboxes = await mailboxService.getMailboxes();
     return summarizeMailboxes(mailboxes);
   } catch (error) {
+    if (isMailNotSetUpError(error)) {
+      return summarizeMailboxes([]);
+    }
     logger.error('Failed to load mailbox unread counts', describeErrorForLog(error));
     throw error;
   }
