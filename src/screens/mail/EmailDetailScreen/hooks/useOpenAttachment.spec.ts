@@ -1,10 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native';
 
 import strings from '../../../../../assets/lang/strings';
-import {
-  AttachmentToOpen,
-  downloadDecryptAndOpenAttachment,
-} from '../../../../services/mail/mailAttachment.service';
+import { AttachmentToOpen, downloadDecryptAndOpenAttachment } from '../../../../services/mail/mailAttachment.service';
 import { notifications } from '../../../../services/NotificationsService';
 import { useOpenAttachment } from './useOpenAttachment';
 

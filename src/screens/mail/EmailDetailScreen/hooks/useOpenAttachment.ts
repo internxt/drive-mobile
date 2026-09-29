@@ -3,10 +3,7 @@ import { useCallback, useRef, useState } from 'react';
 import strings from '../../../../../assets/lang/strings';
 import { logger } from '../../../../services/common/logger/logger.service';
 import { describeErrorForLog } from '../../../../services/mail/errorDescription';
-import {
-  AttachmentToOpen,
-  downloadDecryptAndOpenAttachment,
-} from '../../../../services/mail/mailAttachment.service';
+import { AttachmentToOpen, downloadDecryptAndOpenAttachment } from '../../../../services/mail/mailAttachment.service';
 import { notifications } from '../../../../services/NotificationsService';
 
 /**

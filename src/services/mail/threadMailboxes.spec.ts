@@ -1,7 +1,7 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 
 import { MailboxId } from '../../types/mail';
-import { filterMessagesInMailbox, getRestoreMailbox } from './threadMailboxes';
+import { filterMessagesInMailbox, getRestoreMailbox, resolveResultMailbox } from './threadMailboxes';
 
 const USER_ADDRESS = 'user@inxt.me';
 
@@ -43,5 +43,27 @@ describe('Choosing where a message in the trash goes back to', () => {
 
   test('when the address of the user is not known, then the message goes back to the inbox', () => {
     expect(getRestoreMailbox(aMessage({ sender: USER_ADDRESS }), '')).toBe(MailboxId.Inbox);
+  });
+});
+
+describe('Choosing the mailbox a search result opens in', () => {
+  test('when the result is a draft, then it opens in the drafts', () => {
+    expect(resolveResultMailbox(aMessage({ isDraft: true }), MAILBOX_TYPE_BY_ID)).toBe(MailboxId.Drafts);
+  });
+
+  test('when the result is in several mailboxes, then it opens in the one listed first in the menu', () => {
+    const sentToOneself = aMessage({ mailboxIds: ['id-of-sent', 'id-of-inbox'] });
+
+    expect(resolveResultMailbox(sentToOneself, MAILBOX_TYPE_BY_ID)).toBe(MailboxId.Inbox);
+  });
+
+  test('when the result is only in the sent messages, then it opens there', () => {
+    expect(resolveResultMailbox(aMessage({ mailboxIds: ['id-of-sent'] }), MAILBOX_TYPE_BY_ID)).toBe(MailboxId.Sent);
+  });
+
+  test('when none of the mailboxes of the result is known, then it opens in the inbox', () => {
+    expect(resolveResultMailbox(aMessage({ mailboxIds: ['id-of-a-folder'] }), MAILBOX_TYPE_BY_ID)).toBe(
+      MailboxId.Inbox,
+    );
   });
 });

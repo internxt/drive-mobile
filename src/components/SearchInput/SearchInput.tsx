@@ -1,6 +1,6 @@
 import { MagnifyingGlassIcon, XCircleIcon } from 'phosphor-react-native';
 import { createRef, useState } from 'react';
-import { StyleProp, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ReturnKeyTypeOptions, StyleProp, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
@@ -14,6 +14,9 @@ interface SearchInputProps {
   placeholder?: string;
   style?: StyleProp<ViewStyle>;
   onFocusChange?: (isFocused: boolean) => void;
+  onSubmitEditing?: () => void;
+  autoFocus?: boolean;
+  returnKeyType?: ReturnKeyTypeOptions;
 }
 
 export function SearchInput(props: SearchInputProps): JSX.Element {
@@ -59,6 +62,9 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
               onFocus={onFocus}
               onBlur={onBlur}
               onChangeText={props.onChangeText}
+              onSubmitEditing={props.onSubmitEditing}
+              autoFocus={props.autoFocus}
+              returnKeyType={props.returnKeyType}
               value={props.value}
               style={[
                 styles.fontWeight.regular,

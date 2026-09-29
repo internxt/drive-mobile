@@ -4,6 +4,7 @@ import {
   CheckSquareIcon,
   EnvelopeIcon,
   ListIcon,
+  MagnifyingGlassIcon,
   SquareIcon,
   WarningIcon,
   XIcon,
@@ -217,9 +218,17 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       >
         <ListIcon color={getColor('text-gray-100')} size={HEADER_ICON_SIZE} />
       </TouchableOpacity>
-      <AppText medium numberOfLines={1} style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
+      <AppText medium numberOfLines={1} style={[tailwind('flex-1 text-2xl'), { color: getColor('text-gray-100') }]}>
         {strings.screens.mail.mailboxes[selectedMailboxId]}
       </AppText>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={strings.screens.mail.search.open}
+        onPress={() => navigation.navigate('MailSearch')}
+        style={tailwind('pl-3 py-1')}
+      >
+        <MagnifyingGlassIcon color={getColor('text-gray-100')} size={HEADER_ICON_SIZE} />
+      </TouchableOpacity>
     </Animated.View>
   );
 

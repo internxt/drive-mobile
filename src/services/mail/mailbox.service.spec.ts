@@ -1,6 +1,6 @@
 import { SdkManager } from '@internxt-mobile/services/common';
 import { MailboxId } from '../../types/mail';
-import { MAILBOX_PAGE_SIZE, MailboxService } from './mailbox.service';
+import { MAILBOX_PAGE_SIZE, MailboxService, SEARCH_PAGE_SIZE } from './mailbox.service';
 
 jest.mock('@internxt-mobile/services/common', () => ({
   SdkManager: { getInstance: jest.fn() },
@@ -101,5 +101,26 @@ describe('Listing the emails of a mailbox', () => {
     const sdkListEmails = jest.fn().mockResolvedValue(PAGE_FROM_SERVER);
 
     await expect(createServiceListing(sdkListEmails).listEmails(MailboxId.Inbox)).resolves.toEqual(PAGE_FROM_SERVER);
+  });
+});
+
+describe('Searching the emails of every mailbox', () => {
+  const createServiceSearching = (sdkSearch: jest.Mock) =>
+    new MailboxService({ mail: { search: sdkSearch } } as unknown as SdkManager);
+
+  test('when a later page of results is asked for, then it starts after the results already shown', async () => {
+    const sdkSearch = jest.fn().mockResolvedValue({ emails: [], total: 0, hasMoreMails: false });
+
+    await createServiceSearching(sdkSearch).searchEmails({ text: 'invoice' }, { position: 25 });
+
+    expect(sdkSearch).toHaveBeenCalledWith({ text: 'invoice', limit: SEARCH_PAGE_SIZE, position: 25 });
+  });
+
+  test('when the results already shown are asked for again, then they come in a single page', async () => {
+    const sdkSearch = jest.fn().mockResolvedValue({ emails: [], total: 0, hasMoreMails: false });
+
+    await createServiceSearching(sdkSearch).searchEmails({ text: 'invoice' }, { position: 0, limit: 75 });
+
+    expect(sdkSearch).toHaveBeenCalledWith({ text: 'invoice', limit: 75, position: 0 });
   });
 });
