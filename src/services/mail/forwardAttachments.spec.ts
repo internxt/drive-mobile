@@ -116,22 +116,6 @@ describe('Taking the attachments out of a message being forwarded', () => {
     expect(createFileMock).toHaveBeenCalledTimes(1);
   });
 
-  test('when the attachments are being prepared, then the one being worked on is told, up to the last', async () => {
-    const reported: Array<[number, number]> = [];
-
-    await materializeForwardedAttachments({
-      forwardedMessageId: 'message-1',
-      attachments: [aReport, aPhoto],
-      areAttachmentsEncrypted: true,
-      onAttachmentProgress: (current, total) => reported.push([current, total]),
-    });
-
-    expect(reported).toEqual([
-      [1, 2],
-      [2, 2],
-    ]);
-  });
-
   test('when an attachment cannot be downloaded, then preparing them fails instead of leaving it out', async () => {
     downloadAttachmentMock.mockRejectedValue(new Error('the server is unreachable'));
 

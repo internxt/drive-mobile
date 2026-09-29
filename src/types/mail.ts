@@ -42,15 +42,6 @@ export type OutgoingForward = Omit<OutgoingEmail, 'text'> & {
   areAttachmentsEncrypted: boolean;
 };
 
-export type SendProgress = {
-  onStage?: (stage: SendStage) => void;
-};
-
-export type SendStage =
-  | { name: 'downloadingAttachments'; current: number; total: number }
-  | { name: 'uploadingAttachments'; current: number; total: number }
-  | { name: 'sending' };
-
 export type UploadedAttachments = {
   attachmentsSessionKey: string;
   attachments: AttachmentRef[];

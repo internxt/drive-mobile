@@ -18,7 +18,12 @@ import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 import { useLanguage } from '../../hooks/useLanguage';
 import globalStyle from '../../styles/global';
-import { FLOATING_BUTTON_BOTTOM, FLOATING_BUTTON_MARGIN, FLOATING_BUTTON_SIZE } from './floatingButtonLayout';
+import {
+  FLOATING_BUTTON_BOTTOM,
+  FLOATING_BUTTON_MARGIN,
+  FLOATING_BUTTON_RAISE_OVER_NOTICE,
+  FLOATING_BUTTON_SIZE,
+} from './floatingButtonLayout';
 
 const PLUS_ICON_SIZE = 26;
 const PENCIL_ICON_SIZE = 24;
@@ -26,6 +31,7 @@ const LABEL_LEFT_PADDING = 20;
 const MENU_OPEN_ROTATION_DEGREES = 45;
 const ROTATION_DURATION = 250;
 const RESIZE_DURATION = 300;
+const RAISE_DURATION = 250;
 const ICON_SWAP_DURATION = 200;
 const LABEL_FADE_DURATION = 150;
 const PRESSED_SCALE = 0.94;
@@ -37,10 +43,17 @@ interface FloatingActionButtonProps {
   mode: FloatingActionButtonMode;
   isLabelShown: boolean;
   isMenuOpen: boolean;
+  isRaised: boolean;
   onPress: () => void;
 }
 
-const FloatingActionButton = ({ mode, isLabelShown, isMenuOpen, onPress }: FloatingActionButtonProps): JSX.Element => {
+const FloatingActionButton = ({
+  mode,
+  isLabelShown,
+  isMenuOpen,
+  isRaised,
+  onPress,
+}: FloatingActionButtonProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
@@ -53,6 +66,14 @@ const FloatingActionButton = ({ mode, isLabelShown, isMenuOpen, onPress }: Float
   }, [isMenuOpen, plusRotation]);
 
   const plusIconStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${plusRotation.value}deg` }] }));
+
+  const raiseOffset = useSharedValue(0);
+
+  useEffect(() => {
+    raiseOffset.value = withTiming(isRaised ? -FLOATING_BUTTON_RAISE_OVER_NOTICE : 0, { duration: RAISE_DURATION });
+  }, [isRaised, raiseOffset]);
+
+  const raiseStyle = useAnimatedStyle(() => ({ transform: [{ translateY: raiseOffset.value }] }));
 
   const isComposeMode = mode === 'compose';
   const uploadAccessibilityLabel = isMenuOpen
@@ -69,6 +90,7 @@ const FloatingActionButton = ({ mode, isLabelShown, isMenuOpen, onPress }: Float
           boxShadow: SHADOW,
           bottom: FLOATING_BUTTON_BOTTOM + safeAreaInsets.bottom,
         },
+        raiseStyle,
       ]}
     >
       <Pressable

@@ -525,10 +525,10 @@ const translations = {
           to: 'To:',
           cc: 'Cc:',
         },
-        progress: {
-          downloadingAttachments: 'Preparing attachments ({0}/{1})',
-          uploadingAttachments: 'Encrypting and uploading attachments ({0}/{1})',
-          sending: 'Sending…',
+        sending: 'Sending…',
+        sentNotice: {
+          title: 'Message sent',
+          recipients: 'To {0}',
         },
         errors: {
           title: 'Message not sent',
@@ -1752,10 +1752,10 @@ const translations = {
           to: 'Para:',
           cc: 'Cc:',
         },
-        progress: {
-          downloadingAttachments: 'Preparando adjuntos ({0}/{1})',
-          uploadingAttachments: 'Cifrando y subiendo adjuntos ({0}/{1})',
-          sending: 'Enviando…',
+        sending: 'Enviando…',
+        sentNotice: {
+          title: 'Mensaje enviado',
+          recipients: 'Para {0}',
         },
         errors: {
           title: 'Mensaje no enviado',
