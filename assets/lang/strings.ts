@@ -392,6 +392,13 @@ const translations = {
             },
           },
         },
+        mailLocked: {
+          title: 'Mail is locked',
+          body: 'Send and receive end-to-end encrypted email from the same app.',
+          upgradeLine: 'Upgrade to unlock Mail.',
+          upgradeInfoPrefix: 'To upgrade visit ',
+          upgradeInfoHighlight: 'our website > pricing',
+        },
         empty: {
           inbox: 'Inbox is empty',
           drafts: 'Drafts is empty',
@@ -1590,6 +1597,13 @@ const translations = {
               customRange: 'Rango personalizado',
             },
           },
+        },
+        mailLocked: {
+          title: 'Mail está bloqueado',
+          body: 'Envía y recibe correo cifrado de extremo a extremo desde la misma app.',
+          upgradeLine: 'Actualiza para desbloquear Mail.',
+          upgradeInfoPrefix: 'Para actualizar visita ',
+          upgradeInfoHighlight: 'nuestra web > precios',
         },
         empty: {
           inbox: 'Bandeja de entrada está vacía',

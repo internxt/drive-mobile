@@ -131,6 +131,7 @@ class AsyncStorageService {
         AsyncStorageKey.PhotosDiscoverSeen,
         AsyncStorageKey.PhotosDevicesCache,
         AsyncStorageKey.PhotosAccessCache,
+        AsyncStorageKey.MailAccessCache,
         AsyncStorageKey.LastUpdatedAt,
         AsyncStorageKey.IsDeletingAccount,
       ];
