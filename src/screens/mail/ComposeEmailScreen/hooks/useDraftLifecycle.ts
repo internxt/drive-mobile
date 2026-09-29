@@ -38,7 +38,9 @@ const RESET_ACTION_TYPE = 'RESET';
  * @param params.mnemonic - Mnemonic of the account, which unlocks the draft being opened.
  * @param params.recipients - Recipients of the message, with what is typed in each field already added.
  * @param params.subject - Subject of the message.
- * @param params.body - Body of the message, as typed.
+ * @param params.body - Body of the message, as markup.
+ * @param params.isBodyReady - Whether the body field has reported the body it starts with; nothing is
+ * saved before.
  * @param params.draftAttachments - Attachments of the message already uploaded, with their key.
  * @param params.isUploadingAttachments - Whether any attachment of the message is still uploading.
  * @param params.failedAttachmentCount - How many attachments of the message failed to upload.
@@ -56,6 +58,7 @@ export const useDraftLifecycle = ({
   recipients,
   subject,
   body,
+  isBodyReady,
   draftAttachments,
   isUploadingAttachments,
   failedAttachmentCount,
@@ -68,6 +71,7 @@ export const useDraftLifecycle = ({
   recipients: RecipientsByField;
   subject: string;
   body: string;
+  isBodyReady: boolean;
   draftAttachments: UploadedAttachments;
   isUploadingAttachments: boolean;
   failedAttachmentCount: number;
@@ -92,7 +96,7 @@ export const useDraftLifecycle = ({
   } = useDraftAutosave({
     isEnabled,
     initialDraftId: draftToOpen?.draftId,
-    isContentReady: isDraftLoaded,
+    isContentReady: isDraftLoaded && isBodyReady,
     draftContent: { ...recipients, subject, body, draftAttachments },
   });
 

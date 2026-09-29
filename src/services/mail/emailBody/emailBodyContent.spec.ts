@@ -2,7 +2,6 @@ import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 
 import {
   buildEmailBodyHtml,
-  editableTextFromHtml,
   isMarkupBody,
   plainTextFromHtml,
   plainTextToHtml,
@@ -84,7 +83,7 @@ describe('Displaying a message written as plain text', () => {
   test('when the text has apostrophes and quotation marks, then they are shown without anything added around them', () => {
     const html = plainTextToHtml('it\'s the "big" one, isn\'t it?');
 
-    expect(html).toContain('it&#39;s the &quot;big&quot; one, isn&#39;t it?');
+    expect(html).toContain('it&apos;s the &quot;big&quot; one, isn&apos;t it?');
   });
 
   test('when the text looks like a script, then it is shown as text instead of being rendered', () => {
@@ -199,45 +198,8 @@ describe('Reading a formatted body as the text it displays', () => {
   test('when the body holds a space written as an entity, then it is read as a space', () => {
     expect(plainTextFromHtml('<p>Invoice&nbsp;September</p>')).toBe('Invoice September');
   });
-});
 
-describe('Reading a formatted body back as text to keep editing', () => {
-  test('when a body written on the phone is read back, then it comes back exactly as it was typed', () => {
-    const typedText = 'Hello\n\nsee you <soon> & bye';
-
-    expect(editableTextFromHtml(plainTextToHtml(typedText))).toBe(typedText);
-  });
-
-  test('when a body written in paragraphs is read back, then each paragraph becomes a line', () => {
-    expect(editableTextFromHtml('<p>Hello</p><p>see you</p>')).toBe('Hello\nsee you');
-  });
-
-  test('when a body has line break tags, then each one becomes a line break', () => {
-    expect(editableTextFromHtml('Hello<br>see you<br/>bye')).toBe('Hello\nsee you\nbye');
-  });
-
-  test('when a body has formatting, then the formatting is dropped and its text is kept', () => {
-    expect(editableTextFromHtml('<p>Hello <b>there</b></p>')).toBe('Hello there');
-  });
-
-  test('when a body written in the browser has an empty paragraph, then it becomes a single blank line', () => {
-    expect(editableTextFromHtml('<p>Hello</p><p><br></p><p>bye</p>')).toBe('Hello\n\nbye');
-  });
-
-  test('when the markup of a body is spread over several lines, then those lines do not add blank lines', () => {
-    expect(editableTextFromHtml('<p>Hello</p>\n<p>see you</p>')).toBe('Hello\nsee you');
-  });
-
-  test('when a body carries styles or scripts, then none of their code ends up in the text', () => {
-    expect(editableTextFromHtml('<style>p{color:red}</style><p>Hi</p><script>run()</script>')).toBe('Hi');
-  });
-
-  test('when a body writes characters by their number, then they are read as those characters', () => {
-    expect(editableTextFromHtml('<p>it&#x27;s&#160;fine &#169;</p>')).toBe('it\'s fine \u00a9');
-  });
-
-  test('when a body nests blocks inside text, then each block starts on its own line', () => {
-    expect(editableTextFromHtml('<div>Hello<div>world</div></div>')).toBe('Hello\nworld');
-    expect(editableTextFromHtml('<ul><li>first<ul><li>second</li></ul></li></ul>')).toBe('first\nsecond');
+  test('when the body writes accents and emojis by their number, then they are read as those characters', () => {
+    expect(plainTextFromHtml('<p>&#191;Qu&#233; tal? &#x1F600;</p>')).toBe('¿Qué tal? 😀');
   });
 });

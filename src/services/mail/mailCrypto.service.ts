@@ -31,7 +31,7 @@ import { logger } from '../common/logger/logger.service';
 import { AcceptedEncodings, fs } from '../FileSystemService';
 import { MAX_ATTACHMENT_BYTES, isAttachmentTooLarge } from './attachmentLimits';
 import { CachedDecryptedEmail, DecryptedEmail, mailLocalDB } from './database/mailLocalDB';
-import { plainTextToHtml } from './emailBody/emailBodyContent';
+import { plainTextFromHtml } from './emailBody/emailBodyContent';
 import { describeErrorForLog } from './errorDescription';
 import {
   ActiveDomainsUnavailableError,
@@ -509,7 +509,7 @@ export const toEmailAddresses = (addresses: string[]) => addresses.map((email) =
  * @param email.cc - Addresses in copy, normalized like `to`.
  * @param email.bcc - Addresses in blind copy, normalized like `to`.
  * @param email.subject - Subject line, which travels in cleartext because the server indexes it.
- * @param email.text - Body of the message.
+ * @param email.text - Body of the message, as markup.
  * @param email.draftId - Id of the draft the message was written in, which the server destroys once it is
  * sent.
  * @param email.uploadedAttachments - Attachments uploaded while the message was written, which travel
@@ -533,8 +533,8 @@ export const encryptAndSendEmail = async (
   const { encryption, attachments } = await encryptMessageForRecipients({
     allAddresses,
     activeDomains,
-    body: plainTextToHtml(text),
-    preview: previewOf(text),
+    body: text,
+    preview: previewOf(plainTextFromHtml(text)),
     uploadedAttachments,
     onStage,
   });
@@ -569,7 +569,7 @@ export const encryptAndSendEmail = async (
  * @param reply.cc - Addresses in copy, normalized like `to`.
  * @param reply.bcc - Addresses in blind copy, normalized like `to`.
  * @param reply.subject - Subject line of the reply.
- * @param reply.text - Body of the reply.
+ * @param reply.text - Body of the reply, as markup.
  * @param reply.uploadedAttachments - Attachments uploaded while the reply was written, which travel
  * without being uploaded again.
  * @param progress - How the send reports what it is doing.
@@ -590,8 +590,8 @@ export const encryptAndSendReply = async (
   const { encryption, attachments } = await encryptMessageForRecipients({
     allAddresses,
     activeDomains,
-    body: plainTextToHtml(text),
-    preview: previewOf(text),
+    body: text,
+    preview: previewOf(plainTextFromHtml(text)),
     uploadedAttachments,
     onStage,
   });
@@ -619,7 +619,7 @@ export const encryptAndSendReply = async (
  *
  * @param forward - The message to forward.
  * @param forward.forwardedMessageId - Id of the message being forwarded.
- * @param forward.note - What the user wrote above the quoted original.
+ * @param forward.note - What the user wrote above the quoted original, as markup.
  * @param forward.quote - The original, quoted under its header.
  * @param forward.forwardedAttachments - Attachments of the original, which travel along.
  * @param forward.to - Recipients of the forwarded message.

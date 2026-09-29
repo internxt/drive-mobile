@@ -141,44 +141,30 @@ describe('Sending an encrypted email', () => {
     expect(keyAsText(wrappedFor('someone@gmail.com'))).toBe(SERVER_PUBLIC_KEY);
   });
 
-  test('when a message is written on several lines, then it travels as markup, so no reader collapses it into one line', async () => {
+  test('when a message has formatting, then it travels with that formatting', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
 
     await encryptAndSendEmail({
       to: ['friend@inxt.me'],
       subject: 'Subject',
-      text: 'Hello there,\n\nHere are the numbers',
+      text: '<p>Hello <b>there</b></p><ul><li>the numbers</li></ul>',
     });
 
     const encryptedEmail = encryptMock.mock.calls[0][0];
-    expect(encryptedEmail.text).toContain('white-space:pre-wrap');
-    expect(encryptedEmail.text).toContain('Hello there,\n\nHere are the numbers');
+    expect(encryptedEmail.text).toBe('<p>Hello <b>there</b></p><ul><li>the numbers</li></ul>');
   });
 
-  test('when a message names an address between angle brackets, then it is not read as markup by whoever displays it', async () => {
+  test('when a message has formatting, then the mailbox list shows its opening as plain text', async () => {
     getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
 
     await encryptAndSendEmail({
       to: ['friend@inxt.me'],
       subject: 'Subject',
-      text: 'Write to Ramon <ramon@inxt.eu>',
+      text: '<p>Hello <b>there</b></p><p>Here are the numbers</p>',
     });
 
     const encryptedEmail = encryptMock.mock.calls[0][0];
-    expect(encryptedEmail.text).toContain('Write to Ramon &lt;ramon@inxt.eu&gt;');
-  });
-
-  test('when a message is written on several lines, then the mailbox list still shows its opening as plain text', async () => {
-    getPublicKeysMock.mockResolvedValue([{ address: 'friend@inxt.me', publicKey: 'friend-key' }]);
-
-    await encryptAndSendEmail({
-      to: ['friend@inxt.me'],
-      subject: 'Subject',
-      text: 'Hello there,\n\nHere are the numbers',
-    });
-
-    const encryptedEmail = encryptMock.mock.calls[0][0];
-    expect(encryptedEmail.preview).toBe('Hello there,\n\nHere are the numbers');
+    expect(encryptedEmail.preview).toBe('Hello there Here are the numbers');
   });
 
   test('when a recipient with an internal domain has no published key, then sending fails instead of delivering an unreadable message', async () => {
@@ -605,12 +591,11 @@ describe('Sending an encrypted reply', () => {
     expect(replyRequestBody().to).toEqual([{ email: 'friend@inxt.me' }]);
   });
 
-  test('when a reply is written on several lines, then it travels as markup like any other message', async () => {
-    await encryptAndSendReply({ ...reply, text: 'Sure,\n\nsee you there' });
+  test('when a reply has formatting, then it travels with that formatting like any other message', async () => {
+    await encryptAndSendReply({ ...reply, text: '<p>Sure, <i>see you there</i></p>' });
 
     const encryptedEmail = encryptMock.mock.calls[0][0];
-    expect(encryptedEmail.text).toContain('white-space:pre-wrap');
-    expect(encryptedEmail.text).toContain('Sure,\n\nsee you there');
+    expect(encryptedEmail.text).toBe('<p>Sure, <i>see you there</i></p>');
   });
 
   test('when replying to everybody, then the request says so', async () => {

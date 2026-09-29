@@ -101,31 +101,22 @@ describe('Quoting the message being forwarded', () => {
 describe('Writing the body a forwarded message travels with', () => {
   const aQuote = { body: '<p>Quoted original</p>', originalText: 'Quoted original' };
 
-  test('when the user wrote several lines above the quote, then the line breaks travel with them', () => {
-    const body = composeForwardedBody('Take a look\nat this', aQuote);
-
-    expect(body).toContain('white-space:pre-wrap');
-    expect(body).toContain('Take a look\nat this');
-    expect(body).toContain('<p>Quoted original</p>');
-  });
-
-  test('when what the user wrote looks like markup, then it is shown as written', () => {
-    const body = composeForwardedBody('<script>stealTheKey()</script>', aQuote);
-
-    expect(body).toContain('&lt;script&gt;');
-    expect(body).not.toContain('<script>');
+  test('when the user wrote something above the quote, then it travels with its formatting above the quote', () => {
+    expect(composeForwardedBody('<p>Take a <b>look</b></p>', aQuote)).toBe(
+      '<p>Take a <b>look</b></p><br><p>Quoted original</p>',
+    );
   });
 
   test('when the user wrote nothing above the quote, then the message is the quote alone', () => {
-    expect(composeForwardedBody('   ', aQuote)).toBe('<p>Quoted original</p>');
+    expect(composeForwardedBody('<p> </p>', aQuote)).toBe('<p>Quoted original</p>');
   });
 });
 
 describe('Writing the opening of a forwarded message', () => {
   const aQuoteOf = (originalText: string) => ({ body: 'The whole quote', originalText });
 
-  test('when the user wrote something above the quote, then that is what the mailbox list shows', () => {
-    const preview = previewOfForward('  Take a look at this  ', aQuoteOf('Here are the numbers'));
+  test('when the user wrote something above the quote, then that is what the mailbox list shows, without its formatting', () => {
+    const preview = previewOfForward('<p>Take a <b>look</b> at this</p>', aQuoteOf('Here are the numbers'));
 
     expect(preview).toBe('Take a look at this');
   });
