@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import pLimit from 'p-limit';
 import { PhotoUploadEvent, PhotoUploadResult, PhotoUploadService } from './PhotoUploadService';
 

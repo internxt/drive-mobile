@@ -1,4 +1,4 @@
-import { Platform, StyleProp, TouchableWithoutFeedback, useColorScheme, View, ViewStyle } from 'react-native';
+import { StyleProp, TouchableWithoutFeedback, useColorScheme, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modal';
 
 import { StatusBar } from 'expo-status-bar';
@@ -35,7 +35,6 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
   const safeAreaColor = props.safeAreaColor || getColor('bg-surface');
 
   const statusBarStyle = isDark ? 'light' : 'dark';
-  const isTranslucent = Platform.OS === 'android';
 
   return (
     <Modal
@@ -56,7 +55,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       coverScreen={false}
     >
       <View style={[tailwind('h-full bg-transparent'), { paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top }]}>
-        <StatusBar style={statusBarStyle} translucent={isTranslucent} />
+        <StatusBar style={statusBarStyle} />
 
         <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>
           <View style={tailwind('flex-grow')}>
