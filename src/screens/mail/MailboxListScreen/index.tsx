@@ -38,6 +38,8 @@ import { useMailboxEmails } from '../../../store/slices/mail/hooks/useMailboxEma
 import { MailboxId } from '../../../types/mail';
 import { MailboxScreenProps } from '../../../types/navigation';
 import { EmailSummaryRow } from '../components/EmailSummaryRow';
+import { MailListSkeleton } from '../components/MailListSkeleton';
+import { RefreshLine } from '../components/RefreshLine';
 import { HEADER_ICON_GAP, HEADER_ICON_SIZE, SELECTION_TRANSITION_DURATION } from '../components/mailListLayout';
 import { useMailboxBulkActions } from './hooks/useMailboxBulkActions';
 import { useMailboxSelection } from './hooks/useMailboxSelection';
@@ -67,6 +69,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
     emails,
     isLoadingFirstPage,
     isLoadingNextPage,
+    isRefreshingNewestEmails,
     hasFirstPageFailed,
     hasNextPageFailed,
     loadFirstPage,
@@ -155,6 +158,11 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       return () => subscription.remove();
     }, [isSelecting, clearSelection]),
   );
+
+  const refreshFromTitle = () => {
+    refreshNewestEmails().catch((error) => logger.error('Failed to refresh the mailbox', error));
+    refreshUnreadCounts();
+  };
 
   const onPullToRefresh = async () => {
     setIsRefreshing(true);
@@ -250,9 +258,16 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       >
         <ListIcon color={getColor('text-gray-100')} size={HEADER_ICON_SIZE} />
       </TouchableOpacity>
-      <AppText medium numberOfLines={1} style={[tailwind('flex-1 text-2xl'), { color: getColor('text-gray-100') }]}>
-        {strings.screens.mail.mailboxes[selectedMailboxId]}
-      </AppText>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityHint={strings.screens.mail.refreshMailbox}
+        onPress={refreshFromTitle}
+        style={tailwind('flex-1')}
+      >
+        <AppText medium numberOfLines={1} style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
+          {strings.screens.mail.mailboxes[selectedMailboxId]}
+        </AppText>
+      </TouchableOpacity>
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={strings.screens.mail.search.open}
@@ -332,11 +347,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
 
   const renderEmailListContent = () => {
     if (isLoadingFirstPage && emails.length === 0) {
-      return (
-        <View style={tailwind('flex-1 items-center justify-center')}>
-          <ActivityIndicator color={getColor('text-primary')} />
-        </View>
-      );
+      return <MailListSkeleton />;
     }
 
     if (hasFirstPageFailed && emails.length === 0) {
@@ -415,6 +426,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       </View>
       <View style={tailwind('flex-1')}>
         {renderEmailListContent()}
+        {isRefreshingNewestEmails && emails.length > 0 && <RefreshLine />}
         {isSelecting && (
           <MailboxSelectionBar
             mailboxId={selectedMailboxId}

@@ -412,6 +412,7 @@ const translations = {
           trash: 'Trash',
         },
         openMailboxes: 'Open mailboxes',
+        refreshMailbox: 'Refresh mailbox',
         unableToDecryptPreview: 'This message could not be decrypted',
         noRecipients: '(No recipients)',
         showRemoteImages: 'Show images',
@@ -473,6 +474,9 @@ const translations = {
           confirm: 'Add',
         },
         endToEndEncrypted: 'End-to-end encrypted',
+        close: 'Close',
+        showCopyFields: 'Cc/Bcc',
+        hideCopyFields: 'Hide',
         draft: {
           discard: 'Discard draft',
           discardConfirmation: 'This draft will be deleted and cannot be recovered.',
@@ -497,6 +501,8 @@ const translations = {
           uploadFailed: 'Upload failed',
           tooLarge: 'Larger than the {0} allowed',
           pickFailed: 'The files could not be added.',
+          addFiles: 'Attach files',
+          addPhotos: 'Attach photos',
           removeFailedToSend: 'Remove the attachments that could not be uploaded to send the message.',
         },
         forward: {
@@ -1622,6 +1628,7 @@ const translations = {
           trash: 'Papelera',
         },
         openMailboxes: 'Abrir bandejas',
+        refreshMailbox: 'Actualizar bandeja',
         unableToDecryptPreview: 'No se ha podido descifrar este mensaje',
         noRecipients: '(Sin destinatarios)',
         showRemoteImages: 'Mostrar imágenes',
@@ -1683,6 +1690,9 @@ const translations = {
           confirm: 'Añadir',
         },
         endToEndEncrypted: 'Cifrado de extremo a extremo',
+        close: 'Cerrar',
+        showCopyFields: 'Cc/Cco',
+        hideCopyFields: 'Ocultar',
         draft: {
           discard: 'Descartar borrador',
           discardConfirmation: 'Este borrador se eliminará y no se podrá recuperar.',
@@ -1707,6 +1717,8 @@ const translations = {
           uploadFailed: 'No se ha podido subir',
           tooLarge: 'Pesa más de los {0} permitidos',
           pickFailed: 'No se han podido añadir los archivos.',
+          addFiles: 'Adjuntar archivos',
+          addPhotos: 'Adjuntar fotos',
           removeFailedToSend: 'Quita los adjuntos que no se han podido subir para enviar el mensaje.',
         },
         forward: {

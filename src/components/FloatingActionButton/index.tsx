@@ -109,9 +109,10 @@ const FloatingActionButton = ({ mode, isLabelShown, isMenuOpen, onPress }: Float
               key="upload"
               entering={ZoomIn.duration(ICON_SWAP_DURATION)}
               exiting={ZoomOut.duration(ICON_SWAP_DURATION)}
-              style={plusIconStyle}
             >
-              <PlusIcon color={getColor('text-white')} size={PLUS_ICON_SIZE} weight="bold" />
+              <Animated.View style={plusIconStyle}>
+                <PlusIcon color={getColor('text-white')} size={PLUS_ICON_SIZE} weight="bold" />
+              </Animated.View>
             </Animated.View>
           )}
         </Animated.View>

@@ -19,6 +19,7 @@ import { selectMailboxTypeById } from '../../../store/slices/mail';
 import { MailboxId } from '../../../types/mail';
 import { MailScreenProps } from '../../../types/navigation';
 import { EmailSummaryRow } from '../components/EmailSummaryRow';
+import { MailListSkeleton } from '../components/MailListSkeleton';
 import { HEADER_ICON_SIZE } from '../components/mailListLayout';
 import { DateFilterModal } from './components/DateFilterModal';
 import { EmailFilterPanel } from './components/EmailFilterPanel';
@@ -125,11 +126,7 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
       );
     }
     if (phase === 'loading') {
-      return (
-        <View style={tailwind('flex-1 items-center justify-center')}>
-          <ActivityIndicator color={getColor('text-primary')} />
-        </View>
-      );
+      return <MailListSkeleton />;
     }
     if (phase === 'failed') {
       return renderStateMessage(
