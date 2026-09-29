@@ -130,6 +130,10 @@ export class MailboxService {
   public async updateEmail(emailId: string, body: UpdateEmailRequest): Promise<void> {
     return this.sdk.mail.updateEmail(emailId, body);
   }
+
+  public async deleteEmail(emailId: string): Promise<void> {
+    return this.sdk.mail.deleteEmail(emailId);
+  }
 }
 
 export const mailboxService = new MailboxService(SdkManager.getInstance());

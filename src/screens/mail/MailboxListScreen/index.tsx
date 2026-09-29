@@ -77,7 +77,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       navigation.navigate('ComposeEmail', { draft: { draftId: emailId } });
       return;
     }
-    navigation.navigate('EmailDetail', { emailId });
+    navigation.navigate('EmailDetail', { emailId, mailboxId: selectedMailboxId });
   };
 
   const renderHeader = () => (

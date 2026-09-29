@@ -13,6 +13,7 @@ import mailReducer, {
   makeSelectMailboxEmails,
   refreshNewestEmailsThunk,
   selectMailboxList,
+  selectMailboxTypeById,
   selectUnreadByMailbox,
 } from './index';
 
@@ -83,7 +84,25 @@ const createMailStore = ({ mnemonic }: { mnemonic?: string } = { mnemonic: A_MNE
   };
 };
 
-const aMailboxWithUnread = (mailboxId: MailboxId, unreadEmails: number) => ({ type: mailboxId, unreadEmails });
+const ID_OF_MAILBOX: Record<MailboxId, string> = {
+  [MailboxId.Inbox]: 'id-of-inbox',
+  [MailboxId.Sent]: 'id-of-sent',
+  [MailboxId.Drafts]: 'id-of-drafts',
+  [MailboxId.Spam]: 'id-of-spam',
+  [MailboxId.Trash]: 'id-of-trash',
+};
+
+const aMailboxWithUnread = (mailboxId: MailboxId, unreadEmails: number) => ({
+  id: ID_OF_MAILBOX[mailboxId],
+  type: mailboxId,
+  unreadEmails,
+});
+
+const anEmailIn = (id: string, mailboxIds: MailboxId[], { isRead = true }: { isRead?: boolean } = {}) => ({
+  id,
+  mailboxIds: mailboxIds.map((mailboxId) => ID_OF_MAILBOX[mailboxId]),
+  isRead,
+});
 
 const inbox = { mailboxId: MailboxId.Inbox };
 
@@ -306,7 +325,11 @@ describe('Scrolling through a mailbox', () => {
       const mail = createMailStore();
       await mail.dispatch(loadFirstPageThunk(inbox));
 
-      mail.dispatch(mailActions.threadMovedOut({ emailIds: ['last'] }));
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('last', [MailboxId.Inbox]), toMailboxId: MailboxId.Trash }],
+        }),
+      );
       await mail.dispatch(loadNextPageThunk(inbox));
 
       expect(lastAnchorAskedFor()).toBe('newer');
@@ -501,7 +524,12 @@ describe('Scrolling through a mailbox', () => {
       const mail = createMailStore();
       await mail.dispatch(loadFirstPageThunk(inbox));
 
-      mail.dispatch(mailActions.threadReadStateChanged({ emailIds: ['unread'], isRead: true }));
+      mail.dispatch(
+        mailActions.threadReadStateChanged({
+          emails: [anEmailIn('unread', [MailboxId.Inbox], { isRead: false })],
+          isRead: true,
+        }),
+      );
 
       expect(mail.shownEmails()[0].isRead).toBe(true);
       expect(listEmailsMock).toHaveBeenCalledTimes(1);
@@ -512,9 +540,24 @@ describe('Scrolling through a mailbox', () => {
       const mail = createMailStore();
       await mail.dispatch(loadFirstPageThunk(inbox));
 
-      mail.dispatch(mailActions.threadMovedOut({ emailIds: ['moved'] }));
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('moved', [MailboxId.Inbox]), toMailboxId: MailboxId.Trash }],
+        }),
+      );
 
       expect(mail.shownIds()).toEqual(['stays']);
+      expect(listEmailsMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('when a thread is deleted for good, then its row disappears without asking the server', async () => {
+      listEmailsMock.mockResolvedValueOnce(aPage([anEmail('deleted', { day: 20 }), anEmail('stays', { day: 10 })]));
+      const mail = createMailStore();
+      await mail.dispatch(loadFirstPageThunk({ mailboxId: MailboxId.Trash }));
+
+      mail.dispatch(mailActions.threadDeleted({ emails: [anEmailIn('deleted', [MailboxId.Trash])] }));
+
+      expect(mail.shownIds(MailboxId.Trash)).toEqual(['stays']);
       expect(listEmailsMock).toHaveBeenCalledTimes(1);
     });
 
@@ -524,8 +567,14 @@ describe('Scrolling through a mailbox', () => {
       await mail.dispatch(loadFirstPageThunk(inbox));
       const mailStateBeforeTheChange = mail.getState().mail;
 
-      mail.dispatch(mailActions.threadReadStateChanged({ emailIds: ['elsewhere'], isRead: false }));
-      mail.dispatch(mailActions.threadMovedOut({ emailIds: ['elsewhere'] }));
+      mail.dispatch(
+        mailActions.threadReadStateChanged({ emails: [anEmailIn('elsewhere', [MailboxId.Inbox])], isRead: false }),
+      );
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('elsewhere', [MailboxId.Inbox]), toMailboxId: MailboxId.Trash }],
+        }),
+      );
 
       expect(mail.getState().mail).toBe(mailStateBeforeTheChange);
     });
@@ -538,7 +587,12 @@ describe('Scrolling through a mailbox', () => {
       await mail.dispatch(loadFirstPageThunk(inbox));
       await mail.dispatch(loadFirstPageThunk({ mailboxId: MailboxId.Spam }));
 
-      mail.dispatch(mailActions.threadReadStateChanged({ emailIds: ['shared'], isRead: true }));
+      mail.dispatch(
+        mailActions.threadReadStateChanged({
+          emails: [anEmailIn('shared', [MailboxId.Inbox], { isRead: false })],
+          isRead: true,
+        }),
+      );
 
       expect(mail.shownEmails()[0].isRead).toBe(true);
       expect(mail.shownEmails(MailboxId.Spam)[0].isRead).toBe(true);
@@ -552,7 +606,11 @@ describe('Scrolling through a mailbox', () => {
       await mail.dispatch(loadFirstPageThunk(inbox));
       await mail.dispatch(loadFirstPageThunk({ mailboxId: MailboxId.Spam }));
 
-      mail.dispatch(mailActions.threadMovedOut({ emailIds: ['shared'] }));
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('shared', [MailboxId.Inbox]), toMailboxId: MailboxId.Trash }],
+        }),
+      );
 
       expect(mail.shownIds()).toEqual([]);
       expect(mail.shownIds(MailboxId.Spam)).toEqual([]);
@@ -582,6 +640,114 @@ describe('Scrolling through a mailbox', () => {
       await mail.dispatch(loadUnreadCountsThunk());
 
       expect(mail.unreadByMailbox()).toEqual({ [MailboxId.Inbox]: 3 });
+    });
+
+    test('when an unread email is read, then the count of its mailbox goes down without asking the server', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Inbox, 3)]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(
+        mailActions.threadReadStateChanged({
+          emails: [anEmailIn('unread', [MailboxId.Inbox], { isRead: false })],
+          isRead: true,
+        }),
+      );
+
+      expect(mail.unreadByMailbox()[MailboxId.Inbox]).toBe(2);
+      expect(getMailboxesMock).toHaveBeenCalledTimes(1);
+    });
+
+    test('when a read email is marked as unread, then the count of its mailbox goes up', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Spam, 1)]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(
+        mailActions.threadReadStateChanged({ emails: [anEmailIn('read', [MailboxId.Spam])], isRead: false }),
+      );
+
+      expect(mail.unreadByMailbox()[MailboxId.Spam]).toBe(2);
+    });
+
+    test('when an email is marked with the state it already had, then no count changes', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Inbox, 3)]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(
+        mailActions.threadReadStateChanged({ emails: [anEmailIn('read', [MailboxId.Inbox])], isRead: true }),
+      );
+
+      expect(mail.unreadByMailbox()[MailboxId.Inbox]).toBe(3);
+    });
+
+    test('when an unread email is moved, then it counts in the mailbox it went to instead of the one it left', async () => {
+      getMailboxesMock.mockResolvedValueOnce([
+        aMailboxWithUnread(MailboxId.Inbox, 3),
+        aMailboxWithUnread(MailboxId.Spam, 0),
+      ]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('unread', [MailboxId.Inbox], { isRead: false }), toMailboxId: MailboxId.Spam }],
+        }),
+      );
+
+      expect(mail.unreadByMailbox()).toEqual({ [MailboxId.Inbox]: 2, [MailboxId.Spam]: 1 });
+    });
+
+    test('when a read email is moved, then no count changes', async () => {
+      getMailboxesMock.mockResolvedValueOnce([
+        aMailboxWithUnread(MailboxId.Inbox, 3),
+        aMailboxWithUnread(MailboxId.Trash, 0),
+      ]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('read', [MailboxId.Inbox]), toMailboxId: MailboxId.Trash }],
+        }),
+      );
+
+      expect(mail.unreadByMailbox()).toEqual({ [MailboxId.Inbox]: 3, [MailboxId.Trash]: 0 });
+    });
+
+    test('when the count of a mailbox is already zero, then reading one of its emails leaves it at zero', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Inbox, 0)]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(
+        mailActions.threadReadStateChanged({
+          emails: [anEmailIn('unread', [MailboxId.Inbox], { isRead: false })],
+          isRead: true,
+        }),
+      );
+
+      expect(mail.unreadByMailbox()[MailboxId.Inbox]).toBe(0);
+    });
+
+    test('when an unread email is deleted for good, then the count of its mailbox goes down', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Trash, 2)]);
+      const mail = createMailStore();
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      mail.dispatch(mailActions.threadDeleted({ emails: [anEmailIn('unread', [MailboxId.Trash], { isRead: false })] }));
+
+      expect(mail.unreadByMailbox()[MailboxId.Trash]).toBe(1);
+    });
+
+    test('when the mailboxes are loaded, then it is known which mailbox each email is in', async () => {
+      getMailboxesMock.mockResolvedValueOnce([aMailboxWithUnread(MailboxId.Inbox, 3)]);
+      const mail = createMailStore();
+
+      await mail.dispatch(loadUnreadCountsThunk());
+
+      expect(selectMailboxTypeById(mail.getState())).toEqual({ [ID_OF_MAILBOX[MailboxId.Inbox]]: MailboxId.Inbox });
     });
   });
 

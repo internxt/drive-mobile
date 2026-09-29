@@ -19,4 +19,9 @@ export type MailState = {
   emails: EntityState<EmailSummaryResponse>;
   mailboxes: Partial<Record<MailboxId, MailboxListState>>;
   unreadByMailbox: Partial<Record<MailboxId, number>>;
+  mailboxTypeById: Record<string, MailboxId>;
 };
+
+export type EmailSnapshot = Pick<EmailSummaryResponse, 'id' | 'mailboxIds' | 'isRead'>;
+
+export type EmailMove = { email: EmailSnapshot; toMailboxId: MailboxId };
