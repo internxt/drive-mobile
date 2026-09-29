@@ -15,27 +15,27 @@ import {
   UIImagePickerPreferredAssetRepresentationMode,
 } from 'expo-image-picker';
 import * as MediaLibrary from 'expo-media-library';
-import { useState } from 'react';
-import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
+import { ReactNode, useCallback, useState } from 'react';
+import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
+import drive from '@internxt-mobile/services/drive';
 import {
   EmptyFileNotAllowedError,
   isEmptyFilePlanError,
 } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
 import {
-  FileSizeExceededError,
-  isFileSizeExceededError,
-  notifyFilesExcludedBySize,
-} from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
-import drive from '@internxt-mobile/services/drive';
-import {
   generateFileName,
   isTemporaryFileName,
   parseExifDate,
 } from '@internxt-mobile/services/drive/file/utils/exifHelpers';
+import {
+  FileSizeExceededError,
+  isFileSizeExceededError,
+  notifyFilesExcludedBySize,
+} from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { SaveFormat } from 'expo-image-manipulator';
@@ -49,10 +49,8 @@ import {
 import uuid from 'react-native-uuid';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { storageSelectors, storageThunks } from 'src/store/slices/storage';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { isValidFilename } from '../../../helpers';
-import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import appService, { constants } from '../../../services/AppService';
@@ -75,16 +73,13 @@ import { DriveEventKey } from '../../../types/drive/events';
 import { useFolderUpload } from './hooks/useFolderUpload';
 
 import { DocumentPickerFile, UploadingFile } from '../../../types/drive/operations';
-import AppText from '../../AppText';
-import BottomModal from '../BottomModal';
+import FloatingActionMenu, { FloatingMenuAction } from '../../FloatingActionButton/FloatingActionMenu';
 import CreateFolderModal from '../CreateFolderModal';
 import NameCollisionModal from '../NameCollisionModal';
 
 const MAX_FILES_BULK_UPLOAD = 50;
 
-function AddModal(): JSX.Element {
-  const tailwind = useTailwind();
-  const getColor = useGetColor();
+const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Element => {
   const driveCtx = useDrive();
   const dispatch = useAppDispatch();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
@@ -836,158 +831,40 @@ function AddModal(): JSX.Element {
     }
   }
 
+  const closeUploadMenu = useCallback(() => {
+    dispatch(uiActions.setShowUploadFileModal(false));
+  }, [dispatch]);
+
+  const uploadMenuActions: FloatingMenuAction[] = [
+    { key: 'uploadFiles', label: strings.buttons.uploadFiles, icon: FileArrowUpIcon, onPress: handleUploadFiles },
+    { key: 'uploadFolder', label: strings.buttons.uploadFolder, icon: BoxArrowUpIcon, onPress: handleUploadFolder },
+    {
+      key: 'uploadFromCameraRoll',
+      label: strings.buttons.uploadFromCameraRoll,
+      icon: ImageSquareIcon,
+      onPress: handleUploadFromCameraRoll,
+    },
+    {
+      key: 'takePhoto',
+      label: strings.buttons.takeAPhotoAnUpload,
+      icon: CameraIcon,
+      onPress: handleTakePhotoAndUpload,
+    },
+    {
+      key: 'newFolder',
+      label: strings.buttons.newFolder,
+      icon: FolderSimplePlusIcon,
+      onPress: () => {
+        closeUploadMenu();
+        setShowCreateFolderModal(true);
+      },
+    },
+  ];
+
   return (
     <>
-      <BottomModal
-        safeAreaColor="transparent"
-        style={tailwind('bg-transparent')}
-        isOpen={showUploadModal}
-        onClosed={() => {
-          dispatch(uiActions.setShowUploadFileModal(false));
-        }}
-      >
-        <View style={tailwind('p-4')}>
-          <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                handleUploadFiles();
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <FileArrowUpIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.uploadFiles}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={handleUploadFolder}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <BoxArrowUpIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.uploadFolder}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                handleUploadFromCameraRoll();
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <ImageSquareIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.uploadFromCameraRoll}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                handleTakePhotoAndUpload();
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <CameraIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.takeAPhotoAnUpload}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-                setShowCreateFolderModal(true);
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <FolderSimplePlusIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.newFolder}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-          </View>
-
-          <View style={[tailwind('mt-4 rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow p-3.5 items-center justify-center'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <AppText medium style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.cancel}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-          </View>
-        </View>
-      </BottomModal>
+      <FloatingActionMenu isOpen={showUploadModal} actions={uploadMenuActions} onClose={closeUploadMenu} />
+      {floatingButton}
       {focusedFolder ? (
         <CreateFolderModal
           isOpen={showCreateFolderModal}
@@ -1008,6 +885,6 @@ function AddModal(): JSX.Element {
       />
     </>
   );
-}
+};
 
 export default AddModal;

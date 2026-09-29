@@ -60,7 +60,6 @@ export type TabExplorerStackParamList = {
   Home: undefined;
   Drive: { sharedFolderId: number } | undefined;
   Mail: undefined;
-  Add: undefined;
   Shared: undefined;
   Photos: undefined;
   Settings: undefined;
