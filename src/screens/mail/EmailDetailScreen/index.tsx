@@ -25,7 +25,7 @@ import { deriveReplyRecipients } from '../../../services/mail/replyRecipients';
 import { useAppSelector } from '../../../store/hooks';
 import { AsyncStorageKey } from '../../../types';
 import { MailScreenProps } from '../../../types/navigation';
-import { useEmailThreadMailboxActions } from './hooks/useEmailThreadMailboxActions';
+import { useOpenedEmailActions } from './hooks/useOpenedEmailActions';
 import { useOpenAttachment } from './hooks/useOpenAttachment';
 import { REPLY_CAPSULE_BOTTOM, REPLY_CAPSULE_HEIGHT, ReplyCapsule } from './ReplyCapsule';
 import { ThreadActions } from './ThreadActions';
@@ -54,7 +54,8 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
   const { user } = useAppSelector((state) => state.auth);
   useLanguage();
 
-  const { emailId, mailboxId } = route.params;
+  const { email, mailboxId } = route.params;
+  const emailId = email.id;
   const [thread, setThread] = useState<ResolvedMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -140,13 +141,12 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
     );
   }, []);
 
-  const { messagesInMailbox, isUpdating, markUnread, moveThread, restoreThread, confirmAndDeleteThreadPermanently } =
-    useEmailThreadMailboxActions({
+  const { isUpdating, markUnread, moveThread, restoreThread, confirmAndDeleteThreadPermanently } =
+    useOpenedEmailActions({
       messages: threadMessages,
-      mailboxId,
+      openedEmailSummary: email,
       selfAddress,
       onReadStateChanged,
-      reloadThread: loadThread,
       onFinished: () => navigation.goBack(),
     });
 
@@ -164,7 +164,9 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
   };
 
   const onReply = (message: EmailResponse, replyAll: boolean) => {
-    if (isUpdating) return;
+    if (isUpdating) {
+      return;
+    }
 
     const { to, cc } = deriveReplyRecipients(message, selfAddress, replyAll);
     const subject = /^\s*re:/i.test(message.subject) ? message.subject : `Re: ${message.subject}`;
@@ -290,7 +292,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
             {strings.screens.mail.mailboxes[mailboxId]}
           </AppText>
         </TouchableOpacity>
-        {!isLoading && !hasError && messagesInMailbox.length > 0 && (
+        {!isLoading && !hasError && (
           <ThreadActions
             mailboxId={mailboxId}
             isDisabled={isUpdating}
