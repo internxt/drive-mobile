@@ -7,13 +7,16 @@ import {
   WarningIcon,
 } from 'phosphor-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Pressable, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
-import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
 import { MailboxId } from '../../../types/mail';
+
+const ACTION_BUTTON_SIZE = 40;
+const ACTION_ICON_SIZE = 22;
+const DISABLED_OPACITY = 0.4;
 
 type ThreadActionKey = 'markUnread' | 'spam' | 'notSpam' | 'trash' | 'restore' | 'deletePermanently';
 
@@ -61,37 +64,36 @@ export const ThreadActions = ({
   };
 
   return (
-    <View
-      style={[
-        tailwind('flex-row items-center justify-around py-2'),
-        { borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') },
-      ]}
-    >
+    <View style={tailwind('flex-row items-center')}>
       {ACTIONS_BY_MAILBOX[mailboxId].map((actionKey) => {
         const { label, icon: ActionIcon, onPress } = threadActions[actionKey];
         const isRunningAction = isDisabled && pressedActionKey === actionKey;
         return (
-          <TouchableOpacity
+          <Pressable
             key={actionKey}
+            accessibilityRole="button"
+            accessibilityLabel={label}
             onPress={() => {
               setPressedActionKey(actionKey);
               onPress();
             }}
             disabled={isDisabled}
-            style={[
-              tailwind('items-center px-4 py-2'),
-              isDisabled && !isRunningAction ? tailwind('opacity-40') : undefined,
+            style={({ pressed }) => [
+              tailwind('items-center justify-center rounded-full'),
+              {
+                width: ACTION_BUTTON_SIZE,
+                height: ACTION_BUTTON_SIZE,
+                backgroundColor: pressed ? getColor('bg-gray-5') : undefined,
+                opacity: isDisabled && !isRunningAction ? DISABLED_OPACITY : 1,
+              },
             ]}
           >
             {isRunningAction ? (
-              <ActivityIndicator color={getColor('text-gray-80')} style={{ height: 22 }} />
+              <ActivityIndicator color={getColor('text-gray-80')} />
             ) : (
-              <ActionIcon color={getColor('text-gray-80')} size={22} />
+              <ActionIcon color={getColor('text-gray-80')} size={ACTION_ICON_SIZE} />
             )}
-            <AppText numberOfLines={1} style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-80') }]}>
-              {label}
-            </AppText>
-          </TouchableOpacity>
+          </Pressable>
         );
       })}
     </View>

@@ -161,7 +161,12 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
       .catch((error) => logger.error('Failed to fetch the active mail domains', error));
   }, []);
 
-  const onCancel = () => navigation.goBack();
+  const onCancel = () => {
+    if (!navigation.isFocused()) {
+      return;
+    }
+    navigation.goBack();
+  };
 
   const addPickedFiles = (pickedFiles: MailAttachment[]) => {
     const refusedFiles = addFiles(pickedFiles);
