@@ -359,6 +359,11 @@ const translations = {
       },
       mail: {
         title: 'Mail',
+        selectedCount: '{0} selected',
+        cancelSelection: 'Cancel selection',
+        selectAll: 'Select all',
+        deselectAll: 'Deselect all',
+        bulkActionFailed: '{0} of {1} conversations could not be updated.',
         empty: {
           inbox: 'Inbox is empty',
           drafts: 'Drafts is empty',
@@ -385,7 +390,10 @@ const translations = {
         cc: 'Cc:',
         attachmentOpenFailed: 'The attachment could not be opened.',
         markUnreadFailed: 'The conversation could not be marked as unread.',
-        moveFailed: 'The conversation could not be moved.',
+        moveToTrashFailed: 'The conversation could not be moved to Trash.',
+        moveToSpamFailed: 'The conversation could not be moved to Spam.',
+        notSpamFailed: 'The conversation could not be moved out of Spam.',
+        restoreFailed: 'The conversation could not be restored.',
         deleteFailed: 'The conversation could not be deleted.',
         deleteConfirmation: {
           title: 'Delete permanently',
@@ -396,6 +404,7 @@ const translations = {
           reply: 'Reply',
           replyAll: 'Reply all',
           forward: 'Forward',
+          markRead: 'Read',
           markUnread: 'Unread',
           spam: 'Spam',
           notSpam: 'Not spam',
@@ -1503,6 +1512,11 @@ const translations = {
       },
       mail: {
         title: 'Correo',
+        selectedCount: '{0} seleccionadas',
+        cancelSelection: 'Cancelar selección',
+        selectAll: 'Seleccionar todo',
+        deselectAll: 'Desmarcar todo',
+        bulkActionFailed: 'No se han podido actualizar {0} de {1} conversaciones.',
         empty: {
           inbox: 'Bandeja de entrada está vacía',
           drafts: 'Borradores está vacía',
@@ -1529,7 +1543,10 @@ const translations = {
         cc: 'Cc:',
         attachmentOpenFailed: 'No se ha podido abrir el adjunto.',
         markUnreadFailed: 'No se ha podido marcar la conversación como no leída.',
-        moveFailed: 'No se ha podido mover la conversación.',
+        moveToTrashFailed: 'No se ha podido mover la conversación a la papelera.',
+        moveToSpamFailed: 'No se ha podido mover la conversación a spam.',
+        notSpamFailed: 'No se ha podido sacar la conversación de spam.',
+        restoreFailed: 'No se ha podido restaurar la conversación.',
         deleteFailed: 'No se ha podido eliminar la conversación.',
         deleteConfirmation: {
           title: 'Eliminar definitivamente',
@@ -1540,6 +1557,7 @@ const translations = {
           reply: 'Responder',
           replyAll: 'Responder a todos',
           forward: 'Reenviar',
+          markRead: 'Leído',
           markUnread: 'No leído',
           spam: 'Spam',
           notSpam: 'No es spam',

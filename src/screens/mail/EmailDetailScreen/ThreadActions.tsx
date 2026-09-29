@@ -78,7 +78,10 @@ export const ThreadActions = ({
               onPress();
             }}
             disabled={isDisabled}
-            style={[tailwind('items-center px-4 py-2'), isDisabled && !isRunningAction ? { opacity: 0.4 } : undefined]}
+            style={[
+              tailwind('items-center px-4 py-2'),
+              isDisabled && !isRunningAction ? tailwind('opacity-40') : undefined,
+            ]}
           >
             {isRunningAction ? (
               <ActivityIndicator color={getColor('text-gray-80')} style={{ height: 22 }} />

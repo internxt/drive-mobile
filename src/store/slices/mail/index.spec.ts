@@ -561,6 +561,41 @@ describe('Scrolling through a mailbox', () => {
       expect(listEmailsMock).toHaveBeenCalledTimes(1);
     });
 
+    test('when a thread is moved while the mailbox is being refreshed, then the refresh does not bring it back', async () => {
+      listEmailsMock.mockResolvedValueOnce(aPage([anEmail('moved', { day: 20 }), anEmail('stays', { day: 10 })]));
+      const mail = createMailStore();
+      await mail.dispatch(loadFirstPageThunk(inbox));
+      const staleRefresh = pageThatArrivesWhenTold();
+      const refresh = mail.dispatch(refreshNewestEmailsThunk(inbox));
+
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('moved', [MailboxId.Inbox]), toMailboxId: MailboxId.Trash }],
+        }),
+      );
+      staleRefresh.deliver(aPage([anEmail('moved', { day: 20 }), anEmail('stays', { day: 10 })]));
+      await refresh;
+
+      expect(mail.shownIds()).toEqual(['stays']);
+    });
+
+    test('when a moved email comes back in a list asked for after the move, then it is shown', async () => {
+      listEmailsMock
+        .mockResolvedValueOnce(aPage([anEmail('restored', { day: 20 })]))
+        .mockResolvedValueOnce(aPage([anEmail('restored', { day: 20 })]));
+      const mail = createMailStore();
+      await mail.dispatch(loadFirstPageThunk(inbox));
+      mail.dispatch(
+        mailActions.threadMovedOut({
+          moves: [{ email: anEmailIn('restored', [MailboxId.Inbox]), toMailboxId: MailboxId.Trash }],
+        }),
+      );
+
+      await mail.dispatch(refreshNewestEmailsThunk(inbox));
+
+      expect(mail.shownIds()).toEqual(['restored']);
+    });
+
     test('when a change is about an email that is not loaded, then nothing changes', async () => {
       listEmailsMock.mockResolvedValueOnce(aPage([anEmail('loaded')]));
       const mail = createMailStore();

@@ -1,5 +1,5 @@
 import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, isAnyOf, isFulfilled, isPending, isRejected, PayloadAction } from '@reduxjs/toolkit';
 
 import { MailboxId } from '../../../types/mail';
 import { createInitialMailboxListState, createInitialMailState, emailsAdapter } from './initialState';
@@ -45,6 +45,10 @@ const updateUnreadCountOfEmailMailboxes = (state: MailState, email: EmailSnapsho
 };
 
 const removeEmails = (state: MailState, emailIds: string[]) => {
+  const isAnyListRequestInFlight = Object.keys(state.removedEmailCountByRequestId).length > 0;
+  if (isAnyListRequestInFlight) {
+    state.removedEmailIds.push(...emailIds);
+  }
   const loadedEmailIds = new Set(emailIds.filter((emailId) => state.emails.entities[emailId]));
   if (loadedEmailIds.size === 0) {
     return;
@@ -56,6 +60,18 @@ const removeEmails = (state: MailState, emailIds: string[]) => {
   });
   emailsAdapter.removeMany(state.emails, [...loadedEmailIds]);
 };
+
+const excludeEmailsRemovedSinceListRequest = (
+  state: MailState,
+  requestId: string,
+  emails: EmailSummaryResponse[],
+): EmailSummaryResponse[] => {
+  const removedEmailCount = state.removedEmailCountByRequestId[requestId] ?? state.removedEmailIds.length;
+  const emailIdsRemovedSinceRequest = new Set(state.removedEmailIds.slice(removedEmailCount));
+  return emails.filter((email) => !emailIdsRemovedSinceRequest.has(email.id));
+};
+
+const LIST_THUNKS = [loadFirstPageThunk, loadNextPageThunk, refreshNewestEmailsThunk] as const;
 
 const isFromAnEarlierFirstPage = (mailboxList: MailboxListState, startedWithFirstPageRequestId: string | null) =>
   startedWithFirstPageRequestId !== mailboxList.firstPageRequestId;
@@ -121,7 +137,11 @@ export const mailSlice = createSlice({
         }
         mailboxList.isLoadingFirstPage = false;
         mailboxList.hasMoreMails = action.payload.hasMoreMails;
-        showOnlyTheseEmails(state, mailboxList, action.payload.emails);
+        showOnlyTheseEmails(
+          state,
+          mailboxList,
+          excludeEmailsRemovedSinceListRequest(state, action.meta.requestId, action.payload.emails),
+        );
       })
       .addCase(loadFirstPageThunk.rejected, (state, action) => {
         const mailboxList = mailboxListOf(state, action.meta.arg.mailboxId);
@@ -148,10 +168,11 @@ export const mailSlice = createSlice({
           return;
         }
         mailboxList.hasMoreMails = nextPage.hasMoreMails;
-        emailsAdapter.setMany(state.emails, nextPage.emails);
+        const nextPageEmails = excludeEmailsRemovedSinceListRequest(state, action.meta.requestId, nextPage.emails);
+        emailsAdapter.setMany(state.emails, nextPageEmails);
         const loadedEmailIds = new Set(mailboxList.emailIds);
         mailboxList.emailIds.push(
-          ...nextPage.emails.map((email) => email.id).filter((emailId) => !loadedEmailIds.has(emailId)),
+          ...nextPageEmails.map((email) => email.id).filter((emailId) => !loadedEmailIds.has(emailId)),
         );
       })
       .addCase(loadNextPageThunk.rejected, (state, action) => {
@@ -175,9 +196,10 @@ export const mailSlice = createSlice({
           return;
         }
         mailboxList.hasFirstPageFailed = false;
+        const newestEmails = excludeEmailsRemovedSinceListRequest(state, action.meta.requestId, newestPage.emails);
         if (!newestPage.hasMoreMails) {
           mailboxList.hasMoreMails = false;
-          showOnlyTheseEmails(state, mailboxList, newestPage.emails);
+          showOnlyTheseEmails(state, mailboxList, newestEmails);
           return;
         }
         mailboxList.hasMoreMails = true;
@@ -186,7 +208,7 @@ export const mailSlice = createSlice({
           mailboxList,
           mergeNewestPage({
             loadedEmails: loadedEmailsOf(state, mailboxList),
-            newestEmails: newestPage.emails,
+            newestEmails,
             isDraftsMailbox: mailboxId === MailboxId.Drafts,
           }),
         );
@@ -202,6 +224,15 @@ export const mailSlice = createSlice({
       .addCase(loadUnreadCountsThunk.fulfilled, (state, action) => {
         state.unreadByMailbox = action.payload.unreadByMailbox;
         state.mailboxTypeById = action.payload.mailboxTypeById;
+      })
+      .addMatcher(isPending(...LIST_THUNKS), (state, action) => {
+        state.removedEmailCountByRequestId[action.meta.requestId] = state.removedEmailIds.length;
+      })
+      .addMatcher(isAnyOf(isFulfilled(...LIST_THUNKS), isRejected(...LIST_THUNKS)), (state, action) => {
+        delete state.removedEmailCountByRequestId[action.meta.requestId];
+        if (Object.keys(state.removedEmailCountByRequestId).length === 0) {
+          state.removedEmailIds = [];
+        }
       });
   },
 });

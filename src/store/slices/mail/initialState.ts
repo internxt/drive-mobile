@@ -22,4 +22,6 @@ export const createInitialMailState = (): MailState => ({
   mailboxes: {},
   unreadByMailbox: {},
   mailboxTypeById: {},
+  removedEmailIds: [],
+  removedEmailCountByRequestId: {},
 });

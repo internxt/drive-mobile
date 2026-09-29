@@ -1,6 +1,5 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert } from 'react-native';
 
 import strings from '../../../../../assets/lang/strings';
 import { logger } from '../../../../services/common/logger/logger.service';
@@ -16,6 +15,7 @@ import { notifications } from '../../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../../store/hooks';
 import { loadUnreadCountsThunk, mailActions, selectMailboxTypeById } from '../../../../store/slices/mail';
 import { MailboxId } from '../../../../types/mail';
+import { confirmDeletePermanently, getMoveFailedMessage } from '../../threadActionMessages';
 
 /**
  * Runs the actions on the messages that are in `mailboxId`, and marks the latest of them as read once the
@@ -117,35 +117,28 @@ export const useEmailThreadMailboxActions = ({
     }
   };
 
-  const moveMessagesTo = (destinationOf: (message: EmailResponse) => MailboxId) =>
+  const moveMessagesTo = (destinationOf: (message: EmailResponse) => MailboxId, failureMessage: string) =>
     runThreadAction(
       messagesInMailbox.map((message) => ({ email: message, toMailboxId: destinationOf(message) })),
       moveEmails,
       (completedMoves) => dispatch(mailActions.threadMovedOut({ moves: completedMoves })),
-      strings.screens.email_detail.moveFailed,
+      failureMessage,
     );
 
-  const moveThread = (toMailboxId: MailboxId) => moveMessagesTo(() => toMailboxId);
+  const moveThread = (toMailboxId: MailboxId) => moveMessagesTo(() => toMailboxId, getMoveFailedMessage(toMailboxId));
 
-  const restoreThread = () => moveMessagesTo((message) => getRestoreMailbox(message, selfAddress));
+  const restoreThread = () =>
+    moveMessagesTo((message) => getRestoreMailbox(message, selfAddress), strings.screens.email_detail.restoreFailed);
 
-  const confirmAndDeleteThreadPermanently = () => {
-    const { deleteConfirmation } = strings.screens.email_detail;
-    Alert.alert(deleteConfirmation.title, deleteConfirmation.message, [
-      { text: strings.buttons.cancel, style: 'cancel' },
-      {
-        text: deleteConfirmation.confirm,
-        style: 'destructive',
-        onPress: () =>
-          runThreadAction(
-            messagesInMailbox,
-            deleteEmailsPermanently,
-            (deletedEmails) => dispatch(mailActions.threadDeleted({ emails: deletedEmails })),
-            strings.screens.email_detail.deleteFailed,
-          ),
-      },
-    ]);
-  };
+  const confirmAndDeleteThreadPermanently = () =>
+    confirmDeletePermanently(() =>
+      runThreadAction(
+        messagesInMailbox,
+        deleteEmailsPermanently,
+        (deletedEmails) => dispatch(mailActions.threadDeleted({ emails: deletedEmails })),
+        strings.screens.email_detail.deleteFailed,
+      ),
+    );
 
   return { messagesInMailbox, isUpdating, markUnread, moveThread, restoreThread, confirmAndDeleteThreadPermanently };
 };
