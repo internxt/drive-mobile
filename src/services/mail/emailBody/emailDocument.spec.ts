@@ -1,4 +1,6 @@
-import { buildEmailDocument } from './emailDocument';
+import { createHash } from 'crypto';
+
+import { BLOCKED_REMOTE_IMAGE_MESSAGE, buildEmailDocument } from './emailDocument';
 
 const aDocument = (bodyHtml: string, areRemoteImagesAllowed = false) =>
   buildEmailDocument(bodyHtml, {
@@ -65,5 +67,75 @@ describe('Preparing the body of an email to be displayed', () => {
 
   test('when a body is wider than the screen, then images are kept inside it', () => {
     expect(aDocument('<img src="https://example.com/hero.png" />')).toContain('max-width: 100%');
+  });
+});
+
+const reporterScriptOf = (document: string): string => {
+  const script = /<script>([\s\S]*?)<\/script>/.exec(document);
+  if (!script) throw new Error('the document does not report the images it blocks');
+  return script[1];
+};
+
+const runReporterOf = (document: string) => {
+  const violationListeners: ((violation: { effectiveDirective: string; blockedURI: string }) => void)[] = [];
+  const messagesToTheApp: string[] = [];
+  const pageDocument = {
+    addEventListener: (_type: string, listener: (typeof violationListeners)[number]) =>
+      violationListeners.push(listener),
+  };
+  const pageWindow = { ReactNativeWebView: { postMessage: (message: string) => messagesToTheApp.push(message) } };
+  new Function('document', 'window', reporterScriptOf(document))(pageDocument, pageWindow);
+
+  const blockLoading = (effectiveDirective: string, blockedURI: string) =>
+    violationListeners.forEach((listener) => listener({ effectiveDirective, blockedURI }));
+
+  return { blockLoading, messagesToTheApp };
+};
+
+describe('Telling the app that images of the message were blocked', () => {
+  test('when an image hosted elsewhere is blocked, then the app is told', () => {
+    const { blockLoading, messagesToTheApp } = runReporterOf(aDocument('<p>Hello there</p>'));
+
+    blockLoading('img-src', 'https://somewhere-else.example/pixel.gif');
+
+    expect(messagesToTheApp).toEqual([BLOCKED_REMOTE_IMAGE_MESSAGE]);
+  });
+
+  test('when several images are blocked, then the app is told only once', () => {
+    const { blockLoading, messagesToTheApp } = runReporterOf(aDocument('<p>Hello there</p>'));
+
+    blockLoading('img-src', 'https://somewhere-else.example/hero.png');
+    blockLoading('img-src', 'https://somewhere-else.example/logo.png');
+
+    expect(messagesToTheApp).toEqual([BLOCKED_REMOTE_IMAGE_MESSAGE]);
+  });
+
+  test('when an image embedded in the message is blocked, then the app is told as well', () => {
+    const { blockLoading, messagesToTheApp } = runReporterOf(aDocument('<p>Hello there</p>'));
+
+    blockLoading('img-src', 'cid');
+
+    expect(messagesToTheApp).toEqual([BLOCKED_REMOTE_IMAGE_MESSAGE]);
+  });
+
+  test('when a font hosted elsewhere is blocked, then the app is not told', () => {
+    const { blockLoading, messagesToTheApp } = runReporterOf(aDocument('<p>Hello there</p>'));
+
+    blockLoading('font-src', 'https://somewhere-else.example/font.woff2');
+
+    expect(messagesToTheApp).toEqual([]);
+  });
+
+  test('when a body is prepared, then what reports the blocked images starts before any content of the message', () => {
+    const document = aDocument('<p>Hello there</p>');
+
+    expect(document.indexOf('<script>')).toBeLessThan(document.indexOf('<body>'));
+  });
+
+  test('when a body is prepared, then the only script allowed to run is the one that reports the blocked images', () => {
+    const document = aDocument('<p>Hello there</p>');
+    const reporterScriptHash = createHash('sha256').update(reporterScriptOf(document), 'utf8').digest('base64');
+
+    expect(rulesOf(document)).toContain(`script-src 'sha256-${reporterScriptHash}'`);
   });
 });

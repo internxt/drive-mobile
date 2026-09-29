@@ -3,7 +3,6 @@ import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import {
   buildEmailBodyHtml,
   editableTextFromHtml,
-  hasRemoteImages,
   isMarkupBody,
   plainTextFromHtml,
   plainTextToHtml,
@@ -127,24 +126,6 @@ describe('Preparing the body of a message for the screen', () => {
     const bodyHtml = buildEmailBodyHtml(message, { type: 'decrypted', text: '5 < 7' });
 
     expect(bodyHtml).toContain('5 &lt; 7');
-  });
-});
-
-describe('Knowing whether a message would reach out for its images', () => {
-  test('when a message holds an image hosted elsewhere, then it is known to reach out', () => {
-    expect(hasRemoteImages('<img src="https://somewhere-else.example/pixel.gif" width="1" />')).toBe(true);
-  });
-
-  test('when a message holds an image without encryption in transit, then it is known to reach out', () => {
-    expect(hasRemoteImages('<img src="http://somewhere-else.example/pixel.gif" />')).toBe(true);
-  });
-
-  test('when a message carries its images inside itself, then it does not reach out', () => {
-    expect(hasRemoteImages('<img src="data:image/png;base64,iVBORw0KGgo=" />')).toBe(false);
-  });
-
-  test('when a message only links to a website, then it does not reach out for images', () => {
-    expect(hasRemoteImages('<a href="https://somewhere-else.example">Our website</a>')).toBe(false);
   });
 });
 

@@ -42,7 +42,7 @@ export const ThreadMessageCard = ({
   canReplyAll: boolean;
   canForward: boolean;
   hasFooterBar: boolean;
-  onToggleExpanded: () => void;
+  onToggleExpanded?: () => void;
   onReply: () => void;
   onReplyAll: () => void;
   onForward: () => void;
@@ -51,25 +51,27 @@ export const ThreadMessageCard = ({
 }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const { to: toLabel, cc: ccLabel } = strings.screens.email_detail;
+  const { to: toLabel, cc: ccLabel, bcc: bccLabel } = strings.screens.email_detail;
 
   const sender = message.from?.[0];
   const senderName = sender?.name;
   const senderAddress = sender?.email ?? '';
-  const recipientsLabel = formatAddresses(message.to);
-  const copyLabel = formatAddresses(message.cc);
+  const toRecipients = formatAddresses(message.to);
+  const ccRecipients = formatAddresses(message.cc);
+  const bccRecipients = formatAddresses(message.bcc);
 
   return (
     <View
       style={
         isExpanded
-          ? [tailwind('mx-4 my-2 rounded-xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]
+          ? [tailwind('mx-4 my-2 rounded-xl'), { backgroundColor: getColor('bg-surface') }]
           : { borderBottomWidth: hasSeparator ? 1 : 0, borderBottomColor: getColor('border-gray-10') }
       }
     >
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onToggleExpanded}
+        disabled={!onToggleExpanded}
         style={tailwind(isExpanded ? 'flex-row px-4 py-4' : 'flex-row px-4 py-3')}
       >
         <MessageAvatar
@@ -96,18 +98,24 @@ export const ThreadMessageCard = ({
             </AppText>
           )}
 
-          {!!recipientsLabel && (
+          {!!toRecipients && (
             <AppText
               numberOfLines={1}
               style={[tailwind(isExpanded ? 'text-sm' : 'text-xs'), { color: getColor('text-gray-40') }]}
             >
-              {toLabel} {recipientsLabel}
+              {toLabel} {toRecipients}
             </AppText>
           )}
 
-          {isExpanded && !!copyLabel && (
+          {isExpanded && !!ccRecipients && (
             <AppText numberOfLines={1} style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}>
-              {ccLabel} {copyLabel}
+              {ccLabel} {ccRecipients}
+            </AppText>
+          )}
+
+          {isExpanded && !!bccRecipients && (
+            <AppText numberOfLines={1} style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}>
+              {bccLabel} {bccRecipients}
             </AppText>
           )}
         </View>

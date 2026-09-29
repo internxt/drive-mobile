@@ -103,7 +103,6 @@ export const editableTextFromHtml = (html: string): string =>
     .replace(EDITABLE_HTML_ENTITY_PATTERN, decodeHtmlEntity)
     .replace(TRAILING_LINE_BREAKS_PATTERN, '');
 
-const REMOTE_IMAGE_PATTERN = /<img\b[^>]*\ssrc\s*=\s*["']https?:/i;
 const OPENING_MARKUP_PATTERN = /^(?:<!doctype\s|<!--|<\?|<[a-z][a-z0-9]*(?:\s[^>]*)?\/?>)/i;
 const EMBEDDED_MARKUP_PATTERN = /<\/[a-z][a-z0-9]*\s*>|<(?:br|hr|img|p|div|table|tr|td|ul|ol|li)\b[^>]*>/i;
 const LEADING_BLANKS_PATTERN = /^[\s\uFEFF\u200B]+/;
@@ -169,11 +168,3 @@ export const buildEmailBodyHtml = (message: EmailResponse, source: EmailBodySour
   const { content, isHtml } = resolveEmailBody(message, source);
   return isHtml ? sanitizeMailHtml(content) : plainTextToHtml(content);
 };
-
-/**
- * Tells whether a body would fetch images from outside the message to display itself.
- *
- * @param bodyHtml the markup of the message, already safe to display
- * @returns true when at least one image is hosted somewhere else
- */
-export const hasRemoteImages = (bodyHtml: string): boolean => REMOTE_IMAGE_PATTERN.test(bodyHtml);
