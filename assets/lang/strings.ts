@@ -200,9 +200,7 @@ const translations = {
         photosLocked: {
           title: 'Photos is locked',
           body: 'Automatically back up, organize, and protect your photos in one private space.',
-          upgradeLine: 'Upgrade to unlock Photos.',
-          upgradeInfoPrefix: 'To upgrade visit ',
-          upgradeInfoHighlight: 'our website > pricing',
+          upgradeLine: "Your current plan doesn't include Photos.",
         },
         enableSheet: {
           title: 'All your photos,\none gallery',
@@ -390,12 +388,15 @@ const translations = {
             },
           },
         },
+        mailNotSetUp: {
+          title: 'Set up your mail address',
+          body: "You don't have an Internxt Mail address yet. Create it on the web and come back to use it here.",
+          goToMailWeb: 'Go to Internxt Mail',
+        },
         mailLocked: {
           title: 'Mail is locked',
           body: 'Send and receive end-to-end encrypted email from the same app.',
-          upgradeLine: 'Upgrade to unlock Mail.',
-          upgradeInfoPrefix: 'To upgrade visit ',
-          upgradeInfoHighlight: 'our website > pricing',
+          upgradeLine: "Your current plan doesn't include Mail.",
         },
         empty: {
           inbox: 'Inbox is empty',
@@ -1425,9 +1426,7 @@ const translations = {
         photosLocked: {
           title: 'Photos está bloqueado',
           body: 'Haz copias de seguridad, organiza y protege tus fotos automáticamente en un espacio privado.',
-          upgradeLine: 'Actualiza para desbloquear Fotos.',
-          upgradeInfoPrefix: 'Para actualizar visita ',
-          upgradeInfoHighlight: 'nuestra web > precios',
+          upgradeLine: 'Tu plan actual no incluye Fotos.',
         },
         enableSheet: {
           title: 'Todas tus fotos,\nuna galería',
@@ -1617,12 +1616,15 @@ const translations = {
             },
           },
         },
+        mailNotSetUp: {
+          title: 'Crea tu dirección de correo',
+          body: 'Todavía no tienes una dirección de Internxt Mail. Créala en la web y vuelve para usarla aquí.',
+          goToMailWeb: 'Ir a Internxt Mail',
+        },
         mailLocked: {
           title: 'Mail está bloqueado',
           body: 'Envía y recibe correo cifrado de extremo a extremo desde la misma app.',
-          upgradeLine: 'Actualiza para desbloquear Mail.',
-          upgradeInfoPrefix: 'Para actualizar visita ',
-          upgradeInfoHighlight: 'nuestra web > precios',
+          upgradeLine: 'Tu plan actual no incluye Mail.',
         },
         empty: {
           inbox: 'Bandeja de entrada está vacía',

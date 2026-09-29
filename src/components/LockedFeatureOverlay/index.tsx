@@ -1,5 +1,6 @@
 import { Icon } from 'phosphor-react-native';
 import { StyleSheet, View } from 'react-native';
+import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
@@ -8,17 +9,22 @@ import LockBadgeIcon from './LockBadgeIcon';
 export type LockedFeatureTexts = {
   title: string;
   body: string;
-  upgradeLine: string;
-  upgradeInfoPrefix: string;
-  upgradeInfoHighlight: string;
+  upgradeLine?: string;
 };
 
 interface LockedFeatureOverlayProps {
   icon: Icon;
   texts: LockedFeatureTexts;
+  locked?: boolean;
+  action?: { label: string; onPress: () => void };
 }
 
-const LockedFeatureOverlay = ({ icon: FeatureIcon, texts }: LockedFeatureOverlayProps): JSX.Element => {
+const LockedFeatureOverlay = ({
+  icon: FeatureIcon,
+  texts,
+  locked = true,
+  action,
+}: LockedFeatureOverlayProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
@@ -29,9 +35,11 @@ const LockedFeatureOverlay = ({ icon: FeatureIcon, texts }: LockedFeatureOverlay
           style={[styles.iconTile, { backgroundColor: getColor('bg-gray-1'), borderColor: getColor('border-gray-10') }]}
         >
           <FeatureIcon size={64} color={getColor('text-primary')} weight="regular" />
-          <View style={styles.lockBadge}>
-            <LockBadgeIcon size={32} />
-          </View>
+          {locked && (
+            <View style={styles.lockBadge}>
+              <LockBadgeIcon size={32} />
+            </View>
+          )}
         </View>
 
         <View style={[tailwind('items-center w-full'), styles.textStack]}>
@@ -39,16 +47,13 @@ const LockedFeatureOverlay = ({ icon: FeatureIcon, texts }: LockedFeatureOverlay
             {texts.title}
           </AppText>
           <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>{texts.body}</AppText>
-          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
-            {texts.upgradeLine}
-          </AppText>
-          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
-            {texts.upgradeInfoPrefix}
-            <AppText semibold style={{ color: getColor('text-gray-60') }}>
-              {texts.upgradeInfoHighlight}
+          {!!texts.upgradeLine && (
+            <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
+              {texts.upgradeLine}
             </AppText>
-          </AppText>
+          )}
         </View>
+        {action && <AppButton type="accept" title={action.label} onPress={action.onPress} style={styles.action} />}
       </View>
     </View>
   );
@@ -73,6 +78,9 @@ const styles = StyleSheet.create({
   },
   textStack: {
     gap: 8,
+  },
+  action: {
+    alignSelf: 'stretch',
   },
   iconTile: {
     width: 76,

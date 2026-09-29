@@ -1,5 +1,5 @@
-import { HTTP_INTERNAL_SERVER_ERROR, HTTP_UNPROCESSABLE_ENTITY } from '../common/httpStatusCodes';
-import { MAX_LOGGED_REASON_LENGTH, describeErrorForLog } from './errorDescription';
+import { HTTP_FORBIDDEN, HTTP_INTERNAL_SERVER_ERROR, HTTP_UNPROCESSABLE_ENTITY } from '../common/httpStatusCodes';
+import { MAX_LOGGED_REASON_LENGTH, describeErrorForLog, isMailNotSetUpError } from './errorDescription';
 import { AttachmentUploadFailedError, InternxtRecipientKeyMissingError } from './errors';
 
 describe('Describing an error for the logs', () => {
@@ -73,5 +73,24 @@ describe('Describing an error for the logs', () => {
     const failure = { cause: { status: HTTP_INTERNAL_SERVER_ERROR, data: 'a'.repeat(MAX_LOGGED_REASON_LENGTH * 2) } };
 
     expect(describeErrorForLog(failure).reason).toHaveLength(MAX_LOGGED_REASON_LENGTH);
+  });
+});
+
+describe('Telling apart a missing mail account', () => {
+  test('when the server refuses the request because the account is not set up, then the account is reported as missing', () => {
+    expect(isMailNotSetUpError({ status: HTTP_FORBIDDEN, data: { code: 'MAIL_NOT_SETUP' } })).toBe(true);
+  });
+
+  test('when the refusal comes wrapped in another error, then the account is still reported as missing', () => {
+    expect(isMailNotSetUpError({ cause: { status: HTTP_FORBIDDEN, data: { code: 'MAIL_NOT_SETUP' } } })).toBe(true);
+  });
+
+  test('when the server refuses the request for another reason, then the account is not reported as missing', () => {
+    expect(isMailNotSetUpError({ status: HTTP_FORBIDDEN, data: { code: 'MAIL_DEFAULT_ADDRESS_MISSING' } })).toBe(false);
+  });
+
+  test('when the request fails for a reason unrelated to the account, then the account is not reported as missing', () => {
+    expect(isMailNotSetUpError({ status: HTTP_INTERNAL_SERVER_ERROR })).toBe(false);
+    expect(isMailNotSetUpError(new Error('the network is down'))).toBe(false);
   });
 });

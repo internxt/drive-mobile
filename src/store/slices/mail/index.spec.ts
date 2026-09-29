@@ -3,6 +3,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
+import { HTTP_FORBIDDEN } from '../../../services/common/httpStatusCodes';
 import { MailboxId } from '../../../types/mail';
 import type { AppDispatch, RootState } from '../../index';
 import mailReducer, {
@@ -664,6 +665,16 @@ describe('Scrolling through a mailbox', () => {
       await mail.dispatch(loadUnreadCountsThunk());
 
       expect(mail.unreadByMailbox()).toEqual({ [MailboxId.Inbox]: 3 });
+    });
+
+    test('when the user has no mail account yet, then no unread count is shown and nothing fails', async () => {
+      getMailboxesMock.mockRejectedValueOnce({ status: HTTP_FORBIDDEN, data: { code: 'MAIL_NOT_SETUP' } });
+      const mail = createMailStore();
+
+      const loadResult = await mail.dispatch(loadUnreadCountsThunk());
+
+      expect(loadResult.meta.requestStatus).toBe('fulfilled');
+      expect(mail.unreadByMailbox()).toEqual({});
     });
 
     test('when an unread email is read, then the count of its mailbox goes down without asking the server', async () => {

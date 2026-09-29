@@ -4,17 +4,20 @@ import { useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { EnvelopeIcon } from 'phosphor-react-native';
 import { useCallback } from 'react';
+import { Linking } from 'react-native';
 import { EmailDetailScreen } from 'src/screens/mail/EmailDetailScreen';
 
 import strings from '../../assets/lang/strings';
 import AppScreen from '../components/AppScreen';
 import LockedFeatureOverlay from '../components/LockedFeatureOverlay';
 import useGetColor from '../hooks/useColor';
+import { useMailAccountStatus } from '../hooks/mail/useMailAccountStatus';
 import { useLanguage } from '../hooks/useLanguage';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { paymentsSelectors, paymentsThunks } from '../store/slices/payments';
 import MailboxListScreen from '../screens/mail/MailboxListScreen';
 import { MailSearchScreen } from '../screens/mail/MailSearchScreen';
+import appService from '../services/AppService';
 import { MAILBOX_ORDER, MailboxId } from '../types/mail';
 import MailDrawerContent from './MailDrawerContent';
 
@@ -44,6 +47,7 @@ const MailboxDrawerNavigator = () => {
 export const MailNavigator = () => {
   const dispatch = useAppDispatch();
   const hasMailAccess = useAppSelector(paymentsSelectors.hasMailAccess);
+  const mailAccountStatus = useMailAccountStatus({ isEnabled: hasMailAccess });
   useLanguage();
 
   useFocusEffect(
@@ -56,6 +60,20 @@ export const MailNavigator = () => {
     return (
       <AppScreen safeAreaTop style={{ flex: 1 }}>
         <LockedFeatureOverlay icon={EnvelopeIcon} texts={strings.screens.mail.mailLocked} />
+      </AppScreen>
+    );
+  }
+
+  if (mailAccountStatus === 'notSetUp') {
+    const { mailNotSetUp } = strings.screens.mail;
+    return (
+      <AppScreen safeAreaTop style={{ flex: 1 }}>
+        <LockedFeatureOverlay
+          icon={EnvelopeIcon}
+          texts={mailNotSetUp}
+          locked={false}
+          action={{ label: mailNotSetUp.goToMailWeb, onPress: () => Linking.openURL(appService.urls.mailWeb) }}
+        />
       </AppScreen>
     );
   }
