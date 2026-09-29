@@ -8601,11 +8601,6 @@ react-native-pdf@7.0.3:
     crypto-js "4.2.0"
     deprecated-react-native-prop-types "^2.3.0"
 
-react-native-permissions@^3.2.0:
-  version "3.10.1"
-  resolved "https://registry.yarnpkg.com/react-native-permissions/-/react-native-permissions-3.10.1.tgz#cb0171c8d12113869deaabbdfb979aad1a44752b"
-  integrity sha512-Gc5BxxpjZn4QNUDiVeHOO0vXh3AH7ToolmwTJozqC6DsxV7NAf3ttap+8BSmzDR8WxuAM3Cror+YNiBhHJx7/w==
-
 react-native-progress@^5.0.0:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/react-native-progress/-/react-native-progress-5.0.1.tgz#4e15258b5661c49bad74554352326ca540bb7c58"
@@ -8688,10 +8683,10 @@ react-native-uuid@^2.0.1:
   resolved "https://registry.yarnpkg.com/react-native-uuid/-/react-native-uuid-2.0.3.tgz#f85f8a8d68e52e3f1c18ba0f02ec7776f9d4a0da"
   integrity sha512-f/YfIS2f5UB+gut7t/9BKGSCYbRA9/74A5R1MDp+FLYsuS+OSWoiM/D8Jko6OJB6Jcu3v6ONuddvZKHdIGpeiw==
 
-react-native-video@6.18.0:
-  version "6.18.0"
-  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.18.0.tgz#2f8fc0fff27e270f592e5a15a05972f88b20e8b0"
-  integrity sha512-9BjAtAh1uGq6h/GNCCh5yzb/iI9qJHuflwNGExyhoUxbhPD1s+15h+CdpJ2MKKJTXw6J7w+nQOp1Ywa54R8w7Q==
+react-native-video@6.19.3:
+  version "6.19.3"
+  resolved "https://registry.yarnpkg.com/react-native-video/-/react-native-video-6.19.3.tgz#f006becd33cfad4bc8249ba54390d37c0d19a0e4"
+  integrity sha512-hI0YhEH6NdkfbFfMoZTZizEmLIm13rLlMf6KyWlGSe0+6If7/gvhapR2j/BMKBEwmlAIZjU4A6ax4Qn7yssjLQ==
 
 react-native-web@^0.21.0:
   version "0.21.2"
