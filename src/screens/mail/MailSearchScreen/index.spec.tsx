@@ -4,7 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 
 import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
-import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
+import { SEARCH_PAGE_SIZE, mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import strings from '../../../../assets/lang/strings';
 import mailReducer from '../../../store/slices/mail';
 import { MailScreenProps } from '../../../types/navigation';
@@ -18,6 +18,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
+  SEARCH_PAGE_SIZE: 25,
   mailboxService: { searchEmails: jest.fn() },
 }));
 
@@ -84,5 +85,15 @@ describe('Searching from the search screen', () => {
 
     expect(await screen.findByText(strings.screens.mail.search.noResults)).toBeTruthy();
     expect(searchEmailsMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('when a filter chip is tapped, then the server is asked with that filter', async () => {
+    const screen = renderSearchScreen();
+
+    await act(async () => {
+      fireEvent.press(screen.getByText(strings.screens.mail.search.filters.unread));
+    });
+
+    expect(searchEmailsMock).toHaveBeenCalledWith({ unread: true }, { position: 0, limit: SEARCH_PAGE_SIZE });
   });
 });

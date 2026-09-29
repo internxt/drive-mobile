@@ -1,4 +1,5 @@
 import { SearchQuery } from './mailbox.service';
+import { parseRecipients } from './parseRecipients';
 
 export type SearchCriteria = {
   text: string;
@@ -33,4 +34,12 @@ export const buildSearchQuery = (criteria: SearchCriteria): SearchQuery | null =
     ...(criteria.isUnread ? { unread: true } : {}),
   };
   return Object.keys(query).length > 0 ? query : null;
+};
+
+/** Adds the addresses and names in the typed text to the emails, skipping the ones already there. */
+export const addEmailEntries = (emails: string[], typedText: string): string[] => {
+  const { emails: typedEmails, invalid: typedNames } = parseRecipients(typedText);
+  const currentEmails = new Set(emails.map((email) => email.toLowerCase()));
+  const newEmails = [...typedEmails, ...typedNames].filter((email) => !currentEmails.has(email.toLowerCase()));
+  return [...emails, ...newEmails];
 };

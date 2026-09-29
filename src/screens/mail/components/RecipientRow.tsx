@@ -2,8 +2,8 @@ import { ReactNode } from 'react';
 import { TextInput, TextInputKeyPressEvent, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
-import useGetColor from '../../../../hooks/useColor';
-import { isEntryTerminator, parseRecipients } from '../../../../services/mail/parseRecipients';
+import useGetColor from '../../../hooks/useColor';
+import { isEntryTerminator, parseRecipients } from '../../../services/mail/parseRecipients';
 import { ComposeFieldRow } from './ComposeFieldRow';
 import { composeFieldTextStyle } from './composeFieldStyles';
 import { RecipientChip } from './RecipientChip';
@@ -16,6 +16,8 @@ type RecipientRowProps = {
   onFinishEntry: (typedText: string) => void;
   onRemoveRecipient: (address: string) => void;
   renderAppend?: ReactNode;
+  autoFocus?: boolean;
+  hasCompactLabel?: boolean;
 };
 
 /**
@@ -29,6 +31,8 @@ type RecipientRowProps = {
  * @param props.onFinishEntry - Called with the typed text once an entry is finished.
  * @param props.onRemoveRecipient - Called with the address of a recipient taken out of the field.
  * @param props.renderAppend - Element pinned to the right end of the line.
+ * @param props.autoFocus - Focuses the input when the field is shown.
+ * @param props.hasCompactLabel - Sizes the label to its text instead of the width shared by the compose rows.
  */
 export const RecipientRow = ({
   label,
@@ -38,6 +42,8 @@ export const RecipientRow = ({
   onFinishEntry,
   onRemoveRecipient,
   renderAppend,
+  autoFocus,
+  hasCompactLabel,
 }: RecipientRowProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -63,7 +69,7 @@ export const RecipientRow = ({
   };
 
   return (
-    <ComposeFieldRow label={label} renderAppend={renderAppend}>
+    <ComposeFieldRow label={label} renderAppend={renderAppend} hasCompactLabel={hasCompactLabel}>
       <View style={tailwind('flex-row flex-wrap items-center py-1.5')}>
         {recipients.map((recipient) => (
           <RecipientChip key={recipient} address={recipient} onRemove={() => onRemoveRecipient(recipient)} />
@@ -73,6 +79,7 @@ export const RecipientRow = ({
           value={pendingText}
           onChangeText={onChangeText}
           onKeyPress={onKeyPress}
+          autoFocus={autoFocus}
           onBlur={() => onFinishEntry(pendingText)}
           onSubmitEditing={() => onFinishEntry(pendingText)}
           submitBehavior="submit"

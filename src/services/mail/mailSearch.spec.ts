@@ -1,4 +1,4 @@
-import { EMPTY_SEARCH_CRITERIA, buildSearchQuery } from './mailSearch';
+import { EMPTY_SEARCH_CRITERIA, addEmailEntries, buildSearchQuery } from './mailSearch';
 
 describe('Turning what the user asked for into a search', () => {
   test('when nothing is typed and no filter is on, then there is nothing to search', () => {
@@ -31,5 +31,27 @@ describe('Turning what the user asked for into a search', () => {
         isUnread: true,
       }),
     ).toEqual({ text: 'invoice', from: ['ada@inxt.me'], to: ['team@inxt.me'], hasAttachment: true, unread: true });
+  });
+});
+
+describe('Adding emails to a search filter', () => {
+  test('when a name is typed, then it is added as it is', () => {
+    expect(addEmailEntries([], 'Ada Lovelace')).toEqual(['Ada Lovelace']);
+  });
+
+  test('when several emails are typed at once, then each one is added', () => {
+    expect(addEmailEntries(['ada@inxt.me'], 'grace@inxt.me, Alan Turing')).toEqual([
+      'ada@inxt.me',
+      'grace@inxt.me',
+      'Alan Turing',
+    ]);
+  });
+
+  test('when an email is already in the filter, then it is not added twice', () => {
+    expect(addEmailEntries(['ada@inxt.me'], 'Ada@Inxt.me')).toEqual(['ada@inxt.me']);
+  });
+
+  test('when only blank space is typed, then nothing is added', () => {
+    expect(addEmailEntries(['ada@inxt.me'], '   ')).toEqual(['ada@inxt.me']);
   });
 });
