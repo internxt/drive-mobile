@@ -145,7 +145,7 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
 
     if (!success) {
       dispatch(driveActions.hideItemsById([item.id]));
-      setHiddenItems(hiddenItems.filter((hiddenItem) => hiddenItem.id === item.id));
+      setHiddenItems((currentHiddenItems) => currentHiddenItems.filter((hiddenItem) => hiddenItem.id !== item.id));
     } else {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(destinationFolderId, { pullFrom: ['network'], resetPagination: true });
