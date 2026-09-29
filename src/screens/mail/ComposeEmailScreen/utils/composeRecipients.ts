@@ -99,21 +99,16 @@ export const findUnreadableRecipientText = (pendingText: PendingRecipientText): 
 export const hasMainRecipient = (recipients: RecipientsByField, pendingText: PendingRecipientText): boolean =>
   recipients.to.length > 0 || parseRecipients(pendingText.to).emails.length > 0;
 
-/**
- * Tells whether a message can be sent: it has somebody to go to in its main field, its subject is not
- * blank, and it is not already being sent.
- */
+/** Tells whether a message can be sent: it has somebody to go to in its main field and it is not already being sent. */
 export const canSendMessage = ({
   recipients,
   pendingText,
-  subject,
   isSending,
 }: {
   recipients: RecipientsByField;
   pendingText: PendingRecipientText;
-  subject: string;
   isSending: boolean;
-}): boolean => !isSending && subject.trim().length > 0 && hasMainRecipient(recipients, pendingText);
+}): boolean => !isSending && hasMainRecipient(recipients, pendingText);
 
 /** Tells whether the copy or blind copy field holds a recipient, or has something other than blank space typed in it. */
 export const hasCopyOrBlindCopyRecipients = (
