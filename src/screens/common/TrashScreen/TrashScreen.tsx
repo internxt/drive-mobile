@@ -153,11 +153,15 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   };
 
   const handleDeleteDriveItem = async (item: DriveListItem) => {
-    await driveUseCases.deleteDriveItemsPermanently([item]);
-    setHiddenItems(hiddenItems.concat([item]));
+    const { success } = await driveUseCases.deleteDriveItemsPermanently([item]);
     setSelectedDriveItem(undefined);
     setConfirmDeleteModalOpen(false);
     setOptionsModalOpen(false);
+    if (!success) {
+      return;
+    }
+
+    setHiddenItems((currentHiddenItems) => currentHiddenItems.concat([item]));
   };
 
   const handleNextDriveTrashPage = async () => {
