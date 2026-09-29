@@ -3,7 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { describeErrorForLog } from '@internxt-mobile/services/mail/errorDescription';
-import { decryptPreviews, getPrivateHybridKey } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { MailboxId } from '../../../types/mail';
 import type { RootState } from '../../index';
@@ -21,16 +21,7 @@ export type NextPageResult = StartedWith & { nextPage: EmailListResponse | null 
 export type NextPageFailure = StartedWith & { failedAnchorIds: string[] };
 export type NewestEmailsResult = StartedWith & { newestPage: EmailListResponse };
 
-/**
- * Lists one page of a mailbox with its previews decrypted. When the previews cannot be decrypted, the
- * page comes back with them as they are.
- *
- * @param params - The page to list.
- * @param params.mailboxId - The mailbox to list.
- * @param params.mnemonic - Mnemonic of the account, which unlocks the previews; they stay encrypted without it.
- * @param params.anchorId - The email the page continues after; the first page is listed when omitted.
- * @returns The page.
- */
+/** Lists one page of a mailbox with its previews decrypted. */
 const listPageWithDecryptedPreviews = async ({
   mailboxId,
   mnemonic,
@@ -39,19 +30,8 @@ const listPageWithDecryptedPreviews = async ({
   mailboxId: MailboxId;
   mnemonic?: string;
   anchorId?: string;
-}): Promise<EmailListResponse> => {
-  const page = await mailboxService.listEmails(mailboxId, { anchorId });
-  if (!mnemonic) {
-    return page;
-  }
-  try {
-    const privateKey = await getPrivateHybridKey(mnemonic);
-    return { ...page, emails: await decryptPreviews(page.emails, privateKey) };
-  } catch (error) {
-    logger.error(`Failed to decrypt previews for ${mailboxId}`, describeErrorForLog(error));
-    return page;
-  }
-};
+}): Promise<EmailListResponse> =>
+  decryptListedPreviews(await mailboxService.listEmails(mailboxId, { anchorId }), mnemonic);
 
 /** Loads the first page of a mailbox, replacing everything loaded in it. */
 export const loadFirstPageThunk = createAsyncThunk<EmailListResponse, MailboxThunkArgument, { state: RootState }>(

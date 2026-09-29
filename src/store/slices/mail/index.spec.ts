@@ -1,7 +1,7 @@
 import { EmailListResponse, EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { configureStore } from '@reduxjs/toolkit';
 
-import { decryptPreviews, getPrivateHybridKey } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { MailboxId } from '../../../types/mail';
 import type { AppDispatch, RootState } from '../../index';
@@ -22,8 +22,7 @@ jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
 }));
 
 jest.mock('@internxt-mobile/services/mail/mailCrypto.service', () => ({
-  getPrivateHybridKey: jest.fn(),
-  decryptPreviews: jest.fn(),
+  decryptListedPreviews: jest.fn(),
 }));
 
 jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
@@ -32,8 +31,7 @@ jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
 
 const listEmailsMock = mailboxService.listEmails as jest.Mock;
 const getMailboxesMock = mailboxService.getMailboxes as jest.Mock;
-const getPrivateHybridKeyMock = getPrivateHybridKey as jest.Mock;
-const decryptPreviewsMock = decryptPreviews as jest.Mock;
+const decryptListedPreviewsMock = decryptListedPreviews as jest.Mock;
 
 const A_MNEMONIC = 'a mnemonic';
 const SERVER_UNREACHABLE = new Error('the server is unreachable');
@@ -109,8 +107,7 @@ const inbox = { mailboxId: MailboxId.Inbox };
 describe('Scrolling through a mailbox', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    getPrivateHybridKeyMock.mockResolvedValue(new Uint8Array([1]));
-    decryptPreviewsMock.mockImplementation(async (emails: EmailSummaryResponse[]) => emails);
+    decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => page);
   });
 
   describe('Loading pages', () => {
@@ -200,26 +197,18 @@ describe('Scrolling through a mailbox', () => {
       expect(mail.shownIds()).toEqual(['recent']);
     });
 
-    test('when the previews cannot be decrypted, then the emails are listed anyway', async () => {
-      getPrivateHybridKeyMock.mockRejectedValueOnce(new Error('the key cannot be opened'));
+    test('when a page is listed, then its previews are shown decrypted for the signed-in account', async () => {
       listEmailsMock.mockResolvedValueOnce(aPage([anEmail('encrypted')]));
+      decryptListedPreviewsMock.mockImplementationOnce(async (page: EmailListResponse) => ({
+        ...page,
+        emails: page.emails.map((email) => ({ ...email, preview: 'The decrypted preview' })),
+      }));
       const mail = createMailStore();
 
       await mail.dispatch(loadFirstPageThunk(inbox));
 
-      expect(mail.shownIds()).toEqual(['encrypted']);
-      expect(mail.listOf().hasFirstPageFailed).toBe(false);
-    });
-
-    test('when there is no mnemonic, then nothing is decrypted', async () => {
-      listEmailsMock.mockResolvedValueOnce(aPage([anEmail('encrypted')]));
-      const mail = createMailStore({});
-
-      await mail.dispatch(loadFirstPageThunk(inbox));
-
-      expect(getPrivateHybridKeyMock).not.toHaveBeenCalled();
-      expect(decryptPreviewsMock).not.toHaveBeenCalled();
-      expect(mail.shownIds()).toEqual(['encrypted']);
+      expect(decryptListedPreviewsMock).toHaveBeenCalledWith(expect.anything(), A_MNEMONIC);
+      expect(mail.shownEmails()[0].preview).toBe('The decrypted preview');
     });
   });
 
