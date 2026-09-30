@@ -138,6 +138,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
           tabBarShowLabel: true,
           lazy: true,
           animation: 'fade',
+          sceneStyle: { backgroundColor: getColor('bg-surface') },
         }}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
