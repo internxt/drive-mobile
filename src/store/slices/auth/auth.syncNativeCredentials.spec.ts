@@ -74,6 +74,14 @@ const user = {
   email: 'user@internxt.com',
 } as never;
 
+const legacyUser = {
+  userId: 'user-1',
+  bridgeUser: 'bridge@internxt.com',
+  mnemonic: 'pretty cloud secret words',
+  rootFolderId: 'legacy-root-uuid',
+  email: 'user@internxt.com',
+} as never;
+
 type DispatchableThunk = (dispatch: jest.Mock, getState: jest.Mock, extra: undefined) => Promise<unknown>;
 
 const runThunk = (action: unknown) =>
@@ -103,15 +111,19 @@ describe('auth thunks native credentials handoff', () => {
     expect(setCredentialsMock).toHaveBeenCalledWith(expect.objectContaining({ bearerToken: 'refreshed-new-token' }));
   });
 
-  test('when an existing session is restored at startup, then the wrapper receives the stored token', async () => {
+  test('when a session stored by an older app version is restored at startup, then the wrapper receives the stored token and rootFolderId as the root uuid', async () => {
     getAuthCredentialsMock.mockResolvedValue({
-      credentials: { accessToken: 'access-3', photosToken: 'stored-new-token', user },
+      credentials: { accessToken: 'access-3', photosToken: 'stored-new-token', user: legacyUser },
     });
 
     await runThunk(silentSignInThunk());
 
     expect(setCredentialsMock).toHaveBeenCalledWith(
-      expect.objectContaining({ bearerToken: 'stored-new-token', driveBaseUrl: 'https://drive' }),
+      expect.objectContaining({
+        bearerToken: 'stored-new-token',
+        driveBaseUrl: 'https://drive',
+        rootFolderUuid: 'legacy-root-uuid',
+      }),
     );
   });
 
