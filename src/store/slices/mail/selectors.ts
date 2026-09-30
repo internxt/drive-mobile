@@ -4,7 +4,7 @@ import { shallowEqual } from 'react-redux';
 
 import { MailboxId } from '../../../types/mail';
 import type { RootState } from '../../index';
-import { createInitialMailboxListState } from './initialState';
+import { createInitialMailboxListState, emailsAdapter } from './initialState';
 import { sortNewestFirst } from './pagination';
 import { MailboxListState, MailState } from './types';
 
@@ -12,6 +12,11 @@ const NOT_LOADED_MAILBOX_LIST: MailboxListState = { ...createInitialMailboxListS
 
 export const selectMailboxList = (state: RootState, mailboxId: MailboxId): MailboxListState =>
   state.mail.mailboxes[mailboxId] ?? NOT_LOADED_MAILBOX_LIST;
+
+const emailsSelectors = emailsAdapter.getSelectors((state: RootState) => state.mail.emails);
+
+/** Selects every email loaded, in any mailbox. */
+export const selectAllLoadedEmails = emailsSelectors.selectAll;
 
 export const selectLoadedEmails = (state: RootState, mailboxId: MailboxId): EmailSummaryResponse[] => {
   const { entities } = state.mail.emails;

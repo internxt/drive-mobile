@@ -112,15 +112,41 @@ export const parseEncryptionBlock = (textBody: string): EmailEncryptionBlock => 
   return JSON.parse(json);
 };
 
+const encryptionOf = (email: EmailSummaryResponse): EmailEncryptionBlock | undefined =>
+  (email as { encryption?: EmailEncryptionBlock }).encryption;
+
+/**
+ * Maps the encrypted preview of each email to the preview it was decrypted to. Emails that are not
+ * encrypted, were not decrypted or failed to decrypt are left out.
+ */
+export const collectDecryptedPreviews = (emails: EmailSummaryResponse[]): Map<string, string> => {
+  const unableToDecryptPreview = strings.screens.mail.unableToDecryptPreview;
+  return new Map(
+    emails.flatMap((email): [string, string][] => {
+      const encryption = encryptionOf(email);
+      if (!encryption || !email.preview || email.preview === unableToDecryptPreview) {
+        return [];
+      }
+      return [[encryption.encryptedPreview, email.preview]];
+    }),
+  );
+};
+
+/** Decrypts the previews of the emails, taking the ones found in `knownPreviews` from there instead. */
 export const decryptPreviews = async (
   emails: EmailSummaryResponse[],
   privateKey: Uint8Array,
+  knownPreviews: ReadonlyMap<string, string> = new Map(),
 ): Promise<EmailSummaryResponse[]> => {
   return Promise.all(
     emails.map(async (email) => {
-      const encryption = (email as { encryption?: EmailEncryptionBlock }).encryption;
+      const encryption = encryptionOf(email);
       if (!encryption) {
         return email;
+      }
+      const knownPreview = knownPreviews.get(encryption.encryptedPreview);
+      if (knownPreview !== undefined) {
+        return { ...email, preview: knownPreview };
       }
       try {
         const preview = await decryptPreview(encryption, privateKey);
@@ -134,16 +160,20 @@ export const decryptPreviews = async (
 };
 
 /**
- * Decrypts the previews of a page of emails. The page comes back as it is when there is no mnemonic or the
- * key cannot be opened.
+ * Decrypts the previews of a page of emails, taking the ones found in `knownPreviews` from there instead.
+ * The page comes back as it is when there is no mnemonic or the key cannot be opened.
  */
-export const decryptListedPreviews = async (page: EmailListResponse, mnemonic?: string): Promise<EmailListResponse> => {
+export const decryptListedPreviews = async (
+  page: EmailListResponse,
+  mnemonic?: string,
+  knownPreviews?: ReadonlyMap<string, string>,
+): Promise<EmailListResponse> => {
   if (!mnemonic) {
     return page;
   }
   try {
     const privateKey = await getPrivateHybridKey(mnemonic);
-    return { ...page, emails: await decryptPreviews(page.emails, privateKey) };
+    return { ...page, emails: await decryptPreviews(page.emails, privateKey, knownPreviews) };
   } catch (error) {
     logger.error('Failed to decrypt previews', describeErrorForLog(error));
     return page;

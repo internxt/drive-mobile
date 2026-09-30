@@ -1,7 +1,7 @@
 import { EmailListResponse, EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { configureStore } from '@reduxjs/toolkit';
 
-import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { collectDecryptedPreviews, decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { HTTP_FORBIDDEN } from '../../../services/common/httpStatusCodes';
 import { MailboxId } from '../../../types/mail';
@@ -24,6 +24,7 @@ jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
 }));
 
 jest.mock('@internxt-mobile/services/mail/mailCrypto.service', () => ({
+  collectDecryptedPreviews: jest.fn(),
   decryptListedPreviews: jest.fn(),
 }));
 
@@ -34,6 +35,7 @@ jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
 const listEmailsMock = mailboxService.listEmails as jest.Mock;
 const getMailboxesMock = mailboxService.getMailboxes as jest.Mock;
 const decryptListedPreviewsMock = decryptListedPreviews as jest.Mock;
+const collectDecryptedPreviewsMock = collectDecryptedPreviews as jest.Mock;
 
 const A_MNEMONIC = 'a mnemonic';
 const SERVER_UNREACHABLE = new Error('the server is unreachable');
@@ -110,6 +112,7 @@ describe('Scrolling through a mailbox', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => page);
+    collectDecryptedPreviewsMock.mockReturnValue(new Map());
   });
 
   describe('Loading pages', () => {
@@ -209,7 +212,7 @@ describe('Scrolling through a mailbox', () => {
 
       await mail.dispatch(loadFirstPageThunk(inbox));
 
-      expect(decryptListedPreviewsMock).toHaveBeenCalledWith(expect.anything(), A_MNEMONIC);
+      expect(decryptListedPreviewsMock).toHaveBeenCalledWith(expect.anything(), A_MNEMONIC, expect.anything());
       expect(mail.shownEmails()[0].preview).toBe('The decrypted preview');
     });
   });
@@ -370,6 +373,22 @@ describe('Scrolling through a mailbox', () => {
   });
 
   describe('Coming back to the mailbox', () => {
+    test('when the mailbox is shown again, then the previews already decrypted are reused instead of decrypted again', async () => {
+      listEmailsMock.mockResolvedValue(aPage([anEmail('top')], { hasMoreMails: true }));
+      decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => ({
+        ...page,
+        emails: page.emails.map((email) => ({ ...email, preview: 'The decrypted preview' })),
+      }));
+      const mail = createMailStore();
+      await mail.dispatch(loadFirstPageThunk(inbox));
+
+      await mail.dispatch(refreshNewestEmailsThunk(inbox));
+
+      expect(collectDecryptedPreviewsMock).toHaveBeenLastCalledWith([
+        expect.objectContaining({ id: 'top', preview: 'The decrypted preview' }),
+      ]);
+    });
+
     test('when the mailbox is shown again, then new emails appear at the top and the pages already loaded stay', async () => {
       listEmailsMock
         .mockResolvedValueOnce(
