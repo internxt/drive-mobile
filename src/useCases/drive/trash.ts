@@ -44,7 +44,6 @@ export const getDriveTrashItems = async ({
         status: DriveItemStatus.Idle,
         data: {
           ...trashItem,
-          id: trashItem.id,
           folderId: trashItem.folderId,
           name: trashItem.plainName ?? trashItem.name,
           updatedAt: new Date(trashItem.updatedAt).toISOString(),
@@ -54,7 +53,7 @@ export const getDriveTrashItems = async ({
           type: isFolder ? undefined : trashItem.type,
           thumbnails: [],
         },
-        id: trashItem.id.toString(),
+        id: trashItem.uuid,
       };
     });
 
@@ -128,7 +127,7 @@ export const deleteDriveItemsPermanently = async (items: DriveListItem[]): Promi
       items.map((item) => {
         return {
           type: item.data.type ? 'file' : 'folder',
-          id: item.id,
+          uuid: item.data.uuid,
         };
       }),
     );
@@ -183,7 +182,7 @@ export const clearTrash = async (): Promise<UseCaseResult<null>> => {
  * Moves items to trash
  */
 export const moveItemsToTrash = async (
-  items: { id: string; type: 'file' | 'folder'; dbItemId: number; uuid: string }[],
+  items: { type: 'file' | 'folder'; dbItemId: number; uuid: string }[],
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {

@@ -30,6 +30,8 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   const [emptyTrashDisabled, setEmptyTrashDisabled] = useState(true);
   const [confirmDeleteModalOpen, setConfirmDeleteModalOpen] = useState(false);
   const [confirmClearTrashModalOpen, setConfirmClearTrashModalOpen] = useState(false);
+  const [isEmptyingTrash, setIsEmptyingTrash] = useState(false);
+  const isEmptyingTrashRef = useRef(false);
   const [shouldGetMoreDriveTrashFiles, setShouldGetMoreDriveTrashFiles] = useState(true);
   const [shouldGetMoreDriveTrashFolders, setShouldGetMoreDriveTrashFolders] = useState(true);
   const [driveTrashPage, setDriveTrashPage] = useState(1);
@@ -104,8 +106,18 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   };
 
   const handleClearTrash = async () => {
-    await driveUseCases.clearTrash();
+    if (isEmptyingTrashRef.current) {
+      return;
+    }
+    isEmptyingTrashRef.current = true;
+    setIsEmptyingTrash(true);
     setConfirmClearTrashModalOpen(false);
+    const clearTrashResult = await driveUseCases.clearTrash();
+    isEmptyingTrashRef.current = false;
+    setIsEmptyingTrash(false);
+    if (!clearTrashResult.success) {
+      return;
+    }
 
     setHiddenItems(driveTrashItems as DriveListItem[]);
     setEmptyTrashDisabled(true);
@@ -133,7 +145,7 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
 
     if (!success) {
       dispatch(driveActions.hideItemsById([item.id]));
-      setHiddenItems(hiddenItems.filter((hiddenItem) => hiddenItem.id === item.id));
+      setHiddenItems((currentHiddenItems) => currentHiddenItems.filter((hiddenItem) => hiddenItem.id !== item.id));
     } else {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(destinationFolderId, { pullFrom: ['network'], resetPagination: true });
@@ -141,11 +153,15 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   };
 
   const handleDeleteDriveItem = async (item: DriveListItem) => {
-    await driveUseCases.deleteDriveItemsPermanently([item]);
-    setHiddenItems(hiddenItems.concat([item]));
+    const { success } = await driveUseCases.deleteDriveItemsPermanently([item]);
     setSelectedDriveItem(undefined);
     setConfirmDeleteModalOpen(false);
     setOptionsModalOpen(false);
+    if (!success) {
+      return;
+    }
+
+    setHiddenItems((currentHiddenItems) => currentHiddenItems.concat([item]));
   };
 
   const handleNextDriveTrashPage = async () => {
@@ -187,7 +203,8 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
       <AppScreen safeAreaTop style={tailwind('flex-1')}>
         <View style={tailwind('border-b border-gray-10 px-2')}>
           <TrashScreenHeader
-            emptyTrashIsDisabled={emptyTrashDisabled}
+            emptyTrashIsDisabled={emptyTrashDisabled || isEmptyingTrash}
+            isEmptyingTrash={isEmptyingTrash}
             onBackButtonPress={handleBackButtonPress}
             onTrashButtonPress={() => setConfirmClearTrashModalOpen(true)}
           />
