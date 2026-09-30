@@ -3,7 +3,7 @@ import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigationState } from '@react-navigation/native';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { loadUnreadCountsThunk } from 'src/store/slices/mail';
@@ -13,7 +13,7 @@ import { storageThunks } from 'src/store/slices/storage';
 import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
 import BottomTabNavigator from '../components/BottomTabNavigator';
-import FloatingActionButton from '../components/FloatingActionButton';
+import FloatingActionButton, { FloatingActionButtonMode } from '../components/FloatingActionButton';
 import AddModal from '../components/modals/AddModal';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
@@ -45,7 +45,7 @@ const LAUNCH_ON_ROUTE_ON_DEV_MODE: keyof TabExplorerStackParamList | undefined =
   ? undefined
   : undefined;
 
-const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Element | null => {
+const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Element => {
   const dispatch = useAppDispatch();
   const tabExplorerState = useNavigationState(
     (state) => state.routes.find((route) => route.name === 'TabExplorer')?.state,
@@ -57,11 +57,15 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
   const isComposeButtonCollapsed = useAppSelector((state) => state.ui.isComposeButtonCollapsed);
   const hasSentMessageNotice = useAppSelector((state) => !!state.ui.sentMessageNotice);
 
-  const mode = getFloatingButtonMode(tabExplorerState);
-  const isComposeUnavailable = mode === 'compose' && (!hasMailAccess || isFloatingButtonHidden);
-  if (!mode || isTabBarHidden || isComposeUnavailable) {
-    return null;
+  const lastModeRef = useRef<FloatingActionButtonMode>('upload');
+
+  const focusedMode = getFloatingButtonMode(tabExplorerState);
+  if (focusedMode) {
+    lastModeRef.current = focusedMode;
   }
+  const mode = focusedMode ?? lastModeRef.current;
+  const isComposeUnavailable = mode === 'compose' && (!hasMailAccess || isFloatingButtonHidden);
+  const isHidden = !focusedMode || isTabBarHidden || isComposeUnavailable;
 
   const onPress = () => {
     if (mode === 'compose') {
@@ -80,6 +84,7 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
       isLabelShown={!isComposeButtonCollapsed}
       isMenuOpen={isUploadMenuOpen}
       isRaised={hasSentMessageNotice}
+      isHidden={isHidden}
       onPress={onPress}
     />
   );
