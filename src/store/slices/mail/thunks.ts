@@ -3,6 +3,7 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { describeErrorForLog, isMailNotSetUpError } from '@internxt-mobile/services/mail/errorDescription';
+import { MailboxPageTimeoutError } from '@internxt-mobile/services/mail/errors';
 import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { MailboxId } from '../../../types/mail';
@@ -12,6 +13,7 @@ import { selectLoadedEmails, selectMailboxList } from './selectors';
 import { MailState } from './types';
 
 const MAX_NEXT_PAGE_ATTEMPTS = 2;
+export const MAILBOX_PAGE_TIMEOUT_MS = 30_000;
 
 type MailboxThunkArgument = { mailboxId: MailboxId };
 
@@ -21,7 +23,11 @@ export type NextPageResult = StartedWith & { nextPage: EmailListResponse | null 
 export type NextPageFailure = StartedWith & { failedAnchorIds: string[] };
 export type NewestEmailsResult = StartedWith & { newestPage: EmailListResponse };
 
-/** Lists one page of a mailbox with its previews decrypted. */
+/**
+ * Lists one page of a mailbox with its previews decrypted.
+ *
+ * @throws MailboxPageTimeoutError when the server does not return the page within `MAILBOX_PAGE_TIMEOUT_MS`.
+ */
 const listPageWithDecryptedPreviews = async ({
   mailboxId,
   mnemonic,
@@ -30,8 +36,19 @@ const listPageWithDecryptedPreviews = async ({
   mailboxId: MailboxId;
   mnemonic?: string;
   anchorId?: string;
-}): Promise<EmailListResponse> =>
-  decryptListedPreviews(await mailboxService.listEmails(mailboxId, { anchorId }), mnemonic);
+}): Promise<EmailListResponse> => {
+  let pageTimeout: ReturnType<typeof setTimeout> | undefined;
+  const rejectWhenTimedOut = new Promise<never>((_resolve, reject) => {
+    pageTimeout = setTimeout(() => reject(new MailboxPageTimeoutError(mailboxId)), MAILBOX_PAGE_TIMEOUT_MS);
+  });
+  let page: EmailListResponse;
+  try {
+    page = await Promise.race([mailboxService.listEmails(mailboxId, { anchorId }), rejectWhenTimedOut]);
+  } finally {
+    clearTimeout(pageTimeout);
+  }
+  return decryptListedPreviews(page, mnemonic);
+};
 
 /** Loads the first page of a mailbox, replacing everything loaded in it. */
 export const loadFirstPageThunk = createAsyncThunk<EmailListResponse, MailboxThunkArgument, { state: RootState }>(

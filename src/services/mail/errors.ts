@@ -11,6 +11,7 @@ export const MailErrorName = {
   ForwardedAttachmentsNotDecryptable: 'ForwardedAttachmentsNotDecryptableError',
   AttachmentUploadFailed: 'AttachmentUploadFailedError',
   AttachmentUploadAborted: 'AttachmentUploadAbortedError',
+  MailboxPageTimeout: 'MailboxPageTimeoutError',
 } as const;
 
 export class NoRecipientsError extends Error {
@@ -104,5 +105,12 @@ export class AttachmentUploadAbortedError extends Error {
   constructor() {
     super('The attachment upload was aborted');
     this.name = MailErrorName.AttachmentUploadAborted;
+  }
+}
+
+export class MailboxPageTimeoutError extends Error {
+  constructor(public readonly mailboxId: string) {
+    super(`The page of ${mailboxId} did not arrive in time`);
+    this.name = MailErrorName.MailboxPageTimeout;
   }
 }

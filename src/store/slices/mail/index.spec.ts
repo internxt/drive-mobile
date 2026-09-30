@@ -17,6 +17,7 @@ import mailReducer, {
   selectMailboxTypeById,
   selectUnreadByMailbox,
 } from './index';
+import { MAILBOX_PAGE_TIMEOUT_MS } from './thunks';
 
 jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
   mailboxService: { listEmails: jest.fn(), getMailboxes: jest.fn() },
@@ -807,5 +808,97 @@ describe('Scrolling through a mailbox', () => {
 
       expect(mail.unreadByMailbox()).toEqual({});
     });
+  });
+});
+
+describe('When the server does not answer', () => {
+  const serverThatNeverAnswers = () => listEmailsMock.mockImplementation(() => new Promise(() => undefined));
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    jest.useFakeTimers();
+    decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => page);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('when the first page never arrives, then the mailbox stops loading and shows the failure', async () => {
+    serverThatNeverAnswers();
+    const mail = createMailStore();
+
+    const firstPageLoad = mail.dispatch(loadFirstPageThunk(inbox));
+    await jest.advanceTimersByTimeAsync(MAILBOX_PAGE_TIMEOUT_MS);
+    await firstPageLoad;
+
+    expect(mail.listOf().isLoadingFirstPage).toBe(false);
+    expect(mail.listOf().hasFirstPageFailed).toBe(true);
+  });
+
+  test('when a further page never arrives, then the loading at the end of the list stops and offers to try again', async () => {
+    listEmailsMock.mockResolvedValueOnce(aPage([anEmail('recent', { day: 20 })], { hasMoreMails: true }));
+    const mail = createMailStore();
+    await mail.dispatch(loadFirstPageThunk(inbox));
+    serverThatNeverAnswers();
+
+    const nextPageLoad = mail.dispatch(loadNextPageThunk(inbox));
+    await jest.advanceTimersByTimeAsync(MAILBOX_PAGE_TIMEOUT_MS * 2);
+    await nextPageLoad;
+
+    expect(mail.listOf().isLoadingNextPage).toBe(false);
+    expect(mail.listOf().hasNextPageFailed).toBe(true);
+    expect(mail.shownIds()).toEqual(['recent']);
+  });
+
+  test('when the newest emails never arrive, then the next time the mailbox is shown they are asked for again', async () => {
+    listEmailsMock.mockResolvedValueOnce(aPage([anEmail('old', { day: 10 })]));
+    const mail = createMailStore();
+    await mail.dispatch(loadFirstPageThunk(inbox));
+    listEmailsMock.mockImplementationOnce(() => new Promise(() => undefined));
+
+    const stuckRefresh = mail.dispatch(refreshNewestEmailsThunk(inbox));
+    await jest.advanceTimersByTimeAsync(MAILBOX_PAGE_TIMEOUT_MS);
+    await stuckRefresh;
+    listEmailsMock.mockResolvedValueOnce(aPage([anEmail('new', { day: 25 }), anEmail('old', { day: 10 })]));
+    await mail.dispatch(refreshNewestEmailsThunk(inbox));
+
+    expect(mail.listOf().isRefreshingNewestEmails).toBe(false);
+    expect(mail.shownIds()).toEqual(['new', 'old']);
+  });
+
+  test('when decrypting the previews takes longer than the time limit, then the page is still shown', async () => {
+    listEmailsMock.mockResolvedValueOnce(aPage([anEmail('slow-to-decrypt')]));
+    decryptListedPreviewsMock.mockImplementationOnce(
+      (page: EmailListResponse) =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve(page), MAILBOX_PAGE_TIMEOUT_MS * 2);
+        }),
+    );
+    const mail = createMailStore();
+
+    const firstPageLoad = mail.dispatch(loadFirstPageThunk(inbox));
+    await jest.advanceTimersByTimeAsync(MAILBOX_PAGE_TIMEOUT_MS * 2);
+    await firstPageLoad;
+
+    expect(mail.listOf().hasFirstPageFailed).toBe(false);
+    expect(mail.shownIds()).toEqual(['slow-to-decrypt']);
+  });
+
+  test('when a page arrives in time, then it is shown as usual', async () => {
+    listEmailsMock.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          setTimeout(() => resolve(aPage([anEmail('slow-but-fine')])), MAILBOX_PAGE_TIMEOUT_MS - 1);
+        }),
+    );
+    const mail = createMailStore();
+
+    const firstPageLoad = mail.dispatch(loadFirstPageThunk(inbox));
+    await jest.advanceTimersByTimeAsync(MAILBOX_PAGE_TIMEOUT_MS);
+    await firstPageLoad;
+
+    expect(mail.listOf().hasFirstPageFailed).toBe(false);
+    expect(mail.shownIds()).toEqual(['slow-but-fine']);
   });
 });
