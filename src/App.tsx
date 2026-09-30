@@ -20,7 +20,6 @@ import { useKeepAwake } from 'expo-keep-awake';
 import { DriveContextProvider } from './contexts/Drive';
 import { ThemeProvider, useTheme } from './contexts/Theme';
 import { useLoadFonts } from './helpers';
-import useGetColor from './hooks/useColor';
 import { useScreenProtection } from './hooks/useScreenProtection';
 import { useSecurity } from './hooks/useSecurity';
 import Navigation from './navigation';
@@ -46,7 +45,6 @@ function AppContent(): JSX.Element {
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
   const dispatch = useAppDispatch();
   const tailwind = useTailwind();
-  const getColor = useGetColor();
   const { theme } = useTheme();
 
   const { isReady: fontsAreReady } = useLoadFonts();
@@ -199,14 +197,12 @@ function AppContent(): JSX.Element {
   }, []);
 
   useEffect(() => {
-    const configureNavigationBar = async () => {
+    const configureNavigationBar = () => {
       if (Platform.OS === 'android') {
         try {
-          const backgroundColor = getColor('bg-surface');
           const isDark = theme === 'dark';
 
-          await NavigationBar.setBackgroundColorAsync(backgroundColor);
-          await NavigationBar.setButtonStyleAsync(isDark ? 'light' : 'dark');
+          NavigationBar.setStyle(isDark ? 'light' : 'dark');
         } catch (error) {
           logger.error('Error configuring navigation bar:', error);
         }
@@ -214,7 +210,7 @@ function AppContent(): JSX.Element {
     };
 
     configureNavigationBar();
-  }, [getColor, theme]);
+  }, [theme]);
 
   useEffect(() => {
     const globalListener = appService.onAppStateChange(handleGlobalAppStateChange);
