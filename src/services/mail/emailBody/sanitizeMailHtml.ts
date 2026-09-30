@@ -7,13 +7,15 @@ const MAIL_SANITISE_OPTIONS: sanitizeHtml.IOptions = {
     '*': ['style'],
   },
   allowedSchemes: ['http', 'https', 'mailto', 'tel', 'cid'],
+  allowedSchemesByTag: { img: ['http', 'https', 'cid', 'data'] },
   allowProtocolRelative: false,
 };
 
 /**
  * Filters the body of an incoming email down to the markup that is safe to display: it keeps the
  * formatting and the inline attachment references, and drops scripts, event handlers and any link
- * whose scheme is not http, https, mailto, tel or cid.
+ * whose scheme is not http, https, mailto, tel or cid. Images may also carry their content in a
+ * data URI.
  *
  * @param html the body of the email as it arrived, before rendering it
  * @returns the same body with everything unsafe removed

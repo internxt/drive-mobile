@@ -27,6 +27,12 @@ describe('Cleaning the body of an incoming email', () => {
     expect(clean).toContain('alt="A signature"');
   });
 
+  test('when an image is embedded in the message body itself, then it is kept', () => {
+    const clean = sanitizeMailHtml('<img src="data:image/png;base64,iVBORw0KGgo=" />');
+
+    expect(clean).toContain('src="data:image/png;base64,iVBORw0KGgo="');
+  });
+
   test('when a message body is styled, then the formatting is kept', () => {
     const clean = sanitizeMailHtml('<div style="color:#ff0000;font-size:20px;text-align:center">An offer</div>');
 
