@@ -54,8 +54,10 @@ const listPageWithDecryptedPreviews = async ({
 export const loadFirstPageThunk = createAsyncThunk<EmailListResponse, MailboxThunkArgument, { state: RootState }>(
   'mail/loadFirstPage',
   async ({ mailboxId }, { getState }) => {
+    logger.info(`[MailThunks] loadFirstPage started mailbox=${mailboxId}`);
     try {
       const firstPage = await listPageWithDecryptedPreviews({ mailboxId, mnemonic: getState().auth.user?.mnemonic });
+      logger.info(`[MailThunks] loadFirstPage finished mailbox=${mailboxId} emails=${firstPage.emails.length}`);
       return firstPage;
     } catch (error) {
       logger.error(`Failed to list emails for ${mailboxId}`, describeErrorForLog(error));
@@ -88,12 +90,14 @@ export const loadNextPageThunk = createAsyncThunk<
       if (!anchorId) {
         return { startedWithFirstPageRequestId, nextPage: null };
       }
+      logger.info(`[MailThunks] loadNextPage started mailbox=${mailboxId} attempt=${attempt}`);
       try {
         const nextPage = await listPageWithDecryptedPreviews({
           mailboxId,
           mnemonic: getState().auth.user?.mnemonic,
           anchorId,
         });
+        logger.info(`[MailThunks] loadNextPage finished mailbox=${mailboxId} emails=${nextPage.emails.length}`);
         return { startedWithFirstPageRequestId, nextPage };
       } catch (error) {
         logger.error(`Failed to list more emails for ${mailboxId}`, describeErrorForLog(error));
@@ -120,8 +124,10 @@ export const refreshNewestEmailsThunk = createAsyncThunk<
   'mail/refreshNewestEmails',
   async ({ mailboxId }, { getState, rejectWithValue }) => {
     const startedWithFirstPageRequestId = selectMailboxList(getState(), mailboxId).firstPageRequestId;
+    logger.info(`[MailThunks] refreshNewestEmails started mailbox=${mailboxId}`);
     try {
       const newestPage = await listPageWithDecryptedPreviews({ mailboxId, mnemonic: getState().auth.user?.mnemonic });
+      logger.info(`[MailThunks] refreshNewestEmails finished mailbox=${mailboxId} emails=${newestPage.emails.length}`);
       return { startedWithFirstPageRequestId, newestPage };
     } catch (error) {
       logger.error(`Failed to refresh the newest emails of ${mailboxId}`, describeErrorForLog(error));
@@ -129,7 +135,13 @@ export const refreshNewestEmailsThunk = createAsyncThunk<
     }
   },
   {
-    condition: ({ mailboxId }, { getState }) => !selectMailboxList(getState(), mailboxId).isRefreshingNewestEmails,
+    condition: ({ mailboxId }, { getState }) => {
+      const { isRefreshingNewestEmails } = selectMailboxList(getState(), mailboxId);
+      if (isRefreshingNewestEmails) {
+        logger.warn(`[MailThunks] refreshNewestEmails skipped mailbox=${mailboxId}: a refresh is still in progress`);
+      }
+      return !isRefreshingNewestEmails;
+    },
   },
 );
 

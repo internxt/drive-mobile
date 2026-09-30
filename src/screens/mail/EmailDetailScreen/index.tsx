@@ -113,7 +113,8 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
       const latest = sorted[sorted.length - 1];
       setExpandedMessageIds(latest ? [latest.id] : []);
       setIsThreadGapOpen(false);
-    } catch {
+    } catch (error) {
+      logger.error(`Failed to load the thread of email ${emailId}`, error);
       setHasError(true);
     } finally {
       setIsLoading(false);

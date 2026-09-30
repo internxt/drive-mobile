@@ -1,5 +1,6 @@
 import appService from '@internxt-mobile/services/AppService';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
+import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useNavigationState } from '@react-navigation/native';
 import { useEffect } from 'react';
@@ -105,6 +106,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
     }
     dispatch(loadUnreadCountsThunk());
     const subscription = AppState.addEventListener('change', (state) => {
+      logger.info(`[Mail] App state changed to ${state}`);
       if (state === 'active') {
         dispatch(loadUnreadCountsThunk());
       }
