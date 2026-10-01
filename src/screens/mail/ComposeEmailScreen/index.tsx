@@ -281,9 +281,10 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
         });
       }
     } catch (error) {
+      const replyOrNewKind = reply ? 'reply' : 'new';
       logger.error('Failed to send email', {
         ...describeErrorForLog(error),
-        sendKind: forward ? 'forward' : reply ? 'reply' : 'new',
+        sendKind: forward ? 'forward' : replyOrNewKind,
         uploadedAttachmentCount: uploadedAttachments.attachments.length,
         forwardedAttachmentCount: forward ? forwardedAttachments.length : 0,
       });
