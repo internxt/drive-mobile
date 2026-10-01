@@ -78,7 +78,7 @@ export class ForwardedAttachmentUnavailableError extends Error {
 
 export class AttachmentTooLargeError extends Error {
   constructor(public readonly attachmentName: string) {
-    super(`The attachment ${attachmentName} is over the size the server accepts`);
+    super('An attachment is over the size the server accepts');
     this.name = MailErrorName.AttachmentTooLarge;
   }
 }

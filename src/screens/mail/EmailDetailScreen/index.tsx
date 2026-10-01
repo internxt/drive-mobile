@@ -103,6 +103,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
     try {
       const messages = await mailboxService.getThread(emailId);
       if (!messages || messages.length === 0) {
+        logger.error(`The thread of email ${emailId} came back empty`);
         setHasError(true);
         return;
       }
