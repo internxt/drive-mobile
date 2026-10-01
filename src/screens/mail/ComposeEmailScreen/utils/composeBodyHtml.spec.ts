@@ -1,4 +1,4 @@
-import { completeLinkUrl, unwrapEditorHtml } from './composeBodyHtml';
+import { completeLinkUrl, toEditorInitialBody, unwrapEditorHtml } from './composeBodyHtml';
 
 describe('Reading the body the editor holds', () => {
   test('when the editor gives back a body, then it comes without the wrapper and its surrounding line breaks', () => {
@@ -9,6 +9,34 @@ describe('Reading the body the editor holds', () => {
 
   test('when a body is not wrapped, then it comes back as it is', () => {
     expect(unwrapEditorHtml('<p>Hello</p>')).toBe('<p>Hello</p>');
+  });
+});
+
+describe('Giving the editor the body it starts with', () => {
+  test('when the saved body has nothing written, then the editor starts empty instead of showing its markup', () => {
+    expect(toEditorInitialBody('<p></p>')).toBe('');
+    expect(toEditorInitialBody('<p></p><p></p>')).toBe('');
+    expect(toEditorInitialBody('<p></p>\n<p> </p>\n')).toBe('');
+  });
+
+  test('when the saved body has something written, then the editor starts with it untouched', () => {
+    expect(toEditorInitialBody('<p>Hello there</p>')).toBe('<p>Hello there</p>');
+    expect(toEditorInitialBody('<p></p><p>Hello</p>')).toBe('<p></p><p>Hello</p>');
+  });
+
+  test('when the saved body is only a few characters long, then the editor gets it inside a wrapper it reads as markup', () => {
+    expect(toEditorInitialBody('<p>hi</p>')).toBe('<div><p>hi</p></div>');
+    expect(toEditorInitialBody('<p>hola</p>')).toBe('<div><p>hola</p></div>');
+    expect(toEditorInitialBody('<p>h i</p>\n')).toBe('<div><p>h i</p>\n</div>');
+  });
+
+  test('when the saved body is just long enough to be read as markup, then the editor starts with it untouched', () => {
+    expect(toEditorInitialBody('<p>holaaa</p>')).toBe('<p>holaaa</p>');
+  });
+
+  test('when there is no saved body, then the editor starts empty', () => {
+    expect(toEditorInitialBody('')).toBe('');
+    expect(toEditorInitialBody(' \n')).toBe('');
   });
 });
 

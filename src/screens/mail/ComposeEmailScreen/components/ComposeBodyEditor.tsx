@@ -5,7 +5,7 @@ import { useTailwind } from 'tailwind-rn';
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../../assets/lang/strings';
 import useGetColor from '../../../../hooks/useColor';
-import { unwrapEditorHtml } from '../utils/composeBodyHtml';
+import { toEditorInitialBody, unwrapEditorHtml } from '../utils/composeBodyHtml';
 import { BodyLinkModal } from './BodyLinkModal';
 
 const BODY_EDITOR_MIN_HEIGHT = 200;
@@ -22,7 +22,7 @@ export const ComposeBodyEditor = ({ initialBody, onChangeBody, onReady }: Compos
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const bodyEditorRef = useRef<EnrichedTextInputInstance>(null);
-  const [editorInitialBody] = useState(initialBody);
+  const [editorInitialBody] = useState(() => toEditorInitialBody(initialBody));
   const [isLinkSelected, setIsLinkSelected] = useState(false);
   const [selectionToLink, setSelectionToLink] = useState<SelectionToLink | null>(null);
   const { textStyles } = strings.screens.compose_email;
