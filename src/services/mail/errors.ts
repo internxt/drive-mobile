@@ -12,6 +12,7 @@ export const MailErrorName = {
   AttachmentUploadFailed: 'AttachmentUploadFailedError',
   AttachmentUploadAborted: 'AttachmentUploadAbortedError',
   MailboxPageTimeout: 'MailboxPageTimeoutError',
+  MailKeystoreNotOpened: 'MailKeystoreNotOpenedError',
 } as const;
 
 export class NoRecipientsError extends Error {
@@ -70,7 +71,7 @@ export class ForwardedAttachmentUnavailableError extends Error {
     public readonly attachmentName: string,
     cause?: unknown,
   ) {
-    super(`Could not take the attachment ${attachmentName} out of the message being forwarded`);
+    super('Could not take an attachment out of the message being forwarded');
     this.name = MailErrorName.ForwardedAttachmentUnavailable;
     this.cause = cause;
   }
@@ -95,7 +96,7 @@ export class AttachmentUploadFailedError extends Error {
     public readonly attachmentName: string,
     cause?: unknown,
   ) {
-    super(`Could not upload the attachment ${attachmentName}`);
+    super('Could not upload an attachment');
     this.name = MailErrorName.AttachmentUploadFailed;
     this.cause = cause;
   }
@@ -112,5 +113,12 @@ export class MailboxPageTimeoutError extends Error {
   constructor(public readonly mailboxId: string) {
     super(`The page of ${mailboxId} did not arrive in time`);
     this.name = MailErrorName.MailboxPageTimeout;
+  }
+}
+
+export class MailKeystoreNotOpenedError extends Error {
+  constructor() {
+    super('The keystore of the mail account could not be opened');
+    this.name = MailErrorName.MailKeystoreNotOpened;
   }
 }

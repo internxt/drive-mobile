@@ -112,6 +112,7 @@ const FloatingActionButton = ({
         accessibilityRole="button"
         accessibilityLabel={isComposeMode ? strings.components.floatingActionButton.compose : uploadAccessibilityLabel}
         accessibilityState={isComposeMode ? {} : { expanded: isMenuOpen }}
+        disabled={isHidden}
         onPress={onPress}
         style={({ pressed }) => [
           tailwind('flex-row items-center justify-end'),

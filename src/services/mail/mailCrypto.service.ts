@@ -45,6 +45,7 @@ import {
   AttachmentUploadFailedError,
   BlindCopyNotDeliverableError,
   InternxtRecipientKeyMissingError,
+  MailKeystoreNotOpenedError,
   NoRecipientsError,
   PrimaryRecipientMissingError,
   ServerPublicKeyMissingError,
@@ -86,7 +87,12 @@ export const getPrivateHybridKey = async (mnemonic: string): Promise<Uint8Array>
     publicKey: keys.publicKey,
     privateKeyEncrypted: keys.encryptionPrivateKey,
   };
-  const { secretKey } = await openEncryptionKeystore(keystore, mnemonic);
+  let secretKey: Uint8Array;
+  try {
+    ({ secretKey } = await openEncryptionKeystore(keystore, mnemonic));
+  } catch {
+    throw new MailKeystoreNotOpenedError();
+  }
 
   await asyncStorageService.saveItem(AsyncStorageKey.MailAccountPrivateKey, uint8ArrayToBase64(secretKey));
   await asyncStorageService.saveItem(AsyncStorageKey.MyMailEmailAdress, keys.address);

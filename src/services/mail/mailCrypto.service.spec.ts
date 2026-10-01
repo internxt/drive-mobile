@@ -577,6 +577,23 @@ describe('Showing the previews of a page of emails', () => {
     expect(page.emails[0].preview).toBe('');
     expect(logger.error).toHaveBeenCalledWith('Failed to decrypt previews', expect.anything());
   });
+
+  test('when the recovery phrase does not open the key, then none of its words reach the log', async () => {
+    (asyncStorageService.getItem as jest.Mock).mockResolvedValueOnce(null);
+    getMailAccountKeysMock.mockResolvedValueOnce({ address: 'me@inxt.me', publicKey: 'k', encryptionPrivateKey: 'e' });
+    (crypto.openEncryptionKeystore as jest.Mock).mockRejectedValueOnce(
+      new Error('Failed to open encryption keystore: Unknown word: orchard'),
+    );
+
+    const page = await decryptListedPreviews(aPageWithAnEncryptedEmail(), 'a mnemonic');
+
+    expect(page.emails[0].preview).toBe('');
+    expect(logger.error).toHaveBeenCalledWith(
+      'Failed to decrypt previews',
+      expect.objectContaining({ errorName: 'MailKeystoreNotOpenedError' }),
+    );
+    expect(JSON.stringify((logger.error as jest.Mock).mock.calls)).not.toContain('orchard');
+  });
 });
 
 describe('Reusing the previews already decrypted', () => {
