@@ -16,6 +16,8 @@ import {
   toEmailAddresses,
 } from './mailCrypto.service';
 
+const EMPTY_DRAFT_BODY = '<p></p>';
+
 const isDraftContentEmpty = ({ to, cc, bcc, subject, body, draftAttachments }: DraftContent): boolean =>
   to.length === 0 &&
   cc.length === 0 &&
@@ -38,7 +40,7 @@ const buildDraftRequest = async ({
     : genSymmetricKey();
 
   const { encryptedKeys, encEmail } = await encryptEmailHybridForMultipleRecipients(
-    { text: body, preview: previewOf(plainTextFromHtml(body)), attachmentsSessionKey },
+    { text: body || EMPTY_DRAFT_BODY, preview: previewOf(plainTextFromHtml(body)), attachmentsSessionKey },
     [{ email: senderKeys.address.trim().toLowerCase(), publicHybridKey: base64ToUint8Array(senderKeys.publicKey) }],
   );
 

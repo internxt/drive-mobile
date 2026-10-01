@@ -83,6 +83,16 @@ describe('Saving the draft of a message', () => {
     expect(saveDraftMock).not.toHaveBeenCalled();
   });
 
+  test('when a message has a recipient but nothing written in its body, then it is saved with an empty paragraph as its body', async () => {
+    const savedDraftId = await saveDraft({
+      draftId: null,
+      content: { ...EMPTY_DRAFT_CONTENT, to: ['friend@inxt.me'] },
+    });
+
+    expect(savedDraftId).toBe('created-draft');
+    expect(encryptMock.mock.calls[0][0]).toMatchObject({ text: '<p></p>', preview: '' });
+  });
+
   test('when a draft is saved for the first time, then it is created and its id is returned', async () => {
     const savedDraftId = await saveDraft({ draftId: null, content: draftContentWith({ to: ['friend@inxt.me'] }) });
 
