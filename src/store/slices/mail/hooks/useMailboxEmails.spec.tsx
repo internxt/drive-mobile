@@ -15,6 +15,7 @@ jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
 }));
 
 jest.mock('@internxt-mobile/services/mail/mailCrypto.service', () => ({
+  collectDecryptedPreviews: jest.fn(),
   decryptListedPreviews: jest.fn(),
 }));
 
@@ -41,6 +42,23 @@ describe('Showing a mailbox on screen', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => page);
+  });
+
+  test('when a mailbox has never been loaded, then the screen shows it as loading', () => {
+    const { result } = renderMailbox();
+
+    expect(result.current.isLoadingFirstPage).toBe(true);
+    expect(result.current.emails).toEqual([]);
+  });
+
+  test('when an empty mailbox finishes loading, then the screen stops loading and has no emails', async () => {
+    listEmailsMock.mockResolvedValueOnce(aPage([]));
+    const { result } = renderMailbox();
+
+    await act(() => result.current.loadFirstPage());
+
+    expect(result.current.isLoadingFirstPage).toBe(false);
+    expect(result.current.emails).toEqual([]);
   });
 
   test('when the mailbox is loaded, then the screen gets its emails newest first', async () => {

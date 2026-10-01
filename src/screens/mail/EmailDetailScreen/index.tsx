@@ -12,6 +12,7 @@ import useGetColor from '../../../hooks/useColor';
 import { useLanguage } from '../../../hooks/useLanguage';
 import asyncStorageService from '../../../services/AsyncStorageService';
 import { type EmailBodySource } from '../../../services/mail/emailBody/emailBodyContent';
+import { describeErrorForLog } from '../../../services/mail/errorDescription';
 import { buildForwardedQuote, forwardedSubject } from '../../../services/mail/forwardBody';
 import { mailboxService } from '../../../services/mail/mailbox.service';
 import {
@@ -103,6 +104,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
     try {
       const messages = await mailboxService.getThread(emailId);
       if (!messages || messages.length === 0) {
+        logger.error(`The thread of email ${emailId} came back empty`);
         setHasError(true);
         return;
       }
@@ -113,7 +115,8 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
       const latest = sorted[sorted.length - 1];
       setExpandedMessageIds(latest ? [latest.id] : []);
       setIsThreadGapOpen(false);
-    } catch {
+    } catch (error) {
+      logger.error(`Failed to load the thread of email ${emailId}`, describeErrorForLog(error));
       setHasError(true);
     } finally {
       setIsLoading(false);

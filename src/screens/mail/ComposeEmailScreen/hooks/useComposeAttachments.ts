@@ -122,10 +122,11 @@ export const useComposeAttachments = () => {
         }
       } catch (error) {
         const isAttachmentStillWaitingForThisUpload = !!findUploadingAttachment(id);
+        const fileSizeAndType = { fileSize: file.size, fileType: file.type };
         if (hasTimedOut) {
-          logger.warn('An attachment upload took too long and was aborted');
+          logger.warn('An attachment upload took too long and was aborted', fileSizeAndType);
         } else if (!(error instanceof AttachmentUploadAbortedError)) {
-          logger.error('Failed to upload an attachment', describeErrorForLog(error));
+          logger.error('Failed to upload an attachment', { ...describeErrorForLog(error), ...fileSizeAndType });
         }
         if (isAttachmentStillWaitingForThisUpload) {
           const failure = isRefusedAsTooLarge(error) ? 'tooLarge' : 'notUploaded';

@@ -187,6 +187,8 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
     if (readablePickedFiles.length < pickedFiles.length) {
       logger.warn('Some picked files cannot be read', {
         unreadableFileCount: pickedFiles.length - readablePickedFiles.length,
+        virtualFileCount: pickedFiles.filter((pickedFile) => pickedFile.isVirtual).length,
+        pickerErrors: pickedFiles.flatMap((pickedFile) => (pickedFile.error ? [pickedFile.error] : [])),
       });
       notifications.error(strings.screens.compose_email.attachments.pickFailed);
     }
@@ -279,7 +281,13 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
         });
       }
     } catch (error) {
-      logger.error('Failed to send email', describeErrorForLog(error));
+      const replyOrNewKind = reply ? 'reply' : 'new';
+      logger.error('Failed to send email', {
+        ...describeErrorForLog(error),
+        sendKind: forward ? 'forward' : replyOrNewKind,
+        uploadedAttachmentCount: uploadedAttachments.attachments.length,
+        forwardedAttachmentCount: forward ? forwardedAttachments.length : 0,
+      });
       const failureMessage = await handleFailedSend(error);
       isSendInProgressRef.current = false;
       setSendPhase('idle');
