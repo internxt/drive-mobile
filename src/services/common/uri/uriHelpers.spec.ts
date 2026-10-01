@@ -1,4 +1,4 @@
-import { decodeUriSafely, fromFileUri, stripFileUri, stripUriFragment, toFileUri } from './uriHelpers';
+import { decodeUriSafely, fileUriToPath, stripFileUri, stripUriFragment, toFileUri } from './uriHelpers';
 
 describe('stripUriFragment', () => {
   test('when a uri has no fragment, then it is returned unchanged', () => {
@@ -76,6 +76,28 @@ describe('toFileUri', () => {
 
     expect(result).toBe(fileUri);
   });
+
+  test.each([
+    ['/cache/Q1%23report.pdf', 'file:///cache/Q1%23report.pdf'],
+    ['/cache/Q1#report.pdf', 'file:///cache/Q1%23report.pdf'],
+    ['/cache/what%3F.pdf', 'file:///cache/what%3F.pdf'],
+    ['/cache/what?.pdf', 'file:///cache/what%3F.pdf'],
+  ])(
+    'when the path %s contains a hash or question mark, then they stay percent-encoded in the uri',
+    (path, expectedUri) => {
+      const result = toFileUri(path);
+
+      expect(result).toBe(expectedUri);
+    },
+  );
+
+  test('when a path with hash, question mark, percent, spaces and accents is converted and back, then the original path is returned', () => {
+    const trickyPath = '/cache/Q1 #1? 100% Nómina.pdf';
+
+    const result = fileUriToPath(toFileUri(trickyPath));
+
+    expect(result).toBe(trickyPath);
+  });
 });
 
 describe('stripFileUri', () => {
@@ -92,11 +114,11 @@ describe('stripFileUri', () => {
   });
 });
 
-describe('fromFileUri', () => {
+describe('fileUriToPath', () => {
   test('when the uri is percent-encoded with accents and spaces, then it returns the decoded path without the scheme', () => {
     const encodedUri = 'file:///cache/abc/N%C3%B3mina%2026_04.pdf';
 
-    const result = fromFileUri(encodedUri);
+    const result = fileUriToPath(encodedUri);
 
     expect(result).toBe('/cache/abc/Nómina 26_04.pdf');
   });
@@ -104,7 +126,7 @@ describe('fromFileUri', () => {
   test('when the uri has no scheme, then it returns the decoded path unchanged', () => {
     const plainPath = '/cache/abc/invoice.pdf';
 
-    const result = fromFileUri(plainPath);
+    const result = fileUriToPath(plainPath);
 
     expect(result).toBe(plainPath);
   });
@@ -112,7 +134,7 @@ describe('fromFileUri', () => {
   test('when the uri has a malformed percent sequence, then it returns the undecoded path without the scheme', () => {
     const malformedUri = 'file:///cache/100%discount.pdf';
 
-    const result = fromFileUri(malformedUri);
+    const result = fileUriToPath(malformedUri);
 
     expect(result).toBe('/cache/100%discount.pdf');
   });
@@ -120,7 +142,7 @@ describe('fromFileUri', () => {
   test('when the path contains the scheme beyond the start, then only the leading scheme is removed', () => {
     const nestedUri = 'file:///cache/file:///nested.pdf';
 
-    const result = fromFileUri(nestedUri);
+    const result = fileUriToPath(nestedUri);
 
     expect(result).toBe('/cache/file:///nested.pdf');
   });

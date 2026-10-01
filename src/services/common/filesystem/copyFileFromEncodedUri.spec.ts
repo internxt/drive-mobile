@@ -5,18 +5,7 @@ jest.mock('@internxt-mobile/services/FileSystemService', () => ({
   default: { copyFile: (...args: unknown[]) => mockCopyFile(...args) },
 }));
 
-jest.mock('./checkDuplicatedFiles', () => ({ checkDuplicatedFiles: jest.fn() }));
-jest.mock('./prepareFilesToUpload', () => ({ prepareFilesToUpload: jest.fn() }));
-jest.mock('../../../common/network/upload/upload.service', () => ({
-  uploadService: { createFileEntry: jest.fn(), uploadFile: jest.fn() },
-}));
-jest.mock('../../../native/InternxtSignalingModule', () => ({ notifyParentChanged: jest.fn() }));
-jest.mock('../../../../store/slices/drive', () => ({ driveActions: {} }));
-jest.mock('../../../ErrorService', () => ({ __esModule: true, default: { reportError: jest.fn(), castError: jest.fn() } }));
-jest.mock('../../../AnalyticsService', () => ({ __esModule: true, default: { track: jest.fn() }, DriveAnalyticsEvent: {} }));
-jest.mock('../../../common', () => ({ logger: { error: jest.fn(), info: jest.fn() } }));
-
-import { copyFileFromEncodedUri } from './uploadFileUtils';
+import { copyFileFromEncodedUri } from './copyFileFromEncodedUri';
 
 const DEST_PATH = 'file:///tmp/internxt/upload-target';
 

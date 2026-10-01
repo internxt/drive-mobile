@@ -5,7 +5,7 @@ import { createThumbnail } from 'react-native-create-thumbnail';
 import PdfThumbnail from 'react-native-pdf-thumbnail';
 
 import { logger } from '../logger';
-import { fromFileUri, toFileUri } from '../uri/uriHelpers';
+import { fileUriToPath, toFileUri } from '../uri/uriHelpers';
 import {
   IMAGE_THUMBNAIL_EXTENSIONS,
   PDF_THUMBNAIL_QUALITY,
@@ -26,7 +26,7 @@ const generateImageThumbnailViaManipulator = async (sourcePath: string): Promise
   const result = await imageRef.saveAsync({ format: SaveFormat.JPEG, compress: THUMBNAIL_JPEG_COMPRESS });
   imageRef.release();
   imageManipulatorContext.release();
-  const path = fromFileUri(result.uri);
+  const path = fileUriToPath(result.uri);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 
@@ -37,7 +37,7 @@ const generateMediaThumbnail = async (sourcePath: string): Promise<GeneratedThum
     maxWidth: THUMBNAIL_MAX_WIDTH,
     maxHeight: THUMBNAIL_MAX_WIDTH,
   });
-  const path = fromFileUri(result.path);
+  const path = fileUriToPath(result.path);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 
@@ -55,7 +55,7 @@ export const generateVideoThumbnail = (sourcePath: string): Promise<GeneratedThu
 
 export const generatePdfThumbnail = async (sourcePath: string): Promise<GeneratedThumbnail> => {
   const result = await PdfThumbnail.generate(toFileUri(sourcePath), 0, PDF_THUMBNAIL_QUALITY);
-  const path = fromFileUri(result.uri);
+  const path = fileUriToPath(result.uri);
   return { path, width: result.width, height: result.height, size: await statSize(path), type: 'JPEG' };
 };
 

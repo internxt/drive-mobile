@@ -57,8 +57,8 @@ import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import appService, { constants } from '../../../services/AppService';
 import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
+import { copyFileFromEncodedUri } from '../../../services/common/filesystem/copyFileFromEncodedUri';
 import {
-  copyFileFromEncodedUri,
   createUploadingFiles,
   handleDuplicateFiles,
   initializeUploads,
