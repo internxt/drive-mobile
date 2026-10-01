@@ -56,7 +56,6 @@ const CHECK_ICON_SIZE = 14;
 const LIST_BOTTOM_PADDING_UNDER_SELECTION_BAR = 96;
 const COMPOSE_BUTTON_COLLAPSE_OFFSET = 20;
 const SCROLL_EVENT_THROTTLE_MS = 16;
-const LOG_TAG = '[MailboxListScreen]';
 
 const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Element => {
   const selectedMailboxId = route.name as MailboxId;
@@ -103,28 +102,20 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
 
   const loadMailboxOnFocus = useCallback(async () => {
     if (hasLoadedMailboxRef.current) {
-      logger.info(`${LOG_TAG} Focus on ${selectedMailboxId}: refreshing the newest emails`);
       await refreshNewestEmails();
     } else {
-      logger.info(`${LOG_TAG} Focus on ${selectedMailboxId}: loading the first page`);
       hasLoadedMailboxRef.current = true;
       await loadFirstPage();
     }
     refreshUnreadCounts();
-  }, [selectedMailboxId, loadFirstPage, refreshNewestEmails, refreshUnreadCounts]);
+  }, [loadFirstPage, refreshNewestEmails, refreshUnreadCounts]);
 
   useFocusEffect(
     useCallback(() => {
-      logger.info(`${LOG_TAG} ${route.name} focused, scheduling the load`);
-      let hasLoadStarted = false;
       const timeout = setTimeout(() => {
-        hasLoadStarted = true;
         loadMailboxOnFocus().catch((error) => logger.error('Failed to load emails on focus', error));
       }, 0);
       return () => {
-        if (!hasLoadStarted) {
-          logger.warn(`${LOG_TAG} ${route.name} lost focus before its load started, load cancelled`);
-        }
         clearTimeout(timeout);
         clearSelection();
       };
@@ -170,13 +161,11 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   );
 
   const refreshFromTitle = () => {
-    logger.info(`${LOG_TAG} Title tapped on ${selectedMailboxId}: refreshing the newest emails`);
     refreshNewestEmails().catch((error) => logger.error('Failed to refresh the mailbox', error));
     refreshUnreadCounts();
   };
 
   const onPullToRefresh = async () => {
-    logger.info(`${LOG_TAG} Pull to refresh on ${selectedMailboxId}: reloading the first page`);
     setIsRefreshing(true);
     try {
       await loadFirstPage();
@@ -194,11 +183,9 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       return;
     }
     if (isDraftsMailbox) {
-      logger.info(`${LOG_TAG} Opening draft ${email.id}`);
       navigation.navigate('ComposeEmail', { draft: { draftId: email.id } });
       return;
     }
-    logger.info(`${LOG_TAG} Opening email ${email.id} from ${selectedMailboxId}`);
     navigation.navigate('EmailDetail', { email, mailboxId: selectedMailboxId });
   };
 
