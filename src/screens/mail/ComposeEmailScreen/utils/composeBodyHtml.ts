@@ -4,8 +4,8 @@ const EDITOR_HTML_PATTERN = /^<html>\s*([\s\S]*?)\s*<\/html>$/;
 export const unwrapEditorHtml = (editorHtml: string): string =>
   editorHtml.match(EDITOR_HTML_PATTERN)?.[1] ?? editorHtml;
 
-const ONLY_EMPTY_PARAGRAPHS_PATTERN = /^(?:\s*<p>\s*<\/p>\s*)+$/;
 const BLANK_SPACE_PATTERN = /\s/g;
+const ONLY_EMPTY_PARAGRAPHS_WITHOUT_BLANK_SPACE_PATTERN = /^(?:<p><\/p>)+$/;
 // Workaround for a bug of react-native-enriched-html 1.1.1 on iOS: it shows a value shorter than this as
 // plain text, tags included, instead of reading it as markup.
 const SHORTEST_BODY_IOS_READS_AS_MARKUP = 13;
@@ -17,7 +17,10 @@ const SHORTEST_BODY_IOS_READS_AS_MARKUP = 13;
  */
 export const toEditorInitialBody = (body: string): string => {
   const bodyWithoutBlankSpace = body.replace(BLANK_SPACE_PATTERN, '');
-  if (bodyWithoutBlankSpace.length === 0 || ONLY_EMPTY_PARAGRAPHS_PATTERN.test(body)) {
+  if (
+    bodyWithoutBlankSpace.length === 0 ||
+    ONLY_EMPTY_PARAGRAPHS_WITHOUT_BLANK_SPACE_PATTERN.test(bodyWithoutBlankSpace)
+  ) {
     return '';
   }
   if (bodyWithoutBlankSpace.length < SHORTEST_BODY_IOS_READS_AS_MARKUP) {
