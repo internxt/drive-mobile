@@ -108,10 +108,10 @@ class PhotoActionsService {
     items: TimelinePhotoItem[],
     signal: AbortSignal,
   ): Promise<{
-    trashPayload: { id: string; type: 'file'; uuid: string }[];
+    trashPayload: { type: 'file'; uuid: string }[];
     cleanupItems: CleanupItem[];
   }> {
-    const trashPayload: { id: string; type: 'file'; uuid: string }[] = [];
+    const trashPayload: { type: 'file'; uuid: string }[] = [];
     const cleanupItems: CleanupItem[] = [];
 
     for (const item of items) {
@@ -120,18 +120,18 @@ class PhotoActionsService {
       }
 
       if (item.type === 'cloud-only') {
-        trashPayload.push({ id: item.id, type: 'file', uuid: item.id });
+        trashPayload.push({ type: 'file', uuid: item.id });
         cleanupItems.push({ type: 'cloud', assetId: item.id });
 
         if (item.pairedVideoRemoteFileId) {
-          trashPayload.push({ id: item.pairedVideoRemoteFileId, type: 'file', uuid: item.pairedVideoRemoteFileId });
+          trashPayload.push({ type: 'file', uuid: item.pairedVideoRemoteFileId });
           cleanupItems.push({ type: 'cloud', assetId: item.pairedVideoRemoteFileId });
         }
 
         if (item.isBurst && item.burstGroupId) {
           const members = await photosLocalDB.getBurstMembers(item.burstGroupId);
           for (const member of members) {
-            trashPayload.push({ id: member.remoteFileId, type: 'file', uuid: member.remoteFileId });
+            trashPayload.push({ type: 'file', uuid: member.remoteFileId });
             cleanupItems.push({ type: 'cloud', assetId: member.remoteFileId });
           }
         }
@@ -140,11 +140,10 @@ class PhotoActionsService {
 
         if (itemDbEntry?.remoteFileId) {
           const { remoteFileId } = itemDbEntry;
-          trashPayload.push({ id: remoteFileId, type: 'file', uuid: remoteFileId });
+          trashPayload.push({ type: 'file', uuid: remoteFileId });
           cleanupItems.push({ type: 'local-backed', assetId: item.id, remoteFileId });
           if (itemDbEntry.pairedVideoRemoteFileId) {
             trashPayload.push({
-              id: itemDbEntry.pairedVideoRemoteFileId,
               type: 'file',
               uuid: itemDbEntry.pairedVideoRemoteFileId,
             });

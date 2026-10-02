@@ -1,14 +1,18 @@
 import appService from '@internxt-mobile/services/AppService';
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs/lib/typescript/src/types';
+import { BottomTabBarProps, createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useNavigationState } from '@react-navigation/native';
 import { useEffect } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { loadUnreadCountsThunk } from 'src/store/slices/mail';
+import { paymentsSelectors } from 'src/store/slices/payments';
 import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
+import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
 import BottomTabNavigator from '../components/BottomTabNavigator';
+import FloatingActionButton from '../components/FloatingActionButton';
 import AddModal from '../components/modals/AddModal';
 import DriveItemInfoModal from '../components/modals/DriveItemInfoModal';
 import DriveRenameModal from '../components/modals/DriveRenameModal';
@@ -18,17 +22,19 @@ import MoveItemsModal from '../components/modals/MoveItemsModal';
 import NotEnoughDeviceSpaceModal from '../components/modals/NotEnoughDeviceSpaceModal';
 import RunOutOfStorageModal from '../components/modals/RunOutOfStorageModal';
 import { SharedLinkInfoModal } from '../components/modals/SharedLinkInfoModal';
+import { SentMessageSnackbar } from '../components/SentMessageSnackbar';
 import useGetColor from '../hooks/useColor';
 import { SharedScreen } from '../screens/drive/SharedScreen/SharedScreen';
-import EmptyScreen from '../screens/EmptyScreen';
 import HomeScreen from '../screens/HomeScreen';
 import { useDiscoverPhotosSheet } from '../screens/HomeScreen/useDiscoverPhotosSheet';
 import PhotosScreen from '../screens/PhotosScreen';
 import DiscoverPhotosBottomSheet from '../screens/PhotosScreen/DiscoverPhotosBottomSheet';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
+import { getFloatingButtonMode } from './floatingButtonMode';
+import { MailNavigator } from './MailNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
 
 const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
@@ -37,11 +43,53 @@ const Tab = createBottomTabNavigator<TabExplorerStackParamList>();
 const LAUNCH_ON_ROUTE_ON_DEV_MODE: keyof TabExplorerStackParamList | undefined = appService.isDevMode
   ? undefined
   : undefined;
+
+const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Element | null => {
+  const dispatch = useAppDispatch();
+  const tabExplorerState = useNavigationState(
+    (state) => state.routes.find((route) => route.name === 'TabExplorer')?.state,
+  );
+  const hasMailAccess = useAppSelector(paymentsSelectors.hasMailAccess);
+  const isUploadMenuOpen = useAppSelector((state) => state.ui.showUploadModal);
+  const isTabBarHidden = useAppSelector((state) => state.ui.isTabBarHidden);
+  const isFloatingButtonHidden = useAppSelector((state) => state.ui.isFloatingButtonHidden);
+  const isComposeButtonCollapsed = useAppSelector((state) => state.ui.isComposeButtonCollapsed);
+  const hasSentMessageNotice = useAppSelector((state) => !!state.ui.sentMessageNotice);
+
+  const mode = getFloatingButtonMode(tabExplorerState);
+  const isComposeUnavailable = mode === 'compose' && (!hasMailAccess || isFloatingButtonHidden);
+  if (!mode || isTabBarHidden || isComposeUnavailable) {
+    return null;
+  }
+
+  const onPress = () => {
+    if (mode === 'compose') {
+      onCompose();
+      return;
+    }
+    if (!isUploadMenuOpen) {
+      dispatch(uiActions.hideSentMessageNotice());
+    }
+    dispatch(uiActions.setShowUploadFileModal(!isUploadMenuOpen));
+  };
+
+  return (
+    <FloatingActionButton
+      mode={mode}
+      isLabelShown={!isComposeButtonCollapsed}
+      isMenuOpen={isUploadMenuOpen}
+      isRaised={hasSentMessageNotice}
+      onPress={onPress}
+    />
+  );
+};
+
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
   const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
+  const hasMailAccess = useAppSelector(paymentsSelectors.hasMailAccess);
   const discoverSheet = useDiscoverPhotosSheet(
     appService.isPhotosEnabled ? () => props.navigation.navigate('TabExplorer', { screen: 'Photos' }) : () => undefined,
   );
@@ -50,6 +98,19 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
     const subscription = AppState.addEventListener('change', handleOnAppStateChange);
     return () => subscription.remove();
   }, []);
+
+  useEffect(() => {
+    if (!hasMailAccess) {
+      return;
+    }
+    dispatch(loadUnreadCountsThunk());
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        dispatch(loadUnreadCountsThunk());
+      }
+    });
+    return () => subscription.remove();
+  }, [hasMailAccess, dispatch]);
 
   async function handleOnAppStateChange(state: AppStateStatus) {
     if (state === 'active') {
@@ -76,12 +137,13 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
           headerShown: false,
           tabBarShowLabel: true,
           lazy: true,
+          animation: 'fade',
         }}
       >
         <Tab.Screen name="Home" component={HomeScreen} />
         <Tab.Screen name="Drive" component={DriveNavigator} options={{ lazy: false }} />
-        <Tab.Screen name="Add" component={EmptyScreen} />
         <Tab.Screen name="Shared" component={SharedScreen} options={{ lazy: false }} />
+        <Tab.Screen name="Mail" component={MailNavigator} />
         {appService.isPhotosEnabled ? (
           <Tab.Screen name="Photos" component={PhotosScreen} />
         ) : (
@@ -96,7 +158,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
           onStartPhotos={discoverSheet.onStartPhotos}
         />
       )}
-      <AddModal />
+      <AddModal floatingButton={<TabFloatingButton onCompose={() => props.navigation.navigate('ComposeEmail')} />} />
+      <SentMessageSnackbar />
       <DriveItemInfoModal />
       <SharedLinkInfoModal />
       <MoveItemsModal />

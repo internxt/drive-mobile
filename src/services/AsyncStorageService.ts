@@ -9,6 +9,8 @@ const SENSITIVE_KEYS = [
   AsyncStorageKey.PhotosToken,
   AsyncStorageKey.User,
   AsyncStorageKey.ThemePreference,
+  AsyncStorageKey.MailAccountPrivateKey,
+  AsyncStorageKey.MyMailEmailAdress,
 ];
 
 class AsyncStorageService {
@@ -129,6 +131,7 @@ class AsyncStorageService {
         AsyncStorageKey.PhotosDiscoverSeen,
         AsyncStorageKey.PhotosDevicesCache,
         AsyncStorageKey.PhotosAccessCache,
+        AsyncStorageKey.MailAccessCache,
         AsyncStorageKey.LastUpdatedAt,
         AsyncStorageKey.IsDeletingAccount,
       ];

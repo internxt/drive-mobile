@@ -4,6 +4,7 @@ import { rtkQueryErrorMiddleware } from './middlewares/rtkQueryErrorMiddleware';
 import appReducer from './slices/app';
 import authReducer from './slices/auth';
 import driveReducer from './slices/drive';
+import mailReducer from './slices/mail';
 import paymentsReducer from './slices/payments';
 import photosReducer from './slices/photos';
 import storageReducer from './slices/storage';
@@ -18,6 +19,7 @@ export const store = configureStore({
     payments: paymentsReducer,
     storage: storageReducer,
     photos: photosReducer,
+    mail: mailReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }).concat(rtkQueryErrorMiddleware),

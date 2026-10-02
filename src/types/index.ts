@@ -103,7 +103,10 @@ export enum AsyncStorageKey {
   PhotosSettings = 'photosSettings',
   PhotosDiscoverSeen = 'photosDiscoverSeen',
   PhotosAccessCache = 'photosAccessCache',
+  MailAccessCache = 'mailAccessCache',
   PhotosDevicesCache = 'photos-devices-cache',
+  MailAccountPrivateKey = 'mailAccountPrivateKey',
+  MyMailEmailAdress = 'myMailEmailAdress',
 }
 
 export type ProgressCallback = (progress: number) => void;
