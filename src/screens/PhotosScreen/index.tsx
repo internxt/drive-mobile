@@ -52,7 +52,8 @@ const PhotosScreen = (): JSX.Element => {
     () => photoDevices.find((device) => device.uuid === deviceFilterId)?.name ?? null,
     [photoDevices, deviceFilterId],
   );
-  const { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud } = usePhotosTimeline(deviceFilterId);
+  const { timelineDateGroups, isLoading, isTimelineReady, loadNextPage, reloadLocal, reloadCloud } =
+    usePhotosTimeline(deviceFilterId);
 
   const timelineRef = useRef<PhotosTimelineHandle>(null);
   const lastViewedIdRef = useRef<string | null>(null);
@@ -249,6 +250,7 @@ const PhotosScreen = (): JSX.Element => {
           ref={timelineRef}
           assetsGroupsByDate={timelineDateGroups}
           isLoading={isLoading}
+          isTimelineReady={isTimelineReady}
           ListHeaderComponent={listHeader}
           onEndReached={loadNextPage}
           refreshing={refreshing}
