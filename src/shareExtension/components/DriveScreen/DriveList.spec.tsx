@@ -1,5 +1,6 @@
 import { ComponentProps } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
+import { FlatList, StyleSheet } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { DriveList, DriveListItem } from './DriveList';
 
@@ -18,6 +19,7 @@ jest.mock('../FileListItem', () => {
 });
 
 const SKELETON_TEST_ID = 'drive-item-skeleton';
+const BOTTOM_INSET = 130;
 const LOADED_FOLDER: DriveListItem = {
   type: 'folder',
   data: { uuid: 'folder-uuid', plainName: 'Invoices', updatedAt: '' },
@@ -34,6 +36,7 @@ const renderDriveList = (overrides: Partial<ComponentProps<typeof DriveList>> = 
       loading={false}
       loadingMore={false}
       searchQuery=""
+      bottomInset={BOTTOM_INSET}
       hasLoadError={false}
       hasLoadMoreError={false}
       isSessionExpired={false}
@@ -94,6 +97,17 @@ describe('DriveList', () => {
       expect(screen.getByText(strings.screens.ShareExtension.errorSessionExpired)).toBeTruthy();
       expect(screen.queryByText(strings.screens.ShareExtension.folderLoadError)).toBeNull();
       expect(screen.queryByText(strings.buttons.tryAgain)).toBeNull();
+    },
+  );
+
+  test.each(['list', 'grid'] as const)(
+    'when the list is shown in %s mode, then its content is padded so the last row and the footer scroll above the bottom panel',
+    (viewMode) => {
+      renderDriveList({ ...NEXT_PAGE_FAILED, viewMode });
+
+      expect(StyleSheet.flatten(screen.UNSAFE_getByType(FlatList).props.contentContainerStyle)).toEqual(
+        expect.objectContaining({ paddingBottom: BOTTOM_INSET }),
+      );
     },
   );
 });
