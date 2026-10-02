@@ -143,6 +143,9 @@ android {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
         }
+        resources {
+            excludes += 'META-INF/versions/9/OSGI-INF/MANIFEST.MF'
+        }
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -198,6 +201,7 @@ dependencies {
     }
 
     implementation("com.squareup.okhttp3:okhttp:5.3.2")
+    implementation("com.squareup.okhttp3:okhttp-urlconnection:5.3.2")
     implementation("androidx.security:security-crypto:1.1.0")
     implementation("org.bouncycastle:bcprov-jdk15to18:1.78.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
