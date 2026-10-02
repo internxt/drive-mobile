@@ -14,6 +14,7 @@ import { ShareNameCollisionModal } from '../components/ShareNameCollisionModal';
 import { UploadFeedback } from '../components/UploadFeedback';
 import { UploadSuccessCard } from '../components/UploadSuccessCard';
 import { useFolderNavigation } from '../hooks/useFolderNavigation';
+import { PANEL_BOTTOM } from '../hooks/useBottomPanelAnimation';
 import { useNavAnimation } from '../hooks/useNavAnimation';
 import { useSearchAnimation } from '../hooks/useSearchAnimation';
 import { useShareColors } from '../theme';
@@ -26,6 +27,8 @@ import {
   UploadStatus,
 } from '../types';
 import { getUploadErrorMessage } from '../utils';
+
+const LIST_BOTTOM_GAP = 16;
 
 interface DriveScreenProps {
   sharedFiles: SharedFile[];
@@ -87,6 +90,7 @@ export const DriveScreen = ({
   const [isRenaming, setIsRenaming] = useState(false);
   const [finalName, setFinalName] = useState(sharedFiles[0]?.fileName ?? '');
   const [folderCreatedToast, setFolderCreatedToast] = useState(false);
+  const [bottomPanelOverlap, setBottomPanelOverlap] = useState(PANEL_BOTTOM);
 
   const isRoot = breadcrumb.length === 1;
   const parentFolderIndex = breadcrumb.length - 2;
@@ -195,6 +199,7 @@ export const DriveScreen = ({
           loading={loading}
           loadingMore={loadingMore}
           searchQuery={searchQuery}
+          bottomInset={bottomPanelOverlap + LIST_BOTTOM_GAP}
           hasLoadError={hasLoadError}
           hasLoadMoreError={hasLoadMoreError}
           isSessionExpired={isSessionExpired}
@@ -229,6 +234,7 @@ export const DriveScreen = ({
         onStartRename={handleStartRename}
         onChangeName={setFinalName}
         onEndRename={handleEndRename}
+        onOverlapChange={setBottomPanelOverlap}
       />
 
       <NewFolderModal visible={showNewFolderModal} onCancel={handleCloseNewFolderModal} onCreate={handleCreateFolder} />
