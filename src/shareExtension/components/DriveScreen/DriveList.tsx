@@ -25,6 +25,22 @@ const DriveListMessage = ({ message, children }: { message: string; children?: R
   );
 };
 
+interface DriveListErrorProps {
+  isSessionExpired: boolean;
+  onRetry: () => void;
+}
+
+const DriveListError = ({ isSessionExpired, onRetry }: DriveListErrorProps) => {
+  const shareExtensionTexts = strings.screens.ShareExtension;
+  return (
+    <DriveListMessage
+      message={isSessionExpired ? shareExtensionTexts.errorSessionExpired : shareExtensionTexts.folderLoadError}
+    >
+      {isSessionExpired ? null : <TextButton title={strings.buttons.tryAgain} onPress={onRetry} />}
+    </DriveListMessage>
+  );
+};
+
 interface DriveListProps {
   listData: DriveListItem[];
   viewMode: DriveViewMode;
@@ -32,7 +48,10 @@ interface DriveListProps {
   loadingMore: boolean;
   searchQuery: string;
   hasLoadError: boolean;
+  hasLoadMoreError: boolean;
+  isSessionExpired: boolean;
   onRetry: () => void;
+  onRetryLoadMore: () => void;
   onNavigate: (uuid: string, name: string) => void;
   onLoadMore: () => void;
 }
@@ -44,7 +63,10 @@ export const DriveList = ({
   loadingMore,
   searchQuery,
   hasLoadError,
+  hasLoadMoreError,
+  isSessionExpired,
   onRetry,
+  onRetryLoadMore,
   onNavigate,
   onLoadMore,
 }: DriveListProps) => {
@@ -73,12 +95,22 @@ export const DriveList = ({
   }
 
   if (hasLoadError) {
-    return (
-      <DriveListMessage message={strings.screens.ShareExtension.folderLoadError}>
-        <TextButton title={strings.screens.ShareExtension.retry} onPress={onRetry} />
-      </DriveListMessage>
-    );
+    return <DriveListError isSessionExpired={isSessionExpired} onRetry={onRetry} />;
   }
+
+  const renderFooter = () => {
+    if (loadingMore) {
+      return (
+        <View style={tailwind('h-16')}>
+          <DriveItemSkinSkeleton viewMode={viewMode} />
+        </View>
+      );
+    }
+    if (hasLoadMoreError) {
+      return <DriveListError isSessionExpired={isSessionExpired} onRetry={onRetryLoadMore} />;
+    }
+    return null;
+  };
 
   return (
     <FlatList
@@ -93,13 +125,7 @@ export const DriveList = ({
           message={searchQuery ? strings.screens.ShareExtension.noResults : strings.screens.ShareExtension.emptyFolder}
         />
       }
-      ListFooterComponent={
-        loadingMore ? (
-          <View style={tailwind('h-16')}>
-            <DriveItemSkinSkeleton viewMode={viewMode} />
-          </View>
-        ) : null
-      }
+      ListFooterComponent={renderFooter()}
       onEndReached={onLoadMore}
       onEndReachedThreshold={0.5}
       onScrollBeginDrag={Keyboard.dismiss}

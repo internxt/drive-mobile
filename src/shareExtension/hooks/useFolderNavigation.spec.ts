@@ -22,6 +22,7 @@ const ROOT_UUID = 'root-uuid';
 const SUBFOLDER_UUID = 'sub-uuid';
 const FULL_PAGE_SIZE = 50;
 const NETWORK_ERROR = new Error('Network request failed');
+const httpError = (status: number) => Object.assign(new Error(`Request failed with status ${status}`), { status });
 
 const buildFolders = (count: number, prefix = 'folder'): ShareFolderItem[] =>
   Array.from({ length: count }, (_, i) => ({ uuid: `${prefix}-${i}`, plainName: `${prefix} ${i}`, updatedAt: '' }));
@@ -132,6 +133,7 @@ describe('useFolderNavigation', () => {
     expect(result.current.folders).toEqual(firstPage);
     expect(result.current.loadingMore).toBe(false);
     expect(result.current.hasLoadError).toBe(false);
+    expect(result.current.hasLoadMoreError).toBe(true);
 
     const callsAfterFailure = totalServiceCalls();
     await callLoadMoreTimes(result.current.loadMore, 10);
@@ -143,6 +145,104 @@ describe('useFolderNavigation', () => {
     await callLoadMoreTimes(result.current.loadMore, 1);
 
     expect(mockService.getFolderFolders).toHaveBeenLastCalledWith(ROOT_UUID, FULL_PAGE_SIZE);
+  });
+
+  test('when retrying a failed next page, then the same page is requested again and its items are appended once', async () => {
+    const firstPage = buildFolders(FULL_PAGE_SIZE);
+    const secondPage = buildFolders(2, 'second');
+    mockService.getFolderFolders
+      .mockResolvedValueOnce(foldersPage(firstPage))
+      .mockRejectedValueOnce(NETWORK_ERROR)
+      .mockResolvedValueOnce(foldersPage(secondPage));
+    const { result } = await renderLoadedHook();
+    await callLoadMoreTimes(result.current.loadMore, 1);
+
+    await act(() => result.current.retryLoadMore());
+
+    expect(mockService.getFolderFolders).toHaveBeenCalledTimes(3);
+    expect(mockService.getFolderFolders).toHaveBeenLastCalledWith(ROOT_UUID, FULL_PAGE_SIZE);
+    expect(result.current.folders).toEqual([...firstPage, ...secondPage]);
+    expect(result.current.hasLoadMoreError).toBe(false);
+  });
+
+  test('when the folders load and the files fail on the first load, then the folders stay visible with a next-page error and retrying requests only the first files page', async () => {
+    const folderItems = buildFolders(2);
+    const fileItems: ShareFileItem[] = [{ uuid: 'file-0', plainName: 'file 0', size: '1', type: '', updatedAt: '' }];
+    mockService.getFolderFolders.mockResolvedValueOnce(foldersPage(folderItems));
+    mockService.getFolderFiles
+      .mockRejectedValueOnce(NETWORK_ERROR)
+      .mockResolvedValueOnce({ items: fileItems, hasMore: false });
+    const { result } = await renderLoadedHook();
+
+    expect(result.current.hasLoadError).toBe(false);
+    expect(result.current.hasLoadMoreError).toBe(true);
+    expect(result.current.folders).toEqual(folderItems);
+
+    await act(() => result.current.retryLoadMore());
+
+    expect(mockService.getFolderFolders).toHaveBeenCalledTimes(1);
+    expect(mockService.getFolderFiles).toHaveBeenLastCalledWith(ROOT_UUID, 0);
+    expect(result.current.files).toEqual(fileItems);
+    expect(result.current.hasLoadMoreError).toBe(false);
+  });
+
+  test('when a slow next page from the previous folder resolves while the new folder is loading its next page, then the new folder does not request the same page twice', async () => {
+    const staleNextPage = deferred<ReturnType<typeof foldersPage>>();
+    const subfolderNextPage = deferred<ReturnType<typeof foldersPage>>();
+    mockService.getFolderFolders
+      .mockResolvedValueOnce(foldersPage(buildFolders(FULL_PAGE_SIZE)))
+      .mockReturnValueOnce(staleNextPage.promise)
+      .mockResolvedValueOnce(foldersPage(buildFolders(FULL_PAGE_SIZE, 'sub')))
+      .mockReturnValueOnce(subfolderNextPage.promise);
+    const { result } = await renderLoadedHook();
+    act(() => {
+      result.current.loadMore();
+    });
+    act(() => result.current.navigate(SUBFOLDER_UUID, 'Sub'));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => {
+      result.current.loadMore();
+    });
+
+    await act(async () => staleNextPage.resolve(foldersPage(buildFolders(FULL_PAGE_SIZE, 'stale'))));
+    await act(async () => {
+      result.current.loadMore();
+    });
+
+    const subfolderNextPageCalls = mockService.getFolderFolders.mock.calls.filter(
+      ([uuid, offset]) => uuid === SUBFOLDER_UUID && offset === FULL_PAGE_SIZE,
+    );
+    expect(subfolderNextPageCalls).toHaveLength(1);
+  });
+
+  describe('session expiration', () => {
+    test.each([
+      ['HTTP 401', httpError(401), true],
+      ['HTTP 403', httpError(403), true],
+      ['HTTP 500', httpError(500), false],
+      ['a network error', NETWORK_ERROR, false],
+    ])(
+      'when the first listing fails with %s, then the load error is shown and the session expired flag is %s',
+      async (_reason, error, isExpectedSessionExpired) => {
+        mockService.getFolderFolders.mockRejectedValueOnce(error);
+        const { result } = await renderLoadedHook();
+
+        expect(result.current.hasLoadError).toBe(true);
+        expect(result.current.isSessionExpired).toBe(isExpectedSessionExpired);
+      },
+    );
+
+    test('when a next page fails with HTTP 401, then the next-page error is flagged as an expired session', async () => {
+      mockService.getFolderFolders
+        .mockResolvedValueOnce(foldersPage(buildFolders(FULL_PAGE_SIZE)))
+        .mockRejectedValueOnce(httpError(401));
+      const { result } = await renderLoadedHook();
+
+      await callLoadMoreTimes(result.current.loadMore, 1);
+
+      expect(result.current.hasLoadMoreError).toBe(true);
+      expect(result.current.isSessionExpired).toBe(true);
+    });
   });
 
   test('when opening a subfolder and going back after failed loads, then each successful load clears the error', async () => {

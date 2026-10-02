@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import errorService from 'src/services/ErrorService';
+import { isSessionExpiredError } from '../errors';
 import { shareDriveService } from '../services/shareDriveService';
 import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../types';
 
@@ -15,7 +16,10 @@ interface UseFolderNavigationResult {
   loading: boolean;
   loadingMore: boolean;
   hasLoadError: boolean;
+  hasLoadMoreError: boolean;
+  isSessionExpired: boolean;
   loadMore: () => Promise<void>;
+  retryLoadMore: () => Promise<void>;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   viewMode: DriveViewMode;
@@ -40,6 +44,8 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasLoadError, setHasLoadError] = useState(false);
+  const [hasLoadMoreError, setHasLoadMoreError] = useState(false);
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<DriveViewMode>('list');
 
@@ -55,6 +61,12 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
   const currentFolder = folderStack[folderStack.length - 1];
 
   const isCurrentLoad = useCallback((sequence: number) => loadSequentialRef.current === sequence, []);
+
+  const stopPaginationWithError = useCallback((error: unknown, setHasError: Dispatch<SetStateAction<boolean>>) => {
+    isPaginationStoppedRef.current = true;
+    setIsSessionExpired(isSessionExpiredError(error));
+    setHasError(true);
+  }, []);
 
   const fetchNextFilesPage = useCallback(
     async (uuid: string, capturedLoadSequence: number) => {
@@ -96,6 +108,8 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
       setLoading(true);
       setLoadingMore(false);
       setHasLoadError(false);
+      setHasLoadMoreError(false);
+      setIsSessionExpired(false);
       setAllFolders([]);
       setAllFiles([]);
 
@@ -104,14 +118,14 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
       } catch (error) {
         errorService.reportError(error, { extra: { folderUuid, message: 'Failed to load share extension folder' } });
         if (isCurrentLoad(capturedLoadSequence)) {
-          isPaginationStoppedRef.current = true;
-          setHasLoadError(true);
+          const hasLoadedFolders = folderOffsetRef.current > 0;
+          stopPaginationWithError(error, hasLoadedFolders ? setHasLoadMoreError : setHasLoadError);
         }
       } finally {
         if (isCurrentLoad(capturedLoadSequence)) setLoading(false);
       }
     },
-    [isCurrentLoad, fetchNextFoldersPage],
+    [isCurrentLoad, fetchNextFoldersPage, stopPaginationWithError],
   );
 
   useEffect(() => {
@@ -138,12 +152,20 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
       errorService.reportError(error, {
         extra: { folderUuid: uuid, message: 'Failed to load more items in share extension folder' },
       });
-      if (isCurrentLoad(capturedLoadSequence)) isPaginationStoppedRef.current = true;
+      if (isCurrentLoad(capturedLoadSequence)) stopPaginationWithError(error, setHasLoadMoreError);
     } finally {
-      if (isCurrentLoad(capturedLoadSequence)) setLoadingMore(false);
-      isLoadingMoreRef.current = false;
+      if (isCurrentLoad(capturedLoadSequence)) {
+        setLoadingMore(false);
+        isLoadingMoreRef.current = false;
+      }
     }
-  }, [loading, searchQuery, isCurrentLoad, fetchNextFilesPage, fetchNextFoldersPage]);
+  }, [loading, searchQuery, isCurrentLoad, fetchNextFilesPage, fetchNextFoldersPage, stopPaginationWithError]);
+
+  const retryLoadMore = useCallback(() => {
+    isPaginationStoppedRef.current = false;
+    setHasLoadMoreError(false);
+    return loadMore();
+  }, [loadMore]);
 
   const navigateToFolder = useCallback((uuid: string, name: string) => {
     setSearchQuery('');
@@ -175,7 +197,10 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
     loading,
     loadingMore,
     hasLoadError,
+    hasLoadMoreError,
+    isSessionExpired,
     loadMore,
+    retryLoadMore,
     searchQuery,
     setSearchQuery,
     viewMode,
