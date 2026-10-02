@@ -14,20 +14,31 @@ describe('Reading the body the editor holds', () => {
 
 describe('Giving the editor the body it starts with', () => {
   test('when the saved body has nothing written, then the editor starts empty instead of showing its markup', () => {
-    expect(toEditorInitialBody('<p></p>')).toBe('');
-    expect(toEditorInitialBody('<p></p><p></p>')).toBe('');
-    expect(toEditorInitialBody('<p></p>\n<p> </p>\n')).toBe('');
+    const bodiesWithNothingWritten = ['<p></p>', '<p></p><p></p>', '<p></p>\n<p> </p>\n', ' <p></p>'];
+
+    expect(bodiesWithNothingWritten.map(toEditorInitialBody)).toEqual(['', '', '', '']);
   });
 
   test('when the saved body has something written, then the editor starts with it untouched', () => {
-    expect(toEditorInitialBody('<p>Hello there</p>')).toBe('<p>Hello there</p>');
-    expect(toEditorInitialBody('<p></p><p>Hello</p>')).toBe('<p></p><p>Hello</p>');
+    const bodiesWithSomethingWritten = ['<p>Hello there</p>', '<p></p><p>Hello</p>'];
+
+    expect(bodiesWithSomethingWritten.map(toEditorInitialBody)).toEqual(bodiesWithSomethingWritten);
+  });
+
+  test('when the saved body has many blank lines before its text, then the editor starts with it untouched', () => {
+    const bodyWithManyBlankLines = `${'<p></p>\n'.repeat(200)}<p>Hello</p>`;
+
+    expect(toEditorInitialBody(bodyWithManyBlankLines)).toBe(bodyWithManyBlankLines);
   });
 
   test('when the saved body is only a few characters long, then the editor gets it inside a wrapper it reads as markup', () => {
-    expect(toEditorInitialBody('<p>hi</p>')).toBe('<div><p>hi</p></div>');
-    expect(toEditorInitialBody('<p>hola</p>')).toBe('<div><p>hola</p></div>');
-    expect(toEditorInitialBody('<p>h i</p>\n')).toBe('<div><p>h i</p>\n</div>');
+    const shortBodies = ['<p>hi</p>', '<p>hola</p>', '<p>h i</p>\n'];
+
+    expect(shortBodies.map(toEditorInitialBody)).toEqual([
+      '<div><p>hi</p></div>',
+      '<div><p>hola</p></div>',
+      '<div><p>h i</p>\n</div>',
+    ]);
   });
 
   test('when the saved body is just long enough to be read as markup, then the editor starts with it untouched', () => {
