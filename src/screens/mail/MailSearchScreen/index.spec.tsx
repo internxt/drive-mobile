@@ -23,6 +23,7 @@ jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
 }));
 
 jest.mock('@internxt-mobile/services/mail/mailCrypto.service', () => ({
+  collectDecryptedPreviews: jest.fn(),
   decryptListedPreviews: jest.fn(),
 }));
 

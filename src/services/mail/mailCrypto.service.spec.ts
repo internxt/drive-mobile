@@ -20,6 +20,7 @@ import { fs } from '../FileSystemService';
 import { MAX_ATTACHMENT_BYTES } from './attachmentLimits';
 import { discardMaterializedAttachments, materializeForwardedAttachments } from './forwardAttachments';
 import {
+  collectDecryptedPreviews,
   decryptPreviews,
   encryptAndSendEmail,
   encryptAndSendForward,
@@ -575,6 +576,103 @@ describe('Showing the previews of a page of emails', () => {
 
     expect(page.emails[0].preview).toBe('');
     expect(logger.error).toHaveBeenCalledWith('Failed to decrypt previews', expect.anything());
+  });
+
+  test('when the recovery phrase does not open the key, then none of its words reach the log', async () => {
+    (asyncStorageService.getItem as jest.Mock).mockResolvedValueOnce(null);
+    getMailAccountKeysMock.mockResolvedValueOnce({ address: 'me@inxt.me', publicKey: 'k', encryptionPrivateKey: 'e' });
+    (crypto.openEncryptionKeystore as jest.Mock).mockRejectedValueOnce(
+      new Error('Failed to open encryption keystore: Unknown word: orchard'),
+    );
+
+    const page = await decryptListedPreviews(aPageWithAnEncryptedEmail(), 'a mnemonic');
+
+    expect(page.emails[0].preview).toBe('');
+    expect(logger.error).toHaveBeenCalledWith(
+      'Failed to decrypt previews',
+      expect.objectContaining({ errorName: 'MailKeystoreNotOpenedError' }),
+    );
+    expect(JSON.stringify((logger.error as jest.Mock).mock.calls)).not.toContain('orchard');
+  });
+});
+
+describe('Reusing the previews already decrypted', () => {
+  const encryptionWithPreview = (encryptedPreview: string) => ({
+    wrappedKeys: [{ encryptedForEmail: 'me@inxt.me', encryptedKey: 'k', hybridCiphertext: 'c' }],
+    encryptedPreview,
+  });
+  const anEncryptedEmail = (id: string, encryptedPreview: string, preview = '') =>
+    ({ id, preview, encryption: encryptionWithPreview(encryptedPreview) }) as never;
+  const aPageWith = (emails: never[]) => ({ emails, total: emails.length, hasMoreMails: false }) as never;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (crypto.decryptEmailPreviewHybrid as jest.Mock).mockResolvedValue({ preview: 'A freshly decrypted preview' });
+  });
+
+  test('when an email was already decrypted and has not changed, then its preview is shown without decrypting it again', async () => {
+    const knownPreviews = collectDecryptedPreviews([anEncryptedEmail('email-1', 'sealed', 'The known preview')]);
+
+    const page = await decryptListedPreviews(
+      aPageWith([anEncryptedEmail('email-1', 'sealed')]),
+      'a mnemonic',
+      knownPreviews,
+    );
+
+    expect(crypto.decryptEmailPreviewHybrid).not.toHaveBeenCalled();
+    expect(page.emails[0].preview).toBe('The known preview');
+  });
+
+  test('when a draft changed since its preview was decrypted, then the new preview is decrypted', async () => {
+    const knownPreviews = collectDecryptedPreviews([anEncryptedEmail('draft-1', 'first version', 'The old text')]);
+
+    const page = await decryptListedPreviews(
+      aPageWith([anEncryptedEmail('draft-1', 'second version')]),
+      'a mnemonic',
+      knownPreviews,
+    );
+
+    expect(crypto.decryptEmailPreviewHybrid).toHaveBeenCalledTimes(1);
+    expect(page.emails[0].preview).toBe('A freshly decrypted preview');
+  });
+
+  test('when a preview could not be decrypted before, then it is tried again', async () => {
+    const knownPreviews = collectDecryptedPreviews([
+      anEncryptedEmail('email-1', 'sealed', strings.screens.mail.unableToDecryptPreview),
+    ]);
+
+    const page = await decryptListedPreviews(
+      aPageWith([anEncryptedEmail('email-1', 'sealed')]),
+      'a mnemonic',
+      knownPreviews,
+    );
+
+    expect(page.emails[0].preview).toBe('A freshly decrypted preview');
+  });
+
+  test('when the previous page was shown without decrypting, then its previews are decrypted this time', async () => {
+    const knownPreviews = collectDecryptedPreviews([anEncryptedEmail('email-1', 'sealed')]);
+
+    const page = await decryptListedPreviews(
+      aPageWith([anEncryptedEmail('email-1', 'sealed')]),
+      'a mnemonic',
+      knownPreviews,
+    );
+
+    expect(page.emails[0].preview).toBe('A freshly decrypted preview');
+  });
+
+  test('when only some emails of a page are new, then only those are decrypted', async () => {
+    const knownPreviews = collectDecryptedPreviews([anEncryptedEmail('seen', 'sealed seen', 'The known preview')]);
+
+    const page = await decryptListedPreviews(
+      aPageWith([anEncryptedEmail('seen', 'sealed seen'), anEncryptedEmail('new', 'sealed new')]),
+      'a mnemonic',
+      knownPreviews,
+    );
+
+    expect(crypto.decryptEmailPreviewHybrid).toHaveBeenCalledTimes(1);
+    expect(page.emails.map((email) => email.preview)).toEqual(['The known preview', 'A freshly decrypted preview']);
   });
 });
 

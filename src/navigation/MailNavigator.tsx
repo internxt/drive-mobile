@@ -1,5 +1,5 @@
 import { MailDrawerParamList, MailStackParamList } from '@internxt-mobile/types/navigation';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createDrawerNavigator, DrawerContentComponentProps } from '@react-navigation/drawer';
 import { useFocusEffect } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { EnvelopeIcon } from 'phosphor-react-native';
@@ -24,13 +24,15 @@ import MailDrawerContent from './MailDrawerContent';
 const MailStack = createNativeStackNavigator<MailStackParamList>();
 const MailDrawer = createDrawerNavigator<MailDrawerParamList>();
 
+const renderMailDrawerContent = (props: DrawerContentComponentProps) => <MailDrawerContent {...props} />;
+
 const MailboxDrawerNavigator = () => {
   const getColor = useGetColor();
 
   return (
     <MailDrawer.Navigator
       initialRouteName={MailboxId.Inbox}
-      drawerContent={(props) => <MailDrawerContent {...props} />}
+      drawerContent={renderMailDrawerContent}
       screenOptions={{
         headerShown: false,
         drawerType: 'front',

@@ -3,7 +3,11 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { HTTP_PAYLOAD_TOO_LARGE } from '@internxt-mobile/services/common/httpStatusCodes';
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { MAX_ATTACHMENT_BYTES } from '@internxt-mobile/services/mail/attachmentLimits';
-import { AttachmentTooLargeError, AttachmentUploadAbortedError } from '@internxt-mobile/services/mail/errors';
+import {
+  AttachmentTooLargeError,
+  AttachmentUploadAbortedError,
+  AttachmentUploadFailedError,
+} from '@internxt-mobile/services/mail/errors';
 import { uploadAttachment } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { MailAttachment } from '../../../../types/mail';
 import { ATTACHMENT_UPLOAD_TIMEOUT_MS, useComposeAttachments } from './useComposeAttachments';
@@ -203,17 +207,29 @@ describe('Attaching files to a message being written', () => {
     expect(result.current.attachments[0]).toMatchObject({ status: 'failed', failure: 'tooLarge' });
   });
 
-  test('when an upload fails, then the log does not name the file', async () => {
+  test('when an upload fails, then the log says why, how big the file was and its type, without naming it', async () => {
+    const fileSizeInBytes = 2048;
     const failingUpload = uploadThatFinishesWhenTold();
     const { result } = renderHook(() => useComposeAttachments());
 
     act(() => {
-      result.current.addFiles([aFile('private-contract.pdf')]);
+      result.current.addFiles([aFile('private-contract.pdf', fileSizeInBytes)]);
     });
     await waitFor(() => expect(uploadAttachmentMock).toHaveBeenCalledTimes(1));
-    await act(async () => failingUpload.fail(new Error('Could not upload the attachment private-contract.pdf')));
+    await act(async () =>
+      failingUpload.fail(
+        new AttachmentUploadFailedError('private-contract.pdf', new Error('the file could not be encrypted')),
+      ),
+    );
 
-    expect(logger.error).toHaveBeenCalled();
+    expect(logger.error).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        message: 'the file could not be encrypted',
+        fileSize: fileSizeInBytes,
+        fileType: 'text/plain',
+      }),
+    );
     const loggedText = (logger.error as jest.Mock).mock.calls
       .flat()
       .map((logArgument) =>

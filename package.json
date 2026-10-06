@@ -1,6 +1,6 @@
 {
   "name": "drive-mobile",
-  "version": "v1.11.1",
+  "version": "v1.12.0",
   "private": true,
   "license": "GNU",
   "scripts": {
@@ -52,7 +52,7 @@
     "@types/sanitize-html": "^2.16.1",
     "@types/unorm": "^1.3.28",
     "async": "^3.2.6",
-    "axios": "^1.18.1",
+    "axios": "^1.20.0",
     "base-64": "^1.0.0",
     "crypto-js": "=3.1.9-1",
     "dayjs": "^1.11.19",
@@ -193,7 +193,7 @@
     "shell-quote": "^1.8.4",
     "postcss": "^8.5.23",
     "socket.io-client/engine.io-client/ws": "^8.21.0",
-    "axios": "1.18.1"
+    "axios": "1.20.0"
   },
   "expo": {
     "install": {
