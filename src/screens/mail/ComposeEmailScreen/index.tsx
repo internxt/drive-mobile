@@ -9,9 +9,11 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
@@ -67,6 +69,14 @@ const TOUCH_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
 const SENDING_VEIL_OPACITY = 0.55;
 const SENDING_VEIL_FADE_DURATION = 150;
 const SENT_CONFIRMATION_DURATION = 650;
+const KEYBOARD_DISMISS_MODE = Platform.OS === 'ios' ? 'interactive' : 'on-drag';
+
+const calculateSheetTopInWindow = (windowHeight: number, sheetContentHeight: number, bottomInset: number): number => {
+  if (sheetContentHeight === 0) {
+    return 0;
+  }
+  return windowHeight - sheetContentHeight - bottomInset;
+};
 
 export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element => {
   const tailwind = useTailwind();
@@ -95,8 +105,9 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   });
   const [activeDomains, setActiveDomains] = useState<MailDomain[] | null>(null);
   const [isExtraRecipientsSectionOpen, setIsExtraRecipientsSectionOpen] = useState(false);
-  const [sheetTopInWindow, setSheetTopInWindow] = useState(0);
-  const sheetRef = useRef<View>(null);
+  const [sheetContentHeight, setSheetContentHeight] = useState(0);
+  const { height: windowHeight } = useWindowDimensions();
+  const safeAreaInsets = useSafeAreaInsets();
   const [senderAddress, setSenderAddress] = useState('');
   const [subject, setSubject] = useState(reply?.subject ?? forward?.subject ?? '');
   const [body, setBody] = useState('');
@@ -324,13 +335,11 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   const areExtraRecipientsVisible = isExtraRecipientsSectionOpen || hasExtraRecipients;
   const isPresentedAsSheet = Platform.OS === 'ios';
 
-  const measureSheetTop = () => {
-    sheetRef.current?.measureInWindow((_x, y) => setSheetTopInWindow(y));
-  };
+  const sheetTopInWindow = calculateSheetTopInWindow(windowHeight, sheetContentHeight, safeAreaInsets.bottom);
 
   return (
     <AppScreen safeAreaTop={!isPresentedAsSheet} safeAreaBottom style={tailwind('flex-1 flex-grow')}>
-      <View ref={sheetRef} onLayout={measureSheetTop} style={tailwind('flex-1')}>
+      <View onLayout={(event) => setSheetContentHeight(event.nativeEvent.layout.height)} style={tailwind('flex-1')}>
         <KeyboardAvoidingView
           enabled={isPresentedAsSheet}
           behavior="padding"
@@ -357,7 +366,11 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
                 <ActivityIndicator color={getColor('text-primary')} />
               </View>
             ) : (
-              <ScrollView style={tailwind('flex-1')} keyboardShouldPersistTaps="handled">
+              <ScrollView
+                style={tailwind('flex-1')}
+                keyboardShouldPersistTaps="handled"
+                keyboardDismissMode={KEYBOARD_DISMISS_MODE}
+              >
                 <RecipientRow
                   label={strings.inputs.to}
                   {...recipientRowPropsForField('to')}

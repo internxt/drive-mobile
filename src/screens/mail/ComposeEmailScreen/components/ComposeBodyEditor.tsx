@@ -83,6 +83,7 @@ export const ComposeBodyEditor = ({ initialBody, onChangeBody, onReady }: Compos
         placeholder={strings.placeholders.emailBody}
         placeholderTextColor={getColor('text-gray-40')}
         contextMenuItems={contextMenuItems}
+        scrollEnabled={false}
         onChangeState={(event) => setIsLinkSelected(event.nativeEvent.link.isActive)}
         htmlStyle={{
           ul: { bulletColor: textColor },
