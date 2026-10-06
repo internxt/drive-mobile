@@ -3,15 +3,17 @@ import { createAsyncThunk } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { describeErrorForLog, isMailNotSetUpError } from '@internxt-mobile/services/mail/errorDescription';
-import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { MailboxPageTimeoutError } from '@internxt-mobile/services/mail/errors';
+import { collectDecryptedPreviews, decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { MailboxId } from '../../../types/mail';
 import type { RootState } from '../../index';
 import { findNextPageAnchorId } from './pagination';
-import { selectLoadedEmails, selectMailboxList } from './selectors';
+import { selectAllLoadedEmails, selectLoadedEmails, selectMailboxList } from './selectors';
 import { MailState } from './types';
 
 const MAX_NEXT_PAGE_ATTEMPTS = 2;
+export const MAILBOX_PAGE_TIMEOUT_MS = 30_000;
 
 type MailboxThunkArgument = { mailboxId: MailboxId };
 
@@ -21,24 +23,40 @@ export type NextPageResult = StartedWith & { nextPage: EmailListResponse | null 
 export type NextPageFailure = StartedWith & { failedAnchorIds: string[] };
 export type NewestEmailsResult = StartedWith & { newestPage: EmailListResponse };
 
-/** Lists one page of a mailbox with its previews decrypted. */
+/**
+ * Lists one page of a mailbox with its previews decrypted, reusing the ones already decrypted in the store.
+ *
+ * @throws MailboxPageTimeoutError when the server does not return the page within `MAILBOX_PAGE_TIMEOUT_MS`.
+ */
 const listPageWithDecryptedPreviews = async ({
   mailboxId,
-  mnemonic,
+  getState,
   anchorId,
 }: {
   mailboxId: MailboxId;
-  mnemonic?: string;
+  getState: () => RootState;
   anchorId?: string;
-}): Promise<EmailListResponse> =>
-  decryptListedPreviews(await mailboxService.listEmails(mailboxId, { anchorId }), mnemonic);
+}): Promise<EmailListResponse> => {
+  let pageTimeout: ReturnType<typeof setTimeout> | undefined;
+  const rejectWhenTimedOut = new Promise<never>((_resolve, reject) => {
+    pageTimeout = setTimeout(() => reject(new MailboxPageTimeoutError(mailboxId)), MAILBOX_PAGE_TIMEOUT_MS);
+  });
+  let page: EmailListResponse;
+  try {
+    page = await Promise.race([mailboxService.listEmails(mailboxId, { anchorId }), rejectWhenTimedOut]);
+  } finally {
+    clearTimeout(pageTimeout);
+  }
+  const state = getState();
+  return decryptListedPreviews(page, state.auth.user?.mnemonic, collectDecryptedPreviews(selectAllLoadedEmails(state)));
+};
 
 /** Loads the first page of a mailbox, replacing everything loaded in it. */
 export const loadFirstPageThunk = createAsyncThunk<EmailListResponse, MailboxThunkArgument, { state: RootState }>(
   'mail/loadFirstPage',
   async ({ mailboxId }, { getState }) => {
     try {
-      const firstPage = await listPageWithDecryptedPreviews({ mailboxId, mnemonic: getState().auth.user?.mnemonic });
+      const firstPage = await listPageWithDecryptedPreviews({ mailboxId, getState });
       return firstPage;
     } catch (error) {
       logger.error(`Failed to list emails for ${mailboxId}`, describeErrorForLog(error));
@@ -72,11 +90,7 @@ export const loadNextPageThunk = createAsyncThunk<
         return { startedWithFirstPageRequestId, nextPage: null };
       }
       try {
-        const nextPage = await listPageWithDecryptedPreviews({
-          mailboxId,
-          mnemonic: getState().auth.user?.mnemonic,
-          anchorId,
-        });
+        const nextPage = await listPageWithDecryptedPreviews({ mailboxId, getState, anchorId });
         return { startedWithFirstPageRequestId, nextPage };
       } catch (error) {
         logger.error(`Failed to list more emails for ${mailboxId}`, describeErrorForLog(error));
@@ -104,7 +118,7 @@ export const refreshNewestEmailsThunk = createAsyncThunk<
   async ({ mailboxId }, { getState, rejectWithValue }) => {
     const startedWithFirstPageRequestId = selectMailboxList(getState(), mailboxId).firstPageRequestId;
     try {
-      const newestPage = await listPageWithDecryptedPreviews({ mailboxId, mnemonic: getState().auth.user?.mnemonic });
+      const newestPage = await listPageWithDecryptedPreviews({ mailboxId, getState });
       return { startedWithFirstPageRequestId, newestPage };
     } catch (error) {
       logger.error(`Failed to refresh the newest emails of ${mailboxId}`, describeErrorForLog(error));

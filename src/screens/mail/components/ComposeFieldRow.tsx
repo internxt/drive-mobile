@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
 import useGetColor from '../../../hooks/useColor';
@@ -10,6 +10,7 @@ type ComposeFieldRowProps = {
   children: ReactNode;
   renderAppend?: ReactNode;
   hasCompactLabel?: boolean;
+  onPress?: () => void;
 };
 
 /**
@@ -20,18 +21,23 @@ type ComposeFieldRowProps = {
  * @param props.children - The field, which takes the rest of the line.
  * @param props.renderAppend - Element pinned to the right end of the line.
  * @param props.hasCompactLabel - Sizes the label to its text instead of the width shared by the compose rows.
+ * @param props.onPress - Called when the line is tapped outside its field and its appended element.
  */
 export const ComposeFieldRow = ({
   label,
   children,
   renderAppend,
   hasCompactLabel,
+  onPress,
 }: ComposeFieldRowProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
-    <View
+    <Pressable
+      accessible={false}
+      disabled={!onPress}
+      onPress={onPress}
       style={[
         tailwind('flex-row items-center px-4'),
         { minHeight: COMPOSE_ROW_HEIGHT, borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') },
@@ -48,6 +54,6 @@ export const ComposeFieldRow = ({
       </Text>
       <View style={tailwind('flex-1')}>{children}</View>
       {renderAppend}
-    </View>
+    </Pressable>
   );
 };

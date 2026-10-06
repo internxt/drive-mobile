@@ -58,13 +58,11 @@ function AppContent(): JSX.Element {
   const [isAppInitialized, setIsAppInitialized] = useState(false);
   const [loadError, setLoadError] = useState('');
 
-  const {
-    isLinkCopiedModalOpen,
-    isDeleteAccountModalOpen,
-    isEditNameModalOpen,
-    isChangeProfilePictureModalOpen,
-    isLanguageModalOpen,
-  } = useAppSelector((state) => state.ui);
+  const isLinkCopiedModalOpen = useAppSelector((state) => state.ui.isLinkCopiedModalOpen);
+  const isDeleteAccountModalOpen = useAppSelector((state) => state.ui.isDeleteAccountModalOpen);
+  const isEditNameModalOpen = useAppSelector((state) => state.ui.isEditNameModalOpen);
+  const isChangeProfilePictureModalOpen = useAppSelector((state) => state.ui.isChangeProfilePictureModalOpen);
+  const isLanguageModalOpen = useAppSelector((state) => state.ui.isLanguageModalOpen);
 
   const silentSignIn = async () => {
     await dispatch(appThunks.initializeUserPreferencesThunk());

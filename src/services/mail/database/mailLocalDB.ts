@@ -15,8 +15,6 @@ export type DecryptedEmail = {
   attachmentsSessionKey: string; // base64
 };
 
-export type CachedDecryptedEmail = DecryptedEmail;
-
 class MailLocalDB {
   private initPromise: Promise<void> | null = null;
 
@@ -30,7 +28,7 @@ class MailLocalDB {
     await sqliteService.executeSql(MAIL_DB_NAME, mailEmailTable.statements.createTable);
   }
 
-  public async getCachedEmail(id: string): Promise<CachedDecryptedEmail | null> {
+  public async getCachedEmail(id: string): Promise<DecryptedEmail | null> {
     await this.ensureInit();
     const row = await sqliteService.getFirstAsync<SqliteMailEmailRow>(MAIL_DB_NAME, mailEmailTable.statements.getById, [
       id,
@@ -39,7 +37,7 @@ class MailLocalDB {
     return { text: row.text_body, attachmentsSessionKey: row.attachments_session_key };
   }
 
-  public async saveCachedEmail(id: string, decrypted: CachedDecryptedEmail): Promise<void> {
+  public async saveCachedEmail(id: string, decrypted: DecryptedEmail): Promise<void> {
     await this.ensureInit();
     await sqliteService.executeSql(MAIL_DB_NAME, mailEmailTable.statements.insert, [
       id,

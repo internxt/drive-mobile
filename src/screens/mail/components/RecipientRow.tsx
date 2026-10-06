@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useRef } from 'react';
 import { TextInput, TextInputKeyPressEvent, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
@@ -47,6 +47,7 @@ export const RecipientRow = ({
 }: RecipientRowProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const inputRef = useRef<TextInput>(null);
 
   const onChangeText = (value: string) => {
     const lastCharacter = value.slice(-1);
@@ -69,12 +70,18 @@ export const RecipientRow = ({
   };
 
   return (
-    <ComposeFieldRow label={label} renderAppend={renderAppend} hasCompactLabel={hasCompactLabel}>
+    <ComposeFieldRow
+      label={label}
+      renderAppend={renderAppend}
+      hasCompactLabel={hasCompactLabel}
+      onPress={() => inputRef.current?.focus()}
+    >
       <View style={tailwind('flex-row flex-wrap items-center py-1.5')}>
         {recipients.map((recipient) => (
           <RecipientChip key={recipient} address={recipient} onRemove={() => onRemoveRecipient(recipient)} />
         ))}
         <TextInput
+          ref={inputRef}
           accessibilityLabel={label}
           value={pendingText}
           onChangeText={onChangeText}
@@ -84,6 +91,7 @@ export const RecipientRow = ({
           onSubmitEditing={() => onFinishEntry(pendingText)}
           submitBehavior="submit"
           autoCapitalize="none"
+          autoComplete="off"
           autoCorrect={false}
           keyboardType="email-address"
           returnKeyType="next"
