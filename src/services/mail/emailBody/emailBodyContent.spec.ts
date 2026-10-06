@@ -8,6 +8,9 @@ import {
   resolveEmailBody,
 } from './emailBodyContent';
 
+const HOSTILE_BODY_LENGTH = 100_000;
+const MAX_READING_TIME_MS = 1_000;
+
 const anEmail = (fields: Partial<EmailResponse>): EmailResponse => ({ ...fields }) as EmailResponse;
 
 describe('Choosing which body of a message to display', () => {
@@ -202,4 +205,29 @@ describe('Reading a formatted body as the text it displays', () => {
   test('when the body writes accents and emojis by their number, then they are read as those characters', () => {
     expect(plainTextFromHtml('<p>&#191;Qu&#233; tal? &#x1F600;</p>')).toBe('¿Qué tal? 😀');
   });
+
+  test('when a tag holds a less-than sign inside one of its attributes, then the whole tag is still taken out', () => {
+    expect(plainTextFromHtml('<img alt="a<b" src="cid:chart">Here is the chart')).toBe('Here is the chart');
+  });
+
+  test('when a tag is never closed, then it is left as it was written', () => {
+    expect(plainTextFromHtml('Hello <p world')).toBe('Hello <p world');
+  });
+
+  test.each([
+    ['nothing but less-than signs', '<'],
+    ['less-than signs with text between them', '< a '],
+  ])(
+    'when a very large body holds %s and no tag is ever closed, then it is still read without delay',
+    (_name, unit) => {
+      const hostileBody = unit.repeat(HOSTILE_BODY_LENGTH / unit.length);
+
+      const startedAt = performance.now();
+      const text = plainTextFromHtml(hostileBody);
+      const elapsedMs = performance.now() - startedAt;
+
+      expect(text).toBe(hostileBody.trim());
+      expect(elapsedMs).toBeLessThan(MAX_READING_TIME_MS);
+    },
+  );
 });

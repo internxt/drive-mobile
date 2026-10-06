@@ -1,12 +1,15 @@
 import { EmailListResponse, EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useStore } from 'react-redux';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { describeErrorForLog } from '@internxt-mobile/services/mail/errorDescription';
 import { SEARCH_PAGE_SIZE, SearchQuery, mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
-import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { collectDecryptedPreviews, decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { SearchCriteria, buildSearchQuery } from '@internxt-mobile/services/mail/mailSearch';
+import type { RootState } from '../../../../store';
 import { useAppSelector } from '../../../../store/hooks';
+import { selectAllLoadedEmails } from '../../../../store/slices/mail';
 
 export type SearchPhase = 'idle' | 'loading' | 'loaded' | 'failed';
 
@@ -39,7 +42,9 @@ const appendNewEmails = (
 /** Searches every mailbox and pages through the results, ignoring responses to outdated requests. */
 export const useMailSearch = () => {
   const mnemonic = useAppSelector((state) => state.auth.user?.mnemonic);
+  const store = useStore<RootState>();
   const [results, setResults] = useState<SearchResults>(IDLE_RESULTS);
+  const shownEmailsRef = useRef<EmailSummaryResponse[]>([]);
   const queryRef = useRef<SearchQuery | null>(null);
   const searchGenerationRef = useRef(0);
   const phaseRef = useRef<SearchPhase>('idle');
@@ -53,10 +58,20 @@ export const useMailSearch = () => {
     setResults(shownResults);
   }, []);
 
+  useEffect(() => {
+    shownEmailsRef.current = results.emails;
+  }, [results.emails]);
+
   const fetchPage = useCallback(
-    async (query: SearchQuery, page: { position: number; limit?: number }): Promise<EmailListResponse> =>
-      decryptListedPreviews(await mailboxService.searchEmails(query, page), mnemonic),
-    [mnemonic],
+    async (query: SearchQuery, page: { position: number; limit?: number }): Promise<EmailListResponse> => {
+      const foundPage = await mailboxService.searchEmails(query, page);
+      const knownPreviews = collectDecryptedPreviews([
+        ...selectAllLoadedEmails(store.getState()),
+        ...shownEmailsRef.current,
+      ]);
+      return decryptListedPreviews(foundPage, mnemonic, knownPreviews);
+    },
+    [mnemonic, store],
   );
 
   const loadFirstPage = useCallback(
