@@ -1,7 +1,7 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { photoPermissionService } from './photoPermissionService';
 
-jest.mock('expo-media-library');
+jest.mock('expo-media-library/legacy');
 
 const mockMediaLibrary = MediaLibrary as jest.Mocked<typeof MediaLibrary>;
 

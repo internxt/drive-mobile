@@ -1,5 +1,5 @@
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { Platform } from 'react-native';
 import { getEnvironmentConfigFromUser } from 'src/lib/network';
 import { uploadFile } from 'src/network/upload';

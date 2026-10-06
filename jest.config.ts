@@ -43,6 +43,7 @@ const config: Config.InitialOptions = {
   testRegex: ['\\.spec\\.ts$', '\\.spec\\.tsx$'],
   setupFiles: ['./jest.setup.ts'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  resolver: 'react-native-worklets/jest/resolver',
   transform: {
     '\\.mjs$': 'babel-jest',
   },

@@ -1,7 +1,7 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import AppError from '@internxt/sdk/dist/shared/types/errors';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { AbortError } from 'src/network/errors';
 import { uploadFile } from 'src/network/upload';
 import asyncStorageService from 'src/services/AsyncStorageService';
@@ -11,7 +11,7 @@ import { uploadService } from 'src/services/common/network/upload/upload.service
 import { photoBackupFolders } from './PhotoBackupFolders';
 import { PhotoUploadService } from './PhotoUploadService';
 
-jest.mock('expo-media-library', () => ({
+jest.mock('expo-media-library/legacy', () => ({
   getAssetInfoAsync: jest.fn(),
   MediaType: { photo: 'photo', video: 'video', audio: 'audio', unknown: 'unknown' },
 }));

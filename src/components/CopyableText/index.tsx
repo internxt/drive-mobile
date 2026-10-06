@@ -1,4 +1,4 @@
-import { setString } from 'expo-clipboard';
+import { setStringAsync } from 'expo-clipboard';
 import { Copy } from 'phosphor-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import useGetColor from 'src/hooks/useColor';
@@ -12,8 +12,8 @@ interface CopyableTextProps {
 const CopyableText = (props: CopyableTextProps) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const onPress = () => {
-    setString(props.children);
+  const onPress = async () => {
+    await setStringAsync(props.children);
   };
 
   return (
