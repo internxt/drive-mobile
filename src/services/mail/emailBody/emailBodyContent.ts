@@ -15,8 +15,41 @@ export type EmailBodySource = { type: 'decrypted'; text: string } | { type: 'enc
 
 export const escapeHtml = escapeUTF8;
 
-const TAG_PATTERN = /<[^>]*>/g;
+const TAG_OPENING = '<';
+const TAG_CLOSING = '>';
 const BLANKS_PATTERN = /\s+/g;
+
+type TagPosition = { start: number; end: number };
+
+/** Finds the first `<…>` at or after a position. A `<` that no `>` follows is not a tag. */
+const findNextTag = (html: string, searchFrom: number): TagPosition | null => {
+  const start = html.indexOf(TAG_OPENING, searchFrom);
+  if (start === -1) {
+    return null;
+  }
+  const closingIndex = html.indexOf(TAG_CLOSING, start);
+  if (closingIndex === -1) {
+    return null;
+  }
+  return { start, end: closingIndex + 1 };
+};
+
+/** Puts a space where each tag was. */
+const replaceTagsWithSpaces = (html: string): string => {
+  const textParts: string[] = [];
+  let textStart = 0;
+  let tag = findNextTag(html, textStart);
+  while (tag) {
+    const textBeforeTag = html.slice(textStart, tag.start);
+    textParts.push(textBeforeTag, ' ');
+    textStart = tag.end;
+    tag = findNextTag(html, textStart);
+  }
+  const textAfterLastTag = html.slice(textStart);
+  textParts.push(textAfterLastTag);
+
+  return textParts.join('');
+};
 
 /**
  * Reads a body written as markup as the text it displays: no tags, no entities, and the blank space
@@ -26,7 +59,7 @@ const BLANKS_PATTERN = /\s+/g;
  * @returns the text that body shows, in one run
  */
 export const plainTextFromHtml = (html: string): string =>
-  decodeHTML(html.replace(TAG_PATTERN, ' ')).replace(BLANKS_PATTERN, ' ').trim();
+  decodeHTML(replaceTagsWithSpaces(html)).replace(BLANKS_PATTERN, ' ').trim();
 
 const OPENING_MARKUP_PATTERN = /^(?:<!doctype\s|<!--|<\?|<[a-z][a-z0-9]*(?:\s[^>]*)?\/?>)/i;
 const EMBEDDED_MARKUP_PATTERN = /<\/[a-z][a-z0-9]*\s*>|<(?:br|hr|img|p|div|table|tr|td|ul|ol|li)\b[^>]*>/i;
