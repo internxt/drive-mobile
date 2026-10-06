@@ -2,6 +2,7 @@ import { DefaultTheme, NavigationContainer, NavigationContainerRefWithCurrent } 
 import { useRef } from 'react';
 import { View } from 'react-native';
 
+import useGetColor from '../hooks/useColor';
 import { RootStackParamList } from '../types/navigation';
 import LinkingConfiguration from './LinkingConfiguration';
 import RootNavigator from './RootNavigator';
@@ -12,6 +13,7 @@ interface NavigationProps {
 
 export default function Navigation({ navigationRef }: NavigationProps) {
   const routeNameRef = useRef<string>();
+  const getColor = useGetColor();
 
   return (
     <NavigationContainer
@@ -19,9 +21,9 @@ export default function Navigation({ navigationRef }: NavigationProps) {
         ...DefaultTheme,
         dark: false,
         colors: {
-          background: '#ffffff',
+          background: getColor('bg-surface'),
           border: '#ffffff',
-          card: '#ffffff',
+          card: getColor('bg-surface'),
           notification: '#ffffff',
           primary: '#ffffff',
           text: '#ffffff',

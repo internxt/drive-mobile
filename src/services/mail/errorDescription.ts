@@ -46,21 +46,27 @@ const readServerReason = (responseBody: unknown): string | undefined => {
 };
 
 /**
- * Describes an error for the log: its name, the name of its cause, and for a failed request its
- * status, the reason the server gave and the request id. Nothing else the error carries is included,
- * neither its message nor its stack nor the body of the request.
+ * Describes an error for the log: a failed request by what the server answered, any other error by the
+ * beginning of the message of its cause or, without one, of its own. Neither the stack nor the body of
+ * the request is included.
  *
- * @param error - Any error.
  * @returns The description, with undefined for whatever the error does not carry.
  */
 export const describeErrorForLog = (error: unknown): Record<string, unknown> => {
   const cause = (error as { cause?: unknown } | null | undefined)?.cause;
-  const requestFailure = (cause ?? error ?? {}) as { data?: unknown; xRequestId?: string };
+  const underlyingFailure = cause ?? error;
+  const requestFailure = (underlyingFailure ?? {}) as { data?: unknown; xRequestId?: string };
+  const status = readHttpStatus(error);
+  const isFailedRequest = status !== undefined;
 
   return {
     errorName: error instanceof Error ? error.name : undefined,
     causeName: cause instanceof Error ? cause.name : undefined,
-    status: readHttpStatus(error),
+    message:
+      !isFailedRequest && underlyingFailure instanceof Error
+        ? underlyingFailure.message.slice(0, MAX_LOGGED_REASON_LENGTH)
+        : undefined,
+    status,
     reason: readServerReason(requestFailure.data),
     requestId: requestFailure.xRequestId,
   };
