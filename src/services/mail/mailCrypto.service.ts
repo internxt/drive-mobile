@@ -35,7 +35,7 @@ import asyncStorageService from '../AsyncStorageService';
 import { logger } from '../common/logger/logger.service';
 import { AcceptedEncodings, fs } from '../FileSystemService';
 import { MAX_ATTACHMENT_BYTES, isAttachmentTooLarge } from './attachmentLimits';
-import { CachedDecryptedEmail, DecryptedEmail, mailLocalDB } from './database/mailLocalDB';
+import { DecryptedEmail, mailLocalDB } from './database/mailLocalDB';
 import { plainTextFromHtml } from './emailBody/emailBodyContent';
 import { describeErrorForLog } from './errorDescription';
 import {
@@ -238,13 +238,13 @@ export const decryptAndCacheFullEmail = async (
   emailId: string,
   encryption: EmailEncryptionBlock,
   privateKey: Uint8Array,
-): Promise<CachedDecryptedEmail> => {
+): Promise<DecryptedEmail> => {
   const decrypted = await decryptFullEmail(encryption, privateKey);
   await mailLocalDB.saveCachedEmail(emailId, decrypted);
   return decrypted;
 };
 
-export const getCachedEmail = async (emailId: string): Promise<CachedDecryptedEmail | null> => {
+export const getCachedEmail = async (emailId: string): Promise<DecryptedEmail | null> => {
   return mailLocalDB.getCachedEmail(emailId);
 };
 

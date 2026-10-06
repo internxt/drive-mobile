@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 
 import strings from '../../../../../assets/lang/strings';
 import asyncStorageService from '../../../../services/AsyncStorageService';
+import { logger } from '../../../../services/common/logger/logger.service';
 import {
   deleteEmailsPermanently,
   moveEmails,
@@ -34,7 +35,10 @@ export const useMailboxBulkActions = ({
   const [selfAddress, setSelfAddress] = useState('');
 
   useEffect(() => {
-    asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSelfAddress(address ?? ''));
+    asyncStorageService
+      .getItem(AsyncStorageKey.MyMailEmailAdress)
+      .then((address) => setSelfAddress(address ?? ''))
+      .catch((error) => logger.error('Failed to read the mail address of the account', error));
   }, []);
 
   const runBulkAction = async (countCompletedEmails: () => Promise<number>) => {

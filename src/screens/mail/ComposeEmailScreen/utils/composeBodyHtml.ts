@@ -1,8 +1,13 @@
-const EDITOR_HTML_PATTERN = /^<html>\s*([\s\S]*?)\s*<\/html>$/;
+const EDITOR_HTML_OPENING_TAG = '<html>';
+const EDITOR_HTML_CLOSING_TAG = '</html>';
 
 /** Removes the outer `<html>` element and the blank space around its content; anything else comes back unchanged. */
-export const unwrapEditorHtml = (editorHtml: string): string =>
-  editorHtml.match(EDITOR_HTML_PATTERN)?.[1] ?? editorHtml;
+export const unwrapEditorHtml = (editorHtml: string): string => {
+  if (!editorHtml.startsWith(EDITOR_HTML_OPENING_TAG) || !editorHtml.endsWith(EDITOR_HTML_CLOSING_TAG)) {
+    return editorHtml;
+  }
+  return editorHtml.slice(EDITOR_HTML_OPENING_TAG.length, -EDITOR_HTML_CLOSING_TAG.length).trim();
+};
 
 const BLANK_SPACE_PATTERN = /\s/g;
 const ONLY_EMPTY_PARAGRAPHS_WITHOUT_BLANK_SPACE_PATTERN = /^(?:<p><\/p>)+$/;
@@ -31,7 +36,7 @@ export const toEditorInitialBody = (body: string): string => {
 };
 
 const URL_SCHEME_PATTERN = /^[a-z][a-z0-9+-]*:/i;
-const ALLOWED_LINK_PROTOCOLS = ['http:', 'https:', 'mailto:'];
+const ALLOWED_LINK_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
 const LINK_BREAKING_CHARACTER_PATTERN = /["<>\s]/;
 
 /**
@@ -46,7 +51,7 @@ export const completeLinkUrl = (typedUrl: string): string => {
   }
   try {
     const { href, protocol } = new URL(URL_SCHEME_PATTERN.test(trimmedUrl) ? trimmedUrl : `https://${trimmedUrl}`);
-    return ALLOWED_LINK_PROTOCOLS.includes(protocol) && !LINK_BREAKING_CHARACTER_PATTERN.test(href) ? href : '';
+    return ALLOWED_LINK_PROTOCOLS.has(protocol) && !LINK_BREAKING_CHARACTER_PATTERN.test(href) ? href : '';
   } catch {
     return '';
   }

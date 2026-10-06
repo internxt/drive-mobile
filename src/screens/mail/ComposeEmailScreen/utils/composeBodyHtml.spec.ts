@@ -10,6 +10,13 @@ describe('Reading the body the editor holds', () => {
   test('when a body is not wrapped, then it comes back as it is', () => {
     expect(unwrapEditorHtml('<p>Hello</p>')).toBe('<p>Hello</p>');
   });
+
+  test.each([
+    ['opens the wrapper and never closes it', '<html>\n<p>Hello</p>'],
+    ['closes the wrapper without having opened it', '<p>Hello</p>\n</html>'],
+  ])('when a body %s, then it comes back as it is', (_name, halfWrappedBody) => {
+    expect(unwrapEditorHtml(halfWrappedBody)).toBe(halfWrappedBody);
+  });
 });
 
 describe('Giving the editor the body it starts with', () => {

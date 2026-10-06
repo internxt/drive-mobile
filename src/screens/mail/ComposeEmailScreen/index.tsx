@@ -159,7 +159,10 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   });
 
   useEffect(() => {
-    asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSenderAddress(address ?? ''));
+    asyncStorageService
+      .getItem(AsyncStorageKey.MyMailEmailAdress)
+      .then((address) => setSenderAddress(address ?? ''))
+      .catch((error) => logger.error('Failed to read the mail address of the account', error));
     mailboxService
       .getActiveDomains()
       .then(setActiveDomains)
@@ -314,7 +317,16 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   };
 
   const { title, replyTitle, forwardTitle } = strings.screens.compose_email;
-  const composeTitle = forward ? forwardTitle : reply ? replyTitle : title;
+  const getComposeTitle = () => {
+    if (forward) {
+      return forwardTitle;
+    }
+    if (reply) {
+      return replyTitle;
+    }
+    return title;
+  };
+  const composeTitle = getComposeTitle();
   const isSending = sendPhase !== 'idle';
   const canSend =
     isDraftLoaded &&

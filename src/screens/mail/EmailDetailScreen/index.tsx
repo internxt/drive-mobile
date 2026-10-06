@@ -110,7 +110,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
       }
 
       const sorted = [...messages].sort((a, b) => new Date(a.receivedAt).getTime() - new Date(b.receivedAt).getTime());
-      const resolved = await Promise.all(sorted.map(resolveMessage));
+      const resolved = await Promise.all(sorted.map((message) => resolveMessage(message)));
       setThread(resolved);
       const latest = sorted[sorted.length - 1];
       setExpandedMessageIds(latest ? [latest.id] : []);
@@ -128,7 +128,10 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
   }, [loadThread]);
 
   useEffect(() => {
-    asyncStorageService.getItem(AsyncStorageKey.MyMailEmailAdress).then((address) => setSelfAddress(address ?? ''));
+    asyncStorageService
+      .getItem(AsyncStorageKey.MyMailEmailAdress)
+      .then((address) => setSelfAddress(address ?? ''))
+      .catch((error) => logger.error('Failed to read the mail address of the account', error));
   }, []);
 
   const threadMessages = useMemo(() => thread.map((entry) => entry.message), [thread]);
