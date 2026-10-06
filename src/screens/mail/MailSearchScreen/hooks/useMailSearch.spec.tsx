@@ -4,9 +4,10 @@ import { act, renderHook } from '@testing-library/react-native';
 import { ReactNode } from 'react';
 import { Provider } from 'react-redux';
 
-import { decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
+import { collectDecryptedPreviews, decryptListedPreviews } from '@internxt-mobile/services/mail/mailCrypto.service';
 import { SEARCH_PAGE_SIZE, mailboxService } from '@internxt-mobile/services/mail/mailbox.service';
 import { EMPTY_SEARCH_CRITERIA } from '@internxt-mobile/services/mail/mailSearch';
+import mailReducer from '../../../../store/slices/mail';
 import { useMailSearch } from './useMailSearch';
 
 jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
@@ -15,6 +16,7 @@ jest.mock('@internxt-mobile/services/mail/mailbox.service', () => ({
 }));
 
 jest.mock('@internxt-mobile/services/mail/mailCrypto.service', () => ({
+  collectDecryptedPreviews: jest.fn(),
   decryptListedPreviews: jest.fn(),
 }));
 
@@ -24,6 +26,7 @@ jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
 
 const searchEmailsMock = mailboxService.searchEmails as jest.Mock;
 const decryptListedPreviewsMock = decryptListedPreviews as jest.Mock;
+const collectDecryptedPreviewsMock = collectDecryptedPreviews as jest.Mock;
 
 const SERVER_UNREACHABLE = new Error('the server is unreachable');
 const INVOICE_SEARCH = { ...EMPTY_SEARCH_CRITERIA, text: 'invoice' };
@@ -49,7 +52,9 @@ const resultsThatArriveWhenTold = () => {
 };
 
 const renderSearch = () => {
-  const store = configureStore({ reducer: { auth: () => ({ user: { mnemonic: 'a mnemonic' } }) } });
+  const store = configureStore({
+    reducer: { auth: () => ({ user: { mnemonic: 'a mnemonic' } }), mail: mailReducer },
+  });
   const wrapper = ({ children }: { children: ReactNode }) => <Provider store={store}>{children}</Provider>;
   return renderHook(() => useMailSearch(), { wrapper });
 };
@@ -58,6 +63,7 @@ describe('Searching the emails of every mailbox', () => {
   beforeEach(() => {
     jest.resetAllMocks();
     decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => page);
+    collectDecryptedPreviewsMock.mockReturnValue(new Map());
   });
 
   test('when nothing is asked for, then nothing is searched and the screen stays waiting', async () => {
@@ -131,6 +137,22 @@ describe('Searching the emails of every mailbox', () => {
 
     expect(result.current.hasNextPageFailed).toBe(false);
     expect(shownIds(result.current.emails)).toEqual(['first', 'second']);
+  });
+
+  test('when the user comes back, then the previews of the results shown are reused instead of decrypted again', async () => {
+    searchEmailsMock.mockResolvedValue(aPage(['shown']));
+    decryptListedPreviewsMock.mockImplementation(async (page: EmailListResponse) => ({
+      ...page,
+      emails: page.emails.map((email) => ({ ...email, preview: 'The decrypted preview' })),
+    }));
+    const { result } = renderSearch();
+
+    await act(() => result.current.search(INVOICE_SEARCH));
+    await act(() => result.current.refresh());
+
+    expect(collectDecryptedPreviewsMock).toHaveBeenLastCalledWith([
+      expect.objectContaining({ id: 'shown', preview: 'The decrypted preview' }),
+    ]);
   });
 
   test('when the user comes back and the results changed, then the new ones replace them', async () => {
@@ -217,6 +239,6 @@ describe('Searching the emails of every mailbox', () => {
 
     await act(() => result.current.search(INVOICE_SEARCH));
 
-    expect(decryptListedPreviewsMock).toHaveBeenCalledWith(expect.anything(), 'a mnemonic');
+    expect(decryptListedPreviewsMock).toHaveBeenCalledWith(expect.anything(), 'a mnemonic', expect.anything());
   });
 });

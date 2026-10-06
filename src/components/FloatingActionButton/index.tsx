@@ -34,6 +34,7 @@ const RESIZE_DURATION = 300;
 const RAISE_DURATION = 250;
 const ICON_SWAP_DURATION = 200;
 const LABEL_FADE_DURATION = 150;
+const HIDE_FADE_DURATION = 150;
 const PRESSED_SCALE = 0.94;
 const SHADOW = '0px 6px 20px rgba(0, 102, 255, 0.38), 0px 2px 6px rgba(0, 0, 0, 0.12)';
 
@@ -44,6 +45,7 @@ interface FloatingActionButtonProps {
   isLabelShown: boolean;
   isMenuOpen: boolean;
   isRaised: boolean;
+  isHidden: boolean;
   onPress: () => void;
 }
 
@@ -52,6 +54,7 @@ const FloatingActionButton = ({
   isLabelShown,
   isMenuOpen,
   isRaised,
+  isHidden,
   onPress,
 }: FloatingActionButtonProps): JSX.Element => {
   const tailwind = useTailwind();
@@ -75,6 +78,14 @@ const FloatingActionButton = ({
 
   const raiseStyle = useAnimatedStyle(() => ({ transform: [{ translateY: raiseOffset.value }] }));
 
+  const visibility = useSharedValue(isHidden ? 0 : 1);
+
+  useEffect(() => {
+    visibility.value = withTiming(isHidden ? 0 : 1, { duration: HIDE_FADE_DURATION });
+  }, [isHidden, visibility]);
+
+  const visibilityStyle = useAnimatedStyle(() => ({ opacity: visibility.value }));
+
   const isComposeMode = mode === 'compose';
   const uploadAccessibilityLabel = isMenuOpen
     ? strings.components.floatingActionButton.closeUploadMenu
@@ -83,6 +94,9 @@ const FloatingActionButton = ({
   return (
     <Animated.View
       layout={LinearTransition.duration(RESIZE_DURATION)}
+      pointerEvents={isHidden ? 'none' : 'auto'}
+      accessibilityElementsHidden={isHidden}
+      importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}
       style={[
         styles.container,
         {
@@ -91,12 +105,14 @@ const FloatingActionButton = ({
           bottom: FLOATING_BUTTON_BOTTOM + safeAreaInsets.bottom,
         },
         raiseStyle,
+        visibilityStyle,
       ]}
     >
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={isComposeMode ? strings.components.floatingActionButton.compose : uploadAccessibilityLabel}
         accessibilityState={isComposeMode ? {} : { expanded: isMenuOpen }}
+        disabled={isHidden}
         onPress={onPress}
         style={({ pressed }) => [
           tailwind('flex-row items-center justify-end'),
