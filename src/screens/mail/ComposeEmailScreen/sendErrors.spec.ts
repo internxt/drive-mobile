@@ -11,7 +11,11 @@ import { SEND_ERROR_MESSAGES, getSendErrorMessage, isSendRateLimited } from './s
 
 const messages = strings.screens.compose_email.errors;
 
-const ERROR_NAMES_A_SEND_CANNOT_THROW: string[] = [MailErrorName.AttachmentUploadAborted];
+const ERROR_NAMES_A_SEND_CANNOT_THROW: string[] = [
+  MailErrorName.AttachmentUploadAborted,
+  MailErrorName.MailboxPageTimeout,
+  MailErrorName.MailKeystoreNotOpened,
+];
 
 describe('Explaining to the user why a message was not sent', () => {
   test('when a new kind of send failure exists, then it has its own explanation instead of the generic one', () => {
