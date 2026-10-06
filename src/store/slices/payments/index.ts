@@ -10,6 +10,7 @@ import { RootState } from 'src/store';
 import { AsyncStorageKey, NotificationType } from 'src/types';
 
 const PHOTOS_ACCESS_TTL_MS = 24 * 60 * 60 * 1000;
+const MAIL_ACCESS_TTL_MS = 24 * 60 * 60 * 1000;
 
 export type Paypal = {
   paypal?: {
@@ -30,6 +31,7 @@ export interface PaymentsState {
   invoices: Invoice[] | null;
   defaultPaymentMethod: DefaultPaymentMethod | null;
   photosAccess?: boolean;
+  mailAccess?: boolean;
 }
 
 const initialState: PaymentsState = {
@@ -57,6 +59,7 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
         dispatch(loadDefaultPaymentMethodThunk());
         dispatch(checkShouldDisplayBilling());
         dispatch(loadFileLimitsThunk());
+        dispatch(loadMailAccessThunk());
       }
     } catch (err) {
       // Pass
@@ -123,6 +126,28 @@ const loadFileLimitsThunk = createAsyncThunk<{ photosAccess: boolean } | null, v
   },
 );
 
+const loadMailAccessThunk = createAsyncThunk<boolean | null, void, { state: RootState }>(
+  'payments/loadMailAccess',
+  async () => {
+    const cached = await asyncStorageService.getItem(AsyncStorageKey.MailAccessCache);
+    if (cached) {
+      const { mailAccess, cachedAt } = JSON.parse(cached) as { mailAccess: boolean; cachedAt: number };
+      if (Date.now() - cachedAt < MAIL_ACCESS_TTL_MS) {
+        return mailAccess;
+      }
+    }
+
+    const mailAccess = await paymentService.getMailAccess();
+    if (mailAccess !== null) {
+      await asyncStorageService.saveItem(
+        AsyncStorageKey.MailAccessCache,
+        JSON.stringify({ mailAccess, cachedAt: Date.now() }),
+      );
+    }
+    return mailAccess;
+  },
+);
+
 const cancelSubscriptionThunk = createAsyncThunk<void, void, { state: RootState }>(
   'payments/cancelSubscription',
   async () => {
@@ -184,6 +209,12 @@ export const paymentsSlice = createSlice({
       }
     });
 
+    builder.addCase(loadMailAccessThunk.fulfilled, (state, action) => {
+      if (action.payload !== null) {
+        state.mailAccess = action.payload;
+      }
+    });
+
     builder.addCase(cancelSubscriptionThunk.rejected, () => {
       notificationsService.show({ type: NotificationType.Error, text1: strings.errors.cancelSubscription });
     });
@@ -199,6 +230,7 @@ export const paymentsSelectors = {
   hasLifetime: (state: RootState) => state.payments.subscription.type === 'lifetime',
   shouldShowBilling: (state: RootState) => state.payments.showBilling,
   hasPhotosAccess: (state: RootState) => state.payments.photosAccess ?? false,
+  hasMailAccess: (state: RootState) => state.payments.mailAccess ?? false,
 };
 
 export const paymentsThunks = {
@@ -207,6 +239,7 @@ export const paymentsThunks = {
   loadUserSubscriptionThunk,
   loadInvoicesThunk,
   loadFileLimitsThunk,
+  loadMailAccessThunk,
   cancelSubscriptionThunk,
   checkShouldDisplayBilling,
 };

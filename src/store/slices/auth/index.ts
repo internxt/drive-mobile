@@ -13,9 +13,11 @@ import asyncStorageService from '../../../services/AsyncStorageService';
 import authService from '../../../services/AuthService';
 import { clearCredentials, setCredentials } from '../../../services/native/InternxtAuthCredentialsModule';
 import notificationsService from '../../../services/NotificationsService';
+import { clearMailLocalData } from '../../../services/mail/clearMailLocalData';
 import { default as userService } from '../../../services/UserService';
 import { AsyncStorageKey, NotificationType } from '../../../types';
 import { driveActions } from '../drive';
+import { mailActions } from '../mail';
 import { signOutThunk as photosSignOutThunk } from '../photos';
 import { uiActions } from '../ui';
 export interface AuthState {
@@ -250,9 +252,11 @@ export const signOutThunk = createAsyncThunk<
     authService.signout(payload.reason).catch(errorService.reportError);
     drive.clear().catch(errorService.reportError);
     await clearCredentials().catch(errorService.reportError);
+    clearMailLocalData().catch(errorService.reportError);
     dispatch(uiActions.resetState());
     dispatch(authActions.resetState());
     dispatch(driveActions.resetState());
+    dispatch(mailActions.resetState());
     dispatch(authActions.setLoggedIn(false));
     authService.emitLogoutEvent();
   } finally {
@@ -381,7 +385,7 @@ export const changePasswordThunk = createAsyncThunk<void, { newPassword: string 
   async ({ newPassword }, { dispatch, getState }) => {
     const { sessionPassword } = getState().auth;
     if (!sessionPassword) throw new Error('No session password found');
-    const { token, newToken } = await authService.doChangePassword({
+    const { token, newToken, encryptedPrivateKeys } = await authService.doChangePassword({
       password: sessionPassword,
       newPassword: newPassword,
     });
@@ -393,6 +397,16 @@ export const changePasswordThunk = createAsyncThunk<void, { newPassword: string 
     const user = getState().auth.user;
     if (!user) throw new Error('No user found, this is fatal');
 
+    const userWithReEncryptedKeys: UserSettings = {
+      ...user,
+      keys: {
+        ecc: { ...user.keys.ecc, privateKey: encryptedPrivateKeys.ecc },
+        kyber: { ...user.keys.kyber, privateKey: encryptedPrivateKeys.kyber },
+      },
+    };
+
+    await asyncStorageService.saveItem(AsyncStorageKey.User, JSON.stringify(userWithReEncryptedKeys));
+
     SdkManager.setApiSecurity({
       token,
       newToken,
@@ -402,7 +416,7 @@ export const changePasswordThunk = createAsyncThunk<void, { newPassword: string 
       authActions.setSignInData({
         token: token,
         photosToken: newToken,
-        user,
+        user: userWithReEncryptedKeys,
       }),
     );
     dispatch(authActions.setSessionPassword(newPassword));

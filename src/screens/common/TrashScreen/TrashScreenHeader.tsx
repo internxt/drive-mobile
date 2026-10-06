@@ -2,7 +2,7 @@ import { BackButton } from '@internxt-mobile/ui-kit';
 import strings from 'assets/lang/strings';
 import { Trash } from 'phosphor-react-native';
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
@@ -12,6 +12,7 @@ export type TrashScreenHeaderProps = {
   onBackButtonPress: () => void;
   onTrashButtonPress: () => void;
   emptyTrashIsDisabled: boolean;
+  isEmptyingTrash: boolean;
 };
 
 export const TrashScreenHeader: React.FC<TrashScreenHeaderProps> = (props) => {
@@ -35,7 +36,11 @@ export const TrashScreenHeader: React.FC<TrashScreenHeaderProps> = (props) => {
           onPress={props.onTrashButtonPress}
           hitSlop={INCREASED_TOUCH_AREA}
         >
-          <Trash size={24} color={getColor('text-gray-80')} />
+          {props.isEmptyingTrash ? (
+            <ActivityIndicator color={getColor('text-gray-80')} />
+          ) : (
+            <Trash size={24} color={getColor('text-gray-80')} />
+          )}
         </TouchableOpacity>
       </View>
     </View>

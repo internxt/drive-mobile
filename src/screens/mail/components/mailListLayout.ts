@@ -1,0 +1,3 @@
+export const HEADER_ICON_SIZE = 24;
+export const HEADER_ICON_GAP = 12;
+export const SELECTION_TRANSITION_DURATION = 150;

@@ -1,9 +1,12 @@
+import type { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import type { BottomTabNavigationProp, BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { DrawerScreenProps } from '@react-navigation/drawer';
 import type { CompositeNavigationProp, CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { TimelinePhotoItem } from '../screens/PhotosScreen/types';
 import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
 import { SharedFile } from '../shareExtension/types';
+import { DraftComposeParams, ForwardComposeParams, MailboxId, ReplyComposeParams } from './mail';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -35,6 +38,11 @@ export type RootStackParamList = {
     onCurrentItemChange?: (itemId: string) => void;
   };
   Settings: undefined;
+  ComposeEmail:
+    | { reply: ReplyComposeParams }
+    | { forward: ForwardComposeParams }
+    | { draft: DraftComposeParams }
+    | undefined;
   AndroidShare: { files: SharedFile[] } | undefined;
   LargeShareUpload: { metadata: PendingShareMetadata };
 };
@@ -52,7 +60,7 @@ export type RootScreenNavigationProp<Screen extends keyof RootStackParamList> = 
 export type TabExplorerStackParamList = {
   Home: undefined;
   Drive: { sharedFolderId: number } | undefined;
-  Add: undefined;
+  Mail: undefined;
   Shared: undefined;
   Photos: undefined;
   Settings: undefined;
@@ -66,6 +74,30 @@ export type DriveStackParamList = {
     parentUuid?: string;
   };
 };
+
+export type MailDrawerParamList = {
+  [MailboxId.Inbox]: undefined;
+  [MailboxId.Sent]: undefined;
+  [MailboxId.Drafts]: undefined;
+  [MailboxId.Spam]: undefined;
+  [MailboxId.Trash]: undefined;
+};
+
+export type MailStackParamList = {
+  MailboxDrawer: undefined;
+  EmailDetail: { email: EmailSummaryResponse; mailboxId: MailboxId };
+  MailSearch: undefined;
+};
+
+export type MailboxScreenProps = CompositeScreenProps<
+  DrawerScreenProps<MailDrawerParamList, MailboxId>,
+  MailScreenProps<keyof MailStackParamList>
+>;
+
+export type MailScreenProps<Screen extends keyof MailStackParamList> = CompositeScreenProps<
+  NativeStackScreenProps<MailStackParamList, Screen>,
+  RootStackScreenProps<keyof RootStackParamList>
+>;
 
 export type DriveScreenProps<Screen extends keyof DriveStackParamList> = CompositeScreenProps<
   NativeStackScreenProps<DriveStackParamList, Screen>,
