@@ -1,3 +1,4 @@
+import { XIcon } from 'phosphor-react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 
@@ -8,9 +9,12 @@ import { composeFieldTextStyle } from './composeFieldStyles';
 
 const CHIP_HEIGHT = 28;
 const CHIP_LEADING_PADDING = 4;
-const CHIP_TRAILING_PADDING = 8;
 const INITIAL_SIZE = 20;
 const INITIAL_FONT_SIZE = 11;
+const REMOVE_ICON_SIZE = 14;
+const REMOVE_BUTTON_LEADING_PADDING = 6;
+const REMOVE_BUTTON_TRAILING_PADDING = 8;
+const REMOVE_BUTTON_HIT_SLOP = { top: 8, bottom: 8, left: 4, right: 6 };
 
 type RecipientChipProps = {
   address: string;
@@ -18,7 +22,7 @@ type RecipientChipProps = {
 };
 
 /**
- * A recipient already added to a field, which takes itself out of the field when pressed.
+ * A recipient already added to a field, with the control that takes it out again.
  *
  * @param props.address - Address the chip stands for.
  * @param props.onRemove - Called when the user removes the chip.
@@ -28,15 +32,11 @@ export const RecipientChip = ({ address, onRemove }: RecipientChipProps): JSX.El
   const getColor = useGetColor();
 
   return (
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessibilityLabel={address}
-      onPress={onRemove}
+    <View
       style={[
         tailwind('flex-row items-center rounded-full mr-1.5 mb-1'),
         {
           paddingLeft: CHIP_LEADING_PADDING,
-          paddingRight: CHIP_TRAILING_PADDING,
           height: CHIP_HEIGHT,
           maxWidth: '100%',
           backgroundColor: getColor('bg-primary-10'),
@@ -56,6 +56,22 @@ export const RecipientChip = ({ address, onRemove }: RecipientChipProps): JSX.El
       <Text numberOfLines={1} style={[composeFieldTextStyle, { flexShrink: 1, color: getColor('text-primary-dark') }]}>
         {address}
       </Text>
-    </TouchableOpacity>
+      <TouchableOpacity
+        accessibilityRole="button"
+        accessibilityLabel={address}
+        onPress={onRemove}
+        hitSlop={REMOVE_BUTTON_HIT_SLOP}
+        style={[
+          tailwind('items-center justify-center'),
+          {
+            height: CHIP_HEIGHT,
+            paddingLeft: REMOVE_BUTTON_LEADING_PADDING,
+            paddingRight: REMOVE_BUTTON_TRAILING_PADDING,
+          },
+        ]}
+      >
+        <XIcon size={REMOVE_ICON_SIZE} weight="bold" color={getColor('text-primary-dark')} />
+      </TouchableOpacity>
+    </View>
   );
 };

@@ -361,6 +361,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
                 <RecipientRow
                   label={strings.inputs.to}
                   {...recipientRowPropsForField('to')}
+                  autoFocus={recipients.to.length === 0}
                   renderAppend={
                     !hasExtraRecipients && (
                       <TouchableOpacity
