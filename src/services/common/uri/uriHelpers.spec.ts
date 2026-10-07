@@ -1,4 +1,11 @@
-import { decodeUriSafely, fileUriToPath, stripFileUri, stripUriFragment, toFileUri } from './uriHelpers';
+import {
+  decodeFileUriSafely,
+  decodeUriSafely,
+  fileUriToPath,
+  stripFileUri,
+  stripUriFragment,
+  toFileUri,
+} from './uriHelpers';
 
 describe('stripUriFragment', () => {
   test('when a uri has no fragment, then it is returned unchanged', () => {
@@ -163,5 +170,25 @@ describe('decodeUriSafely', () => {
     const result = decodeUriSafely(malformedUri);
 
     expect(result).toBe(malformedUri);
+  });
+});
+
+describe('decodeFileUriSafely', () => {
+  test.each([
+    ['file:///cache/N%C3%B3mina%2026_04.pdf', 'file:///cache/Nómina 26_04.pdf'],
+    ['/cache/N%C3%B3mina%2026_04.pdf', '/cache/Nómina 26_04.pdf'],
+  ])('when the uri %s is a file uri or a raw path, then it returns it decoded', (uri, expected) => {
+    const result = decodeFileUriSafely(uri);
+
+    expect(result).toBe(expected);
+  });
+
+  test('when the uri is a content uri with an encoded document id, then it returns it unchanged', () => {
+    const contentUri =
+      'content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2FN%C3%B3mina.pdf';
+
+    const result = decodeFileUriSafely(contentUri);
+
+    expect(result).toBe(contentUri);
   });
 });

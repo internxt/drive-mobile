@@ -36,6 +36,11 @@ export const decodeUriSafely = (uri: string): string => {
   }
 };
 
+export const decodeFileUriSafely = (uri: string): string => {
+  const isFileUriOrPath = uri.startsWith(FILE_URI_PREFIX) || !uri.includes('://');
+  return isFileUriOrPath ? decodeUriSafely(uri) : uri;
+};
+
 /**
  * Converts a file:// URI to a filesystem path: strips the leading `file://` scheme and
  * percent-decodes the rest. Malformed percent sequences are kept as-is instead of throwing.

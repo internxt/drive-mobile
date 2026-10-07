@@ -37,4 +37,13 @@ describe('copyFileFromEncodedUri', () => {
 
     expect(mockCopyFile).toHaveBeenCalledWith(malformedUri, DEST_PATH);
   });
+
+  test('when the source uri is a content uri with an encoded document id, then it copies it unchanged', async () => {
+    const contentUri =
+      'content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2Femulated%2F0%2FDownload%2FN%C3%B3mina.pdf';
+
+    await copyFileFromEncodedUri(contentUri, DEST_PATH);
+
+    expect(mockCopyFile).toHaveBeenCalledWith(contentUri, DEST_PATH);
+  });
 });
