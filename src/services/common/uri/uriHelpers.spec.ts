@@ -1,4 +1,11 @@
-import { stripFileUri, stripUriFragment, toFileUri } from './uriHelpers';
+import {
+  decodeFileUriSafely,
+  decodeUriSafely,
+  fileUriToPath,
+  stripFileUri,
+  stripUriFragment,
+  toFileUri,
+} from './uriHelpers';
 
 describe('stripUriFragment', () => {
   test('when a uri has no fragment, then it is returned unchanged', () => {
@@ -36,6 +43,68 @@ describe('toFileUri', () => {
   test('when path contains spaces, then they are percent-encoded in the resulting URI', () => {
     expect(toFileUri('/var/tmp/my photo.jpg')).toBe('file:///var/tmp/my%20photo.jpg');
   });
+
+  test('when the file name contains a literal percent sign, then it returns a usable uri instead of failing', () => {
+    const pathWithLiteralPercent = '/cache/Nómina 100% final.pdf';
+
+    const result = toFileUri(pathWithLiteralPercent);
+
+    expect(result).toBe('file:///cache/N%C3%B3mina%20100%25%20final.pdf');
+  });
+
+  test('when the path is already percent-encoded, then it returns the same uri without encoding it twice', () => {
+    const encodedPath = '/cache/N%C3%B3mina%2026_04.pdf';
+
+    const result = toFileUri(encodedPath);
+
+    expect(result).toBe('file:///cache/N%C3%B3mina%2026_04.pdf');
+  });
+
+  test('when the path has accents and spaces, then it returns the encoded uri', () => {
+    const pathWithAccents = '/cache/Nómina 26_04.pdf';
+
+    const result = toFileUri(pathWithAccents);
+
+    expect(result).toBe('file:///cache/N%C3%B3mina%2026_04.pdf');
+  });
+
+  test('when the path has no characters to encode, then it returns the path with the scheme', () => {
+    const plainPath = '/cache/plain.pdf';
+
+    const result = toFileUri(plainPath);
+
+    expect(result).toBe('file:///cache/plain.pdf');
+  });
+
+  test('when the path already has the scheme, then it returns it unchanged', () => {
+    const fileUri = 'file:///cache/already.pdf';
+
+    const result = toFileUri(fileUri);
+
+    expect(result).toBe(fileUri);
+  });
+
+  test.each([
+    ['/cache/Q1%23report.pdf', 'file:///cache/Q1%23report.pdf'],
+    ['/cache/Q1#report.pdf', 'file:///cache/Q1%23report.pdf'],
+    ['/cache/what%3F.pdf', 'file:///cache/what%3F.pdf'],
+    ['/cache/what?.pdf', 'file:///cache/what%3F.pdf'],
+  ])(
+    'when the path %s contains a hash or question mark, then they stay percent-encoded in the uri',
+    (path, expectedUri) => {
+      const result = toFileUri(path);
+
+      expect(result).toBe(expectedUri);
+    },
+  );
+
+  test('when a path with hash, question mark, percent, spaces and accents is converted and back, then the original path is returned', () => {
+    const trickyPath = '/cache/Q1 #1? 100% Nómina.pdf';
+
+    const result = fileUriToPath(toFileUri(trickyPath));
+
+    expect(result).toBe(trickyPath);
+  });
 });
 
 describe('stripFileUri', () => {
@@ -49,5 +118,77 @@ describe('stripFileUri', () => {
 
   test('when path has URL-encoded characters, then they are decoded', () => {
     expect(stripFileUri('file:///var/tmp/my%20photo%20file.jpg')).toBe('/var/tmp/my photo file.jpg');
+  });
+});
+
+describe('fileUriToPath', () => {
+  test('when the uri is percent-encoded with accents and spaces, then it returns the decoded path without the scheme', () => {
+    const encodedUri = 'file:///cache/abc/N%C3%B3mina%2026_04.pdf';
+
+    const result = fileUriToPath(encodedUri);
+
+    expect(result).toBe('/cache/abc/Nómina 26_04.pdf');
+  });
+
+  test('when the uri has no scheme, then it returns the decoded path unchanged', () => {
+    const plainPath = '/cache/abc/invoice.pdf';
+
+    const result = fileUriToPath(plainPath);
+
+    expect(result).toBe(plainPath);
+  });
+
+  test('when the uri has a malformed percent sequence, then it returns the undecoded path without the scheme', () => {
+    const malformedUri = 'file:///cache/100%discount.pdf';
+
+    const result = fileUriToPath(malformedUri);
+
+    expect(result).toBe('/cache/100%discount.pdf');
+  });
+
+  test('when the path contains the scheme beyond the start, then only the leading scheme is removed', () => {
+    const nestedUri = 'file:///cache/file:///nested.pdf';
+
+    const result = fileUriToPath(nestedUri);
+
+    expect(result).toBe('/cache/file:///nested.pdf');
+  });
+});
+
+describe('decodeUriSafely', () => {
+  test('when the uri is percent-encoded, then it returns the decoded value keeping the scheme', () => {
+    const encodedUri = 'file:///cache/abc/N%C3%B3mina%2026_04.pdf';
+
+    const result = decodeUriSafely(encodedUri);
+
+    expect(result).toBe('file:///cache/abc/Nómina 26_04.pdf');
+  });
+
+  test('when the uri has a malformed percent sequence, then it returns the original value', () => {
+    const malformedUri = 'file:///cache/abc/100%discount.pdf';
+
+    const result = decodeUriSafely(malformedUri);
+
+    expect(result).toBe(malformedUri);
+  });
+});
+
+describe('decodeFileUriSafely', () => {
+  test.each([
+    ['file:///cache/N%C3%B3mina%2026_04.pdf', 'file:///cache/Nómina 26_04.pdf'],
+    ['/cache/N%C3%B3mina%2026_04.pdf', '/cache/Nómina 26_04.pdf'],
+  ])('when the uri %s is a file uri or a raw path, then it returns it decoded', (uri, expected) => {
+    const result = decodeFileUriSafely(uri);
+
+    expect(result).toBe(expected);
+  });
+
+  test('when the uri is a content uri with an encoded document id, then it returns it unchanged', () => {
+    const contentUri =
+      'content://com.android.providers.downloads.documents/document/raw%3A%2Fstorage%2FN%C3%B3mina.pdf';
+
+    const result = decodeFileUriSafely(contentUri);
+
+    expect(result).toBe(contentUri);
   });
 });

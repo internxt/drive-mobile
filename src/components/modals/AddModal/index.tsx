@@ -55,6 +55,7 @@ import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import appService, { constants } from '../../../services/AppService';
 import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
+import { copyFileFromEncodedUri } from '../../../services/common/filesystem/copyFileFromEncodedUri';
 import {
   createUploadingFiles,
   handleDuplicateFiles,
@@ -132,7 +133,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
     const fileExtension = fileToUpload.type;
     const destPath = fileSystemService.tmpFilePath(name);
 
-    await fileSystemService.copyFile(fileToUpload.uri, destPath);
+    await copyFileFromEncodedUri(fileToUpload.uri, destPath);
 
     if (fileType === 'document') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
@@ -281,7 +282,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
     // If thumbnail generation fails, don't block the upload, we can
     // try thumbnail generation later
     try {
-      const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+      const generatedThumbnail = await imageService.generateThumbnail(filePath, {
         extension: fileExtension,
         thumbnailFormat: SaveFormat.JPEG,
         // Android needs an extension to generate the thumbnails, otherwise it crashes
