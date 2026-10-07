@@ -853,7 +853,7 @@ function AddModal(): JSX.Element {
               style={tailwind('flex-grow')}
               underlayColor={getColor('bg-gray-5')}
               onPress={() => {
-                handleUploadFiles();
+                void handleUploadFiles();
               }}
             >
               <View
@@ -899,7 +899,7 @@ function AddModal(): JSX.Element {
               style={tailwind('flex-grow')}
               underlayColor={getColor('bg-gray-5')}
               onPress={() => {
-                handleUploadFromCameraRoll();
+                void handleUploadFromCameraRoll();
               }}
             >
               <View
