@@ -3387,7 +3387,17 @@ await-lock@^2.2.2:
   resolved "https://registry.yarnpkg.com/await-lock/-/await-lock-2.2.2.tgz#a95a9b269bfd2f69d22b17a321686f551152bcef"
   integrity sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==
 
-axios@^1.16.0, axios@^1.20.0:
+axios@1.18.1, axios@^1.16.0:
+  version "1.18.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.18.1.tgz#d63f9863bcd8938815c86f9e2abd380189d96dfe"
+  integrity sha512-3nTvFlvpn9Zu/RkHUqtc7/+al4UpRW5az71ap5zccp6e8RAYEzhMTecX8Dz1wWDYrPpUoB1HAQEGEAEvUr7S9g==
+  dependencies:
+    follow-redirects "^1.16.0"
+    form-data "^4.0.5"
+    https-proxy-agent "^5.0.1"
+    proxy-from-env "^2.1.0"
+
+axios@^1.20.0:
   version "1.20.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.20.0.tgz#515513445aa60e71d04b6521ca6210829ccb4786"
   integrity sha512-r8aOh8j9cGKpgQAqpzrUHnSIc6a59Y3Xf/cv8sy1DrHCkZHzQGEuoq1tARk6qSyDdtQGSDgpb9kFlruzPvrgwg==
@@ -5516,7 +5526,7 @@ for-each@^0.3.5:
   dependencies:
     is-callable "^1.2.7"
 
-form-data@^4.0.0, form-data@^4.0.6:
+form-data@^4.0.0, form-data@^4.0.5, form-data@^4.0.6:
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-4.0.6.tgz#28e864e1b786dbebb68db1f452f9635278665827"
   integrity sha512-vKatAh4SlVfgbv+YtmhiRjhEMJsYpsG1Y2rMQtR+SVSbytsSD1YGzDIcrAJmdFec88u/+VoGmxnl+80gL1tRCQ==
@@ -7914,16 +7924,16 @@ path@^0.12.7:
     util "^0.10.3"
 
 pbkdf2@^3.1.3, pbkdf2@^3.1.5:
-  version "3.1.5"
-  resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.1.5.tgz#444a59d7a259a95536c56e80c89de31cc01ed366"
-  integrity sha512-Q3CG/cYvCO1ye4QKkuH7EXxs3VC/rI1/trd+qX2+PolbaKG0H+bgcZzrTt96mMyRtejk+JMCiLUn3y29W8qmFQ==
+  version "3.1.7"
+  resolved "https://registry.yarnpkg.com/pbkdf2/-/pbkdf2-3.1.7.tgz#8c707645f9291f232ba84e24231819eae30402b1"
+  integrity sha512-nS4mvFgVwUrecPTRdpdseM2fwpdfnX0/HibA8DgBRQtihUAzHQYJFU2l+OlEtiXtpqkrMvCPDwyXMUnASDt6Qw==
   dependencies:
     create-hash "^1.2.0"
     create-hmac "^1.1.7"
     ripemd160 "^2.0.3"
     safe-buffer "^5.2.1"
     sha.js "^2.4.12"
-    to-buffer "^1.2.1"
+    to-buffer "^1.2.2"
 
 phosphor-react-native@3.0.3:
   version "3.0.3"
