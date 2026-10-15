@@ -12,7 +12,7 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
-import SortModal, { SortMode } from '../../../components/modals/SortModal';
+import SortModal from '../../../components/modals/SortModal';
 import { useLanguage } from '../../../hooks/useLanguage';
 import { logger } from '../../../services/common';
 import { folderUploadCancellationService } from '../../../services/drive/folder/folderUploadCancellation.service';
@@ -21,13 +21,14 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { DriveListType, SortDirection, SortType } from '../../../types/drive/ui';
+import { DriveListType, SortMode } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
 import { buildFolderUploadListItem, isFolderUploadItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
+import { useReloadFolderInChosenSort } from './useReloadFolderInChosenSort';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
@@ -46,6 +47,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const isDeepLinked = !isRootFolder && hasNoNavigationHistory;
 
   useDeepLinkNavigationResolver(folderUuid, isDeepLinked, navigation);
+  useReloadFolderInChosenSort(folderUuid);
 
   const folder = driveCtx.driveFoldersTree[folderUuid];
 
@@ -145,10 +147,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const [searchValue, setSearchValue] = useState('');
 
   const [sortModalOpen, setSortModalOpen] = useState(false);
-  const [sortMode, setSortMode] = useState({
-    type: SortType.Name,
-    direction: SortDirection.Asc,
-  });
+  const { sortMode } = driveCtx;
 
   const { uploading: driveUploadingItems } = useAppSelector(driveSelectors.driveItems);
   const folderUploads = useAppSelector((state) => state.drive.folderUploads);
@@ -299,7 +298,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const onSortModeChange = (mode: SortMode) => {
-    setSortMode(mode);
+    driveCtx.changeSortMode(mode);
     setTimeout(() => setSortModalOpen(false), 1);
   };
 
