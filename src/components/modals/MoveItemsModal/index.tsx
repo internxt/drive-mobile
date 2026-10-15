@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import { DriveItemData, DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { DriveListType, DriveListViewMode, SortDirection, SortType } from '../../../types/drive/ui';
+import { DriveListType, DriveListViewMode, SortDirection, SortMode, SortType } from '../../../types/drive/ui';
 import AppSeparator from '../../AppSeparator';
 import DriveNavigableItem from '../../DriveNavigableItem';
 
@@ -34,7 +34,7 @@ import BottomModal from '../BottomModal';
 import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
 import CreateFolderModal from '../CreateFolderModal';
 import NameCollisionModal, { NameCollisionAction } from '../NameCollisionModal';
-import SortModal, { SortMode } from '../SortModal';
+import SortModal from '../SortModal';
 
 const INITIAL_SORT_MODE: SortMode = {
   direction: SortDirection.Asc,
