@@ -79,6 +79,9 @@ const FOLDERS_LIMIT_PER_PAGE = 50;
 const getNextOffset = (offset: number, pageItemsCount: number, pageSize: number): number | null =>
   pageItemsCount === pageSize ? offset + pageItemsCount : null;
 
+const getNextOffsetAfterRemoving = (nextOffset: number | null, removedItemsCount: number): number | null =>
+  nextOffset === null ? null : nextOffset - removedItemsCount;
+
 /**
  * Replaces the loaded items that come again in the page with their new version, keeping their position,
  * and appends the rest of the page.
@@ -484,7 +487,9 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   ) => {
     setDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
-      if (!folder) return prevTree;
+      if (!folder) {
+        return prevTree;
+      }
 
       return {
         ...prevTree,
@@ -502,13 +507,25 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const removeItemFromTree = (folderId: string, itemId: number) => {
     setDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
-      if (!folder) return prevTree;
+      if (!folder) {
+        return prevTree;
+      }
+      const remainingFiles = folder.files.filter((file) => file.id !== itemId);
+      const remainingFolders = folder.folders.filter((folderItem) => folderItem.id !== itemId);
       return {
         ...prevTree,
         [folderId]: {
           ...folder,
-          files: folder.files.filter((file) => file.id !== itemId),
-          folders: folder.folders.filter((folderItem) => folderItem.id !== itemId),
+          files: remainingFiles,
+          folders: remainingFolders,
+          nextFilesOffset: getNextOffsetAfterRemoving(
+            folder.nextFilesOffset,
+            folder.files.length - remainingFiles.length,
+          ),
+          nextFoldersOffset: getNextOffsetAfterRemoving(
+            folder.nextFoldersOffset,
+            folder.folders.length - remainingFolders.length,
+          ),
         },
       };
     });
@@ -517,7 +534,9 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const addItemToTree = (folderId: string, item: DriveItemData, isFolder: boolean) => {
     setDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
-      if (!folder) return prevTree;
+      if (!folder) {
+        return prevTree;
+      }
 
       return {
         ...prevTree,

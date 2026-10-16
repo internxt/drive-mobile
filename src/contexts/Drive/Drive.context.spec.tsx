@@ -273,3 +273,48 @@ describe('Loading the next page of a Drive folder with many subfolders', () => {
     expect(mockGetFolderFiles).toHaveBeenCalledWith(ROOT_FOLDER_UUID, 0, PAGE_SIZE, NEWER_FIRST);
   });
 });
+
+describe('Taking an item out of a Drive folder before its next page arrives', () => {
+  const loadNextPage = async (result: { current: DriveContextType }) => {
+    await act(async () => {
+      await result.current.loadFolderContent(ROOT_FOLDER_UUID, { resetPagination: false });
+    });
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('when a loaded file is moved away, then the next page starts right after the files that stay', async () => {
+    mockGetFolderFolders.mockResolvedValue({ folders: [] });
+    mockGetFolderFiles.mockResolvedValueOnce({ files: buildFullPageOfFiles(0) });
+    mockGetFolderFiles.mockResolvedValue({ files: [] });
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFile(3).id);
+    });
+    await loadNextPage(result);
+
+    expect(mockGetFolderFiles).toHaveBeenLastCalledWith(ROOT_FOLDER_UUID, PAGE_SIZE - 1, PAGE_SIZE, DEFAULT_SORT_MODE);
+  });
+
+  test('when a loaded folder is moved away, then the next page of folders starts right after the folders that stay', async () => {
+    mockGetFolderFolders.mockResolvedValueOnce({ folders: buildFolders(0, PAGE_SIZE) });
+    mockGetFolderFolders.mockResolvedValue({ folders: [] });
+    mockGetFolderFiles.mockResolvedValue({ files: [] });
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFolder(3).id);
+    });
+    await loadNextPage(result);
+
+    expect(mockGetFolderFolders).toHaveBeenLastCalledWith(
+      ROOT_FOLDER_UUID,
+      PAGE_SIZE - 1,
+      PAGE_SIZE,
+      DEFAULT_SORT_MODE,
+    );
+  });
+});
