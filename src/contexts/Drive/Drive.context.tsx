@@ -43,6 +43,7 @@ export interface DriveContextType {
   changeSortMode: (sortMode: SortMode) => void;
   loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
   focusedFolder: DriveFoldersTreeNode | null;
+  focusFolder: (folderUuid: string) => void;
   updateItemInTree: (
     folderId: string,
     itemId: number,
@@ -549,6 +550,18 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     });
   };
 
+  /**
+   * Makes an already loaded folder the focused one, without loading it. Does nothing if the folder is not
+   * in the tree.
+   */
+  const focusFolder = (folderUuid: string) => {
+    const folderNode = driveFoldersTreeRef.current[folderUuid];
+    if (!folderNode) {
+      return;
+    }
+    setCurrentFolder(folderNode);
+  };
+
   const changeSortMode = (newSortMode: SortMode) => {
     sortModeRef.current = newSortMode;
     setSortMode(newSortMode);
@@ -571,6 +584,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         loadFolderContent,
         // Default current folder is the root folder
         focusedFolder: currentFolder,
+        focusFolder,
         rootFolderId: rootFolderId ?? '',
         updateItemInTree,
         removeItemFromTree,

@@ -318,3 +318,31 @@ describe('Taking an item out of a Drive folder before its next page arrives', ()
     );
   });
 });
+
+describe('Focusing a Drive folder', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetFolderFolders.mockResolvedValue({ folders: [buildFolder(1)] });
+    mockGetFolderFiles.mockResolvedValue({ files: [] });
+  });
+
+  test('when a loaded folder is focused, then it becomes the focused folder', async () => {
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.focusFolder(buildFolder(1).uuid);
+    });
+
+    expect(result.current.focusedFolder?.uuid).toBe(buildFolder(1).uuid);
+  });
+
+  test('when a folder that is not loaded is focused, then the focused folder does not change', async () => {
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.focusFolder('not-loaded-folder-uuid');
+    });
+
+    expect(result.current.focusedFolder?.uuid).toBe(ROOT_FOLDER_UUID);
+  });
+});
