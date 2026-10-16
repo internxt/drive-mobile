@@ -28,6 +28,7 @@ import { DriveFolderError } from './DriveFolderError';
 import { buildFolderUploadListItem, isFolderUploadItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
+import { useFocusFolderOnScreenFocus } from './useFocusFolderOnScreenFocus';
 import { useReloadFolderInChosenSort } from './useReloadFolderInChosenSort';
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
@@ -48,6 +49,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   useDeepLinkNavigationResolver(folderUuid, isDeepLinked, navigation);
   useReloadFolderInChosenSort(folderUuid);
+  useFocusFolderOnScreenFocus(folderUuid);
 
   const folder = driveCtx.driveFoldersTree[folderUuid];
 
