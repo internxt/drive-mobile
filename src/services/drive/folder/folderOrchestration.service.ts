@@ -4,7 +4,9 @@ import { FileSizeExceededError } from '@internxt-mobile/services/drive/file/util
 import pLimit from 'p-limit';
 import { AbortError } from '../../../network/errors';
 import { FolderTree, FolderTreeNode, FolderUploadResult, UploadFileCallback } from '../../../types/drive/folderUpload';
+import { getErrorStatus, isServerError } from '../../common/httpErrorStatus';
 import { HTTP_CONFLICT, HTTP_NOT_FOUND } from '../../common/httpStatusCodes';
+import { retryWithBackoff } from '../../common/retryWithBackoff';
 import { driveFolderService } from './driveFolder.service';
 
 const FOLDER_UPLOAD_CONCURRENCY = 3;
@@ -12,6 +14,9 @@ const TAG = '[FolderOrchestration]';
 
 const FOLDER_CREATE_RETRY_DELAYS_MS = [500, 1000, 2000];
 const PATH_SEPARATOR_REGEX = /\//g;
+
+const shouldRetryFolderCreation = (error: unknown): boolean =>
+  getErrorStatus(error) === HTTP_NOT_FOUND || isServerError(error);
 
 export interface UploadFolderContentsParams {
   tree: FolderTree;
@@ -24,45 +29,30 @@ export interface UploadFolderContentsParams {
 /**
  * Creates a folder under `parentUuid`, returning its UUID.
  * - **409 Conflict**: merges transparently, returning the existing UUID.
- * - **404 Not Found**: retries with exponential backoff ({@link FOLDER_CREATE_RETRY_DELAYS_MS}).
+ * - **404 Not Found** and server errors (5xx or no response): retries with exponential backoff
+ *   ({@link FOLDER_CREATE_RETRY_DELAYS_MS}).
  * - Any other error is rethrown immediately.
  */
 export const createFolderWithMerge = async (parentUuid: string, folderName: string): Promise<string> => {
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt <= FOLDER_CREATE_RETRY_DELAYS_MS.length; attempt++) {
-    try {
-      const folder = await driveFolderService.createFolder(parentUuid, folderName);
-      logger.info(TAG, `Created folder "${folderName}" - ${folder.uuid}`);
-      return folder.uuid;
-    } catch (error) {
-      const httpError = error as { status?: number; statusCode?: number; message?: string };
-      const status = httpError?.status ?? httpError?.statusCode;
-      const isConflict = status === HTTP_CONFLICT;
-
-      if (isConflict) {
-        logger.info(TAG, `Folder "${folderName}" already exists — merging`);
-        const { existentFolders } = await driveFolderService.checkDuplicatedFolders(parentUuid, [folderName]);
-        if (existentFolders[0]?.uuid) {
-          return existentFolders[0].uuid;
-        }
-        throw new Error(`Folder "${folderName}" conflict but not found in parent ${parentUuid}`);
-      }
-
-      const isNotFound = status === HTTP_NOT_FOUND;
-      const delayMs = FOLDER_CREATE_RETRY_DELAYS_MS[attempt];
-      if (isNotFound && delayMs !== undefined) {
-        logger.warn(TAG, `Folder "${folderName}" parent not ready (404) — retrying in ${delayMs}ms`);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
-        lastError = error;
-        continue;
-      }
-
+  try {
+    const folder = await retryWithBackoff(() => driveFolderService.createFolder(parentUuid, folderName), {
+      delaysMs: FOLDER_CREATE_RETRY_DELAYS_MS,
+      shouldRetry: shouldRetryFolderCreation,
+      context: `${TAG} Folder "${folderName}"`,
+    });
+    logger.info(TAG, `Created folder "${folderName}" - ${folder.uuid}`);
+    return folder.uuid;
+  } catch (error) {
+    if (getErrorStatus(error) !== HTTP_CONFLICT) {
       throw error;
     }
+    logger.info(TAG, `Folder "${folderName}" already exists — merging`);
+    const { existentFolders } = await driveFolderService.checkDuplicatedFolders(parentUuid, [folderName]);
+    if (existentFolders[0]?.uuid) {
+      return existentFolders[0].uuid;
+    }
+    throw new Error(`Folder "${folderName}" conflict but not found in parent ${parentUuid}`);
   }
-
-  throw lastError;
 };
 
 /**
