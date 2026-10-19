@@ -17,13 +17,29 @@ import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import { uiActions } from '../../../../store/slices/ui';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
+import { isServerError } from '../../../common/httpErrorStatus';
 import { uploadService } from '../../../common/network/upload/upload.service';
+import { retryWithBackoff } from '../../../common/retryWithBackoff';
 import { notifyParentChanged } from '../../../native/InternxtSignalingModule';
 import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
 import { FileSizeExceededError, isFileSizeExceededError } from './fileSizeErrors';
 import { BucketNotFoundError } from './upload.errors';
 
 export { validateAndFilterFiles } from './validateAndFilterFiles';
+
+const FILE_ENTRY_RETRY_DELAYS_MS = [500, 1000, 2000];
+
+/**
+ * Registers `entry` in Drive, retrying server errors (5xx or no response) with backoff. Rethrows any other error,
+ * and throws `AbortError` if `signal` aborts while waiting to retry.
+ */
+export const createFileEntryWithRetry = (entry: FileEntryByUuid, signal?: AbortSignal): Promise<DriveFileData> =>
+  retryWithBackoff(() => uploadService.createFileEntry(entry), {
+    delaysMs: FILE_ENTRY_RETRY_DELAYS_MS,
+    shouldRetry: isServerError,
+    context: `[Upload] File entry "${entry.plainName}"`,
+    signal,
+  });
 
 /**
  * Handle duplicate files by checking for existing files in the target folder and optionally prompting the user.
@@ -192,7 +208,7 @@ export async function createEmptyFileEntry(bucketId: string, file: UploadingFile
   };
 
   try {
-    return await uploadService.createFileEntry(fileEntry);
+    return await createFileEntryWithRetry(fileEntry);
   } catch (err) {
     if (isEmptyFilePlanError(err)) throw new EmptyFileNotAllowedError();
     if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
