@@ -143,8 +143,10 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     ) -> Progress {
         let progress = Progress(totalUnitCount: 1)
         Task {
+            let mutationService = FileProviderMutationService(driveAPI: uploadService.driveAPI)
             do {
-                let response = try await uploadService.createFolder(name: name, parentUuid: parentUuid)
+                let availableName = try await mutationService.availableName(kind: .folder, for: name, inFolder: parentUuid)
+                let response = try await uploadService.createFolder(name: availableName, parentUuid: parentUuid)
                 progress.completedUnitCount = 1
                 let item = FileProviderItem(folder: response, parent: parentIdentifier)
                 completionHandler(item, [], false, nil)
@@ -167,10 +169,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         Task {
             let encryptedTmp = FileProviderDownloadService.temporaryFileURL()
             defer { try? FileManager.default.removeItem(at: encryptedTmp) }
+            let mutationService = FileProviderMutationService(driveAPI: uploadService.driveAPI)
 
             do {
+                let availableFilename = try await mutationService.availableName(kind: .file, for: filename, inFolder: parentUuid)
                 let result = try await uploadService.uploadFile(
-                    filename: filename,
+                    filename: availableFilename,
                     contentsURL: contentsURL,
                     parentUuid: parentUuid,
                     encryptedOutput: encryptedTmp,
@@ -240,6 +244,11 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                 )
                 completionHandler(modified, [], false, nil)
             } catch {
+                if FileProviderErrorMapper.isNameCollision(error),
+                   let serverItem = try? await mutationService.resolveItem(decoded, identifier: item.itemIdentifier) {
+                    completionHandler(serverItem, [], false, nil)
+                    return
+                }
                 completionHandler(nil, [], false, FileProviderErrorMapper.lookupError(from: error))
             }
         }

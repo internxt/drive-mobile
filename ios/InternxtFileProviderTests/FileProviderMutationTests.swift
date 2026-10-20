@@ -145,6 +145,24 @@ final class FileProviderMutationTests: XCTestCase {
         XCTAssertNoThrow(try FileProviderMutationService.validateTrashOutcome(true))
     }
 
+    func testWhenAFileNameIsTakenThenTheNumberGoesBeforeTheExtension() {
+        let name = FileProviderMutationService.numberedName("report.pdf", kind: .file, index: 1)
+
+        XCTAssertEqual(name, "report (1).pdf")
+    }
+
+    func testWhenAFileWithoutExtensionIsTakenThenTheNumberGoesAtTheEnd() {
+        let name = FileProviderMutationService.numberedName("notes", kind: .file, index: 2)
+
+        XCTAssertEqual(name, "notes (2)")
+    }
+
+    func testWhenAFolderNameWithADotIsTakenThenTheNumberGoesAtTheEnd() {
+        let name = FileProviderMutationService.numberedName("v1.2", kind: .folder, index: 1)
+
+        XCTAssertEqual(name, "v1.2 (1)")
+    }
+
     private func fileMeta(fileId: String?, size: String) throws -> GetFileMetaByIdResponseV2 {
         let fileIdJSON = fileId.map { "\"\($0)\"" } ?? "null"
         let json = """
