@@ -21,7 +21,7 @@ struct FileProviderMutationService {
             let meta = try await driveAPI.getFolderMetaByUuid(uuid: decoded.uuid)
             return FileProviderItem(folderMeta: meta, identifier: identifier)
         case .file:
-            let meta = try await driveAPI.getFileMetaByUuid(uuid: decoded.uuid)
+            let meta = try await driveAPI.getFileMetaByUuidV2(uuid: decoded.uuid)
             return FileProviderItem(fileMeta: meta, identifier: identifier)
         }
     }
@@ -34,7 +34,7 @@ struct FileProviderMutationService {
         case .folder:
             _ = try await driveAPI.updateFolderNew(folderUuid: decoded.uuid, folderName: newFilename)
         case .file:
-            let meta = try await driveAPI.getFileMetaByUuid(uuid: decoded.uuid)
+            let meta = try await driveAPI.getFileMetaByUuidV2(uuid: decoded.uuid)
             let (baseName, _) = FileProviderItem.splitNameExtension(newFilename, kind: .file)
             _ = try await driveAPI.updateFileNew(uuid: decoded.uuid, bucketId: meta.bucket, newFilename: baseName)
         }

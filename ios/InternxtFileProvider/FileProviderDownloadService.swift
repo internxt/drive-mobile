@@ -16,15 +16,19 @@ struct FileProviderDownloadService {
         uuid: String,
         into contentsDirectory: URL,
         progressHandler: @escaping (Double) -> Void
-    ) async throws -> (url: URL, meta: GetFileMetaByIdResponse) {
+    ) async throws -> (url: URL, meta: GetFileMetaByIdResponseV2) {
         let encryptedTmp = Self.temporaryFileURL()
         let plainTmp = contentsDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: encryptedTmp) }
 
-        let meta = try await driveAPI.getFileMetaByUuid(uuid: uuid)
+        let meta = try await driveAPI.getFileMetaByUuidV2(uuid: uuid)
+        guard let fileId = meta.fileId else {
+            try Data().write(to: plainTmp)
+            return (plainTmp, meta)
+        }
         _ = try await networkFacade.downloadFile(
             bucketId: meta.bucket,
-            fileId: meta.fileId,
+            fileId: fileId,
             encryptedFileDestination: encryptedTmp,
             destinationURL: plainTmp,
             progressHandler: progressHandler
