@@ -1,11 +1,4 @@
-import {
-  errorCodes,
-  isErrorWithCode,
-  keepLocalCopy,
-  pick,
-  types,
-  type FileToCopy,
-} from '@react-native-documents/picker';
+import { errorCodes, isErrorWithCode, pick, types } from '@react-native-documents/picker';
 import {
   ImagePickerAsset,
   launchCameraAsync,
@@ -64,6 +57,7 @@ import {
   uploadSingleFile,
   validateAndFilterFiles,
 } from '../../../services/drive/file/utils/uploadFileUtils';
+import { preparePickedFilesForUpload } from '../../../services/drive/file/utils/pickedFilesUpload';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -504,25 +498,10 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
       }
 
       // 2. Copy files to cache so they are accessible as file:// URIs
-      const filesToCopy = pickedFiles.map((file): FileToCopy => ({ uri: file.uri, fileName: file.name ?? 'file' })) as [
-        FileToCopy,
-        ...FileToCopy[],
-      ];
-      const localCopiedFiles = await keepLocalCopy({ destination: 'cachesDirectory', files: filesToCopy });
-      const filesWithLocalUri: DocumentPickerFile[] = pickedFiles.map((file) => {
-        const copy = localCopiedFiles.find((localFile) => localFile.sourceUri === file.uri);
-        if (copy?.status === 'error') {
-          logger.warn(
-            `keepLocalCopy failed for "${file.name}", falling back to original URI. Error: ${copy.copyError}`,
-          );
-        }
-        return {
-          uri: copy?.status === 'success' ? copy.localUri : file.uri,
-          name: file.name ?? 'file',
-          size: file.size ?? 0,
-          type: file.type ?? '',
-        };
-      });
+      const filesWithLocalUri = await preparePickedFilesForUpload(pickedFiles);
+      if (filesWithLocalUri.length === 0) {
+        return;
+      }
 
       // 3. Add them to the uploader
       await processFilesFromPicker(filesWithLocalUri);

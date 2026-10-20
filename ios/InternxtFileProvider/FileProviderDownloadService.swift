@@ -14,21 +14,35 @@ struct FileProviderDownloadService {
 
     func fetchContents(
         uuid: String,
+        into contentsDirectory: URL,
         progressHandler: @escaping (Double) -> Void
-    ) async throws -> (url: URL, meta: GetFileMetaByIdResponse) {
+    ) async throws -> (url: URL, meta: GetFileMetaByIdResponseV2) {
         let encryptedTmp = Self.temporaryFileURL()
-        let plainTmp = Self.temporaryFileURL()
+        let plainTmp = contentsDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: encryptedTmp) }
 
-        let meta = try await driveAPI.getFileMetaByUuid(uuid: uuid)
+        let meta = try await driveAPI.getFileMetaByUuidV2(uuid: uuid)
+        guard let fileId = meta.fileId else {
+            try Data().write(to: plainTmp)
+            return (plainTmp, meta)
+        }
         _ = try await networkFacade.downloadFile(
             bucketId: meta.bucket,
-            fileId: meta.fileId,
+            fileId: fileId,
             encryptedFileDestination: encryptedTmp,
             destinationURL: plainTmp,
             progressHandler: progressHandler
         )
         return (plainTmp, meta)
+    }
+
+    /// Returns the temporary directory `NSFileProviderManager` provides for `domain`.
+    /// Throws if the domain has no manager or the system cannot provide the directory.
+    static func contentsDirectory(for domain: NSFileProviderDomain) throws -> URL {
+        guard let manager = NSFileProviderManager(for: domain) else {
+            throw CocoaError(.fileNoSuchFile)
+        }
+        return try manager.temporaryDirectoryURL()
     }
 
     static func temporaryFileURL() -> URL {

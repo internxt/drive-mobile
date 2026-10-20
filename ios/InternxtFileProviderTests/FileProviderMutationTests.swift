@@ -144,4 +144,50 @@ final class FileProviderMutationTests: XCTestCase {
     func testWhenTheTrashBackendReturnsTrueThenTheOutcomeDoesNotThrow() {
         XCTAssertNoThrow(try FileProviderMutationService.validateTrashOutcome(true))
     }
+
+    func testWhenAFileNameIsTakenThenTheNumberGoesBeforeTheExtension() {
+        let name = FileProviderMutationService.numberedName("report.pdf", kind: .file, index: 1)
+
+        XCTAssertEqual(name, "report (1).pdf")
+    }
+
+    func testWhenAFileWithoutExtensionIsTakenThenTheNumberGoesAtTheEnd() {
+        let name = FileProviderMutationService.numberedName("notes", kind: .file, index: 2)
+
+        XCTAssertEqual(name, "notes (2)")
+    }
+
+    func testWhenAFolderNameWithADotIsTakenThenTheNumberGoesAtTheEnd() {
+        let name = FileProviderMutationService.numberedName("v1.2", kind: .folder, index: 1)
+
+        XCTAssertEqual(name, "v1.2 (1)")
+    }
+
+    private func fileMeta(fileId: String?, size: String) throws -> GetFileMetaByIdResponseV2 {
+        let fileIdJSON = fileId.map { "\"\($0)\"" } ?? "null"
+        let json = """
+        {
+          "id": 1, "fileId": \(fileIdJSON), "folderId": 2, "name": "encrypted-name", "type": "txt",
+          "size": "\(size)", "bucket": "bucket-id", "userId": 3, "modificationTime": "2026-10-20T10:00:00.000Z",
+          "createdAt": "2026-10-20T10:00:00.000Z", "updatedAt": "2026-10-20T10:00:00.000Z",
+          "uuid": "file-uuid", "plainName": "notes", "status": "EXISTS", "folderUuid": "folder-uuid"
+        }
+        """
+        return try JSONDecoder().decode(GetFileMetaByIdResponseV2.self, from: Data(json.utf8))
+    }
+
+    func testWhenAnEmptyFileHasNoContentIdThenItIsListedWithItsNameAndZeroSize() throws {
+        let item = FileProviderItem(fileMeta: try fileMeta(fileId: nil, size: "0"), identifier: fileIdentifier)
+
+        XCTAssertEqual(item.filename, "notes.txt")
+        XCTAssertEqual(item.documentSize, 0)
+        XCTAssertEqual(item.contentType, .plainText)
+    }
+
+    func testWhenAFileHasContentThenItIsListedWithItsRealSize() throws {
+        let item = FileProviderItem(fileMeta: try fileMeta(fileId: "content-id", size: "2048"), identifier: fileIdentifier)
+
+        XCTAssertEqual(item.filename, "notes.txt")
+        XCTAssertEqual(item.documentSize, 2048)
+    }
 }
