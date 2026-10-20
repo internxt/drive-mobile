@@ -9,6 +9,8 @@ import FileProvider
 import InternxtSwiftCore
 
 enum FileProviderErrorMapper {
+    private static let minimumServerErrorStatusCode = 500
+
     private static let offlineURLErrorCodes: Set<URLError.Code> = [
         .notConnectedToInternet,
         .networkConnectionLost,
@@ -38,7 +40,26 @@ enum FileProviderErrorMapper {
         if isNameCollision(error) {
             return NSFileProviderError(.filenameCollision)
         }
+        if isServerError(error) {
+            return error
+        }
         return NSFileProviderError(.noSuchItem)
+    }
+
+    static func isServerError(_ error: Error) -> Bool {
+        if let enriched = error as? EnrichedError {
+            if enriched.code == .apiServerError {
+                return true
+            }
+            if let cause = enriched.cause {
+                return isServerError(cause)
+            }
+            return false
+        }
+        if let apiError = error as? APIClientError {
+            return apiError.statusCode >= minimumServerErrorStatusCode
+        }
+        return false
     }
 
     static func isNameCollision(_ error: Error) -> Bool {
