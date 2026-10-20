@@ -10,9 +10,11 @@ import InternxtSwiftCore
 import UniformTypeIdentifiers
 
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
+    private let domain: NSFileProviderDomain
     private let rootDisplayName: String
 
     required init(domain: NSFileProviderDomain) {
+        self.domain = domain
         self.rootDisplayName = domain.displayName
         super.init()
     }
@@ -64,11 +66,22 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             return Progress()
         }
 
+        let contentsDirectory: URL
+        do {
+            contentsDirectory = try FileProviderDownloadService.contentsDirectory(for: domain)
+        } catch {
+            completionHandler(nil, nil, error)
+            return Progress()
+        }
+
         let downloadService = FileProviderDownloadService(driveAPI: driveAPI, networkFacade: networkFacade)
         let progress = Progress(totalUnitCount: 100)
         Task {
             do {
-                let result = try await downloadService.fetchContents(uuid: decoded.uuid) { fraction in
+                let result = try await downloadService.fetchContents(
+                    uuid: decoded.uuid,
+                    into: contentsDirectory
+                ) { fraction in
                     progress.completedUnitCount = Int64(fraction * 100)
                 }
                 let item = FileProviderItem(fileMeta: result.meta, identifier: itemIdentifier)
