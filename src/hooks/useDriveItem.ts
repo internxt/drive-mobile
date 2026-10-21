@@ -40,7 +40,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
   const isDownloading = props.status === DriveItemStatus.Downloading;
   const onFolderPressed = () => {
     if (route.name === 'Home') {
-      navigation.navigate('Drive' as any, { sharedFolderId: props.data.parentId as number });
+      navigation.navigate('Drive' as any);
     }
   };
 
@@ -67,7 +67,6 @@ const useDriveItem = (props: UseDriveItemProps) => {
         folderUuid: props.data.folderUuid ?? undefined,
         bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
-        parentId: props.data.parentId as number,
         size: props.data.size,
         updatedAt: props.data.updatedAt,
         isFolder: props.data.isFolder,
@@ -112,7 +111,6 @@ const useDriveItem = (props: UseDriveItemProps) => {
         folderUuid: props.data.folderUuid ?? undefined,
         bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
-        parentId: props.data.parentId as number,
         size: props.data.size,
         updatedAt: props.data.updatedAt,
         isFolder: props.data.isFolder,

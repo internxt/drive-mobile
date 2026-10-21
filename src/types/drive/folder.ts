@@ -1,10 +1,49 @@
-import type { DriveFolderData } from '@internxt/sdk/dist/drive/storage/types';
-export type {
-  DriveFolderData,
-  FetchFolderContentResponse,
-  FetchTrashContentResponse,
-  SearchResult,
+import type {
+  CreateFolderResponse as SdkCreateFolderResponse,
+  DriveFolderData as SdkDriveFolderData,
+  FetchFolderContentResponse as SdkFetchFolderContentResponse,
+  FetchPaginatedFolder as SdkFetchPaginatedFolder,
+  FetchPaginatedFoldersContent as SdkFetchPaginatedFoldersContent,
+  FetchTrashContentResponse as SdkFetchTrashContentResponse,
+  FolderAncestor as SdkFolderAncestor,
+  FolderChild as SdkFolderChild,
+  FolderMeta as SdkFolderMeta,
 } from '@internxt/sdk/dist/drive/storage/types';
+import { WithoutDeprecatedItemFields } from './deprecatedFields';
+import { DriveFileData } from './file';
+export type { SearchResult } from '@internxt/sdk/dist/drive/storage/types';
+
+export type DriveFolderData = WithoutDeprecatedItemFields<SdkDriveFolderData>;
+
+export type FolderChild = WithoutDeprecatedItemFields<SdkFolderChild>;
+
+export type FetchFolderContentResponse = Omit<
+  WithoutDeprecatedItemFields<SdkFetchFolderContentResponse>,
+  'children' | 'files'
+> & {
+  children: FolderChild[];
+  files: DriveFileData[];
+};
+
+export type FetchPaginatedFolder = WithoutDeprecatedItemFields<SdkFetchPaginatedFolder>;
+
+export type FetchPaginatedFoldersContent = Omit<SdkFetchPaginatedFoldersContent, 'folders'> & {
+  folders: FetchPaginatedFolder[];
+};
+
+export type FetchTrashContentResponse = {
+  result: WithoutDeprecatedItemFields<SdkFetchTrashContentResponse['result'][number]>[];
+};
+
+export type CreateFolderResponse = WithoutDeprecatedItemFields<SdkCreateFolderResponse>;
+
+export type FolderMeta = WithoutDeprecatedItemFields<SdkFolderMeta>;
+
+export type FolderAncestor = WithoutDeprecatedItemFields<SdkFolderAncestor> & { parentUuid?: string | null };
+
+export type CheckDuplicatedFoldersResponse = {
+  existentFolders: DriveFolderData[];
+};
 
 /**
  * Base type for a Drive folder
@@ -21,16 +60,14 @@ export type DriveFolder = DriveFolderData & {
  */
 export type DriveFolderForTree = Pick<
   DriveFolder,
-  'uuid' | 'parentId' | 'parentUuid' | 'name' | 'plainName' | 'updatedAt' | 'createdAt' | 'isFolder'
->;
+  'uuid' | 'parentUuid' | 'plainName' | 'updatedAt' | 'createdAt' | 'isFolder'
+> & { name: string };
 
 /**
  * Response from modified folders endpoint
  */
 export interface ModifiedFolder {
   type: string;
-  parentId: number;
-  name: string;
   parent: null;
   bucket: null;
   userId: number;

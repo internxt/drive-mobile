@@ -1,10 +1,25 @@
-import type { DriveFileData as SdkDriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import type {
+  FetchPaginatedFile as SdkFetchPaginatedFile,
+  FetchPaginatedFilesContent as SdkFetchPaginatedFilesContent,
+  DriveFileData as SdkDriveFileData,
+  FileMeta as SdkFileMeta,
+} from '@internxt/sdk/dist/drive/storage/types';
+import { WithoutDeprecatedItemFields } from './deprecatedFields';
 export { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
-export type { FileEntryByUuid, FileMeta, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+export type { FileEntryByUuid, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 
-// TODO: Remove this type when the SDK is updated to include it
-export type DriveFileData = SdkDriveFileData & {
-  isFavorite?: boolean;
+export type DriveFileData = WithoutDeprecatedItemFields<SdkDriveFileData>;
+
+export type FileMeta = WithoutDeprecatedItemFields<SdkFileMeta>;
+
+export type FetchPaginatedFile = WithoutDeprecatedItemFields<SdkFetchPaginatedFile>;
+
+export type FetchPaginatedFilesContent = Omit<SdkFetchPaginatedFilesContent, 'files'> & {
+  files: FetchPaginatedFile[];
+};
+
+export type CheckDuplicatedFilesResponse = {
+  existentFiles: DriveFileData[];
 };
 
 /**
@@ -25,18 +40,16 @@ export type DriveFileForTree = Pick<
   DriveFile,
   | 'uuid'
   | 'fileId'
-  | 'name'
   | 'plainName'
   | 'type'
   | 'size'
   | 'bucket'
-  | 'folderId'
   | 'folderUuid'
   | 'updatedAt'
   | 'createdAt'
   | 'isFolder'
   | 'thumbnails'
->;
+> & { name: string };
 
 /**
  * File from recent files list
@@ -44,6 +57,13 @@ export type DriveFileForTree = Pick<
  */
 export type RecentFile = DriveFile & {
   plainName: string;
+};
+
+/**
+ * Recent file as listed, with its name taken from plainName
+ */
+export type RecentListFile = RecentFile & {
+  name: string;
 };
 
 /**
@@ -61,11 +81,9 @@ export interface DownloadedThumbnail {
 export interface ModifiedFile {
   uuid: string;
   fileId: string;
-  name: string;
   type: string;
   size: string;
   bucket: string;
-  folderId: number;
   folder: null;
   folderUuid: string;
   encryptVersion: string;
