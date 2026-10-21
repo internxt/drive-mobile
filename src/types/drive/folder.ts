@@ -21,7 +21,7 @@ export type DriveFolder = DriveFolderData & {
  */
 export type DriveFolderForTree = Pick<
   DriveFolder,
-  'id' | 'uuid' | 'parentId' | 'parentUuid' | 'name' | 'plainName' | 'updatedAt' | 'createdAt' | 'isFolder'
+  'uuid' | 'parentId' | 'parentUuid' | 'name' | 'plainName' | 'updatedAt' | 'createdAt' | 'isFolder'
 >;
 
 /**
@@ -29,7 +29,6 @@ export type DriveFolderForTree = Pick<
  */
 export interface ModifiedFolder {
   type: string;
-  id: number;
   parentId: number;
   name: string;
   parent: null;
@@ -49,9 +48,7 @@ export interface ModifiedFolder {
  * Folder record stored in SQLite
  */
 export interface SqliteFolderRecord {
-  id: number;
   uuid: string;
-  parent_id: number;
   parent_uuid: string;
   name: string;
   updated_at: string;
@@ -62,7 +59,6 @@ export interface SqliteFolderRecord {
  * Navigation stack item representing a folder in the breadcrumb trail
  */
 export interface FolderNavigationItem {
-  id: number;
   parentId: number;
   name: string;
   updatedAt: string;

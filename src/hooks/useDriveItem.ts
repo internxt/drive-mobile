@@ -122,7 +122,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     if (props.isSharedLinkItem && props.shareLink) {
       dispatch(
         driveActions.setFocusedShareItem({
-          id: props.shareLink.id.toString(),
+          id: props.shareLink.uuid,
           //TODO: THIS NOT WORK WITH PUBLIC LINKS
           // hashedPassword: props.shareLink.hashed_password || undefined,
           views: 0,

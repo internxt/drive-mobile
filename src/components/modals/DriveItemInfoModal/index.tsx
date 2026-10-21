@@ -89,18 +89,17 @@ function DriveItemInfoModal(): JSX.Element {
       ],
       { displayNotification: false },
     );
-    if (success && driveCtx.focusedFolder?.id) {
+    if (success && driveCtx.focusedFolder?.uuid) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
   };
   const handleTrashItem = async () => {
-    const dbItem = await driveLocalDB.getDriveItem(item.id);
+    const dbItem = await driveLocalDB.getDriveItem(item.uuid);
     dispatch(uiActions.setShowItemModal(false));
     const { success } = await driveUseCases.moveItemsToTrash(
       [
         {
-          dbItemId: dbItem?.id || item.id,
           uuid: item.uuid,
           type: isFolder ? 'folder' : 'file',
         },
@@ -116,8 +115,8 @@ function DriveItemInfoModal(): JSX.Element {
       }
     }
 
-    if (success && dbItem?.id) {
-      await driveLocalDB.deleteItem({ id: dbItem.id });
+    if (success && dbItem?.uuid) {
+      await driveLocalDB.deleteItem({ uuid: dbItem.uuid });
     }
     if (driveCtx.focusedFolder?.uuid) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
