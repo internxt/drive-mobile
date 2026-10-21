@@ -192,6 +192,6 @@
     "shell-quote": "^1.8.4",
     "postcss": "^8.5.23",
     "socket.io-client/engine.io-client/ws": "^8.21.0",
-    "axios": "1.18.1"
+    "axios": "1.20.0"
   }
 }
