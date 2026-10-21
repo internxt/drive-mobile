@@ -29,7 +29,7 @@ const LockedFeatureOverlay = ({
   const getColor = useGetColor();
 
   return (
-    <View style={[StyleSheet.absoluteFillObject, styles.backdrop]}>
+    <View style={[StyleSheet.absoluteFill, styles.backdrop]}>
       <View style={[styles.card, { backgroundColor: getColor('bg-surface'), borderColor: getColor('border-gray-10') }]}>
         <View
           style={[styles.iconTile, { backgroundColor: getColor('bg-gray-1'), borderColor: getColor('border-gray-10') }]}
