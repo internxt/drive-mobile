@@ -76,7 +76,7 @@ export interface ModifiedFile {
   createdAt: Date;
   updatedAt: string;
   plainName: string;
-  status: 'EXISTS' | 'TRASHED' | 'REMOVED';
+  status: 'EXISTS' | 'TRASHED' | 'DELETED';
 }
 
 /**
