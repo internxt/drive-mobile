@@ -25,9 +25,6 @@ export const toFileUri = (path: string): string => {
   return `${FILE_URI_PREFIX}${encodePathForUri(decodeUriSafely(absolutePath))}`;
 };
 
-export const stripFileUri = (path: string): string =>
-  path.startsWith(FILE_URI_PREFIX) ? decodeURIComponent(path.slice(FILE_URI_PREFIX.length)) : path;
-
 export const decodeUriSafely = (uri: string): string => {
   try {
     return decodeURIComponent(uri);
@@ -36,14 +33,16 @@ export const decodeUriSafely = (uri: string): string => {
   }
 };
 
+/**
+ * Converts a file:// URI to a filesystem path: strips the leading `file://` scheme and
+ * percent-decodes the rest. Malformed percent sequences are kept as-is instead of throwing.
+ */
+export const stripFileUri = (path: string): string =>
+  decodeUriSafely(path.startsWith(FILE_URI_PREFIX) ? path.slice(FILE_URI_PREFIX.length) : path);
+
 export const decodeFileUriSafely = (uri: string): string => {
   const isFileUriOrPath = uri.startsWith(FILE_URI_PREFIX) || !uri.includes('://');
   return isFileUriOrPath ? decodeUriSafely(uri) : uri;
 };
 
-/**
- * Converts a file:// URI to a filesystem path: strips the leading `file://` scheme and
- * percent-decodes the rest. Malformed percent sequences are kept as-is instead of throwing.
- */
-export const fileUriToPath = (uri: string): string =>
-  decodeUriSafely(uri.startsWith(FILE_URI_PREFIX) ? uri.slice(FILE_URI_PREFIX.length) : uri);
+export const fileUriToPath = stripFileUri;

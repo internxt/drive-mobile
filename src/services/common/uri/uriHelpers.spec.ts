@@ -119,6 +119,14 @@ describe('stripFileUri', () => {
   test('when path has URL-encoded characters, then they are decoded', () => {
     expect(stripFileUri('file:///var/tmp/my%20photo%20file.jpg')).toBe('/var/tmp/my photo file.jpg');
   });
+
+  test('when path has a malformed percent sequence, then it returns the undecoded path without the scheme', () => {
+    const malformedUri = 'file:///cache/100%discount.pdf';
+
+    const result = stripFileUri(malformedUri);
+
+    expect(result).toBe('/cache/100%discount.pdf');
+  });
 });
 
 describe('fileUriToPath', () => {
