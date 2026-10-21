@@ -100,7 +100,7 @@ const downloadFileThunk = createAsyncThunk<
     uuid: string;
     size: number;
     bucketId: string;
-    parentId: number;
+    folderUuid?: string;
     name: string;
     type: string;
     fileId: string;
@@ -111,7 +111,7 @@ const downloadFileThunk = createAsyncThunk<
 >(
   'drive/downloadFile',
   async (
-    { uuid, size, parentId, name, type, fileId, openFileViewer, updatedAt, bucketId },
+    { uuid, size, folderUuid, name, type, fileId, openFileViewer, updatedAt, bucketId },
     { signal, getState, dispatch, rejectWithValue },
   ) => {
     logger.info('Starting file download...');
@@ -141,7 +141,7 @@ const downloadFileThunk = createAsyncThunk<
             driveThunks.downloadFileThunk({
               uuid,
               size,
-              parentId,
+              folderUuid,
               bucketId,
               name,
               type,
@@ -206,7 +206,7 @@ const downloadFileThunk = createAsyncThunk<
       uuid: uuid,
       size: size,
       type: type,
-      parentId: parentId,
+      folderUuid: folderUuid,
     };
 
     const destinationPath = drive.file.getDecryptedFilePath(name, type);

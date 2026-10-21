@@ -4,7 +4,7 @@ export interface FileInfo {
   uuid: string;
   size: number;
   type: string;
-  parentId: number;
+  folderUuid?: string;
 }
 
 export class DownloadAnalytics {
@@ -15,7 +15,7 @@ export class DownloadAnalytics {
       file_uuid: fileInfo.uuid,
       size: fileInfo.size,
       type: fileInfo.type,
-      parent_folder_id: fileInfo.parentId,
+      parent_folder_uuid: fileInfo.folderUuid,
     });
   }
 
@@ -24,7 +24,7 @@ export class DownloadAnalytics {
       file_uuid: fileInfo.uuid,
       size: fileInfo.size,
       type: fileInfo.type,
-      parent_folder_id: fileInfo.parentId,
+      parent_folder_uuid: fileInfo.folderUuid,
     });
   }
 
@@ -33,7 +33,7 @@ export class DownloadAnalytics {
       file_uuid: fileInfo.uuid,
       size: fileInfo.size,
       type: fileInfo.type,
-      parent_folder_id: fileInfo.parentId,
+      parent_folder_uuid: fileInfo.folderUuid,
     });
   }
 }
