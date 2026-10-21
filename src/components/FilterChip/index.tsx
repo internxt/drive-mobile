@@ -12,6 +12,7 @@ interface FilterChipProps {
   disabled?: boolean;
   onPress?: () => void;
   onIconPress?: () => void;
+  onTrailingIconPress?: () => void;
   style?: StyleProp<ViewStyle>;
   testID?: string;
 }
@@ -28,6 +29,7 @@ const FilterChip = ({
   disabled,
   onPress,
   onIconPress,
+  onTrailingIconPress,
   style,
   testID,
 }: FilterChipProps): JSX.Element => {
@@ -66,8 +68,13 @@ const FilterChip = ({
         >
           {label}
         </AppText>
-        {TrailingIcon && <TrailingIcon size={ICON_SIZE} color={iconColor} />}
+        {TrailingIcon && !onTrailingIconPress && <TrailingIcon size={ICON_SIZE} color={iconColor} />}
       </TouchableOpacity>
+      {TrailingIcon && onTrailingIconPress && (
+        <TouchableOpacity onPress={onTrailingIconPress} disabled={disabled} hitSlop={HIT_SLOP}>
+          <TrailingIcon size={ICON_SIZE} color={iconColor} />
+        </TouchableOpacity>
+      )}
     </View>
   );
 };

@@ -1,6 +1,11 @@
 import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+export interface SentMessageNotice {
+  recipientsLabel: string;
+  revision: number;
+}
+
 export interface UIState {
   searchActive: boolean;
   fileViewMode: DriveListViewMode;
@@ -29,6 +34,9 @@ export interface UIState {
   fileSizeExceededMessage: string | null;
   showNotEnoughDeviceSpaceModal: boolean;
   isTabBarHidden: boolean;
+  isFloatingButtonHidden: boolean;
+  isComposeButtonCollapsed: boolean;
+  sentMessageNotice: SentMessageNotice | null;
 }
 
 const initialState: UIState = {
@@ -59,6 +67,9 @@ const initialState: UIState = {
   fileSizeExceededMessage: null,
   showNotEnoughDeviceSpaceModal: false,
   isTabBarHidden: false,
+  isFloatingButtonHidden: false,
+  isComposeButtonCollapsed: false,
+  sentMessageNotice: null,
 };
 
 export const uiSlice = createSlice({
@@ -143,6 +154,21 @@ export const uiSlice = createSlice({
     },
     setIsTabBarHidden: (state, action: PayloadAction<boolean>) => {
       state.isTabBarHidden = action.payload;
+    },
+    setIsFloatingButtonHidden: (state, action: PayloadAction<boolean>) => {
+      state.isFloatingButtonHidden = action.payload;
+    },
+    setIsComposeButtonCollapsed: (state, action: PayloadAction<boolean>) => {
+      state.isComposeButtonCollapsed = action.payload;
+    },
+    showSentMessageNotice: (state, action: PayloadAction<string>) => {
+      state.sentMessageNotice = {
+        recipientsLabel: action.payload,
+        revision: (state.sentMessageNotice?.revision ?? 0) + 1,
+      };
+    },
+    hideSentMessageNotice: (state) => {
+      state.sentMessageNotice = null;
     },
   },
 });

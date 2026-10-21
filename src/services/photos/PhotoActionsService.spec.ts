@@ -224,7 +224,7 @@ describe('trash', () => {
 
     await photoActionsService.trash([item], makeSignal());
 
-    expect(mockMoveToTrash).toHaveBeenCalledWith([{ id: 'remote-1', type: 'file', uuid: 'remote-1' }]);
+    expect(mockMoveToTrash).toHaveBeenCalledWith([{ type: 'file', uuid: 'remote-1' }]);
     expect(mockDB.deleteCloudAsset).toHaveBeenCalledWith('remote-1');
     expect(mockDB.markAssetDeleted).not.toHaveBeenCalled();
   });
@@ -235,7 +235,7 @@ describe('trash', () => {
 
     await photoActionsService.trash([item], makeSignal());
 
-    expect(mockMoveToTrash).toHaveBeenCalledWith([{ id: 'remote-abc', type: 'file', uuid: 'remote-abc' }]);
+    expect(mockMoveToTrash).toHaveBeenCalledWith([{ type: 'file', uuid: 'remote-abc' }]);
     expect(mockDB.markAssetDeleted).toHaveBeenCalledWith('local-1');
     expect(mockDB.deleteCloudAsset).toHaveBeenCalledWith('remote-abc');
   });

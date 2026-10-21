@@ -5,7 +5,6 @@ export type {
   FetchTrashContentResponse,
   SearchResult,
 } from '@internxt/sdk/dist/drive/storage/types';
-export type { DeleteItemsPermanentlyPayload } from '@internxt/sdk/dist/drive/trash/types';
 
 /**
  * Base type for a Drive folder

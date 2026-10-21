@@ -1,4 +1,5 @@
 import Portal from '@burstware/react-native-portal';
+import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/floatingButtonLayout';
 import { useHardwareBackPress } from '@internxt-mobile/hooks/common';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
@@ -419,6 +420,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             viewMode={driveCtx.viewMode}
             onDriveItemPress={handleDriveItemPress}
             onDriveItemActionsPress={handleDriveItemActionsPress}
+            contentContainerStyle={{ paddingBottom: FLOATING_BUTTON_CLEARANCE }}
           />
         )}
       </AppScreen>

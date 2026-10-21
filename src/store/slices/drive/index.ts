@@ -1,5 +1,5 @@
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
@@ -619,61 +619,73 @@ export const driveSelectors = {
       ? state.drive.navigationStack[0]
       : { id: state.auth.user?.rootFolderId ?? null, name: '', parentId: null, updatedAt: Date.now().toString() };
   },
-  driveItems(state: RootState): { uploading: DriveListItem[]; items: DriveListItem[] } {
-    const { folderContent, uploadingFiles, searchString, currentFolderId } = state.drive;
-    const bucket = state.auth.user?.bucket;
-
-    if (!bucket) {
-      if (!hasLoggedMissingBucket) {
-        hasLoggedMissingBucket = true;
-        logger.warn('[Drive] driveItems selector evaluated with no bucket, returning empty result');
+  driveItems: createSelector(
+    [
+      (state: RootState) => state.drive.folderContent,
+      (state: RootState) => state.drive.uploadingFiles,
+      (state: RootState) => state.drive.searchString,
+      (state: RootState) => state.drive.currentFolderId,
+      (state: RootState) => state.auth.user?.bucket,
+    ],
+    (
+      folderContent,
+      uploadingFiles,
+      searchString,
+      currentFolderId,
+      bucket,
+    ): { uploading: DriveListItem[]; items: DriveListItem[] } => {
+      if (!bucket) {
+        if (!hasLoggedMissingBucket) {
+          hasLoggedMissingBucket = true;
+          logger.warn('[Drive] driveItems selector evaluated with no bucket, returning empty result');
+        }
+        return { uploading: [], items: [] };
       }
-      return { uploading: [], items: [] };
-    }
-    hasLoggedMissingBucket = false;
-    let items = folderContent;
+      hasLoggedMissingBucket = false;
+      let items = folderContent;
 
-    if (searchString) {
-      items = items.filter((item) => item.name.toLowerCase().includes(searchString.toLowerCase()));
-    }
+      if (searchString) {
+        items = items.filter((item) => item.name.toLowerCase().includes(searchString.toLowerCase()));
+      }
 
-    items = items.slice().sort((a, b) => {
-      const aValue = a.fileId ? 1 : 0;
-      const bValue = b.fileId ? 1 : 0;
+      items = items.slice().sort((a, b) => {
+        const aValue = a.fileId ? 1 : 0;
+        const bValue = b.fileId ? 1 : 0;
 
-      return aValue - bValue;
-    });
+        return aValue - bValue;
+      });
 
-    return {
-      uploading: uploadingFiles.map<DriveListItem>((f) => ({
-        status: DriveItemStatus.Uploading,
-        progress: f.progress,
-        data: {
-          bucket: bucket,
-          folderId: currentFolderId,
-          // TODO: Organize Drive item types
-          thumbnails: [],
-          currentThumbnail: null,
-
-          isFolder: false,
-          ...f,
-        },
-        id: f.id.toString(),
-      })),
-      items: items.map<DriveListItem>((f) => {
-        const isFolder = checkIsFolder(f);
-
-        return {
-          status: DriveItemStatus.Idle,
+      return {
+        uploading: uploadingFiles.map<DriveListItem>((f) => ({
+          status: DriveItemStatus.Uploading,
+          progress: f.progress,
           data: {
+            bucket: bucket,
+            folderId: currentFolderId,
+            // TODO: Organize Drive item types
+            thumbnails: [],
+            currentThumbnail: null,
+
+            isFolder: false,
             ...f,
-            isFolder,
           },
           id: f.id.toString(),
-        };
-      }),
-    };
-  },
+        })),
+        items: items.map<DriveListItem>((f) => {
+          const isFolder = checkIsFolder(f);
+
+          return {
+            status: DriveItemStatus.Idle,
+            data: {
+              ...f,
+              isFolder,
+            },
+            id: f.id.toString(),
+          };
+        }),
+      };
+    },
+  ),
 };
 
 export const driveActions = driveSlice.actions;

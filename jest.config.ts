@@ -17,13 +17,24 @@ const untranspiledModulePatterns = [
   'react-native-blob-util',
   '@internxt/rn-crypto',
   '@internxt/lib',
+  'internxt-crypto',
   '@scure/bip39',
   '@scure/base',
   '@noble/hashes',
+  '@noble/curves',
+  '@noble/ciphers',
+  '@noble/post-quantum',
   'uuid',
   'p-limit',
   'yocto-queue',
   'mime',
+  'sanitize-html',
+  'htmlparser2',
+  'domhandler',
+  'domutils',
+  'dom-serializer',
+  'domelementtype',
+  'entities',
 ];
 
 const config: Config.InitialOptions = {
@@ -32,6 +43,9 @@ const config: Config.InitialOptions = {
   testRegex: ['\\.spec\\.ts$', '\\.spec\\.tsx$'],
   setupFiles: ['./jest.setup.ts'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  transform: {
+    '\\.mjs$': 'babel-jest',
+  },
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   moduleNameMapper: {

@@ -244,7 +244,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     const action = await waitForCollisionResolution(pickedName, existing.uuid, existing.id);
     if (action === null) return null;
     if (action === 'replace') {
-      await driveTrashService.moveToTrash([{ uuid: existing.uuid, id: existing.id, type: 'folder' }]);
+      await driveTrashService.moveToTrash([{ uuid: existing.uuid, type: 'folder' }]);
       return pickedName;
     }
     return getUniqueFolderName(pickedName, parentUuid);

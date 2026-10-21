@@ -23,9 +23,6 @@ const createMockUser = (overrides?: Partial<UserSettings>): UserSettings => ({
   backupsBucket: null,
   avatar: null,
   emailVerified: true,
-  privateKey: 'private-key',
-  publicKey: 'public-key',
-  revocationKey: 'revocation-key',
   appSumoDetails: null,
   keys: {
     ecc: { publicKey: 'ecc-public', privateKey: 'ecc-private' },

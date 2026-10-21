@@ -1,0 +1,40 @@
+import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
+import { createSelector } from '@reduxjs/toolkit';
+import { shallowEqual } from 'react-redux';
+
+import { MailboxId } from '../../../types/mail';
+import type { RootState } from '../../index';
+import { createInitialMailboxListState, emailsAdapter } from './initialState';
+import { sortNewestFirst } from './pagination';
+import { MailboxListState, MailState } from './types';
+
+const NOT_LOADED_MAILBOX_LIST: MailboxListState = { ...createInitialMailboxListState(), isLoadingFirstPage: true };
+
+export const selectMailboxList = (state: RootState, mailboxId: MailboxId): MailboxListState =>
+  state.mail.mailboxes[mailboxId] ?? NOT_LOADED_MAILBOX_LIST;
+
+const emailsSelectors = emailsAdapter.getSelectors((state: RootState) => state.mail.emails);
+
+/** Selects every email loaded, in any mailbox. */
+export const selectAllLoadedEmails = emailsSelectors.selectAll;
+
+export const selectLoadedEmails = (state: RootState, mailboxId: MailboxId): EmailSummaryResponse[] => {
+  const { entities } = state.mail.emails;
+  return selectMailboxList(state, mailboxId).emailIds.flatMap((emailId) => {
+    const email = entities[emailId];
+    return email ? [email] : [];
+  });
+};
+
+/**
+ * Creates a selector of the emails of one mailbox, newest first, that keeps returning the same array while
+ * those emails do not change, so a change to another mailbox does not render this one again.
+ *
+ * @returns The selector.
+ */
+export const makeSelectMailboxEmails = () =>
+  createSelector([selectLoadedEmails], sortNewestFirst, { memoizeOptions: { resultEqualityCheck: shallowEqual } });
+
+export const selectUnreadByMailbox = (state: RootState): MailState['unreadByMailbox'] => state.mail.unreadByMailbox;
+
+export const selectMailboxTypeById = (state: RootState): MailState['mailboxTypeById'] => state.mail.mailboxTypeById;

@@ -229,9 +229,7 @@ function MoveItemsModal(): JSX.Element {
     setNameCollisionOpen(false);
     try {
       if (action === 'replace' && existingCollisionFolder) {
-        await driveTrashService.moveToTrash([
-          { uuid: existingCollisionFolder.uuid, id: existingCollisionFolder.id, type: 'folder' },
-        ]);
+        await driveTrashService.moveToTrash([{ uuid: existingCollisionFolder.uuid, type: 'folder' }]);
       } else if (action === 'keep-both' && itemToMove?.uuid && destinationFolderContentResponse?.uuid) {
         const uniqueName = await getUniqueFolderName(collidingFolderName, destinationFolderContentResponse.uuid);
         await driveFolderService.updateMetaData(itemToMove.uuid as string, uniqueName);
