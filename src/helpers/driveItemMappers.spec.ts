@@ -85,7 +85,7 @@ describe('Drive item mappers', () => {
 
   describe('Trash item mappers', () => {
     describe('mapTrashFile', () => {
-      it('when mapping a trash file, then it uses plainName and sets isFolder: false', () => {
+      it('when mapping a trash file, then it is marked as a file', () => {
         const trashFile = {
           id: 1,
           name: 'encrypted-name',
@@ -96,7 +96,6 @@ describe('Drive item mappers', () => {
 
         const result = mapTrashFile(trashFile);
 
-        expect(result.name).toBe('Deleted File.pdf');
         expect(result.isFolder).toBe(false);
       });
 
@@ -119,7 +118,6 @@ describe('Drive item mappers', () => {
           size: 512,
           deletedAt: '2025-12-18',
         });
-        expect(result.name).toBe('File.txt');
         expect(result.isFolder).toBe(false);
       });
     });

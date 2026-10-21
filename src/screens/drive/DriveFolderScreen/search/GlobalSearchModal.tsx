@@ -108,7 +108,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
       const fileMeta = await storageService.getFileMetadata(fileUuid);
       const driveFileData = {
         status: 'idle' as const,
-        id: fileMeta.id.toString(),
+        id: fileMeta.uuid,
         data: {
           folderUuid: fileMeta.folderUuid,
           uuid: fileMeta.uuid,
@@ -117,15 +117,12 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           createdAt: fileMeta.createdAt,
           updatedAt: fileMeta.updatedAt,
           fileId: fileMeta.fileId,
-          folderId: fileMeta.folderId,
           bucket: fileMeta.bucket,
           type: fileMeta.type,
           isFolder: false,
           currentThumbnail: null,
-          id: fileMeta.id,
           // @ts-expect-error thumbnails missing in type in SDK
           thumbnails: fileMeta.thumbnails ?? [],
-          parentId: fileMeta.folderId,
         },
       };
       dispatch(
@@ -135,7 +132,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           uuid: driveFileData.data.uuid,
           folderUuid: driveFileData.data.folderUuid,
           shareId: undefined,
-          parentId: driveFileData.data.folderId,
           size: driveFileData.data.size,
           updatedAt: driveFileData.data.updatedAt,
           isFolder: driveFileData.data.isFolder,

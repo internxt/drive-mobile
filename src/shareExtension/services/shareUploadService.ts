@@ -9,6 +9,7 @@ import { Platform } from 'react-native';
 import ReactNativeBlobUtil, { FetchBlobResponse } from 'react-native-blob-util';
 import uuid from 'react-native-uuid';
 import packageJson from '../../../package.json';
+import { DriveFileData } from '../../types/drive/file';
 import {
   EmptyFileNotAllowedError,
   FileSizeExceededError,
@@ -186,10 +187,10 @@ const createFileEntry = async (
   fileName: string,
   bucket: string,
   folderUuid: string,
-) => {
+): Promise<DriveFileData> => {
   const now = new Date().toISOString();
   try {
-    return await ShareSdkManager.storageV2.createFileEntryByUuid({
+    return (await ShareSdkManager.storageV2.createFileEntryByUuid({
       fileId,
       type: fileExtension,
       size: fileSize,
@@ -199,7 +200,7 @@ const createFileEntry = async (
       encryptVersion: EncryptionVersion.Aes03,
       modificationTime: now,
       creationTime: now,
-    });
+    })) as DriveFileData;
   } catch (err) {
     if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
     throw err;

@@ -44,8 +44,7 @@ export const getDriveTrashItems = async ({
         status: DriveItemStatus.Idle,
         data: {
           ...trashItem,
-          folderId: trashItem.folderId,
-          name: trashItem.plainName ?? trashItem.name,
+          name: trashItem.plainName,
           updatedAt: new Date(trashItem.updatedAt).toISOString(),
           createdAt: new Date(trashItem.createdAt).toISOString(),
           isFolder,

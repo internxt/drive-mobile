@@ -1,5 +1,7 @@
-import { FileMeta, FolderMeta, SearchResultData } from '@internxt/sdk/dist/drive/storage/types';
+import { SearchResultData } from '@internxt/sdk/dist/drive/storage/types';
 import prettysize from 'prettysize';
+import { FileMeta } from '../types/drive/file';
+import { FolderAncestor, FolderMeta } from '../types/drive/folder';
 import { SdkManager } from './common';
 
 export const FREE_STORAGE = 1 * 1024 * 1024 * 1024; // 1GB
@@ -43,7 +45,7 @@ class StorageService {
     return this.sdk.storageV2.getFolderMeta(folderUuid);
   }
 
-  public async getFolderAncestors(folderUuid: string) {
+  public async getFolderAncestors(folderUuid: string): Promise<FolderAncestor[]> {
     return this.sdk.storageV2.getFolderAncestors(folderUuid);
   }
 }

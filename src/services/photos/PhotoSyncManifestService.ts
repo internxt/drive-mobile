@@ -178,7 +178,7 @@ class PhotoSyncManifestService {
       const syncFolderUuid = await photoBackupFolders.getOrCreateSyncFolder(deviceId);
       const folderContent = await driveFolderService.getFolderContentByUuid(syncFolderUuid);
       const manifestFile = folderContent.files.find(
-        (file) => (file.plainName ?? file.name) === MANIFEST_PLAIN_NAME && file.type === MANIFEST_TYPE,
+        (file) => file.plainName === MANIFEST_PLAIN_NAME && file.type === MANIFEST_TYPE,
       );
       if (!manifestFile?.fileId || !manifestFile.bucket) {
         logger.info(TAG, 'No manifest found for this device — skipping restore');

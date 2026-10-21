@@ -89,7 +89,7 @@ function MoveItemsModal(): JSX.Element {
             currentThumbnail: null,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
-            name: child?.plainName ?? child.name,
+            name: child.plainName,
             uuid: child.uuid,
             size: (child as DriveFileData).size,
             type: (child as DriveFileData).type,
@@ -142,7 +142,7 @@ function MoveItemsModal(): JSX.Element {
         isFolder,
         origin: {
           parentUuid: itemToMove.parentUuid ?? '',
-          name: originFolderContentResponse.plainName ?? '',
+          name: originFolderContentResponse.plainName,
           updatedAt: originFolderContentResponse.updatedAt,
           createdAt: originFolderContentResponse.createdAt,
           uuid: itemToMove.uuid as string,
@@ -272,7 +272,7 @@ function MoveItemsModal(): JSX.Element {
   };
   const getOriginFolderName = () => {
     return (
-      (originFolderContentResponse?.parentId
+      (originFolderContentResponse?.parentUuid
         ? originFolderContentResponse?.plainName
         : strings.generic.root_folder_name) ?? ''
     );

@@ -1,4 +1,4 @@
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { SharedFiles, SharedFolders } from './shared';
 import { DriveItemData, DriveItemStatus } from './item';
 
 /**

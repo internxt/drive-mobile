@@ -10,7 +10,7 @@ import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/f
 import useGetColor from '../../../hooks/useColor';
 
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
-import { DriveFileData } from '@internxt-mobile/types/drive/file';
+import { RecentListFile } from '@internxt-mobile/types/drive/file';
 import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import * as useCases from '@internxt-mobile/useCases/drive';
 import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
@@ -23,7 +23,7 @@ interface RecentsScreenProps {
   searchText?: string;
   isLoading: boolean;
   refreshRecentItems: () => void;
-  recentItems: DriveFileData[] | null;
+  recentItems: RecentListFile[] | null;
 }
 
 export function RecentsScreen({
