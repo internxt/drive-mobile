@@ -1,4 +1,4 @@
-import { FolderChild, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { DownloadedThumbnail } from './file';
 
 /**
@@ -81,23 +81,6 @@ export interface DriveListItem {
   };
   data: DriveItemData;
 }
-
-/**
- * Navigation stack type for folder breadcrumbs
- */
-export interface DriveNavigationStackItem {
-  parentId: number;
-  name: string;
-  item: DriveItemData;
-  updatedAt: string;
-}
-
-export type DriveNavigationStack = DriveNavigationStackItem[];
-
-/**
- * Folder content child item (from SDK)
- */
-export type FolderContentChild = FolderChild;
 
 /**
  * SQLite row representation of a drive item
