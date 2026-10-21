@@ -54,14 +54,3 @@ export interface SqliteFolderRecord {
   updated_at: string;
   date: string;
 }
-
-/**
- * Navigation stack item representing a folder in the breadcrumb trail
- */
-export interface FolderNavigationItem {
-  parentId: number;
-  name: string;
-  updatedAt: string;
-  uuid: string;
-  isFolder: true;
-}
