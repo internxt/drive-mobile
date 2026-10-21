@@ -38,11 +38,12 @@ const initialState: AuthState = {
   sessionPassword: undefined,
 };
 
-async function ensureRootFolderUuid(user: UserSettings): Promise<UserSettings> {
-  if (user.rootFolderUuid || !user.root_folder_id) return user;
-  const meta = await SdkManager.getInstance().storageV2.getFolderMetaById(user.root_folder_id);
-  return { ...user, rootFolderUuid: meta.uuid };
-}
+const ensureRootFolderUuid = (user: UserSettings): UserSettings => {
+  if (user.rootFolderUuid || !user.rootFolderId) {
+    return user;
+  }
+  return { ...user, rootFolderUuid: user.rootFolderId };
+};
 
 async function syncNativeCredentials(token: string, user: UserSettings): Promise<void> {
   if (!user.rootFolderUuid) {
@@ -143,7 +144,7 @@ export const signInThunk = createAsyncThunk<
     newToken: payload.newToken,
   });
 
-  const userToSave = await ensureRootFolderUuid(payload.user);
+  const userToSave = ensureRootFolderUuid(payload.user);
 
   await asyncStorageService.saveItem(AsyncStorageKey.Token, payload.token);
   await asyncStorageService.saveItem(AsyncStorageKey.PhotosToken, payload.newToken); // Photos access token
