@@ -292,7 +292,7 @@ describe('Taking an item out of a Drive folder before its next page arrives', ()
     const { result } = await renderDriveContext();
 
     act(() => {
-      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFile(3).id);
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFile(3).uuid);
     });
     await loadNextPage(result);
 
@@ -306,7 +306,7 @@ describe('Taking an item out of a Drive folder before its next page arrives', ()
     const { result } = await renderDriveContext();
 
     act(() => {
-      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFolder(3).id);
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFolder(3).uuid);
     });
     await loadNextPage(result);
 
@@ -344,5 +344,39 @@ describe('Focusing a Drive folder', () => {
     });
 
     expect(result.current.focusedFolder?.uuid).toBe(ROOT_FOLDER_UUID);
+  });
+});
+
+describe('Changing one item of a Drive folder that holds a file and a subfolder with the same number', () => {
+  const SHARED_ITEM_NUMBER = 3;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetFolderFolders.mockResolvedValue({ folders: [buildFolder(SHARED_ITEM_NUMBER)] });
+    mockGetFolderFiles.mockResolvedValue({ files: [buildFile(SHARED_ITEM_NUMBER)] });
+  });
+
+  test('when the file is moved away, then the subfolder stays in the folder', async () => {
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFile(SHARED_ITEM_NUMBER).uuid);
+    });
+
+    const rootFolder = result.current.driveFoldersTree[ROOT_FOLDER_UUID];
+    expect(rootFolder.files).toHaveLength(0);
+    expect(rootFolder.folders.map((folder) => folder.uuid)).toStrictEqual([buildFolder(SHARED_ITEM_NUMBER).uuid]);
+  });
+
+  test('when the file is renamed, then the subfolder keeps its name', async () => {
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.updateItemInTree(ROOT_FOLDER_UUID, buildFile(SHARED_ITEM_NUMBER).uuid, { plainName: 'renamed' });
+    });
+
+    const rootFolder = result.current.driveFoldersTree[ROOT_FOLDER_UUID];
+    expect(rootFolder.files[0].plainName).toBe('renamed');
+    expect(rootFolder.folders[0].plainName).toBe(buildFolder(SHARED_ITEM_NUMBER).plainName);
   });
 });

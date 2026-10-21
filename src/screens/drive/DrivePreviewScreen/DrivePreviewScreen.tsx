@@ -69,7 +69,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const updateItemWithNewThumbnail = (thumbnail: Thumbnail) => {
     if (!focusedItem?.folderUuid) return;
 
-    driveCtx.updateItemInTree(focusedItem.folderUuid, focusedItem.id, {
+    driveCtx.updateItemInTree(focusedItem.folderUuid, focusedItem.uuid, {
       thumbnails: [thumbnail],
     });
     dispatch(

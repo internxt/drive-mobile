@@ -23,7 +23,6 @@ export type DriveFile = DriveFileData & {
  */
 export type DriveFileForTree = Pick<
   DriveFile,
-  | 'id'
   | 'uuid'
   | 'fileId'
   | 'name'
@@ -60,7 +59,6 @@ export interface DownloadedThumbnail {
  * Response from modified files endpoint
  */
 export interface ModifiedFile {
-  id: number;
   uuid: string;
   fileId: string;
   name: string;

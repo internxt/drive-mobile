@@ -37,7 +37,6 @@ export interface UploadingFile {
   uri: string;
   name: string;
   type: string;
-  parentId: number;
   parentUuid: string;
   createdAt: string;
   updatedAt: string;
@@ -57,7 +56,7 @@ export interface UploadingFile {
  */
 export interface DownloadingFile {
   data: {
-    id: number;
+    uuid: string;
     fileId: string;
     name: string;
     type: string;
@@ -76,3 +75,4 @@ export interface DownloadingFile {
  * CONSTANTS
  */
 export const DRIVE_DB_NAME = 'drive.db';
+export const DRIVE_DB_SCHEMA_VERSION = 1;

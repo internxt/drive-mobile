@@ -47,7 +47,6 @@ const buildUploadingFile = (overrides: Partial<UploadingFile> = {}): UploadingFi
   uri: 'file:///tmp/file.txt',
   name: 'file.txt',
   type: 'txt',
-  parentId: 10,
   parentUuid: 'destination-folder-uuid',
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',

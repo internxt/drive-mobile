@@ -1,7 +1,7 @@
 import { AnalyticsService, DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 
 export interface FileInfo {
-  id: number;
+  uuid: string;
   size: number;
   type: string;
   parentId: number;
@@ -12,7 +12,7 @@ export class DownloadAnalytics {
 
   trackStart(fileInfo: FileInfo) {
     return this.analytics.track(DriveAnalyticsEvent.FileDownloadStarted, {
-      file_id: fileInfo.id,
+      file_uuid: fileInfo.uuid,
       size: fileInfo.size,
       type: fileInfo.type,
       parent_folder_id: fileInfo.parentId,
@@ -21,7 +21,7 @@ export class DownloadAnalytics {
 
   trackSuccess(fileInfo: FileInfo) {
     return this.analytics.track(DriveAnalyticsEvent.FileDownloadCompleted, {
-      file_id: fileInfo.id,
+      file_uuid: fileInfo.uuid,
       size: fileInfo.size,
       type: fileInfo.type,
       parent_folder_id: fileInfo.parentId,
@@ -30,7 +30,7 @@ export class DownloadAnalytics {
 
   trackError(fileInfo: FileInfo) {
     return this.analytics.track(DriveAnalyticsEvent.FileDownloadError, {
-      file_id: fileInfo.id,
+      file_uuid: fileInfo.uuid,
       size: fileInfo.size,
       type: fileInfo.type,
       parent_folder_id: fileInfo.parentId,
