@@ -68,6 +68,9 @@ export const DriveScreen = ({
     files,
     loading,
     loadingMore,
+    hasLoadError,
+    hasLoadMoreError,
+    isSessionExpired,
     searchQuery,
     setSearchQuery,
     viewMode,
@@ -76,6 +79,8 @@ export const DriveScreen = ({
     navigate,
     goBack,
     loadMore,
+    retryLoadMore,
+    refresh,
     createFolder,
   } = useFolderNavigation(rootFolderUuid);
   const [showNewFolderModal, setShowNewFolderModal] = useState(false);
@@ -190,6 +195,11 @@ export const DriveScreen = ({
           loading={loading}
           loadingMore={loadingMore}
           searchQuery={searchQuery}
+          hasLoadError={hasLoadError}
+          hasLoadMoreError={hasLoadMoreError}
+          isSessionExpired={isSessionExpired}
+          onRetry={refresh}
+          onRetryLoadMore={retryLoadMore}
           onNavigate={navigate}
           onLoadMore={loadMore}
         />
