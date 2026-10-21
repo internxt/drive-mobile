@@ -58,7 +58,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
         .then((thumbnail) => {
           if (isMounted) setDownloadedThumbnail(thumbnail);
         })
-        .catch(logger.error);
+        .catch((error) => logger.error(error));
     }
 
     return () => {
