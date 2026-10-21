@@ -139,7 +139,7 @@ export const deleteDriveItemsPermanently = async (items: DriveListItem[]): Promi
         size: item.data.size,
         type: item.data.type,
         file_id: item.data.fileId,
-        parent_folder_id: item.data.parentId,
+        parent_folder_uuid: item.data.isFolder ? item.data.parentUuid : item.data.folderUuid,
       });
     });
     return {

@@ -148,7 +148,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           ...driveFileData,
           bucketId: driveFileData.data.bucket as string,
           size: driveFileData.data.size as unknown as number,
-          parentId: driveFileData.data.parentId as number,
+          folderUuid: driveFileData.data.folderUuid ?? undefined,
           name: driveFileData.data.name ?? '',
           type: driveFileData.data.type as string,
           fileId: driveFileData.data.fileId as string,
