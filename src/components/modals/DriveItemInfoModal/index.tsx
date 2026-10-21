@@ -11,7 +11,6 @@ import notificationsService, { notifications } from '@internxt-mobile/services/N
 import { logger } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import drive from '@internxt-mobile/services/drive';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { notifyParentChanged } from '@internxt-mobile/services/native/InternxtSignalingModule';
 import { Abortable } from '@internxt-mobile/types/index';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
@@ -95,7 +94,6 @@ function DriveItemInfoModal(): JSX.Element {
     }
   };
   const handleTrashItem = async () => {
-    const dbItem = await driveLocalDB.getDriveItem(item.uuid);
     dispatch(uiActions.setShowItemModal(false));
     const { success } = await driveUseCases.moveItemsToTrash(
       [
@@ -115,9 +113,6 @@ function DriveItemInfoModal(): JSX.Element {
       }
     }
 
-    if (success && dbItem?.uuid) {
-      await driveLocalDB.deleteItem({ uuid: dbItem.uuid });
-    }
     if (driveCtx.focusedFolder?.uuid) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
