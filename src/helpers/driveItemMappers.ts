@@ -22,7 +22,6 @@ export const mapFolderWithIsFolder = <T extends object>(folder: T): T & { isFold
  */
 export const mapTrashFile = (file: TrashItem) => ({
   ...file,
-  name: file.plainName,
   isFolder: false,
 });
 

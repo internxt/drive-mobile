@@ -45,7 +45,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
         const folderData = {
           uuid: newFolder.uuid,
           parentUuid: newFolder.parentUuid,
-          name: newFolder.name,
+          name: newFolder.plainName,
           updatedAt: newFolder.updatedAt.toString(),
         };
 

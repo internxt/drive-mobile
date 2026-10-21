@@ -13,14 +13,12 @@ export interface DriveItemData {
   createdAt: string;
   isFolder: boolean;
   // File-specific fields (only present when isFolder = false)
-  folderId?: number;
   folderUuid?: string | null;
   fileId?: string | null;
   type?: string;
   size?: number | string;
   bucket?: string | null;
   // Folder-specific fields (only present when isFolder = true)
-  parentId?: number | null;
   parentUuid?: string;
   // Shared/Link fields
   code?: string;
@@ -38,14 +36,12 @@ export interface DriveItemData {
  */
 export type FocusedItem = {
   name: string;
-  parentId?: number;
   parentUuid?: string;
   folderUuid?: string;
   fileId?: string | null;
   type?: string;
   size?: string | number;
   updatedAt: string;
-  folderId?: number;
   code?: string;
   token?: string;
   shareId?: string;
