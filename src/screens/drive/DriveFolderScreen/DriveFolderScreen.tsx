@@ -180,7 +180,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         ...driveFile,
         bucketId: driveFile.data.bucket as string,
         size: driveFile.data.size as number,
-        parentId: driveFile.data.parentId as number,
+        folderUuid: driveFile.data.folderUuid ?? undefined,
         name: driveFile.data.name,
         type: driveFile.data.type as string,
         fileId: driveFile.data.fileId as string,

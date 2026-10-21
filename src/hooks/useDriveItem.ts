@@ -78,7 +78,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
         ...props.data,
         bucketId: props.data.bucket as string,
         size: props.data.size as number,
-        parentId: props.data.parentId as number,
+        folderUuid: props.data.folderUuid ?? undefined,
         name: props.data.name,
         type: props.data.type as string,
         fileId: props.data.fileId as string,
