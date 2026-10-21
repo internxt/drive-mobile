@@ -378,7 +378,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
       size: file.size,
       type: file.type,
       file_id: file.id,
-      parent_folder_id: file.parentId,
+      parent_folder_uuid: file.parentUuid,
     });
   }
 
@@ -758,7 +758,6 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
           id: new Date().getTime(),
           uuid: uuid.v4().toString(),
           name,
-          parentId: focusedFolder.id,
           parentUuid: focusedFolder.uuid,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),

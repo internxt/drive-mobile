@@ -18,7 +18,6 @@ import { mapFileWithIsFolder, mapFolderWithIsFolder } from 'src/helpers/driveIte
 export type DriveFoldersTreeNode = {
   name: string;
   parentId: string; //uuid of the parent folder
-  id: number;
   uuid: string; //uuid of current folder
   updatedAt: string;
   createdAt: string;
@@ -46,10 +45,10 @@ export interface DriveContextType {
   focusFolder: (folderUuid: string) => void;
   updateItemInTree: (
     folderId: string,
-    itemId: number,
+    itemUuid: string,
     updates: { name?: string; plainName?: string; thumbnails?: Thumbnail[] },
   ) => void;
-  removeItemFromTree: (folderId: string, itemId: number) => void;
+  removeItemFromTree: (folderId: string, itemUuid: string) => void;
   addItemToTree: (folderId: string, item: DriveItemData, isFolder: boolean) => void;
 }
 
@@ -99,7 +98,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const ROOT_FOLDER_NODE: DriveFoldersTreeNode = {
     name: 'Drive',
     parentId: '',
-    id: -1,
     uuid: rootFolderId as string,
     updatedAt: '',
     createdAt: '',
@@ -196,7 +194,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         parentId: folder.parentId,
         name: folder.name,
         uuid: folder.uuid,
-        id: folder.id,
         userId: folder.userId,
         status: folder.status,
       }),
@@ -219,7 +216,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       mapFileWithIsFolder({
         ...file,
         uuid: file.uuid,
-        id: file.id,
         fileId: file.fileId,
         plainName: file.plainName,
         type: file.type,
@@ -275,7 +271,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         mapFolderWithIsFolder({
           uuid: folder.uuid,
           plainName: folder.plainName || folder.plain_name || '',
-          id: folder.id,
           bucket: folder.bucket || null,
           createdAt: folder.createdAt,
           deleted: false,
@@ -299,7 +294,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           fileId: file.fileId,
           folderId: file.folderId || file.folder_id,
           folderUuid: folderId,
-          id: file.id,
           name: file.plainName || file.plain_name || file.name,
           size: typeof file.size === 'bigint' ? Number(file.size) : file.size,
           type: file.type,
@@ -464,7 +458,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
             uuid: folder.uuid,
             name: folder.plainName ?? '',
             parentId: folder.parentUuid,
-            id: folder.id,
             updatedAt: folder.updatedAt,
             createdAt: folder.createdAt,
             loading: true,
@@ -483,7 +476,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
   const updateItemInTree = (
     folderId: string,
-    itemId: number,
+    itemUuid: string,
     updates: { name?: string; plainName?: string; thumbnails?: Thumbnail[] },
   ) => {
     setDriveFoldersTree((prevTree) => {
@@ -496,23 +489,23 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         ...prevTree,
         [folderId]: {
           ...folder,
-          files: folder.files.map((file) => (file.id === itemId ? { ...file, ...updates } : file)),
+          files: folder.files.map((file) => (file.uuid === itemUuid ? { ...file, ...updates } : file)),
           folders: folder.folders.map((folderItem) =>
-            folderItem.id === itemId ? { ...folderItem, ...updates } : folderItem,
+            folderItem.uuid === itemUuid ? { ...folderItem, ...updates } : folderItem,
           ),
         },
       };
     });
   };
 
-  const removeItemFromTree = (folderId: string, itemId: number) => {
+  const removeItemFromTree = (folderId: string, itemUuid: string) => {
     setDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
       if (!folder) {
         return prevTree;
       }
-      const remainingFiles = folder.files.filter((file) => file.id !== itemId);
-      const remainingFolders = folder.folders.filter((folderItem) => folderItem.id !== itemId);
+      const remainingFiles = folder.files.filter((file) => file.uuid !== itemUuid);
+      const remainingFolders = folder.folders.filter((folderItem) => folderItem.uuid !== itemUuid);
       return {
         ...prevTree,
         [folderId]: {

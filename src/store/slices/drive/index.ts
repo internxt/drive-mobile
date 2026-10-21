@@ -136,7 +136,7 @@ const validateDownload = (size: number | undefined): number | null => {
 const downloadFileThunk = createAsyncThunk<
   void,
   {
-    id: number;
+    uuid: string;
     size: number;
     bucketId: string;
     parentId: number;
@@ -150,7 +150,7 @@ const downloadFileThunk = createAsyncThunk<
 >(
   'drive/downloadFile',
   async (
-    { id, size, parentId, name, type, fileId, openFileViewer, updatedAt, bucketId },
+    { uuid, size, parentId, name, type, fileId, openFileViewer, updatedAt, bucketId },
     { signal, getState, dispatch, rejectWithValue },
   ) => {
     logger.info('Starting file download...');
@@ -178,7 +178,7 @@ const downloadFileThunk = createAsyncThunk<
           dispatch(driveActions.clearDownloadingFile());
           dispatch(
             driveThunks.downloadFileThunk({
-              id,
+              uuid,
               size,
               parentId,
               bucketId,
@@ -242,7 +242,7 @@ const downloadFileThunk = createAsyncThunk<
     const analytics = new DownloadAnalytics(analyticsService);
 
     const fileInfo: FileInfo = {
-      id: id,
+      uuid: uuid,
       size: size,
       type: type,
       parentId: parentId,
@@ -336,7 +336,6 @@ export interface MoveItemThunkPayload {
   isFolder: boolean;
   origin: {
     name: string;
-    itemId: number | string;
     parentUuid: string;
     uuid: string;
     updatedAt: string;
@@ -355,7 +354,7 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
   async ({ isFolder, origin, destinationUuid, itemMovedAction, optimisticCallbacks }) => {
     try {
       await drive.database.deleteItem({
-        id: origin.itemId as number,
+        uuid: origin.uuid,
       });
 
       if (!isFolder) {
@@ -453,7 +452,7 @@ export const driveSlice = createSlice({
         state.selectedItems.filter((element) => {
           const elementIsFolder = !element.fileId;
 
-          return elementIsFolder ? action.payload.id === element.id : action.payload.fileId === element.fileId;
+          return elementIsFolder ? action.payload.uuid === element.uuid : action.payload.fileId === element.fileId;
         }).length > 0;
 
       state.selectedItems = isAlreadySelected ? state.selectedItems : [...state.selectedItems, action.payload];
@@ -462,7 +461,7 @@ export const driveSlice = createSlice({
       const itemsWithoutRemovedItem = state.selectedItems.filter((element) => {
         const elementIsFolder = !element.fileId;
 
-        return elementIsFolder ? action.payload.id !== element.id : action.payload.fileId !== element.fileId;
+        return elementIsFolder ? action.payload.uuid !== element.uuid : action.payload.fileId !== element.fileId;
       });
 
       state.selectedItems = itemsWithoutRemovedItem;
@@ -486,9 +485,9 @@ export const driveSlice = createSlice({
     setItemToMove(state, action: PayloadAction<DriveItemFocused | null>) {
       state.itemToMove = action.payload;
     },
-    popItem(state, action: PayloadAction<{ id: number; isFolder: boolean }>) {
+    popItem(state, action: PayloadAction<{ uuid: string; isFolder: boolean }>) {
       state.folderContent = state.folderContent.filter(
-        (item: DriveItemData) => item.id !== action.payload.id || !item.fileId !== action.payload.isFolder,
+        (item: DriveItemData) => item.uuid !== action.payload.uuid || !item.fileId !== action.payload.isFolder,
       );
     },
     pushToNavigationStack(state, action: PayloadAction<DriveNavigationStackItem>) {
@@ -680,7 +679,7 @@ export const driveSelectors = {
               ...f,
               isFolder,
             },
-            id: f.id.toString(),
+            id: f.uuid,
           };
         }),
       };

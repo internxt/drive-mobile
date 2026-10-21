@@ -1,7 +1,6 @@
-import { DriveFolderData } from '@internxt-mobile/types/drive/folder';
 import { SqliteFolderRecord } from '../../../types/drive/folder';
 import { DriveItemData, InsertSqliteDriveItemRowData, SqliteDriveItemRow } from '../../../types/drive/item';
-import { DRIVE_DB_NAME } from '../../../types/drive/operations';
+import { DRIVE_DB_NAME, DRIVE_DB_SCHEMA_VERSION } from '../../../types/drive/operations';
 import sqliteService from '../../SqliteService';
 import { driveLogger, DriveLogger } from '../logger';
 import driveItemTable from './tables/drive_item';
@@ -19,15 +18,28 @@ class DriveLocalDB {
   public async init(): Promise<void> {
     await sqliteService.open(DRIVE_DB_NAME);
 
+    const schemaVersionRow = await sqliteService.getFirstAsync<{ user_version: number }>(
+      DRIVE_DB_NAME,
+      'PRAGMA user_version;',
+    );
+    const isSchemaOutdated = (schemaVersionRow?.user_version ?? 0) < DRIVE_DB_SCHEMA_VERSION;
+    if (isSchemaOutdated) {
+      await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.dropTable);
+      await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.dropTable);
+    }
+
     await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.createTable);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.createTable);
+
+    if (isSchemaOutdated) {
+      await sqliteService.executeSql(DRIVE_DB_NAME, `PRAGMA user_version = ${DRIVE_DB_SCHEMA_VERSION};`);
+    }
   }
 
-  public async getDriveItems(parentId: number): Promise<DriveItemData[]> {
-    const rows = await sqliteService.getAllAsync<SqliteDriveItemRow>(
-      DRIVE_DB_NAME,
-      driveItemTable.statements.get({ parentId }),
-    );
+  public async getDriveItems(parentUuid: string): Promise<DriveItemData[]> {
+    const rows = await sqliteService.getAllAsync<SqliteDriveItemRow>(DRIVE_DB_NAME, driveItemTable.statements.get, [
+      parentUuid,
+    ]);
     const results: DriveItemData[] = [];
 
     for (const row of rows) {
@@ -37,22 +49,20 @@ class DriveLocalDB {
     return results;
   }
 
-  public async getDriveItem(id: number): Promise<DriveItemData | null> {
-    const row = await sqliteService.getFirstAsync<SqliteDriveItemRow>(
-      DRIVE_DB_NAME,
-      driveItemTable.statements.getOne,
-      [id],
-    );
+  public async getDriveItem(uuid: string): Promise<DriveItemData | null> {
+    const row = await sqliteService.getFirstAsync<SqliteDriveItemRow>(DRIVE_DB_NAME, driveItemTable.statements.getOne, [
+      uuid,
+    ]);
 
     if (!row) return null;
     return this.mapDriveItemRowToModel(row);
   }
 
-  public async getFolderRecord(folderId: number): Promise<SqliteFolderRecord | null> {
+  public async getFolderRecord(folderUuid: string): Promise<SqliteFolderRecord | null> {
     const row = await sqliteService.getFirstAsync<SqliteFolderRecord>(
       DRIVE_DB_NAME,
-      folderRecordTable.statements.getById,
-      [folderId],
+      folderRecordTable.statements.getByUuid,
+      [folderUuid],
     );
 
     return row;
@@ -60,22 +70,18 @@ class DriveLocalDB {
 
   public async saveFolderContent(
     folderRecordData: {
-      id: number;
       uuid: string;
-      parentId: number;
       parentUuid: string;
       name: string;
       updatedAt: string;
     },
     items: DriveItemData[],
   ) {
-    const { id, uuid, parentId, parentUuid, name, updatedAt } = folderRecordData;
-    await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [id]);
-    await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [id]);
+    const { uuid, parentUuid, name, updatedAt } = folderRecordData;
+    await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteByUuid, [uuid]);
+    await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [uuid]);
     await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.insert, [
-      id,
-      uuid ?? '',
-      parentId,
+      uuid,
       parentUuid ?? '',
       name,
       updatedAt,
@@ -87,14 +93,13 @@ class DriveLocalDB {
   public async saveItems(items: DriveItemData[]) {
     // TODO: Should move this to some kind of UPSERT but SQlite is really tricky for that
     for (const item of items) {
-      await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [item.id]);
+      await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [item.uuid]);
     }
     await sqliteService.transaction(DRIVE_DB_NAME, async (tx) => {
       if (items.length > 0) {
         const rows = items.map<InsertSqliteDriveItemRowData>((item) => {
           return {
-            id: item.id,
-            uuid: item.uuid ?? '',
+            uuid: item.uuid,
             bucket: item.bucket,
             // color: item.color,
             // encrypt_version: item.encrypt_version,
@@ -106,7 +111,6 @@ class DriveLocalDB {
             file_id: item.fileId,
             // SQlite way to insert double quotes
             name: item.name.toString().replace(/"/g, '\\""'),
-            parent_id: item.parentId ?? item.folderId,
             parent_uuid: item.parentUuid ?? '',
             folder_uuid: item.folderUuid ?? '',
             size: item.size,
@@ -119,29 +123,29 @@ class DriveLocalDB {
     });
   }
 
-  public async deleteFolderContent(folderId: number) {
-    return sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [folderId]);
+  public async deleteFolderContent(folderUuid: string) {
+    return sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteFolderContent, [folderUuid]);
   }
 
-  public deleteFolderRecord(folderId: number) {
-    return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteById, [folderId]);
+  public deleteFolderRecord(folderUuid: string) {
+    return sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.deleteByUuid, [folderUuid]);
   }
 
-  public async deleteItem({ id }: { id: number }) {
-    const remove = await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [id]);
+  public async deleteItem({ uuid }: { uuid: string }) {
+    const remove = await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.deleteItem, [uuid]);
 
     return remove;
   }
 
-  public async updateItemName(itemId: number, newName: string) {
-    await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.updateItem, [newName, itemId]);
-    await this.updateFolderName(itemId, newName);
+  public async updateItemName(itemUuid: string, newName: string) {
+    await sqliteService.executeSql(DRIVE_DB_NAME, driveItemTable.statements.updateItem, [newName, itemUuid]);
+    await this.updateFolderName(itemUuid, newName);
   }
 
-  public async updateFolderName(folderId: number, newName: string) {
+  public async updateFolderName(folderUuid: string, newName: string) {
     const result = await sqliteService.executeSql(DRIVE_DB_NAME, folderRecordTable.statements.updateItem, [
       newName,
-      folderId,
+      folderUuid,
     ]);
 
     return result;
@@ -160,8 +164,7 @@ class DriveLocalDB {
     let result;
 
     if (row.is_folder) {
-      const folder: DriveFolderData = {
-        id: row.id,
+      const folder = {
         bucket: row.bucket,
         color: row.color,
         name: row.name,
@@ -172,19 +175,16 @@ class DriveLocalDB {
         icon: row.icon,
         iconId: row.icon_id,
         icon_id: row.icon_id,
-        parentId: row.parent_id,
-        parent_id: row.parent_id,
         user_id: row.user_id,
         plain_name: row.name,
         deleted: false,
         // TODO: add to database
         parentUuid: row.parent_uuid ?? '',
-        uuid: row.uuid ?? '',
+        uuid: row.uuid,
       };
       result = folder;
     } else {
       const file = {
-        id: row.id,
         bucket: row.bucket as string,
         createdAt: row.created_at,
         created_at: row.created_at,
@@ -192,8 +192,6 @@ class DriveLocalDB {
         deletedAt: null,
         encrypt_version: row.encrypt_version as string,
         fileId: row.file_id as string,
-        folderId: row.parent_id as number,
-        folder_id: row.parent_id as number,
         name: row.name,
         size: row.size as number,
         type: row.type ?? '',
@@ -206,7 +204,7 @@ class DriveLocalDB {
         status: 'EXISTS',
         // TODO: add to database
         folderUuid: row.folder_uuid ?? row.parent_uuid ?? '',
-        uuid: row.uuid ?? '',
+        uuid: row.uuid,
         isFolder: false,
       };
       result = file;

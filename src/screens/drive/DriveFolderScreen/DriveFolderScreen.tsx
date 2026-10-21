@@ -60,7 +60,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     const files = folderFiles.map((file) => {
       return {
         status: DriveItemStatus.Idle,
-        id: file.id.toString(),
+        id: file.uuid,
         data: {
           folderUuid: file.folderUuid,
           uuid: file.uuid,
@@ -74,7 +74,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
           type: file.type,
           isFolder: false,
           currentThumbnail: null,
-          id: file.id,
           thumbnails: file.thumbnails,
         },
       } as DriveListItem;
@@ -83,18 +82,16 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     const folders = folderFolders.map((folder) => {
       const driveListItem: DriveListItem = {
         status: DriveItemStatus.Idle,
-        id: folder.id.toString(),
+        id: folder.uuid,
         data: {
           uuid: folder.uuid,
           parentUuid: folder.parentUuid,
           name: folder.plainName,
           createdAt: folder.createdAt,
           updatedAt: folder.updatedAt,
-          folderId: folder.id,
           parentId: folder.parentId,
           isFolder: true,
           currentThumbnail: null,
-          id: folder.id,
           thumbnails: [],
         },
       };
@@ -188,7 +185,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         type: driveFile.data.type as string,
         fileId: driveFile.data.fileId as string,
         updatedAt: new Date(driveFile.data.updatedAt).toISOString(),
-        id: driveFile.data.id,
+        uuid: driveFile.data.uuid,
         openFileViewer: false,
       }),
     );
@@ -208,7 +205,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       dispatch(
         driveActions.setFocusedItem({
           ...driveItem.data,
-          id: driveItem.data.id,
           uuid: driveItem.data.uuid ?? undefined,
           folderUuid: driveItem.data.folderUuid ?? undefined,
           shareId: driveItem.data.shareId,
@@ -251,7 +247,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     dispatch(
       driveActions.setFocusedItem({
         ...driveItem.data,
-        id: driveItem.data.id,
         folderUuid: driveItem.data.folderUuid ?? undefined,
         shareId: driveItem.data.shareId,
         parentId: driveItem.data.parentId as number,
@@ -287,7 +282,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
     dispatch(
       driveActions.setFocusedItem({
-        id: focusedFolder.id,
         uuid: focusedFolder.uuid,
         parentUuid: focusedFolder.parentId,
         updatedAt: focusedFolder.updatedAt,

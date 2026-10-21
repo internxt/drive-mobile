@@ -55,7 +55,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           updatedAt: undefined,
           isFolder: isFolder,
           type: isFolder ? undefined : result.item.type,
-          id: result.id,
           fileId: isFolder ? undefined : result.item.fileId,
           bucket: isFolder ? undefined : result.item.bucket,
           currentThumbnail: null,
@@ -133,7 +132,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
         driveActions.setFocusedItem({
           ...driveFileData.data,
           name: driveFileData.data.name ?? '',
-          id: driveFileData.data.id,
           uuid: driveFileData.data.uuid,
           folderUuid: driveFileData.data.folderUuid,
           shareId: undefined,
@@ -155,7 +153,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           type: driveFileData.data.type as string,
           fileId: driveFileData.data.fileId as string,
           updatedAt: new Date(driveFileData.data.updatedAt).toISOString(),
-          id: driveFileData.data.id,
+          uuid: driveFileData.data.uuid,
           openFileViewer: false,
         }),
       );

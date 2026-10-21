@@ -74,7 +74,7 @@ export function RecentsScreen({
       return recentsToRender.map((item) => {
         return (
           <DriveItem
-            key={item.id}
+            key={item.uuid}
             status={DriveItemStatus.Idle}
             type={DriveListType.Drive}
             viewMode={DriveListViewMode.List}
