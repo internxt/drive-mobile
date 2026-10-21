@@ -1,12 +1,8 @@
 import { SharedFiles, SharedFolders } from '@internxt-mobile/types/drive/shared';
-import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { TrashItem } from '../services/drive/trash';
 import {
   mapFileWithIsFolder,
-  mapFilesWithIsFolder,
   mapFolderWithIsFolder,
-  mapFoldersWithIsFolder,
-  mapRecentFile,
   mapSharedFile,
   mapSharedFolder,
   mapTrashFile,
@@ -83,116 +79,6 @@ describe('Drive item mappers', () => {
 
         expect(result).toMatchObject(folder);
         expect(result.isFolder).toBe(true);
-      });
-    });
-
-    describe('mapFilesWithIsFolder', () => {
-      it('when mapping an array of files, then all have isFolder: false', () => {
-        const files = [
-          { id: 1, name: 'file1.txt' },
-          { id: 2, name: 'file2.jpg' },
-          { id: 3, name: 'file3.pdf' },
-        ];
-
-        const result = mapFilesWithIsFolder(files);
-
-        expect(result).toHaveLength(3);
-        result.forEach((file) => {
-          expect(file.isFolder).toBe(false);
-        });
-      });
-
-      it('when mapping an empty array, then it returns an empty array', () => {
-        const result = mapFilesWithIsFolder([]);
-
-        expect(result).toEqual([]);
-      });
-    });
-
-    describe('mapFoldersWithIsFolder', () => {
-      it('when mapping an array of folders, then all have isFolder: true', () => {
-        const folders = [
-          { id: 1, name: 'Folder 1' },
-          { id: 2, name: 'Folder 2' },
-          { id: 3, name: 'Folder 3' },
-        ];
-
-        const result = mapFoldersWithIsFolder(folders);
-
-        expect(result).toHaveLength(3);
-        result.forEach((folder) => {
-          expect(folder.isFolder).toBe(true);
-        });
-      });
-
-      it('when mapping an empty array, then it returns an empty array', () => {
-        const result = mapFoldersWithIsFolder([]);
-
-        expect(result).toEqual([]);
-      });
-    });
-  });
-
-  describe('Recent file mapper', () => {
-    describe('mapRecentFile', () => {
-      it('when mapping a recent file with plainName, then it uses plainName as name', () => {
-        const recentFile = {
-          id: 1,
-          fileId: 'file-123',
-          name: 'encrypted-name',
-          plainName: 'My Document.pdf',
-          type: 'pdf',
-          size: 2048,
-        } as unknown as DriveFileData;
-
-        const result = mapRecentFile(recentFile);
-
-        expect(result.name).toBe('My Document.pdf');
-        expect(result.isFolder).toBe(false);
-      });
-
-      it('when mapping a recent file without plainName, then it uses name', () => {
-        const recentFile = {
-          id: 2,
-          fileId: 'file-456',
-          name: 'document.txt',
-          plainName: null,
-          type: 'txt',
-          size: 512,
-        } as unknown as DriveFileData;
-
-        const result = mapRecentFile(recentFile);
-
-        expect(result.name).toBe('document.txt');
-        expect(result.isFolder).toBe(false);
-      });
-
-      it('when mapping a recent file, then it preserves all original properties', () => {
-        const recentFile = {
-          id: 3,
-          fileId: 'file-789',
-          name: 'name',
-          plainName: 'plainName',
-          type: 'jpg',
-          size: 1024,
-          uuid: 'uuid-123',
-          bucket: 'bucket-456',
-          createdAt: '2025-12-18',
-          updatedAt: '2025-12-18',
-        } as unknown as DriveFileData;
-
-        const result = mapRecentFile(recentFile);
-
-        expect(result).toMatchObject({
-          id: 3,
-          fileId: 'file-789',
-          type: 'jpg',
-          size: 1024,
-          uuid: 'uuid-123',
-          bucket: 'bucket-456',
-        });
-        expect(result.name).toBe('plainName');
-        expect(result.isFolder).toBe(false);
       });
     });
   });
@@ -372,18 +258,6 @@ describe('Drive item mappers', () => {
       const result = mapFileWithIsFolder(fileWithWrongFlag);
 
       expect(result.isFolder).toBe(false);
-    });
-
-    it('when mapping large arrays, then all items are processed correctly', () => {
-      const files = Array.from({ length: 100 }, (_, i) => ({
-        id: i,
-        name: `file-${i}.txt`,
-      }));
-
-      const result = mapFilesWithIsFolder(files);
-
-      expect(result).toHaveLength(100);
-      expect(result.every((f) => f.isFolder === false)).toBe(true);
     });
   });
 

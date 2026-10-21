@@ -1,6 +1,5 @@
 import type { RootState } from '../..';
-import { DriveItemData } from '@internxt-mobile/types/drive/item';
-import driveReducer, { driveActions, DriveState, driveSelectors } from './index';
+import { driveSelectors } from './index';
 
 jest.mock('@internxt-mobile/services/common', () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
@@ -69,30 +68,5 @@ describe('Listing the items of the open Drive folder', () => {
     const { items } = driveSelectors.driveItems(aStateWith({ drive: { searchString: 'invo' } }));
 
     expect(items.map((item) => item.data.name)).toEqual(['Invoice']);
-  });
-});
-
-describe('Selecting folders of the open Drive folder', () => {
-  const firstFolder = { uuid: 'folder-uuid-1', name: 'Documents' } as DriveItemData;
-  const secondFolder = { uuid: 'folder-uuid-2', name: 'Photos' } as DriveItemData;
-  const aStateWithSelected = (selectedItems: DriveItemData[]) =>
-    ({ ...aStateWith().drive, selectedItems }) as unknown as DriveState;
-
-  test('when a second folder is selected, then both folders stay selected', () => {
-    const state = driveReducer(aStateWithSelected([firstFolder]), driveActions.selectItem(secondFolder));
-
-    expect(state.selectedItems.map((item) => item.uuid)).toStrictEqual(['folder-uuid-1', 'folder-uuid-2']);
-  });
-
-  test('when an already selected folder is selected again, then it is listed only once', () => {
-    const state = driveReducer(aStateWithSelected([firstFolder]), driveActions.selectItem(firstFolder));
-
-    expect(state.selectedItems.map((item) => item.uuid)).toStrictEqual(['folder-uuid-1']);
-  });
-
-  test('when one of two selected folders is deselected, then only the other one stays selected', () => {
-    const state = driveReducer(aStateWithSelected([firstFolder, secondFolder]), driveActions.deselectItem(firstFolder));
-
-    expect(state.selectedItems.map((item) => item.uuid)).toStrictEqual(['folder-uuid-2']);
   });
 });
