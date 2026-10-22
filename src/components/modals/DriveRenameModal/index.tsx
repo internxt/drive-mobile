@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Keyboard, View } from 'react-native';
 
 import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
@@ -35,6 +35,8 @@ function RenameModal(): JSX.Element {
 
   const onRenameButtonPressed = async () => {
     if (!focusedItem || !user || !driveCtx.focusedFolder) return;
+
+    Keyboard.dismiss();
 
     const originalName = focusedItem.name;
     const trimmedNewName = newName.trim();
@@ -118,7 +120,13 @@ function RenameModal(): JSX.Element {
 
   return (
     <Portal>
-      <CenterModal backdropPressToClose={false} isOpen={showRenameModal} onClosed={onClosed} onOpened={onOpened}>
+      <CenterModal
+        backdropPressToClose={false}
+        backButtonClose={!isLoading}
+        isOpen={showRenameModal}
+        onClosed={onClosed}
+        onOpened={onOpened}
+      >
         <View style={tailwind('flex-grow px-4 py-4')}>
           <AppText medium style={[tailwind('mb-4 text-xl'), { color: getColor('text-gray-100') }]}>
             {strings.modals.rename.title}
@@ -127,6 +135,7 @@ function RenameModal(): JSX.Element {
             <AppTextInput
               label={strings.modals.rename.label}
               value={newName}
+              editable={!isLoading}
               autoFocus
               onChangeText={setNewName}
               placeholderTextColor={getColor('text-gray-50')}
