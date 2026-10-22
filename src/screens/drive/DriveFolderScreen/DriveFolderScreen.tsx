@@ -25,7 +25,7 @@ import { DriveListType, SortMode } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
-import { buildFolderUploadListItem, isFolderUploadItem } from './DriveFolderScreen.helpers';
+import { buildFolderUploadListItem, canLoadNextPage, isFolderUploadItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 import { useFocusFolderOnScreenFocus } from './useFocusFolderOnScreenFocus';
@@ -35,7 +35,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
   useLanguage();
   const [loadingMore, setLoadingMore] = useState(false);
-  const { folderUuid, folderName, parentFolderName, parentUuid } = route.params;
+  const { folderUuid, folderName, parentFolderName } = route.params;
   const { user } = useAppSelector((state) => state.auth);
   const isRootFolder = folderUuid === user?.rootFolderId;
 
@@ -123,19 +123,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   const onBackButtonPressed = () => {
     navigation.goBack();
-
-    if (parentUuid) {
-      driveCtx
-        .loadFolderContent(parentUuid, { pullFrom: ['network'], resetPagination: false, focusFolder: true })
-        .catch((error) => {
-          errorService.reportError(error);
-          const err = errorService.castError(error, 'content');
-          notificationsService.show({
-            type: NotificationType.Error,
-            text1: err.message,
-          });
-        });
-    }
   };
 
   // Register a handler for hardware back
@@ -197,6 +184,10 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleDriveItemPress = (driveItem: DriveListItem) => {
+    if (!navigation.isFocused()) {
+      return;
+    }
+
     const isFolder = driveItem?.data?.isFolder;
 
     if (!isFolder) {
@@ -300,7 +291,9 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   const handleEndReached = async () => {
     try {
-      if (loadingMore) return;
+      if (loadingMore || !canLoadNextPage(folder)) {
+        return;
+      }
       setLoadingMore(true);
       await driveCtx.loadFolderContent(folderUuid, {
         pullFrom: ['network'],
