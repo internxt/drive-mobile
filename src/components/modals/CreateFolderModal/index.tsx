@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Keyboard, View } from 'react-native';
 
 import drive from '@internxt-mobile/services/drive';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
@@ -26,6 +26,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   const getColor = useGetColor();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
+  const isCreatingRef = useRef(false);
 
   const onCancelButtonPressed = () => {
     if (isLoading) return;
@@ -37,6 +38,12 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
   };
 
   const onCreateFolderButtonPressed = () => {
+    if (isCreatingRef.current) {
+      return;
+    }
+
+    isCreatingRef.current = true;
+    Keyboard.dismiss();
     setIsLoading(true);
 
     drive.folder
@@ -60,12 +67,13 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
         notificationsService.show({ type: NotificationType.Error, text1: castedError.message });
       })
       .finally(() => {
+        isCreatingRef.current = false;
         setIsLoading(false);
       });
   };
 
   return (
-    <CenterModal isOpen={props.isOpen} onClosed={onClosed}>
+    <CenterModal isOpen={props.isOpen} onClosed={onClosed} backdropPressToClose={false}>
       <View style={[tailwind('p-4 rounded-xl'), { backgroundColor: getColor('bg-surface') }]}>
         <AppText style={[tailwind('text-xl mb-6'), { color: getColor('text-gray-100') }]} medium>
           {strings.modals.CreateFolder.title}
