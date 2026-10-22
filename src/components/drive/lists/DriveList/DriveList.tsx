@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, useWindowDimensions, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, FlatList, useWindowDimensions, View, ViewStyle } from 'react-native';
 
 import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
@@ -15,8 +15,6 @@ import DriveItemSkinSkeleton from '../../../DriveItemSkinSkeleton';
 import EmptyList from '../../../EmptyList';
 import { DriveGridModeItem } from '../items/DriveGridModeItem';
 import { DriveListModeItem } from '../items/DriveListModeItem';
-
-const LOADING_MORE_LIST_ROWS = 3;
 
 interface DriveListProps {
   type?: DriveListType;
@@ -130,17 +128,9 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
       return null;
     }
 
-    if (isGrid) {
-      return <DriveItemSkinSkeleton viewMode={props.viewMode} />;
-    }
-
     return (
-      <View>
-        {_.times(LOADING_MORE_LIST_ROWS, (n) => (
-          <View style={tailwind('h-16')} key={n}>
-            <DriveItemSkinSkeleton viewMode={props.viewMode} />
-          </View>
-        ))}
+      <View style={tailwind('items-center py-4')}>
+        <ActivityIndicator color={getColor('text-primary')} />
       </View>
     );
   };
@@ -225,7 +215,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
               backgroundColor: getColor('bg-surface'),
             }),
       }}
-      onEndReachedThreshold={0.5}
+      onEndReachedThreshold={1}
       onEndReached={handleOnScrollEnd}
       data={listItems}
     />

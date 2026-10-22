@@ -1,4 +1,5 @@
 import { render } from '@testing-library/react-native';
+import { ActivityIndicator } from 'react-native';
 
 import { DriveItemStatus, DriveListItem } from '../../../../types/drive/item';
 import { DriveListViewMode } from '../../../../types/drive/ui';
@@ -15,11 +16,6 @@ jest.mock('@internxt-mobile/useCases/drive', () => ({
   onDriveItemTrashed: jest.fn(() => jest.fn()),
   onDriveItemRestored: jest.fn(() => jest.fn()),
 }));
-
-jest.mock('../../../DriveItemSkinSkeleton', () => {
-  const { Text } = jest.requireActual('react-native');
-  return { __esModule: true, default: () => <Text>placeholder row</Text> };
-});
 
 jest.mock('../items/DriveListModeItem', () => {
   const { Text } = jest.requireActual('react-native');
@@ -58,17 +54,17 @@ const renderListOfFiles = (isLoadingMore: boolean) =>
   );
 
 describe('Showing that more items are loading', () => {
-  test('when the next page is loading, then placeholder rows appear at the end of the list', () => {
+  test('when the next page is loading, then a loading indicator appears at the end of the list', () => {
     const screen = renderListOfFiles(true);
 
     expect(screen.getByText('notes.txt')).toBeTruthy();
-    expect(screen.queryAllByText('placeholder row').length).toBeGreaterThan(0);
+    expect(screen.UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(1);
   });
 
-  test('when nothing is loading, then no placeholder rows appear', () => {
+  test('when nothing is loading, then no loading indicator appears', () => {
     const screen = renderListOfFiles(false);
 
     expect(screen.getByText('notes.txt')).toBeTruthy();
-    expect(screen.queryAllByText('placeholder row')).toHaveLength(0);
+    expect(screen.UNSAFE_queryAllByType(ActivityIndicator)).toHaveLength(0);
   });
 });
