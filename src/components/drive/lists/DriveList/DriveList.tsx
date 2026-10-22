@@ -36,7 +36,7 @@ interface DriveListProps {
   hideOptionsButton?: boolean;
 }
 
-export function DriveList(props: DriveListProps): JSX.Element {
+export const DriveList = (props: DriveListProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
@@ -83,11 +83,11 @@ export function DriveList(props: DriveListProps): JSX.Element {
     };
   }, []);
 
-  function handleOnScrollEnd() {
+  const handleOnScrollEnd = () => {
     props.onEndReached && props.onEndReached();
-  }
+  };
 
-  function renderEmptyState() {
+  const renderEmptyState = () => {
     if (props.isLoading || !props.items) {
       return (
         <View style={[tailwind('h-full w-full'), { backgroundColor: getColor('bg-surface') }]}>
@@ -120,15 +120,15 @@ export function DriveList(props: DriveListProps): JSX.Element {
         />
       );
     }
-  }
+  };
 
-  async function handleOnRefresh() {
+  const handleOnRefresh = async () => {
     setRefreshing(true);
     props.onRefresh && (await props.onRefresh());
     setRefreshing(false);
-  }
+  };
 
-  function renderItem({ item }: { item: DriveListItem }) {
+  const renderItem = ({ item }: { item: DriveListItem }) => {
     return (
       <View
         style={[
@@ -169,7 +169,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
         )}
       </View>
     );
-  }
+  };
 
   return (
     <FlatList
@@ -206,6 +206,6 @@ export function DriveList(props: DriveListProps): JSX.Element {
       data={listItems}
     />
   );
-}
+};
 
 export default DriveList;
