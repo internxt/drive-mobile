@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, useWindowDimensions, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, FlatList, useWindowDimensions, View, ViewStyle } from 'react-native';
 
 import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
@@ -33,10 +33,11 @@ interface DriveListProps {
   // but we need it to render the empty image
   isRootFolder?: boolean;
   isLoading?: boolean;
+  isLoadingMore?: boolean;
   hideOptionsButton?: boolean;
 }
 
-export function DriveList(props: DriveListProps): JSX.Element {
+export const DriveList = (props: DriveListProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
@@ -83,11 +84,11 @@ export function DriveList(props: DriveListProps): JSX.Element {
     };
   }, []);
 
-  function handleOnScrollEnd() {
+  const handleOnScrollEnd = () => {
     props.onEndReached && props.onEndReached();
-  }
+  };
 
-  function renderEmptyState() {
+  const renderEmptyState = () => {
     if (props.isLoading || !props.items) {
       return (
         <View style={[tailwind('h-full w-full'), { backgroundColor: getColor('bg-surface') }]}>
@@ -120,15 +121,27 @@ export function DriveList(props: DriveListProps): JSX.Element {
         />
       );
     }
-  }
+  };
 
-  async function handleOnRefresh() {
+  const renderLoadingMore = () => {
+    if (!props.isLoadingMore) {
+      return null;
+    }
+
+    return (
+      <View style={tailwind('items-center py-4')}>
+        <ActivityIndicator color={getColor('text-primary')} />
+      </View>
+    );
+  };
+
+  const handleOnRefresh = async () => {
     setRefreshing(true);
     props.onRefresh && (await props.onRefresh());
     setRefreshing(false);
-  }
+  };
 
-  function renderItem({ item }: { item: DriveListItem }) {
+  const renderItem = ({ item }: { item: DriveListItem }) => {
     return (
       <View
         style={[
@@ -169,7 +182,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
         )}
       </View>
     );
-  }
+  };
 
   return (
     <FlatList
@@ -185,6 +198,7 @@ export function DriveList(props: DriveListProps): JSX.Element {
           {renderEmptyState() as React.ReactElement}
         </View>
       }
+      ListFooterComponent={renderLoadingMore()}
       key={props.viewMode}
       numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
       renderItem={renderItem}
@@ -201,11 +215,11 @@ export function DriveList(props: DriveListProps): JSX.Element {
               backgroundColor: getColor('bg-surface'),
             }),
       }}
-      onEndReachedThreshold={0.5}
+      onEndReachedThreshold={1}
       onEndReached={handleOnScrollEnd}
       data={listItems}
     />
   );
-}
+};
 
 export default DriveList;
