@@ -24,6 +24,10 @@ describe('Loading the next page of a folder', () => {
     expect(canLoadNextPage(undefined)).toBe(false);
   });
 
+  test('when everything in the folder is already loaded, then the next page is not requested', () => {
+    expect(canLoadNextPage(aFolderNode({ nextFoldersOffset: null, nextFilesOffset: null }))).toBe(false);
+  });
+
   test('when the folder has finished loading, then the next page can be requested', () => {
     expect(canLoadNextPage(aFolderNode())).toBe(true);
   });

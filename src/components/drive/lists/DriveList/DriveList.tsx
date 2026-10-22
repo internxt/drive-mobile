@@ -16,6 +16,8 @@ import EmptyList from '../../../EmptyList';
 import { DriveGridModeItem } from '../items/DriveGridModeItem';
 import { DriveListModeItem } from '../items/DriveListModeItem';
 
+const LOADING_MORE_LIST_ROWS = 3;
+
 interface DriveListProps {
   type?: DriveListType;
   viewMode: DriveListViewMode;
@@ -33,6 +35,7 @@ interface DriveListProps {
   // but we need it to render the empty image
   isRootFolder?: boolean;
   isLoading?: boolean;
+  isLoadingMore?: boolean;
   hideOptionsButton?: boolean;
 }
 
@@ -122,6 +125,26 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
     }
   };
 
+  const renderLoadingMore = () => {
+    if (!props.isLoadingMore) {
+      return null;
+    }
+
+    if (isGrid) {
+      return <DriveItemSkinSkeleton viewMode={props.viewMode} />;
+    }
+
+    return (
+      <View>
+        {_.times(LOADING_MORE_LIST_ROWS, (n) => (
+          <View style={tailwind('h-16')} key={n}>
+            <DriveItemSkinSkeleton viewMode={props.viewMode} />
+          </View>
+        ))}
+      </View>
+    );
+  };
+
   const handleOnRefresh = async () => {
     setRefreshing(true);
     props.onRefresh && (await props.onRefresh());
@@ -185,6 +208,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
           {renderEmptyState() as React.ReactElement}
         </View>
       }
+      ListFooterComponent={renderLoadingMore()}
       key={props.viewMode}
       numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
       renderItem={renderItem}

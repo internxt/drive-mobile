@@ -42,7 +42,7 @@ export const buildDeepLinkRoutes = (folderUuid: string, ancestors: FolderAncesto
 };
 
 export const canLoadNextPage = (folderNode: DriveFoldersTreeNode | undefined): boolean =>
-  !!folderNode && !folderNode.loading;
+  !!folderNode && !folderNode.loading && (folderNode.nextFoldersOffset !== null || folderNode.nextFilesOffset !== null);
 
 const FOLDER_UPLOAD_ID_PREFIX = 'folder-upload-';
 
