@@ -8,6 +8,7 @@ import { useLocalAssets } from './useLocalAssets';
 export interface PhotosTimelineResult {
   timelineDateGroups: TimelineDateGroup[];
   isLoading: boolean;
+  isTimelineReady: boolean;
   loadNextPage: () => void;
   reloadLocal: () => Promise<void>;
   reloadCloud: () => Promise<void>;
@@ -107,5 +108,5 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
     assetUploadErroredCount,
   ]);
 
-  return { timelineDateGroups, isLoading, loadNextPage, reloadLocal, reloadCloud };
+  return { timelineDateGroups, isLoading, isTimelineReady: readyToMergeCloud, loadNextPage, reloadLocal, reloadCloud };
 };
