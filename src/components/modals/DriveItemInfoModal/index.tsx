@@ -163,6 +163,7 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleExportFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       const fileSize = getFileSize(item);
       if (!item.fileId && fileSize !== 0) {
@@ -193,7 +194,6 @@ function DriveItemInfoModal(): JSX.Element {
           return;
         }
         setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-        isDownloadCancelledByUserRef.current = false;
         setExporting(true);
         downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath, fileSize);
         setExporting(false);
@@ -226,6 +226,7 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleAndroidDownloadFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       const fileSize = getFileSize(item);
@@ -248,7 +249,6 @@ function DriveItemInfoModal(): JSX.Element {
           if (!canDownloadFile) {
             return;
           }
-          isDownloadCancelledByUserRef.current = false;
           setExporting(true);
           await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
           setExporting(false);
@@ -272,6 +272,7 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleiOSSaveToFiles = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       const fileSize = getFileSize(item);
@@ -294,7 +295,6 @@ function DriveItemInfoModal(): JSX.Element {
           if (!canDownloadFile) {
             return;
           }
-          isDownloadCancelledByUserRef.current = false;
           setExporting(true);
 
           await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
