@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: 'en'
+reviews:
+  profile: 'chill'
+  high_level_summary: false
+  changed_files_summary: true
+  poem: false
+  review_status: false
+  collapse_walkthrough: true
+  request_changes_workflow: false
+  sequence_diagrams: false
+  related_issues: false
+  related_prs: false
+  suggested_labels: false
+  assess_linked_issues: false
+  path_filters:
+    - '!src/@inxt-js/**'
+    - '!src/styles/tailwind.json'
+    - '!src/styles/tailwind.css'
+    - '!yarn.lock'
+    - '!ios/Podfile.lock'
+    - '!**/*.pbxproj'
+    - '!**/*.xcscheme'
+  path_instructions:
+    - path: '**/*'
+      instructions: |
+        Read AGENTS.md at the repo root first and enforce every rule in it.
+        Rules that prevent bugs (iOS share extension, crypto, storage, URIs,
+        i18n, styles, Photos database) come first; code conventions and test
+        naming are nitpicks.
+    - path: '**/*.{ts,tsx}'
+      instructions: |
+        Review the TypeScript/React code for:
+        - Possible bugs and unhandled edge cases
+        - Performance issues and unnecessary re-renders
+        - Type safety improvements
+        - Security vulnerabilities
+    - path: '**/*.spec.{ts,tsx}'
+      instructions: |
+        Review tests for:
+        - Missing edge case coverage
+        - Test isolation and mocking correctness
+        - Tests that verify behavior, not implementation details
+        - Names in plain English ("when X, then Y") as defined in AGENTS.md
+  auto_review:
+    enabled: true
+    drafts: false
+  tools:
+    eslint:
+      enabled: true
