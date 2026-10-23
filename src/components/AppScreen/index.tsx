@@ -1,6 +1,6 @@
 import { StatusBar, StatusBarStyle } from 'expo-status-bar';
 import React from 'react';
-import { Keyboard, Platform, StyleProp, View, ViewStyle, useColorScheme } from 'react-native';
+import { Keyboard, StyleProp, View, ViewStyle, useColorScheme } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -10,7 +10,6 @@ interface AppScreenProps {
   backgroundColor?: string;
   safeAreaColor?: string;
   statusBarHidden?: boolean;
-  statusBarTranslucent?: boolean;
   statusBarStyle?: StatusBarStyle;
   safeAreaTop?: boolean;
   safeAreaBottom?: boolean;
@@ -31,8 +30,6 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
   const backgroundColor = props.backgroundColor || getColor('bg-surface');
 
   const statusBarStyle = props.statusBarStyle || (isDark ? 'light' : 'dark');
-  const statusBarBackgroundColor = Platform.OS === 'android' ? backgroundColor : undefined;
-  const statusBarTranslucent = props.statusBarTranslucent ?? (Platform.OS === 'android' ? false : undefined);
 
   const onBackgroundPressed = () => {
     Keyboard.dismiss();
@@ -56,12 +53,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
         }}
       />
 
-      <StatusBar
-        hidden={props.statusBarHidden}
-        style={statusBarStyle}
-        translucent={statusBarTranslucent}
-        backgroundColor={statusBarBackgroundColor}
-      />
+      <StatusBar hidden={props.statusBarHidden} style={statusBarStyle} />
 
       {/* DISMISS KEYBOARD ON OUTSIDE TAP */}
       <TouchableWithoutFeedback onPress={onBackgroundPressed}>

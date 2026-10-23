@@ -1,11 +1,11 @@
 import { act, renderHook } from '@testing-library/react-native';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { AppState } from 'react-native';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { useAppSelector } from 'src/store/hooks';
 import { useLocalAssets } from './useLocalAssets';
 
-jest.mock('expo-media-library', () => ({
+jest.mock('expo-media-library/legacy', () => ({
   MediaType: { photo: 'photo', video: 'video' },
   SortBy: { creationTime: 'creationTime' },
   getAssetsAsync: jest.fn(),

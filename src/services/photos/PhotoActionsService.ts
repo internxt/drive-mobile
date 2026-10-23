@@ -1,6 +1,6 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import * as Clipboard from 'expo-clipboard';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { Platform } from 'react-native';
 import { CloudPhotoItem, TimelinePhotoItem } from 'src/screens/PhotosScreen/types';
 import { logger } from 'src/services/common';
