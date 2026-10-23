@@ -12,7 +12,12 @@ import { ErrorCodes } from 'src/types/errors';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
 import analyticsService from '../../../services/AnalyticsService';
-import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
+import {
+  checkDownloadSize,
+  getDownloadSizeMessage,
+  isDownloadBlocked,
+  notifyDownloadSizeCheck,
+} from '../../../services/drive/file/utils/downloadSizeCheck';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
@@ -35,8 +40,6 @@ export enum ThunkOperationStatus {
   LOADING = 'LOADING',
   IDLE = 'IDLE',
 }
-
-const DOWNLOAD_ERROR_CODES = { MAX_SIZE_TO_DOWNLOAD_REACHED: 1 };
 
 export interface FocusedShareItem {
   id: string;
@@ -123,16 +126,6 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
   drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
-const validateDownload = (size: number | undefined): number | null => {
-  if (!size || size === 0) return null;
-
-  const sizeInBytes = parseInt(size.toString());
-  if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['10GB']) {
-    return DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED;
-  }
-  return null;
-};
-
 const downloadFileThunk = createAsyncThunk<
   void,
   {
@@ -160,16 +153,6 @@ const downloadFileThunk = createAsyncThunk<
 
     if (currentDownload && currentDownload.data.fileId === fileId) {
       await dispatch(cancelDownloadThunk());
-    }
-
-    const validationError = validateDownload(size);
-    if (validationError) {
-      dispatch(
-        driveActions.updateDownloadingFile({
-          error: strings.messages.downloadLimit,
-        }),
-      );
-      return rejectWithValue(validationError);
     }
 
     dispatch(
@@ -251,6 +234,15 @@ const downloadFileThunk = createAsyncThunk<
     const destinationPath = drive.file.getDecryptedFilePath(name, type);
     logger.info(`Download destination path: ${destinationPath} `);
     const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
+
+    if (!fileAlreadyExists && Number(size) > 0) {
+      const downloadSizeCheck = await checkDownloadSize(Number(size));
+      notifyDownloadSizeCheck(downloadSizeCheck, Number(size));
+      if (isDownloadBlocked(downloadSizeCheck)) {
+        dispatch(driveActions.updateDownloadingFile({ error: getDownloadSizeMessage(downloadSizeCheck) }));
+        return;
+      }
+    }
 
     try {
       if (!isValidFilename(name)) {
@@ -557,13 +549,7 @@ export const driveSlice = createSlice({
           decryptProgress: 0,
         };
       })
-      .addCase(downloadFileThunk.fulfilled, () => undefined)
-      .addCase(downloadFileThunk.rejected, (_, action) => {
-        const errorCode = action.payload;
-        if (errorCode === DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED) {
-          notificationsService.info(strings.messages.downloadLimit);
-        }
-      });
+      .addCase(downloadFileThunk.fulfilled, () => undefined);
 
     builder
       .addCase(createFolderThunk.pending, (state) => {
