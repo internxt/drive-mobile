@@ -14,8 +14,6 @@ reviews:
   suggested_labels: false
   assess_linked_issues: false
   path_filters:
-    - '!src/@inxt-js/**'
-    - '!src/styles/tailwind.json'
     - '!src/styles/tailwind.css'
     - '!yarn.lock'
     - '!ios/Podfile.lock'
