@@ -1,4 +1,5 @@
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
+import { BottomFilePanel } from '../components/BottomFilePanel';
 import { DriveList } from '../components/DriveScreen/DriveList';
 import { useFolderNavigation } from '../hooks/useFolderNavigation';
 import { DriveScreen } from './DriveScreen';
@@ -17,8 +18,13 @@ jest.mock('../components/DriveScreen/DriveList', () => ({
   DriveList: jest.fn(() => null),
 }));
 
+jest.mock('../components/BottomFilePanel', () => ({
+  BottomFilePanel: jest.fn(() => null),
+}));
+
 const mockUseFolderNavigation = useFolderNavigation as jest.Mock;
 const mockDriveList = DriveList as unknown as jest.Mock;
+const mockBottomFilePanel = BottomFilePanel as unknown as jest.Mock;
 
 const renderDriveScreen = (navigation: Record<string, unknown> = {}) => {
   mockUseFolderNavigation.mockReturnValue({
@@ -68,5 +74,13 @@ describe('DriveScreen', () => {
     expect(mockDriveList.mock.lastCall?.[0]).toEqual(
       expect.objectContaining({ hasLoadError: true, onRetry: refresh, onRetryLoadMore: retryLoadMore }),
     );
+  });
+
+  test('when the bottom file panel reports how much of the screen it covers, then the list is padded to scroll its last content above it', () => {
+    renderDriveScreen();
+
+    act(() => mockBottomFilePanel.mock.lastCall?.[0].onOverlapChange(114));
+
+    expect(mockDriveList.mock.lastCall?.[0]).toEqual(expect.objectContaining({ bottomInset: 130 }));
   });
 });

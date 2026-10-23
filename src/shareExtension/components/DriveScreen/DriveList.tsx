@@ -1,5 +1,5 @@
 import { ReactNode, useCallback } from 'react';
-import { FlatList, Keyboard, Text, View } from 'react-native';
+import { FlatList, Keyboard, StyleProp, Text, View, ViewStyle } from 'react-native';
 import DriveItemSkinSkeleton from 'src/components/DriveItemSkinSkeleton';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
@@ -12,13 +12,21 @@ export type DriveListItem = { type: 'folder'; data: ShareFolderItem } | { type: 
 
 const SKELETON_KEYS = Array.from({ length: 10 }, (_, i) => `skeleton-${i}`);
 
+const FULL_SCREEN_MESSAGE_STYLE = { paddingTop: 48 };
+
 const keyExtractor = (item: DriveListItem) => item.data.uuid;
 
-const DriveListMessage = ({ message, children }: { message: string; children?: ReactNode }) => {
+interface DriveListMessageProps {
+  message: string;
+  style?: StyleProp<ViewStyle>;
+  children?: ReactNode;
+}
+
+const DriveListMessage = ({ message, style = FULL_SCREEN_MESSAGE_STYLE, children }: DriveListMessageProps) => {
   const tailwind = useTailwind();
   const colors = useShareColors();
   return (
-    <View style={[tailwind('items-center'), { paddingTop: 48 }]}>
+    <View style={[tailwind('items-center'), style]}>
       <Text style={[{ fontSize: 16, color: colors.gray40 }, fontStyles.regular]}>{message}</Text>
       {children}
     </View>
@@ -28,13 +36,15 @@ const DriveListMessage = ({ message, children }: { message: string; children?: R
 interface DriveListErrorProps {
   isSessionExpired: boolean;
   onRetry: () => void;
+  style?: StyleProp<ViewStyle>;
 }
 
-const DriveListError = ({ isSessionExpired, onRetry }: DriveListErrorProps) => {
+const DriveListError = ({ isSessionExpired, onRetry, style }: DriveListErrorProps) => {
   const shareExtensionTexts = strings.screens.ShareExtension;
   return (
     <DriveListMessage
       message={isSessionExpired ? shareExtensionTexts.errorSessionExpired : shareExtensionTexts.folderLoadError}
+      style={style}
     >
       {isSessionExpired ? null : <TextButton title={strings.buttons.tryAgain} onPress={onRetry} />}
     </DriveListMessage>
@@ -47,6 +57,7 @@ interface DriveListProps {
   loading: boolean;
   loadingMore: boolean;
   searchQuery: string;
+  bottomInset: number;
   hasLoadError: boolean;
   hasLoadMoreError: boolean;
   isSessionExpired: boolean;
@@ -62,6 +73,7 @@ export const DriveList = ({
   loading,
   loadingMore,
   searchQuery,
+  bottomInset,
   hasLoadError,
   hasLoadMoreError,
   isSessionExpired,
@@ -107,7 +119,7 @@ export const DriveList = ({
       );
     }
     if (hasLoadMoreError) {
-      return <DriveListError isSessionExpired={isSessionExpired} onRetry={onRetryLoadMore} />;
+      return <DriveListError isSessionExpired={isSessionExpired} onRetry={onRetryLoadMore} style={tailwind('py-6')} />;
     }
     return null;
   };
@@ -119,7 +131,7 @@ export const DriveList = ({
       keyExtractor={keyExtractor}
       numColumns={numColumns}
       renderItem={renderItem}
-      contentContainerStyle={viewMode === 'grid' ? tailwind('px-2') : undefined}
+      contentContainerStyle={[viewMode === 'grid' && tailwind('px-2'), { paddingBottom: bottomInset }]}
       ListEmptyComponent={
         <DriveListMessage
           message={searchQuery ? strings.screens.ShareExtension.noResults : strings.screens.ShareExtension.emptyFolder}
