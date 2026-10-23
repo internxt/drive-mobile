@@ -1115,7 +1115,10 @@ const translations = {
       confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
-      downloadLimit: 'The download limit in mobile app is 10GB.',
+      downloadLimit:
+        "This file is over {0} and can't be downloaded in the mobile app. Download it from the desktop app or drive.internxt.com.",
+      largeDownloadWarning:
+        'This file is large and may take a while to download. If it fails, we recommend downloading files over {0} from the desktop app or drive.internxt.com.',
       folderUploadCompleted: 'Successfully uploaded {0} files to "{1}"',
       folderUploadPartial: '{0} of {1} files uploaded ({2} failed)',
       folderUploadPartialWithSkipped: '{0} of {1} files uploaded ({2} failed, {3} skipped)',
@@ -2348,7 +2351,10 @@ const translations = {
       confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
-      downloadLimit: 'El límite de descarga en la app movil son 10GB',
+      downloadLimit:
+        'Este archivo supera los {0} y no se puede descargar en la app móvil. Descárgalo desde la app de escritorio o drive.internxt.com.',
+      largeDownloadWarning:
+        'Este archivo es grande y puede tardar en descargarse. Si falla, te recomendamos descargar los archivos de más de {0} desde la app de escritorio o drive.internxt.com.',
       folderUploadCompleted: '{0} archivos subidos correctamente a "{1}"',
       folderUploadPartial: '{0} de {1} archivos subidos ({2} fallaron)',
       folderUploadPartialWithSkipped: '{0} de {1} archivos subidos ({2} fallaron, {3} omitidos)',
