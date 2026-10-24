@@ -136,7 +136,7 @@
     "redux": "^4.0.5",
     "reflect-metadata": "^0.2.2",
     "regenerator-runtime": "^0.14.1",
-    "sanitize-html": "^2.18.0",
+    "sanitize-html": "^2.18.1",
     "socket.io-client": "^4.8.3",
     "stream-browserify": "^3.0.0",
     "tailwind-rn": "^4.2.0",
