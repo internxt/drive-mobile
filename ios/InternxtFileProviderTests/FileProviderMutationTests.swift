@@ -167,7 +167,7 @@ final class FileProviderMutationTests: XCTestCase {
         let fileIdJSON = fileId.map { "\"\($0)\"" } ?? "null"
         let json = """
         {
-          "id": 1, "fileId": \(fileIdJSON), "folderId": 2, "name": "encrypted-name", "type": "txt",
+          "fileId": \(fileIdJSON), "type": "txt",
           "size": "\(size)", "bucket": "bucket-id", "userId": 3, "modificationTime": "2026-10-20T10:00:00.000Z",
           "createdAt": "2026-10-20T10:00:00.000Z", "updatedAt": "2026-10-20T10:00:00.000Z",
           "uuid": "file-uuid", "plainName": "notes", "status": "EXISTS", "folderUuid": "folder-uuid"
@@ -189,5 +189,19 @@ final class FileProviderMutationTests: XCTestCase {
 
         XCTAssertEqual(item.filename, "notes.txt")
         XCTAssertEqual(item.documentSize, 2048)
+    }
+
+    func testWhenAListedFolderArrivesWithoutANameThenItIsShownWithItsUuid() throws {
+        let json = """
+        {
+          "type": "folder", "uuid": "folder-uuid", "plainName": null, "userId": 3, "status": "EXISTS",
+          "createdAt": "2026-10-20T10:00:00.000Z", "updatedAt": "2026-10-20T10:00:00.000Z"
+        }
+        """
+        let folder = try JSONDecoder().decode(GetFolderFoldersResult.self, from: Data(json.utf8))
+
+        let item = FileProviderItem(folder: folder, parent: .rootContainer)
+
+        XCTAssertEqual(item.filename, "folder-uuid")
     }
 }
