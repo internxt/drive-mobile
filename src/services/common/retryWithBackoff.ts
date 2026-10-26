@@ -5,6 +5,7 @@ import { getErrorStatus } from './httpErrorStatus';
 type RetryWithBackoffOptions = {
   delaysMs: readonly number[];
   shouldRetry: (error: unknown) => boolean;
+  jitterRatio?: number;
   context: string;
   signal?: AbortSignal;
 };
@@ -29,20 +30,22 @@ const waitUnlessAborted = (delayMs: number, signal?: AbortSignal): Promise<void>
 /**
  * Runs `operation`, and while it throws an error accepted by `shouldRetry`, waits the next delay of `delaysMs`
  * and runs it again. Rethrows any other error, or the last one once the delays run out.
+ * With `jitterRatio`, each wait is lengthened by a random amount up to that fraction of its delay.
  * Throws `AbortError` as soon as `signal` aborts during a wait.
  */
 export const retryWithBackoff = async <T>(
   operation: () => Promise<T>,
-  { delaysMs, shouldRetry, context, signal }: RetryWithBackoffOptions,
+  { delaysMs, shouldRetry, jitterRatio = 0, context, signal }: RetryWithBackoffOptions,
 ): Promise<T> => {
   for (let attemptIndex = 0; ; attemptIndex++) {
     try {
       return await operation();
     } catch (error) {
-      const delayMs = delaysMs[attemptIndex];
-      if (delayMs === undefined || !shouldRetry(error)) {
+      const plannedDelayMs = delaysMs[attemptIndex];
+      if (plannedDelayMs === undefined || !shouldRetry(error)) {
         throw error;
       }
+      const delayMs = Math.round(plannedDelayMs * (1 + Math.random() * jitterRatio));
       logger.warn(`${context} failed (${getErrorStatus(error)}), retrying in ${delayMs}ms`);
       await waitUnlessAborted(delayMs, signal);
     }
