@@ -27,6 +27,8 @@ const FIRST_JOB_ID = 7;
 const SECOND_JOB_ID = 8;
 const RETRY_COUNT = 5;
 const FIRST_RETRY_DELAY_MS = 1000;
+const CHUNK_RETRY_JITTER_RATIO = 0.5;
+const MOCKED_RANDOM_VALUE = 0.9;
 
 const mockedDownloadFile = jest.mocked(RNFS.downloadFile);
 
@@ -66,6 +68,7 @@ describe('downloading one chunk of a large file', () => {
 
   beforeEach(() => {
     jest.useFakeTimers();
+    jest.spyOn(Math, 'random').mockReturnValue(0);
     mockedDownloadFile.mockReset();
     abortController = new AbortController();
     onJobStarted = jest.fn();
@@ -74,6 +77,7 @@ describe('downloading one chunk of a large file', () => {
 
   afterEach(() => {
     jest.useRealTimers();
+    jest.restoreAllMocks();
   });
 
   test('when the server answers with the requested bytes, then the chunk is downloaded once with a read timeout', async () => {
@@ -120,6 +124,22 @@ describe('downloading one chunk of a large file', () => {
     await runWhileAdvancingTimers(startChunkDownload());
 
     expect(onJobStarted.mock.calls).toEqual([[FIRST_JOB_ID], [SECOND_JOB_ID]]);
+  });
+
+  test('when a chunk is tried again, then each wait is stretched by a random amount of up to half its length', async () => {
+    const jitteredFirstWaitMs = FIRST_RETRY_DELAY_MS * (1 + MOCKED_RANDOM_VALUE * CHUNK_RETRY_JITTER_RATIO);
+    jest.spyOn(Math, 'random').mockReturnValue(MOCKED_RANDOM_VALUE);
+    mockedDownloadFile
+      .mockReturnValueOnce(failWith(new Error('timeout')))
+      .mockReturnValue(answerWith(HTTP_PARTIAL_CONTENT, CHUNK_BYTE_COUNT, SECOND_JOB_ID));
+
+    const pendingDownload = startChunkDownload();
+    await jest.advanceTimersByTimeAsync(jitteredFirstWaitMs - 1);
+    expect(mockedDownloadFile).toHaveBeenCalledTimes(1);
+
+    await jest.advanceTimersByTimeAsync(1);
+    expect(mockedDownloadFile).toHaveBeenCalledTimes(2);
+    await expect(pendingDownload).resolves.toBeUndefined();
   });
 
   test('when the connection drops and the system only keeps it to resume later, then the chunk is downloaded again', async () => {

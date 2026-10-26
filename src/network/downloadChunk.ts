@@ -16,6 +16,7 @@ import {
 } from './errors';
 
 const CHUNK_RETRY_DELAYS_MS = [1000, 3000, 10000, 30000, 60000];
+const CHUNK_RETRY_JITTER_RATIO = 0.5;
 const CHUNK_READ_TIMEOUT_MS = 30000;
 const CHUNK_PROGRESS_DIVIDER = 5;
 const CHUNK_PROGRESS_INTERVAL_MS = 150;
@@ -93,12 +94,13 @@ const downloadChunkOnce = async ({
 
 /**
  * Downloads `range` of `url` into `toFile`. Retries network errors, timeouts, interrupted or incomplete downloads
- * and 408, 429 and 5xx responses with backoff, and stops retrying once `signal` aborts. Throws the last error once
+ * and 408, 429 and 5xx responses with jittered backoff, and stops retrying once `signal` aborts. Throws the last error once
  * the retries run out, and `ChunkDownloadHttpError` at once for any other error status.
  */
 export const downloadChunkWithRetry = (params: DownloadChunkParams): Promise<void> =>
   retryWithBackoff(() => downloadChunkOnce(params), {
     delaysMs: CHUNK_RETRY_DELAYS_MS,
+    jitterRatio: CHUNK_RETRY_JITTER_RATIO,
     shouldRetry: (error) => !params.signal.aborted && isRetryableChunkError(error),
     context: `[Download] Chunk bytes ${params.range.start}-${params.range.end}`,
     signal: params.signal,
