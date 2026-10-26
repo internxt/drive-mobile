@@ -6,8 +6,8 @@ import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import AuthService from '@internxt-mobile/services/AuthService';
 import errorService from '@internxt-mobile/services/ErrorService';
-import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
-import notificationsService, { notifications } from '@internxt-mobile/services/NotificationsService';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { logger } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import drive from '@internxt-mobile/services/drive';
@@ -31,7 +31,11 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { checkIsFolder, FolderIcon, getFileSize, getFileTypeIcon, isEmptyFile } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
-import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
+import {
+  checkDownloadSize,
+  isDownloadBlocked,
+  notifyDownloadSizeCheck,
+} from '../../../services/drive/file/utils/downloadSizeCheck';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
@@ -53,6 +57,7 @@ function DriveItemInfoModal(): JSX.Element {
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const downloadAbortableRef = useRef<Abortable>();
+  const isDownloadCancelledByUserRef = useRef(false);
   if (!item) {
     return <></>;
   }
@@ -70,12 +75,10 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(driveActions.setItemToMove(item));
   };
 
-  const isFileDownloadable = (): boolean => {
-    if (parseInt(item.size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['10GB']) {
-      notificationsService.info(strings.messages.downloadLimit);
-      return false;
-    }
-    return true;
+  const isFileDownloadable = async (fileSize: number): Promise<boolean> => {
+    const downloadSizeCheck = await checkDownloadSize(fileSize);
+    notifyDownloadSizeCheck(downloadSizeCheck, fileSize);
+    return !isDownloadBlocked(downloadSizeCheck);
   };
 
   const handleUndoMoveToTrash = async () => {
@@ -136,17 +139,6 @@ function DriveItemInfoModal(): JSX.Element {
 
   const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string, fileSize: number) => {
     const { credentials } = await AuthService.getAuthCredentials();
-    try {
-      const hasEnoughSpace = await fileSystemService.checkAvailableStorage(fileSize);
-      if (!hasEnoughSpace) {
-        notifications.error(strings.errors.notEnoughSpaceOnDevice);
-        throw new Error(strings.errors.notEnoughSpaceOnDevice);
-      }
-    } catch (error) {
-      logger.error('Error on downloadItem function:', JSON.stringify(error));
-      errorService.reportError(error);
-    }
-
     const { downloadPath } = await drive.file.downloadFile(
       credentials.user,
       bucketId,
@@ -171,17 +163,12 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleExportFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       const fileSize = getFileSize(item);
       if (!item.fileId && fileSize !== 0) {
         throw new Error('Item fileID not found');
       }
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
-        return;
-      }
-
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
       const exists = await drive.file.existsDecrypted(item.name, item.type);
       if (exists) {
@@ -202,6 +189,10 @@ function DriveItemInfoModal(): JSX.Element {
         if (!item.fileId) {
           throw new Error('Item fileID not found for non-empty file');
         }
+        const canDownloadFile = await isFileDownloadable(fileSize);
+        if (!canDownloadFile) {
+          return;
+        }
         setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
         setExporting(true);
         downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath, fileSize);
@@ -212,6 +203,9 @@ function DriveItemInfoModal(): JSX.Element {
         fileUri: downloadPath,
       });
     } catch (error) {
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
       notifications.error(strings.errors.generic.message);
       logger.error('Error on handleExportFile function:', JSON.stringify(error));
       errorService.reportError(error);
@@ -222,6 +216,7 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleAbortDownload = () => {
+    isDownloadCancelledByUserRef.current = true;
     setExporting(false);
     dispatch(uiActions.setShowItemModal(false));
 
@@ -231,18 +226,13 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleAndroidDownloadFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       const fileSize = getFileSize(item);
       if (!item.fileId && fileSize !== 0) {
         throw new Error('Item fileID not found');
       }
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
-        return;
-      }
-
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
 
       // 1. Check if file exists already
@@ -255,6 +245,10 @@ function DriveItemInfoModal(): JSX.Element {
         if (isEmptyFile(item)) {
           await drive.file.createEmptyDownloadedFile(decryptedFilePath);
         } else {
+          const canDownloadFile = await isFileDownloadable(fileSize);
+          if (!canDownloadFile) {
+            return;
+          }
           setExporting(true);
           await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
           setExporting(false);
@@ -266,6 +260,9 @@ function DriveItemInfoModal(): JSX.Element {
 
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
       notifications.error(strings.errors.generic.message);
       logger.error('Error on handleAndroidDownloadFile function:', JSON.stringify(error));
       errorService.reportError(error);
@@ -275,18 +272,13 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleiOSSaveToFiles = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
       const fileSize = getFileSize(item);
       if (!item.fileId && fileSize !== 0) {
         throw new Error('Item fileID not found');
       }
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
-        return;
-      }
-
       const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
 
       // 1. Check if file exists already
@@ -299,6 +291,10 @@ function DriveItemInfoModal(): JSX.Element {
         if (isEmptyFile(item)) {
           await drive.file.createEmptyDownloadedFile(decryptedFilePath);
         } else {
+          const canDownloadFile = await isFileDownloadable(fileSize);
+          if (!canDownloadFile) {
+            return;
+          }
           setExporting(true);
 
           await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
@@ -315,6 +311,9 @@ function DriveItemInfoModal(): JSX.Element {
 
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
       notifications.error(strings.errors.generic.message);
       logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
       errorService.reportError(error);
