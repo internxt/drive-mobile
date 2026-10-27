@@ -33,6 +33,7 @@ import {
   isFolderUploadItem,
 } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
+import { DriveSelectionActionsModal } from './DriveSelectionActionsModal';
 import { DriveSelectionToolbar } from './DriveSelectionToolbar';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 import { useDriveSelection } from './useDriveSelection';
@@ -136,6 +137,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const [searchValue, setSearchValue] = useState('');
 
   const [sortModalOpen, setSortModalOpen] = useState(false);
+  const [isSelectionActionsModalOpen, setIsSelectionActionsModalOpen] = useState(false);
   const { sortMode } = driveCtx;
 
   const { uploading: driveUploadingItems } = useAppSelector(driveSelectors.driveItems);
@@ -283,6 +285,10 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       return;
     }
 
+    openDriveItemMenu(driveItem);
+  });
+
+  const openDriveItemMenu = (driveItem: DriveListItem) => {
     dispatch(
       driveActions.setFocusedItem({
         ...driveItem.data,
@@ -296,7 +302,19 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     );
 
     dispatch(uiActions.setShowItemModal(true));
-  });
+  };
+
+  const handleSelectionMorePress = () => {
+    if (selection.selectedUuids.size !== 1) {
+      setIsSelectionActionsModalOpen(true);
+      return;
+    }
+    const [selectedUuid] = selection.selectedUuids;
+    const selectedItem = driveSortedItems.find((item) => item.data.uuid === selectedUuid);
+    if (selectedItem) {
+      openDriveItemMenu(selectedItem);
+    }
+  };
 
   const handleSortButtonPress = () => {
     setSortModalOpen(true);
@@ -439,6 +457,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
           onSortModeChange={onSortModeChange}
           onClose={onCloseSortModal}
         />
+        <DriveSelectionActionsModal
+          isOpen={isSelectionActionsModalOpen}
+          selectedCount={selection.selectedUuids.size}
+          onClose={() => setIsSelectionActionsModalOpen(false)}
+        />
       </Portal>
 
       <AppScreen safeAreaTop style={tailwind('flex-1')}>
@@ -517,7 +540,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             contentContainerStyle={{ paddingBottom: FLOATING_BUTTON_CLEARANCE }}
           />
         )}
-        <DriveSelectionToolbar visible={shouldShowSelectionToolbar} />
+        <DriveSelectionToolbar visible={shouldShowSelectionToolbar} onMorePress={handleSelectionMorePress} />
       </AppScreen>
     </>
   );
