@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, useWindowDimensions, View, ViewStyle } from 'react-native';
 
 import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
@@ -13,8 +13,7 @@ import useGetColor from '../../../../hooks/useColor';
 import { DriveListItem } from '../../../../types/drive/item';
 import DriveItemSkinSkeleton from '../../../DriveItemSkinSkeleton';
 import EmptyList from '../../../EmptyList';
-import { DriveGridModeItem } from '../items/DriveGridModeItem';
-import { DriveListModeItem } from '../items/DriveListModeItem';
+import { DriveListRow } from './DriveListRow';
 
 interface DriveListProps {
   type?: DriveListType;
@@ -43,7 +42,6 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
 
   const [refreshing, setRefreshing] = useState(false);
   const { width } = useWindowDimensions();
-  const isGrid = props.viewMode === DriveListViewMode.Grid;
 
   const listItems = useMemo(() => props.items, [props.items]);
 
@@ -60,11 +58,6 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
       height: tailwind('h-48').height as number,
     },
   };
-  const itemByViewMode = {
-    [DriveListViewMode.List]: DriveListModeItem,
-    [DriveListViewMode.Grid]: DriveGridModeItem,
-  };
-  const ItemComponent = itemByViewMode[props.viewMode];
   const renderNoResults = () => (
     <EmptyList {...strings.components.DriveList.noResults} image={<NoResultsImage width={100} height={100} />} />
   );
@@ -141,48 +134,19 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
     setRefreshing(false);
   };
 
-  const renderItem = ({ item }: { item: DriveListItem }) => {
-    return (
-      <View
-        style={[
-          tailwind('flex justify-center'),
-          {
-            width: props.viewMode === DriveListViewMode.List ? '100%' : '33%',
-            backgroundColor: getColor('bg-surface'),
-          },
-        ]}
-      >
-        <ItemComponent
-          type={props.type || DriveListType.Drive}
-          data={item.data}
-          status={item.status}
-          progress={item.progress}
-          folderUploadProgress={item.folderUploadProgress}
-          viewMode={props.viewMode}
-          onActionsPress={() => props.onDriveItemActionsPress(item)}
-          onPress={
-            props.onDriveItemPress
-              ? () => {
-                  props.onDriveItemPress && props.onDriveItemPress(item);
-                }
-              : undefined
-          }
-          hideOptionsButton={props.hideOptionsButton}
-        />
-        {isGrid ? (
-          <View />
-        ) : (
-          <View
-            style={{
-              height: 1,
-              backgroundColor: getColor('bg-gray-1'),
-              marginHorizontal: 16,
-            }}
-          />
-        )}
-      </View>
-    );
-  };
+  const renderItem = useCallback(
+    ({ item }: { item: DriveListItem }) => (
+      <DriveListRow
+        item={item}
+        type={props.type || DriveListType.Drive}
+        viewMode={props.viewMode}
+        hideOptionsButton={props.hideOptionsButton}
+        onActionsPress={props.onDriveItemActionsPress}
+        onPress={props.onDriveItemPress}
+      />
+    ),
+    [props.type, props.viewMode, props.hideOptionsButton, props.onDriveItemActionsPress, props.onDriveItemPress],
+  );
 
   return (
     <FlatList
