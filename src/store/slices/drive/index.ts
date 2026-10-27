@@ -41,7 +41,6 @@ export interface DriveState {
   hiddenItemsIds: string[];
   uploadingFiles: UploadingFile[];
   downloadingFile?: DownloadingFile;
-  selectedItems: DriveItemData[];
   folderContent: DriveItemData[];
   focusedItem: DriveItemFocused;
   focusedShareItem: FocusedShareItem | null;
@@ -70,7 +69,6 @@ const initialState: DriveState = {
   itemToMove: null,
   uploadingFiles: [],
   downloadingFile: undefined,
-  selectedItems: [],
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
@@ -400,9 +398,6 @@ export const driveSlice = createSlice({
         }
       }
     },
-    deselectAll(state) {
-      state.selectedItems = [];
-    },
     setFolderContent(state, action: PayloadAction<DriveItemData[]>) {
       state.folderContent = action.payload;
     },
@@ -469,7 +464,6 @@ export const driveSlice = createSlice({
       })
       .addCase(createFolderThunk.fulfilled, (state) => {
         state.isLoading = false;
-        state.selectedItems = [];
       })
       .addCase(createFolderThunk.rejected, (state, action) => {
         state.isLoading = false;
