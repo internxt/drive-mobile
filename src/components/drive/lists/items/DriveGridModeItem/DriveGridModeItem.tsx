@@ -43,8 +43,11 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const maxThumbnailHeight = 96;
   const selectionProgress = useSelectionProgress(!!props.isSelected);
   const selectedNameBackgroundColor = getColor('bg-gray-10');
+  const hasThumbnail = !isFolder && !!downloadedThumbnail;
   const previewAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(selectionProgress.value, [0, 1], [1, SELECTED_PREVIEW_SCALE]) }],
+    transform: [
+      { scale: hasThumbnail ? interpolate(selectionProgress.value, [0, 1], [1, SELECTED_PREVIEW_SCALE]) : 1 },
+    ],
   }));
   const selectionModeProgress = useSelectionModeProgress();
   const checkboxAnimatedStyle = useAnimatedStyle(() => ({
