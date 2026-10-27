@@ -349,6 +349,8 @@ const translations = {
           noItemsSelected: 'No items selected',
           itemSelected: '1 item selected',
           itemsSelected: '{0} items selected',
+          export: 'Export',
+          moreActions: 'More actions',
         },
       },
       recents: {
@@ -1584,6 +1586,8 @@ const translations = {
           noItemsSelected: 'Ningún elemento seleccionado',
           itemSelected: '1 elemento seleccionado',
           itemsSelected: '{0} elementos seleccionados',
+          export: 'Exportar',
+          moreActions: 'Más acciones',
         },
       },
       recents: {

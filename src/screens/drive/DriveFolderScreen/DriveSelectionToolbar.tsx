@@ -1,4 +1,4 @@
-import { ArrowsOutCardinalIcon, DownloadSimpleIcon, TrashIcon } from 'phosphor-react-native';
+import { ArrowSquareOutIcon, ArrowsOutCardinalIcon, DotsThreeIcon, TrashIcon } from 'phosphor-react-native';
 import { useEffect } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
@@ -21,17 +21,20 @@ const ACTION_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 
 interface DriveSelectionToolbarProps {
   visible: boolean;
+  onMorePress: () => void;
 }
 
 interface ToolbarActionProps {
   icon: React.ReactElement;
   label: string;
   disabled: boolean;
+  onPress?: () => void;
 }
 
-const ToolbarAction = ({ icon, label, disabled }: ToolbarActionProps): JSX.Element => (
+const ToolbarAction = ({ icon, label, disabled, onPress }: ToolbarActionProps): JSX.Element => (
   <TouchableOpacity
     disabled={disabled}
+    onPress={onPress}
     accessibilityRole="button"
     accessibilityLabel={label}
     accessibilityState={{ disabled }}
@@ -48,7 +51,7 @@ const VISIBILITY_HIDDEN = 0;
 const VISIBILITY_SHOWN = 1;
 const MIN_VISIBLE_PROGRESS = 0.01;
 
-export const DriveSelectionToolbar = ({ visible }: DriveSelectionToolbarProps): JSX.Element => {
+export const DriveSelectionToolbar = ({ visible, onMorePress }: DriveSelectionToolbarProps): JSX.Element => {
   const getColor = useGetColor();
   const visibility = useSharedValue(visible ? VISIBILITY_SHOWN : VISIBILITY_HIDDEN);
 
@@ -82,14 +85,20 @@ export const DriveSelectionToolbar = ({ visible }: DriveSelectionToolbarProps): 
         disabled
       />
       <ToolbarAction
-        icon={<DownloadSimpleIcon size={ACTION_ICON_SIZE} color={disabledColor} />}
-        label={strings.buttons.download}
+        icon={<ArrowSquareOutIcon size={ACTION_ICON_SIZE} color={disabledColor} />}
+        label={strings.screens.drive.selection.export}
         disabled
       />
       <ToolbarAction
         icon={<TrashIcon size={ACTION_ICON_SIZE} color={disabledColor} />}
         label={strings.buttons.moveToThrash}
         disabled
+      />
+      <ToolbarAction
+        icon={<DotsThreeIcon weight="bold" size={ACTION_ICON_SIZE} color={getColor('text-primary')} />}
+        label={strings.screens.drive.selection.moreActions}
+        disabled={false}
+        onPress={onMorePress}
       />
     </Animated.View>
   );

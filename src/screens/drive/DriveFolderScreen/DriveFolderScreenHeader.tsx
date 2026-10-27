@@ -68,7 +68,7 @@ const TITLE_ROW_HEIGHT = 32;
 const HEADER_ROW_ENTERING = FadeIn.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
 const HEADER_ROW_EXITING = FadeOut.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
 
-const getSelectionTitle = (selectedCount: number): string => {
+export const getSelectionTitle = (selectedCount: number): string => {
   if (selectedCount === 0) {
     return strings.screens.drive.selection.noItemsSelected;
   }
