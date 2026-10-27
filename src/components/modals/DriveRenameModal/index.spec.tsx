@@ -36,7 +36,6 @@ jest.mock('@internxt-mobile/services/drive', () => ({
 jest.mock('../../../store/slices/drive', () => ({
   driveActions: {
     setFocusedItem: (payload: unknown) => ({ type: 'drive/setFocusedItem', payload }),
-    deselectAll: () => ({ type: 'drive/deselectAll' }),
   },
 }));
 
