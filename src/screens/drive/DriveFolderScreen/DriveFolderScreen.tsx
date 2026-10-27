@@ -21,7 +21,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { DriveListType, DriveListViewMode, SortMode } from '../../../types/drive/ui';
+import { DriveListType, SortMode } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
@@ -404,8 +404,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   );
 
   const handleDriveItemLongPress = useStableCallback((driveItem: DriveListItem) => {
-    const isGridOutsideSelectionMode = driveCtx.viewMode === DriveListViewMode.Grid && !selection.isSelectionMode;
-    if (!canSelectDriveItem(driveItem) || isGridOutsideSelectionMode) {
+    if (!canSelectDriveItem(driveItem)) {
       handleDriveItemActionsPress(driveItem);
       return;
     }
