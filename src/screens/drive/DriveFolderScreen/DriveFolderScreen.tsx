@@ -4,8 +4,8 @@ import { useHardwareBackPress, useStableCallback } from '@internxt-mobile/hooks/
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
@@ -21,15 +21,25 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveSelectors, driveThunks } from '../../../store/slices/drive';
 import { NotificationType } from '../../../types';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { DriveListType, SortMode } from '../../../types/drive/ui';
+import { DriveListType, DriveListViewMode, SortMode } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
-import { buildFolderUploadListItem, canLoadNextPage, isFolderUploadItem } from './DriveFolderScreen.helpers';
+import {
+  buildFolderUploadListItem,
+  canLoadNextPage,
+  canSelectDriveItem,
+  hasUnloadedPages,
+  isFolderUploadItem,
+} from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
+import { DriveSelectionToolbar } from './DriveSelectionToolbar';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
+import { useDriveSelection } from './useDriveSelection';
 import { useFocusFolderOnScreenFocus } from './useFocusFolderOnScreenFocus';
 import { useReloadFolderInChosenSort } from './useReloadFolderInChosenSort';
+
+const ROOT_HEADER_TOP_MARGIN = 22;
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
@@ -122,12 +132,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     }
   }, [folderUuid]);
 
-  const onBackButtonPressed = () => {
-    navigation.goBack();
-  };
-
-  // Register a handler for hardware back
-  useHardwareBackPress(onBackButtonPressed);
   const [searchVisible, setSearchVisible] = useState(isRootFolder);
   const [searchValue, setSearchValue] = useState('');
 
@@ -146,6 +150,40 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       .concat(folderContent.filter((item) => item.data.isFolder).sort(drive.file.getSortFunction(sortMode)))
       .concat(folderContent.filter((item) => !item.data.isFolder).sort(drive.file.getSortFunction(sortMode)));
   }, [sortMode, driveUploadingItems, folderContent, folderUploads]);
+
+  const driveItems = useMemo(() => {
+    if (searchValue.length) {
+      return driveSortedItems.filter((item) => {
+        return item.data.name.toLowerCase().includes(searchValue.toLowerCase());
+      });
+    }
+    return driveSortedItems;
+  }, [driveSortedItems, searchValue]);
+
+  const folderItemUuids = useMemo(() => folderContent.map((item) => item.data.uuid), [folderContent]);
+  const visibleItemUuids = useMemo(
+    () => driveItems.filter(canSelectDriveItem).map((item) => item.data.uuid),
+    [driveItems],
+  );
+
+  const selection = useDriveSelection({
+    folderItemUuids,
+    visibleItemUuids,
+    hasUnloadedItems: hasUnloadedPages(folder),
+    loadRemainingItems: () => driveCtx.loadFolderContent(folderUuid, { loadAllContent: true }),
+  });
+  const shouldShowSelectionToolbar = selection.isSelectionMode && selection.selectedUuids.size > 0;
+
+  const onBackButtonPressed = () => {
+    if (selection.isSelectionMode) {
+      selection.exitSelectionMode();
+      return;
+    }
+    navigation.goBack();
+  };
+
+  // Register a handler for hardware back
+  useHardwareBackPress(onBackButtonPressed);
 
   /**
    * TODO: WARNING REDUX USAGE OVER HERE, SHOULD REMOVE
@@ -189,6 +227,13 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       return;
     }
 
+    if (selection.isSelectionMode) {
+      if (canSelectDriveItem(driveItem)) {
+        selection.toggleSelection(driveItem.data.uuid);
+      }
+      return;
+    }
+
     const isFolder = driveItem?.data?.isFolder;
 
     if (!isFolder) {
@@ -226,6 +271,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   });
 
   const handleDriveItemActionsPress = useStableCallback((driveItem: DriveListItem) => {
+    if (selection.isSelectionMode && canSelectDriveItem(driveItem)) {
+      handleDriveItemPress(driveItem);
+      return;
+    }
+
     if (isFolderUploadItem(driveItem)) {
       const uploadId = driveItem.data.uuid;
       folderUploadCancellationService.cancel(uploadId);
@@ -315,14 +365,53 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     }
   };
 
-  const driveItems = useMemo(() => {
-    if (searchValue.length) {
-      return driveSortedItems.filter((item) => {
-        return item.data.name.toLowerCase().includes(searchValue.toLowerCase());
-      });
+  useFocusEffect(
+    useCallback(() => {
+      return () => selection.exitSelectionMode();
+    }, []),
+  );
+
+  useEffect(() => {
+    const frameRequestId = requestAnimationFrame(() => {
+      dispatch(uiActions.setIsTabBarHidden(shouldShowSelectionToolbar));
+    });
+    return () => cancelAnimationFrame(frameRequestId);
+  }, [shouldShowSelectionToolbar]);
+
+  useEffect(
+    () => () => {
+      dispatch(uiActions.setIsTabBarHidden(false));
+    },
+    [],
+  );
+
+  const handleDriveItemLongPress = useStableCallback((driveItem: DriveListItem) => {
+    const isGridOutsideSelectionMode = driveCtx.viewMode === DriveListViewMode.Grid && !selection.isSelectionMode;
+    if (!canSelectDriveItem(driveItem) || isGridOutsideSelectionMode) {
+      handleDriveItemActionsPress(driveItem);
+      return;
     }
-    return driveSortedItems;
-  }, [driveSortedItems, searchValue]);
+    if (selection.isSelectionMode) {
+      selection.toggleSelection(driveItem.data.uuid);
+      return;
+    }
+    selection.enterSelectionMode(driveItem.data.uuid);
+  });
+
+  const handleSelectPress = () => {
+    selection.enterSelectionMode();
+  };
+
+  const handleSelectAllPress = () => {
+    selection.toggleSelectAll().catch((error) => {
+      errorService.reportError(error);
+      const err = errorService.castError(error, 'content');
+      notificationsService.show({
+        type: NotificationType.Error,
+        text1: err.message,
+      });
+    });
+  };
 
   async function handleRefresh() {
     try {
@@ -353,7 +442,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       </Portal>
 
       <AppScreen safeAreaTop style={tailwind('flex-1')}>
-        <View style={{ marginTop: isRootFolder ? 22 : 0 }}>
+        <View style={{ marginTop: isRootFolder ? ROOT_HEADER_TOP_MARGIN : 0 }}>
           <DriveFolderScreenHeader
             onFolderActionsPress={handleFolderActionsPress}
             title={screenTitle}
@@ -376,6 +465,18 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
               viewMode: driveCtx.viewMode,
               onViewModeButtonPress: handleViewModeButtonPress,
             }}
+            selectionConfig={
+              selection.isSelectionMode
+                ? {
+                    selectedCount: selection.selectedUuids.size,
+                    checkState: selection.selectionCheckState,
+                    isSelectingAll: selection.isSelectingAll,
+                    onSelectAllPress: handleSelectAllPress,
+                    onCancelPress: selection.exitSelectionMode,
+                  }
+                : undefined
+            }
+            onSelectPress={!selection.isSelectionMode && visibleItemUuids.length > 0 ? handleSelectPress : undefined}
           />
         </View>
         {folderHasError ? (
@@ -409,9 +510,14 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             viewMode={driveCtx.viewMode}
             onDriveItemPress={handleDriveItemPress}
             onDriveItemActionsPress={handleDriveItemActionsPress}
+            onDriveItemLongPress={handleDriveItemLongPress}
+            isSelectionMode={selection.isSelectionMode}
+            selectedUuids={selection.selectedUuids}
+            canSelectItem={canSelectDriveItem}
             contentContainerStyle={{ paddingBottom: FLOATING_BUTTON_CLEARANCE }}
           />
         )}
+        <DriveSelectionToolbar visible={shouldShowSelectionToolbar} />
       </AppScreen>
     </>
   );
