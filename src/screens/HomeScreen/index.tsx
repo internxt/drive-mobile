@@ -17,6 +17,9 @@ import { TabExplorerScreenProps } from '../../types/navigation';
 import UserProfilePicture from '../../components/UserProfilePicture';
 import { useProfileAvatar } from '../../hooks/useProfileAvatar';
 
+const PROFILE_AVATAR_SIZE = 36;
+const SCREEN_TITLE_LINE_HEIGHT = 32;
+
 enum HomeTab {
   Recents = 'recents',
 }
@@ -75,8 +78,11 @@ const HomeScreen = (props: TabExplorerScreenProps<'Home'>): JSX.Element => {
   };
 
   const avatarSlot = (
-    <TouchableOpacity onPress={() => props.navigation.navigate('Settings')}>
-      <UserProfilePicture uri={profileAvatar} size={36} />
+    <TouchableOpacity
+      style={{ marginVertical: (SCREEN_TITLE_LINE_HEIGHT - PROFILE_AVATAR_SIZE) / 2 }}
+      onPress={() => props.navigation.navigate('Settings')}
+    >
+      <UserProfilePicture uri={profileAvatar} size={PROFILE_AVATAR_SIZE} />
     </TouchableOpacity>
   );
 
