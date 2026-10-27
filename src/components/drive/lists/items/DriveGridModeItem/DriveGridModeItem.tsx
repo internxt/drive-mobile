@@ -4,9 +4,10 @@ import { driveFileService } from '@internxt-mobile/services/drive/file';
 import { items } from '@internxt/lib';
 import { ArrowCircleUpIcon, XCircleIcon } from 'phosphor-react-native';
 import prettysize from 'prettysize';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Image } from 'expo-image';
 import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
+import Animated, { interpolate, interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import useGetColor from '../../../../../hooks/useColor';
@@ -16,6 +17,14 @@ import { DownloadedThumbnail } from '../../../../../types/drive/file';
 import { DriveItemStatus } from '../../../../../types/drive/item';
 import { DriveItemProps } from '../../../../../types/drive/ui';
 import AppText from '../../../../AppText';
+import { LONG_PRESS_DELAY_MS } from '../itemPress';
+import { SelectionCheckbox } from '../SelectionCheckbox';
+import { useSelectionModeProgress } from '../SelectionModeContext';
+import { useSelectionProgress } from '../useSelectionProgress';
+
+const PREVIEW_BOX_SIZE = 96;
+const SELECTED_PREVIEW_INSET = 4;
+const SELECTED_PREVIEW_SCALE = (PREVIEW_BOX_SIZE - 2 * SELECTED_PREVIEW_INSET) / PREVIEW_BOX_SIZE;
 
 function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
@@ -32,6 +41,18 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const isFolderUploading = isUploading && isFolder && !!props.folderUploadProgress;
   const isFolderScanning = isUploading && isFolder && !props.folderUploadProgress;
   const maxThumbnailHeight = 96;
+  const selectionProgress = useSelectionProgress(!!props.isSelected);
+  const selectedNameBackgroundColor = getColor('bg-gray-10');
+  const previewAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: interpolate(selectionProgress.value, [0, 1], [1, SELECTED_PREVIEW_SCALE]) }],
+  }));
+  const selectionModeProgress = useSelectionModeProgress();
+  const checkboxAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: selectionModeProgress.value,
+  }));
+  const nameAnimatedStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(selectionProgress.value, [0, 1], ['transparent', selectedNameBackgroundColor]),
+  }));
 
   const getThumbnailWidth = () => {
     if (!thumbnailSize || !maxThumbnailWidth) return 0;
@@ -160,11 +181,58 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
     );
   };
 
+  const previewContent = useMemo(() => {
+    if (isFolder) {
+      return <FolderIcon width={iconSize} height={iconSize} style={isUploading && tailwind('opacity-40')} />;
+    }
+    if (downloadedThumbnail) {
+      return renderThumbnail(downloadedThumbnail);
+    }
+    return <IconFile width={iconSize} height={iconSize} />;
+  }, [isFolder, isUploading, downloadedThumbnail, maxThumbnailWidth, props.data.type]);
+
+  const nameColor = getColor('text-gray-100');
+  const nameText = useMemo(
+    () => (
+      <AppText
+        style={[
+          tailwind('text-base text-center leading-5'),
+          { color: nameColor },
+          isUploading && tailwind('opacity-40'),
+          { lineHeight: 16 * 1.2 },
+        ]}
+        numberOfLines={2}
+        ellipsizeMode={'middle'}
+      >
+        {items.getItemDisplayName(props.data)}
+      </AppText>
+    ),
+    [props.data, isUploading, nameColor],
+  );
+
+  const detailsColor = getColor('text-gray-50');
+  const detailsText = useMemo(
+    () => (
+      <>
+        {props.data.createdAt ? (
+          <AppText style={[tailwind('text-xs mt-1'), { color: detailsColor }, { lineHeight: 14 }]}>
+            {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
+          </AppText>
+        ) : null}
+        {props.data.size ? (
+          <AppText style={[tailwind('text-xs'), { color: detailsColor }]}>{prettysize(props.data.size)}</AppText>
+        ) : null}
+      </>
+    ),
+    [props.data.createdAt, props.data.size, detailsColor],
+  );
+
   return (
     <TouchableHighlight
       disabled={!isFolderUploading && (isUploading || isDownloading)}
       underlayColor={getColor('bg-gray-5')}
-      onLongPress={props.onActionsPress}
+      onLongPress={props.onLongPress ?? props.onActionsPress}
+      delayLongPress={LONG_PRESS_DELAY_MS}
       onPress={props.onPress}
       onLayout={(event) => {
         !maxThumbnailWidth && setMaxThumbnailWidth(Math.floor(event.nativeEvent.layout.width) - 8);
@@ -174,42 +242,23 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
       <View>
         <View style={[tailwind('flex-grow'), tailwind('flex-col items-center justify-center')]}>
           <View style={tailwind('w-full items-center justify-center')}>
-            <View style={tailwind('h-24 w-24 flex items-center justify-center')}>
-              {isFolder ? (
-                <FolderIcon width={iconSize} height={iconSize} style={isUploading && tailwind('opacity-40')} />
-              ) : downloadedThumbnail ? (
-                renderThumbnail(downloadedThumbnail)
-              ) : (
-                <IconFile width={iconSize} height={iconSize} />
+            <Animated.View style={[tailwind('h-24 w-24 flex items-center justify-center'), previewAnimatedStyle]}>
+              {previewContent}
+              {props.selectable && (
+                <Animated.View style={[tailwind('absolute items-center justify-center'), checkboxAnimatedStyle]}>
+                  <SelectionCheckbox checked={!!props.isSelected} shape="circle" />
+                </Animated.View>
               )}
-            </View>
+            </Animated.View>
 
             {renderUploadOverlay()}
           </View>
 
           <View style={[tailwind('flex items-start justify-center items-center mt-2.5 px-2 py-1')]}>
-            <AppText
-              style={[
-                tailwind('text-base text-center leading-5'),
-                { color: getColor('text-gray-100') },
-                isUploading && tailwind('opacity-40'),
-                { lineHeight: 16 * 1.2 },
-              ]}
-              numberOfLines={2}
-              ellipsizeMode={'middle'}
-            >
-              {items.getItemDisplayName(props.data)}
-            </AppText>
-            {props.data.createdAt ? (
-              <AppText style={[tailwind('text-xs mt-1'), { color: getColor('text-gray-50') }, { lineHeight: 14 }]}>
-                {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
-              </AppText>
-            ) : null}
-            {props.data.size ? (
-              <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-50') }]}>
-                {prettysize(props.data.size)}
-              </AppText>
-            ) : null}
+            <Animated.View style={[tailwind('rounded-md px-1 overflow-hidden'), nameAnimatedStyle]}>
+              {nameText}
+            </Animated.View>
+            {detailsText}
           </View>
         </View>
       </View>

@@ -61,6 +61,7 @@ export interface DriveItemProps {
   shareLink?: SharedFiles & SharedFolders;
   onActionsPress?: () => void;
   onPress?: () => void;
+  onLongPress?: () => void;
   children?: string;
   hideOptionsButton?: boolean;
   /** Present only for the folder-upload progress item */

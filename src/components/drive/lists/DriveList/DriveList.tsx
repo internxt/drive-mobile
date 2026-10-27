@@ -13,6 +13,8 @@ import useGetColor from '../../../../hooks/useColor';
 import { DriveListItem } from '../../../../types/drive/item';
 import DriveItemSkinSkeleton from '../../../DriveItemSkinSkeleton';
 import EmptyList from '../../../EmptyList';
+import { SelectionModeContext } from '../items/SelectionModeContext';
+import { useSelectionProgress } from '../items/useSelectionProgress';
 import { DriveListRow } from './DriveListRow';
 
 interface DriveListProps {
@@ -23,6 +25,10 @@ interface DriveListProps {
   // so it can be reused consistently
   onDriveItemActionsPress: (driveItem: DriveListItem) => void;
   onDriveItemPress: (driveItem: DriveListItem) => void;
+  onDriveItemLongPress?: (driveItem: DriveListItem) => void;
+  isSelectionMode?: boolean;
+  selectedUuids?: Set<string>;
+  canSelectItem?: (driveItem: DriveListItem) => boolean;
   onRefresh?: () => Promise<void>;
   renderEmpty?: () => React.ReactNode;
   contentContainerStyle?: ViewStyle;
@@ -44,6 +50,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
   const { width } = useWindowDimensions();
 
   const listItems = useMemo(() => props.items, [props.items]);
+  const selectionModeProgress = useSelectionProgress(!!props.isSelectionMode);
 
   const isEmptyFolder = !props.isLoading && Array.isArray(props.items) && props.items.length === 0;
   const sizeByMode = {
@@ -140,49 +147,69 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
         item={item}
         type={props.type || DriveListType.Drive}
         viewMode={props.viewMode}
+        selectable={props.isSelectionMode !== undefined && (props.canSelectItem?.(item) ?? true)}
+        isSelected={!!props.isSelectionMode && !!props.selectedUuids?.has(item.data.uuid)}
         hideOptionsButton={props.hideOptionsButton}
         onActionsPress={props.onDriveItemActionsPress}
         onPress={props.onDriveItemPress}
+        onLongPress={props.onDriveItemLongPress}
       />
     ),
-    [props.type, props.viewMode, props.hideOptionsButton, props.onDriveItemActionsPress, props.onDriveItemPress],
+    [
+      props.type,
+      props.viewMode,
+      props.isSelectionMode,
+      props.canSelectItem,
+      props.selectedUuids,
+      props.hideOptionsButton,
+      props.onDriveItemActionsPress,
+      props.onDriveItemPress,
+      props.onDriveItemLongPress,
+    ],
   );
 
   return (
-    <FlatList
-      keyExtractor={(item) => item.data.uuid}
-      style={{ backgroundColor: getColor('bg-surface') }}
-      getItemLayout={(_, index) => {
-        return { length: sizeByMode[props.viewMode].height, offset: sizeByMode[props.viewMode].height * index, index };
-      }}
-      refreshing={refreshing}
-      onRefresh={handleOnRefresh}
-      ListEmptyComponent={
-        <View style={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}>
-          {renderEmptyState() as React.ReactElement}
-        </View>
-      }
-      ListFooterComponent={renderLoadingMore()}
-      key={props.viewMode}
-      numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
-      renderItem={renderItem}
-      contentContainerStyle={{
-        ...{ flex: props.items?.length ? 0 : 1 },
-        ...(props.viewMode === DriveListViewMode.Grid
-          ? {
-              ...tailwind('py-6 ml-2'),
-              ...props.contentContainerStyle,
-              backgroundColor: getColor('bg-surface'),
-            }
-          : {
-              ...props.contentContainerStyle,
-              backgroundColor: getColor('bg-surface'),
-            }),
-      }}
-      onEndReachedThreshold={1}
-      onEndReached={handleOnScrollEnd}
-      data={listItems}
-    />
+    <SelectionModeContext.Provider value={selectionModeProgress}>
+      <FlatList
+        keyExtractor={(item) => item.data.uuid}
+        style={{ backgroundColor: getColor('bg-surface') }}
+        getItemLayout={(_, index) => {
+          return {
+            length: sizeByMode[props.viewMode].height,
+            offset: sizeByMode[props.viewMode].height * index,
+            index,
+          };
+        }}
+        refreshing={refreshing}
+        onRefresh={handleOnRefresh}
+        ListEmptyComponent={
+          <View style={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}>
+            {renderEmptyState() as React.ReactElement}
+          </View>
+        }
+        ListFooterComponent={renderLoadingMore()}
+        key={props.viewMode}
+        numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
+        renderItem={renderItem}
+        contentContainerStyle={{
+          ...{ flex: props.items?.length ? 0 : 1 },
+          ...(props.viewMode === DriveListViewMode.Grid
+            ? {
+                ...tailwind('py-6 ml-2'),
+                ...props.contentContainerStyle,
+                backgroundColor: getColor('bg-surface'),
+              }
+            : {
+                ...props.contentContainerStyle,
+                backgroundColor: getColor('bg-surface'),
+              }),
+        }}
+        onEndReachedThreshold={1}
+        onEndReached={handleOnScrollEnd}
+        data={listItems}
+        extraData={props.selectedUuids}
+      />
+    </SelectionModeContext.Provider>
   );
 };
 
