@@ -345,6 +345,13 @@ const translations = {
         decrypting: 'Decrypting',
         downloadingPercent: 'Downloading... {0}%',
         decryptingPercent: 'Decrypting... {0}%',
+        selection: {
+          noItemsSelected: 'No items selected',
+          itemSelected: '1 item selected',
+          itemsSelected: '{0} items selected',
+          export: 'Export',
+          moreActions: 'More actions',
+        },
       },
       recents: {
         title: 'Recents',
@@ -1575,6 +1582,13 @@ const translations = {
         decrypting: 'Desencriptando',
         downloadingPercent: 'Descargando... {0}%',
         decryptingPercent: 'Desencriptando... {0}%',
+        selection: {
+          noItemsSelected: 'Ningún elemento seleccionado',
+          itemSelected: '1 elemento seleccionado',
+          itemsSelected: '{0} elementos seleccionados',
+          export: 'Exportar',
+          moreActions: 'Más acciones',
+        },
       },
       recents: {
         title: 'Recientes',

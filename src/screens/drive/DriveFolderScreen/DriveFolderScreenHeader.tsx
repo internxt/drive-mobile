@@ -1,15 +1,32 @@
 import { DriveListViewMode, SortDirection, SortMode } from '@internxt-mobile/types/drive/ui';
 import { BackButton } from '@internxt-mobile/ui-kit';
 import strings from 'assets/lang/strings';
-import { ArrowDown, ArrowUp, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
+import {
+  ArrowDown,
+  ArrowUp,
+  CheckCircleIcon,
+  CircleIcon,
+  DotsThree,
+  MagnifyingGlass,
+  Rows,
+  SquaresFour,
+} from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Animated, StyleProp, TouchableOpacity, View, ViewStyle } from 'react-native';
+import Reanimated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
 import AppText from 'src/components/AppText';
+import {
+  SELECTION_ANIMATION_DURATION_MS,
+  SELECTION_ANIMATION_EASING,
+} from 'src/components/drive/lists/items/useSelectionProgress';
+import { SelectionCheckbox } from 'src/components/drive/lists/items/SelectionCheckbox';
 import { SearchInput } from 'src/components/SearchInput';
+import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import Separator from '../../../components/AppSeparator';
 import useGetColor from '../../../hooks/useColor';
 import { GlobalSearchModal } from './search/GlobalSearchModal';
+import { SelectionCheckState } from './useDriveSelection';
 
 export interface DriveFolderScreenHeaderProps {
   title: string;
@@ -33,10 +50,33 @@ export interface DriveFolderScreenHeaderProps {
     viewMode: DriveListViewMode;
     onViewModeButtonPress: () => void;
   };
+  selectionConfig?: {
+    selectedCount: number;
+    checkState: SelectionCheckState;
+    isSelectingAll: boolean;
+    onSelectAllPress: () => void;
+    onCancelPress: () => void;
+  };
+  onSelectPress?: () => void;
 }
 
 const SEARCH_BAR_HEIGHT = 52;
 const GLOBAL_SEARCH_BUTTON_HEIGHT = 40;
+const NAVIGATION_ROW_HEIGHT = 26;
+const GRID_SELECT_ALL_ICON_SIZE = 28;
+const TITLE_ROW_HEIGHT = 32;
+const HEADER_ROW_ENTERING = FadeIn.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
+const HEADER_ROW_EXITING = FadeOut.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
+
+export const getSelectionTitle = (selectedCount: number): string => {
+  if (selectedCount === 0) {
+    return strings.screens.drive.selection.noItemsSelected;
+  }
+  if (selectedCount === 1) {
+    return strings.screens.drive.selection.itemSelected;
+  }
+  return strings.formatString(strings.screens.drive.selection.itemsSelected, selectedCount);
+};
 
 export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (props) => {
   const tailwind = useTailwind();
@@ -92,10 +132,62 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
     setIsSearchInputFocused(isFocused);
   };
 
+  const renderSelectAllCheckbox = (checkState: SelectionCheckState) => {
+    if (viewMode === DriveListViewMode.Grid) {
+      if (checkState === 'all') {
+        return <CheckCircleIcon weight="fill" size={GRID_SELECT_ALL_ICON_SIZE} color={getColor('text-primary')} />;
+      }
+      if (checkState === 'some') {
+        return <CheckCircleIcon size={GRID_SELECT_ALL_ICON_SIZE} color={getColor('text-gray-80')} />;
+      }
+      return <CircleIcon size={GRID_SELECT_ALL_ICON_SIZE} color={getColor('text-gray-40')} />;
+    }
+    return <SelectionCheckbox checked={checkState === 'all'} indeterminate={checkState === 'some'} shape="square" />;
+  };
+
+  const isRootSelectionMode = !!props.selectionConfig && !canGoBack;
+
+  const renderSelectionRow = (
+    selectionConfig: NonNullable<DriveFolderScreenHeaderProps['selectionConfig']>,
+    style: StyleProp<ViewStyle>,
+  ) => (
+    <Reanimated.View
+      key="selection"
+      entering={HEADER_ROW_ENTERING}
+      exiting={HEADER_ROW_EXITING}
+      style={[tailwind('flex-row items-center justify-between'), style]}
+    >
+      <TouchableOpacity
+        hitSlop={INCREASED_TOUCH_AREA}
+        onPress={selectionConfig.onSelectAllPress}
+        disabled={selectionConfig.isSelectingAll}
+      >
+        {selectionConfig.isSelectingAll ? (
+          <ActivityIndicator color={getColor('text-primary')} />
+        ) : (
+          renderSelectAllCheckbox(selectionConfig.checkState)
+        )}
+      </TouchableOpacity>
+      <AppText medium style={[tailwind('text-base'), { color: getColor('text-gray-100') }]} numberOfLines={1}>
+        {getSelectionTitle(selectionConfig.selectedCount)}
+      </AppText>
+      <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} onPress={selectionConfig.onCancelPress}>
+        <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>{strings.buttons.cancel}</AppText>
+      </TouchableOpacity>
+    </Reanimated.View>
+  );
+
   return (
-    <>
-      {canGoBack && (
-        <View style={tailwind('flex-row items-center justify-between px-2 mb-2 mt-4')}>
+    <LayoutAnimationConfig skipEntering>
+      {props.selectionConfig &&
+        canGoBack &&
+        renderSelectionRow(props.selectionConfig, [tailwind('px-4 mb-2 mt-4'), { height: NAVIGATION_ROW_HEIGHT }])}
+      {!props.selectionConfig && canGoBack && (
+        <Reanimated.View
+          entering={HEADER_ROW_ENTERING}
+          exiting={HEADER_ROW_EXITING}
+          style={[tailwind('flex-row items-center justify-between px-2 mb-2 mt-4'), { height: NAVIGATION_ROW_HEIGHT }]}
+        >
           <BackButton label={label} onPress={onBackButtonPressed} />
 
           <View style={tailwind('flex-row -m-2')}>
@@ -110,18 +202,38 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </Reanimated.View>
       )}
 
-      <View style={[tailwind('px-4'), { marginBottom: 14 }]}>
-        <AppText
-          style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}
-          medium
-          ellipsizeMode="tail"
-          numberOfLines={1}
-        >
-          {props.title}
-        </AppText>
+      <View style={[tailwind('flex-row items-center px-4'), { marginBottom: 14, height: TITLE_ROW_HEIGHT }]}>
+        {isRootSelectionMode && props.selectionConfig ? (
+          renderSelectionRow(props.selectionConfig, tailwind('flex-1'))
+        ) : (
+          <Reanimated.View
+            key="title"
+            entering={HEADER_ROW_ENTERING}
+            exiting={HEADER_ROW_EXITING}
+            style={tailwind('flex-1')}
+          >
+            <AppText
+              style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}
+              medium
+              ellipsizeMode="tail"
+              numberOfLines={1}
+            >
+              {props.title}
+            </AppText>
+          </Reanimated.View>
+        )}
+        {props.onSelectPress && (
+          <Reanimated.View entering={HEADER_ROW_ENTERING} exiting={HEADER_ROW_EXITING}>
+            <TouchableOpacity style={tailwind('pl-3')} onPress={props.onSelectPress}>
+              <AppText medium style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+                {strings.buttons.select}
+              </AppText>
+            </TouchableOpacity>
+          </Reanimated.View>
+        )}
       </View>
 
       <Animated.View style={[tailwind('overflow-hidden'), { height: searchBarHeight, opacity: searchBarOpacity }]}>
@@ -172,6 +284,6 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
 
       <Separator />
       <GlobalSearchModal visible={showGlobalSearch} onClose={() => setShowGlobalSearch(false)} />
-    </>
+    </LayoutAnimationConfig>
   );
 };
