@@ -8,7 +8,11 @@ import { DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive/ite
 import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 import { NotificationType, UseCaseResult } from '@internxt-mobile/types/index';
 import strings from 'assets/lang/strings';
+import pLimit from 'p-limit';
 import { checkIsFolder } from '../../helpers';
+
+const MAX_ITEMS_PER_TRASH_REQUEST = 50;
+const MAX_CONCURRENT_RESTORES = 5;
 
 type GetDriveTrashItemsOptions = {
   page: number;
@@ -82,15 +86,21 @@ export const restoreDriveItems = async (
   config?: { displayNotification: boolean },
 ): Promise<UseCaseResult<unknown>> => {
   try {
-    const operations = items.map(async (item) => {
-      if (item.fileId) {
-        await drive.trash.restoreFile({ fileUuid: item.fileId, destinationFolderUuid: item.destinationFolderId });
-      }
+    const restoreLimit = pLimit(MAX_CONCURRENT_RESTORES);
+    const operations = items.map((item) =>
+      restoreLimit(async () => {
+        if (item.fileId) {
+          await drive.trash.restoreFile({ fileUuid: item.fileId, destinationFolderUuid: item.destinationFolderId });
+        }
 
-      if (item.folderId) {
-        await drive.trash.restoreFolder({ folderUuid: item.folderId, destinationFolderUuid: item.destinationFolderId });
-      }
-    });
+        if (item.folderId) {
+          await drive.trash.restoreFolder({
+            folderUuid: item.folderId,
+            destinationFolderUuid: item.destinationFolderId,
+          });
+        }
+      }),
+    );
 
     await Promise.all(operations);
 
@@ -185,11 +195,15 @@ export const moveItemsToTrash = async (
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {
-    await drive.trash.moveToTrash(items);
+    for (let batchStart = 0; batchStart < items.length; batchStart += MAX_ITEMS_PER_TRASH_REQUEST) {
+      await drive.trash.moveToTrash(items.slice(batchStart, batchStart + MAX_ITEMS_PER_TRASH_REQUEST));
+    }
 
     const isPlural = items.length > 1;
     notifications.show({
-      text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
+      text1: isPlural
+        ? strings.formatString(strings.messages.itemsMovedToTrash, items.length).toString()
+        : strings.messages.itemMovedToTrash,
       type: NotificationType.Success,
       action: {
         text: strings.buttons.undo,
