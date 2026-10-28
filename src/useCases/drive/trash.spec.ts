@@ -1,4 +1,5 @@
 import analytics from '@internxt-mobile/services/AnalyticsService';
+import { FolderMeta } from '@internxt-mobile/types/drive/folder';
 import { DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive/item';
 import drive from '@internxt-mobile/services/drive';
 import { deleteDriveItemsPermanently, moveItemsToTrash, restoreDriveItems } from './trash';
@@ -141,5 +142,23 @@ describe('Restoring items from the trash', () => {
       folderUuid: 'folder-2',
       destinationFolderUuid: 'folder-b',
     });
+  });
+
+  test('when one item cannot be restored, then the failure is reported only after the other items finish', async () => {
+    let isFolderRestoreFinished = false;
+    jest.mocked(drive.trash.restoreFile).mockRejectedValueOnce(new Error('network'));
+    jest.mocked(drive.trash.restoreFolder).mockImplementationOnce(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      isFolderRestoreFinished = true;
+      return {} as FolderMeta;
+    });
+
+    const result = await restoreDriveItems([
+      { fileId: 'file-1', destinationFolderId: 'folder-a' },
+      { folderId: 'folder-2', destinationFolderId: 'folder-b' },
+    ]);
+
+    expect(result.success).toBe(false);
+    expect(isFolderRestoreFinished).toBe(true);
   });
 });

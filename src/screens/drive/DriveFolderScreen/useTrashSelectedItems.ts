@@ -22,7 +22,7 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
   };
 
   const restoreItems = async (items: DriveListItem[]) => {
-    const { success } = await driveUseCases.restoreDriveItems(
+    await driveUseCases.restoreDriveItems(
       items.map(({ data }) => ({
         fileId: data.isFolder ? undefined : data.uuid,
         folderId: data.isFolder ? data.uuid : undefined,
@@ -30,9 +30,7 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
       })),
       { displayNotification: false },
     );
-    if (success) {
-      await reloadFolder();
-    }
+    await reloadFolder();
   };
 
   const trashItems = async (items: DriveListItem[]) => {
@@ -43,6 +41,7 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
     );
     setIsTrashing(false);
     if (!success) {
+      await reloadFolder();
       return;
     }
 

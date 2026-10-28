@@ -103,7 +103,11 @@ export const restoreDriveItems = async (
       }),
     );
 
-    await Promise.all(operations);
+    const results = await Promise.allSettled(operations);
+    const failedResult = results.find((result) => result.status === 'rejected');
+    if (failedResult?.status === 'rejected') {
+      throw failedResult.reason;
+    }
 
     const isPlural = items.length > 1;
     if (config?.displayNotification !== false) {
