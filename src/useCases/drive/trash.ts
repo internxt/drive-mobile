@@ -85,7 +85,8 @@ export const getDriveTrashItems = async ({
 export const restoreDriveItems = async (
   items: { fileId?: string; folderId?: string; destinationFolderId: string }[],
   config?: { displayNotification: boolean },
-): Promise<UseCaseResult<unknown>> => {
+): Promise<UseCaseResult<{ restoredCount: number }>> => {
+  let restoredCount = 0;
   try {
     const restoreLimit = pLimit(MAX_CONCURRENT_RESTORES);
     const operations = items.map((item) =>
@@ -104,6 +105,7 @@ export const restoreDriveItems = async (
     );
 
     const results = await Promise.allSettled(operations);
+    restoredCount = results.filter((result) => result.status === 'fulfilled').length;
     const failedResult = results.find((result) => result.status === 'rejected');
     if (failedResult?.status === 'rejected') {
       throw failedResult.reason;
@@ -120,7 +122,7 @@ export const restoreDriveItems = async (
 
     return {
       success: true,
-      data: {},
+      data: { restoredCount },
     };
   } catch (error) {
     errorService.reportError(error);
@@ -128,6 +130,7 @@ export const restoreDriveItems = async (
     return {
       success: false,
       error: error as Error,
+      data: { restoredCount },
     };
   }
 };
@@ -198,10 +201,15 @@ export const clearTrash = async (): Promise<UseCaseResult<null>> => {
 export const moveItemsToTrash = async (
   items: { type: 'file' | 'folder'; uuid: string }[],
   onUndo: () => void,
-): Promise<UseCaseResult<null>> => {
+): Promise<UseCaseResult<{ trashedUuids: string[] }>> => {
+  const trashedUuids: string[] = [];
   try {
     await chunk(items, MAX_ITEMS_PER_TRASH_REQUEST).reduce(
-      (previousBatches, batch) => previousBatches.then(() => drive.trash.moveToTrash(batch)),
+      (previousBatches, batch) =>
+        previousBatches.then(async () => {
+          await drive.trash.moveToTrash(batch);
+          trashedUuids.push(...batch.map((item) => item.uuid));
+        }),
       Promise.resolve(),
     );
 
@@ -231,7 +239,7 @@ export const moveItemsToTrash = async (
 
     return {
       success: true,
-      data: null,
+      data: { trashedUuids },
     };
   } catch (error) {
     errorService.reportError(error);
@@ -239,6 +247,7 @@ export const moveItemsToTrash = async (
     return {
       success: false,
       error: error as Error,
+      data: { trashedUuids },
     };
   }
 };
