@@ -95,6 +95,30 @@ describe('Moving the selected Drive items to the trash', () => {
     expect(result.current.isTrashing).toBe(false);
   });
 
+  test('when only some of the items reach the trash, then the folder is reloaded to show which ones are left', async () => {
+    mockMoveItemsToTrash.mockResolvedValue({ success: false, error: new Error('network') });
+    const { result } = renderTrashHook();
+
+    await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
+
+    expect(mockLoadFolderContent).toHaveBeenCalledWith(CURRENT_FOLDER_UUID, {
+      pullFrom: ['network'],
+      resetPagination: true,
+    });
+  });
+
+  test('when undoing the move fails for some items, then the folder is reloaded to show the ones that came back', async () => {
+    mockRestoreDriveItems.mockResolvedValue({ success: false, error: new Error('network') });
+    const { result } = renderTrashHook();
+    await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
+    const undo = mockMoveItemsToTrash.mock.calls[0][1];
+    mockLoadFolderContent.mockClear();
+
+    await act(() => undo());
+
+    expect(mockLoadFolderContent).toHaveBeenCalledTimes(1);
+  });
+
   test('when the move is undone, then each item goes back to the folder it came from', async () => {
     const { result } = renderTrashHook();
     await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
