@@ -8,6 +8,7 @@ import { DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive/ite
 import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 import { NotificationType, UseCaseResult } from '@internxt-mobile/types/index';
 import strings from 'assets/lang/strings';
+import { chunk } from 'lodash';
 import pLimit from 'p-limit';
 import { checkIsFolder } from '../../helpers';
 
@@ -195,9 +196,10 @@ export const moveItemsToTrash = async (
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {
-    for (let batchStart = 0; batchStart < items.length; batchStart += MAX_ITEMS_PER_TRASH_REQUEST) {
-      await drive.trash.moveToTrash(items.slice(batchStart, batchStart + MAX_ITEMS_PER_TRASH_REQUEST));
-    }
+    await chunk(items, MAX_ITEMS_PER_TRASH_REQUEST).reduce(
+      (previousBatches, batch) => previousBatches.then(() => drive.trash.moveToTrash(batch)),
+      Promise.resolve(),
+    );
 
     const isPlural = items.length > 1;
     notifications.show({
