@@ -85,7 +85,8 @@ export const getDriveTrashItems = async ({
 export const restoreDriveItems = async (
   items: { fileId?: string; folderId?: string; destinationFolderId: string }[],
   config?: { displayNotification: boolean },
-): Promise<UseCaseResult<unknown>> => {
+): Promise<UseCaseResult<{ restoredCount: number }>> => {
+  let restoredCount = 0;
   try {
     const restoreLimit = pLimit(MAX_CONCURRENT_RESTORES);
     const operations = items.map((item) =>
@@ -104,6 +105,7 @@ export const restoreDriveItems = async (
     );
 
     const results = await Promise.allSettled(operations);
+    restoredCount = results.filter((result) => result.status === 'fulfilled').length;
     const failedResult = results.find((result) => result.status === 'rejected');
     if (failedResult?.status === 'rejected') {
       throw failedResult.reason;
@@ -120,7 +122,7 @@ export const restoreDriveItems = async (
 
     return {
       success: true,
-      data: {},
+      data: { restoredCount },
     };
   } catch (error) {
     errorService.reportError(error);
@@ -128,6 +130,7 @@ export const restoreDriveItems = async (
     return {
       success: false,
       error: error as Error,
+      data: { restoredCount },
     };
   }
 };

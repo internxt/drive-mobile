@@ -1,5 +1,6 @@
 const mockLoadFolderContent = jest.fn();
 const mockRemoveItemFromTree = jest.fn();
+const mockReportError = jest.fn();
 const mockMoveItemsToTrash = jest.fn();
 const mockRestoreDriveItems = jest.fn();
 
@@ -16,6 +17,11 @@ jest.mock('@internxt-mobile/useCases/drive', () => ({
   restoreDriveItems: (...args: unknown[]) => mockRestoreDriveItems(...args),
 }));
 
+jest.mock('@internxt-mobile/services/ErrorService', () => ({
+  __esModule: true,
+  default: { reportError: (...args: unknown[]) => mockReportError(...args) },
+}));
+
 jest.mock('src/helpers/services', () => ({
   SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET: jest
     .fn()
@@ -24,7 +30,7 @@ jest.mock('src/helpers/services', () => ({
 
 import { notifyParentChanged } from '@internxt-mobile/services/native/InternxtSignalingModule';
 import { DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive/item';
-import { act, renderHook } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { useTrashSelectedItems } from './useTrashSelectedItems';
 
 const CURRENT_FOLDER_UUID = 'current-folder';
@@ -55,7 +61,7 @@ describe('Moving the selected Drive items to the trash', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockMoveItemsToTrash.mockResolvedValue({ success: true, data: { trashedUuids: ['folder-1', 'file-1'] } });
-    mockRestoreDriveItems.mockResolvedValue({ success: true, data: {} });
+    mockRestoreDriveItems.mockResolvedValue({ success: true, data: { restoredCount: 2 } });
   });
 
   test('when the selected items are moved to the trash, then every one is sent with its type', async () => {
@@ -117,8 +123,9 @@ describe('Moving the selected Drive items to the trash', () => {
     await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
     const undo = mockMoveItemsToTrash.mock.calls[0][1];
 
-    await act(() => undo());
+    act(() => undo());
 
+    await waitFor(() => expect(mockLoadFolderContent).toHaveBeenCalledTimes(1));
     expect(mockRestoreDriveItems).toHaveBeenCalledWith(
       [
         { fileId: undefined, folderId: 'folder-1', destinationFolderId: CURRENT_FOLDER_UUID },
@@ -126,5 +133,40 @@ describe('Moving the selected Drive items to the trash', () => {
       ],
       { displayNotification: false },
     );
+  });
+
+  test('when undoing brings back only some of the items, then the folder is reloaded to show them', async () => {
+    mockRestoreDriveItems.mockResolvedValue({ success: false, error: new Error('network'), data: { restoredCount: 1 } });
+    const { result } = renderTrashHook();
+    await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
+    const undo = mockMoveItemsToTrash.mock.calls[0][1];
+
+    act(() => undo());
+
+    await waitFor(() => expect(mockLoadFolderContent).toHaveBeenCalledTimes(1));
+  });
+
+  test('when undoing brings back none of the items, then the folder is left as it is', async () => {
+    mockRestoreDriveItems.mockResolvedValue({ success: false, error: new Error('network'), data: { restoredCount: 0 } });
+    const { result } = renderTrashHook();
+    await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
+    const undo = mockMoveItemsToTrash.mock.calls[0][1];
+
+    act(() => undo());
+
+    await waitFor(() => expect(mockRestoreDriveItems).toHaveBeenCalledTimes(1));
+    expect(mockLoadFolderContent).not.toHaveBeenCalled();
+  });
+
+  test('when the folder cannot be reloaded after undoing, then the error is reported', async () => {
+    const reloadError = new Error('network');
+    mockLoadFolderContent.mockRejectedValueOnce(reloadError);
+    const { result } = renderTrashHook();
+    await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
+    const undo = mockMoveItemsToTrash.mock.calls[0][1];
+
+    act(() => undo());
+
+    await waitFor(() => expect(mockReportError).toHaveBeenCalledWith(reloadError));
   });
 });

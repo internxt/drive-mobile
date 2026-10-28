@@ -1,4 +1,5 @@
 import { useDrive } from '@internxt-mobile/hooks/drive';
+import errorService from '@internxt-mobile/services/ErrorService';
 import { notifyParentChanged } from '@internxt-mobile/services/native/InternxtSignalingModule';
 import { DriveListItem } from '@internxt-mobile/types/drive/item';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
@@ -22,7 +23,7 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
   };
 
   const restoreItems = async (items: DriveListItem[]) => {
-    const { success } = await driveUseCases.restoreDriveItems(
+    const { data: restoreResult } = await driveUseCases.restoreDriveItems(
       items.map(({ data }) => ({
         fileId: data.isFolder ? undefined : data.uuid,
         folderId: data.isFolder ? data.uuid : undefined,
@@ -30,7 +31,7 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
       })),
       { displayNotification: false },
     );
-    if (success) {
+    if (restoreResult?.restoredCount) {
       await reloadFolder();
     }
   };
@@ -39,7 +40,9 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
     setIsTrashing(true);
     const { success, data: trashResult } = await driveUseCases.moveItemsToTrash(
       items.map(({ data }) => ({ uuid: data.uuid, type: data.isFolder ? 'folder' : 'file' })),
-      () => restoreItems(items),
+      () => {
+        restoreItems(items).catch((error) => errorService.reportError(error));
+      },
     );
     setIsTrashing(false);
     const trashedUuids = trashResult?.trashedUuids ?? [];

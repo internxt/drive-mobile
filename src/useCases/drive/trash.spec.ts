@@ -168,6 +168,7 @@ describe('Restoring items from the trash', () => {
     ]);
 
     expect(result.success).toBe(false);
+    expect(result.data?.restoredCount).toBe(1);
     expect(isFolderRestoreFinished).toBe(true);
   });
 });
