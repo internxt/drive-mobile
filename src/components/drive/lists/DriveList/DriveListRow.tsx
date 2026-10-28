@@ -15,18 +15,24 @@ interface DriveListRowProps {
   item: DriveListItem;
   type: DriveListType;
   viewMode: DriveListViewMode;
+  selectable: boolean;
+  isSelected: boolean;
   hideOptionsButton?: boolean;
   onActionsPress: (driveItem: DriveListItem) => void;
   onPress?: (driveItem: DriveListItem) => void;
+  onLongPress?: (driveItem: DriveListItem) => void;
 }
 
 const DriveListRowComponent = ({
   item,
   type,
   viewMode,
+  selectable,
+  isSelected,
   hideOptionsButton,
   onActionsPress,
   onPress,
+  onLongPress,
 }: DriveListRowProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
@@ -49,6 +55,9 @@ const DriveListRowComponent = ({
         viewMode={viewMode}
         onActionsPress={() => onActionsPress(item)}
         onPress={onPress ? () => onPress(item) : undefined}
+        onLongPress={onLongPress ? () => onLongPress(item) : undefined}
+        selectable={selectable}
+        isSelected={isSelected}
         hideOptionsButton={hideOptionsButton}
       />
       {isList ? (
