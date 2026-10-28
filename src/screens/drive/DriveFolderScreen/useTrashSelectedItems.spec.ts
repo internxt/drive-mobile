@@ -1,9 +1,10 @@
 const mockLoadFolderContent = jest.fn();
+const mockRemoveItemFromTree = jest.fn();
 const mockMoveItemsToTrash = jest.fn();
 const mockRestoreDriveItems = jest.fn();
 
 jest.mock('@internxt-mobile/hooks/drive', () => ({
-  useDrive: () => ({ loadFolderContent: mockLoadFolderContent }),
+  useDrive: () => ({ loadFolderContent: mockLoadFolderContent, removeItemFromTree: mockRemoveItemFromTree }),
 }));
 
 jest.mock('@internxt-mobile/services/native/InternxtSignalingModule', () => ({
@@ -53,7 +54,7 @@ const renderTrashHook = () => {
 describe('Moving the selected Drive items to the trash', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockMoveItemsToTrash.mockResolvedValue({ success: true, data: null });
+    mockMoveItemsToTrash.mockResolvedValue({ success: true, data: { trashedUuids: ['folder-1', 'file-1'] } });
     mockRestoreDriveItems.mockResolvedValue({ success: true, data: {} });
   });
 
@@ -71,28 +72,44 @@ describe('Moving the selected Drive items to the trash', () => {
     );
   });
 
-  test('when the items reach the trash, then the selection closes and the folder is reloaded', async () => {
+  test('when the items reach the trash, then they leave the folder and the selection closes', async () => {
     const { result, onTrashed } = renderTrashHook();
 
     await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
 
     expect(onTrashed).toHaveBeenCalledTimes(1);
+    expect(mockRemoveItemFromTree).toHaveBeenCalledWith(CURRENT_FOLDER_UUID, 'folder-1');
+    expect(mockRemoveItemFromTree).toHaveBeenCalledWith(CURRENT_FOLDER_UUID, 'file-1');
     expect(notifyParentChanged).toHaveBeenCalledTimes(1);
     expect(notifyParentChanged).toHaveBeenCalledWith(CURRENT_FOLDER_UUID);
-    expect(mockLoadFolderContent).toHaveBeenCalledWith(CURRENT_FOLDER_UUID, {
-      pullFrom: ['network'],
-      resetPagination: true,
-    });
+    expect(mockLoadFolderContent).not.toHaveBeenCalled();
   });
 
-  test('when the items cannot be moved to the trash, then the selection stays as it was', async () => {
-    mockMoveItemsToTrash.mockResolvedValue({ success: false, error: new Error('network') });
+  test('when the items cannot be moved to the trash, then the folder and the selection stay as they were', async () => {
+    mockMoveItemsToTrash.mockResolvedValue({ success: false, error: new Error('network'), data: { trashedUuids: [] } });
     const { result, onTrashed } = renderTrashHook();
 
     await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
 
     expect(onTrashed).not.toHaveBeenCalled();
+    expect(mockRemoveItemFromTree).not.toHaveBeenCalled();
+    expect(mockLoadFolderContent).not.toHaveBeenCalled();
     expect(result.current.isTrashing).toBe(false);
+  });
+
+  test('when only some of the items reach the trash, then only those leave the folder and the rest stay selected', async () => {
+    mockMoveItemsToTrash.mockResolvedValue({
+      success: false,
+      error: new Error('network'),
+      data: { trashedUuids: ['folder-1'] },
+    });
+    const { result, onTrashed } = renderTrashHook();
+
+    await act(() => result.current.trashItems([SELECTED_FOLDER, SELECTED_FILE]));
+
+    expect(mockRemoveItemFromTree).toHaveBeenCalledTimes(1);
+    expect(mockRemoveItemFromTree).toHaveBeenCalledWith(CURRENT_FOLDER_UUID, 'folder-1');
+    expect(onTrashed).not.toHaveBeenCalled();
   });
 
   test('when the move is undone, then each item goes back to the folder it came from', async () => {

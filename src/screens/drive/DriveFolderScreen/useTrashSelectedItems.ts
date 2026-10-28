@@ -37,18 +37,19 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
 
   const trashItems = async (items: DriveListItem[]) => {
     setIsTrashing(true);
-    const { success } = await driveUseCases.moveItemsToTrash(
+    const { success, data: trashResult } = await driveUseCases.moveItemsToTrash(
       items.map(({ data }) => ({ uuid: data.uuid, type: data.isFolder ? 'folder' : 'file' })),
       () => restoreItems(items),
     );
     setIsTrashing(false);
-    if (!success) {
-      return;
+    const trashedUuids = trashResult?.trashedUuids ?? [];
+    trashedUuids.forEach((uuid) => driveCtx.removeItemFromTree(folderUuid, uuid));
+    if (trashedUuids.length > 0) {
+      void notifyParentChanged(folderUuid);
     }
-
-    onTrashed();
-    void notifyParentChanged(folderUuid);
-    await reloadFolder();
+    if (success) {
+      onTrashed();
+    }
   };
 
   return { isTrashing, trashItems };

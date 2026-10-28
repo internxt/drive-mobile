@@ -124,6 +124,15 @@ describe('Moving items to the trash', () => {
     expect(result.success).toBe(false);
     expect(drive.trash.moveToTrash).toHaveBeenCalledTimes(2);
   });
+
+  test('when one group of items is rejected, then the result names the items that already reached the trash', async () => {
+    const items = Array.from({ length: 120 }, (_, index) => ({ uuid: `file-${index}`, type: 'file' as const }));
+    jest.mocked(drive.trash.moveToTrash).mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('network'));
+
+    const result = await moveItemsToTrash(items, jest.fn());
+
+    expect(result.data?.trashedUuids).toStrictEqual(items.slice(0, 50).map((item) => item.uuid));
+  });
 });
 
 describe('Restoring items from the trash', () => {
