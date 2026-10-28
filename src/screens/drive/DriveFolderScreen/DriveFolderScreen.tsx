@@ -1,6 +1,6 @@
 import Portal from '@burstware/react-native-portal';
 import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/floatingButtonLayout';
-import { useHardwareBackPress } from '@internxt-mobile/hooks/common';
+import { useHardwareBackPress, useStableCallback } from '@internxt-mobile/hooks/common';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
@@ -184,7 +184,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     navigation.navigate('DrivePreview');
   };
 
-  const handleDriveItemPress = (driveItem: DriveListItem) => {
+  const handleDriveItemPress = useStableCallback((driveItem: DriveListItem) => {
     if (!navigation.isFocused()) {
       return;
     }
@@ -223,9 +223,9 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         folderName: driveItem.data.name,
       });
     }
-  };
+  });
 
-  const handleDriveItemActionsPress = (driveItem: DriveListItem) => {
+  const handleDriveItemActionsPress = useStableCallback((driveItem: DriveListItem) => {
     if (isFolderUploadItem(driveItem)) {
       const uploadId = driveItem.data.uuid;
       folderUploadCancellationService.cancel(uploadId);
@@ -246,7 +246,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     );
 
     dispatch(uiActions.setShowItemModal(true));
-  };
+  });
 
   const handleSortButtonPress = () => {
     setSortModalOpen(true);
