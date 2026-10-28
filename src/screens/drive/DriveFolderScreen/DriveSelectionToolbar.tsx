@@ -21,6 +21,9 @@ const ACTION_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 
 interface DriveSelectionToolbarProps {
   visible: boolean;
+  trashDisabled: boolean;
+  moreDisabled: boolean;
+  onTrashPress: () => void;
   onMorePress: () => void;
 }
 
@@ -51,7 +54,13 @@ const VISIBILITY_HIDDEN = 0;
 const VISIBILITY_SHOWN = 1;
 const MIN_VISIBLE_PROGRESS = 0.01;
 
-export const DriveSelectionToolbar = ({ visible, onMorePress }: DriveSelectionToolbarProps): JSX.Element => {
+export const DriveSelectionToolbar = ({
+  visible,
+  trashDisabled,
+  moreDisabled,
+  onTrashPress,
+  onMorePress,
+}: DriveSelectionToolbarProps): JSX.Element => {
   const getColor = useGetColor();
   const visibility = useSharedValue(visible ? VISIBILITY_SHOWN : VISIBILITY_HIDDEN);
 
@@ -90,14 +99,21 @@ export const DriveSelectionToolbar = ({ visible, onMorePress }: DriveSelectionTo
         disabled
       />
       <ToolbarAction
-        icon={<TrashIcon size={ACTION_ICON_SIZE} color={disabledColor} />}
+        icon={<TrashIcon size={ACTION_ICON_SIZE} color={trashDisabled ? disabledColor : getColor('text-primary')} />}
         label={strings.buttons.moveToThrash}
-        disabled
+        disabled={trashDisabled}
+        onPress={onTrashPress}
       />
       <ToolbarAction
-        icon={<DotsThreeIcon weight="bold" size={ACTION_ICON_SIZE} color={getColor('text-primary')} />}
+        icon={
+          <DotsThreeIcon
+            weight="bold"
+            size={ACTION_ICON_SIZE}
+            color={moreDisabled ? disabledColor : getColor('text-primary')}
+          />
+        }
         label={strings.screens.drive.selection.moreActions}
-        disabled={false}
+        disabled={moreDisabled}
         onPress={onMorePress}
       />
     </Animated.View>
