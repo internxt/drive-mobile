@@ -18,7 +18,7 @@ export const useTrashSelectedItems = ({ folderUuid, onTrashed }: UseTrashSelecte
 
   const reloadFolder = async () => {
     await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(RELOAD_DELAY_MS);
-    driveCtx.loadFolderContent(folderUuid, { pullFrom: ['network'], resetPagination: true });
+    await driveCtx.loadFolderContent(folderUuid, { pullFrom: ['network'], resetPagination: true });
   };
 
   const restoreItems = async (items: DriveListItem[]) => {
