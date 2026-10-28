@@ -77,11 +77,16 @@ export enum NotificationType {
   Download = 'download',
 }
 
+export interface NotificationAction {
+  text: string;
+  onActionPress: () => void;
+}
+
 export interface NotificationData {
   type: NotificationType;
   text1: string;
   text2?: string;
-  action?: AppToastExtraProps['action'];
+  action?: NotificationAction;
   autoHide?: boolean;
 }
 
@@ -116,7 +121,7 @@ export type ProgressCallback = (progress: number) => void;
 export type Abortable = (reason?: string) => void;
 
 export interface AppToastExtraProps {
-  action?: { text: string; onActionPress: () => void };
+  action?: NotificationAction;
 }
 
 export enum Language {
