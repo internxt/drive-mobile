@@ -3,6 +3,8 @@ import Toast, { ToastShowParams } from 'react-native-toast-message';
 
 import { NotificationData, NotificationType } from '../types';
 
+const ACTION_NOTIFICATION_VISIBILITY_TIME_MS = 6000;
+
 class NotificationsService {
   private readonly defaultShowOptions: Partial<ToastShowParams> = {
     visibilityTime: 3000,
@@ -29,26 +31,9 @@ class NotificationsService {
     this.show({ text1: text, type: NotificationType.Error });
   }
 
-  public show(options: {
-    text1: string;
-    text2?: string;
-    type: NotificationType;
-    action?: { text: string; onActionPress: () => void };
-    autoHide?: boolean;
-  }) {
-    const autoHide = options.autoHide ?? true;
+  public show(options: NotificationData) {
     if (this.notifications.length === 0) {
-      Toast.show({
-        ...this.defaultShowOptions,
-        ...(autoHide ? {} : { autoHide: false, visibilityTime: undefined }),
-        text1: options.text1,
-        text2: options.text2,
-        type: options.type,
-        onHide: () => this.onNotificationHide(),
-        props: {
-          action: options.action,
-        },
-      });
+      Toast.show(this.buildToastOptions(options));
     }
 
     this.notifications.push(options);
@@ -67,16 +52,34 @@ class NotificationsService {
     });
   }
 
+  private buildToastOptions(notification: NotificationData): ToastShowParams {
+    const autoHide = notification.autoHide ?? true;
+    const actionVisibilityOptions = notification.action
+      ? { visibilityTime: ACTION_NOTIFICATION_VISIBILITY_TIME_MS }
+      : {};
+    const visibilityOptions: Partial<ToastShowParams> = autoHide
+      ? actionVisibilityOptions
+      : { autoHide: false, visibilityTime: undefined };
+
+    return {
+      ...this.defaultShowOptions,
+      ...visibilityOptions,
+      text1: notification.text1,
+      text2: notification.text2,
+      type: notification.type,
+      onHide: () => this.onNotificationHide(),
+      props: {
+        action: notification.action,
+      },
+    };
+  }
+
   private onNotificationHide() {
     this.notifications.shift();
 
     setTimeout(() => {
       if (this.notifications.length > 0) {
-        Toast.show({
-          ...this.defaultShowOptions,
-          ...this.notifications[0],
-          onHide: () => this.onNotificationHide(),
-        });
+        Toast.show(this.buildToastOptions(this.notifications[0]));
       }
     }, this.showNextNotificationDelay);
   }

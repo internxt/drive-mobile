@@ -81,6 +81,8 @@ export interface NotificationData {
   type: NotificationType;
   text1: string;
   text2?: string;
+  action?: AppToastExtraProps['action'];
+  autoHide?: boolean;
 }
 
 export enum AsyncStorageKey {
