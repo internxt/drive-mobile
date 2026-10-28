@@ -73,10 +73,6 @@ const CenterModalMock = jest.requireMock('../CenterModal').default as jest.Mock;
 const updateFileMetaDataMock = drive.file.updateMetaData as jest.Mock;
 const showNotificationMock = notificationsService.show as jest.Mock;
 
-// The first render loads the whole modal tree and can take longer than the default 5 s on CI.
-const RENDER_TEST_TIMEOUT_MS = 15000;
-jest.setTimeout(RENDER_TEST_TIMEOUT_MS);
-
 const ORIGINAL_NAME = 'report';
 const NEW_NAME = 'final report';
 const NAME_TYPED_AFTERWARDS = 'final report v2';
