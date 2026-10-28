@@ -17,12 +17,16 @@ const OPTION_ICON_SIZE = 20;
 interface DriveSelectionActionsModalProps {
   isOpen: boolean;
   selectedCount: number;
+  trashDisabled: boolean;
+  onTrashPress: () => void;
   onClose: () => void;
 }
 
 export const DriveSelectionActionsModal = ({
   isOpen,
   selectedCount,
+  trashDisabled,
+  onTrashPress,
   onClose,
 }: DriveSelectionActionsModalProps): JSX.Element => {
   const tailwind = useTailwind();
@@ -34,16 +38,20 @@ export const DriveSelectionActionsModal = ({
       label: strings.buttons.move,
       icon: <ArrowsOutCardinalIcon size={OPTION_ICON_SIZE} color={iconColor} />,
       color: getColor('text-gray-100'),
+      disabled: true,
     },
     {
       label: strings.buttons.download,
       icon: <DownloadSimpleIcon size={OPTION_ICON_SIZE} color={iconColor} />,
       color: getColor('text-gray-100'),
+      disabled: true,
     },
     {
       label: strings.buttons.moveToThrash,
       icon: <TrashIcon size={OPTION_ICON_SIZE} color={getColor('text-red')} />,
       color: getColor('text-red'),
+      disabled: trashDisabled,
+      onPress: onTrashPress,
     },
   ];
 
@@ -75,7 +83,8 @@ export const DriveSelectionActionsModal = ({
         <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
           {options.map((option, index) => (
             <BottomModalOption
-              disabled
+              disabled={option.disabled}
+              onPress={option.onPress}
               key={option.label}
               leftSlot={option.icon}
               rightSlot={
