@@ -4,6 +4,7 @@ import { useHardwareBackPress, useStableCallback } from '@internxt-mobile/hooks/
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
@@ -178,6 +179,20 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const shouldShowSelectionToolbar = selection.isSelectionMode && selection.selectedUuids.size > 0;
   const selectionTrash = useTrashSelectedItems({ folderUuid, onTrashed: selection.exitSelectionMode });
   const isTrashDisabled = selectionTrash.isTrashing || selection.isSelectingAll;
+  const isMoveDisabled = selectionTrash.isTrashing || selection.isSelectingAll;
+
+  useEffect(() => {
+    if (!selection.isSelectionMode) {
+      return;
+    }
+    return driveUseCases.onDriveItemMoved(({ failedUuids }) => {
+      if (failedUuids.length > 0) {
+        selection.selectOnly(failedUuids);
+      } else {
+        selection.exitSelectionMode();
+      }
+    });
+  }, [selection.isSelectionMode]);
 
   const onBackButtonPressed = () => {
     if (selection.isSelectionMode) {
@@ -319,9 +334,21 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     }
   };
 
+  const getSelectedItems = () => driveSortedItems.filter((item) => selection.selectedUuids.has(item.data.uuid));
+
+  const handleMoveSelectedItemsPress = () => {
+    setIsSelectionActionsModalOpen(false);
+    const selectedItems = getSelectedItems();
+    if (selectedItems.length === 0) {
+      return;
+    }
+    dispatch(driveActions.setItemsToMove(selectedItems.map((item) => item.data)));
+    dispatch(uiActions.setShowMoveModal(true));
+  };
+
   const handleTrashSelectedItemsPress = () => {
     setIsSelectionActionsModalOpen(false);
-    const selectedItems = driveSortedItems.filter((item) => selection.selectedUuids.has(item.data.uuid));
+    const selectedItems = getSelectedItems();
     if (selectedItems.length === 0) {
       return;
     }
@@ -478,7 +505,9 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         <DriveSelectionActionsModal
           isOpen={isSelectionActionsModalOpen}
           selectedCount={selection.selectedUuids.size}
+          moveDisabled={isMoveDisabled}
           trashDisabled={isTrashDisabled}
+          onMovePress={handleMoveSelectedItemsPress}
           onTrashPress={handleTrashSelectedItemsPress}
           onClose={() => setIsSelectionActionsModalOpen(false)}
         />
@@ -562,8 +591,10 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         )}
         <DriveSelectionToolbar
           visible={shouldShowSelectionToolbar}
+          moveDisabled={isMoveDisabled}
           trashDisabled={isTrashDisabled}
           moreDisabled={selectionTrash.isTrashing}
+          onMovePress={handleMoveSelectedItemsPress}
           onTrashPress={handleTrashSelectedItemsPress}
           onMorePress={handleSelectionMorePress}
         />

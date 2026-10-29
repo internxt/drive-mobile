@@ -17,7 +17,9 @@ const OPTION_ICON_SIZE = 20;
 interface DriveSelectionActionsModalProps {
   isOpen: boolean;
   selectedCount: number;
+  moveDisabled: boolean;
   trashDisabled: boolean;
+  onMovePress: () => void;
   onTrashPress: () => void;
   onClose: () => void;
 }
@@ -25,7 +27,9 @@ interface DriveSelectionActionsModalProps {
 export const DriveSelectionActionsModal = ({
   isOpen,
   selectedCount,
+  moveDisabled,
   trashDisabled,
+  onMovePress,
   onTrashPress,
   onClose,
 }: DriveSelectionActionsModalProps): JSX.Element => {
@@ -38,7 +42,8 @@ export const DriveSelectionActionsModal = ({
       label: strings.buttons.move,
       icon: <ArrowsOutCardinalIcon size={OPTION_ICON_SIZE} color={iconColor} />,
       color: getColor('text-gray-100'),
-      disabled: true,
+      disabled: moveDisabled,
+      onPress: onMovePress,
     },
     {
       label: strings.buttons.download,
