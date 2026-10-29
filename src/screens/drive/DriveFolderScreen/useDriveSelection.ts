@@ -19,6 +19,7 @@ export interface DriveSelection {
   enterSelectionMode: (uuid?: string) => void;
   exitSelectionMode: () => void;
   toggleSelection: (uuid: string) => void;
+  selectOnly: (uuids: string[]) => void;
   toggleSelectAll: () => Promise<void>;
 }
 
@@ -101,6 +102,11 @@ export const useDriveSelection = ({
     });
   };
 
+  const selectOnly = (uuids: string[]) => {
+    setSelectAllStatus('idle');
+    setSelectedUuids(new Set(uuids));
+  };
+
   const toggleSelectAll = async () => {
     if (selectionCheckState === 'all') {
       setSelectedUuids(new Set());
@@ -129,6 +135,7 @@ export const useDriveSelection = ({
     enterSelectionMode,
     exitSelectionMode,
     toggleSelection,
+    selectOnly,
     toggleSelectAll,
   };
 };
