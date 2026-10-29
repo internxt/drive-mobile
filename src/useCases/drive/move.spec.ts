@@ -3,7 +3,7 @@ import { driveEvents } from '@internxt-mobile/services/drive/events';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 import { NotificationType } from '@internxt-mobile/types/index';
-import { moveDriveItems } from './move';
+import { MovableItem, moveDriveItems } from './move';
 
 jest.mock('@internxt-mobile/services/drive', () => ({
   __esModule: true,
@@ -27,7 +27,7 @@ const folderToMove = { uuid: 'folder-1', name: 'Invoices', isFolder: true };
 const firstFileToMove = { uuid: 'file-1', name: 'report.pdf', isFolder: false };
 const secondFileToMove = { uuid: 'file-2', name: 'notes.txt', isFolder: false };
 
-const moveToDestination = (items: (typeof folderToMove)[], onViewFolderPress = jest.fn()) =>
+const moveToDestination = (items: MovableItem[], onViewFolderPress = jest.fn()) =>
   moveDriveItems({
     items,
     originFolderUuid: ORIGIN_FOLDER_UUID,
@@ -126,6 +126,36 @@ describe('Moving several items', () => {
 
     expect(notifyParentChanged).toHaveBeenCalledTimes(1);
     expect(notifyParentChanged).toHaveBeenCalledWith(ORIGIN_FOLDER_UUID);
+  });
+
+  test('when an item has a new name, then it is moved under that name', async () => {
+    await moveToDestination([{ ...folderToMove, newName: 'Invoices (1)' }]);
+
+    expect(drive.folder.moveFolder).toHaveBeenCalledWith({
+      folderUuid: 'folder-1',
+      destinationFolderUuid: DESTINATION_FOLDER_UUID,
+      name: 'Invoices (1)',
+    });
+  });
+
+  test('when a file has a new name, then it is moved under that name', async () => {
+    await moveToDestination([{ ...firstFileToMove, newName: 'report (1)' }]);
+
+    expect(drive.file.moveFile).toHaveBeenCalledWith({
+      fileUuid: 'file-1',
+      destinationFolderUuid: DESTINATION_FOLDER_UUID,
+      name: 'report (1)',
+    });
+  });
+
+  test('when there is nothing left to move, then no notification is shown and the folder screens are still told', async () => {
+    await moveToDestination([]);
+
+    expect(notifications.show).not.toHaveBeenCalled();
+    expect(driveEvents.emit).toHaveBeenCalledWith(
+      { event: DriveEventKey.DriveItemMoved },
+      { movedUuids: [], failedUuids: [] },
+    );
   });
 
   test('when no item can be moved, then the origin folder is not refreshed', async () => {

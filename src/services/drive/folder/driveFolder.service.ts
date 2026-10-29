@@ -98,11 +98,16 @@ class DriveFolderService {
   public async moveFolder({
     destinationFolderUuid,
     folderUuid,
+    name,
   }: {
     folderUuid: string;
     destinationFolderUuid: string;
+    name?: string;
   }): Promise<FolderMeta> {
-    const moved = await this.sdk.storageV2.moveFolderByUuid(folderUuid, { destinationFolder: destinationFolderUuid });
+    const moved = await this.sdk.storageV2.moveFolderByUuid(folderUuid, {
+      destinationFolder: destinationFolderUuid,
+      name,
+    });
     void notifyParentChanged(destinationFolderUuid);
     return moved;
   }
