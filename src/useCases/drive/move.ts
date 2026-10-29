@@ -13,7 +13,9 @@ const MAX_CONCURRENT_MOVES = 5;
 export interface MovableItem {
   uuid: string;
   name: string;
+  type?: string;
   isFolder: boolean;
+  newName?: string;
 }
 
 export interface MoveDriveItemsResult {
@@ -24,9 +26,9 @@ export interface MoveDriveItemsResult {
 const moveDriveItem = async (item: MovableItem, destinationFolderUuid: string) => {
   await drive.database.deleteItem({ uuid: item.uuid });
   if (item.isFolder) {
-    await drive.folder.moveFolder({ folderUuid: item.uuid, destinationFolderUuid });
+    await drive.folder.moveFolder({ folderUuid: item.uuid, destinationFolderUuid, name: item.newName });
   } else {
-    await drive.file.moveFile({ fileUuid: item.uuid, destinationFolderUuid });
+    await drive.file.moveFile({ fileUuid: item.uuid, destinationFolderUuid, name: item.newName });
   }
 };
 
@@ -61,8 +63,9 @@ const showMoveResultNotification = (movedCount: number, failedItems: MovableItem
 };
 
 /**
- * Moves the items to the destination folder, at most `MAX_CONCURRENT_MOVES` at a time. A failed item does not stop the others.
- * Shows one notification with the result and emits `DriveItemMoved` with the result.
+ * Moves the items to the destination folder, at most `MAX_CONCURRENT_MOVES` at a time, under `newName` when it is set.
+ * A failed item does not stop the others. Shows one notification with the result, unless `items` is empty, and emits
+ * `DriveItemMoved` with the result.
  */
 export const moveDriveItems = async ({
   items,
@@ -94,7 +97,9 @@ export const moveDriveItems = async ({
   if (movedUuids.length > 0) {
     void notifyParentChanged(originFolderUuid);
   }
-  showMoveResultNotification(movedUuids.length, failedItems, onViewFolderPress);
+  if (items.length > 0) {
+    showMoveResultNotification(movedUuids.length, failedItems, onViewFolderPress);
+  }
 
   const moveResult: MoveDriveItemsResult = { movedUuids, failedUuids: failedItems.map((item) => item.uuid) };
   driveEvents.emit({ event: DriveEventKey.DriveItemMoved }, moveResult);
