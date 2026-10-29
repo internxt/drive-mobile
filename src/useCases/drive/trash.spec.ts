@@ -1,4 +1,5 @@
 import analytics from '@internxt-mobile/services/AnalyticsService';
+import { FolderMeta } from '@internxt-mobile/types/drive/folder';
 import { DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive/item';
 import drive from '@internxt-mobile/services/drive';
 import { deleteDriveItemsPermanently, moveItemsToTrash, restoreDriveItems } from './trash';
@@ -123,6 +124,15 @@ describe('Moving items to the trash', () => {
     expect(result.success).toBe(false);
     expect(drive.trash.moveToTrash).toHaveBeenCalledTimes(2);
   });
+
+  test('when one group of items is rejected, then the result names the items that already reached the trash', async () => {
+    const items = Array.from({ length: 120 }, (_, index) => ({ uuid: `file-${index}`, type: 'file' as const }));
+    jest.mocked(drive.trash.moveToTrash).mockResolvedValueOnce(undefined).mockRejectedValueOnce(new Error('network'));
+
+    const result = await moveItemsToTrash(items, jest.fn());
+
+    expect(result.data?.trashedUuids).toStrictEqual(items.slice(0, 50).map((item) => item.uuid));
+  });
 });
 
 describe('Restoring items from the trash', () => {
@@ -141,5 +151,24 @@ describe('Restoring items from the trash', () => {
       folderUuid: 'folder-2',
       destinationFolderUuid: 'folder-b',
     });
+  });
+
+  test('when one item cannot be restored, then the failure is reported only after the other items finish', async () => {
+    let isFolderRestoreFinished = false;
+    jest.mocked(drive.trash.restoreFile).mockRejectedValueOnce(new Error('network'));
+    jest.mocked(drive.trash.restoreFolder).mockImplementationOnce(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      isFolderRestoreFinished = true;
+      return {} as FolderMeta;
+    });
+
+    const result = await restoreDriveItems([
+      { fileId: 'file-1', destinationFolderId: 'folder-a' },
+      { folderId: 'folder-2', destinationFolderId: 'folder-b' },
+    ]);
+
+    expect(result.success).toBe(false);
+    expect(result.data?.restoredCount).toBe(1);
+    expect(isFolderRestoreFinished).toBe(true);
   });
 });
