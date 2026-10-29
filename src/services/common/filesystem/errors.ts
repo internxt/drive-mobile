@@ -31,3 +31,11 @@ export class ExceedMaxDirSizeError extends Error {
     Object.setPrototypeOf(this, ExceedMaxDirSizeError.prototype);
   }
 }
+
+export class NotEnoughSpaceOnDeviceError extends Error {
+  constructor(message: string) {
+    super(message);
+
+    Object.setPrototypeOf(this, NotEnoughSpaceOnDeviceError.prototype);
+  }
+}

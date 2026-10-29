@@ -1,4 +1,5 @@
 export * from './deleteShareLink';
+export * from './download';
 export * from './filterRecentItems';
 export * from './filterSharedItems';
 export * from './getShareLink';
