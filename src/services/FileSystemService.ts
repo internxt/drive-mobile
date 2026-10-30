@@ -279,6 +279,10 @@ class FileSystemService {
     }
   }
 
+  public async saveFilesToiOSFiles(filePaths: string[]) {
+    await Share.open({ urls: filePaths.map(toFileUri), saveToFiles: true });
+  }
+
   public async readDir(directory: string) {
     return RNFS.readDir(directory);
   }
