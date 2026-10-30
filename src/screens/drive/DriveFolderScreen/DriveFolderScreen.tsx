@@ -32,6 +32,7 @@ import {
   canSelectDriveItem,
   hasUnloadedPages,
   isFolderUploadItem,
+  hasSelectedFolder,
 } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { DriveSelectionActionsModal } from './DriveSelectionActionsModal';
@@ -40,6 +41,8 @@ import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 import { useDriveSelection } from './useDriveSelection';
 import { useFocusFolderOnScreenFocus } from './useFocusFolderOnScreenFocus';
 import { useTrashSelectedItems } from './useTrashSelectedItems';
+import { useFetchSelectedFiles } from './useFetchSelectedFiles';
+import { DownloadSelectedItemsModal } from './DownloadSelectedItemsModal';
 import { useReloadFolderInChosenSort } from './useReloadFolderInChosenSort';
 
 const ROOT_HEADER_TOP_MARGIN = 22;
@@ -180,6 +183,12 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const selectionTrash = useTrashSelectedItems({ folderUuid, onTrashed: selection.exitSelectionMode });
   const isTrashDisabled = selectionTrash.isTrashing || selection.isSelectingAll;
   const isMoveDisabled = selectionTrash.isTrashing || selection.isSelectingAll;
+  const selectionFiles = useFetchSelectedFiles({ onFinished: selection.exitSelectionMode });
+  const isFetchFilesDisabled =
+    hasSelectedFolder(driveSortedItems, selection.selectedUuids) ||
+    selectionFiles.isDownloading ||
+    selectionTrash.isTrashing ||
+    selection.isSelectingAll;
 
   useEffect(() => {
     if (!selection.isSelectionMode) {
@@ -357,6 +366,17 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     });
   };
 
+  const fetchSelectedFiles = (fetchItems: (items: DriveListItem[]) => Promise<void>) => {
+    setIsSelectionActionsModalOpen(false);
+    const selectedItems = getSelectedItems();
+    if (selectedItems.length === 0) {
+      return;
+    }
+    fetchItems(selectedItems).catch((error) => {
+      errorService.reportError(error);
+    });
+  };
+
   const handleSortButtonPress = () => {
     setSortModalOpen(true);
   };
@@ -507,9 +527,16 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
           selectedCount={selection.selectedUuids.size}
           moveDisabled={isMoveDisabled}
           trashDisabled={isTrashDisabled}
+          downloadDisabled={isFetchFilesDisabled}
           onMovePress={handleMoveSelectedItemsPress}
           onTrashPress={handleTrashSelectedItemsPress}
+          onDownloadPress={() => fetchSelectedFiles(selectionFiles.downloadItems)}
           onClose={() => setIsSelectionActionsModalOpen(false)}
+        />
+        <DownloadSelectedItemsModal
+          isOpen={selectionFiles.isDownloading}
+          downloadProgress={selectionFiles.downloadProgress}
+          onCancelPress={selectionFiles.cancelDownload}
         />
       </Portal>
 
