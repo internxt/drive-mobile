@@ -65,7 +65,6 @@ const GLOBAL_SEARCH_BUTTON_HEIGHT = 40;
 const NAVIGATION_ROW_HEIGHT = 26;
 const GRID_SELECT_ALL_ICON_SIZE = 28;
 const TITLE_ROW_HEIGHT = 32;
-const SELECTION_SIDE_COLUMN: ViewStyle = { flexGrow: 1, flexBasis: 0, flexShrink: 0 };
 const SELECTION_TITLE_FONT_VARIANT: TextStyle = { fontVariant: ['tabular-nums'] };
 const HEADER_ROW_ENTERING = FadeIn.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
 const HEADER_ROW_EXITING = FadeOut.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
@@ -160,7 +159,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       exiting={HEADER_ROW_EXITING}
       style={[tailwind('flex-row items-center'), style]}
     >
-      <View style={[tailwind('items-start'), SELECTION_SIDE_COLUMN, { minWidth: selectionCancelWidth }]}>
+      <View style={[tailwind('items-start'), { minWidth: selectionCancelWidth }]}>
         <TouchableOpacity
           hitSlop={INCREASED_TOUCH_AREA}
           onPress={selectionConfig.onSelectAllPress}
@@ -176,7 +175,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       <AppText
         medium
         style={[
-          tailwind('text-base text-center flex-shrink'),
+          tailwind('text-base text-center flex-1 mx-2'),
           SELECTION_TITLE_FONT_VARIANT,
           { color: getColor('text-gray-100') },
         ]}
@@ -184,17 +183,13 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       >
         {getSelectionTitle(selectionConfig.selectedCount)}
       </AppText>
-      <View style={[tailwind('items-end'), SELECTION_SIDE_COLUMN, { minWidth: selectionCancelWidth }]}>
-        <TouchableOpacity
-          hitSlop={INCREASED_TOUCH_AREA}
-          onPress={selectionConfig.onCancelPress}
-          onLayout={(event) => setSelectionCancelWidth(event.nativeEvent.layout.width)}
-        >
-          <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
-            {strings.buttons.cancel}
-          </AppText>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        hitSlop={INCREASED_TOUCH_AREA}
+        onPress={selectionConfig.onCancelPress}
+        onLayout={(event) => setSelectionCancelWidth(event.nativeEvent.layout.width)}
+      >
+        <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>{strings.buttons.cancel}</AppText>
+      </TouchableOpacity>
     </Reanimated.View>
   );
 

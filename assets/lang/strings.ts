@@ -1601,8 +1601,8 @@ const translations = {
         decryptingPercent: 'Desencriptando... {0}%',
         selection: {
           noItemsSelected: 'Nada seleccionado',
-          itemSelected: '1 elemento seleccionado',
-          itemsSelected: '{0} elementos seleccionados',
+          itemSelected: '1 seleccionado',
+          itemsSelected: '{0} seleccionados',
           export: 'Exportar',
           moreActions: 'Más acciones',
         },
