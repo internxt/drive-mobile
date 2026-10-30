@@ -283,6 +283,10 @@ class FileSystemService {
     await Share.open({ urls: filePaths.map(toFileUri), saveToFiles: true });
   }
 
+  public async shareFiles(filePaths: string[]) {
+    await Share.open({ urls: filePaths.map(toFileUri), failOnCancel: false });
+  }
+
   public async readDir(directory: string) {
     return RNFS.readDir(directory);
   }

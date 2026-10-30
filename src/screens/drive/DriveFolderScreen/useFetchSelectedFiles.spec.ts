@@ -2,6 +2,7 @@ const mockDownloadFileToDevice = jest.fn();
 const mockIsFileTooLargeToDownload = jest.fn();
 const mockMoveToAndroidDownloads = jest.fn();
 const mockSaveFilesToiOSFiles = jest.fn();
+const mockShareFiles = jest.fn();
 const mockNotifySuccess = jest.fn();
 const mockNotifyError = jest.fn();
 const mockReportError = jest.fn();
@@ -15,6 +16,7 @@ jest.mock('@internxt-mobile/services/FileSystemService', () => ({
   fs: {
     moveToAndroidDownloads: (...args: unknown[]) => mockMoveToAndroidDownloads(...args),
     saveFilesToiOSFiles: (...args: unknown[]) => mockSaveFilesToiOSFiles(...args),
+    shareFiles: (...args: unknown[]) => mockShareFiles(...args),
   },
 }));
 
@@ -421,5 +423,118 @@ describe('Downloading the selected Drive files', () => {
     });
 
     expect(mockDownloadFileToDevice).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Exporting the selected Drive files', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    setPlatform('android');
+    mockIsFileTooLargeToDownload.mockReturnValue(false);
+    mockShareFiles.mockResolvedValue(undefined);
+    mockDownloadFileToDevice.mockImplementation(async ({ file }) => `/tmp/${file.name}.pdf`);
+  });
+
+  test('when every file is ready, then a single share sheet opens and nothing goes to Downloads', async () => {
+    const { result, onFinished } = renderDownloadHook();
+
+    await act(async () => {
+      await result.current.exportItems([REPORT_FILE, INVOICE_FILE]);
+    });
+
+    expect(mockShareFiles).toHaveBeenCalledTimes(1);
+    expect(mockShareFiles).toHaveBeenCalledWith(['/tmp/report.pdf', '/tmp/invoice.pdf']);
+    expect(mockMoveToAndroidDownloads).not.toHaveBeenCalled();
+    expect(mockNotifySuccess).not.toHaveBeenCalled();
+    expect(onFinished).toHaveBeenCalledTimes(1);
+  });
+
+  test('when one file fails, then the others are shared and the notification names it', async () => {
+    mockDownloadFileToDevice.mockImplementation(async ({ file }) => {
+      if (file.uuid === 'file-2') {
+        throw new Error('network');
+      }
+      return `/tmp/${file.name}.pdf`;
+    });
+    const { result } = renderDownloadHook();
+
+    await act(async () => {
+      await result.current.exportItems([REPORT_FILE, INVOICE_FILE]);
+    });
+
+    expect(mockShareFiles).toHaveBeenCalledWith(['/tmp/report.pdf']);
+    expect(mockNotifyError).toHaveBeenCalledWith('"invoice.pdf" could not be downloaded');
+  });
+
+  test('when every file fails, then no share sheet opens and the selection stays', async () => {
+    mockDownloadFileToDevice.mockRejectedValue(new Error('network'));
+    const { result, onFinished } = renderDownloadHook();
+
+    await act(async () => {
+      await result.current.exportItems([REPORT_FILE]);
+    });
+
+    expect(mockShareFiles).not.toHaveBeenCalled();
+    expect(onFinished).not.toHaveBeenCalled();
+    expect(mockNotifyError).toHaveBeenCalledWith('"report.pdf" could not be downloaded');
+  });
+
+  test('when the user cancels while the files are being prepared, then no share sheet opens and the selection stays', async () => {
+    const download = deferNextDownload();
+    const { result, onFinished } = renderDownloadHook();
+
+    let exportInProgress: Promise<void> = Promise.resolve();
+    act(() => {
+      exportInProgress = result.current.exportItems([REPORT_FILE]);
+    });
+    await act(async () => {
+      result.current.cancelDownload();
+      download.fail(USER_ABORT_ERROR);
+      await exportInProgress;
+    });
+
+    expect(mockShareFiles).not.toHaveBeenCalled();
+    expect(mockReportError).not.toHaveBeenCalled();
+    expect(onFinished).not.toHaveBeenCalled();
+  });
+
+  test('when export is pressed again while the share sheet is open, then it is ignored and the progress stays visible', async () => {
+    let closeShareSheet: () => void = jest.fn();
+    mockShareFiles.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          closeShareSheet = resolve;
+        }),
+    );
+    const { result } = renderDownloadHook();
+
+    let exportInProgress: Promise<void> = Promise.resolve();
+    await act(async () => {
+      exportInProgress = result.current.exportItems([REPORT_FILE]);
+    });
+    expect(result.current.isDownloading).toBe(true);
+    await act(async () => {
+      await result.current.exportItems([REPORT_FILE]);
+    });
+    await act(async () => {
+      closeShareSheet();
+      await exportInProgress;
+    });
+
+    expect(mockDownloadFileToDevice).toHaveBeenCalledTimes(1);
+    expect(result.current.isDownloading).toBe(false);
+  });
+
+  test('when the share sheet fails, then it is reported and the selection stays', async () => {
+    mockShareFiles.mockRejectedValue(new Error('sheet failed'));
+    const { result, onFinished } = renderDownloadHook();
+
+    await act(async () => {
+      await result.current.exportItems([REPORT_FILE]);
+    });
+
+    expect(mockReportError).toHaveBeenCalledTimes(1);
+    expect(mockNotifyError).toHaveBeenCalledWith('The files could not be shared');
+    expect(onFinished).not.toHaveBeenCalled();
   });
 });
