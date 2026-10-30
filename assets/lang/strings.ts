@@ -949,6 +949,10 @@ const translations = {
         title: 'Downloading file...',
         of: 'of',
       },
+      downloadingFiles: {
+        title: 'Downloading files...',
+        progress: '{0} of {1}',
+      },
       Plans: {
         selectBillingPeriod: 'Select billing period',
         yourCurrentPlan: 'Your current plan is',
@@ -2173,6 +2177,10 @@ const translations = {
       downloadingFile: {
         title: 'Descargando archivo...',
         of: 'de',
+      },
+      downloadingFiles: {
+        title: 'Descargando archivos...',
+        progress: '{0} de {1}',
       },
       clearTrash: {
         title: '¿Vaciar papelera de Drive?',
