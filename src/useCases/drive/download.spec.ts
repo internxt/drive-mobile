@@ -10,8 +10,9 @@ jest.mock('@internxt-mobile/services/drive', () => ({
   __esModule: true,
   default: {
     file: {
-      getDecryptedFilePath: jest.fn((name: string, type: string) => `/tmp/${name}.${type}`),
+      getDecryptedFilePath: jest.fn((uuid: string, name: string, type: string) => `/tmp/${uuid}/${name}.${type}`),
       existsDecrypted: jest.fn().mockResolvedValue(false),
+      createDecryptedFileFolder: jest.fn().mockResolvedValue(undefined),
       createEmptyDownloadedFile: jest.fn().mockResolvedValue(undefined),
       downloadFile: jest.fn().mockResolvedValue({ downloadPath: '/downloads/report.pdf' }),
     },
@@ -53,9 +54,30 @@ describe('Downloading a file to the device', () => {
 
     const filePath = await downloadFileToDevice({ file: reportFile, onDownloadStarted });
 
-    expect(filePath).toBe('/tmp/report.pdf');
+    expect(filePath).toBe('/tmp/file-1/report.pdf');
     expect(drive.file.downloadFile).not.toHaveBeenCalled();
     expect(onDownloadStarted).not.toHaveBeenCalled();
+    expect(drive.file.createDecryptedFileFolder).not.toHaveBeenCalled();
+  });
+
+  test('when the file is not on the device yet, then its own folder is created before downloading it', async () => {
+    jest.mocked(fileSystemService.checkAvailableStorage).mockResolvedValueOnce(true);
+
+    await downloadFileToDevice({ file: reportFile });
+
+    expect(drive.file.existsDecrypted).toHaveBeenCalledWith('file-1', 'report', 'pdf');
+    expect(drive.file.createDecryptedFileFolder).toHaveBeenCalledWith('file-1');
+    expect(jest.mocked(drive.file.createDecryptedFileFolder).mock.invocationCallOrder[0]).toBeLessThan(
+      jest.mocked(drive.file.downloadFile).mock.invocationCallOrder[0],
+    );
+  });
+
+  test('when the device has no room for the file, then no folder is left behind', async () => {
+    jest.mocked(fileSystemService.checkAvailableStorage).mockResolvedValueOnce(false);
+
+    await expect(downloadFileToDevice({ file: reportFile })).rejects.toBeInstanceOf(NotEnoughSpaceOnDeviceError);
+
+    expect(drive.file.createDecryptedFileFolder).not.toHaveBeenCalled();
   });
 
   test('when the file is empty, then an empty file is created instead of downloading it', async () => {
@@ -63,9 +85,10 @@ describe('Downloading a file to the device', () => {
 
     const filePath = await downloadFileToDevice({ file: emptyFile });
 
-    expect(drive.file.createEmptyDownloadedFile).toHaveBeenCalledWith('/tmp/report.pdf');
+    expect(drive.file.createDecryptedFileFolder).toHaveBeenCalledWith('file-1');
+    expect(drive.file.createEmptyDownloadedFile).toHaveBeenCalledWith('/tmp/file-1/report.pdf');
     expect(drive.file.downloadFile).not.toHaveBeenCalled();
-    expect(filePath).toBe('/tmp/report.pdf');
+    expect(filePath).toBe('/tmp/file-1/report.pdf');
   });
 
   test('when the file is not on the device, then it is downloaded and its progress is reported', async () => {
@@ -79,7 +102,7 @@ describe('Downloading a file to the device', () => {
       TEST_USER,
       'bucket-1',
       'network-file-1',
-      expect.objectContaining({ downloadPath: '/tmp/report.pdf', downloadProgressCallback: onProgress }),
+      expect.objectContaining({ downloadPath: '/tmp/file-1/report.pdf', downloadProgressCallback: onProgress }),
       FILE_SIZE_BYTES,
     );
     expect(filePath).toBe('/downloads/report.pdf');
@@ -105,7 +128,7 @@ describe('Downloading a file to the device', () => {
 
     await downloadFileToDevice({ file: emptyFileWithoutNetworkId });
 
-    expect(drive.file.createEmptyDownloadedFile).toHaveBeenCalledWith('/tmp/report.pdf');
+    expect(drive.file.createEmptyDownloadedFile).toHaveBeenCalledWith('/tmp/file-1/report.pdf');
   });
 
   test('when a non-empty file has no bucket, then the download fails', async () => {

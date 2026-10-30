@@ -37,13 +37,14 @@ export const downloadFileToDevice = async ({
   onProgress?: (progress: number, bytesReceived: number, totalBytes: number) => void;
   onAbortableReady?: (abortable: Abortable) => void;
 }): Promise<string> => {
-  const decryptedFilePath = drive.file.getDecryptedFilePath(file.name, file.type);
-  const isAlreadyDecrypted = await drive.file.existsDecrypted(file.name, file.type);
+  const decryptedFilePath = drive.file.getDecryptedFilePath(file.uuid, file.name, file.type);
+  const isAlreadyDecrypted = await drive.file.existsDecrypted(file.uuid, file.name, file.type);
   if (isAlreadyDecrypted) {
     return decryptedFilePath;
   }
 
   if (isEmptyFile(file)) {
+    await drive.file.createDecryptedFileFolder(file.uuid);
     await drive.file.createEmptyDownloadedFile(decryptedFilePath);
     return decryptedFilePath;
   }
@@ -58,6 +59,7 @@ export const downloadFileToDevice = async ({
     throw new NotEnoughSpaceOnDeviceError('Not enough space on the device for the download');
   }
 
+  await drive.file.createDecryptedFileFolder(file.uuid);
   onDownloadStarted?.();
   const { credentials } = await AuthService.getAuthCredentials();
   const { downloadPath } = await drive.file.downloadFile(
