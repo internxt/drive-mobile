@@ -1600,9 +1600,9 @@ const translations = {
         downloadingPercent: 'Descargando... {0}%',
         decryptingPercent: 'Desencriptando... {0}%',
         selection: {
-          noItemsSelected: 'Ningún elemento seleccionado',
-          itemSelected: '1 elemento seleccionado',
-          itemsSelected: '{0} elementos seleccionados',
+          noItemsSelected: 'Nada seleccionado',
+          itemSelected: '1 seleccionado',
+          itemsSelected: '{0} seleccionados',
           export: 'Exportar',
           moreActions: 'Más acciones',
         },

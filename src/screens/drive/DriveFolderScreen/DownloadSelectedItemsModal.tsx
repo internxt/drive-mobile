@@ -79,6 +79,7 @@ export const DownloadSelectedItemsModal = ({
           <AppProgressBar
             totalValue={FILE_COMPLETE_PROGRESS}
             height={PROGRESS_BAR_HEIGHT}
+            style={{ backgroundColor: getColor('bg-gray-5') }}
             currentValue={downloadProgress?.currentFileProgress ?? 0}
           />
         </View>
