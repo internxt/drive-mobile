@@ -527,9 +527,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
           selectedCount={selection.selectedUuids.size}
           moveDisabled={isMoveDisabled}
           trashDisabled={isTrashDisabled}
+          exportDisabled={isFetchFilesDisabled}
           downloadDisabled={isFetchFilesDisabled}
           onMovePress={handleMoveSelectedItemsPress}
           onTrashPress={handleTrashSelectedItemsPress}
+          onExportPress={() => fetchSelectedFiles(selectionFiles.exportItems)}
           onDownloadPress={() => fetchSelectedFiles(selectionFiles.downloadItems)}
           onClose={() => setIsSelectionActionsModalOpen(false)}
         />
@@ -619,9 +621,11 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         <DriveSelectionToolbar
           visible={shouldShowSelectionToolbar}
           moveDisabled={isMoveDisabled}
+          exportDisabled={isFetchFilesDisabled}
           trashDisabled={isTrashDisabled}
           moreDisabled={selectionTrash.isTrashing}
           onMovePress={handleMoveSelectedItemsPress}
+          onExportPress={() => fetchSelectedFiles(selectionFiles.exportItems)}
           onTrashPress={handleTrashSelectedItemsPress}
           onMorePress={handleSelectionMorePress}
         />

@@ -1,4 +1,4 @@
-import { ArrowsOutCardinalIcon, DownloadSimpleIcon, TrashIcon } from 'phosphor-react-native';
+import { ArrowSquareOutIcon, ArrowsOutCardinalIcon, DownloadSimpleIcon, TrashIcon } from 'phosphor-react-native';
 import { View } from 'react-native';
 import AppText from 'src/components/AppText';
 import BottomModalOption from 'src/components/BottomModalOption';
@@ -19,9 +19,11 @@ interface DriveSelectionActionsModalProps {
   selectedCount: number;
   moveDisabled: boolean;
   trashDisabled: boolean;
+  exportDisabled: boolean;
   downloadDisabled: boolean;
   onMovePress: () => void;
   onTrashPress: () => void;
+  onExportPress: () => void;
   onDownloadPress: () => void;
   onClose: () => void;
 }
@@ -31,9 +33,11 @@ export const DriveSelectionActionsModal = ({
   selectedCount,
   moveDisabled,
   trashDisabled,
+  exportDisabled,
   downloadDisabled,
   onMovePress,
   onTrashPress,
+  onExportPress,
   onDownloadPress,
   onClose,
 }: DriveSelectionActionsModalProps): JSX.Element => {
@@ -48,6 +52,13 @@ export const DriveSelectionActionsModal = ({
       color: getColor('text-gray-100'),
       disabled: moveDisabled,
       onPress: onMovePress,
+    },
+    {
+      label: strings.screens.drive.selection.export,
+      icon: <ArrowSquareOutIcon size={OPTION_ICON_SIZE} color={iconColor} />,
+      color: getColor('text-gray-100'),
+      disabled: exportDisabled,
+      onPress: onExportPress,
     },
     {
       label: strings.buttons.download,
