@@ -597,6 +597,14 @@ export class NetworkFacade {
 
     let chunkFiles: string[] = [];
 
+    const isDownloadAborted = () => isAborting || !!params.signal?.aborted;
+
+    const throwIfAborted = () => {
+      if (isDownloadAborted()) {
+        throw new Error('Download aborted');
+      }
+    };
+
     const cleanupChunks = async () => {
       if (chunkFiles.length > 0) {
         await Promise.all(chunkFiles.map((file) => fileSystemService.deleteFile([file])));
@@ -648,11 +656,17 @@ export class NetworkFacade {
       range: { start: number; end: number },
       chunkIndex: number,
     ): Promise<string> => {
+      throwIfAborted();
+
       const chunkFileName = `${encryptedFileName}-chunk-${chunkIndex + 1}`;
       const chunkFileURI = fileSystemService.tmpFilePath(chunkFileName);
       chunkFiles.push(chunkFileURI);
 
       await fileSystemService.createEmptyFile(chunkFileURI);
+      if (isDownloadAborted()) {
+        await fileSystemService.deleteFile([chunkFileURI]);
+        throwIfAborted();
+      }
 
       downloadJobs[chunkIndex] = {
         jobId: -1,
@@ -718,6 +732,7 @@ export class NetworkFacade {
         const MEGA_BYTE = 1 * 1024 * 1024;
 
         const { isCached, path } = await drive.cache.isCached(encryptedFileName);
+        throwIfAborted();
 
         if (isCached) {
           encryptedFileIsCached = true;
@@ -765,9 +780,7 @@ export class NetworkFacade {
       },
       async (_, key, iv) => {
         if (!encryptedFileURI) throw new Error('No encrypted file URI found');
-        if (isAborting || params.signal?.aborted) {
-          throw new Error('Download aborted');
-        }
+        throwIfAborted();
         // commented because it is giving errors, we should check if it is necessary
         // Maybe we should save the expected hash and compare even if the file is cached
         // if (!encryptedFileIsCached) {
