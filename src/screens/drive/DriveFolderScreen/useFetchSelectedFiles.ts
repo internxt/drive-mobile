@@ -211,10 +211,31 @@ export const useFetchSelectedFiles = ({ onFinished }: UseFetchSelectedFilesParam
       onFinished();
     });
 
+  const exportItems = (items: DriveListItem[]) =>
+    runExclusively(async () => {
+      const fetchedFiles = await fetchFiles(items, fetchFile);
+      if (!fetchedFiles) {
+        return;
+      }
+      if (fetchedFiles.filePaths.length === 0) {
+        showFailedFilesNotification(fetchedFiles);
+        return;
+      }
+      try {
+        await fs.shareFiles(fetchedFiles.filePaths);
+      } catch (error) {
+        errorService.reportError(error);
+        notifications.error(strings.messages.filesCouldNotBeShared);
+        return;
+      }
+      showFailedFilesNotification(fetchedFiles);
+      onFinished();
+    });
+
   const cancelDownload = () => {
     isDownloadCancelledRef.current = true;
     currentDownloadAbortRef.current?.(DOWNLOAD_ABORT_REASON);
   };
 
-  return { downloadProgress, isDownloading, downloadItems, cancelDownload };
+  return { downloadProgress, isDownloading, downloadItems, exportItems, cancelDownload };
 };
