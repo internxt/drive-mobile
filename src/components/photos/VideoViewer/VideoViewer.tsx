@@ -30,7 +30,6 @@ const unlockOrientation = async () => {
   if (isAndroid) {
     await ScreenOrientation.unlockAsync();
     await NavigationBar.setVisibilityAsync('hidden');
-    await NavigationBar.setBehaviorAsync('overlay-swipe');
   }
 };
 
@@ -71,7 +70,6 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
     }
     if (isAndroid) {
       await NavigationBar.setVisibilityAsync('hidden');
-      await NavigationBar.setBehaviorAsync('overlay-swipe');
     }
     setHasStarted(true);
     setPlaying(true);
