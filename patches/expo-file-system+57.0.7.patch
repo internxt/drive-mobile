@@ -1,8 +1,8 @@
 diff --git a/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt b/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt
-index 73a8bd5..1303fa0 100644
+index 4626dac..a4e543c 100644
 --- a/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt
 +++ b/node_modules/expo-file-system/android/src/main/java/expo/modules/filesystem/legacy/FileSystemLegacyModule.kt
-@@ -148,6 +148,22 @@ open class FileSystemLegacyModule : Module() {
+@@ -147,6 +147,22 @@ open class FileSystemLegacyModule : Module() {
              putBoolean("isDirectory", false)
            }
          }
@@ -25,7 +25,7 @@ index 73a8bd5..1303fa0 100644
        } else if (uri.scheme == "content" || uri.scheme == "asset" || uri.scheme == null) {
          try {
            val inputStream: InputStream = when (uri.scheme) {
-@@ -1092,7 +1108,7 @@ open class FileSystemLegacyModule : Module() {
+@@ -1081,7 +1097,7 @@ open class FileSystemLegacyModule : Module() {
    }
  
    private val Uri.isSAFUri: Boolean
