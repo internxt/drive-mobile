@@ -1,7 +1,6 @@
 import AuthService from '@internxt-mobile/services/AuthService';
 import { NotEnoughSpaceOnDeviceError } from '@internxt-mobile/services/common/filesystem/errors';
 import drive from '@internxt-mobile/services/drive';
-import { MAX_SIZE_TO_DOWNLOAD } from '@internxt-mobile/services/drive/constants';
 import errorService from '@internxt-mobile/services/ErrorService';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { DriveItemData, FocusedItem } from '@internxt-mobile/types/drive/item';
@@ -9,8 +8,6 @@ import { Abortable } from '@internxt-mobile/types/index';
 import { getFileSize, isEmptyFile } from '../../helpers/driveItems';
 
 type DownloadableFile = DriveItemData | NonNullable<FocusedItem>;
-
-export const isFileTooLargeToDownload = (file: DownloadableFile) => getFileSize(file) > MAX_SIZE_TO_DOWNLOAD['10GB'];
 
 const checkDeviceHasSpaceForFile = async (fileSize: number) => {
   try {

@@ -7,7 +7,7 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import { NotEnoughSpaceOnDeviceError } from '@internxt-mobile/services/common/filesystem/errors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
-import notificationsService, { notifications } from '@internxt-mobile/services/NotificationsService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { logger } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import { notifyParentChanged } from '@internxt-mobile/services/native/InternxtSignalingModule';
@@ -65,14 +65,6 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(uiActions.setShowItemModal(false));
     dispatch(uiActions.setShowMoveModal(true));
     dispatch(driveActions.setItemsToMove([item]));
-  };
-
-  const isFileDownloadable = (): boolean => {
-    if (driveUseCases.isFileTooLargeToDownload(item)) {
-      notificationsService.info(strings.messages.downloadLimit);
-      return false;
-    }
-    return true;
   };
 
   const handleUndoMoveToTrash = async () => {
@@ -151,12 +143,6 @@ function DriveItemInfoModal(): JSX.Element {
 
   const handleExportFile = async () => {
     try {
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
-        return;
-      }
-
       const downloadPath = await downloadFocusedFile();
       setExporting(false);
       await fs.shareFile({
@@ -184,12 +170,6 @@ function DriveItemInfoModal(): JSX.Element {
 
   const handleAndroidDownloadFile = async () => {
     try {
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
-        return;
-      }
-
       dispatch(uiActions.setShowItemModal(false));
       const decryptedFilePath = await downloadFocusedFile();
       setExporting(false);
@@ -209,12 +189,6 @@ function DriveItemInfoModal(): JSX.Element {
 
   const handleiOSSaveToFiles = async () => {
     try {
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
-        return;
-      }
-
       dispatch(uiActions.setShowItemModal(false));
       const decryptedFilePath = await downloadFocusedFile();
       setExporting(false);

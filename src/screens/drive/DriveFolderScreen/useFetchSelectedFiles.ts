@@ -1,7 +1,4 @@
-import {
-  FileTooLargeToDownloadError,
-  NotEnoughSpaceOnDeviceError,
-} from '@internxt-mobile/services/common/filesystem/errors';
+import { NotEnoughSpaceOnDeviceError } from '@internxt-mobile/services/common/filesystem/errors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
@@ -82,9 +79,6 @@ export const useFetchSelectedFiles = ({ onFinished }: UseFetchSelectedFilesParam
   const currentDownloadAbortRef = useRef<Abortable>();
 
   const fetchFile = async (file: DriveItemData) => {
-    if (driveUseCases.isFileTooLargeToDownload(file)) {
-      throw new FileTooLargeToDownloadError('File exceeds the download size limit');
-    }
     return driveUseCases.downloadFileToDevice({
       file,
       onProgress: (currentFileProgress, currentFileBytesReceived, currentFileTotalBytes) => {
@@ -172,7 +166,7 @@ export const useFetchSelectedFiles = ({ onFinished }: UseFetchSelectedFilesParam
         }
         const isNoSpaceError = error instanceof NotEnoughSpaceOnDeviceError;
         hasNoSpaceFailure = hasNoSpaceFailure || isNoSpaceError;
-        if (!isNoSpaceError && !(error instanceof FileTooLargeToDownloadError)) {
+        if (!isNoSpaceError) {
           errorService.reportError(error);
         }
         failedFiles.push(file);

@@ -1,10 +1,9 @@
 import AuthService from '@internxt-mobile/services/AuthService';
 import { NotEnoughSpaceOnDeviceError } from '@internxt-mobile/services/common/filesystem/errors';
 import drive from '@internxt-mobile/services/drive';
-import { MAX_SIZE_TO_DOWNLOAD } from '@internxt-mobile/services/drive/constants';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { FocusedItem } from '@internxt-mobile/types/drive/item';
-import { downloadFileToDevice, isFileTooLargeToDownload } from './download';
+import { downloadFileToDevice } from './download';
 
 jest.mock('@internxt-mobile/services/drive', () => ({
   __esModule: true,
@@ -143,17 +142,5 @@ describe('Downloading a file to the device', () => {
 
     await expect(downloadFileToDevice({ file: fileWithoutNetworkId })).rejects.toThrow();
     expect(drive.file.downloadFile).not.toHaveBeenCalled();
-  });
-});
-
-describe('Checking the download size limit', () => {
-  test('when a file is bigger than the limit, then it is too large to download', () => {
-    const largeFile = { ...reportFile, size: MAX_SIZE_TO_DOWNLOAD['10GB'] + 1 };
-
-    expect(isFileTooLargeToDownload(largeFile)).toBe(true);
-  });
-
-  test('when a file is within the limit, then it can be downloaded', () => {
-    expect(isFileTooLargeToDownload(reportFile)).toBe(false);
   });
 });

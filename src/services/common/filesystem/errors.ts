@@ -32,14 +32,6 @@ export class ExceedMaxDirSizeError extends Error {
   }
 }
 
-export class FileTooLargeToDownloadError extends Error {
-  constructor(message: string) {
-    super(message);
-
-    Object.setPrototypeOf(this, FileTooLargeToDownloadError.prototype);
-  }
-}
-
 export class NotEnoughSpaceOnDeviceError extends Error {
   constructor(message: string) {
     super(message);

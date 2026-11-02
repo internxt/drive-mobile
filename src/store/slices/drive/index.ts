@@ -9,9 +9,7 @@ import { ErrorCodes } from 'src/types/errors';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
 import analyticsService from '../../../services/AnalyticsService';
-import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
 import fileSystemService from '../../../services/FileSystemService';
-import notificationsService from '../../../services/NotificationsService';
 import { DriveEventKey } from '../../../types/drive/events';
 import { FolderUploadState } from '../../../types/drive/folderUpload';
 import {
@@ -22,8 +20,6 @@ import {
 } from '../../../types/drive/item';
 import { DownloadingFile, UploadingFile } from '../../../types/drive/operations';
 import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
-
-const DOWNLOAD_ERROR_CODES = { MAX_SIZE_TO_DOWNLOAD_REACHED: 1 };
 
 export interface FocusedShareItem {
   id: string;
@@ -82,16 +78,6 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
   drive.events.emit({ event: DriveEventKey.CancelDownload });
 });
 
-const validateDownload = (size: number | undefined): number | null => {
-  if (!size || size === 0) return null;
-
-  const sizeInBytes = parseInt(size.toString());
-  if (sizeInBytes > MAX_SIZE_TO_DOWNLOAD['10GB']) {
-    return DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED;
-  }
-  return null;
-};
-
 const downloadFileThunk = createAsyncThunk<
   void,
   {
@@ -119,16 +105,6 @@ const downloadFileThunk = createAsyncThunk<
 
     if (currentDownload && currentDownload.data.fileId === fileId) {
       await dispatch(cancelDownloadThunk());
-    }
-
-    const validationError = validateDownload(size);
-    if (validationError) {
-      dispatch(
-        driveActions.updateDownloadingFile({
-          error: strings.messages.downloadLimit,
-        }),
-      );
-      return rejectWithValue(validationError);
     }
 
     dispatch(
@@ -408,13 +384,7 @@ export const driveSlice = createSlice({
           decryptProgress: 0,
         };
       })
-      .addCase(downloadFileThunk.fulfilled, () => undefined)
-      .addCase(downloadFileThunk.rejected, (_, action) => {
-        const errorCode = action.payload;
-        if (errorCode === DOWNLOAD_ERROR_CODES.MAX_SIZE_TO_DOWNLOAD_REACHED) {
-          notificationsService.info(strings.messages.downloadLimit);
-        }
-      });
+      .addCase(downloadFileThunk.fulfilled, () => undefined);
 
     builder
       .addCase(createFolderThunk.pending, (state) => {
