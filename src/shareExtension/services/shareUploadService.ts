@@ -116,12 +116,20 @@ const resolveInputFile = async (
  *   would likely send actual chunked encoding on the wire, which presigned S3 PUT URLs
  *   may not support. With it, NSURLSession strips Transfer-Encoding: chunked before
  *   sending and emits a standard PUT.
+ *
+ * On Android it returns only `Content-Type`.
  */
-const buildStreamingHeaders = (contentLength: number) => ({
-  'Content-Type': 'application/octet-stream',
-  'Transfer-Encoding': 'chunked',
-  'Content-Length': String(contentLength),
-});
+const buildStreamingHeaders = (contentLength: number) => {
+  const contentTypeHeader = { 'Content-Type': 'application/octet-stream' };
+  if (Platform.OS !== 'ios') {
+    return contentTypeHeader;
+  }
+  return {
+    ...contentTypeHeader,
+    'Transfer-Encoding': 'chunked',
+    'Content-Length': String(contentLength),
+  };
+};
 
 const sendFilePutRequest = async (
   url: string,
