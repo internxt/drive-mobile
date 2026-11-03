@@ -4,7 +4,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { PlayIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, Platform, TouchableOpacity, View } from 'react-native';
-import Video, { VideoRef } from 'react-native-video';
+import Video, { BufferConfig, BufferingStrategyType, VideoRef } from 'react-native-video';
 import { useTailwind } from 'tailwind-rn';
 
 interface VideoViewerProps {
@@ -18,6 +18,11 @@ interface VideoViewerProps {
 
 const isIOS = Platform.OS === 'ios';
 const isAndroid = Platform.OS === 'android';
+
+const VIDEO_BUFFER_CONFIG: BufferConfig = {
+  maxHeapAllocationPercent: 0.25,
+  minBufferMemoryReservePercent: 0.25,
+};
 
 const lockToPortrait = async () => {
   if (isAndroid) {
@@ -142,11 +147,12 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
         {source && (
           <Video
             ref={videoPlayer}
-            source={{ uri: source }}
+            source={{ uri: source, bufferConfig: VIDEO_BUFFER_CONFIG }}
             paused={!playing}
             resizeMode="contain"
             repeat={false}
             ignoreSilentSwitch="ignore"
+            bufferingStrategy={BufferingStrategyType.DEPENDING_ON_MEMORY}
             controls={isAndroid && hasStarted}
             style={isAndroid ? { width: '100%', height: '100%' } : undefined}
             onError={handleError}
