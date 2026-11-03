@@ -54,7 +54,6 @@ const buildUploadingFile = (overrides: Partial<UploadingFile> = {}): UploadingFi
   uri: 'file:///tmp/file.txt',
   name: 'video.mov',
   type: 'mov',
-  parentId: 10,
   parentUuid: 'destination-folder-uuid',
   createdAt: '2024-01-01',
   updatedAt: '2024-01-01',
