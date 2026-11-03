@@ -1,11 +1,9 @@
-import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { createAsyncThunk, createSelector, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { logger } from '@internxt-mobile/services/common';
 import drive from '@internxt-mobile/services/drive';
 import { items } from '@internxt/lib';
-import { checkIsFolder, isValidFilename, mapRecentFile } from 'src/helpers';
-import authService from 'src/services/AuthService';
+import { checkIsFolder, isValidFilename } from 'src/helpers';
 import errorService from 'src/services/ErrorService';
 import { notifyParentChanged } from 'src/services/native/InternxtSignalingModule';
 import { ErrorCodes } from 'src/types/errors';
@@ -28,18 +26,9 @@ import {
   FocusedItem as DriveItemFocused,
   DriveItemStatus,
   DriveListItem,
-  DriveNavigationStack,
-  DriveNavigationStackItem,
 } from '../../../types/drive/item';
 import { DownloadingFile, UploadingFile } from '../../../types/drive/operations';
 import { DownloadAnalytics, FileInfo } from './DownloadAnalytics';
-
-export enum ThunkOperationStatus {
-  SUCCESS = 'SUCCESS',
-  ERROR = 'ERROR',
-  LOADING = 'LOADING',
-  IDLE = 'IDLE',
-}
 
 export interface FocusedShareItem {
   id: string;
@@ -47,12 +36,9 @@ export interface FocusedShareItem {
   views: number;
 }
 export interface DriveState {
-  isInitialized: boolean;
   isLoading: boolean;
-  navigationStack: DriveNavigationStack;
   items: DriveItemData[];
   hiddenItemsIds: string[];
-  currentFolderId: number;
   uploadingFiles: UploadingFile[];
   downloadingFile?: DownloadingFile;
   selectedItems: DriveItemData[];
@@ -70,18 +56,13 @@ export interface DriveState {
   pendingDeleteItems: { [key: string]: boolean };
   absolutePath: string;
   usage: number;
-  recents: DriveFileData[];
-  recentsStatus: ThunkOperationStatus;
   folderUploads: Record<string, FolderUploadState>;
 }
 
 const initialState: DriveState = {
-  isInitialized: false,
-  navigationStack: [],
   focusedShareItem: null,
   isLoading: false,
   items: [],
-  currentFolderId: -1,
   hiddenItemsIds: [],
   folderContent: [],
   focusedItem: null,
@@ -99,28 +80,8 @@ const initialState: DriveState = {
   uri: undefined,
   pendingDeleteItems: {},
   usage: 0,
-  recents: [],
-  recentsStatus: ThunkOperationStatus.IDLE,
   folderUploads: {},
 };
-
-const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
-  'drive/initialize',
-  async (payload, { dispatch }) => {
-    const { credentials } = await authService.getAuthCredentials();
-
-    if (credentials) {
-      dispatch(getRecentsThunk());
-    }
-  },
-);
-
-const getRecentsThunk = createAsyncThunk<void, void>('drive/getRecents', async (_, { dispatch }) => {
-  dispatch(driveActions.setRecentsStatus(ThunkOperationStatus.LOADING));
-  const recents = await drive.recents.getRecents();
-  const recentsParsed = recents.map(mapRecentFile);
-  dispatch(driveActions.setRecents(recentsParsed));
-});
 
 const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('drive/cancelDownload', () => {
   drive.events.emit({ event: DriveEventKey.CancelDownload });
@@ -129,10 +90,10 @@ const cancelDownloadThunk = createAsyncThunk<void, void, { state: RootState }>('
 const downloadFileThunk = createAsyncThunk<
   void,
   {
-    id: number;
+    uuid: string;
     size: number;
     bucketId: string;
-    parentId: number;
+    folderUuid?: string;
     name: string;
     type: string;
     fileId: string;
@@ -143,7 +104,7 @@ const downloadFileThunk = createAsyncThunk<
 >(
   'drive/downloadFile',
   async (
-    { id, size, parentId, name, type, fileId, openFileViewer, updatedAt, bucketId },
+    { uuid, size, folderUuid, name, type, fileId, openFileViewer, updatedAt, bucketId },
     { signal, getState, dispatch, rejectWithValue },
   ) => {
     logger.info('Starting file download...');
@@ -161,9 +122,9 @@ const downloadFileThunk = createAsyncThunk<
           dispatch(driveActions.clearDownloadingFile());
           dispatch(
             driveThunks.downloadFileThunk({
-              id,
+              uuid,
               size,
-              parentId,
+              folderUuid,
               bucketId,
               name,
               type,
@@ -225,10 +186,10 @@ const downloadFileThunk = createAsyncThunk<
     const analytics = new DownloadAnalytics(analyticsService);
 
     const fileInfo: FileInfo = {
-      id: id,
+      uuid: uuid,
       size: size,
       type: type,
-      parentId: parentId,
+      folderUuid: folderUuid,
     };
 
     const destinationPath = drive.file.getDecryptedFilePath(name, type);
@@ -328,7 +289,6 @@ export interface MoveItemThunkPayload {
   isFolder: boolean;
   origin: {
     name: string;
-    itemId: number | string;
     parentUuid: string;
     uuid: string;
     updatedAt: string;
@@ -347,7 +307,7 @@ const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: Root
   async ({ isFolder, origin, destinationUuid, itemMovedAction, optimisticCallbacks }) => {
     try {
       await drive.database.deleteItem({
-        id: origin.itemId as number,
+        uuid: origin.uuid,
       });
 
       if (!isFolder) {
@@ -440,25 +400,6 @@ export const driveSlice = createSlice({
         }
       }
     },
-    selectItem: (state, action: PayloadAction<DriveItemData>) => {
-      const isAlreadySelected =
-        state.selectedItems.filter((element) => {
-          const elementIsFolder = !element.fileId;
-
-          return elementIsFolder ? action.payload.id === element.id : action.payload.fileId === element.fileId;
-        }).length > 0;
-
-      state.selectedItems = isAlreadySelected ? state.selectedItems : [...state.selectedItems, action.payload];
-    },
-    deselectItem(state, action: PayloadAction<DriveItemData>) {
-      const itemsWithoutRemovedItem = state.selectedItems.filter((element) => {
-        const elementIsFolder = !element.fileId;
-
-        return elementIsFolder ? action.payload.id !== element.id : action.payload.fileId !== element.fileId;
-      });
-
-      state.selectedItems = itemsWithoutRemovedItem;
-    },
     deselectAll(state) {
       state.selectedItems = [];
     },
@@ -478,31 +419,11 @@ export const driveSlice = createSlice({
     setItemToMove(state, action: PayloadAction<DriveItemFocused | null>) {
       state.itemToMove = action.payload;
     },
-    popItem(state, action: PayloadAction<{ id: number; isFolder: boolean }>) {
-      state.folderContent = state.folderContent.filter(
-        (item: DriveItemData) => item.id !== action.payload.id || !item.fileId !== action.payload.isFolder,
-      );
-    },
-    pushToNavigationStack(state, action: PayloadAction<DriveNavigationStackItem>) {
-      state.navigationStack.unshift(action.payload);
-    },
-    popFromNavigationStack(state) {
-      state.navigationStack.shift();
-    },
     updateDownloadingFile(state, action: PayloadAction<Partial<DownloadingFile>>) {
       state.downloadingFile && Object.assign(state.downloadingFile, action.payload);
     },
     clearDownloadingFile(state) {
       state.downloadingFile = undefined;
-    },
-    setRecentsStatus(state, action: PayloadAction<ThunkOperationStatus>) {
-      state.recentsStatus = action.payload;
-    },
-    setRecents(state, action: PayloadAction<DriveFileData[]>) {
-      state.recents = action.payload;
-    },
-    setCurrentFolderId(state, action: PayloadAction<number>) {
-      state.currentFolderId = action.payload;
     },
     hideItemsById(state, action: PayloadAction<string[]>) {
       state.hiddenItemsIds = [...new Set(state.hiddenItemsIds.concat(action.payload))];
@@ -531,15 +452,6 @@ export const driveSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder
-      .addCase(initializeThunk.pending, (state) => {
-        state.isInitialized = false;
-      })
-      .addCase(initializeThunk.fulfilled, (state) => {
-        state.isInitialized = true;
-      })
-      .addCase(initializeThunk.rejected, () => undefined);
-
     builder
       .addCase(downloadFileThunk.pending, (state, action) => {
         state.downloadingFile = {
@@ -584,42 +496,20 @@ export const driveSlice = createSlice({
     builder.addCase(loadUsageThunk.fulfilled, (state, action) => {
       state.usage = action.payload;
     });
-
-    builder.addCase(getRecentsThunk.rejected, (state) => {
-      state.recentsStatus = ThunkOperationStatus.ERROR;
-    });
-    builder.addCase(getRecentsThunk.fulfilled, (state) => {
-      state.recentsStatus = ThunkOperationStatus.SUCCESS;
-    });
   },
 });
 
 let hasLoggedMissingBucket = false;
 
 export const driveSelectors = {
-  absolutePath: (state: RootState) => {
-    return state.drive.navigationStack.reduce((result, item) => result + item.name + '/', '/');
-  },
-  navigationStackPeek: (state: RootState) => {
-    return state.drive.navigationStack.length > 0
-      ? state.drive.navigationStack[0]
-      : { id: state.auth.user?.rootFolderId ?? null, name: '', parentId: null, updatedAt: Date.now().toString() };
-  },
   driveItems: createSelector(
     [
       (state: RootState) => state.drive.folderContent,
       (state: RootState) => state.drive.uploadingFiles,
       (state: RootState) => state.drive.searchString,
-      (state: RootState) => state.drive.currentFolderId,
       (state: RootState) => state.auth.user?.bucket,
     ],
-    (
-      folderContent,
-      uploadingFiles,
-      searchString,
-      currentFolderId,
-      bucket,
-    ): { uploading: DriveListItem[]; items: DriveListItem[] } => {
+    (folderContent, uploadingFiles, searchString, bucket): { uploading: DriveListItem[]; items: DriveListItem[] } => {
       if (!bucket) {
         if (!hasLoggedMissingBucket) {
           hasLoggedMissingBucket = true;
@@ -647,7 +537,6 @@ export const driveSelectors = {
           progress: f.progress,
           data: {
             bucket: bucket,
-            folderId: currentFolderId,
             // TODO: Organize Drive item types
             thumbnails: [],
             currentThumbnail: null,
@@ -666,7 +555,7 @@ export const driveSelectors = {
               ...f,
               isFolder,
             },
-            id: f.id.toString(),
+            id: f.uuid,
           };
         }),
       };
@@ -677,13 +566,11 @@ export const driveSelectors = {
 export const driveActions = driveSlice.actions;
 
 export const driveThunks = {
-  initializeThunk,
   cancelDownloadThunk,
   downloadFileThunk,
   createFolderThunk,
   moveItemThunk,
   loadUsageThunk,
-  getRecentsThunk,
 };
 
 export default driveSlice.reducer;

@@ -1,10 +1,12 @@
 const mockGetFolderFiles = jest.fn();
 const mockGetFolderFolders = jest.fn();
+const mockGetFolderContentByUuid = jest.fn();
 
 jest.mock('@internxt-mobile/services/drive/folder', () => ({
   driveFolderService: {
     getFolderFiles: (...args: unknown[]) => mockGetFolderFiles(...args),
     getFolderFolders: (...args: unknown[]) => mockGetFolderFolders(...args),
+    getFolderContentByUuid: (...args: unknown[]) => mockGetFolderContentByUuid(...args),
   },
 }));
 
@@ -42,7 +44,6 @@ const PAGE_SIZE = 50;
 const NEWER_FIRST: SortMode = { type: SortType.UpdatedAt, direction: SortDirection.Asc };
 
 const buildFile = (fileNumber: number) => ({
-  id: fileNumber,
   uuid: `file-${fileNumber}`,
   fileId: `file-id-${fileNumber}`,
   plainName: `file ${fileNumber}`,
@@ -52,18 +53,14 @@ const buildFile = (fileNumber: number) => ({
   updatedAt: '2025-02-16T00:00:00.000Z',
   status: 'EXISTS',
   size: '1',
-  folderId: 1,
 });
 
 const buildFullPageOfFiles = (firstFileNumber: number) =>
   Array.from({ length: PAGE_SIZE }, (_, index) => buildFile(firstFileNumber + index));
 
 const buildFolder = (folderNumber: number) => ({
-  id: folderNumber,
   uuid: `folder-${folderNumber}`,
   plainName: `folder ${folderNumber}`,
-  name: `folder ${folderNumber}`,
-  parentId: 1,
   userId: 1,
   createdAt: '2025-02-16T00:00:00.000Z',
   updatedAt: '2025-02-16T00:00:00.000Z',
@@ -292,7 +289,7 @@ describe('Taking an item out of a Drive folder before its next page arrives', ()
     const { result } = await renderDriveContext();
 
     act(() => {
-      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFile(3).id);
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFile(3).uuid);
     });
     await loadNextPage(result);
 
@@ -306,7 +303,7 @@ describe('Taking an item out of a Drive folder before its next page arrives', ()
     const { result } = await renderDriveContext();
 
     act(() => {
-      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFolder(3).id);
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFolder(3).uuid);
     });
     await loadNextPage(result);
 
@@ -344,5 +341,72 @@ describe('Focusing a Drive folder', () => {
     });
 
     expect(result.current.focusedFolder?.uuid).toBe(ROOT_FOLDER_UUID);
+  });
+});
+
+describe('Changing one item of a Drive folder that holds a file and a subfolder with the same number', () => {
+  const SHARED_ITEM_NUMBER = 3;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetFolderFolders.mockResolvedValue({ folders: [buildFolder(SHARED_ITEM_NUMBER)] });
+    mockGetFolderFiles.mockResolvedValue({ files: [buildFile(SHARED_ITEM_NUMBER)] });
+  });
+
+  test('when the file is moved away, then the subfolder stays in the folder', async () => {
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.removeItemFromTree(ROOT_FOLDER_UUID, buildFile(SHARED_ITEM_NUMBER).uuid);
+    });
+
+    const rootFolder = result.current.driveFoldersTree[ROOT_FOLDER_UUID];
+    expect(rootFolder.files).toHaveLength(0);
+    expect(rootFolder.folders.map((folder) => folder.uuid)).toStrictEqual([buildFolder(SHARED_ITEM_NUMBER).uuid]);
+  });
+
+  test('when the file is renamed, then the subfolder keeps its name', async () => {
+    const { result } = await renderDriveContext();
+
+    act(() => {
+      result.current.updateItemInTree(ROOT_FOLDER_UUID, buildFile(SHARED_ITEM_NUMBER).uuid, { plainName: 'renamed' });
+    });
+
+    const rootFolder = result.current.driveFoldersTree[ROOT_FOLDER_UUID];
+    expect(rootFolder.files[0].plainName).toBe('renamed');
+    expect(rootFolder.folders[0].plainName).toBe(buildFolder(SHARED_ITEM_NUMBER).plainName);
+  });
+});
+
+describe('Naming the items of a Drive folder', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('when the server still sends the old name next to the current one, then files and folders show the current name', async () => {
+    mockGetFolderFolders.mockResolvedValue({ folders: [{ ...buildFolder(1), name: 'old folder name' }] });
+    mockGetFolderFiles.mockResolvedValue({ files: [{ ...buildFile(1), name: 'old file name' }] });
+
+    const { result } = await renderDriveContext();
+
+    const rootFolder = result.current.driveFoldersTree[ROOT_FOLDER_UUID];
+    expect(rootFolder.folders[0].name).toBe('folder 1');
+    expect(rootFolder.files[0].name).toBe('file 1');
+  });
+
+  test('when a whole folder is loaded and holds a file that only has an extension, then the file keeps its empty name instead of the old one', async () => {
+    mockGetFolderFolders.mockResolvedValue({ folders: [] });
+    mockGetFolderFiles.mockResolvedValue({ files: [] });
+    mockGetFolderContentByUuid.mockResolvedValue({
+      children: [],
+      files: [{ ...buildFile(1), plainName: '', plain_name: '', name: 'old file name', type: 'dockerfile' }],
+    });
+    const { result } = await renderDriveContext();
+
+    await act(async () => {
+      await result.current.loadFolderContent(ROOT_FOLDER_UUID, { loadAllContent: true });
+    });
+
+    expect(result.current.driveFoldersTree[ROOT_FOLDER_UUID].files[0].name).toBe('');
   });
 });

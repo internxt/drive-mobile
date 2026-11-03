@@ -1,5 +1,9 @@
 import { getHeaders } from '../../../helpers/headers';
-import { DownloadedThumbnail, ModifiedFile as GetModifiedFiles } from '../../../types/drive/file';
+import {
+  CheckDuplicatedFilesResponse,
+  DownloadedThumbnail,
+  ModifiedFile as GetModifiedFiles,
+} from '../../../types/drive/file';
 import { DriveListItem } from '../../../types/drive/item';
 import { SortDirection, SortType } from '../../../types/drive/ui';
 import { constants } from '../../AppService';
@@ -190,7 +194,7 @@ class DriveFileService {
     limit?: number;
     offset?: number;
     updatedAt?: string;
-    status: 'ALL' | 'TRASHED' | 'REMOVED';
+    status: 'ALL' | 'EXISTS' | 'TRASHED' | 'DELETED';
   }): Promise<GetModifiedFiles[] | undefined> {
     const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
     const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
@@ -377,8 +381,14 @@ class DriveFileService {
     return filename + (type ? `.${type}` : '');
   }
 
-  public async checkFileExistence(parentFolderUuid: string, filesList: { plainName: string; type: string }[]) {
-    return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
+  public async checkFileExistence(
+    parentFolderUuid: string,
+    filesList: { plainName: string; type: string }[],
+  ): Promise<CheckDuplicatedFilesResponse> {
+    return this.sdk.storageV2.checkDuplicatedFiles({
+      folderUuid: parentFolderUuid,
+      filesList,
+    }) as Promise<CheckDuplicatedFilesResponse>;
   }
 
   /**

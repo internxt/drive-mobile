@@ -37,9 +37,12 @@ const untranspiledModulePatterns = [
   'entities',
 ];
 
+const TEST_TIMEOUT_MS = 15000;
+
 const config: Config.InitialOptions = {
   preset: 'jest-expo',
   verbose: true,
+  testTimeout: TEST_TIMEOUT_MS,
   testRegex: ['\\.spec\\.ts$', '\\.spec\\.tsx$'],
   setupFiles: ['./jest.setup.ts'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],

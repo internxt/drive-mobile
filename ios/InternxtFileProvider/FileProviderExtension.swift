@@ -10,9 +10,11 @@ import InternxtSwiftCore
 import UniformTypeIdentifiers
 
 class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
+    private let domain: NSFileProviderDomain
     private let rootDisplayName: String
 
     required init(domain: NSFileProviderDomain) {
+        self.domain = domain
         self.rootDisplayName = domain.displayName
         super.init()
     }
@@ -64,11 +66,22 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
             return Progress()
         }
 
+        let contentsDirectory: URL
+        do {
+            contentsDirectory = try FileProviderDownloadService.contentsDirectory(for: domain)
+        } catch {
+            completionHandler(nil, nil, error)
+            return Progress()
+        }
+
         let downloadService = FileProviderDownloadService(driveAPI: driveAPI, networkFacade: networkFacade)
         let progress = Progress(totalUnitCount: 100)
         Task {
             do {
-                let result = try await downloadService.fetchContents(uuid: decoded.uuid) { fraction in
+                let result = try await downloadService.fetchContents(
+                    uuid: decoded.uuid,
+                    into: contentsDirectory
+                ) { fraction in
                     progress.completedUnitCount = Int64(fraction * 100)
                 }
                 let item = FileProviderItem(fileMeta: result.meta, identifier: itemIdentifier)
@@ -130,8 +143,10 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
     ) -> Progress {
         let progress = Progress(totalUnitCount: 1)
         Task {
+            let mutationService = FileProviderMutationService(driveAPI: uploadService.driveAPI)
             do {
-                let response = try await uploadService.createFolder(name: name, parentUuid: parentUuid)
+                let availableName = try await mutationService.availableName(kind: .folder, for: name, inFolder: parentUuid)
+                let response = try await uploadService.createFolder(name: availableName, parentUuid: parentUuid)
                 progress.completedUnitCount = 1
                 let item = FileProviderItem(folder: response, parent: parentIdentifier)
                 completionHandler(item, [], false, nil)
@@ -154,10 +169,12 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         Task {
             let encryptedTmp = FileProviderDownloadService.temporaryFileURL()
             defer { try? FileManager.default.removeItem(at: encryptedTmp) }
+            let mutationService = FileProviderMutationService(driveAPI: uploadService.driveAPI)
 
             do {
+                let availableFilename = try await mutationService.availableName(kind: .file, for: filename, inFolder: parentUuid)
                 let result = try await uploadService.uploadFile(
-                    filename: filename,
+                    filename: availableFilename,
                     contentsURL: contentsURL,
                     parentUuid: parentUuid,
                     encryptedOutput: encryptedTmp,
@@ -227,6 +244,11 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
                 )
                 completionHandler(modified, [], false, nil)
             } catch {
+                if FileProviderErrorMapper.isNameCollision(error),
+                   let serverItem = try? await mutationService.resolveItem(decoded, identifier: item.itemIdentifier) {
+                    completionHandler(serverItem, [], false, nil)
+                    return
+                }
                 completionHandler(nil, [], false, FileProviderErrorMapper.lookupError(from: error))
             }
         }

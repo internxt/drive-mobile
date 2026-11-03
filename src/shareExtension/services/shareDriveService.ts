@@ -1,4 +1,4 @@
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '../../types/drive/file';
 import { getUniqueFilename } from '../../services/drive/file/utils/getUniqueFilename';
 import { ShareFileItem, ShareFolderItem } from '../types';
 import ShareSdkManager from './ShareSdkManager';
@@ -61,7 +61,7 @@ const checkDuplicatedFiles = async (
 ): Promise<DriveFileData[]> => {
   if (filesList.length === 0) return [];
   const response = await ShareSdkManager.storageV2.checkDuplicatedFiles({ folderUuid, filesList });
-  return response.existentFiles;
+  return response.existentFiles as DriveFileData[];
 };
 
 const trashFiles = async (fileUuids: string[]): Promise<void> => {
