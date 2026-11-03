@@ -52,12 +52,12 @@ function RenameModal(): JSX.Element {
           name: trimmedNewName,
         }),
       );
-      driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.id, {
+      driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.uuid, {
         name: trimmedNewName,
         plainName: trimmedNewName,
       });
 
-      await drive.database.updateItemName(focusedItem.id, trimmedNewName);
+      await drive.database.updateItemName(focusedItem.uuid, trimmedNewName);
       if (isFolder && focusedItem.uuid) {
         await drive.folder.updateMetaData(focusedItem.uuid, trimmedNewName);
       } else if (focusedItem.uuid) {
@@ -76,7 +76,7 @@ function RenameModal(): JSX.Element {
       setNewName('');
     } catch (err) {
       try {
-        driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.id, {
+        driveCtx.updateItemInTree(driveCtx.focusedFolder.uuid, focusedItem.uuid, {
           name: originalName,
           plainName: originalName,
         });
@@ -87,7 +87,7 @@ function RenameModal(): JSX.Element {
           }),
         );
 
-        await drive.database.updateItemName(focusedItem.id, originalName);
+        await drive.database.updateItemName(focusedItem.uuid, originalName);
       } catch (dbError) {
         logger.error('Error reverting database update:', dbError);
       }

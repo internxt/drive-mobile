@@ -1,4 +1,3 @@
-import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { SharedFiles, SharedFolders } from '@internxt-mobile/types/drive/shared';
 import { TrashItem } from '../services/drive/trash';
 
@@ -19,32 +18,10 @@ export const mapFolderWithIsFolder = <T extends object>(folder: T): T & { isFold
 });
 
 /**
- * Maps an array of files adding isFolder: false to each
- */
-export const mapFilesWithIsFolder = <T extends object>(files: T[]): (T & { isFolder: false })[] =>
-  files.map(mapFileWithIsFolder);
-
-/**
- * Maps an array of folders adding isFolder: true to each
- */
-export const mapFoldersWithIsFolder = <T extends object>(folders: T[]): (T & { isFolder: true })[] =>
-  folders.map(mapFolderWithIsFolder);
-
-/**
- * Maps recent files (which are always files)
- */
-export const mapRecentFile = (file: DriveFileData) => ({
-  ...file,
-  name: file.plainName ?? file.name,
-  isFolder: false,
-});
-
-/**
  * Maps trash files
  */
 export const mapTrashFile = (file: TrashItem) => ({
   ...file,
-  name: file.plainName,
   isFolder: false,
 });
 

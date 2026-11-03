@@ -7,7 +7,6 @@ describe('Drive item classification', () => {
     describe('Using isFolder field (preferred)', () => {
       it('when an item has isFolder true, then it is recognized as a folder', () => {
         const folder: Partial<DriveItemData> = {
-          id: 1,
           type: 'jpg',
           name: 'My Folder',
           isFolder: true,
@@ -18,7 +17,6 @@ describe('Drive item classification', () => {
 
       it('when an item has isFolder false, then it is not recognized as a folder', () => {
         const file: Partial<DriveItemData> = {
-          id: 1,
           type: 'folder',
           name: 'My File',
           isFolder: false,
@@ -29,7 +27,6 @@ describe('Drive item classification', () => {
 
       it('when a file with folder extension has isFolder false, then it is correctly identified as file', () => {
         const file: Partial<DriveItemData> = {
-          id: 1,
           type: 'folder',
           name: 'archive.folder',
           isFolder: false,
@@ -42,7 +39,6 @@ describe('Drive item classification', () => {
     describe('Fallback to parentUuid detection', () => {
       it('when an item has a parent folder reference, then it is recognized as a folder', () => {
         const folder: Partial<DriveItemData> = {
-          id: 1,
           name: 'My Folder',
           parentUuid: 'parent-uuid-123',
         };
@@ -52,7 +48,6 @@ describe('Drive item classification', () => {
 
       it('when an item has parentUuid without isFolder field, then it is recognized as a folder', () => {
         const folder: Partial<DriveItemData> = {
-          id: 1,
           name: 'My Folder',
           parentUuid: 'parent-uuid-123',
         };
@@ -63,7 +58,6 @@ describe('Drive item classification', () => {
 
     it('when an item is a regular file, then it is not recognized as a folder', () => {
       const file: Partial<DriveItemData> = {
-        id: 1,
         type: 'jpg',
         name: 'image.jpg',
         fileId: 'file-123',
@@ -76,7 +70,6 @@ describe('Drive item classification', () => {
 
     it('when an item is a file without extension, then it is not recognized as a folder', () => {
       const file = {
-        id: 1,
         type: null,
         name: 'file-no-extension',
         fileId: 'file-123',
@@ -95,7 +88,6 @@ describe('Drive item classification', () => {
     describe('Trashed items', () => {
       it('when a trashed item is a folder with parentUuid, then it is recognized as a folder', () => {
         const trashFolder = {
-          id: 1,
           type: 'folder',
           name: 'Deleted Folder',
           parentUuid: 'parent-uuid',
@@ -107,7 +99,6 @@ describe('Drive item classification', () => {
 
       it('when a trashed item is a file without parentUuid, then it is not recognized as a folder', () => {
         const trashFile = {
-          id: 1,
           type: 'pdf',
           name: 'document.pdf',
           folderUuid: 'folder-uuid',
@@ -122,7 +113,6 @@ describe('Drive item classification', () => {
   describe('Detecting empty files', () => {
     it('when a file has zero bytes as number, then it is detected as empty', () => {
       const emptyFile: Partial<DriveItemData> = {
-        id: 1,
         name: 'empty.bin',
         type: 'bin',
         size: 0,
@@ -133,7 +123,6 @@ describe('Drive item classification', () => {
 
     it('when a file has zero bytes as string, then it is detected as empty', () => {
       const emptyFile = {
-        id: 1,
         name: 'empty.bin',
         type: 'bin',
         size: '0',
@@ -144,7 +133,6 @@ describe('Drive item classification', () => {
 
     it('when a file has content, then it is not detected as empty', () => {
       const fileWithContent: Partial<DriveItemData> = {
-        id: 1,
         name: 'document.pdf',
         type: 'pdf',
         size: 1024,
@@ -155,7 +143,6 @@ describe('Drive item classification', () => {
 
     it('when a file has content as string, then it is not detected as empty', () => {
       const fileWithContent = {
-        id: 1,
         name: 'image.jpg',
         type: 'jpg',
         size: '2048',
@@ -166,13 +153,11 @@ describe('Drive item classification', () => {
 
     it('when file size is not available, then it is not detected as empty', () => {
       const fileWithoutSize = {
-        id: 1,
         name: 'file.txt',
         type: 'txt',
       } as DriveItemData;
 
       const fileWithNullSize = {
-        id: 1,
         name: 'file.txt',
         type: 'txt',
         size: null,
@@ -188,7 +173,6 @@ describe('Drive item classification', () => {
 
     it('when an item has no size information, then it is not detected as empty', () => {
       const item: any = {
-        id: 1,
         name: 'item',
       };
 
@@ -199,7 +183,6 @@ describe('Drive item classification', () => {
   describe('Getting file size', () => {
     it('when file size is stored as number, then the numeric size is returned', () => {
       const file: Partial<DriveItemData> = {
-        id: 1,
         name: 'file.txt',
         size: 1024,
       };
@@ -209,7 +192,6 @@ describe('Drive item classification', () => {
 
     it('when file size is stored as string, then the numeric size is returned', () => {
       const file = {
-        id: 1,
         name: 'file.txt',
         size: '2048',
       } as unknown;
@@ -219,7 +201,6 @@ describe('Drive item classification', () => {
 
     it('when file has zero bytes as number, then zero is returned', () => {
       const file: Partial<DriveItemData> = {
-        id: 1,
         name: 'empty.bin',
         size: 0,
       };
@@ -229,7 +210,6 @@ describe('Drive item classification', () => {
 
     it('when file has zero bytes as string, then zero is returned', () => {
       const file = {
-        id: 1,
         name: 'empty.bin',
         size: '0',
       } as unknown;
@@ -239,12 +219,10 @@ describe('Drive item classification', () => {
 
     it('when file size is not available, then zero is returned', () => {
       const fileWithUndefinedSize = {
-        id: 1,
         name: 'file.txt',
       } as DriveItemData;
 
       const fileWithNullSize = {
-        id: 1,
         name: 'file.txt',
         size: null,
       } as unknown as DriveItemData;
@@ -259,7 +237,6 @@ describe('Drive item classification', () => {
 
     it('when an item has no size information, then zero is returned', () => {
       const item: any = {
-        id: 1,
         name: 'item',
       };
 
@@ -268,7 +245,6 @@ describe('Drive item classification', () => {
 
     it('when file is very large, then the correct size is returned', () => {
       const largeFile = {
-        id: 1,
         name: 'large-file.bin',
         size: '2147483648',
       } as unknown;
@@ -280,7 +256,6 @@ describe('Drive item classification', () => {
   describe('Identifying files', () => {
     it('when an item is a regular file, then it is recognized as a file', () => {
       const file: Partial<DriveItemData> = {
-        id: 1,
         type: 'pdf',
         name: 'document.pdf',
         fileId: 'file-123',
@@ -293,7 +268,6 @@ describe('Drive item classification', () => {
 
     it('when an item is a folder, then it is not recognized as a file', () => {
       const folder: Partial<DriveItemData> = {
-        id: 1,
         type: 'folder',
         name: 'My Folder',
         parentUuid: 'parent-uuid-123',
@@ -305,7 +279,6 @@ describe('Drive item classification', () => {
 
     it('when an item is an empty file, then it is recognized as a file', () => {
       const emptyFile: Partial<DriveItemData> = {
-        id: 1,
         type: 'bin',
         name: 'empty-file.bin',
         folderUuid: 'folder-uuid-456',
@@ -317,7 +290,6 @@ describe('Drive item classification', () => {
 
     it('when an item is a file without extension, then it is recognized as a file', () => {
       const file = {
-        id: 1,
         type: null,
         name: 'file-no-extension',
         fileId: 'file-123',
@@ -331,7 +303,6 @@ describe('Drive item classification', () => {
     describe('Focused items', () => {
       it('when a focused item is a file, then it is recognized as a file', () => {
         const focusedFile: DriveItemFocused = {
-          id: 1,
           type: 'jpg',
           name: 'photo.jpg',
           fileId: 'file-123',
@@ -347,7 +318,6 @@ describe('Drive item classification', () => {
 
       it('when a focused item is a folder, then it is not recognized as a file', () => {
         const focusedFolder: DriveItemFocused = {
-          id: 1,
           type: 'folder',
           name: 'Documents',
           parentUuid: 'parent-uuid',
@@ -364,7 +334,6 @@ describe('Drive item classification', () => {
   describe('Real-world scenarios', () => {
     it('when distinguishing between empty file and empty folder, then each is correctly identified', () => {
       const emptyFile: Partial<DriveItemData> = {
-        id: 1,
         type: 'bin',
         name: 'empty-file.bin',
         folderUuid: 'folder-uuid',
@@ -373,7 +342,6 @@ describe('Drive item classification', () => {
       };
 
       const emptyFolder: Partial<DriveItemData> = {
-        id: 2,
         type: 'folder',
         name: 'Empty Folder',
         parentUuid: 'parent-uuid',
@@ -398,7 +366,6 @@ describe('Drive item classification', () => {
         createdAt: '2025-12-11T09:09:01.673Z',
         fileId: '693a8a2c7ccfc45e1feb5e30',
         folderUuid: '2fdb127e-fdd6-4687-9051-53761920e5d2',
-        id: 1076106294,
         name: '1gb',
         size: '1073741824',
         type: null,
@@ -416,7 +383,6 @@ describe('Drive item classification', () => {
     it('when processing a folder from production, then it is correctly identified', () => {
       const realFolder: Partial<DriveItemData> = {
         createdAt: '2025-06-10T06:52:56.000Z',
-        id: 120640427,
         name: 'test folder',
         parentUuid: '2fdb127e-fdd6-4687-9051-53761920e5d2',
         size: 0,
@@ -437,7 +403,6 @@ describe('Drive item classification', () => {
         createdAt: '2025-12-11T09:09:01.673Z',
         fileId: '693a8a2c7ccfc45e1feb5e30',
         folderUuid: '2fdb127e-fdd6-4687-9051-53761920e5d2',
-        id: 1076106294,
         name: 'archive.folder',
         size: '2048',
         type: 'folder',

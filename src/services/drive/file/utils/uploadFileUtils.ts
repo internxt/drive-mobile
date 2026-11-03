@@ -142,7 +142,6 @@ export function createUploadingFiles(
       uri: preparedFile.uri,
       name: preparedFile.name,
       type: preparedFile.type,
-      parentId: focusedFolder.id,
       parentUuid: focusedFolder.uuid,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
