@@ -1,4 +1,4 @@
-import { setString } from 'expo-clipboard';
+import { setStringAsync } from 'expo-clipboard';
 import Toast, { ToastShowParams } from 'react-native-toast-message';
 
 import { NotificationData, NotificationType } from '../types';
@@ -60,8 +60,8 @@ class NotificationsService {
       type: NotificationType.Success,
       action: {
         text: actionText,
-        onActionPress: () => {
-          setString(textToCopy);
+        onActionPress: async () => {
+          await setStringAsync(textToCopy);
         },
       },
     });

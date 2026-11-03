@@ -38,9 +38,7 @@ const SkeletonCell = ({ style }: { style?: StyleProp<ViewStyle> }): JSX.Element 
 
   return (
     <View style={[styles.container, { backgroundColor: getColor('bg-gray-10') }, style]}>
-      <Animated.View
-        style={[StyleSheet.absoluteFillObject, { backgroundColor: getColor('bg-gray-1'), opacity: fadeAnim }]}
-      />
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: getColor('bg-gray-1'), opacity: fadeAnim }]} />
     </View>
   );
 };
@@ -58,7 +56,7 @@ const UploadProgressRing = ({ assetId, color }: { assetId: string; color: string
         unfilledColor="rgba(255,255,255,0.3)"
         borderWidth={0}
       />
-      <View style={[StyleSheet.absoluteFillObject, styles.progressRingIcon]}>
+      <View style={[StyleSheet.absoluteFill, styles.progressRingIcon]}>
         <ArrowUpIcon size={10} color={color} weight="bold" />
       </View>
     </View>
@@ -82,7 +80,7 @@ const SelectOverlay = ({
 
   return (
     <>
-      <View style={[StyleSheet.absoluteFillObject, styles.scrim]} />
+      <View style={[StyleSheet.absoluteFill, styles.scrim]} />
       <View style={[styles.checkbox, { backgroundColor: getColor('text-primary') }]}>
         <CheckIcon size={16} color="white" weight="bold" />
       </View>
@@ -211,11 +209,11 @@ const LocalPhotoCell = memo(
         <ExpoImage
           source={{ uri: item.uri, cacheKey: `${item.id}-${item.modificationTime}` }}
           recyclingKey={item.id}
-          style={[StyleSheet.absoluteFillObject, isCloudDeleted && styles.dimmed]}
+          style={[StyleSheet.absoluteFill, isCloudDeleted && styles.dimmed]}
           contentFit="cover"
           onLoad={handleLoad}
         />
-        {!isImageLoaded && <SkeletonCell style={StyleSheet.absoluteFillObject} />}
+        {!isImageLoaded && <SkeletonCell style={StyleSheet.absoluteFill} />}
 
         {(item.backupState === 'not-backed' ||
           item.backupState === 'uploading' ||
@@ -268,12 +266,12 @@ const CloudPhotoCell = memo(
           <ExpoImage
             source={{ uri: thumbnailUri }}
             recyclingKey={item.id}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             contentFit="cover"
             onError={onImageError}
           />
         ) : (
-          <View style={[StyleSheet.absoluteFillObject, tailwind('items-center justify-center')]}>
+          <View style={[StyleSheet.absoluteFill, tailwind('items-center justify-center')]}>
             <ImageIcon size={24} color={getColor('text-gray-40')} weight="thin" />
           </View>
         )}

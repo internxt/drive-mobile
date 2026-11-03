@@ -14,7 +14,7 @@ import {
   requestCameraPermissionsAsync,
   UIImagePickerPreferredAssetRepresentationMode,
 } from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { ReactNode, useCallback, useState } from 'react';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
