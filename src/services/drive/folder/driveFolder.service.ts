@@ -110,7 +110,7 @@ class DriveFolderService {
     limit?: number;
     offset?: number;
     updatedAt: string;
-    status: 'ALL' | 'TRASHED' | 'REMOVED';
+    status: 'ALL' | 'EXISTS' | 'TRASHED' | 'DELETED';
   }): Promise<ModifiedFolder[] | undefined> {
     const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
     const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
