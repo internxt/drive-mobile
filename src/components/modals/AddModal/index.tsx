@@ -58,6 +58,7 @@ import appService, { constants } from '../../../services/AppService';
 import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
 import { copyFileFromEncodedUri } from '../../../services/common/filesystem/copyFileFromEncodedUri';
 import {
+  createFileEntryWithRetry,
   createUploadingFiles,
   handleDuplicateFiles,
   initializeUploads,
@@ -227,7 +228,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
         creationTime: creationTimeISO,
       };
       try {
-        const entry = await uploadService.createFileEntry(emptyEntry);
+        const entry = await createFileEntryWithRetry(emptyEntry, signal);
         drive.events.emit({ event: DriveEventKey.UploadCompleted });
         return { ...entry, thumbnails: [] } as DriveFileData;
       } catch (err) {
@@ -274,7 +275,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
     let uploadedThumbnail: Thumbnail | null = null;
     let generatedDriveItem: DriveFileData;
     try {
-      generatedDriveItem = await uploadService.createFileEntry(fileEntryByUuid);
+      generatedDriveItem = await createFileEntryWithRetry(fileEntryByUuid, signal);
     } catch (err) {
       if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
       throw err;
