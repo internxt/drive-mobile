@@ -5,7 +5,7 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import { useTailwind } from 'tailwind-rn';
@@ -25,7 +25,7 @@ import { DriveListType, SortMode } from '../../../types/drive/ui';
 import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation';
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
-import { buildFolderUploadListItem, isFolderUploadItem } from './DriveFolderScreen.helpers';
+import { buildFolderUploadListItem, canLoadNextPage, isFolderUploadItem } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 import { useFocusFolderOnScreenFocus } from './useFocusFolderOnScreenFocus';
@@ -35,7 +35,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
   useLanguage();
   const [loadingMore, setLoadingMore] = useState(false);
-  const { folderUuid, folderName, parentFolderName, parentUuid } = route.params;
+  const isLoadingNextPageRef = useRef(false);
+  const { folderUuid, folderName, parentFolderName } = route.params;
   const { user } = useAppSelector((state) => state.auth);
   const isRootFolder = folderUuid === user?.rootFolderId;
 
@@ -123,19 +124,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   const onBackButtonPressed = () => {
     navigation.goBack();
-
-    if (parentUuid) {
-      driveCtx
-        .loadFolderContent(parentUuid, { pullFrom: ['network'], resetPagination: false, focusFolder: true })
-        .catch((error) => {
-          errorService.reportError(error);
-          const err = errorService.castError(error, 'content');
-          notificationsService.show({
-            type: NotificationType.Error,
-            text1: err.message,
-          });
-        });
-    }
   };
 
   // Register a handler for hardware back
@@ -197,6 +185,10 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleDriveItemPress = (driveItem: DriveListItem) => {
+    if (!navigation.isFocused()) {
+      return;
+    }
+
     const isFolder = driveItem?.data?.isFolder;
 
     if (!isFolder) {
@@ -299,9 +291,13 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleEndReached = async () => {
+    if (isLoadingNextPageRef.current || !canLoadNextPage(folder)) {
+      return;
+    }
+
+    isLoadingNextPageRef.current = true;
+    setLoadingMore(true);
     try {
-      if (loadingMore) return;
-      setLoadingMore(true);
       await driveCtx.loadFolderContent(folderUuid, {
         pullFrom: ['network'],
         resetPagination: false,
@@ -314,6 +310,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         text1: err.message,
       });
     } finally {
+      isLoadingNextPageRef.current = false;
       setLoadingMore(false);
     }
   };
@@ -404,6 +401,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             )}
             onEndReached={handleEndReached}
             isLoading={driveCtx.driveFoldersTree[folderUuid]?.loading}
+            isLoadingMore={loadingMore}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}
             items={driveItems}

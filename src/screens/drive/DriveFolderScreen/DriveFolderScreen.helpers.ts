@@ -1,3 +1,4 @@
+import type { DriveFoldersTreeNode } from '../../../contexts/Drive/Drive.context';
 import { FolderAncestor } from '../../../types/drive/folder';
 import { DriveItemData, DriveItemStatus, DriveListItem } from '../../../types/drive';
 import { FolderUploadState } from '../../../types/drive/folderUpload';
@@ -39,6 +40,9 @@ export const buildDeepLinkRoutes = (folderUuid: string, ancestors: FolderAncesto
 
   return routes;
 };
+
+export const canLoadNextPage = (folderNode: DriveFoldersTreeNode | undefined): boolean =>
+  !!folderNode && !folderNode.loading && (folderNode.nextFoldersOffset !== null || folderNode.nextFilesOffset !== null);
 
 const FOLDER_UPLOAD_ID_PREFIX = 'folder-upload-';
 
