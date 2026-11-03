@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
 import { AppState, AppStateStatus, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { loadUnreadCountsThunk } from 'src/store/slices/mail';
-import { paymentsSelectors } from 'src/store/slices/payments';
+import { paymentsSelectors, paymentsThunks } from 'src/store/slices/payments';
 import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
 import { uiActions } from 'src/store/slices/ui';
@@ -120,6 +120,8 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   async function handleOnAppStateChange(state: AppStateStatus) {
     if (state === 'active') {
       if (appService.isPhotosEnabled) dispatch(runBackupCycleThunk());
+      dispatch(paymentsThunks.loadFileLimitsThunk());
+      dispatch(paymentsThunks.loadMailAccessThunk());
       try {
         await dispatch(storageThunks.loadLimitThunk()).unwrap();
       } catch {
