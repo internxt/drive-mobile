@@ -147,7 +147,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     )
   }
 
-  convenience init(fileMeta: GetFileMetaByIdResponse, identifier: NSFileProviderItemIdentifier) {
+  convenience init(fileMeta: GetFileMetaByIdResponseV2, identifier: NSFileProviderItemIdentifier) {
     self.init(
       identifier: identifier,
       parent: FileProviderItemID.parentIdentifier(folderUuid: fileMeta.folderUuid),

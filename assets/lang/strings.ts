@@ -1151,6 +1151,8 @@ const translations = {
       uploadFile: 'File upload error: {0}',
       uploadInterrupted: 'Could not upload {0}',
       uploadsInterrupted: 'Could not upload {0} files',
+      unreadablePickedFile: 'Could not read one of the selected files',
+      unreadablePickedFiles: 'Could not read {0} of the selected files',
       storageLimitReached: 'You have reached your storage limit',
       cameraRollPickerFailed: "We couldn't open your photos. Please try again.",
       cameraRollPartialFailure:
@@ -2388,6 +2390,8 @@ const translations = {
       uploadFile: 'Error al subir archivo: {0}',
       uploadInterrupted: 'No se pudo subir {0}',
       uploadsInterrupted: 'No se pudieron subir {0} archivos',
+      unreadablePickedFile: 'No se pudo leer uno de los archivos elegidos',
+      unreadablePickedFiles: 'No se pudieron leer {0} de los archivos elegidos',
       storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
       cameraRollPickerFailed: 'No pudimos abrir tus fotos. Inténtalo de nuevo.',
       cameraRollPartialFailure:
