@@ -167,13 +167,13 @@ class DriveFileService {
                 const aTime = new Date(a.data.updatedAt).getTime();
                 const bTime = new Date(b.data.updatedAt).getTime();
 
-                return aTime < bTime ? 1 : -1;
+                return bTime - aTime;
               }
             : (a: DriveListItem, b: DriveListItem) => {
                 const aTime = new Date(a.data.updatedAt).getTime();
                 const bTime = new Date(b.data.updatedAt).getTime();
 
-                return aTime > bTime ? 1 : -1;
+                return aTime - bTime;
               };
         break;
     }

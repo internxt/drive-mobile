@@ -2,7 +2,7 @@ import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { DriveFileForTree, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { DriveFolderForTree } from '@internxt-mobile/types/drive/folder';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
-import { DriveListViewMode } from '@internxt-mobile/types/drive/ui';
+import { DEFAULT_SORT_MODE, DriveListViewMode, isSameSortMode, SortMode } from '@internxt-mobile/types/drive/ui';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -25,6 +25,7 @@ export type DriveFoldersTreeNode = {
   loading: boolean;
   files: DriveFileForTree[];
   folders: DriveFolderForTree[];
+  sortMode?: SortMode;
   error?: Error;
 };
 type DriveFoldersTree = {
@@ -36,6 +37,8 @@ export interface DriveContextType {
   viewMode: DriveListViewMode;
   rootFolderId: string;
   toggleViewMode: () => void;
+  sortMode: SortMode;
+  changeSortMode: (sortMode: SortMode) => void;
   loadFolderContent: (folderUuid: string, options?: LoadFolderContentOptions) => Promise<void>;
   focusedFolder: DriveFoldersTreeNode | null;
   updateItemInTree: (
@@ -64,6 +67,18 @@ interface DriveContextProviderProps {
 const FILES_LIMIT_PER_PAGE = 50;
 const FOLDERS_LIMIT_PER_PAGE = 50;
 
+/**
+ * Replaces the loaded items that come again in the page with their new version, keeping their position,
+ * and appends the rest of the page.
+ */
+const mergePageIntoLoadedItems = <Item extends { uuid: string }>(loadedItems: Item[], pageItems: Item[]): Item[] => {
+  const pageItemsByUuid = new Map(pageItems.map((pageItem) => [pageItem.uuid, pageItem]));
+  const loadedUuids = new Set(loadedItems.map((loadedItem) => loadedItem.uuid));
+  const updatedLoadedItems = loadedItems.map((loadedItem) => pageItemsByUuid.get(loadedItem.uuid) ?? loadedItem);
+  const newPageItems = pageItems.filter((pageItem) => !loadedUuids.has(pageItem.uuid));
+  return [...updatedLoadedItems, ...newPageItems];
+};
+
 export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ children, rootFolderId }) => {
   const ROOT_FOLDER_NODE: DriveFoldersTreeNode = {
     name: 'Drive',
@@ -78,6 +93,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   };
 
   const [viewMode, setViewMode] = useState(DriveListViewMode.List);
+  const [sortMode, setSortMode] = useState<SortMode>(DEFAULT_SORT_MODE);
+  const sortModeRef = useRef<SortMode>(DEFAULT_SORT_MODE);
   const [driveFoldersTree, setDriveFoldersTree] = useState<DriveFoldersTree>({
     [rootFolderId]: ROOT_FOLDER_NODE,
   });
@@ -144,6 +161,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     folderId: string,
     currentFilesPage: number,
     currentFoldersPage: number,
+    requestedSortMode: SortMode,
   ): Promise<{
     thereAreMoreFiles: boolean;
     thereAreMoreFolders: boolean;
@@ -151,12 +169,22 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     folders: DriveFolderForTree[];
   }> => {
     const filesOffset = (currentFilesPage - 1) * FILES_LIMIT_PER_PAGE;
-    const filesInFolder = await driveFolderService.getFolderFiles(folderId, filesOffset, FILES_LIMIT_PER_PAGE);
+    const filesInFolder = await driveFolderService.getFolderFiles(
+      folderId,
+      filesOffset,
+      FILES_LIMIT_PER_PAGE,
+      requestedSortMode,
+    );
 
     const thereAreMoreFiles = filesInFolder.files.length === FILES_LIMIT_PER_PAGE;
 
     const foldersOffset = (currentFoldersPage - 1) * FOLDERS_LIMIT_PER_PAGE;
-    const foldersInFolder = await driveFolderService.getFolderFolders(folderId, foldersOffset, FOLDERS_LIMIT_PER_PAGE);
+    const foldersInFolder = await driveFolderService.getFolderFolders(
+      folderId,
+      foldersOffset,
+      FOLDERS_LIMIT_PER_PAGE,
+      requestedSortMode,
+    );
     const thereAreMoreFolders = foldersInFolder.folders.length === FOLDERS_LIMIT_PER_PAGE;
 
     return {
@@ -261,7 +289,9 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const updateFolderNode = (folderId: string, updates: Partial<DriveFoldersTreeNode>) => {
     setDriveFoldersTree((prevTree) => {
       const node = prevTree[folderId];
-      if (!node) return prevTree;
+      if (!node) {
+        return prevTree;
+      }
       return { ...prevTree, [folderId]: { ...node, ...updates } };
     });
   };
@@ -270,10 +300,12 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     folderId,
     controller,
     options,
+    requestedSortMode,
   }: {
     folderId: string;
     controller: AbortController;
     options?: LoadFolderContentOptions;
+    requestedSortMode: SortMode;
   }): Promise<{ files: DriveFileForTree[]; folders: DriveFolderForTree[] } | null> => {
     if (controller.signal.aborted) {
       return null;
@@ -291,19 +323,32 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
       ? 1
       : Math.ceil(currentDriveFoldersTree.folders.length / FOLDERS_LIMIT_PER_PAGE) + 1;
 
-    return fetchFolderContent(folderId, nextFilesPage, nextFoldersPage);
+    return fetchFolderContent(folderId, nextFilesPage, nextFoldersPage, requestedSortMode);
   };
 
   const loadFolderContent = async (folderId: string, options?: LoadFolderContentOptions) => {
     const driveFolderNode = driveFoldersTreeRef.current[folderId] ?? ROOT_FOLDER_NODE;
-    if (options?.focusFolder) setCurrentFolder(driveFolderNode);
+    if (options?.focusFolder) {
+      setCurrentFolder(driveFolderNode);
+    }
+
+    const requestedSortMode = sortModeRef.current;
+    const wasLoadedWithAnotherSort = !isSameSortMode(driveFolderNode.sortMode, requestedSortMode);
+    const shouldResetPagination = (options?.resetPagination ?? false) || wasLoadedWithAnotherSort;
 
     const controller = refreshFolderAbortController(folderId);
     updateFolderNode(folderId, { loading: true, error: undefined });
 
     try {
-      const driveFolderNodeContent = await fetchFolderData({ folderId, controller, options });
-      if (!driveFolderNodeContent || controller.signal.aborted) return;
+      const driveFolderNodeContent = await fetchFolderData({
+        folderId,
+        controller,
+        options: { ...options, resetPagination: shouldResetPagination },
+        requestedSortMode,
+      });
+      if (!driveFolderNodeContent || controller.signal.aborted) {
+        return;
+      }
 
       updateDriveFoldersTree({
         folderId,
@@ -311,10 +356,13 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         newFiles: driveFolderNodeContent.files,
         newFolders: driveFolderNodeContent.folders,
         error: undefined,
-        resetPagination: options?.resetPagination ?? false,
+        resetPagination: shouldResetPagination,
+        sortMode: requestedSortMode,
       });
     } catch (error) {
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        return;
+      }
       updateFolderNode(folderId, { loading: false, error: error as Error });
       throw error;
     } finally {
@@ -331,20 +379,26 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     folderId,
     parentId,
     resetPagination,
+    sortMode: loadedSortMode,
   }: {
     parentId: string;
     folderId: string;
     newFiles: DriveFileForTree[];
     resetPagination: boolean;
+    sortMode: SortMode;
     newFolders: DriveFolderForTree[];
     error?: Error;
   }) => {
     setDriveFoldersTree((prevDriveFoldersTree) => {
       const driveFolderTreeNode = prevDriveFoldersTree[folderId];
 
-      const allFiles = resetPagination ? newFiles : [...(driveFolderTreeNode?.files ?? []), ...newFiles];
+      const allFiles = resetPagination
+        ? newFiles
+        : mergePageIntoLoadedItems(driveFolderTreeNode?.files ?? [], newFiles);
 
-      const allFolders = resetPagination ? newFolders : [...(driveFolderTreeNode?.folders ?? []), ...newFolders];
+      const allFolders = resetPagination
+        ? newFolders
+        : mergePageIntoLoadedItems(driveFolderTreeNode?.folders ?? [], newFolders);
 
       const newTreeNodes = {
         [folderId]: {
@@ -353,6 +407,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
           uuid: folderId,
           files: allFiles,
           folders: allFolders,
+          sortMode: loadedSortMode,
           loading: false,
           error,
         } as DriveFoldersTreeNode,
@@ -435,6 +490,11 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     });
   };
 
+  const changeSortMode = (newSortMode: SortMode) => {
+    sortModeRef.current = newSortMode;
+    setSortMode(newSortMode);
+  };
+
   const handleToggleViewMode = () => {
     const newViewMode = viewMode === DriveListViewMode.List ? DriveListViewMode.Grid : DriveListViewMode.List;
     setViewMode(newViewMode);
@@ -447,6 +507,8 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
         toggleViewMode: handleToggleViewMode,
         driveFoldersTree,
         viewMode,
+        sortMode,
+        changeSortMode,
         loadFolderContent,
         // Default current folder is the root folder
         focusedFolder: currentFolder,
