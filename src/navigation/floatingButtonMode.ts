@@ -46,7 +46,6 @@ export const getFloatingButtonMode = (tabExplorerState: NestedState | undefined)
   return 'compose';
 };
 
-/** Returns whether the floating button stays hidden for the given button and screen state. */
 export const shouldHideFloatingButton = ({
   focusedMode,
   mode,
