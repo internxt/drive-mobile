@@ -436,6 +436,25 @@ describe('PhotoCloudBrowser.deleteAssetSyncPreservingCloudVisibility', () => {
     expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-1']);
   });
 
+  test('when the cloud entry of one photo cannot be written, then the other photos are still handled and the failed one keeps its sync row for the next pass', async () => {
+    mockPhotosLocalDB.getStatus
+      .mockResolvedValueOnce(makeAssetSyncEntry({ assetId: 'asset-1', remoteFileId: 'remote-1' }))
+      .mockResolvedValueOnce(makeAssetSyncEntry({ assetId: 'asset-2', remoteFileId: 'remote-2' }));
+    mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce(null).mockResolvedValueOnce(null);
+    mockPhotosLocalDB.upsertCloudAsset
+      .mockRejectedValueOnce(new Error('database is locked'))
+      .mockResolvedValueOnce(undefined);
+
+    const removedCount = await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(
+      ['asset-1', 'asset-2'],
+      'device-1',
+    );
+
+    expect(mockPhotosLocalDB.upsertCloudAsset).toHaveBeenCalledWith(expect.objectContaining({ remoteFileId: 'remote-2' }));
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-2']);
+    expect(removedCount).toBe(1);
+  });
+
   test('when the cloud index already has the photo, then no extra entry is created', async () => {
     mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeAssetSyncEntry());
     mockPhotosLocalDB.getCloudAssetById.mockResolvedValueOnce({

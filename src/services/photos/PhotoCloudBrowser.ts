@@ -283,8 +283,12 @@ class PhotoCloudBrowserService {
     };
   }
 
-  private async preserveCloudVisibilityForOrphans(entries: AssetSyncEntry[], deviceId: string): Promise<void> {
+  /**
+   * @returns Ids of the entries whose cloud row could not be written.
+   */
+  private async preserveCloudVisibilityForOrphans(entries: AssetSyncEntry[], deviceId: string): Promise<Set<string>> {
     const monthsToBackfill = new Map<string, number>();
+    const failedAssetIds = new Set<string>();
     for (const entry of entries) {
       if (!entry.remoteFileId) {
         logger.info(
@@ -292,15 +296,23 @@ class PhotoCloudBrowserService {
         );
         continue;
       }
-      const existing = await this.localDB.getCloudAssetById(entry.remoteFileId);
-      logger.info(
-        `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId}, remoteFileId=${entry.remoteFileId}, hasExistingCloudRow=${!!existing}`,
-      );
-      if (!existing) {
-        await this.localDB.upsertCloudAsset(this.buildCloudAssetEntry(entry, deviceId));
+      try {
+        const existing = await this.localDB.getCloudAssetById(entry.remoteFileId);
         logger.info(
-          `[CloudBrowser] Synthesized cloud entry before local delete — remoteFileId=${entry.remoteFileId}, fileName=${entry.fileName ?? 'unknown'}`,
+          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId}, remoteFileId=${entry.remoteFileId}, hasExistingCloudRow=${!!existing}`,
         );
+        if (!existing) {
+          await this.localDB.upsertCloudAsset(this.buildCloudAssetEntry(entry, deviceId));
+          logger.info(
+            `[CloudBrowser] Synthesized cloud entry before local delete — remoteFileId=${entry.remoteFileId}, fileName=${entry.fileName ?? 'unknown'}`,
+          );
+        }
+      } catch (error) {
+        logger.warn(
+          `[CloudBrowser] Could not preserve cloud visibility for assetId=${entry.assetId}, keeping its asset_sync row: ${error}`,
+        );
+        failedAssetIds.add(entry.assetId);
+        continue;
       }
       if (entry.creationTime) {
         const date = new Date(entry.creationTime);
@@ -310,6 +322,7 @@ class PhotoCloudBrowserService {
     for (const creationTimeMs of monthsToBackfill.values()) {
       this.queueMonthBackfill(deviceId, creationTimeMs, 'after local delete');
     }
+    return failedAssetIds;
   }
 
   /**
@@ -323,18 +336,23 @@ class PhotoCloudBrowserService {
    * @param assetIds - Ids of the local assets to remove from `asset_sync`.
    * @param deviceId - This device's folder uuid, or null if unknown (skips the cloud-visibility
    *   preservation — the rows are still deleted).
+   * @returns The number of `asset_sync` rows removed. Rows whose cloud row could not be written are
+   *   kept, so the next pass retries them.
    */
-  async deleteAssetSyncPreservingCloudVisibility(assetIds: string[], deviceId: string | null): Promise<void> {
+  async deleteAssetSyncPreservingCloudVisibility(assetIds: string[], deviceId: string | null): Promise<number> {
     if (assetIds.length === 0) {
-      return;
+      return 0;
     }
+    let failedAssetIds = new Set<string>();
     if (deviceId) {
       const entries = (await Promise.all(assetIds.map((id) => this.localDB.getStatus(id)))).filter(
         (e): e is AssetSyncEntry => e !== null,
       );
-      await this.preserveCloudVisibilityForOrphans(entries, deviceId);
+      failedAssetIds = await this.preserveCloudVisibilityForOrphans(entries, deviceId);
     }
-    await this.localDB.deleteAssetSyncBulk(assetIds);
+    const removableAssetIds = assetIds.filter((assetId) => !failedAssetIds.has(assetId));
+    await this.localDB.deleteAssetSyncBulk(removableAssetIds);
+    return removableAssetIds.length;
   }
 
   /**
@@ -350,8 +368,7 @@ class PhotoCloudBrowserService {
     if (orphanAssetsIds.length === 0) {
       return 0;
     }
-    await this.deleteAssetSyncPreservingCloudVisibility(orphanAssetsIds, deviceId);
-    return orphanAssetsIds.length;
+    return this.deleteAssetSyncPreservingCloudVisibility(orphanAssetsIds, deviceId);
   }
 
   async fetchMonth(params: {
