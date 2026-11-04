@@ -99,7 +99,16 @@ export const completeSyncForAsset = async (
       thumbnailRefs,
     );
   } else if (status?.isLivePhoto) {
-    await photosLocalDB.markSyncedLivePhoto(assetId, result.photoUuid, modificationTime, null, 'error', thumbnailRefs);
+    const isSameDriveEntry = status.remoteFileId === result.photoUuid;
+    const keptPairedVideoRemoteFileId = isSameDriveEntry ? status.pairedVideoRemoteFileId : null;
+    await photosLocalDB.markSyncedLivePhoto(
+      assetId,
+      result.photoUuid,
+      modificationTime,
+      keptPairedVideoRemoteFileId,
+      'error',
+      thumbnailRefs,
+    );
   } else {
     await photosLocalDB.markSynced(assetId, result.photoUuid, modificationTime, thumbnailRefs);
   }
