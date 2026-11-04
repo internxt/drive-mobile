@@ -9,6 +9,7 @@ import { isThumbnailSupported } from 'src/services/common/media/thumbnail.consta
 import { generateThumbnail } from 'src/services/common/media/thumbnail.generation';
 import { uploadService } from 'src/services/common/network/upload/upload.service';
 import { photoBackupFolders } from './PhotoBackupFolders';
+import { exportLivePhotoComponents } from './LivePhotoNativeModule';
 import { PhotoUploadService } from './PhotoUploadService';
 
 jest.mock('expo-media-library/legacy', () => ({
@@ -68,6 +69,10 @@ jest.mock('./PhotoBackupFolders', () => ({
   },
 }));
 
+jest.mock('./LivePhotoNativeModule', () => ({
+  exportLivePhotoComponents: jest.fn(),
+}));
+
 jest.mock('./database/photosLocalDB', () => ({
   photosLocalDB: {
     getStatus: jest.fn().mockResolvedValue(null),
@@ -86,6 +91,7 @@ const mockCreateFileEntry = uploadService.createFileEntry as jest.Mock;
 const mockReplaceFileEntry = uploadService.replaceFileEntry as jest.Mock;
 const mockCreateThumbnailEntry = uploadService.createThumbnailEntry as jest.Mock;
 const mockGetOrCreateFolder = photoBackupFolders.getOrCreateFolderForDate as jest.Mock;
+const mockExportLivePhotoComponents = exportLivePhotoComponents as jest.Mock;
 
 const DEVICE_ID = 'device-123';
 const PHOTOS_BUCKET = 'photos-bucket-456';
@@ -393,5 +399,33 @@ describe('PhotoUploadService.replace', () => {
       'existing-remote-id',
       expect.objectContaining({ fileId: 'bucket-file-id' }),
     );
+  });
+});
+
+describe('PhotoUploadService.upload of a Live Photo', () => {
+  const makeLivePhotoAsset = () =>
+    makeAsset({ filename: 'IMG_0001.HEIC', mediaSubtypes: ['livePhoto'] } as Partial<MediaLibrary.Asset>);
+
+  beforeEach(() => {
+    mockExportLivePhotoComponents.mockResolvedValue({
+      photo: { uri: 'file:///tmp/photo.heic', size: 2_000_000, fileName: 'IMG_0001.HEIC' },
+      video: { uri: 'file:///tmp/video.mov', size: 3_000_000, fileName: 'IMG_0001.MOV' },
+    });
+  });
+
+  test('when a Live Photo is uploaded for the first time, then the content file id of its photo is returned so the caller can skip a Drive fetch', async () => {
+    const result = await PhotoUploadService.upload(makeLivePhotoAsset(), DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result.contentFileId).toBe('bucket-file-id');
+    expect(result.bucketId).toBe(PHOTOS_BUCKET);
+  });
+
+  test('when the photo of a Live Photo already exists in Drive, then no content file id is returned', async () => {
+    mockCheckFileExistence.mockResolvedValue({ existentFiles: [{ uuid: 'existing-uuid' }] });
+
+    const result = await PhotoUploadService.upload(makeLivePhotoAsset(), DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result.photoUuid).toBe('existing-uuid');
+    expect(result.contentFileId).toBeUndefined();
   });
 });

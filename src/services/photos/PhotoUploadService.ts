@@ -103,7 +103,7 @@ const resolveLocalPath = async (
   return { localPath: stripFileScheme(uri) };
 };
 
-export const uploadSingleFile = async (params: {
+interface UploadSingleFileParams {
   localFilePath: string;
   folderUuid: string;
   plainName: string;
@@ -113,7 +113,15 @@ export const uploadSingleFile = async (params: {
   credentials: UploadCredentials;
   onProgress?: (ratio: number) => void;
   signal?: AbortSignal;
-}): Promise<string> => {
+}
+
+/**
+ * Same as `uploadSingleFile`, plus the bucket file id of the uploaded content. `contentFileId` is
+ * undefined when a file with the same name already existed in the folder and nothing was uploaded.
+ */
+const uploadSingleFileWithContentId = async (
+  params: UploadSingleFileParams,
+): Promise<{ uuid: string; contentFileId?: string }> => {
   const {
     localFilePath,
     folderUuid,
@@ -131,7 +139,7 @@ export const uploadSingleFile = async (params: {
 
   const { existentFiles } = await uploadService.checkFileExistence(folderUuid, [{ plainName, type: fileExtension }]);
   if (existentFiles.length > 0) {
-    return existentFiles[0].uuid;
+    return { uuid: existentFiles[0].uuid };
   }
 
   let fileId: string;
@@ -150,7 +158,7 @@ export const uploadSingleFile = async (params: {
     throw new Error(`Bucket upload failed for ${plainName}.${fileExtension}: ${message}`);
   }
 
-  return createFileEntryOrFetchExisting({
+  const uuid = await createFileEntryOrFetchExisting({
     fileId,
     type: fileExtension,
     size: fileStat.size,
@@ -160,7 +168,11 @@ export const uploadSingleFile = async (params: {
     modificationTime: modificationIso,
     creationTime: creationIso,
   });
+  return { uuid, contentFileId: fileId };
 };
+
+export const uploadSingleFile = async (params: UploadSingleFileParams): Promise<string> =>
+  (await uploadSingleFileWithContentId(params)).uuid;
 
 const uploadAssetToBucket = async (
   asset: MediaLibrary.Asset,
@@ -500,7 +512,7 @@ export const PhotoUploadService = {
           const { encryptionKey, bridgeUser, bridgePass } = getEnvironmentConfigFromUser(user);
           const credentials: UploadCredentials = { bucketId: photosBucket, encryptionKey, bridgeUser, bridgePass };
 
-          const photoUuid = await uploadSingleFile({
+          const { uuid: photoUuid, contentFileId } = await uploadSingleFileWithContentId({
             localFilePath: photoLocalPath,
             folderUuid,
             plainName,
@@ -529,6 +541,7 @@ export const PhotoUploadService = {
             photoUuid,
             pairedVideoUuid: pairedVideoUuid ?? undefined,
             thumbnail: thumbnail ?? undefined,
+            contentFileId,
             bucketId: credentials.bucketId,
           };
         } finally {
