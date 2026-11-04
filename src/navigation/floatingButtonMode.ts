@@ -2,6 +2,7 @@ import { getDrawerStatusFromState } from '@react-navigation/drawer';
 import { DrawerNavigationState, NavigationState, ParamListBase, PartialState } from '@react-navigation/native';
 
 import { FloatingActionButtonMode } from '../components/FloatingActionButton';
+import { MailAccountStatus } from '../types/mail';
 import { MailStackParamList, TabExplorerStackParamList } from '../types/navigation';
 
 type NestedState = NavigationState | PartialState<NavigationState>;
@@ -43,4 +44,25 @@ export const getFloatingButtonMode = (tabExplorerState: NestedState | undefined)
     return null;
   }
   return 'compose';
+};
+
+/** Returns whether the floating button stays hidden for the given button and screen state. */
+export const shouldHideFloatingButton = ({
+  focusedMode,
+  mode,
+  isTabBarHidden,
+  hasMailAccess,
+  isFloatingButtonHidden,
+  mailAccountStatus,
+}: {
+  focusedMode: FloatingActionButtonMode | null;
+  mode: FloatingActionButtonMode;
+  isTabBarHidden: boolean;
+  hasMailAccess: boolean;
+  isFloatingButtonHidden: boolean;
+  mailAccountStatus: MailAccountStatus;
+}): boolean => {
+  const isComposeUnavailable =
+    mode === 'compose' && (!hasMailAccess || isFloatingButtonHidden || mailAccountStatus === 'notSetUp');
+  return !focusedMode || isTabBarHidden || isComposeUnavailable;
 };
