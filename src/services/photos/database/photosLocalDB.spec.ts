@@ -22,43 +22,62 @@ describe('photosLocalDB', () => {
     (photosLocalDB as any).initPromise = null;
   });
 
+  const ASSET_SYNC_ADDED_COLUMNS = [
+    'thumbnail_bucket_id',
+    'thumbnail_bucket_file',
+    'thumbnail_type',
+    'content_file_id',
+    'bucket',
+  ];
+
+  const getExecutedStatements = () => mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
+
   test('when the database is initialized, then it opens the database file and creates all tables and indexes', async () => {
     await photosLocalDB.init();
 
     expect(mockSqlite.open).toHaveBeenCalledWith('photos_sync.db');
-    // 8 create table/index statements + 5 `ALTER TABLE asset_sync ADD COLUMN` migration
-    // statements (migrateAssetSyncColumns — additive columns for installs predating them).
-    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(13);
-    const statements = mockSqlite.executeSql.mock.calls.map(([, stmt]) => stmt as string);
+    const statements = getExecutedStatements();
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS asset_sync'))).toBe(true);
     expect(statements.some((s) => s.includes('CREATE TABLE IF NOT EXISTS cloud_asset'))).toBe(true);
-    expect(statements.some((s) => s.includes('ALTER TABLE asset_sync ADD COLUMN thumbnail_bucket_id'))).toBe(true);
   });
 
-  test('when the ALTER TABLE migration finds a column that already exists, then the duplicate column error is swallowed', async () => {
-    mockSqlite.executeSql.mockImplementation(async (_name, stmt) => {
-      if (typeof stmt === 'string' && stmt.includes('ALTER TABLE asset_sync ADD COLUMN')) {
-        throw new Error('duplicate column name: thumbnail_bucket_id');
-      }
-      return [];
-    });
+  test('when a new database already has every column, then no column is added and its schema version is recorded', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce(ASSET_SYNC_ADDED_COLUMNS.map((name) => ({ name })));
 
-    await expect(photosLocalDB.init()).resolves.toBeUndefined();
+    await photosLocalDB.init();
 
-    mockSqlite.executeSql.mockResolvedValue([]); // restore the default for later tests
+    const statements = getExecutedStatements();
+    expect(statements.some((s) => s.includes('ALTER TABLE'))).toBe(false);
+    expect(statements).toContain('PRAGMA user_version = 1;');
+    // 8 create table/index statements + the schema version.
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(9);
   });
 
-  test('when the ALTER TABLE migration fails for a reason other than a duplicate column, then it rethrows', async () => {
-    mockSqlite.executeSql.mockImplementation(async (_name, stmt) => {
-      if (typeof stmt === 'string' && stmt.includes('ALTER TABLE asset_sync ADD COLUMN')) {
-        throw new Error('disk I/O error');
-      }
-      return [];
-    });
+  test('when a database from before the new columns is opened, then only the missing columns are added and its schema version is recorded', async () => {
+    mockSqlite.getAllAsync.mockResolvedValueOnce([{ name: 'asset_id' }, { name: 'thumbnail_bucket_id' }]);
 
-    await expect(photosLocalDB.init()).rejects.toThrow('disk I/O error');
+    await photosLocalDB.init();
 
-    mockSqlite.executeSql.mockResolvedValue([]); // restore the default for later tests
+    const alterStatements = getExecutedStatements().filter((s) => s.includes('ALTER TABLE asset_sync ADD COLUMN'));
+    expect(alterStatements).toEqual([
+      'ALTER TABLE asset_sync ADD COLUMN thumbnail_bucket_file TEXT;',
+      'ALTER TABLE asset_sync ADD COLUMN thumbnail_type TEXT;',
+      'ALTER TABLE asset_sync ADD COLUMN content_file_id TEXT;',
+      'ALTER TABLE asset_sync ADD COLUMN bucket TEXT;',
+    ]);
+    expect(getExecutedStatements()).toContain('PRAGMA user_version = 1;');
+  });
+
+  test('when the database is already at the current schema version, then no migration runs', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ user_version: 1 });
+
+    await photosLocalDB.init();
+
+    expect(mockSqlite.getAllAsync).not.toHaveBeenCalled();
+    const statements = getExecutedStatements();
+    expect(statements.some((s) => s.includes('ALTER TABLE') || s.includes('PRAGMA user_version'))).toBe(false);
+    // Only the 8 create table/index statements.
+    expect(mockSqlite.executeSql).toHaveBeenCalledTimes(8);
   });
 
   test('when the database is initialized a second time, then no database calls are made', async () => {

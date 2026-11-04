@@ -3,6 +3,8 @@ import assetSyncTable from './tables/asset_sync';
 import cloudAssetTable from './tables/cloud_asset';
 
 const DB_NAME = 'photos_sync.db';
+// Bump when a migration is added to migrateSchema.
+const PHOTOS_DB_SCHEMA_VERSION = 1;
 
 export type LivePhotoRole = 'photo' | 'paired_video';
 // BURST:
@@ -327,7 +329,7 @@ class PhotosLocalDB {
     this.initPromise ??= (async () => {
       await sqliteService.open(DB_NAME);
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createTable);
-      await this.migrateAssetSyncColumns();
+      await this.migrateSchema();
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createIndex);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createTable);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexCreated);
@@ -340,16 +342,28 @@ class PhotosLocalDB {
   }
 
   /**
-   * Adds the thumbnail columns to `asset_sync`.
+   * Brings an existing database up to `PHOTOS_DB_SCHEMA_VERSION`, tracked in `PRAGMA user_version`.
+   * Does nothing when the database is already at that version.
    */
-  private async migrateAssetSyncColumns(): Promise<void> {
-    for (const statement of assetSyncTable.migrateAddColumns) {
-      try {
-        await sqliteService.executeSql(DB_NAME, statement);
-      } catch (err) {
-        if (!String(err).includes('duplicate column name')) {
-          throw err;
-        }
+  private async migrateSchema(): Promise<void> {
+    const versionRow = await sqliteService.getFirstAsync<{ user_version: number }>(DB_NAME, 'PRAGMA user_version;');
+    const schemaVersion = versionRow?.user_version ?? 0;
+    if (schemaVersion >= PHOTOS_DB_SCHEMA_VERSION) {
+      return;
+    }
+    await this.addMissingColumns(assetSyncTable.TABLE_NAME, assetSyncTable.addedColumns);
+    await sqliteService.executeSql(DB_NAME, `PRAGMA user_version = ${PHOTOS_DB_SCHEMA_VERSION};`);
+  }
+
+  /**
+   * Runs `ALTER TABLE … ADD COLUMN` for each column the table doesn't have yet.
+   */
+  private async addMissingColumns(tableName: string, columns: { name: string; type: string }[]): Promise<void> {
+    const existingColumns = await sqliteService.getAllAsync<{ name: string }>(DB_NAME, `PRAGMA table_info(${tableName});`);
+    const existingColumnNames = new Set(existingColumns.map((column) => column.name));
+    for (const column of columns) {
+      if (!existingColumnNames.has(column.name)) {
+        await sqliteService.executeSql(DB_NAME, `ALTER TABLE ${tableName} ADD COLUMN ${column.name} ${column.type};`);
       }
     }
   }
