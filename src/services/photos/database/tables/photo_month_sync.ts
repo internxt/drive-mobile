@@ -96,16 +96,17 @@ const statements = {
 };
 
 /**
- * Additive columns for installs created before they existed. Duplicate-column errors are swallowed.
+ * Columns added after the table shipped; installs created before them get them through
+ * photosLocalDB's schema migration.
  *
  * Every nullable column of `createTable` needs an entry here, including the ones that shipped under
  * an earlier name: `CREATE TABLE IF NOT EXISTS` does nothing to a table that already exists, so a
  * renamed column only reaches an existing install through its own `ALTER`.
  */
-const migrateAddColumns = [
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN last_server_updated_at INTEGER;`,
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN last_delta_check_at INTEGER;`,
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN last_full_sync_at INTEGER;`,
+const addedColumns = [
+  { name: 'last_server_updated_at', type: 'INTEGER' },
+  { name: 'last_delta_check_at', type: 'INTEGER' },
+  { name: 'last_full_sync_at', type: 'INTEGER' },
 ];
 
-export default { TABLE_NAME, statements, migrateAddColumns };
+export default { TABLE_NAME, statements, addedColumns };

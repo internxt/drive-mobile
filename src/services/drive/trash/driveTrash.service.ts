@@ -1,5 +1,5 @@
 import { SdkManager } from '@internxt-mobile/services/common';
-import { FetchTrashContentResponse, DeleteItemsPermanentlyPayload } from '@internxt-mobile/types/drive/folder';
+import { FetchTrashContentResponse } from '@internxt-mobile/types/drive/folder';
 import { mapTrashFile, mapTrashFolder } from '../../../helpers/driveItemMappers';
 import { driveFileService } from '../file';
 import { driveFolderService } from '../folder';
@@ -46,14 +46,14 @@ class DriveTrashService {
     };
   }
 
-  public async deleteItemsPermanently(items: { id: number | string; type: 'folder' | 'file' }[]) {
+  public async deleteItemsPermanently(items: { uuid: string; type: 'folder' | 'file' }[]) {
     const itemsToDelete = items.map((item) => {
       return {
-        id: item.id,
+        uuid: item.uuid,
         type: item.type,
       };
     });
-    return this.sdk.trash.deleteItemsPermanently({ items: itemsToDelete } as DeleteItemsPermanentlyPayload);
+    return this.sdk.trash.deleteItemsPermanentlyByUUID({ items: itemsToDelete });
   }
 
   public async restoreFolder({
@@ -80,7 +80,7 @@ class DriveTrashService {
     return this.sdk.trash.clearTrash();
   }
 
-  public async moveToTrash(items: { id: number | string; type: 'folder' | 'file'; uuid: string }[]) {
+  public async moveToTrash(items: { type: 'folder' | 'file'; uuid: string }[]) {
     const itemsToMove = items.map((item) => {
       return {
         uuid: item.uuid,

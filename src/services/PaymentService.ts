@@ -6,6 +6,7 @@ import {
   UserSubscription,
   UserType,
 } from '@internxt/sdk/dist/drive/payments/types/types';
+import { Service } from '@internxt/sdk/dist/drive/payments/types/tiers';
 import packageJson from '../../package.json';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -83,6 +84,16 @@ class PaymentService {
     try {
       const limits = (await this.sdk.storageV2.getFileVersionLimits()) as { photosAccess?: boolean };
       return { photosAccess: limits.photosAccess ?? false };
+    } catch (error) {
+      this.catchUserNotFoundError(error as Error);
+      return null;
+    }
+  }
+
+  async getMailAccess(): Promise<boolean | null> {
+    try {
+      const tier = await this.sdk.payments.getUserTier();
+      return tier.featuresPerService[Service.Mail]?.enabled ?? false;
     } catch (error) {
       this.catchUserNotFoundError(error as Error);
       return null;

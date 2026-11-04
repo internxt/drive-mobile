@@ -52,11 +52,10 @@ class AuthService {
     }
   }
 
-  public async handleWebLogin(params: { mnemonic: string; newToken: string; privateKey?: string }) {
+  public async handleWebLogin(params: { mnemonic: string; newToken: string }) {
     try {
       const mnemonic = Buffer.from(params.mnemonic, 'base64').toString('utf-8');
       const newToken = Buffer.from(params.newToken, 'base64').toString('utf-8');
-      const privateKey = params.privateKey ? Buffer.from(params.privateKey, 'base64').toString('utf-8') : undefined;
 
       const isMnemonicValid = bip39.validateMnemonic(mnemonic, wordlist);
       if (!isMnemonicValid) {
@@ -73,13 +72,7 @@ class AuthService {
         throw new Error('Failed to fetch user data');
       }
 
-      const userData = refreshedLoginData.user;
-
-      const user = {
-        ...userData,
-        mnemonic,
-        privateKey: privateKey || userData.privateKey,
-      };
+      const user: UserSettings = { ...refreshedLoginData.user, mnemonic };
 
       return {
         user,
@@ -102,10 +95,20 @@ class AuthService {
     }
   }
 
+  /**
+   * Replaces the account password and re-encrypts the private keys with it.
+   *
+   * Expects both private keys to be stored as they arrive from the server, encrypted with the
+   * password being replaced.
+   *
+   * @param params.password The password currently in use.
+   * @param params.newPassword The password that replaces it.
+   * @returns The renewed session tokens and both private keys encrypted with the new password.
+   */
   public async doChangePassword(params: {
     password: string;
     newPassword: string;
-  }): Promise<{ token: string; newToken: string }> {
+  }): Promise<{ token: string; newToken: string; encryptedPrivateKeys: { ecc: string; kyber: string } }> {
     const { credentials } = await this.getAuthCredentials();
     const user = await asyncStorageService.getUser();
 
@@ -123,33 +126,22 @@ class AuthService {
     const encryptedNewSalt = encryptText(hashedNewPassword.salt);
 
     const encryptedMnemonic = encryptTextWithKey(credentials.user.mnemonic, params.newPassword);
-    let privateKeyFinalValue;
-    if (credentials.user.privateKey) {
-      const privateKey = Buffer.from(credentials.user.privateKey, 'base64').toString();
-      const privateKeyEncrypted = AesUtils.encrypt(privateKey, params.newPassword);
-      privateKeyFinalValue = privateKeyEncrypted;
-    } else {
-      /**
-       * We are not generating the public/private key in mobile
-       * so could be possible that the user doesn't has one associated
-       * in that case, we send this value
-       */
-      privateKeyFinalValue = 'MISSING_PRIVATE_KEY';
-    }
 
-    const keys = user.keys;
-    const kyberKeys = keys.kyber;
-    const eccKeys = keys.ecc;
+    const eccPrivateKey = AesUtils.decrypt(user.keys.ecc.privateKey, params.password);
+    const encryptedEccPrivateKey = AesUtils.encrypt(eccPrivateKey, params.newPassword);
+
+    const kyberPrivateKey = AesUtils.decrypt(user.keys.kyber.privateKey, params.password);
+    const encryptedKyberPrivateKey = AesUtils.encrypt(kyberPrivateKey, params.newPassword);
 
     const changePasswordResult = await this.sdk.usersV2.changePassword({
       currentEncryptedPassword: encCurrentPass,
       newEncryptedSalt: encryptedNewSalt,
       encryptedMnemonic,
       newEncryptedPassword: encNewPass,
-      encryptedPrivateKey: privateKeyFinalValue,
+      encryptedPrivateKey: encryptedEccPrivateKey,
       keys: {
-        encryptedPrivateKey: eccKeys.privateKey,
-        encryptedPrivateKyberKey: kyberKeys.privateKey,
+        encryptedPrivateKey: encryptedEccPrivateKey,
+        encryptedPrivateKyberKey: encryptedKyberPrivateKey,
       },
       encryptVersion: StorageTypes.EncryptionVersion.Aes03,
     });
@@ -157,6 +149,10 @@ class AuthService {
     return {
       token: changePasswordResult.token,
       newToken: changePasswordResult.newToken,
+      encryptedPrivateKeys: {
+        ecc: encryptedEccPrivateKey,
+        kyber: encryptedKyberPrivateKey,
+      },
     };
   }
 

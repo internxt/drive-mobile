@@ -34,6 +34,7 @@ class AppService {
     return {
       termsAndConditions: 'https://internxt.com/legal',
       help: 'https://help.internxt.com',
+      mailWeb: 'https://mail.internxt.com',
       webAuth: {
         login: `${this.constants.WEB_CLIENT_URL}/login?universalLink=true`,
         signup: `${this.constants.WEB_CLIENT_URL}/new?universalLink=true`,
@@ -72,6 +73,10 @@ class AppService {
 
   public get isIOS() {
     return Platform.OS === 'ios';
+  }
+
+  public isAndroidApiAtLeast(api: number): boolean {
+    return this.isAndroid && (Platform.Version as number) >= api;
   }
 }
 

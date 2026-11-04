@@ -1,11 +1,4 @@
-import {
-  errorCodes,
-  isErrorWithCode,
-  keepLocalCopy,
-  pick,
-  types,
-  type FileToCopy,
-} from '@react-native-documents/picker';
+import { errorCodes, isErrorWithCode, pick, types } from '@react-native-documents/picker';
 import {
   ImagePickerAsset,
   launchCameraAsync,
@@ -14,28 +7,29 @@ import {
   requestCameraPermissionsAsync,
   UIImagePickerPreferredAssetRepresentationMode,
 } from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library';
-import { useState } from 'react';
-import { Alert, PermissionsAndroid, Platform, TouchableHighlight, View } from 'react-native';
+import * as MediaLibrary from 'expo-media-library/legacy';
+import { ReactNode, useCallback, useState } from 'react';
+import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
+import { exportPhAsset, pickPhotoAssets, withRetry } from '@internxt-mobile/services/common/media/cameraRollAssets';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
+import drive from '@internxt-mobile/services/drive';
 import {
   EmptyFileNotAllowedError,
   isEmptyFilePlanError,
 } from '@internxt-mobile/services/drive/file/utils/emptyFileErrors';
 import {
-  FileSizeExceededError,
-  isFileSizeExceededError,
-  notifyFilesExcludedBySize,
-} from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
-import drive from '@internxt-mobile/services/drive';
-import {
   generateFileName,
   isTemporaryFileName,
   parseExifDate,
 } from '@internxt-mobile/services/drive/file/utils/exifHelpers';
+import {
+  FileSizeExceededError,
+  isFileSizeExceededError,
+  notifyFilesExcludedBySize,
+} from '@internxt-mobile/services/drive/file/utils/fileSizeErrors';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { SaveFormat } from 'expo-image-manipulator';
@@ -49,15 +43,15 @@ import {
 import uuid from 'react-native-uuid';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { storageSelectors, storageThunks } from 'src/store/slices/storage';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { isValidFilename } from '../../../helpers';
-import useGetColor from '../../../hooks/useColor';
 import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
-import { constants } from '../../../services/AppService';
+import appService, { constants } from '../../../services/AppService';
 import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
+import { copyFileFromEncodedUri } from '../../../services/common/filesystem/copyFileFromEncodedUri';
 import {
+  createFileEntryWithRetry,
   createUploadingFiles,
   handleDuplicateFiles,
   initializeUploads,
@@ -65,6 +59,7 @@ import {
   uploadSingleFile,
   validateAndFilterFiles,
 } from '../../../services/drive/file/utils/uploadFileUtils';
+import { preparePickedFilesForUpload } from '../../../services/drive/file/utils/pickedFilesUpload';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -75,16 +70,13 @@ import { DriveEventKey } from '../../../types/drive/events';
 import { useFolderUpload } from './hooks/useFolderUpload';
 
 import { DocumentPickerFile, UploadingFile } from '../../../types/drive/operations';
-import AppText from '../../AppText';
-import BottomModal from '../BottomModal';
+import FloatingActionMenu, { FloatingMenuAction } from '../../FloatingActionButton/FloatingActionMenu';
 import CreateFolderModal from '../CreateFolderModal';
 import NameCollisionModal from '../NameCollisionModal';
 
 const MAX_FILES_BULK_UPLOAD = 50;
 
-function AddModal(): JSX.Element {
-  const tailwind = useTailwind();
-  const getColor = useGetColor();
+const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Element => {
   const driveCtx = useDrive();
   const dispatch = useAppDispatch();
   const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
@@ -137,7 +129,7 @@ function AddModal(): JSX.Element {
     const fileExtension = fileToUpload.type;
     const destPath = fileSystemService.tmpFilePath(name);
 
-    await fileSystemService.copyFile(fileToUpload.uri, destPath);
+    await copyFileFromEncodedUri(fileToUpload.uri, destPath);
 
     if (fileType === 'document') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
@@ -151,6 +143,17 @@ function AddModal(): JSX.Element {
         Alert.alert('Can not upload files. Grant permissions to upload files');
         throw new Error('Storage permissions not granted');
       }
+    }
+
+    // Android 13+ requires runtime permission for POST_NOTIFICATIONS.
+    // Fire-and-forget: a denial only hides the progress UI, the upload itself still runs.
+    if (appService.isAndroidApiAtLeast(33)) {
+      await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS, {
+        title: 'Notifications Permission',
+        message: 'Internxt needs to show notifications to display upload progress',
+        buttonNegative: strings.buttons.cancel,
+        buttonPositive: strings.buttons.grant,
+      });
     }
 
     const createdFileEntry = await uploadAndCreateFileEntry(
@@ -219,7 +222,7 @@ function AddModal(): JSX.Element {
         creationTime: creationTimeISO,
       };
       try {
-        const entry = await uploadService.createFileEntry(emptyEntry);
+        const entry = await createFileEntryWithRetry(emptyEntry, signal);
         drive.events.emit({ event: DriveEventKey.UploadCompleted });
         return { ...entry, thumbnails: [] } as DriveFileData;
       } catch (err) {
@@ -266,7 +269,7 @@ function AddModal(): JSX.Element {
     let uploadedThumbnail: Thumbnail | null = null;
     let generatedDriveItem: DriveFileData;
     try {
-      generatedDriveItem = await uploadService.createFileEntry(fileEntryByUuid);
+      generatedDriveItem = await createFileEntryWithRetry(fileEntryByUuid, signal);
     } catch (err) {
       if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
       throw err;
@@ -275,7 +278,7 @@ function AddModal(): JSX.Element {
     // If thumbnail generation fails, don't block the upload, we can
     // try thumbnail generation later
     try {
-      const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+      const generatedThumbnail = await imageService.generateThumbnail(filePath, {
         extension: fileExtension,
         thumbnailFormat: SaveFormat.JPEG,
         // Android needs an extension to generate the thumbnails, otherwise it crashes
@@ -375,7 +378,7 @@ function AddModal(): JSX.Element {
       size: file.size,
       type: file.type,
       file_id: file.id,
-      parent_folder_id: file.parentId,
+      parent_folder_uuid: file.parentUuid,
     });
   }
 
@@ -497,25 +500,10 @@ function AddModal(): JSX.Element {
       }
 
       // 2. Copy files to cache so they are accessible as file:// URIs
-      const filesToCopy = pickedFiles.map((file): FileToCopy => ({ uri: file.uri, fileName: file.name ?? 'file' })) as [
-        FileToCopy,
-        ...FileToCopy[],
-      ];
-      const localCopiedFiles = await keepLocalCopy({ destination: 'cachesDirectory', files: filesToCopy });
-      const filesWithLocalUri: DocumentPickerFile[] = pickedFiles.map((file) => {
-        const copy = localCopiedFiles.find((localFile) => localFile.sourceUri === file.uri);
-        if (copy?.status === 'error') {
-          logger.warn(
-            `keepLocalCopy failed for "${file.name}", falling back to original URI. Error: ${copy.copyError}`,
-          );
-        }
-        return {
-          uri: copy?.status === 'success' ? copy.localUri : file.uri,
-          name: file.name ?? 'file',
-          size: file.size ?? 0,
-          type: file.type ?? '',
-        };
-      });
+      const filesWithLocalUri = await preparePickedFilesForUpload(pickedFiles);
+      if (filesWithLocalUri.length === 0) {
+        return;
+      }
 
       // 3. Add them to the uploader
       await processFilesFromPicker(filesWithLocalUri);
@@ -554,87 +542,81 @@ function AddModal(): JSX.Element {
     if (Platform.OS === 'ios') {
       const { status } = await MediaLibrary.requestPermissionsAsync();
 
-      if (status === 'granted') {
+      if (status !== 'granted') return;
+
+      let pickedAssets: { localIdentifier: string }[];
+      try {
+        pickedAssets = await pickPhotoAssets(MAX_FILES_BULK_UPLOAD);
+      } catch (error) {
+        logger.error(
+          'Error opening the photo picker:',
+          (error as Error)?.message ?? String(error),
+          (error as { code?: string })?.code,
+        );
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.errors.cameraRollPickerFailed,
+        });
+        return;
+      }
+
+      if (pickedAssets.length === 0) return;
+
+      dispatch(uiActions.setShowUploadFileModal(false));
+
+      const documents: DocumentPickerFile[] = [];
+      let failedCount = 0;
+
+      for (const asset of pickedAssets) {
         try {
-          const result = await launchImageLibraryAsync({
-            mediaTypes: MediaTypeOptions.All,
-            allowsMultipleSelection: true,
-            selectionLimit: MAX_FILES_BULK_UPLOAD,
-            allowsEditing: false,
-            preferredAssetRepresentationMode: UIImagePickerPreferredAssetRepresentationMode.Current,
-            base64: false,
-            exif: false,
+          const exported = await withRetry(() => exportPhAsset(asset.localIdentifier));
+          documents.push({
+            name: decodeURIComponent(exported.fileName ?? ''),
+            size: exported.size ?? 0,
+            type: drive.file.getExtensionFromUri(exported.uri)?.toLowerCase() ?? '',
+            uri: exported.uri,
           });
-
-          if (!result.canceled && result.assets) {
-            const documents: DocumentPickerFile[] = [];
-
-            for (const asset of result.assets) {
-              try {
-                const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.assetId || asset.uri);
-                const cleanUri = assetInfo.mediaType === 'video' ? asset.uri : assetInfo.localUri || asset.uri;
-                const originalFileName = assetInfo.filename || asset.fileName;
-
-                let fileSize = asset.fileSize;
-                if (!fileSize) {
-                  try {
-                    const fileInfo = fileSystemService.getFileInfo(cleanUri);
-                    fileSize = fileInfo.exists ? (fileInfo.size ?? 0) : 0;
-                  } catch (error) {
-                    logger.warn('The file size could not be obtained:', error);
-                    fileSize = 0;
-                  }
-                }
-
-                documents.push({
-                  name: decodeURIComponent(originalFileName ?? ''),
-                  size: fileSize ?? 0,
-                  type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
-                  uri: cleanUri,
-                });
-              } catch (error) {
-                logger.error('Error obtaining original asset info:', error);
-                const cleanUri = asset.uri;
-                const fallbackName = generateFileName(cleanUri);
-
-                documents.push({
-                  name: fallbackName,
-                  size: asset.fileSize ?? 0,
-                  type: asset.type ?? '',
-                  uri: cleanUri,
-                });
-              }
-            }
-
-            dispatch(uiActions.setShowUploadFileModal(false));
-
-            uploadDocuments(documents)
-              .then(async () => {
-                dispatch(driveThunks.loadUsageThunk());
-
-                if (focusedFolder) {
-                  await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-                  driveCtx.loadFolderContent(focusedFolder.uuid, {
-                    pullFrom: ['network'],
-                    resetPagination: true,
-                  });
-                }
-              })
-              .catch((err) => {
-                logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
-                const error = errorService.castError(err, 'upload');
-                notificationsService.show({
-                  type: NotificationType.Error,
-                  text1: error.message,
-                });
-              })
-              .finally(() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-              });
-          }
         } catch (error) {
-          logger.error('Error accessing media library:', error);
+          failedCount++;
+          logger.error(
+            'Error exporting camera roll asset:',
+            (error as Error)?.message ?? String(error),
+            (error as { code?: string })?.code,
+          );
         }
+      }
+
+      if (documents.length > 0) {
+        uploadDocuments(documents)
+          .then(async () => {
+            dispatch(driveThunks.loadUsageThunk());
+
+            if (focusedFolder) {
+              await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+              driveCtx.loadFolderContent(focusedFolder.uuid, {
+                pullFrom: ['network'],
+                resetPagination: true,
+              });
+            }
+          })
+          .catch((err) => {
+            logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+            const error = errorService.castError(err, 'upload');
+            notificationsService.show({
+              type: NotificationType.Error,
+              text1: error.message,
+            });
+          })
+          .finally(() => {
+            dispatch(uiActions.setShowUploadFileModal(false));
+          });
+      }
+
+      if (failedCount > 0) {
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.formatString(strings.errors.cameraRollPartialFailure, failedCount) as string,
+        });
       }
     } else {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -776,7 +758,6 @@ function AddModal(): JSX.Element {
           id: new Date().getTime(),
           uuid: uuid.v4().toString(),
           name,
-          parentId: focusedFolder.id,
           parentUuid: focusedFolder.uuid,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
@@ -825,158 +806,45 @@ function AddModal(): JSX.Element {
     }
   }
 
+  const closeUploadMenu = useCallback(() => {
+    dispatch(uiActions.setShowUploadFileModal(false));
+  }, [dispatch]);
+
+  const uploadMenuActions: FloatingMenuAction[] = [
+    {
+      key: 'uploadFiles',
+      label: strings.buttons.uploadFiles,
+      icon: FileArrowUpIcon,
+      onPress: () => void handleUploadFiles(),
+    },
+    { key: 'uploadFolder', label: strings.buttons.uploadFolder, icon: BoxArrowUpIcon, onPress: handleUploadFolder },
+    {
+      key: 'uploadFromCameraRoll',
+      label: strings.buttons.uploadFromCameraRoll,
+      icon: ImageSquareIcon,
+      onPress: () => void handleUploadFromCameraRoll(),
+    },
+    {
+      key: 'takePhoto',
+      label: strings.buttons.takeAPhotoAnUpload,
+      icon: CameraIcon,
+      onPress: handleTakePhotoAndUpload,
+    },
+    {
+      key: 'newFolder',
+      label: strings.buttons.newFolder,
+      icon: FolderSimplePlusIcon,
+      onPress: () => {
+        closeUploadMenu();
+        setShowCreateFolderModal(true);
+      },
+    },
+  ];
+
   return (
     <>
-      <BottomModal
-        safeAreaColor="transparent"
-        style={tailwind('bg-transparent')}
-        isOpen={showUploadModal}
-        onClosed={() => {
-          dispatch(uiActions.setShowUploadFileModal(false));
-        }}
-      >
-        <View style={tailwind('p-4')}>
-          <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                handleUploadFiles();
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <FileArrowUpIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.uploadFiles}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={handleUploadFolder}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <BoxArrowUpIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.uploadFolder}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                handleUploadFromCameraRoll();
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <ImageSquareIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.uploadFromCameraRoll}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                handleTakePhotoAndUpload();
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <CameraIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.takeAPhotoAnUpload}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-
-            <View style={[tailwind('flex-grow h-px mx-4'), { backgroundColor: getColor('bg-gray-10') }]}></View>
-
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-                setShowCreateFolderModal(true);
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow px-2 items-center justify-between'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <View style={tailwind('p-3.5 pl-2 items-center justify-center')}>
-                  <FolderSimplePlusIcon color={getColor('text-gray-100')} size={24} />
-                </View>
-                <AppText style={[tailwind('text-lg flex-1'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.newFolder}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-          </View>
-
-          <View style={[tailwind('mt-4 rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
-            <TouchableHighlight
-              style={tailwind('flex-grow')}
-              underlayColor={getColor('bg-gray-5')}
-              onPress={() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-              }}
-            >
-              <View
-                style={[
-                  tailwind('flex-row flex-grow p-3.5 items-center justify-center'),
-                  { backgroundColor: getColor('bg-surface') },
-                ]}
-              >
-                <AppText medium style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
-                  {strings.buttons.cancel}
-                </AppText>
-              </View>
-            </TouchableHighlight>
-          </View>
-        </View>
-      </BottomModal>
+      <FloatingActionMenu isOpen={showUploadModal} actions={uploadMenuActions} onClose={closeUploadMenu} />
+      {floatingButton}
       {focusedFolder ? (
         <CreateFolderModal
           isOpen={showCreateFolderModal}
@@ -997,6 +865,6 @@ function AddModal(): JSX.Element {
       />
     </>
   );
-}
+};
 
 export default AddModal;

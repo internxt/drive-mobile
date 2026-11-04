@@ -6,10 +6,11 @@ import strings from '../../../../assets/lang/strings';
 import DriveItem from '../../../components/drive/lists/items';
 import DriveItemSkinSkeleton from '../../../components/DriveItemSkinSkeleton';
 import EmptyList from '../../../components/EmptyList';
+import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/floatingButtonLayout';
 import useGetColor from '../../../hooks/useColor';
 
 import { UseCaseStatus } from '@internxt-mobile/hooks/common';
-import { DriveFileData } from '@internxt-mobile/types/drive/file';
+import { RecentListFile } from '@internxt-mobile/types/drive/file';
 import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import * as useCases from '@internxt-mobile/useCases/drive';
 import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
@@ -22,7 +23,7 @@ interface RecentsScreenProps {
   searchText?: string;
   isLoading: boolean;
   refreshRecentItems: () => void;
-  recentItems: DriveFileData[] | null;
+  recentItems: RecentListFile[] | null;
 }
 
 export function RecentsScreen({
@@ -73,7 +74,7 @@ export function RecentsScreen({
       return recentsToRender.map((item) => {
         return (
           <DriveItem
-            key={item.id}
+            key={item.uuid}
             status={DriveItemStatus.Idle}
             type={DriveListType.Drive}
             viewMode={DriveListViewMode.List}
@@ -109,7 +110,10 @@ export function RecentsScreen({
               progressBackgroundColor={getColor('bg-gray-5')}
             />
           }
-          contentContainerStyle={[tailwind('flex-grow'), { backgroundColor: getColor('bg-surface') }]}
+          contentContainerStyle={[
+            tailwind('flex-grow'),
+            { backgroundColor: getColor('bg-surface'), paddingBottom: FLOATING_BUTTON_CLEARANCE },
+          ]}
           style={{ backgroundColor: getColor('bg-surface') }}
         >
           {renderContent()}

@@ -1,5 +1,5 @@
 import { AnyAction, createAsyncThunk, ThunkDispatch } from '@reduxjs/toolkit';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { Platform } from 'react-native';
 import { AbortError } from 'src/network/errors';
 import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
@@ -100,7 +100,16 @@ export const completeSyncForAsset = async (
       uploadRefs,
     );
   } else if (status?.isLivePhoto) {
-    await photosLocalDB.markSyncedLivePhoto(assetId, result.photoUuid, modificationTime, null, 'error', uploadRefs);
+    const isSameDriveEntry = status.remoteFileId === result.photoUuid;
+    const keptPairedVideoRemoteFileId = isSameDriveEntry ? status.pairedVideoRemoteFileId : null;
+    await photosLocalDB.markSyncedLivePhoto(
+      assetId,
+      result.photoUuid,
+      modificationTime,
+      keptPairedVideoRemoteFileId,
+      'error',
+      uploadRefs,
+    );
   } else {
     await photosLocalDB.markSynced(assetId, result.photoUuid, modificationTime, uploadRefs);
   }

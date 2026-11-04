@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { logger } from '../common';
 
 export type PhotoPermissionStatus = 'granted' | 'limited' | 'denied' | 'undetermined';

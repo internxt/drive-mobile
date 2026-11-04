@@ -2,15 +2,14 @@ import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import network from '../../../../network';
 
 import {
-  CheckDuplicatedFilesResponse,
   CreateThumbnailEntryPayload,
-  DriveFileData,
   FileEntryByUuid,
   FileStructure,
   ReplaceFile,
   Thumbnail,
 } from '@internxt/sdk/dist/drive/storage/types';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
+import { CheckDuplicatedFilesResponse, DriveFileData } from '../../../../types/drive/file';
 import { SdkManager } from '../../sdk';
 
 export interface FileMeta {
@@ -67,11 +66,11 @@ class UploadService {
   }
 
   public async createFileEntry(entry: FileEntryByUuid): Promise<DriveFileData> {
-    return this.sdk.storageV2.createFileEntryByUuid(entry);
+    return this.sdk.storageV2.createFileEntryByUuid(entry) as Promise<DriveFileData>;
   }
 
   public async replaceFileEntry(fileUuid: string, payload: ReplaceFile): Promise<DriveFileData> {
-    return this.sdk.storageV2.replaceFile(fileUuid, payload);
+    return this.sdk.storageV2.replaceFile(fileUuid, payload) as Promise<DriveFileData>;
   }
 
   public async createThumbnailEntry(entry: CreateThumbnailEntryPayload): Promise<Thumbnail> {
@@ -82,7 +81,10 @@ class UploadService {
     parentFolderUuid: string,
     filesList: FileStructure[],
   ): Promise<CheckDuplicatedFilesResponse> {
-    return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
+    return this.sdk.storageV2.checkDuplicatedFiles({
+      folderUuid: parentFolderUuid,
+      filesList,
+    }) as Promise<CheckDuplicatedFilesResponse>;
   }
 
   public getFinalUri(fileUri: string, fileType: FileType): string {

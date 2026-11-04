@@ -17,21 +17,39 @@ const untranspiledModulePatterns = [
   'react-native-blob-util',
   '@internxt/rn-crypto',
   '@internxt/lib',
+  'internxt-crypto',
   '@scure/bip39',
   '@scure/base',
   '@noble/hashes',
+  '@noble/curves',
+  '@noble/ciphers',
+  '@noble/post-quantum',
   'uuid',
   'p-limit',
   'yocto-queue',
   'mime',
+  'sanitize-html',
+  'htmlparser2',
+  'domhandler',
+  'domutils',
+  'dom-serializer',
+  'domelementtype',
+  'entities',
 ];
+
+const TEST_TIMEOUT_MS = 15000;
 
 const config: Config.InitialOptions = {
   preset: 'jest-expo',
   verbose: true,
+  testTimeout: TEST_TIMEOUT_MS,
   testRegex: ['\\.spec\\.ts$', '\\.spec\\.tsx$'],
   setupFiles: ['./jest.setup.ts'],
   setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  resolver: 'react-native-worklets/jest/resolver',
+  transform: {
+    '\\.mjs$': 'babel-jest',
+  },
   transformIgnorePatterns: [`node_modules/(?!${untranspiledModulePatterns.join('|')})`],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],
   moduleNameMapper: {

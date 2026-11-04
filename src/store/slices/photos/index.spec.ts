@@ -34,6 +34,7 @@ import photosReducer, {
   uploadAssetsManuallyThunk,
 } from './index';
 import { hasPhotosFeatureAccess } from './selectors';
+import { completeSyncForAsset } from './thunks/upload';
 
 jest.mock('src/services/NetworkMonitorService', () => ({
   NetworkStateType: { WIFI: 'WIFI', CELLULAR: 'CELLULAR', NONE: 'NONE', UNKNOWN: 'UNKNOWN' },
@@ -1965,5 +1966,70 @@ describe('photos slice', () => {
 
       expect(mockPhotosLocalDB.markError).not.toHaveBeenCalled();
     });
+  });
+});
+
+describe('completing the sync of a Live Photo whose video could not be uploaded', () => {
+  const makeLivePhotoSyncEntry = (overrides: Record<string, unknown> = {}) =>
+    ({
+      assetId: 'live-1',
+      status: 'pending_edit',
+      remoteFileId: 'photo-remote-1',
+      isLivePhoto: true,
+      pairedVideoRemoteFileId: 'video-remote-1',
+      pairedVideoStatus: 'synced',
+      isBurst: false,
+      ...overrides,
+    }) as never;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('when an edited Live Photo is re-uploaded and its video fails, then it keeps the video it already had and marks it as failed', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeLivePhotoSyncEntry());
+
+    await completeSyncForAsset('live-1', { photoUuid: 'photo-remote-1' }, 1000, 'device-1');
+
+    expect(mockPhotosLocalDB.markSyncedLivePhoto).toHaveBeenCalledWith(
+      'live-1',
+      'photo-remote-1',
+      1000,
+      'video-remote-1',
+      'error',
+      expect.anything(),
+    );
+  });
+
+  test('when an edited Live Photo had to be uploaded as a new file and its video fails, then it keeps no video', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeLivePhotoSyncEntry());
+
+    await completeSyncForAsset('live-1', { photoUuid: 'photo-remote-2' }, 1000, 'device-1');
+
+    expect(mockPhotosLocalDB.markSyncedLivePhoto).toHaveBeenCalledWith(
+      'live-1',
+      'photo-remote-2',
+      1000,
+      null,
+      'error',
+      expect.anything(),
+    );
+  });
+
+  test('when a Live Photo is uploaded for the first time and its video fails, then it keeps no video', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeLivePhotoSyncEntry({ status: 'pending', remoteFileId: null, pairedVideoRemoteFileId: null, pairedVideoStatus: null }),
+    );
+
+    await completeSyncForAsset('live-1', { photoUuid: 'photo-remote-1' }, 1000, 'device-1');
+
+    expect(mockPhotosLocalDB.markSyncedLivePhoto).toHaveBeenCalledWith(
+      'live-1',
+      'photo-remote-1',
+      1000,
+      null,
+      'error',
+      expect.anything(),
+    );
   });
 });

@@ -28,7 +28,7 @@ const statements = {
       burst_id                    TEXT,
       burst_member_remote_file_ids TEXT,
       burst_member_count          INTEGER,
-      -- Captured from the upload/replace call itself (see migrateAddColumns below for existing installs).
+      -- Captured from the upload/replace call itself (see addedColumns below for existing installs).
       thumbnail_bucket_id         TEXT,
       thumbnail_bucket_file       TEXT,
       thumbnail_type              TEXT,
@@ -275,14 +275,15 @@ const statements = {
   `,
 };
 
-// Adds the thumbnail/content columns to existing installs. See photosLocalDB.migrateAssetSyncColumns.
-const migrateAddColumns = [
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN thumbnail_bucket_id TEXT;`,
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN thumbnail_bucket_file TEXT;`,
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN thumbnail_type TEXT;`,
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN content_file_id TEXT;`,
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN bucket TEXT;`,
-  `ALTER TABLE ${TABLE_NAME} ADD COLUMN folder_uuid TEXT;`,
+// Columns added after the table shipped; installs created before them get them through
+// photosLocalDB's schema migration.
+const addedColumns = [
+  { name: 'thumbnail_bucket_id', type: 'TEXT' },
+  { name: 'thumbnail_bucket_file', type: 'TEXT' },
+  { name: 'thumbnail_type', type: 'TEXT' },
+  { name: 'content_file_id', type: 'TEXT' },
+  { name: 'bucket', type: 'TEXT' },
+  { name: 'folder_uuid', type: 'TEXT' },
 ];
 
-export default { TABLE_NAME, statements, migrateAddColumns };
+export default { TABLE_NAME, statements, addedColumns };
