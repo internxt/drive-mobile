@@ -4,6 +4,56 @@ import { logger as RNLogger, consoleTransport, fileAsyncTransport } from 'react-
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import { InteractionManager } from 'react-native';
 
+/**
+ * Serializes a single logger argument to a readable string. An error is written as its stack,
+ * which already opens with its message, or as its message alone when it has no stack. An object or
+ * an array is written as JSON, with nested errors expanded the same way and circular references
+ * rendered as `[Circular]`. Any other value is written as its string form.
+ *
+ * @param logValue - The value passed to `logger.info`, `logger.warn` or `logger.error`.
+ * @returns The value as a string.
+ */
+const serializeLogArg = (logValue: unknown): string => {
+  if (typeof logValue === 'string') {
+    return logValue;
+  }
+  if (logValue instanceof Error) {
+    return logValue.stack ?? logValue.message;
+  }
+  if (logValue !== null && typeof logValue === 'object') {
+    const ancestors: unknown[] = [];
+    try {
+      return JSON.stringify(logValue, function (this: unknown, _key: string, value: unknown) {
+        const serializableValue = value instanceof Error ? { message: value.message, stack: value.stack } : value;
+        if (serializableValue === null || typeof serializableValue !== 'object') {
+          return serializableValue;
+        }
+        while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+          ancestors.pop();
+        }
+        if (ancestors.includes(serializableValue)) {
+          return '[Circular]';
+        }
+        ancestors.push(serializableValue);
+
+        return serializableValue;
+      });
+    } catch {
+      return String(logValue);
+    }
+  }
+
+  return String(logValue);
+};
+
+/**
+ * Serializes the arguments of a log call into the single line written to the transport.
+ *
+ * @param args - The values passed to `logger.info`, `logger.warn` or `logger.error`.
+ * @returns The serialized values, separated by spaces.
+ */
+export const formatLogArgs = (args: unknown[]): string => args.map(serializeLogArg).join(' ');
+
 const defaultLogger = () => {
   return RNLogger.createLogger({
     async: !__DEV__,
@@ -32,18 +82,18 @@ export class BaseLogger {
 
   public info(...args: unknown[]): void {
     if (this.options.disabled) return;
-    this.logger.info(args.join(' '));
+    this.logger.info(formatLogArgs(args));
   }
 
   public warn(...args: unknown[]): void {
     if (this.options.disabled) return;
-    this.logger.warn(args.join(' '));
+    this.logger.warn(formatLogArgs(args));
   }
 
   public error(...args: unknown[]): void {
     if (this.options.disabled) return;
 
-    this.logger.error(args.join(' '));
+    this.logger.error(formatLogArgs(args));
   }
 }
 

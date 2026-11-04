@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { AssetUploadJob, PhotoUploadQueue } from './PhotoUploadQueue';
 import { PhotoUploadService } from './PhotoUploadService';
 

@@ -40,7 +40,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
   const isDownloading = props.status === DriveItemStatus.Downloading;
   const onFolderPressed = () => {
     if (route.name === 'Home') {
-      navigation.navigate('Drive' as any, { sharedFolderId: props.data.parentId as number });
+      navigation.navigate('Drive' as any);
     }
   };
 
@@ -67,7 +67,6 @@ const useDriveItem = (props: UseDriveItemProps) => {
         folderUuid: props.data.folderUuid ?? undefined,
         bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
-        parentId: props.data.parentId as number,
         size: props.data.size,
         updatedAt: props.data.updatedAt,
         isFolder: props.data.isFolder,
@@ -78,7 +77,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
         ...props.data,
         bucketId: props.data.bucket as string,
         size: props.data.size as number,
-        parentId: props.data.parentId as number,
+        folderUuid: props.data.folderUuid ?? undefined,
         name: props.data.name,
         type: props.data.type as string,
         fileId: props.data.fileId as string,
@@ -112,7 +111,6 @@ const useDriveItem = (props: UseDriveItemProps) => {
         folderUuid: props.data.folderUuid ?? undefined,
         bucket: props.data?.bucket ?? undefined,
         shareId: props.data.shareId,
-        parentId: props.data.parentId as number,
         size: props.data.size,
         updatedAt: props.data.updatedAt,
         isFolder: props.data.isFolder,
@@ -122,7 +120,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     if (props.isSharedLinkItem && props.shareLink) {
       dispatch(
         driveActions.setFocusedShareItem({
-          id: props.shareLink.id.toString(),
+          id: props.shareLink.uuid,
           //TODO: THIS NOT WORK WITH PUBLIC LINKS
           // hashedPassword: props.shareLink.hashed_password || undefined,
           views: 0,

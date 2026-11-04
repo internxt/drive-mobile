@@ -44,9 +44,7 @@ export const getDriveTrashItems = async ({
         status: DriveItemStatus.Idle,
         data: {
           ...trashItem,
-          id: trashItem.id,
-          folderId: trashItem.folderId,
-          name: trashItem.plainName ?? trashItem.name,
+          name: trashItem.plainName,
           updatedAt: new Date(trashItem.updatedAt).toISOString(),
           createdAt: new Date(trashItem.createdAt).toISOString(),
           isFolder,
@@ -54,7 +52,7 @@ export const getDriveTrashItems = async ({
           type: isFolder ? undefined : trashItem.type,
           thumbnails: [],
         },
-        id: trashItem.id.toString(),
+        id: trashItem.uuid,
       };
     });
 
@@ -128,7 +126,7 @@ export const deleteDriveItemsPermanently = async (items: DriveListItem[]): Promi
       items.map((item) => {
         return {
           type: item.data.type ? 'file' : 'folder',
-          id: item.id,
+          uuid: item.data.uuid,
         };
       }),
     );
@@ -140,7 +138,7 @@ export const deleteDriveItemsPermanently = async (items: DriveListItem[]): Promi
         size: item.data.size,
         type: item.data.type,
         file_id: item.data.fileId,
-        parent_folder_id: item.data.parentId,
+        parent_folder_uuid: item.data.isFolder ? item.data.parentUuid : item.data.folderUuid,
       });
     });
     return {
@@ -183,7 +181,7 @@ export const clearTrash = async (): Promise<UseCaseResult<null>> => {
  * Moves items to trash
  */
 export const moveItemsToTrash = async (
-  items: { id: string; type: 'file' | 'folder'; dbItemId: number; uuid: string }[],
+  items: { type: 'file' | 'folder'; uuid: string }[],
   onUndo: () => void,
 ): Promise<UseCaseResult<null>> => {
   try {
@@ -201,9 +199,7 @@ export const moveItemsToTrash = async (
     // Remove the items from the db
     await Promise.all(
       items.map((item) => {
-        // Not sure why to delete the trash item we don't use the id, we use the fileId,
-        // that doesn't match the database ID
-        drive.database.deleteItem({ id: item.dbItemId }).catch((error) => errorService.reportError(error));
+        drive.database.deleteItem({ uuid: item.uuid }).catch((error) => errorService.reportError(error));
       }),
     );
 

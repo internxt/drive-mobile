@@ -1,0 +1,233 @@
+import { EmailResponse } from '@internxt/sdk/dist/mail/types';
+
+import {
+  buildEmailBodyHtml,
+  isMarkupBody,
+  plainTextFromHtml,
+  plainTextToHtml,
+  resolveEmailBody,
+} from './emailBodyContent';
+
+const HOSTILE_BODY_LENGTH = 100_000;
+const MAX_READING_TIME_MS = 1_000;
+
+const anEmail = (fields: Partial<EmailResponse>): EmailResponse => ({ ...fields }) as EmailResponse;
+
+describe('Choosing which body of a message to display', () => {
+  test('when a message carries both a formatted and a plain version, then the formatted one is displayed', () => {
+    const message = anEmail({ htmlBody: '<div style="color:red">An offer</div>', textBody: 'An offer' });
+
+    expect(resolveEmailBody(message, { type: 'plain' })).toEqual({
+      content: '<div style="color:red">An offer</div>',
+      isHtml: true,
+    });
+  });
+
+  test('when a message only carries a plain version, then that one is displayed', () => {
+    const message = anEmail({ htmlBody: null, textBody: 'Just a few words' });
+
+    expect(resolveEmailBody(message, { type: 'plain' })).toEqual({
+      content: 'Just a few words',
+      isHtml: false,
+    });
+  });
+
+  test('when a message was encrypted and could be decrypted, then the decrypted body is displayed', () => {
+    const message = anEmail({ htmlBody: null, textBody: 'an encrypted payload' });
+
+    expect(resolveEmailBody(message, { type: 'decrypted', text: 'Hello there' })).toEqual({
+      content: 'Hello there',
+      isHtml: false,
+    });
+  });
+
+  test('when a decrypted message was written with formatting, then it is displayed with that formatting', () => {
+    const message = anEmail({ htmlBody: null, textBody: 'an encrypted payload' });
+
+    expect(resolveEmailBody(message, { type: 'decrypted', text: '<p>Hello <b>there</b></p>' })).toEqual({
+      content: '<p>Hello <b>there</b></p>',
+      isHtml: true,
+    });
+  });
+
+  test('when a message was encrypted and could not be decrypted, then nothing is displayed', () => {
+    const message = anEmail({ htmlBody: '<p>An unreadable copy</p>', textBody: 'an encrypted payload' });
+
+    expect(resolveEmailBody(message, { type: 'encryptedUnreadable' })).toEqual({
+      content: '',
+      isHtml: false,
+    });
+  });
+
+  test('when a message has no body at all, then nothing is displayed', () => {
+    const message = anEmail({ htmlBody: null, textBody: null });
+
+    expect(resolveEmailBody(message, { type: 'plain' })).toEqual({
+      content: '',
+      isHtml: false,
+    });
+  });
+});
+
+describe('Displaying a message written as plain text', () => {
+  test('when the text spans several lines, then the line breaks are kept', () => {
+    const html = plainTextToHtml('First line\nSecond line');
+
+    expect(html).toContain('white-space:pre-wrap');
+    expect(html).toContain('First line\nSecond line');
+  });
+
+  test('when the text contains characters that look like markup, then they are shown as written', () => {
+    const html = plainTextToHtml('a < b && c > d');
+
+    expect(html).toContain('a &lt; b &amp;&amp; c &gt; d');
+  });
+
+  test('when the text has apostrophes and quotation marks, then they are shown without anything added around them', () => {
+    const html = plainTextToHtml('it\'s the "big" one, isn\'t it?');
+
+    expect(html).toContain('it&apos;s the &quot;big&quot; one, isn&apos;t it?');
+  });
+
+  test('when the text looks like a script, then it is shown as text instead of being rendered', () => {
+    const html = plainTextToHtml('<script>stealTheKey()</script>');
+
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&lt;script&gt;');
+  });
+});
+
+describe('Preparing the body of a message for the screen', () => {
+  test('when a message carries formatted content with a script in it, then the formatting is kept and the script is not', () => {
+    const message = anEmail({ htmlBody: '<div style="color:red">An offer</div><script>stealTheKey()</script>' });
+
+    const bodyHtml = buildEmailBodyHtml(message, { type: 'plain' });
+
+    expect(bodyHtml).toContain('<div style="color:red">An offer</div>');
+    expect(bodyHtml).not.toContain('stealTheKey');
+  });
+
+  test('when a message carries a link that would run something, then the link is stripped of it', () => {
+    const message = anEmail({ htmlBody: '<a href="javascript:stealTheKey()">Click here</a>' });
+
+    expect(buildEmailBodyHtml(message, { type: 'plain' })).not.toContain('javascript');
+  });
+
+  test('when a message is plain text that looks like markup, then it is shown as written instead of being rendered', () => {
+    const message = anEmail({ htmlBody: null, textBody: '<script>stealTheKey()</script>' });
+
+    const bodyHtml = buildEmailBodyHtml(message, { type: 'plain' });
+
+    expect(bodyHtml).toContain('&lt;script&gt;');
+    expect(bodyHtml).not.toContain('<script>');
+  });
+
+  test('when a decrypted message contains characters that look like markup, then they are shown as written', () => {
+    const message = anEmail({ htmlBody: null, textBody: 'an encrypted payload' });
+
+    const bodyHtml = buildEmailBodyHtml(message, { type: 'decrypted', text: '5 < 7' });
+
+    expect(bodyHtml).toContain('5 &lt; 7');
+  });
+});
+
+describe('Telling whether a decrypted body was written with formatting', () => {
+  test('when the body opens with a tag, then it is read as formatted', () => {
+    expect(isMarkupBody('<p>Hello there</p>')).toBe(true);
+  });
+
+  test('when the body opens with blank space before its first tag, then it is still read as formatted', () => {
+    expect(isMarkupBody('\n  <div>Hello there</div>')).toBe(true);
+  });
+
+  test('when the body is a whole document, then it is read as formatted', () => {
+    expect(isMarkupBody('<!DOCTYPE html><html><body>Hello there</body></html>')).toBe(true);
+  });
+
+  test('when the body carries a closing tag, then it is read as formatted', () => {
+    expect(isMarkupBody('Here are the numbers</p>')).toBe(true);
+  });
+
+  test('when the body is plain text, then it is not read as formatted', () => {
+    expect(isMarkupBody('Hello there')).toBe(false);
+  });
+
+  test('when the body is plain text that opens with a comparison, then it is not read as formatted', () => {
+    expect(isMarkupBody('5 < 7 is true')).toBe(false);
+  });
+
+  test('when the body opens with a line of text before its first tag, then it is read as formatted', () => {
+    expect(isMarkupBody('Hi there<br>Here are the numbers')).toBe(true);
+  });
+
+  test('when the body opens with a comment, then it is read as formatted', () => {
+    expect(isMarkupBody('<!-- written elsewhere --><p>Here are the numbers</p>')).toBe(true);
+  });
+
+  test('when the body opens with a character the editor left in front of its markup, then it is read as formatted', () => {
+    expect(isMarkupBody('\uFEFF<p>Here are the numbers</p>')).toBe(true);
+  });
+
+  test('when the body is plain text that names a tag in passing, then it is not read as formatted', () => {
+    expect(isMarkupBody('Use the <whatever element for this')).toBe(false);
+  });
+
+  test('when the body is plain text with arrows in it, then it is not read as formatted', () => {
+    expect(isMarkupBody('a -> b, and 5 < 7 > 3')).toBe(false);
+  });
+
+  test('when the body is empty, then it is not read as formatted', () => {
+    expect(isMarkupBody('')).toBe(false);
+  });
+});
+
+describe('Reading a formatted body as the text it displays', () => {
+  test('when the body has tags, then only the text between them is left', () => {
+    expect(plainTextFromHtml('<p>Here are <b>the numbers</b></p>')).toBe('Here are the numbers');
+  });
+
+  test('when the body has characters written as entities, then they are read as the characters they stand for', () => {
+    expect(plainTextFromHtml('<div>Ana &lt;ana@inxt.me&gt; &amp; Bea</div>')).toBe('Ana <ana@inxt.me> & Bea');
+  });
+
+  test('when the body holds blank space of its own, then it is collapsed the way a browser collapses it', () => {
+    expect(plainTextFromHtml('<p>Here are</p>\n\n   <p>the numbers</p>')).toBe('Here are the numbers');
+  });
+
+  test('when the body separates words only with tags, then the words do not end up stuck together', () => {
+    expect(plainTextFromHtml('<td>Invoice</td><td>September</td>')).toBe('Invoice September');
+  });
+
+  test('when the body holds a space written as an entity, then it is read as a space', () => {
+    expect(plainTextFromHtml('<p>Invoice&nbsp;September</p>')).toBe('Invoice September');
+  });
+
+  test('when the body writes accents and emojis by their number, then they are read as those characters', () => {
+    expect(plainTextFromHtml('<p>&#191;Qu&#233; tal? &#x1F600;</p>')).toBe('¿Qué tal? 😀');
+  });
+
+  test('when a tag holds a less-than sign inside one of its attributes, then the whole tag is still taken out', () => {
+    expect(plainTextFromHtml('<img alt="a<b" src="cid:chart">Here is the chart')).toBe('Here is the chart');
+  });
+
+  test('when a tag is never closed, then it is left as it was written', () => {
+    expect(plainTextFromHtml('Hello <p world')).toBe('Hello <p world');
+  });
+
+  test.each([
+    ['nothing but less-than signs', '<'],
+    ['less-than signs with text between them', '< a '],
+  ])(
+    'when a very large body holds %s and no tag is ever closed, then it is still read without delay',
+    (_name, unit) => {
+      const hostileBody = unit.repeat(HOSTILE_BODY_LENGTH / unit.length);
+
+      const startedAt = performance.now();
+      const text = plainTextFromHtml(hostileBody);
+      const elapsedMs = performance.now() - startedAt;
+
+      expect(text).toBe(hostileBody.trim());
+      expect(elapsedMs).toBeLessThan(MAX_READING_TIME_MS);
+    },
+  );
+});

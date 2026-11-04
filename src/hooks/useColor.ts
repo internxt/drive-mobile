@@ -81,6 +81,7 @@ const lightThemeColors = {
   'border-white-40': 'rgba(255, 255, 255, 0.40)',
 
   'bg-primary-10': 'rgba(0, 102, 255, 0.10)',
+  'bg-surface-90': 'rgba(255, 255, 255, 0.9)',
   'bg-primary-20': 'rgba(0, 102, 255, 0.20)',
 
   'bg-yellow-10': 'rgba(255, 204, 0, 0.15)',
@@ -173,6 +174,7 @@ const darkThemeColors = {
   'border-white-40': 'rgba(255, 255, 255, 0.40)',
 
   'bg-primary-10': 'rgba(20, 114, 255, 0.10)',
+  'bg-surface-90': 'rgba(17, 17, 17, 0.9)',
   'bg-primary-20': 'rgba(20, 114, 255, 0.20)',
 
   'bg-yellow-10': 'rgba(255, 204, 0, 0.15)',

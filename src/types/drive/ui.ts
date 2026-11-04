@@ -1,4 +1,4 @@
-import { SharedFiles, SharedFolders } from '@internxt/sdk/dist/drive/share/types';
+import { SharedFiles, SharedFolders } from './shared';
 import { DriveItemData, DriveItemStatus } from './item';
 
 /**
@@ -33,6 +33,16 @@ export enum SortType {
   Size = 'size',
   UpdatedAt = 'updatedAt',
 }
+
+export type SortMode = {
+  direction: SortDirection;
+  type: SortType;
+};
+
+export const DEFAULT_SORT_MODE: SortMode = { type: SortType.Name, direction: SortDirection.Asc };
+
+export const isSameSortMode = (sortMode: SortMode | undefined, otherSortMode: SortMode): boolean =>
+  sortMode?.type === otherSortMode.type && sortMode?.direction === otherSortMode.direction;
 
 /**
  * Props for DriveItem components (both list and grid mode)

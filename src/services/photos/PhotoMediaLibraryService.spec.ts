@@ -1,7 +1,7 @@
-import * as ExpoMediaLibrary from 'expo-media-library';
+import * as ExpoMediaLibrary from 'expo-media-library/legacy';
 import { photoMediaLibraryService } from './PhotoMediaLibraryService';
 
-jest.mock('expo-media-library', () => ({
+jest.mock('expo-media-library/legacy', () => ({
   getAssetInfoAsync: jest.fn(),
   MediaType: { video: 'video', photo: 'photo' },
 }));

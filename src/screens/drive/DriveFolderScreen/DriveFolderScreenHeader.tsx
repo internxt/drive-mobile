@@ -1,11 +1,10 @@
-import { DriveListViewMode, SortDirection } from '@internxt-mobile/types/drive/ui';
+import { DriveListViewMode, SortDirection, SortMode } from '@internxt-mobile/types/drive/ui';
 import { BackButton } from '@internxt-mobile/ui-kit';
 import strings from 'assets/lang/strings';
 import { ArrowDown, ArrowUp, DotsThree, MagnifyingGlass, Rows, SquaresFour } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
-import { SortMode } from 'src/components/modals/SortModal';
 import { SearchInput } from 'src/components/SearchInput';
 import { useTailwind } from 'tailwind-rn';
 import Separator from '../../../components/AppSeparator';

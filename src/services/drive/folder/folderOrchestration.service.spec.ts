@@ -272,7 +272,7 @@ describe('uploadFolderContents', () => {
 
     test('when createFolder returns a non-409 error, then does not call checkDuplicatedFolders', async () => {
       // Arrange
-      mockCreateFolder.mockRejectedValueOnce({ status: 500, message: 'Internal Server Error' });
+      mockCreateFolder.mockRejectedValueOnce({ status: 400, message: 'Bad Request' });
 
       // Act
       const result = await uploadFolderContents({
@@ -328,6 +328,56 @@ describe('uploadFolderContents', () => {
       expect(result.failedFiles).toBe(2);
       expect(result.uploadedFiles).toBe(0);
       expect(result.cancelled).toBe(false);
+    });
+  });
+
+  describe('a temporary server error while creating a folder is retried', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    const uploadWhileRunningTimers = async (tree: FolderTree) => {
+      const pendingUpload = uploadFolderContents({
+        tree,
+        rootParentUuid: ROOT,
+        signal: makeSignal(),
+        onProgress,
+        uploadFile,
+      });
+      await jest.runAllTimersAsync();
+      return pendingUpload;
+    };
+
+    test('when creating a subfolder fails once with a server error, then it is created on the next attempt and its file is uploaded', async () => {
+      // Arrange
+      mockCreateFolder.mockRejectedValueOnce({ status: 502 }).mockResolvedValue({ uuid: 'photos-uuid' });
+
+      // Act
+      const result = await uploadWhileRunningTimers(makeTree([makeDir('photos')], [makeFile('img.jpg', 'photos')]));
+
+      // Assert
+      expect(mockCreateFolder).toHaveBeenCalledTimes(2);
+      expect(result.failedFolders).toBe(0);
+      expect(result.uploadedFiles).toBe(1);
+      expect(uploadFile).toHaveBeenCalledWith(expect.anything(), 'photos-uuid', expect.any(AbortSignal));
+    });
+
+    test('when the server fails but had already created the subfolder, then the retry merges into it and its file is uploaded', async () => {
+      // Arrange
+      mockCreateFolder.mockRejectedValueOnce({ status: 502 }).mockRejectedValueOnce({ status: 409 });
+      mockCheckDuplicatedFolders.mockResolvedValueOnce({ existentFolders: [{ uuid: 'existing-photos-uuid' }] });
+
+      // Act
+      const result = await uploadWhileRunningTimers(makeTree([makeDir('photos')], [makeFile('img.jpg', 'photos')]));
+
+      // Assert
+      expect(result.failedFolders).toBe(0);
+      expect(result.uploadedFiles).toBe(1);
+      expect(uploadFile).toHaveBeenCalledWith(expect.anything(), 'existing-photos-uuid', expect.any(AbortSignal));
     });
   });
 

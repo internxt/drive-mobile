@@ -6,6 +6,8 @@ export interface AppEnv {
   CRYPTO_SECRET: string;
   WEB_CLIENT_URL: string;
   DRIVE_API_URL: string;
+  MAIL_API_URL: string;
+  SERVER_PUBLIC_KEY: string;
   DRIVE_NEW_API_URL: string;
   PAYMENTS_API_URL: string;
   BRIDGE_URL: string;
