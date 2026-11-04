@@ -1,5 +1,5 @@
 import { AnyAction, createAsyncThunk, ThunkDispatch } from '@reduxjs/toolkit';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { Platform } from 'react-native';
 import { AbortError } from 'src/network/errors';
 import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';

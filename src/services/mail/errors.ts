@@ -1,0 +1,124 @@
+export const MailErrorName = {
+  NoRecipients: 'NoRecipientsError',
+  InternxtRecipientKeyMissing: 'InternxtRecipientKeyMissingError',
+  RecipientKeyLookupFailed: 'RecipientKeyLookupFailedError',
+  ActiveDomainsUnavailable: 'ActiveDomainsUnavailableError',
+  ServerPublicKeyMissing: 'ServerPublicKeyMissingError',
+  BlindCopyNotDeliverable: 'BlindCopyNotDeliverableError',
+  PrimaryRecipientMissing: 'PrimaryRecipientMissingError',
+  ForwardedAttachmentUnavailable: 'ForwardedAttachmentUnavailableError',
+  AttachmentTooLarge: 'AttachmentTooLargeError',
+  ForwardedAttachmentsNotDecryptable: 'ForwardedAttachmentsNotDecryptableError',
+  AttachmentUploadFailed: 'AttachmentUploadFailedError',
+  AttachmentUploadAborted: 'AttachmentUploadAbortedError',
+  MailboxPageTimeout: 'MailboxPageTimeoutError',
+  MailKeystoreNotOpened: 'MailKeystoreNotOpenedError',
+} as const;
+
+export class NoRecipientsError extends Error {
+  constructor() {
+    super('An email needs at least one recipient');
+    this.name = MailErrorName.NoRecipients;
+  }
+}
+
+export class InternxtRecipientKeyMissingError extends Error {
+  constructor(public readonly addresses: string[]) {
+    super('No published key for some Internxt recipients');
+    this.name = MailErrorName.InternxtRecipientKeyMissing;
+  }
+}
+
+export class RecipientKeyLookupFailedError extends Error {
+  constructor(cause?: unknown) {
+    super('Could not look up the recipients public keys');
+    this.name = MailErrorName.RecipientKeyLookupFailed;
+    this.cause = cause;
+  }
+}
+
+export class ActiveDomainsUnavailableError extends Error {
+  constructor(cause?: unknown) {
+    super('Could not fetch the list of active mail domains');
+    this.name = MailErrorName.ActiveDomainsUnavailable;
+    this.cause = cause;
+  }
+}
+
+export class ServerPublicKeyMissingError extends Error {
+  constructor() {
+    super('SERVER_PUBLIC_KEY is not configured');
+    this.name = MailErrorName.ServerPublicKeyMissing;
+  }
+}
+
+export class BlindCopyNotDeliverableError extends Error {
+  constructor() {
+    super('Blind copy recipients are not deliverable when the email is delivered inside Internxt');
+    this.name = MailErrorName.BlindCopyNotDeliverable;
+  }
+}
+
+export class PrimaryRecipientMissingError extends Error {
+  constructor() {
+    super('An email needs at least one recipient in the to field');
+    this.name = MailErrorName.PrimaryRecipientMissing;
+  }
+}
+
+export class ForwardedAttachmentUnavailableError extends Error {
+  constructor(
+    public readonly attachmentName: string,
+    cause?: unknown,
+  ) {
+    super('Could not take an attachment out of the message being forwarded');
+    this.name = MailErrorName.ForwardedAttachmentUnavailable;
+    this.cause = cause;
+  }
+}
+
+export class AttachmentTooLargeError extends Error {
+  constructor(public readonly attachmentName: string) {
+    super('An attachment is over the size the server accepts');
+    this.name = MailErrorName.AttachmentTooLarge;
+  }
+}
+
+export class ForwardedAttachmentsNotDecryptableError extends Error {
+  constructor() {
+    super('The message being forwarded could not be decrypted, so its attachments cannot travel');
+    this.name = MailErrorName.ForwardedAttachmentsNotDecryptable;
+  }
+}
+
+export class AttachmentUploadFailedError extends Error {
+  constructor(
+    public readonly attachmentName: string,
+    cause?: unknown,
+  ) {
+    super('Could not upload an attachment');
+    this.name = MailErrorName.AttachmentUploadFailed;
+    this.cause = cause;
+  }
+}
+
+export class AttachmentUploadAbortedError extends Error {
+  constructor() {
+    super('The attachment upload was aborted');
+    this.name = MailErrorName.AttachmentUploadAborted;
+  }
+}
+
+export class MailboxPageTimeoutError extends Error {
+  constructor(public readonly mailboxId: string) {
+    super(`The page of ${mailboxId} did not arrive in time`);
+    this.name = MailErrorName.MailboxPageTimeout;
+  }
+}
+
+export class MailKeystoreNotOpenedError extends Error {
+  constructor() {
+    super('The keystore of the mail account could not be opened');
+    this.name = MailErrorName.MailKeystoreNotOpened;
+  }
+}

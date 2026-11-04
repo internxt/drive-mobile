@@ -12,3 +12,4 @@
 -keep class com.facebook.react.turbomodule.** { *; }
 
 # Add any project specific keep options here:
+-keep class com.internxt.cloud.documents.** { *; }

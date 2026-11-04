@@ -30,3 +30,10 @@ export class UploadNetworkError extends Error {
     Object.setPrototypeOf(this, UploadNetworkError.prototype);
   }
 }
+
+const SESSION_EXPIRED_HTTP_STATUSES: ReadonlySet<number> = new Set([401, 403]);
+
+export const isSessionExpiredError = (error: unknown): boolean => {
+  const status = (error as { status?: unknown } | null | undefined)?.status;
+  return typeof status === 'number' && SESSION_EXPIRED_HTTP_STATUSES.has(status);
+};

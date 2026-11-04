@@ -11,7 +11,7 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
 import { DriveItemData, DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { DriveListType, DriveListViewMode, SortDirection, SortType } from '../../../types/drive/ui';
+import { DriveListType, DriveListViewMode, SortDirection, SortMode, SortType } from '../../../types/drive/ui';
 import AppSeparator from '../../AppSeparator';
 import DriveNavigableItem from '../../DriveNavigableItem';
 
@@ -34,7 +34,7 @@ import BottomModal from '../BottomModal';
 import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
 import CreateFolderModal from '../CreateFolderModal';
 import NameCollisionModal, { NameCollisionAction } from '../NameCollisionModal';
-import SortModal, { SortMode } from '../SortModal';
+import SortModal from '../SortModal';
 
 const INITIAL_SORT_MODE: SortMode = {
   direction: SortDirection.Asc,
@@ -51,7 +51,7 @@ function MoveItemsModal(): JSX.Element {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [nameCollisionOpen, setNameCollisionOpen] = useState(false);
   const [collidingFolderName, setCollidingFolderName] = useState('');
-  const [existingCollisionFolder, setExistingCollisionFolder] = useState<{ uuid: string; id: number } | null>(null);
+  const [existingCollisionFolder, setExistingCollisionFolder] = useState<{ uuid: string } | null>(null);
   const [sortMode, setSortMode] = useState<SortMode>(INITIAL_SORT_MODE);
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
@@ -80,7 +80,7 @@ function MoveItemsModal(): JSX.Element {
     () =>
       [...(destinationFolderContentResponse?.children ?? []), ...(destinationFolderContentResponse?.files ?? [])]
         .map<DriveListItem>((child) => ({
-          id: child.id.toString(),
+          id: child.uuid,
           status: DriveItemStatus.Idle,
           data: {
             bucket: child.bucket,
@@ -89,8 +89,7 @@ function MoveItemsModal(): JSX.Element {
             currentThumbnail: null,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
-            name: child?.plainName ?? child.name,
-            id: child.id,
+            name: child.plainName,
             uuid: child.uuid,
             size: (child as DriveFileData).size,
             type: (child as DriveFileData).type,
@@ -142,9 +141,8 @@ function MoveItemsModal(): JSX.Element {
       driveThunks.moveItemThunk({
         isFolder,
         origin: {
-          itemId: itemToMove.fileId ?? itemToMove.id,
           parentUuid: itemToMove.parentUuid ?? '',
-          name: originFolderContentResponse.plainName ?? '',
+          name: originFolderContentResponse.plainName,
           updatedAt: originFolderContentResponse.updatedAt,
           createdAt: originFolderContentResponse.createdAt,
           uuid: itemToMove.uuid as string,
@@ -156,7 +154,7 @@ function MoveItemsModal(): JSX.Element {
         optimisticCallbacks: {
           onOptimisticUpdate: () => {
             const destinationFolderId = destinationFolderContentResponse.uuid;
-            driveCtx.removeItemFromTree(originFolderId, itemToMove.id);
+            driveCtx.removeItemFromTree(originFolderId, itemToMove.uuid);
             const destinationFolder = driveCtx.driveFoldersTree[destinationFolderId];
             if (destinationFolder) {
               const itemForDestination = isFolder
@@ -164,13 +162,11 @@ function MoveItemsModal(): JSX.Element {
                     ...itemToMove,
                     plainName: itemToMove.name,
                     parentUuid: destinationFolderId,
-                    parentId: destinationFolderContentResponse.id,
                     isFolder,
                   }
                 : {
                     ...itemToMove,
                     plainName: itemToMove.name,
-                    folderId: destinationFolderContentResponse.id,
                     folderUuid: destinationFolderId,
                     isFolder,
                   };
@@ -212,7 +208,7 @@ function MoveItemsModal(): JSX.Element {
         if (existentFolders.length > 0) {
           setConfirmModalOpen(false);
           setCollidingFolderName(folderName);
-          setExistingCollisionFolder({ uuid: existentFolders[0].uuid, id: existentFolders[0].id });
+          setExistingCollisionFolder({ uuid: existentFolders[0].uuid });
           setNameCollisionOpen(true);
           return;
         }
@@ -229,9 +225,7 @@ function MoveItemsModal(): JSX.Element {
     setNameCollisionOpen(false);
     try {
       if (action === 'replace' && existingCollisionFolder) {
-        await driveTrashService.moveToTrash([
-          { uuid: existingCollisionFolder.uuid, id: existingCollisionFolder.id, type: 'folder' },
-        ]);
+        await driveTrashService.moveToTrash([{ uuid: existingCollisionFolder.uuid, type: 'folder' }]);
       } else if (action === 'keep-both' && itemToMove?.uuid && destinationFolderContentResponse?.uuid) {
         const uniqueName = await getUniqueFolderName(collidingFolderName, destinationFolderContentResponse.uuid);
         await driveFolderService.updateMetaData(itemToMove.uuid as string, uniqueName);
@@ -262,7 +256,7 @@ function MoveItemsModal(): JSX.Element {
   };
   const cleanUp = async (options?: { shouldRefreshFolder: boolean }) => {
     if (options?.shouldRefreshFolder) {
-      if (originFolderContentResponse?.id && driveCtx.focusedFolder) {
+      if (originFolderContentResponse?.uuid && driveCtx.focusedFolder) {
         await driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, {
           resetPagination: true,
           pullFrom: ['network'],
@@ -278,7 +272,7 @@ function MoveItemsModal(): JSX.Element {
   };
   const getOriginFolderName = () => {
     return (
-      (originFolderContentResponse?.parentId
+      (originFolderContentResponse?.parentUuid
         ? originFolderContentResponse?.plainName
         : strings.generic.root_folder_name) ?? ''
     );
@@ -429,8 +423,8 @@ function MoveItemsModal(): JSX.Element {
             renderItem={({ item }) => {
               return (
                 <DriveNavigableItem
-                  key={item.data.id}
-                  disabled={checkIsFile(item.data as any) || item.data.id === itemToMove?.id}
+                  key={item.data.uuid}
+                  disabled={checkIsFile(item.data as any) || item.data.uuid === itemToMove?.uuid}
                   type={DriveListType.Drive}
                   status={DriveItemStatus.Idle}
                   viewMode={DriveListViewMode.List}
@@ -439,7 +433,7 @@ function MoveItemsModal(): JSX.Element {
                 />
               );
             }}
-            keyExtractor={(folder) => folder.data.id.toString()}
+            keyExtractor={(folder) => folder.data.uuid}
             style={{ backgroundColor: getColor('bg-surface') }}
           />
 
@@ -498,7 +492,7 @@ function MoveItemsModal(): JSX.Element {
         onSortModeChange={onSortModeChange}
         onClose={onCloseSortModal}
       />
-      {destinationFolderContentResponse?.id ? (
+      {destinationFolderContentResponse?.uuid ? (
         <CreateFolderModal
           isOpen={createFolderModalOpen}
           onCancel={onCancelCreateFolder}
