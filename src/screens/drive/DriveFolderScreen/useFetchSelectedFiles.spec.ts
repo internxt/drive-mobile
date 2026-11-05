@@ -133,6 +133,20 @@ describe('Downloading the selected Drive files', () => {
     expect(mockReportError).toHaveBeenCalledTimes(1);
   });
 
+  test('when a file comes back without being downloaded, then it counts as failed and the others are still downloaded', async () => {
+    mockDownloadFileToDevice.mockImplementation(async ({ file }) =>
+      file.uuid === 'file-2' ? null : `/tmp/${file.name}.pdf`,
+    );
+    const { result } = renderDownloadHook();
+
+    await act(async () => {
+      await result.current.downloadItems([REPORT_FILE, INVOICE_FILE, NOTES_FILE]);
+    });
+
+    expect(mockMoveToAndroidDownloads).toHaveBeenCalledTimes(2);
+    expect(mockNotifyError).toHaveBeenCalledWith('"invoice.pdf" could not be downloaded');
+  });
+
   test('when several files fail, then the notification counts the downloaded and the failed ones', async () => {
     mockDownloadFileToDevice.mockImplementation(async ({ file }) => {
       if (file.uuid !== 'file-1') {
