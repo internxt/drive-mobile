@@ -22,9 +22,11 @@ const ACTION_HIT_SLOP = { top: 4, bottom: 4, left: 4, right: 4 };
 interface DriveSelectionToolbarProps {
   visible: boolean;
   moveDisabled: boolean;
+  exportDisabled: boolean;
   trashDisabled: boolean;
   moreDisabled: boolean;
   onMovePress: () => void;
+  onExportPress: () => void;
   onTrashPress: () => void;
   onMorePress: () => void;
 }
@@ -59,9 +61,11 @@ const MIN_VISIBLE_PROGRESS = 0.01;
 export const DriveSelectionToolbar = ({
   visible,
   moveDisabled,
+  exportDisabled,
   trashDisabled,
   moreDisabled,
   onMovePress,
+  onExportPress,
   onTrashPress,
   onMorePress,
 }: DriveSelectionToolbarProps): JSX.Element => {
@@ -104,9 +108,15 @@ export const DriveSelectionToolbar = ({
         onPress={onMovePress}
       />
       <ToolbarAction
-        icon={<ArrowSquareOutIcon size={ACTION_ICON_SIZE} color={disabledColor} />}
+        icon={
+          <ArrowSquareOutIcon
+            size={ACTION_ICON_SIZE}
+            color={exportDisabled ? disabledColor : getColor('text-primary')}
+          />
+        }
         label={strings.screens.drive.selection.export}
-        disabled
+        disabled={exportDisabled}
+        onPress={onExportPress}
       />
       <ToolbarAction
         icon={<TrashIcon size={ACTION_ICON_SIZE} color={trashDisabled ? disabledColor : getColor('text-primary')} />}
