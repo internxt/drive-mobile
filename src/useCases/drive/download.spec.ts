@@ -58,6 +58,44 @@ describe('Downloading a file to the device', () => {
     expect(onDownloadStarted).not.toHaveBeenCalled();
   });
 
+  test('when the file is already decrypted on the device, then the download is not asked to be confirmed', async () => {
+    jest.mocked(drive.file.existsDecrypted).mockResolvedValueOnce(true);
+    const confirmDownload = jest.fn().mockResolvedValue(true);
+
+    await downloadFileToDevice({ file: reportFile, confirmDownload });
+
+    expect(confirmDownload).not.toHaveBeenCalled();
+  });
+
+  test('when the file is empty, then the download is not asked to be confirmed', async () => {
+    const emptyFile = { ...reportFile, size: 0 };
+    const confirmDownload = jest.fn().mockResolvedValue(true);
+
+    await downloadFileToDevice({ file: emptyFile, confirmDownload });
+
+    expect(confirmDownload).not.toHaveBeenCalled();
+  });
+
+  test('when the download is not confirmed, then nothing is downloaded and no file path is returned', async () => {
+    const confirmDownload = jest.fn().mockResolvedValue(false);
+    const onDownloadStarted = jest.fn();
+
+    const filePath = await downloadFileToDevice({ file: reportFile, confirmDownload, onDownloadStarted });
+
+    expect(confirmDownload).toHaveBeenCalledWith(FILE_SIZE_BYTES);
+    expect(filePath).toBeNull();
+    expect(onDownloadStarted).not.toHaveBeenCalled();
+    expect(drive.file.downloadFile).not.toHaveBeenCalled();
+  });
+
+  test('when the download is confirmed, then the file is downloaded', async () => {
+    const confirmDownload = jest.fn().mockResolvedValue(true);
+
+    const filePath = await downloadFileToDevice({ file: reportFile, confirmDownload });
+
+    expect(filePath).toBe('/downloads/report.pdf');
+  });
+
   test('when the file is empty, then an empty file is created instead of downloading it', async () => {
     const emptyFile = { ...reportFile, size: 0 };
 

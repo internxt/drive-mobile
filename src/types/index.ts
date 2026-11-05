@@ -88,6 +88,7 @@ export interface NotificationData {
   text2?: string;
   action?: NotificationAction;
   autoHide?: boolean;
+  visibilityTime?: number;
 }
 
 export enum AsyncStorageKey {

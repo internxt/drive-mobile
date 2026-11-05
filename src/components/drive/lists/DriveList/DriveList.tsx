@@ -191,19 +191,12 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
         key={props.viewMode}
         numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
         renderItem={renderItem}
-        contentContainerStyle={{
-          ...{ flex: props.items?.length ? 0 : 1 },
-          ...(props.viewMode === DriveListViewMode.Grid
-            ? {
-                ...tailwind('py-6 ml-2'),
-                ...props.contentContainerStyle,
-                backgroundColor: getColor('bg-surface'),
-              }
-            : {
-                ...props.contentContainerStyle,
-                backgroundColor: getColor('bg-surface'),
-              }),
-        }}
+        contentContainerStyle={[
+          { flex: props.items?.length ? 0 : 1 },
+          props.viewMode === DriveListViewMode.Grid && tailwind('py-6 ml-2'),
+          props.contentContainerStyle,
+          { backgroundColor: getColor('bg-surface') },
+        ]}
         onEndReachedThreshold={1}
         onEndReached={handleOnScrollEnd}
         data={listItems}
