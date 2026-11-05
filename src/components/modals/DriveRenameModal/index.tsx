@@ -105,7 +105,6 @@ function RenameModal(): JSX.Element {
   };
 
   const onCancelButtonPressed = () => {
-    dispatch(driveActions.deselectAll());
     dispatch(uiActions.setShowRenameModal(false));
   };
 

@@ -44,6 +44,11 @@ export const buildDeepLinkRoutes = (folderUuid: string, ancestors: FolderAncesto
 export const canLoadNextPage = (folderNode: DriveFoldersTreeNode | undefined): boolean =>
   !!folderNode && !folderNode.loading && (folderNode.nextFoldersOffset !== null || folderNode.nextFilesOffset !== null);
 
+export const hasUnloadedPages = (folderNode: DriveFoldersTreeNode | undefined): boolean =>
+  !!folderNode && (folderNode.nextFoldersOffset !== null || folderNode.nextFilesOffset !== null);
+
+export const canSelectDriveItem = (item: DriveListItem): boolean => item.status === DriveItemStatus.Idle;
+
 const FOLDER_UPLOAD_ID_PREFIX = 'folder-upload-';
 
 export const isFolderUploadItem = (item: DriveListItem): boolean => item.id.startsWith(FOLDER_UPLOAD_ID_PREFIX);
