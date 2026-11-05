@@ -85,7 +85,7 @@ export const useFetchSelectedFiles = ({ onFinished }: UseFetchSelectedFilesParam
     if (driveUseCases.isFileTooLargeToDownload(file)) {
       throw new FileTooLargeToDownloadError('File exceeds the download size limit');
     }
-    return driveUseCases.downloadFileToDevice({
+    const decryptedFilePath = await driveUseCases.downloadFileToDevice({
       file,
       onProgress: (currentFileProgress, currentFileBytesReceived, currentFileTotalBytes) => {
         setDownloadProgress(
@@ -105,6 +105,10 @@ export const useFetchSelectedFiles = ({ onFinished }: UseFetchSelectedFilesParam
         }
       },
     });
+    if (!decryptedFilePath) {
+      throw new Error('The file was not downloaded');
+    }
+    return decryptedFilePath;
   };
 
   const downloadAndSaveFile = async (file: DriveItemData) => {
