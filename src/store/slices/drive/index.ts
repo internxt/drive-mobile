@@ -190,9 +190,9 @@ const downloadFileThunk = createAsyncThunk<
       folderUuid: folderUuid,
     };
 
-    const destinationPath = drive.file.getDecryptedFilePath(name, type);
+    const destinationPath = drive.file.getDecryptedFilePath(uuid, name, type);
     logger.info(`Download destination path: ${destinationPath} `);
-    const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
+    const fileAlreadyExists = await drive.file.existsDecrypted(uuid, name, type);
 
     if (!fileAlreadyExists && Number(size) > 0) {
       const downloadSizeCheck = await checkDownloadSize(Number(size));
@@ -214,6 +214,7 @@ const downloadFileThunk = createAsyncThunk<
       if (!fileAlreadyExists) {
         analytics.trackStart(fileInfo);
         downloadProgressCallback(0);
+        await drive.file.createDecryptedFileFolder(uuid);
 
         const fileSizeNumber = Number(size);
 

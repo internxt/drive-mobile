@@ -354,23 +354,32 @@ class DriveFileService {
   }
 
   /**
-   * Obtain a path to store the decrypted file
+   * Obtain a path to store the decrypted file, inside a temporary folder named after the file uuid
    *
+   * @param fileUuid Uuid of the file to download
    * @param filename Filename of the file to download
    * @returns A path to store the decrypted file
    */
-  getDecryptedFilePath(filename: string, type?: string) {
+  getDecryptedFilePath(fileUuid: string, filename: string, type?: string) {
     // Use a tmp file so the decrypted file is not persisted
-    return fs.tmpFilePath(filename + (type ? `.${type}` : ''));
+    return fs.tmpFilePath(`${fileUuid}/${this.getName(filename, type)}`);
+  }
+
+  /**
+   * Creates the temporary folder that holds the decrypted file
+   */
+  async createDecryptedFileFolder(fileUuid: string) {
+    await fs.ensureDir(fs.tmpFilePath(fileUuid));
   }
 
   /**
    *
+   * @param fileUuid Uuid of the file to check
    * @param filename Filename of the file to check
    * @returns If the file exists decrypted in the filesystem
    */
-  async existsDecrypted(filename: string, type?: string) {
-    const path = this.getDecryptedFilePath(filename, type);
+  async existsDecrypted(fileUuid: string, filename: string, type?: string) {
+    const path = this.getDecryptedFilePath(fileUuid, filename, type);
     const exists = await fs.exists(path);
     if (!exists) return false;
 
