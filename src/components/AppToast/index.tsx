@@ -8,21 +8,25 @@ import strings from '../../../assets/lang/strings';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
-import Portal from '@burstware/react-native-portal';
 import styles from '../../styles/global';
+
+const TOAST_MIN_HEIGHT = 48;
+const TOAST_TEXT_MAX_LINE_COUNT = 8;
+
 const AppToast = (): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const screenDimensions = Dimensions.get('screen');
   const defaultProps: BaseToastProps = {
-    text1NumberOfLines: 3,
+    text1NumberOfLines: TOAST_TEXT_MAX_LINE_COUNT,
     style: {
-      ...tailwind('rounded-xl border-0 border-gray-10 border pl-3.5 h-12'),
+      ...tailwind('rounded-xl border-0 border-gray-10 border pl-3.5 h-auto'),
+      minHeight: TOAST_MIN_HEIGHT,
       width: screenDimensions.width - 24,
       marginBottom: safeAreaInsets.bottom,
     },
-    contentContainerStyle: tailwind('p-0'),
+    contentContainerStyle: tailwind('p-0 py-3'),
     text1Style: {
       ...tailwind('text-base text-gray-100 font-normal m-0 pr-3.5'),
       fontFamily: styles.fontWeight.regular.fontFamily,
@@ -109,11 +113,7 @@ const AppToast = (): JSX.Element => {
     ),
   };
 
-  return (
-    <Portal>
-      <Toast config={config} />
-    </Portal>
-  );
+  return <Toast config={config} />;
 };
 
 export default AppToast;
