@@ -48,7 +48,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     self.init(
       identifier: FileProviderItemID.encode(.folder, uuid: folder.uuid ?? ""),
       parent: parent,
-      name: folder.plainName ?? folder.name,
+      name: folder.plainName ?? folder.uuid ?? "",
       kind: .folder,
       metadata: Metadata(createdAt: folder.createdAt, updatedAt: folder.updatedAt)
     )
@@ -58,7 +58,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     self.init(
       identifier: FileProviderItemID.encode(.file, uuid: file.uuid),
       parent: parent,
-      name: file.plainName ?? file.name ?? file.uuid,
+      name: file.plainName,
       kind: .file,
       metadata: Metadata(
         fileExtension: file.type,
@@ -73,7 +73,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     self.init(
       identifier: FileProviderItemID.encode(.folder, uuid: folder.uuid),
       parent: parent,
-      name: folder.plainName ?? folder.name,
+      name: folder.plainName,
       kind: .folder,
       metadata: Metadata(createdAt: folder.createdAt, updatedAt: folder.updatedAt)
     )
@@ -141,7 +141,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     self.init(
       identifier: identifier,
       parent: FileProviderItemID.parentIdentifier(folderUuid: folderMeta.parentUuid),
-      name: folderMeta.plainName ?? folderMeta.name ?? identifier.rawValue,
+      name: folderMeta.plainName ?? identifier.rawValue,
       kind: .folder,
       metadata: Metadata(createdAt: folderMeta.createdAt, updatedAt: folderMeta.updatedAt)
     )
@@ -151,7 +151,7 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     self.init(
       identifier: identifier,
       parent: FileProviderItemID.parentIdentifier(folderUuid: fileMeta.folderUuid),
-      name: fileMeta.plainName ?? fileMeta.name,
+      name: fileMeta.plainName,
       kind: .file,
       metadata: Metadata(
         fileExtension: fileMeta.type,
