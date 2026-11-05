@@ -286,37 +286,43 @@ class PhotoCloudBrowserService {
   /**
    * @returns Ids of the entries whose cloud row could not be written.
    */
-  private async preserveCloudVisibilityForOrphans(entries: AssetSyncEntry[], deviceId: string): Promise<Set<string>> {
+  private async preserveCloudVisibilityForOrphans(
+    deletedAssetSyncEntries: AssetSyncEntry[],
+    deviceId: string,
+  ): Promise<Set<string>> {
     const monthsToBackfill = new Map<string, number>();
     const failedAssetIds = new Set<string>();
-    for (const entry of entries) {
-      if (!entry.remoteFileId) {
+    for (const deletedAssetSyncEntry of deletedAssetSyncEntries) {
+      if (!deletedAssetSyncEntry.remoteFileId) {
         logger.info(
-          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId} skipped, never had a remote backup`,
+          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${deletedAssetSyncEntry.assetId} skipped, never had a remote backup`,
         );
         continue;
       }
       try {
-        const existing = await this.localDB.getCloudAssetById(entry.remoteFileId);
+        const existingCloudAsset = await this.localDB.getCloudAssetById(deletedAssetSyncEntry.remoteFileId);
         logger.info(
-          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId}, remoteFileId=${entry.remoteFileId}, hasExistingCloudRow=${!!existing}`,
+          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${deletedAssetSyncEntry.assetId}, remoteFileId=${deletedAssetSyncEntry.remoteFileId}, hasExistingCloudRow=${!!existingCloudAsset}`,
         );
-        if (!existing) {
-          await this.localDB.upsertCloudAsset(this.buildCloudAssetEntry(entry, deviceId));
+        if (!existingCloudAsset) {
+          await this.localDB.upsertCloudAsset(this.buildCloudAssetEntry(deletedAssetSyncEntry, deviceId));
           logger.info(
-            `[CloudBrowser] Synthesized cloud entry before local delete — remoteFileId=${entry.remoteFileId}, fileName=${entry.fileName ?? 'unknown'}`,
+            `[CloudBrowser] Synthesized cloud entry before local delete — remoteFileId=${deletedAssetSyncEntry.remoteFileId}, fileName=${deletedAssetSyncEntry.fileName ?? 'unknown'}`,
           );
         }
       } catch (error) {
         logger.warn(
-          `[CloudBrowser] Could not preserve cloud visibility for assetId=${entry.assetId}, keeping its asset_sync row: ${error}`,
+          `[CloudBrowser] Could not preserve cloud visibility for assetId=${deletedAssetSyncEntry.assetId}, keeping its asset_sync row: ${error}`,
         );
-        failedAssetIds.add(entry.assetId);
+        failedAssetIds.add(deletedAssetSyncEntry.assetId);
         continue;
       }
-      if (entry.creationTime) {
-        const date = new Date(entry.creationTime);
-        monthsToBackfill.set(`${date.getFullYear()}:${date.getMonth() + 1}`, entry.creationTime);
+      if (deletedAssetSyncEntry.creationTime) {
+        const creationDate = new Date(deletedAssetSyncEntry.creationTime);
+        monthsToBackfill.set(
+          `${creationDate.getFullYear()}:${creationDate.getMonth() + 1}`,
+          deletedAssetSyncEntry.creationTime,
+        );
       }
     }
     for (const creationTimeMs of monthsToBackfill.values()) {
@@ -348,10 +354,10 @@ class PhotoCloudBrowserService {
       );
       return 0;
     }
-    const entries = (await Promise.all(assetIds.map((id) => this.localDB.getStatus(id)))).filter(
-      (e): e is AssetSyncEntry => e !== null,
-    );
-    const failedAssetIds = await this.preserveCloudVisibilityForOrphans(entries, deviceId);
+    const deletedAssetSyncEntries = (
+      await Promise.all(assetIds.map((assetId) => this.localDB.getStatus(assetId)))
+    ).filter((assetSyncEntry): assetSyncEntry is AssetSyncEntry => assetSyncEntry !== null);
+    const failedAssetIds = await this.preserveCloudVisibilityForOrphans(deletedAssetSyncEntries, deviceId);
     const removableAssetIds = assetIds.filter((assetId) => !failedAssetIds.has(assetId));
     await this.localDB.deleteAssetSyncBulk(removableAssetIds);
     return removableAssetIds.length;
