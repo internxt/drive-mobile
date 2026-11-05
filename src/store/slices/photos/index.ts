@@ -235,11 +235,12 @@ export const checkPermissionRevocationThunk = createAsyncThunk<void, void, { sta
 
 export const initDeviceIdThunk = createAsyncThunk<string, void, { state: RootState }>(
   'photos/initDeviceId',
-  async (_, { dispatch }) => {
+  async (_, { getState, dispatch }) => {
     try {
       const { deviceId, bucket } = await PhotoDeviceManager.ensureDeviceFolder();
       dispatch(photosSlice.actions.setDeviceId(deviceId));
       dispatch(photosSlice.actions.setPhotosBucket(bucket));
+      await persistPhotosSettings(getState().photos);
       return deviceId;
     } catch (err) {
       if (err instanceof AxiosResponseError && err.status === HTTP_PAYMENT_REQUIRED) {

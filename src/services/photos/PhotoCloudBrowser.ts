@@ -502,33 +502,52 @@ class PhotoCloudBrowserService {
     };
   }
 
-  private async preserveCloudVisibilityForOrphans(entries: AssetSyncEntry[], deviceId: string): Promise<void> {
+  /**
+   * @returns Ids of the entries whose cloud row could not be written.
+   */
+  private async preserveCloudVisibilityForOrphans(
+    deletedAssetSyncEntries: AssetSyncEntry[],
+    deviceId: string,
+  ): Promise<Set<string>> {
     const monthsToBackfill = new Map<string, number>();
-    for (const entry of entries) {
-      if (!entry.remoteFileId) {
+    const failedAssetIds = new Set<string>();
+    for (const deletedAssetSyncEntry of deletedAssetSyncEntries) {
+      if (!deletedAssetSyncEntry.remoteFileId) {
         logger.info(
-          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId} skipped, never had a remote backup`,
+          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${deletedAssetSyncEntry.assetId} skipped, never had a remote backup`,
         );
         continue;
       }
-      const existing = await this.localDB.getCloudAssetById(entry.remoteFileId);
-      logger.info(
-        `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${entry.assetId}, remoteFileId=${entry.remoteFileId}, hasExistingCloudRow=${!!existing}`,
-      );
-      if (!existing) {
-        await this.localDB.upsertCloudAsset(this.buildCloudAssetEntry(entry, deviceId));
+      try {
+        const existingCloudAsset = await this.localDB.getCloudAssetById(deletedAssetSyncEntry.remoteFileId);
         logger.info(
-          `[CloudBrowser] Synthesized cloud entry before local delete — remoteFileId=${entry.remoteFileId}, fileName=${entry.fileName ?? 'unknown'}`,
+          `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — assetId=${deletedAssetSyncEntry.assetId}, remoteFileId=${deletedAssetSyncEntry.remoteFileId}, hasExistingCloudRow=${!!existingCloudAsset}`,
         );
+        if (!existingCloudAsset) {
+          await this.localDB.upsertCloudAsset(this.buildCloudAssetEntry(deletedAssetSyncEntry, deviceId));
+          logger.info(
+            `[CloudBrowser] Synthesized cloud entry before local delete — remoteFileId=${deletedAssetSyncEntry.remoteFileId}, fileName=${deletedAssetSyncEntry.fileName ?? 'unknown'}`,
+          );
+        }
+      } catch (error) {
+        logger.warn(
+          `[CloudBrowser] Could not preserve cloud visibility for assetId=${deletedAssetSyncEntry.assetId}, keeping its asset_sync row: ${error}`,
+        );
+        failedAssetIds.add(deletedAssetSyncEntry.assetId);
+        continue;
       }
-      if (entry.creationTime) {
-        const date = new Date(entry.creationTime);
-        monthsToBackfill.set(`${date.getFullYear()}:${date.getMonth() + 1}`, entry.creationTime);
+      if (deletedAssetSyncEntry.creationTime) {
+        const creationDate = new Date(deletedAssetSyncEntry.creationTime);
+        monthsToBackfill.set(
+          `${creationDate.getFullYear()}:${creationDate.getMonth() + 1}`,
+          deletedAssetSyncEntry.creationTime,
+        );
       }
     }
     for (const creationTimeMs of monthsToBackfill.values()) {
       this.queueMonthBackfill(deviceId, creationTimeMs, 'after local delete');
     }
+    return failedAssetIds;
   }
 
   /**
@@ -540,20 +559,27 @@ class PhotoCloudBrowserService {
    * background refresh of the asset's day-folder to fill in real thumbnails/pairing.
    *
    * @param assetIds - Ids of the local assets to remove from `asset_sync`.
-   * @param deviceId - This device's folder uuid, or null if unknown (skips the cloud-visibility
-   *   preservation — the rows are still deleted).
+   * @param deviceId - This device's folder uuid, or null if unknown (nothing is removed).
+   * @returns The number of `asset_sync` rows removed. Rows whose cloud row could not be written are
+   *   kept, so the next pass retries them.
    */
-  async deleteAssetSyncPreservingCloudVisibility(assetIds: string[], deviceId: string | null): Promise<void> {
+  async deleteAssetSyncPreservingCloudVisibility(assetIds: string[], deviceId: string | null): Promise<number> {
     if (assetIds.length === 0) {
-      return;
+      return 0;
     }
-    if (deviceId) {
-      const entries = (await Promise.all(assetIds.map((id) => this.localDB.getStatus(id)))).filter(
-        (e): e is AssetSyncEntry => e !== null,
+    if (!deviceId) {
+      logger.info(
+        `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — kept ${assetIds.length} row(s), no deviceId yet`,
       );
-      await this.preserveCloudVisibilityForOrphans(entries, deviceId);
+      return 0;
     }
-    await this.localDB.deleteAssetSyncBulk(assetIds);
+    const deletedAssetSyncEntries = (
+      await Promise.all(assetIds.map((assetId) => this.localDB.getStatus(assetId)))
+    ).filter((assetSyncEntry): assetSyncEntry is AssetSyncEntry => assetSyncEntry !== null);
+    const failedAssetIds = await this.preserveCloudVisibilityForOrphans(deletedAssetSyncEntries, deviceId);
+    const removableAssetIds = assetIds.filter((assetId) => !failedAssetIds.has(assetId));
+    await this.localDB.deleteAssetSyncBulk(removableAssetIds);
+    return removableAssetIds.length;
   }
 
   /**
@@ -569,8 +595,7 @@ class PhotoCloudBrowserService {
     if (orphanAssetsIds.length === 0) {
       return 0;
     }
-    await this.deleteAssetSyncPreservingCloudVisibility(orphanAssetsIds, deviceId);
-    return orphanAssetsIds.length;
+    return this.deleteAssetSyncPreservingCloudVisibility(orphanAssetsIds, deviceId);
   }
 
   async fetchMonth(params: {
