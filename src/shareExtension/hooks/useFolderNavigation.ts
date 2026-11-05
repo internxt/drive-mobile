@@ -1,4 +1,6 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Dispatch, SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import errorService from 'src/services/ErrorService';
+import { isSessionExpiredError } from '../errors';
 import { shareDriveService } from '../services/shareDriveService';
 import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../types';
 
@@ -13,7 +15,11 @@ interface UseFolderNavigationResult {
   files: ShareFileItem[];
   loading: boolean;
   loadingMore: boolean;
-  loadMore: () => void;
+  hasLoadError: boolean;
+  hasLoadMoreError: boolean;
+  isSessionExpired: boolean;
+  loadMore: () => Promise<void>;
+  retryLoadMore: () => Promise<void>;
   searchQuery: string;
   setSearchQuery: (value: string) => void;
   viewMode: DriveViewMode;
@@ -37,6 +43,9 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
   const [allFiles, setAllFiles] = useState<ShareFileItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [hasLoadError, setHasLoadError] = useState(false);
+  const [hasLoadMoreError, setHasLoadMoreError] = useState(false);
+  const [isSessionExpired, setIsSessionExpired] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<DriveViewMode>('list');
 
@@ -45,74 +54,87 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
   const foldersExhaustedRef = useRef(false);
   const filesExhaustedRef = useRef(false);
   const isLoadingMoreRef = useRef(false);
+  const isPaginationStoppedRef = useRef(false);
   const latestUuidRef = useRef<string>(rootFolderUuid);
   const loadSequentialRef = useRef(0);
 
   const currentFolder = folderStack[folderStack.length - 1];
 
-  const loadFolder = useCallback(async (folderUuid: string) => {
-    const capturedLoadSequence = ++loadSequentialRef.current;
-    latestUuidRef.current = folderUuid;
-    isLoadingMoreRef.current = false;
-    folderOffsetRef.current = 0;
-    fileOffsetRef.current = 0;
-    foldersExhaustedRef.current = false;
-    filesExhaustedRef.current = false;
-    setLoading(true);
-    setLoadingMore(false);
-    setAllFolders([]);
-    setAllFiles([]);
+  const isCurrentLoad = useCallback((sequence: number) => loadSequentialRef.current === sequence, []);
 
-    try {
-      const foldersPage = await shareDriveService.getFolderFolders(folderUuid, 0);
-      if (loadSequentialRef.current !== capturedLoadSequence) return;
-
-      setAllFolders(foldersPage.items);
-      folderOffsetRef.current = foldersPage.items.length;
-
-      if (!foldersPage.hasMore) {
-        foldersExhaustedRef.current = true;
-        const filesPage = await shareDriveService.getFolderFiles(folderUuid, 0);
-        if (loadSequentialRef.current !== capturedLoadSequence) return;
-
-        setAllFiles(filesPage.items);
-        fileOffsetRef.current = filesPage.items.length;
-        if (!filesPage.hasMore) filesExhaustedRef.current = true;
-      }
-    } catch (e) {
-      console.error('loadFolder error:', e);
-    } finally {
-      if (loadSequentialRef.current === capturedLoadSequence) setLoading(false);
-    }
+  const stopPaginationWithError = useCallback((error: unknown, setHasError: Dispatch<SetStateAction<boolean>>) => {
+    isPaginationStoppedRef.current = true;
+    setIsSessionExpired(isSessionExpiredError(error));
+    setHasError(true);
   }, []);
+
+  const fetchNextFilesPage = useCallback(
+    async (uuid: string, capturedLoadSequence: number) => {
+      const filesPage = await shareDriveService.getFolderFiles(uuid, fileOffsetRef.current);
+      if (!isCurrentLoad(capturedLoadSequence)) return;
+
+      setAllFiles((prev) => [...prev, ...filesPage.items]);
+      fileOffsetRef.current += filesPage.items.length;
+      if (!filesPage.hasMore) filesExhaustedRef.current = true;
+    },
+    [isCurrentLoad],
+  );
+
+  const fetchNextFoldersPage = useCallback(
+    async (uuid: string, capturedLoadSequence: number) => {
+      const foldersPage = await shareDriveService.getFolderFolders(uuid, folderOffsetRef.current);
+      if (!isCurrentLoad(capturedLoadSequence)) return;
+
+      setAllFolders((prev) => [...prev, ...foldersPage.items]);
+      folderOffsetRef.current += foldersPage.items.length;
+      if (foldersPage.hasMore) return;
+
+      foldersExhaustedRef.current = true;
+      await fetchNextFilesPage(uuid, capturedLoadSequence);
+    },
+    [isCurrentLoad, fetchNextFilesPage],
+  );
+
+  const loadFolder = useCallback(
+    async (folderUuid: string) => {
+      const capturedLoadSequence = ++loadSequentialRef.current;
+      latestUuidRef.current = folderUuid;
+      isLoadingMoreRef.current = false;
+      folderOffsetRef.current = 0;
+      fileOffsetRef.current = 0;
+      foldersExhaustedRef.current = false;
+      filesExhaustedRef.current = false;
+      isPaginationStoppedRef.current = false;
+      setLoading(true);
+      setLoadingMore(false);
+      setHasLoadError(false);
+      setHasLoadMoreError(false);
+      setIsSessionExpired(false);
+      setAllFolders([]);
+      setAllFiles([]);
+
+      try {
+        await fetchNextFoldersPage(folderUuid, capturedLoadSequence);
+      } catch (error) {
+        errorService.reportError(error, { extra: { folderUuid, message: 'Failed to load share extension folder' } });
+        if (isCurrentLoad(capturedLoadSequence)) {
+          const hasLoadedFolders = folderOffsetRef.current > 0;
+          stopPaginationWithError(error, hasLoadedFolders ? setHasLoadMoreError : setHasLoadError);
+        }
+      } finally {
+        if (isCurrentLoad(capturedLoadSequence)) setLoading(false);
+      }
+    },
+    [isCurrentLoad, fetchNextFoldersPage, stopPaginationWithError],
+  );
 
   useEffect(() => {
     loadFolder(currentFolder.uuid);
   }, [currentFolder.uuid, loadFolder]);
 
-  const loadMoreFiles = useCallback(async (uuid: string, capturedLoadSequence: number) => {
-    const filesPage = await shareDriveService.getFolderFiles(uuid, fileOffsetRef.current);
-    if (loadSequentialRef.current !== capturedLoadSequence) return;
-
-    setAllFiles((prev) => [...prev, ...filesPage.items]);
-    fileOffsetRef.current += filesPage.items.length;
-    if (!filesPage.hasMore) filesExhaustedRef.current = true;
-  }, []);
-
-  const loadMoreFolders = useCallback(async (uuid: string, capturedLoadSequence: number) => {
-    const foldersPage = await shareDriveService.getFolderFolders(uuid, folderOffsetRef.current);
-    if (loadSequentialRef.current !== capturedLoadSequence) return;
-
-    setAllFolders((prev) => [...prev, ...foldersPage.items]);
-    folderOffsetRef.current += foldersPage.items.length;
-    if (foldersPage.hasMore) return;
-
-    foldersExhaustedRef.current = true;
-    await loadMoreFiles(uuid, capturedLoadSequence);
-  }, [loadMoreFiles]);
-
   const loadMore = useCallback(async () => {
     if (loading || isLoadingMoreRef.current || searchQuery) return;
+    if (isPaginationStoppedRef.current) return;
     if (foldersExhaustedRef.current && filesExhaustedRef.current) return;
 
     isLoadingMoreRef.current = true;
@@ -122,15 +144,28 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
 
     try {
       if (foldersExhaustedRef.current) {
-        await loadMoreFiles(uuid, capturedLoadSequence);
+        await fetchNextFilesPage(uuid, capturedLoadSequence);
       } else {
-        await loadMoreFolders(uuid, capturedLoadSequence);
+        await fetchNextFoldersPage(uuid, capturedLoadSequence);
       }
+    } catch (error) {
+      errorService.reportError(error, {
+        extra: { folderUuid: uuid, message: 'Failed to load more items in share extension folder' },
+      });
+      if (isCurrentLoad(capturedLoadSequence)) stopPaginationWithError(error, setHasLoadMoreError);
     } finally {
-      if (loadSequentialRef.current === capturedLoadSequence) setLoadingMore(false);
-      isLoadingMoreRef.current = false;
+      if (isCurrentLoad(capturedLoadSequence)) {
+        setLoadingMore(false);
+        isLoadingMoreRef.current = false;
+      }
     }
-  }, [loading, searchQuery, loadMoreFiles, loadMoreFolders]);
+  }, [loading, searchQuery, isCurrentLoad, fetchNextFilesPage, fetchNextFoldersPage, stopPaginationWithError]);
+
+  const retryLoadMore = useCallback(() => {
+    isPaginationStoppedRef.current = false;
+    setHasLoadMoreError(false);
+    return loadMore();
+  }, [loadMore]);
 
   const navigateToFolder = useCallback((uuid: string, name: string) => {
     setSearchQuery('');
@@ -161,7 +196,11 @@ export const useFolderNavigation = (rootFolderUuid: string, rootFolderName = 'Dr
     files,
     loading,
     loadingMore,
+    hasLoadError,
+    hasLoadMoreError,
+    isSessionExpired,
     loadMore,
+    retryLoadMore,
     searchQuery,
     setSearchQuery,
     viewMode,

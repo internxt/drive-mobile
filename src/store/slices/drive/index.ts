@@ -9,6 +9,12 @@ import { ErrorCodes } from 'src/types/errors';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
 import analyticsService from '../../../services/AnalyticsService';
+import {
+  checkDownloadSize,
+  getDownloadSizeMessage,
+  isDownloadBlocked,
+  notifyDownloadSizeCheck,
+} from '../../../services/drive/file/utils/downloadSizeCheck';
 import fileSystemService from '../../../services/FileSystemService';
 import { DriveEventKey } from '../../../types/drive/events';
 import { FolderUploadState } from '../../../types/drive/folderUpload';
@@ -186,6 +192,15 @@ const downloadFileThunk = createAsyncThunk<
     const destinationPath = drive.file.getDecryptedFilePath(uuid, name, type);
     logger.info(`Download destination path: ${destinationPath} `);
     const fileAlreadyExists = await drive.file.existsDecrypted(uuid, name, type);
+
+    if (!fileAlreadyExists && Number(size) > 0) {
+      const downloadSizeCheck = await checkDownloadSize(Number(size));
+      notifyDownloadSizeCheck(downloadSizeCheck, Number(size));
+      if (isDownloadBlocked(downloadSizeCheck)) {
+        dispatch(driveActions.updateDownloadingFile({ error: getDownloadSizeMessage(downloadSizeCheck) }));
+        return;
+      }
+    }
 
     try {
       if (!isValidFilename(name)) {

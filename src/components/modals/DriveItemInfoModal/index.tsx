@@ -29,6 +29,11 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
+import {
+  checkDownloadSize,
+  isDownloadBlocked,
+  notifyDownloadSizeCheck,
+} from '../../../services/drive/file/utils/downloadSizeCheck';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
@@ -50,6 +55,7 @@ function DriveItemInfoModal(): JSX.Element {
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const downloadAbortableRef = useRef<Abortable>();
+  const isDownloadCancelledByUserRef = useRef(false);
   if (!item) {
     return <></>;
   }
@@ -65,6 +71,12 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(uiActions.setShowItemModal(false));
     dispatch(uiActions.setShowMoveModal(true));
     dispatch(driveActions.setItemsToMove([item]));
+  };
+
+  const isFileDownloadable = async (fileSize: number): Promise<boolean> => {
+    const downloadSizeCheck = await checkDownloadSize(fileSize);
+    notifyDownloadSizeCheck(downloadSizeCheck, fileSize);
+    return !isDownloadBlocked(downloadSizeCheck);
   };
 
   const handleUndoMoveToTrash = async () => {
@@ -121,6 +133,7 @@ function DriveItemInfoModal(): JSX.Element {
   const downloadFocusedFile = () =>
     driveUseCases.downloadFileToDevice({
       file: item,
+      confirmDownload: isFileDownloadable,
       onDownloadStarted: () => {
         setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
         setExporting(true);
@@ -142,14 +155,21 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleExportFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       const downloadPath = await downloadFocusedFile();
       setExporting(false);
+      if (!downloadPath) {
+        return;
+      }
       await fs.shareFile({
         title: item.name,
         fileUri: downloadPath,
       });
     } catch (error) {
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
       showDownloadError(error);
       logger.error('Error on handleExportFile function:', JSON.stringify(error));
       errorService.reportError(error);
@@ -160,6 +180,7 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleAbortDownload = () => {
+    isDownloadCancelledByUserRef.current = true;
     setExporting(false);
     dispatch(uiActions.setShowItemModal(false));
 
@@ -169,16 +190,23 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleAndroidDownloadFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       dispatch(uiActions.setShowItemModal(false));
       const decryptedFilePath = await downloadFocusedFile();
       setExporting(false);
+      if (!decryptedFilePath) {
+        return;
+      }
 
       // The decrypted file lives in a temp dir that gets cleared, so it is saved to Downloads
       await fs.moveToAndroidDownloads(decryptedFilePath);
 
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
       showDownloadError(error);
       logger.error('Error on handleAndroidDownloadFile function:', JSON.stringify(error));
       errorService.reportError(error);
@@ -188,10 +216,14 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleiOSSaveToFiles = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
       dispatch(uiActions.setShowItemModal(false));
       const decryptedFilePath = await downloadFocusedFile();
       setExporting(false);
+      if (!decryptedFilePath) {
+        return;
+      }
 
       await fs.shareFile({
         title: item.name,
@@ -201,6 +233,9 @@ function DriveItemInfoModal(): JSX.Element {
 
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
       showDownloadError(error);
       logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
       errorService.reportError(error);

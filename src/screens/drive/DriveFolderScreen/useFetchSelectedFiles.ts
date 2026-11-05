@@ -79,7 +79,7 @@ export const useFetchSelectedFiles = ({ onFinished }: UseFetchSelectedFilesParam
   const currentDownloadAbortRef = useRef<Abortable>();
 
   const fetchFile = async (file: DriveItemData) => {
-    return driveUseCases.downloadFileToDevice({
+    const decryptedFilePath = await driveUseCases.downloadFileToDevice({
       file,
       onProgress: (currentFileProgress, currentFileBytesReceived, currentFileTotalBytes) => {
         setDownloadProgress(
@@ -99,6 +99,10 @@ export const useFetchSelectedFiles = ({ onFinished }: UseFetchSelectedFilesParam
         }
       },
     });
+    if (!decryptedFilePath) {
+      throw new Error('The file was not downloaded');
+    }
+    return decryptedFilePath;
   };
 
   const downloadAndSaveFile = async (file: DriveItemData) => {

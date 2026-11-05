@@ -1,10 +1,11 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 import { isMailNotSetUpError } from '../../services/mail/errorDescription';
 import { mailboxService } from '../../services/mail/mailbox.service';
-
-export type MailAccountStatus = 'ready' | 'notSetUp';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { mailActions } from '../../store/slices/mail';
+import { MailAccountStatus } from '../../types/mail';
 
 /**
  * Asks the server for the mail account keys each time the screen gains focus, until an account is found.
@@ -13,7 +14,8 @@ export type MailAccountStatus = 'ready' | 'notSetUp';
  * also when the request fails for any other reason or the check is disabled.
  */
 export const useMailAccountStatus = ({ isEnabled }: { isEnabled: boolean }): MailAccountStatus => {
-  const [accountStatus, setAccountStatus] = useState<MailAccountStatus>('ready');
+  const dispatch = useAppDispatch();
+  const accountStatus = useAppSelector((state) => state.mail.accountStatus);
   const hasFoundAccountRef = useRef(false);
 
   useFocusEffect(
@@ -26,19 +28,19 @@ export const useMailAccountStatus = ({ isEnabled }: { isEnabled: boolean }): Mai
         () => {
           hasFoundAccountRef.current = true;
           if (!isCancelled) {
-            setAccountStatus('ready');
+            dispatch(mailActions.setAccountStatus('ready'));
           }
         },
         (error) => {
           if (!isCancelled) {
-            setAccountStatus(isMailNotSetUpError(error) ? 'notSetUp' : 'ready');
+            dispatch(mailActions.setAccountStatus(isMailNotSetUpError(error) ? 'notSetUp' : 'ready'));
           }
         },
       );
       return () => {
         isCancelled = true;
       };
-    }, [isEnabled]),
+    }, [dispatch, isEnabled]),
   );
 
   return accountStatus;

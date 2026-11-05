@@ -691,6 +691,7 @@ const translations = {
         rootFolderName: 'Drive',
         noResults: 'No results found',
         emptyFolder: 'This folder is empty',
+        folderLoadError: "Couldn't load this folder. Please try again.",
         sortByName: 'Name ↑',
         folderNameLabel: 'Name',
         folderNamePlaceholder: 'Folder name',
@@ -1139,6 +1140,8 @@ const translations = {
       confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
+      largeDownloadWarning:
+        'This file is large and may take a while to download. If it fails, we recommend downloading files over {0} from the desktop app or drive.internxt.com.',
       folderUploadCompleted: 'Successfully uploaded {0} files to "{1}"',
       folderUploadPartial: '{0} of {1} files uploaded ({2} failed)',
       folderUploadPartialWithSkipped: '{0} of {1} files uploaded ({2} failed, {3} skipped)',
@@ -1176,6 +1179,9 @@ const translations = {
       unreadablePickedFile: 'Could not read one of the selected files',
       unreadablePickedFiles: 'Could not read {0} of the selected files',
       storageLimitReached: 'You have reached your storage limit',
+      cameraRollPickerFailed: "We couldn't open your photos. Please try again.",
+      cameraRollPartialFailure:
+        "{0} item(s) couldn't be added. They may be stored in iCloud — check your connection and try again.",
       inviteAFriend: 'Error sending invitation: {0}',
       loadProducts: 'Cannot load products: {0}',
       passwordsDontMatch: "Passwords don't match",
@@ -1944,6 +1950,7 @@ const translations = {
         rootFolderName: 'Drive',
         noResults: 'Sin resultados',
         emptyFolder: 'Esta carpeta está vacía',
+        folderLoadError: 'No se pudo cargar esta carpeta. Inténtalo de nuevo.',
         sortByName: 'Nombre ↑',
         folderNameLabel: 'Nombre',
         folderNamePlaceholder: 'Nombre de carpeta',
@@ -2397,6 +2404,8 @@ const translations = {
       confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
+      largeDownloadWarning:
+        'Este archivo es grande y puede tardar en descargarse. Si falla, te recomendamos descargar los archivos de más de {0} desde la app de escritorio o drive.internxt.com.',
       folderUploadCompleted: '{0} archivos subidos correctamente a "{1}"',
       folderUploadPartial: '{0} de {1} archivos subidos ({2} fallaron)',
       folderUploadPartialWithSkipped: '{0} de {1} archivos subidos ({2} fallaron, {3} omitidos)',
@@ -2434,6 +2443,9 @@ const translations = {
       unreadablePickedFile: 'No se pudo leer uno de los archivos elegidos',
       unreadablePickedFiles: 'No se pudieron leer {0} de los archivos elegidos',
       storageLimitReached: 'Has alcanzado tu límite de almacenamiento',
+      cameraRollPickerFailed: 'No pudimos abrir tus fotos. Inténtalo de nuevo.',
+      cameraRollPartialFailure:
+        '{0} elemento(s) no se pudieron añadir. Puede que estén en iCloud: revisa tu conexión e inténtalo de nuevo.',
       inviteAFriend: 'Error enviando invitación: {0}',
       loadProducts: 'Error al cargar productos: {0}',
       passwordsDontMatch: 'Las contraseñas no coinciden',
