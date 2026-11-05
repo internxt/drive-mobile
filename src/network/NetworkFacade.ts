@@ -751,8 +751,10 @@ export class NetworkFacade {
             await Promise.all(downloadTasks);
           } catch (error) {
             limit.clearQueue();
-            chunkDownloadsAbortController.abort();
-            stopChunkDownloads();
+            if (!isAborting) {
+              chunkDownloadsAbortController.abort();
+              stopChunkDownloads();
+            }
             await cleanupChunks();
             if (isAborting) {
               throw new Error('Download aborted');
