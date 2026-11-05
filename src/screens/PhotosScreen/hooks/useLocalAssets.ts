@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { logger } from 'src/services/common';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
+import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { isPermissionActive } from 'src/services/photos/photoPermissionService';
 import { useAppSelector } from 'src/store/hooks';
 import { useBurstRepresentatives } from './useBurstRepresentatives';
@@ -37,6 +38,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
 
   const uploadingAssetIds = useAppSelector((state) => state.photos.uploadingAssetIds);
   const permissionStatus = useAppSelector((state) => state.photos.permissionStatus);
+  const deviceId = useAppSelector((state) => state.photos.deviceId);
   const isPhotosEnabled = isPermissionActive(permissionStatus);
 
   const uploadingIdSet = useMemo(() => new Set(uploadingAssetIds), [uploadingAssetIds]);
@@ -55,11 +57,14 @@ export const useLocalAssets = (): LocalAssetsResult => {
   const { syncedIds, cloudDeletedIds, incompleteUploadBurstIdSet } = useLocalAssetsSyncStatus(assetIds);
   const burstRepresentativeIdSet = useBurstRepresentatives(assetIds);
 
-  const removeDeletedAssetsFromSyncDB = useCallback(async (deletedAssetIds: string[]) => {
-    await photosLocalDB.init();
-    await photosLocalDB.deleteAssetSyncBulk(deletedAssetIds);
-    setLocalDeletionDetectedCount((prev) => prev + 1);
-  }, []);
+  const removeDeletedAssetsFromSyncDB = useCallback(
+    async (deletedAssetIds: string[]) => {
+      await photosLocalDB.init();
+      await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(deletedAssetIds, deviceId);
+      setLocalDeletionDetectedCount((prev) => prev + 1);
+    },
+    [deviceId],
+  );
 
   const reconcileWithDevice = useCallback(async () => {
     const droppedAssetIds = await reconcileHead();
@@ -95,12 +100,12 @@ export const useLocalAssets = (): LocalAssetsResult => {
     logger.info(`[LocalAssets] Reloaded from start — ${deviceAssetIds.size} total assets`);
 
     await photosLocalDB.init();
-    const orphanedAssetsSyncRemovedCount = await photosLocalDB.cleanupOrphanedAssetSync(deviceAssetIds);
+    const orphanedAssetsSyncRemovedCount = await photoCloudBrowser.cleanupOrphanedAssetSync(deviceAssetIds, deviceId);
     if (orphanedAssetsSyncRemovedCount > 0) {
       logger.info(`[LocalAssets] Cleaned up ${orphanedAssetsSyncRemovedCount} orphaned asset_sync entries`);
       setLocalDeletionDetectedCount((prev) => prev + 1);
     }
-  }, [reloadFromStart]);
+  }, [reloadFromStart, deviceId]);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextState) => {
