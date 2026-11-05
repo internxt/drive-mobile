@@ -54,11 +54,11 @@ class NotificationsService {
 
   private buildToastOptions(notification: NotificationData): ToastShowParams {
     const autoHide = notification.autoHide ?? true;
-    const actionVisibilityOptions = notification.action
-      ? { visibilityTime: ACTION_NOTIFICATION_VISIBILITY_TIME_MS }
-      : {};
+    const defaultVisibilityTime = notification.action ? ACTION_NOTIFICATION_VISIBILITY_TIME_MS : undefined;
+    const visibilityTime = notification.visibilityTime ?? defaultVisibilityTime;
+    const autoHideVisibilityOptions = visibilityTime === undefined ? {} : { visibilityTime };
     const visibilityOptions: Partial<ToastShowParams> = autoHide
-      ? actionVisibilityOptions
+      ? autoHideVisibilityOptions
       : { autoHide: false, visibilityTime: undefined };
 
     return {
