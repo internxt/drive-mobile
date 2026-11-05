@@ -11,7 +11,9 @@ import ProgressBar from '../../../../AppProgressBar';
 import AppText from '../../../../AppText';
 
 import { time } from '@internxt-mobile/services/common/time';
+import { useDownloadedThumbnail } from '@internxt-mobile/hooks/drive';
 import { DriveListType } from '@internxt-mobile/types/drive/ui';
+import { Image } from 'expo-image';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../../hooks/useColor';
 import { DriveItemStatus } from '../../../../../types/drive/item';
@@ -34,6 +36,7 @@ type DriveListModeItemContentProps = Pick<
 const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const downloadedThumbnail = useDownloadedThumbnail(props.data);
 
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
@@ -97,10 +100,28 @@ const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JS
     );
   };
 
+  const isThumbnailVisible = Boolean(downloadedThumbnail);
+
+  let leadingVisual: JSX.Element;
+  if (isFolder) {
+    leadingVisual = <FolderIcon width={iconSize} height={iconSize} />;
+  } else if (isThumbnailVisible) {
+    leadingVisual = (
+      <Image
+        testID="drive-list-item-thumbnail"
+        source={{ uri: downloadedThumbnail?.uri }}
+        style={{ width: iconSize, height: iconSize, borderRadius: 6 }}
+        contentFit="cover"
+      />
+    );
+  } else {
+    leadingVisual = <IconFile width={iconSize} height={iconSize} />;
+  }
+
   return (
     <View style={[tailwind('flex-row flex-1 py-3')]}>
       <View style={[tailwind('mb-1 mr-4 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
-        {isFolder ? <FolderIcon width={iconSize} height={iconSize} /> : <IconFile width={iconSize} height={iconSize} />}
+        {leadingVisual}
         {props.type === DriveListType.Shared && (
           <View
             style={[
