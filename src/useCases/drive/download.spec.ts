@@ -67,6 +67,15 @@ describe('Downloading a file to the device', () => {
     expect(confirmDownload).not.toHaveBeenCalled();
   });
 
+  test('when the file is empty, then the download is not asked to be confirmed', async () => {
+    const emptyFile = { ...reportFile, size: 0 };
+    const confirmDownload = jest.fn().mockResolvedValue(true);
+
+    await downloadFileToDevice({ file: emptyFile, confirmDownload });
+
+    expect(confirmDownload).not.toHaveBeenCalled();
+  });
+
   test('when the download is not confirmed, then nothing is downloaded and no file path is returned', async () => {
     const confirmDownload = jest.fn().mockResolvedValue(false);
     const onDownloadStarted = jest.fn();
