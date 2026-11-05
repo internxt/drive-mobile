@@ -1,5 +1,7 @@
 import type { AttachmentRef } from '@internxt/sdk/dist/mail/types';
 
+export type MailAccountStatus = 'ready' | 'notSetUp';
+
 export type MailAttachment = {
   uri: string;
   name: string;

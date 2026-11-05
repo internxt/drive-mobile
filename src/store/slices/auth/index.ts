@@ -46,8 +46,9 @@ const ensureRootFolderUuid = (user: UserSettings): UserSettings => {
 };
 
 async function syncNativeCredentials(token: string, user: UserSettings): Promise<void> {
-  if (!user.rootFolderUuid) {
-    errorService.reportError(new Error('syncNativeCredentials: missing rootFolderUuid'));
+  const rootFolderUuid = user.rootFolderUuid ?? user.rootFolderId;
+  if (!rootFolderUuid) {
+    errorService.reportError(new Error('syncNativeCredentials: missing rootFolderUuid and rootFolderId'));
     return;
   }
   try {
@@ -56,7 +57,7 @@ async function syncNativeCredentials(token: string, user: UserSettings): Promise
       userId: user.userId,
       bridgeUser: user.bridgeUser,
       mnemonic: user.mnemonic,
-      rootFolderUuid: user.rootFolderUuid,
+      rootFolderUuid,
       email: user.email,
       driveBaseUrl: appService.constants.DRIVE_NEW_API_URL,
       bridgeBaseUrl: appService.constants.BRIDGE_URL,
@@ -112,6 +113,8 @@ export const silentSignInThunk = createAsyncThunk<void, void, { state: RootState
         token: credentials.accessToken,
         newToken: credentials.photosToken,
       });
+
+      await syncNativeCredentials(credentials.photosToken, credentials.user);
 
       dispatch(
         authActions.setSignInData({

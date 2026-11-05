@@ -1,7 +1,7 @@
 import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { EntityState } from '@reduxjs/toolkit';
 
-import { MailboxId } from '../../../types/mail';
+import { MailAccountStatus, MailboxId } from '../../../types/mail';
 
 export type MailboxListState = {
   emailIds: string[];
@@ -22,6 +22,7 @@ export type MailState = {
   mailboxTypeById: Record<string, MailboxId>;
   removedEmailIds: string[];
   removedEmailCountByRequestId: Record<string, number>;
+  accountStatus: MailAccountStatus;
 };
 
 export type EmailSnapshot = Pick<EmailSummaryResponse, 'id' | 'mailboxIds' | 'isRead'>;
