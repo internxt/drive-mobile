@@ -502,11 +502,13 @@ describe('PhotoCloudBrowser.deleteAssetSyncPreservingCloudVisibility', () => {
     expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-1']);
   });
 
-  test('when no device id is known, then the sync row is still removed but cloud visibility is not touched', async () => {
-    await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], null);
+  test('when the device is not known yet, then the sync rows are kept for a later pass and nothing is added to the cloud index', async () => {
+    const removedCount = await photoCloudBrowser.deleteAssetSyncPreservingCloudVisibility(['asset-1'], null);
 
     expect(mockPhotosLocalDB.getStatus).not.toHaveBeenCalled();
-    expect(mockPhotosLocalDB.deleteAssetSyncBulk).toHaveBeenCalledWith(['asset-1']);
+    expect(mockPhotosLocalDB.upsertCloudAsset).not.toHaveBeenCalled();
+    expect(mockPhotosLocalDB.deleteAssetSyncBulk).not.toHaveBeenCalled();
+    expect(removedCount).toBe(0);
   });
 
   test('when a minimal entry is created, then a background refresh of that day is kicked off to fill in real thumbnails', async () => {

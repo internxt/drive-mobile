@@ -334,8 +334,7 @@ class PhotoCloudBrowserService {
    * background refresh of the asset's day-folder to fill in real thumbnails/pairing.
    *
    * @param assetIds - Ids of the local assets to remove from `asset_sync`.
-   * @param deviceId - This device's folder uuid, or null if unknown (skips the cloud-visibility
-   *   preservation — the rows are still deleted).
+   * @param deviceId - This device's folder uuid, or null if unknown (nothing is removed).
    * @returns The number of `asset_sync` rows removed. Rows whose cloud row could not be written are
    *   kept, so the next pass retries them.
    */
@@ -343,13 +342,16 @@ class PhotoCloudBrowserService {
     if (assetIds.length === 0) {
       return 0;
     }
-    let failedAssetIds = new Set<string>();
-    if (deviceId) {
-      const entries = (await Promise.all(assetIds.map((id) => this.localDB.getStatus(id)))).filter(
-        (e): e is AssetSyncEntry => e !== null,
+    if (!deviceId) {
+      logger.info(
+        `[CloudBrowser] deleteAssetSyncPreservingCloudVisibility — kept ${assetIds.length} row(s), no deviceId yet`,
       );
-      failedAssetIds = await this.preserveCloudVisibilityForOrphans(entries, deviceId);
+      return 0;
     }
+    const entries = (await Promise.all(assetIds.map((id) => this.localDB.getStatus(id)))).filter(
+      (e): e is AssetSyncEntry => e !== null,
+    );
+    const failedAssetIds = await this.preserveCloudVisibilityForOrphans(entries, deviceId);
     const removableAssetIds = assetIds.filter((assetId) => !failedAssetIds.has(assetId));
     await this.localDB.deleteAssetSyncBulk(removableAssetIds);
     return removableAssetIds.length;
