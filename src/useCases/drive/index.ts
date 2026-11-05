@@ -5,6 +5,7 @@ export * from './getShareLink';
 export * from './loadRecentItems';
 export * from './loadSharedItems';
 export * from './move';
+export * from './moveCollisions';
 export * from './onDriveItemMoved';
 export * from './onDriveItemRestored';
 export * from './onDriveItemTrashed';

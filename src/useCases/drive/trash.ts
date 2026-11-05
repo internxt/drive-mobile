@@ -12,7 +12,7 @@ import { chunk } from 'lodash';
 import pLimit from 'p-limit';
 import { checkIsFolder } from '../../helpers';
 
-const MAX_ITEMS_PER_TRASH_REQUEST = 50;
+export const MAX_ITEMS_PER_TRASH_REQUEST = 50;
 const MAX_CONCURRENT_RESTORES = 5;
 
 type GetDriveTrashItemsOptions = {
