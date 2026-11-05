@@ -9,8 +9,4 @@ export const PRICING_URL = 'https://internxt.com/pricing';
 // 10% of the directory size
 export const MAX_FILE_SIZE_FOR_CACHING = MAX_CACHE_DIRECTORY_SIZE_IN_BYTES * 0.1;
 
-export const MAX_SIZE_TO_DOWNLOAD = {
-  '3GB': 3221225472,
-  '10GB': 10737418240,
-};
 export const LARGE_DOWNLOAD_WARNING_BYTES = 1024 * 1024 * 1024 * 2;

@@ -1,5 +1,4 @@
 const mockDownloadFileToDevice = jest.fn();
-const mockIsFileTooLargeToDownload = jest.fn();
 const mockMoveToAndroidDownloads = jest.fn();
 const mockSaveFilesToiOSFiles = jest.fn();
 const mockShareFiles = jest.fn();
@@ -9,7 +8,6 @@ const mockReportError = jest.fn();
 
 jest.mock('@internxt-mobile/useCases/drive', () => ({
   downloadFileToDevice: (...args: unknown[]) => mockDownloadFileToDevice(...args),
-  isFileTooLargeToDownload: (...args: unknown[]) => mockIsFileTooLargeToDownload(...args),
 }));
 
 jest.mock('@internxt-mobile/services/FileSystemService', () => ({
@@ -87,7 +85,6 @@ describe('Downloading the selected Drive files', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setPlatform('android');
-    mockIsFileTooLargeToDownload.mockReturnValue(false);
     mockDownloadFileToDevice.mockImplementation(async ({ file }) => `/tmp/${file.name}.pdf`);
   });
 
@@ -164,19 +161,6 @@ describe('Downloading the selected Drive files', () => {
     });
 
     expect(mockNotifyError).toHaveBeenCalledWith('1 downloaded, 2 could not be downloaded');
-  });
-
-  test('when a file is bigger than the download limit, then it counts as failed without being downloaded', async () => {
-    mockIsFileTooLargeToDownload.mockImplementation((file) => file.uuid === 'file-1');
-    const { result } = renderDownloadHook();
-
-    await act(async () => {
-      await result.current.downloadItems([REPORT_FILE, INVOICE_FILE]);
-    });
-
-    expect(mockDownloadFileToDevice).toHaveBeenCalledTimes(1);
-    expect(mockNotifyError).toHaveBeenCalledWith('"report.pdf" could not be downloaded');
-    expect(mockReportError).not.toHaveBeenCalled();
   });
 
   test('when the user cancels, then the current download stops, the next ones never start and nothing is shown', async () => {
@@ -444,7 +428,6 @@ describe('Exporting the selected Drive files', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setPlatform('android');
-    mockIsFileTooLargeToDownload.mockReturnValue(false);
     mockShareFiles.mockResolvedValue(undefined);
     mockDownloadFileToDevice.mockImplementation(async ({ file }) => `/tmp/${file.name}.pdf`);
   });

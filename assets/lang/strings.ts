@@ -1140,8 +1140,6 @@ const translations = {
       confirmDeleteSharedLink: 'Users with the link will lose access to the shared content.',
       linkDeleted: 'Link deleted successfully',
       trashEmpty: 'Trash is empty',
-      downloadLimit:
-        "This file is over {0} and can't be downloaded in the mobile app. Download it from the desktop app or drive.internxt.com.",
       largeDownloadWarning:
         'This file is large and may take a while to download. If it fails, we recommend downloading files over {0} from the desktop app or drive.internxt.com.',
       folderUploadCompleted: 'Successfully uploaded {0} files to "{1}"',
@@ -2406,8 +2404,6 @@ const translations = {
       confirmDeleteSharedLink: 'Los usuarios con el link compartido perderán el acceso a este contenido compartido.',
       linkDeleted: 'Link eliminado correctamente',
       trashEmpty: 'Papelera vaciada',
-      downloadLimit:
-        'Este archivo supera los {0} y no se puede descargar en la app móvil. Descárgalo desde la app de escritorio o drive.internxt.com.',
       largeDownloadWarning:
         'Este archivo es grande y puede tardar en descargarse. Si falla, te recomendamos descargar los archivos de más de {0} desde la app de escritorio o drive.internxt.com.',
       folderUploadCompleted: '{0} archivos subidos correctamente a "{1}"',
