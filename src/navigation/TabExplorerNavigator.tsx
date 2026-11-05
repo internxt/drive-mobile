@@ -33,7 +33,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { AsyncStorageKey } from '../types';
 import { RootStackScreenProps, TabExplorerStackParamList } from '../types/navigation';
 import { DriveNavigator } from './DriveNavigator';
-import { getFloatingButtonMode } from './floatingButtonMode';
+import { getFloatingButtonMode, shouldHideFloatingButton } from './floatingButtonMode';
 import { MailNavigator } from './MailNavigator';
 import { SettingsNavigator } from './SettingsNavigator';
 
@@ -55,6 +55,7 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
   const isFloatingButtonHidden = useAppSelector((state) => state.ui.isFloatingButtonHidden);
   const isComposeButtonCollapsed = useAppSelector((state) => state.ui.isComposeButtonCollapsed);
   const hasSentMessageNotice = useAppSelector((state) => !!state.ui.sentMessageNotice);
+  const mailAccountStatus = useAppSelector((state) => state.mail.accountStatus);
 
   const lastModeRef = useRef<FloatingActionButtonMode>('upload');
 
@@ -63,8 +64,14 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
     lastModeRef.current = focusedMode;
   }
   const mode = focusedMode ?? lastModeRef.current;
-  const isComposeUnavailable = mode === 'compose' && (!hasMailAccess || isFloatingButtonHidden);
-  const isHidden = !focusedMode || isTabBarHidden || isComposeUnavailable;
+  const isHidden = shouldHideFloatingButton({
+    focusedMode,
+    mode,
+    isTabBarHidden,
+    hasMailAccess,
+    isFloatingButtonHidden,
+    mailAccountStatus,
+  });
 
   const onPress = () => {
     if (mode === 'compose') {
