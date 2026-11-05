@@ -73,7 +73,7 @@ interface CloudAssetRow {
 }
 
 export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted' | 'cloud_deleted';
-export type PairedVideoStatus = 'synced' | 'error';
+export type PairedVideoStatus = 'synced' | 'error' | 'outdated';
 
 export interface AssetSyncEntry {
   assetId: string;

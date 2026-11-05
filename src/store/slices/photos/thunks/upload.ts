@@ -106,7 +106,7 @@ export const completeSyncForAsset = async (
       result.photoUuid,
       modificationTime,
       keptPairedVideoRemoteFileId,
-      'error',
+      keptPairedVideoRemoteFileId ? 'outdated' : 'error',
       thumbnailRefs,
     );
   } else {
