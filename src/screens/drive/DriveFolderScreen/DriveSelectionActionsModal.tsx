@@ -19,8 +19,10 @@ interface DriveSelectionActionsModalProps {
   selectedCount: number;
   moveDisabled: boolean;
   trashDisabled: boolean;
+  downloadDisabled: boolean;
   onMovePress: () => void;
   onTrashPress: () => void;
+  onDownloadPress: () => void;
   onClose: () => void;
 }
 
@@ -29,8 +31,10 @@ export const DriveSelectionActionsModal = ({
   selectedCount,
   moveDisabled,
   trashDisabled,
+  downloadDisabled,
   onMovePress,
   onTrashPress,
+  onDownloadPress,
   onClose,
 }: DriveSelectionActionsModalProps): JSX.Element => {
   const tailwind = useTailwind();
@@ -49,7 +53,8 @@ export const DriveSelectionActionsModal = ({
       label: strings.buttons.download,
       icon: <DownloadSimpleIcon size={OPTION_ICON_SIZE} color={iconColor} />,
       color: getColor('text-gray-100'),
-      disabled: true,
+      disabled: downloadDisabled,
+      onPress: onDownloadPress,
     },
     {
       label: strings.buttons.moveToThrash,
