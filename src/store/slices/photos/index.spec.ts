@@ -484,6 +484,19 @@ describe('photos slice', () => {
     expect(store.getState().photos.photosBucket).toBe('mock-photos-bucket');
   });
 
+  test('when the device is registered for backup, then its identifier and photos bucket are saved for the next launch', async () => {
+    mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({
+      deviceId: 'new-device-id',
+      plainName: 'New Device',
+      bucket: 'mock-photos-bucket',
+    });
+
+    const store = makeStore();
+    await store.dispatch(initDeviceIdThunk());
+
+    expect(getPersistedState()).toMatchObject({ deviceId: 'new-device-id', photosBucket: 'mock-photos-bucket' });
+  });
+
   test('when the device was already registered for backup, then the existing identifier is reused', async () => {
     mockPhotoDeviceManager.ensureDeviceFolder.mockResolvedValueOnce({
       deviceId: 'existing-device-id',
