@@ -233,8 +233,6 @@ function AppContent(): JSX.Element {
                   />
 
                   {initialScreenLocked && screenLocked ? null : <Navigation navigationRef={navigationRef} />}
-                  <AppToast />
-
                   <LinkCopiedModal isOpen={isLinkCopiedModalOpen} onClose={onLinkCopiedModalClosed} />
                   <DeleteAccountModal isOpen={isDeleteAccountModalOpen} onClose={onDeleteAccountModalClosed} />
                   <EditNameModal isOpen={isEditNameModalOpen} onClose={onEditNameModalClosed} />
@@ -245,6 +243,7 @@ function AppContent(): JSX.Element {
                   <LanguageModal isOpen={isLanguageModalOpen} onClose={onLanguageModalClosed} />
                   <SignOutModal />
                 </Portal.Host>
+                <AppToast />
               </DriveContextProvider>
             ) : (
               <View style={tailwind('items-center flex-1 justify-center')}>
