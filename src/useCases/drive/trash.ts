@@ -8,7 +8,12 @@ import { DriveItemStatus, DriveListItem } from '@internxt-mobile/types/drive/ite
 import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 import { NotificationType, UseCaseResult } from '@internxt-mobile/types/index';
 import strings from 'assets/lang/strings';
+import { chunk } from 'lodash';
+import pLimit from 'p-limit';
 import { checkIsFolder } from '../../helpers';
+
+const MAX_ITEMS_PER_TRASH_REQUEST = 50;
+const MAX_CONCURRENT_RESTORES = 5;
 
 type GetDriveTrashItemsOptions = {
   page: number;
@@ -80,19 +85,31 @@ export const getDriveTrashItems = async ({
 export const restoreDriveItems = async (
   items: { fileId?: string; folderId?: string; destinationFolderId: string }[],
   config?: { displayNotification: boolean },
-): Promise<UseCaseResult<unknown>> => {
+): Promise<UseCaseResult<{ restoredCount: number }>> => {
+  let restoredCount = 0;
   try {
-    const operations = items.map(async (item) => {
-      if (item.fileId) {
-        await drive.trash.restoreFile({ fileUuid: item.fileId, destinationFolderUuid: item.destinationFolderId });
-      }
+    const restoreLimit = pLimit(MAX_CONCURRENT_RESTORES);
+    const operations = items.map((item) =>
+      restoreLimit(async () => {
+        if (item.fileId) {
+          await drive.trash.restoreFile({ fileUuid: item.fileId, destinationFolderUuid: item.destinationFolderId });
+        }
 
-      if (item.folderId) {
-        await drive.trash.restoreFolder({ folderUuid: item.folderId, destinationFolderUuid: item.destinationFolderId });
-      }
-    });
+        if (item.folderId) {
+          await drive.trash.restoreFolder({
+            folderUuid: item.folderId,
+            destinationFolderUuid: item.destinationFolderId,
+          });
+        }
+      }),
+    );
 
-    await Promise.all(operations);
+    const results = await Promise.allSettled(operations);
+    restoredCount = results.filter((result) => result.status === 'fulfilled').length;
+    const failedResult = results.find((result) => result.status === 'rejected');
+    if (failedResult?.status === 'rejected') {
+      throw failedResult.reason;
+    }
 
     const isPlural = items.length > 1;
     if (config?.displayNotification !== false) {
@@ -105,7 +122,7 @@ export const restoreDriveItems = async (
 
     return {
       success: true,
-      data: {},
+      data: { restoredCount },
     };
   } catch (error) {
     errorService.reportError(error);
@@ -113,6 +130,7 @@ export const restoreDriveItems = async (
     return {
       success: false,
       error: error as Error,
+      data: { restoredCount },
     };
   }
 };
@@ -183,13 +201,23 @@ export const clearTrash = async (): Promise<UseCaseResult<null>> => {
 export const moveItemsToTrash = async (
   items: { type: 'file' | 'folder'; uuid: string }[],
   onUndo: () => void,
-): Promise<UseCaseResult<null>> => {
+): Promise<UseCaseResult<{ trashedUuids: string[] }>> => {
+  const trashedUuids: string[] = [];
   try {
-    await drive.trash.moveToTrash(items);
+    await chunk(items, MAX_ITEMS_PER_TRASH_REQUEST).reduce(
+      (previousBatches, batch) =>
+        previousBatches.then(async () => {
+          await drive.trash.moveToTrash(batch);
+          trashedUuids.push(...batch.map((item) => item.uuid));
+        }),
+      Promise.resolve(),
+    );
 
     const isPlural = items.length > 1;
     notifications.show({
-      text1: isPlural ? strings.messages.itemsMovedToTrash : strings.messages.itemMovedToTrash,
+      text1: isPlural
+        ? strings.formatString(strings.messages.itemsMovedToTrash, items.length).toString()
+        : strings.messages.itemMovedToTrash,
       type: NotificationType.Success,
       action: {
         text: strings.buttons.undo,
@@ -211,7 +239,7 @@ export const moveItemsToTrash = async (
 
     return {
       success: true,
-      data: null,
+      data: { trashedUuids },
     };
   } catch (error) {
     errorService.reportError(error);
@@ -219,6 +247,7 @@ export const moveItemsToTrash = async (
     return {
       success: false,
       error: error as Error,
+      data: { trashedUuids },
     };
   }
 };
