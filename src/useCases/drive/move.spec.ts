@@ -1,5 +1,6 @@
 import drive from '@internxt-mobile/services/drive';
 import { driveEvents } from '@internxt-mobile/services/drive/events';
+import errorService from '@internxt-mobile/services/ErrorService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { DriveEventKey } from '@internxt-mobile/types/drive/events';
 import { NotificationType } from '@internxt-mobile/types/index';
@@ -54,6 +55,25 @@ describe('Moving several items', () => {
       destinationFolderUuid: DESTINATION_FOLDER_UUID,
     });
     expect(moveResult).toStrictEqual({ movedUuids: ['folder-1', 'file-1'], failedUuids: [] });
+  });
+
+  test('when an item cannot be moved, then it is kept in the local cache', async () => {
+    jest.mocked(drive.file.moveFile).mockRejectedValueOnce(new Error('server error'));
+
+    await moveToDestination([firstFileToMove]);
+
+    expect(drive.database.deleteItem).not.toHaveBeenCalled();
+  });
+
+  test('when an item is moved but the local cache cannot be updated, then it still counts as moved', async () => {
+    const localCacheError = new Error('database error');
+    jest.mocked(drive.database.deleteItem).mockRejectedValueOnce(localCacheError);
+
+    const moveResult = await moveToDestination([firstFileToMove]);
+
+    expect(drive.database.deleteItem).toHaveBeenCalledWith({ uuid: 'file-1' });
+    expect(errorService.reportError).toHaveBeenCalledWith(localCacheError);
+    expect(moveResult).toStrictEqual({ movedUuids: ['file-1'], failedUuids: [] });
   });
 
   test('when every item is moved, then one notification counts them and lets the user open the folder', async () => {

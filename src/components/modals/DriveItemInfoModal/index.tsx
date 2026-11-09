@@ -29,11 +29,8 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
-import {
-  checkDownloadSize,
-  isDownloadBlocked,
-  notifyDownloadSizeCheck,
-} from '../../../services/drive/file/utils/downloadSizeCheck';
+import { getFileSize } from '../../../helpers/driveItems';
+import { isLargeDownload, notifyDownloadSizeCheck } from '../../../services/drive/file/utils/downloadSizeCheck';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
@@ -71,12 +68,6 @@ function DriveItemInfoModal(): JSX.Element {
     dispatch(uiActions.setShowItemModal(false));
     dispatch(uiActions.setShowMoveModal(true));
     dispatch(driveActions.setItemsToMove([item]));
-  };
-
-  const isFileDownloadable = async (fileSize: number): Promise<boolean> => {
-    const downloadSizeCheck = await checkDownloadSize(fileSize);
-    notifyDownloadSizeCheck(downloadSizeCheck, fileSize);
-    return !isDownloadBlocked(downloadSizeCheck);
   };
 
   const handleUndoMoveToTrash = async () => {
@@ -130,11 +121,14 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
-  const downloadFocusedFile = () =>
-    driveUseCases.downloadFileToDevice({
+  const downloadFocusedFile = (): Promise<string> => {
+    const fileSize = getFileSize(item);
+    return driveUseCases.downloadFileToDevice({
       file: item,
-      confirmDownload: isFileDownloadable,
       onDownloadStarted: () => {
+        if (isLargeDownload(fileSize)) {
+          notifyDownloadSizeCheck('large', fileSize);
+        }
         setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
         setExporting(true);
       },
@@ -145,13 +139,14 @@ function DriveItemInfoModal(): JSX.Element {
         downloadAbortableRef.current = abortable;
       },
     });
+  };
 
   const showDownloadError = (error: unknown) => {
-    notifications.error(
-      error instanceof NotEnoughSpaceOnDeviceError
-        ? strings.errors.notEnoughSpaceOnDevice
-        : strings.errors.generic.message,
-    );
+    if (error instanceof NotEnoughSpaceOnDeviceError) {
+      notifyDownloadSizeCheck('notEnoughSpace', getFileSize(item));
+      return;
+    }
+    notifications.error(strings.errors.generic.message);
   };
 
   const handleExportFile = async () => {
@@ -171,6 +166,9 @@ function DriveItemInfoModal(): JSX.Element {
         return;
       }
       showDownloadError(error);
+      if (error instanceof NotEnoughSpaceOnDeviceError) {
+        return;
+      }
       logger.error('Error on handleExportFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
@@ -208,6 +206,9 @@ function DriveItemInfoModal(): JSX.Element {
         return;
       }
       showDownloadError(error);
+      if (error instanceof NotEnoughSpaceOnDeviceError) {
+        return;
+      }
       logger.error('Error on handleAndroidDownloadFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
@@ -237,6 +238,9 @@ function DriveItemInfoModal(): JSX.Element {
         return;
       }
       showDownloadError(error);
+      if (error instanceof NotEnoughSpaceOnDeviceError) {
+        return;
+      }
       logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {

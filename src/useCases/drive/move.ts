@@ -24,12 +24,12 @@ export interface MoveDriveItemsResult {
 }
 
 const moveDriveItem = async (item: MovableItem, destinationFolderUuid: string) => {
-  await drive.database.deleteItem({ uuid: item.uuid });
   if (item.isFolder) {
     await drive.folder.moveFolder({ folderUuid: item.uuid, destinationFolderUuid, name: item.newName });
   } else {
     await drive.file.moveFile({ fileUuid: item.uuid, destinationFolderUuid, name: item.newName });
   }
+  await drive.database.deleteItem({ uuid: item.uuid }).catch((error) => errorService.reportError(error));
 };
 
 const getMoveFailureText = (movedCount: number, failedItems: MovableItem[]) => {
