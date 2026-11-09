@@ -1,42 +1,29 @@
 import AuthService from '@internxt-mobile/services/AuthService';
 import { NotEnoughSpaceOnDeviceError } from '@internxt-mobile/services/common/filesystem/errors';
 import drive from '@internxt-mobile/services/drive';
-import errorService from '@internxt-mobile/services/ErrorService';
-import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import { hasDeviceSpaceForDownload } from '@internxt-mobile/services/drive/file/utils/downloadSizeCheck';
 import { DriveItemData, FocusedItem } from '@internxt-mobile/types/drive/item';
 import { Abortable } from '@internxt-mobile/types/index';
 import { getFileSize, isEmptyFile } from '../../helpers/driveItems';
 
 type DownloadableFile = DriveItemData | NonNullable<FocusedItem>;
 
-const checkDeviceHasSpaceForFile = async (fileSize: number) => {
-  try {
-    return await fileSystemService.checkAvailableStorage(fileSize);
-  } catch (error) {
-    errorService.reportError(error);
-    return true;
-  }
-};
-
 /**
  * Returns the path of the decrypted file on the device, downloading it when it is not there yet.
- * `confirmDownload` and `onDownloadStarted` run only before a network download; when
- * `confirmDownload` resolves to false nothing is downloaded and null is returned.
- * Throws `NotEnoughSpaceOnDeviceError` when the device has no room for it.
+ * `onDownloadStarted` runs only before a network download. Throws `NotEnoughSpaceOnDeviceError` when
+ * `hasDeviceSpaceForDownload` resolves false.
  */
 export const downloadFileToDevice = async ({
   file,
-  confirmDownload,
   onDownloadStarted,
   onProgress,
   onAbortableReady,
 }: {
   file: DownloadableFile;
-  confirmDownload?: (fileSize: number) => Promise<boolean>;
   onDownloadStarted?: () => void;
   onProgress?: (progress: number, bytesReceived: number, totalBytes: number) => void;
   onAbortableReady?: (abortable: Abortable) => void;
-}): Promise<string | null> => {
+}): Promise<string> => {
   const decryptedFilePath = drive.file.getDecryptedFilePath(file.uuid, file.name, file.type);
   const isAlreadyDecrypted = await drive.file.existsDecrypted(file.uuid, file.name, file.type);
   if (isAlreadyDecrypted) {
@@ -54,11 +41,7 @@ export const downloadFileToDevice = async ({
   }
 
   const fileSize = getFileSize(file);
-  if (confirmDownload && !(await confirmDownload(fileSize))) {
-    return null;
-  }
-
-  const hasEnoughSpace = await checkDeviceHasSpaceForFile(fileSize);
+  const hasEnoughSpace = await hasDeviceSpaceForDownload(fileSize);
   if (!hasEnoughSpace) {
     throw new NotEnoughSpaceOnDeviceError('Not enough space on the device for the download');
   }
