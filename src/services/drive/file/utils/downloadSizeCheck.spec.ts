@@ -2,6 +2,7 @@ import { logger } from '@internxt-mobile/services/common';
 import prettysize from 'prettysize';
 
 import { NotificationType } from '../../../../types';
+import errorService from '../../../ErrorService';
 import fileSystemService from '../../../FileSystemService';
 import notificationsService from '../../../NotificationsService';
 import { LARGE_DOWNLOAD_WARNING_BYTES, MAX_SIZE_TO_DOWNLOAD } from '../../constants';
@@ -18,6 +19,11 @@ jest.mock('@internxt-mobile/services/common', () => ({
 jest.mock('../../../FileSystemService', () => ({
   __esModule: true,
   default: { checkAvailableStorage: jest.fn() },
+}));
+
+jest.mock('../../../ErrorService', () => ({
+  __esModule: true,
+  default: { reportError: jest.fn() },
 }));
 
 jest.mock('../../../NotificationsService', () => ({
@@ -86,10 +92,12 @@ describe('checking a file before downloading it', () => {
     expect(mockedCheckAvailableStorage).toHaveBeenCalledWith(SMALL_FILE_SIZE * DOWNLOAD_COPY_COUNT);
   });
 
-  test('when the free space cannot be read, then the file is downloaded', async () => {
-    mockedCheckAvailableStorage.mockRejectedValue(new Error('Could not check available storage'));
+  test('when the free space cannot be read, then the file is downloaded and the failure is reported', async () => {
+    const freeSpaceError = new Error('Could not check available storage');
+    mockedCheckAvailableStorage.mockRejectedValue(freeSpaceError);
 
     expect(await checkDownloadSize(SMALL_FILE_SIZE)).toBe('allowed');
+    expect(errorService.reportError).toHaveBeenCalledWith(freeSpaceError);
   });
 });
 
