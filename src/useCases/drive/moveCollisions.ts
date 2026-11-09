@@ -140,20 +140,23 @@ const addTakenName = (takenNames: TakenNames, item: MovableItem, name: string) =
 
 /**
  * Applies the decided action to each collision and returns the items to move, with `newName` set on the renamed
- * ones, plus the uuids of the destination items sent to trash. Throws if a name check or the trash fails; names are
- * resolved before anything is sent to trash.
+ * ones. Sends the replaced destination items to trash in batches and calls `onDestinationItemsTrashed` with the uuids
+ * of each batch once it is in trash. Throws if a name check or the trash fails; names are resolved before anything is
+ * sent to trash.
  */
 export const resolveMoveCollisions = async ({
   items,
   collisions,
   actionsByUuid,
   destinationFolderUuid,
+  onDestinationItemsTrashed,
 }: {
   items: MovableItem[];
   collisions: MoveCollision[];
   actionsByUuid: Map<string, MoveCollisionAction>;
   destinationFolderUuid: string;
-}): Promise<{ finalItemsToMove: MovableItem[]; trashedDestinationItemUuids: string[] }> => {
+  onDestinationItemsTrashed: (trashedItemUuids: string[]) => void;
+}): Promise<MovableItem[]> => {
   const notSkippedItems = items.filter((item) => actionsByUuid.get(item.uuid) !== 'skip');
 
   const takenNames: TakenNames = { folderNames: new Set(), fileNameKeys: new Set() };
@@ -179,10 +182,8 @@ export const resolveMoveCollisions = async ({
     }));
   for (const replacedBatch of chunk(replacedDestinationItems, MAX_ITEMS_PER_TRASH_REQUEST)) {
     await drive.trash.moveToTrash(replacedBatch);
+    onDestinationItemsTrashed(replacedBatch.map((replacedItem) => replacedItem.uuid));
   }
 
-  return {
-    finalItemsToMove,
-    trashedDestinationItemUuids: replacedDestinationItems.map((replacedItem) => replacedItem.uuid),
-  };
+  return finalItemsToMove;
 };
