@@ -12,7 +12,7 @@ import {
   SquaresFour,
 } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, StyleProp, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, Animated, StyleProp, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import Reanimated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
 import AppText from 'src/components/AppText';
 import {
@@ -65,6 +65,7 @@ const GLOBAL_SEARCH_BUTTON_HEIGHT = 40;
 const NAVIGATION_ROW_HEIGHT = 26;
 const GRID_SELECT_ALL_ICON_SIZE = 28;
 const TITLE_ROW_HEIGHT = 32;
+const SELECTION_TITLE_FONT_VARIANT: TextStyle = { fontVariant: ['tabular-nums'] };
 const HEADER_ROW_ENTERING = FadeIn.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
 const HEADER_ROW_EXITING = FadeOut.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
 
@@ -88,6 +89,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
 
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [isSearchInputFocused, setIsSearchInputFocused] = useState(false);
+  const [selectionCancelWidth, setSelectionCancelWidth] = useState(0);
 
   const searchBarHeight = useRef(new Animated.Value(searchVisible ? SEARCH_BAR_HEIGHT : 0)).current;
   const searchBarOpacity = useRef(new Animated.Value(searchVisible ? 1 : 0)).current;
@@ -155,23 +157,37 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       key="selection"
       entering={HEADER_ROW_ENTERING}
       exiting={HEADER_ROW_EXITING}
-      style={[tailwind('flex-row items-center justify-between'), style]}
+      style={[tailwind('flex-row items-center'), style]}
     >
-      <TouchableOpacity
-        hitSlop={INCREASED_TOUCH_AREA}
-        onPress={selectionConfig.onSelectAllPress}
-        disabled={selectionConfig.isSelectingAll}
+      <View style={[tailwind('items-start'), { minWidth: selectionCancelWidth }]}>
+        <TouchableOpacity
+          hitSlop={INCREASED_TOUCH_AREA}
+          onPress={selectionConfig.onSelectAllPress}
+          disabled={selectionConfig.isSelectingAll}
+        >
+          {selectionConfig.isSelectingAll ? (
+            <ActivityIndicator color={getColor('text-primary')} />
+          ) : (
+            renderSelectAllCheckbox(selectionConfig.checkState)
+          )}
+        </TouchableOpacity>
+      </View>
+      <AppText
+        medium
+        style={[
+          tailwind('text-base text-center flex-1 mx-2'),
+          SELECTION_TITLE_FONT_VARIANT,
+          { color: getColor('text-gray-100') },
+        ]}
+        numberOfLines={1}
       >
-        {selectionConfig.isSelectingAll ? (
-          <ActivityIndicator color={getColor('text-primary')} />
-        ) : (
-          renderSelectAllCheckbox(selectionConfig.checkState)
-        )}
-      </TouchableOpacity>
-      <AppText medium style={[tailwind('text-base'), { color: getColor('text-gray-100') }]} numberOfLines={1}>
         {getSelectionTitle(selectionConfig.selectedCount)}
       </AppText>
-      <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} onPress={selectionConfig.onCancelPress}>
+      <TouchableOpacity
+        hitSlop={INCREASED_TOUCH_AREA}
+        onPress={selectionConfig.onCancelPress}
+        onLayout={(event) => setSelectionCancelWidth(event.nativeEvent.layout.width)}
+      >
         <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>{strings.buttons.cancel}</AppText>
       </TouchableOpacity>
     </Reanimated.View>
