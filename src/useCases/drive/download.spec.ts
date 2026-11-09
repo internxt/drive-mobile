@@ -2,6 +2,7 @@ import AuthService from '@internxt-mobile/services/AuthService';
 import { NotEnoughSpaceOnDeviceError } from '@internxt-mobile/services/common/filesystem/errors';
 import drive from '@internxt-mobile/services/drive';
 import { MAX_SIZE_TO_DOWNLOAD } from '@internxt-mobile/services/drive/constants';
+import errorService from '@internxt-mobile/services/ErrorService';
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { FocusedItem } from '@internxt-mobile/types/drive/item';
 import { downloadFileToDevice, isFileTooLargeToDownload } from './download';
@@ -29,6 +30,7 @@ jest.mock('@internxt-mobile/services/ErrorService', () => ({ __esModule: true, d
 
 const TEST_USER = { mnemonic: 'test mnemonic', userId: 'user-1', bridgeUser: 'bridge-user' };
 const FILE_SIZE_BYTES = 2048;
+const DOWNLOAD_PEAK_DISK_USAGE_MULTIPLIER = 2;
 
 const reportFile: NonNullable<FocusedItem> = {
   uuid: 'file-1',
@@ -56,44 +58,6 @@ describe('Downloading a file to the device', () => {
     expect(filePath).toBe('/tmp/report.pdf');
     expect(drive.file.downloadFile).not.toHaveBeenCalled();
     expect(onDownloadStarted).not.toHaveBeenCalled();
-  });
-
-  test('when the file is already decrypted on the device, then the download is not asked to be confirmed', async () => {
-    jest.mocked(drive.file.existsDecrypted).mockResolvedValueOnce(true);
-    const confirmDownload = jest.fn().mockResolvedValue(true);
-
-    await downloadFileToDevice({ file: reportFile, confirmDownload });
-
-    expect(confirmDownload).not.toHaveBeenCalled();
-  });
-
-  test('when the file is empty, then the download is not asked to be confirmed', async () => {
-    const emptyFile = { ...reportFile, size: 0 };
-    const confirmDownload = jest.fn().mockResolvedValue(true);
-
-    await downloadFileToDevice({ file: emptyFile, confirmDownload });
-
-    expect(confirmDownload).not.toHaveBeenCalled();
-  });
-
-  test('when the download is not confirmed, then nothing is downloaded and no file path is returned', async () => {
-    const confirmDownload = jest.fn().mockResolvedValue(false);
-    const onDownloadStarted = jest.fn();
-
-    const filePath = await downloadFileToDevice({ file: reportFile, confirmDownload, onDownloadStarted });
-
-    expect(confirmDownload).toHaveBeenCalledWith(FILE_SIZE_BYTES);
-    expect(filePath).toBeNull();
-    expect(onDownloadStarted).not.toHaveBeenCalled();
-    expect(drive.file.downloadFile).not.toHaveBeenCalled();
-  });
-
-  test('when the download is confirmed, then the file is downloaded', async () => {
-    const confirmDownload = jest.fn().mockResolvedValue(true);
-
-    const filePath = await downloadFileToDevice({ file: reportFile, confirmDownload });
-
-    expect(filePath).toBe('/downloads/report.pdf');
   });
 
   test('when the file is empty, then an empty file is created instead of downloading it', async () => {
@@ -130,11 +94,21 @@ describe('Downloading a file to the device', () => {
     expect(drive.file.downloadFile).not.toHaveBeenCalled();
   });
 
-  test('when the free space cannot be checked, then the file is still downloaded', async () => {
-    jest.mocked(fileSystemService.checkAvailableStorage).mockRejectedValueOnce(new Error('no file system info'));
+  test('when the file is downloaded, then the device is asked for room for the encrypted and the decrypted copies', async () => {
+    await downloadFileToDevice({ file: reportFile });
+
+    expect(fileSystemService.checkAvailableStorage).toHaveBeenCalledWith(
+      FILE_SIZE_BYTES * DOWNLOAD_PEAK_DISK_USAGE_MULTIPLIER,
+    );
+  });
+
+  test('when the free space cannot be checked, then the file is still downloaded and the failure is reported', async () => {
+    const freeSpaceError = new Error('no file system info');
+    jest.mocked(fileSystemService.checkAvailableStorage).mockRejectedValueOnce(freeSpaceError);
 
     await downloadFileToDevice({ file: reportFile });
 
+    expect(errorService.reportError).toHaveBeenCalledWith(freeSpaceError);
     expect(drive.file.downloadFile).toHaveBeenCalledTimes(1);
   });
 
