@@ -49,6 +49,9 @@ export const hasUnloadedPages = (folderNode: DriveFoldersTreeNode | undefined): 
 
 export const canSelectDriveItem = (item: DriveListItem): boolean => item.status === DriveItemStatus.Idle;
 
+export const hasSelectedFolder = (items: DriveListItem[], selectedUuids: Set<string>): boolean =>
+  items.some((item) => item.data.isFolder && selectedUuids.has(item.data.uuid));
+
 const FOLDER_UPLOAD_ID_PREFIX = 'folder-upload-';
 
 export const isFolderUploadItem = (item: DriveListItem): boolean => item.id.startsWith(FOLDER_UPLOAD_ID_PREFIX);
