@@ -60,14 +60,16 @@ export const findMoveCollisions = async (
   items: MovableItem[],
   destinationFolderUuid: string,
 ): Promise<MoveCollision[]> => {
-  const folderCollisions = await findFolderCollisions(
-    items.filter((item) => item.isFolder),
-    destinationFolderUuid,
-  );
-  const fileCollisions = await findFileCollisions(
-    items.filter((item) => !item.isFolder),
-    destinationFolderUuid,
-  );
+  const [folderCollisions, fileCollisions] = await Promise.all([
+    findFolderCollisions(
+      items.filter((item) => item.isFolder),
+      destinationFolderUuid,
+    ),
+    findFileCollisions(
+      items.filter((item) => !item.isFolder),
+      destinationFolderUuid,
+    ),
+  ]);
   const collisionByUuid = new Map(
     [...folderCollisions, ...fileCollisions].map((collision) => [collision.item.uuid, collision]),
   );
