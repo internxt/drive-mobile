@@ -1,13 +1,13 @@
 import drive from '@internxt-mobile/services/drive';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { DriveFolderData, FetchFolderContentResponse } from '@internxt-mobile/types/drive/folder';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import _ from 'lodash';
 import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, FlatList, Platform, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import strings from '../../../../assets/lang/strings';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
@@ -22,9 +22,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from 'tailwind-rn';
 import { checkIsFile, checkIsFolder } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
-import { driveFolderService } from '../../../services/drive/folder/driveFolder.service';
-import { getUniqueFolderName } from '../../../services/drive/folder/utils/getUniqueFolderName';
-import { driveTrashService } from '../../../services/drive/trash/driveTrash.service';
+import errorService from '../../../services/ErrorService';
 import notificationsService from '../../../services/NotificationsService';
 import { NotificationType } from '../../../types';
 import { RootScreenNavigationProp } from '../../../types/navigation';
@@ -33,7 +31,7 @@ import DriveItemSkinSkeleton from '../../DriveItemSkinSkeleton';
 import BottomModal from '../BottomModal';
 import ConfirmMoveItemModal from '../ConfirmMoveItemModal';
 import CreateFolderModal from '../CreateFolderModal';
-import NameCollisionModal, { NameCollisionAction } from '../NameCollisionModal';
+import NameCollisionModal from '../NameCollisionModal';
 import SortModal from '../SortModal';
 
 const INITIAL_SORT_MODE: SortMode = {
@@ -49,9 +47,10 @@ function MoveItemsModal(): JSX.Element {
   const navigation = useNavigation<RootScreenNavigationProp<'TabExplorer'>>();
   const dispatch = useAppDispatch();
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [nameCollisionOpen, setNameCollisionOpen] = useState(false);
-  const [collidingFolderName, setCollidingFolderName] = useState('');
-  const [existingCollisionFolder, setExistingCollisionFolder] = useState<{ uuid: string } | null>(null);
+  const [moveCollisions, setMoveCollisions] = useState<driveUseCases.MoveCollision[]>([]);
+  const [collisionActionsByUuid, setCollisionActionsByUuid] = useState(
+    new Map<string, driveUseCases.MoveCollisionAction>(),
+  );
   const [sortMode, setSortMode] = useState<SortMode>(INITIAL_SORT_MODE);
   const [sortModalOpen, setSortModalOpen] = useState(false);
   const [createFolderModalOpen, setCreateFolderModalOpen] = useState(false);
@@ -75,9 +74,18 @@ function MoveItemsModal(): JSX.Element {
   const { itemsToMove, folderContent } = useAppSelector((state) => state.drive);
   const currentFolderIsRootFolder = destinationFolderContentResponse?.uuid === user?.rootFolderId;
   const firstItemToMove = itemsToMove.at(0);
-  const singleItemToMove = itemsToMove.length === 1 ? firstItemToMove : undefined;
   const originFolderId = firstItemToMove?.parentUuid ?? firstItemToMove?.folderUuid ?? user?.rootFolderUuid;
   const uuidsToMove = useMemo(() => new Set(itemsToMove.map((item) => item.uuid)), [itemsToMove]);
+  const movableItems = useMemo<driveUseCases.MovableItem[]>(
+    () =>
+      itemsToMove.map((item) => ({ uuid: item.uuid, name: item.name, type: item.type, isFolder: checkIsFolder(item) })),
+    [itemsToMove],
+  );
+  const pendingCollisions = useMemo(
+    () => moveCollisions.filter((collision) => !collisionActionsByUuid.has(collision.item.uuid)),
+    [moveCollisions, collisionActionsByUuid],
+  );
+  const currentCollision = pendingCollisions.at(0);
 
   const folderItems = useMemo(
     () =>
@@ -120,8 +128,14 @@ function MoveItemsModal(): JSX.Element {
     return false;
   };
 
-  const updateFolderTrees = (movedUuids: string[], originFolderUuid: string, destinationFolderUuid: string) => {
+  const updateFolderTrees = (
+    movedUuids: string[],
+    finalItemsToMove: driveUseCases.MovableItem[],
+    originFolderUuid: string,
+    destinationFolderUuid: string,
+  ) => {
     const movedUuidSet = new Set(movedUuids);
+    const newNameByUuid = new Map(finalItemsToMove.map((item) => [item.uuid, item.newName]));
     const isDestinationFolderLoaded = !!driveCtx.driveFoldersTree[destinationFolderUuid];
     itemsToMove
       .filter((item) => movedUuidSet.has(item.uuid))
@@ -131,41 +145,74 @@ function MoveItemsModal(): JSX.Element {
           return;
         }
         const isMovedItemFolder = checkIsFolder(movedItem);
+        const destinationName = newNameByUuid.get(movedItem.uuid) ?? movedItem.name;
         const itemForDestination = isMovedItemFolder
-          ? { ...movedItem, plainName: movedItem.name, parentUuid: destinationFolderUuid, isFolder: isMovedItemFolder }
-          : { ...movedItem, plainName: movedItem.name, folderUuid: destinationFolderUuid, isFolder: isMovedItemFolder };
+          ? {
+              ...movedItem,
+              name: destinationName,
+              plainName: destinationName,
+              parentUuid: destinationFolderUuid,
+              isFolder: isMovedItemFolder,
+            }
+          : {
+              ...movedItem,
+              name: destinationName,
+              plainName: destinationName,
+              folderUuid: destinationFolderUuid,
+              isFolder: isMovedItemFolder,
+            };
         // Added any because the items to move are not typed as drive items
         driveCtx.addItemToTree(destinationFolderUuid, itemForDestination as any, isMovedItemFolder);
       });
   };
 
-  const executeMoveItems = async () => {
+  const showMoveError = () => {
+    notificationsService.show({ text1: strings.errors.moveError, type: NotificationType.Error });
+  };
+
+  /**
+   * Returns the origin and destination folder uuids, or null if anything the move needs is missing.
+   */
+  const getMoveFolderUuids = () => {
     if (
       !originFolderContentResponse ||
       itemsToMove.length === 0 ||
       !originFolderId ||
-      !destinationFolderContentResponse?.uuid
+      !destinationFolderContentResponse?.uuid ||
+      !driveCtx.focusedFolder
     ) {
-      notificationsService.show({
-        text1: strings.errors.moveError,
-        type: NotificationType.Error,
-      });
-      return;
+      return null;
     }
+    return { originFolderUuid: originFolderId, destinationFolderUuid: destinationFolderContentResponse.uuid };
+  };
 
-    if (!driveCtx.focusedFolder) {
-      notificationsService.show({
-        text1: strings.errors.moveError,
-        type: NotificationType.Error,
-      });
+  const removeTrashedItemsFromDestination = (destinationFolderUuid: string, trashedItemUuids: string[]) => {
+    const trashedItemUuidSet = new Set(trashedItemUuids);
+    trashedItemUuids.forEach((trashedItemUuid) => driveCtx.removeItemFromTree(destinationFolderUuid, trashedItemUuid));
+    setDestinationFolderContentResponse((destinationContent) =>
+      destinationContent?.uuid === destinationFolderUuid
+        ? {
+            ...destinationContent,
+            children: destinationContent.children.filter((folder) => !trashedItemUuidSet.has(folder.uuid)),
+            files: destinationContent.files.filter((file) => !trashedItemUuidSet.has(file.uuid)),
+          }
+        : destinationContent,
+    );
+  };
+
+  const executeMoveItems = async (finalItemsToMove: driveUseCases.MovableItem[]) => {
+    const moveFolderUuids = getMoveFolderUuids();
+    if (!moveFolderUuids) {
+      setIsMovingItem(false);
+      showMoveError();
       return;
     }
 
     setIsMovingItem(true);
-    const destinationFolderUuid = destinationFolderContentResponse.uuid;
+    const { originFolderUuid, destinationFolderUuid } = moveFolderUuids;
     const { movedUuids } = await driveUseCases.moveDriveItems({
-      items: itemsToMove.map((item) => ({ uuid: item.uuid, name: item.name, isFolder: checkIsFolder(item) })),
-      originFolderUuid: originFolderId,
+      items: finalItemsToMove,
+      originFolderUuid,
       destinationFolderUuid,
       onViewFolderPress: () => {
         navigation.push('TabExplorer', { screen: 'Drive' });
@@ -173,55 +220,88 @@ function MoveItemsModal(): JSX.Element {
     });
     setIsMovingItem(false);
 
-    updateFolderTrees(movedUuids, originFolderId, destinationFolderUuid);
-    if (movedUuids.length > 0) {
+    updateFolderTrees(movedUuids, finalItemsToMove, originFolderUuid, destinationFolderUuid);
+    if (movedUuids.length > 0 || finalItemsToMove.length === 0) {
       setConfirmModalOpen(false);
       await cleanUp({ shouldRefreshFolder: false });
     }
   };
 
   const confirmMoveItem = async () => {
-    if (singleItemToMove && checkIsFolder(singleItemToMove)) {
-      const folderName = singleItemToMove.name;
-      try {
-        const { existentFolders } = await driveFolderService.checkDuplicatedFolders(
-          destinationFolderContentResponse?.uuid ?? '',
-          [folderName],
-        );
-        if (existentFolders.length > 0) {
-          setConfirmModalOpen(false);
-          setCollidingFolderName(folderName);
-          setExistingCollisionFolder({ uuid: existentFolders[0].uuid });
-          setNameCollisionOpen(true);
-          return;
-        }
-      } catch {
-        notificationsService.show({ text1: strings.errors.moveError, type: NotificationType.Error });
-        return;
-      }
-    }
-
-    await executeMoveItems();
-  };
-
-  const handleNameCollisionConfirm = async (action: NameCollisionAction) => {
-    setNameCollisionOpen(false);
-    try {
-      if (action === 'replace' && existingCollisionFolder) {
-        await driveTrashService.moveToTrash([{ uuid: existingCollisionFolder.uuid, type: 'folder' }]);
-      } else if (action === 'keep-both' && singleItemToMove && destinationFolderContentResponse?.uuid) {
-        const uniqueName = await getUniqueFolderName(collidingFolderName, destinationFolderContentResponse.uuid);
-        await driveFolderService.updateMetaData(singleItemToMove.uuid, uniqueName);
-      }
-    } catch {
-      notificationsService.show({ text1: strings.errors.moveError, type: NotificationType.Error });
+    const moveFolderUuids = getMoveFolderUuids();
+    if (!moveFolderUuids) {
+      showMoveError();
       return;
     }
-    await executeMoveItems();
+    const { destinationFolderUuid } = moveFolderUuids;
+
+    setIsMovingItem(true);
+    let collisions: driveUseCases.MoveCollision[];
+    try {
+      collisions = await driveUseCases.findMoveCollisions(movableItems, destinationFolderUuid);
+    } catch (error) {
+      errorService.reportError(error);
+      setIsMovingItem(false);
+      showMoveError();
+      return;
+    }
+
+    if (collisions.length === 0) {
+      await executeMoveItems(movableItems);
+      return;
+    }
+
+    setIsMovingItem(false);
+    setConfirmModalOpen(false);
+    setCollisionActionsByUuid(new Map());
+    setMoveCollisions(collisions);
+  };
+
+  const handleNameCollisionAction = async (action: driveUseCases.MoveCollisionAction, shouldApplyToAll: boolean) => {
+    const actionsByUuid = driveUseCases.applyCollisionAction({
+      pendingCollisions,
+      actionsByUuid: collisionActionsByUuid,
+      action,
+      shouldApplyToAll,
+    });
+    setCollisionActionsByUuid(actionsByUuid);
+    const hasPendingCollisions = moveCollisions.some((collision) => !actionsByUuid.has(collision.item.uuid));
+    if (hasPendingCollisions) {
+      return;
+    }
+
+    const moveFolderUuids = getMoveFolderUuids();
+    if (!moveFolderUuids) {
+      showMoveError();
+      return;
+    }
+    const { destinationFolderUuid } = moveFolderUuids;
+
+    setConfirmModalOpen(true);
+    setIsMovingItem(true);
+    let finalItemsToMove: driveUseCases.MovableItem[];
+    try {
+      finalItemsToMove = await driveUseCases.resolveMoveCollisions({
+        items: movableItems,
+        collisions: moveCollisions,
+        actionsByUuid,
+        destinationFolderUuid,
+        onDestinationItemsTrashed: (trashedItemUuids) =>
+          removeTrashedItemsFromDestination(destinationFolderUuid, trashedItemUuids),
+      });
+    } catch (error) {
+      errorService.reportError(error);
+      setMoveCollisions([]);
+      setCollisionActionsByUuid(new Map());
+      setIsMovingItem(false);
+      showMoveError();
+      return;
+    }
+    await executeMoveItems(finalItemsToMove);
   };
 
   const handleNameCollisionClose = () => {
-    setNameCollisionOpen(false);
+    setMoveCollisions([]);
     setConfirmModalOpen(true);
   };
 
@@ -485,13 +565,16 @@ function MoveItemsModal(): JSX.Element {
         />
       ) : null}
       <NameCollisionModal
-        isOpen={nameCollisionOpen}
-        itemName={collidingFolderName}
+        key={currentCollision?.item.uuid}
+        isOpen={!!currentCollision}
+        itemName={currentCollision ? drive.file.getName(currentCollision.item.name, currentCollision.item.type) : ''}
         collisionCount={1}
-        itemType="folder"
+        itemType={currentCollision?.item.isFolder ? 'folder' : 'file'}
         confirmLabel={strings.buttons.move}
+        showApplyToAll={pendingCollisions.length > 1}
         onClose={handleNameCollisionClose}
-        onConfirm={handleNameCollisionConfirm}
+        onConfirm={handleNameCollisionAction}
+        onSkip={(shouldApplyToAll) => handleNameCollisionAction('skip', shouldApplyToAll)}
       />
     </Portal>
   );
