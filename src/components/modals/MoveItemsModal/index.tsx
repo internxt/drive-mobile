@@ -1,13 +1,13 @@
 import drive from '@internxt-mobile/services/drive';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
 import { DriveFolderData, FetchFolderContentResponse } from '@internxt-mobile/types/drive/folder';
+import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import _ from 'lodash';
 import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { Dimensions, FlatList, Platform, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import strings from '../../../../assets/lang/strings';
-import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
@@ -170,29 +170,49 @@ function MoveItemsModal(): JSX.Element {
     notificationsService.show({ text1: strings.errors.moveError, type: NotificationType.Error });
   };
 
-  const executeMoveItems = async (finalItemsToMove: driveUseCases.MovableItem[]) => {
+  /**
+   * Returns the origin and destination folder uuids, or null if anything the move needs is missing.
+   */
+  const getMoveFolderUuids = () => {
     if (
       !originFolderContentResponse ||
       itemsToMove.length === 0 ||
       !originFolderId ||
-      !destinationFolderContentResponse?.uuid
+      !destinationFolderContentResponse?.uuid ||
+      !driveCtx.focusedFolder
     ) {
-      setIsMovingItem(false);
-      showMoveError();
-      return;
+      return null;
     }
+    return { originFolderUuid: originFolderId, destinationFolderUuid: destinationFolderContentResponse.uuid };
+  };
 
-    if (!driveCtx.focusedFolder) {
+  const removeTrashedItemsFromDestination = (destinationFolderUuid: string, trashedItemUuids: string[]) => {
+    const trashedItemUuidSet = new Set(trashedItemUuids);
+    trashedItemUuids.forEach((trashedItemUuid) => driveCtx.removeItemFromTree(destinationFolderUuid, trashedItemUuid));
+    setDestinationFolderContentResponse((destinationContent) =>
+      destinationContent?.uuid === destinationFolderUuid
+        ? {
+            ...destinationContent,
+            children: destinationContent.children.filter((folder) => !trashedItemUuidSet.has(folder.uuid)),
+            files: destinationContent.files.filter((file) => !trashedItemUuidSet.has(file.uuid)),
+          }
+        : destinationContent,
+    );
+  };
+
+  const executeMoveItems = async (finalItemsToMove: driveUseCases.MovableItem[]) => {
+    const moveFolderUuids = getMoveFolderUuids();
+    if (!moveFolderUuids) {
       setIsMovingItem(false);
       showMoveError();
       return;
     }
 
     setIsMovingItem(true);
-    const destinationFolderUuid = destinationFolderContentResponse.uuid;
+    const { originFolderUuid, destinationFolderUuid } = moveFolderUuids;
     const { movedUuids } = await driveUseCases.moveDriveItems({
       items: finalItemsToMove,
-      originFolderUuid: originFolderId,
+      originFolderUuid,
       destinationFolderUuid,
       onViewFolderPress: () => {
         navigation.push('TabExplorer', { screen: 'Drive' });
@@ -200,7 +220,7 @@ function MoveItemsModal(): JSX.Element {
     });
     setIsMovingItem(false);
 
-    updateFolderTrees(movedUuids, finalItemsToMove, originFolderId, destinationFolderUuid);
+    updateFolderTrees(movedUuids, finalItemsToMove, originFolderUuid, destinationFolderUuid);
     if (movedUuids.length > 0 || finalItemsToMove.length === 0) {
       setConfirmModalOpen(false);
       await cleanUp({ shouldRefreshFolder: false });
@@ -208,11 +228,12 @@ function MoveItemsModal(): JSX.Element {
   };
 
   const confirmMoveItem = async () => {
-    const destinationFolderUuid = destinationFolderContentResponse?.uuid;
-    if (!destinationFolderUuid) {
+    const moveFolderUuids = getMoveFolderUuids();
+    if (!moveFolderUuids) {
       showMoveError();
       return;
     }
+    const { destinationFolderUuid } = moveFolderUuids;
 
     setIsMovingItem(true);
     let collisions: driveUseCases.MoveCollision[];
@@ -249,11 +270,12 @@ function MoveItemsModal(): JSX.Element {
       return;
     }
 
-    const destinationFolderUuid = destinationFolderContentResponse?.uuid;
-    if (!destinationFolderUuid) {
+    const moveFolderUuids = getMoveFolderUuids();
+    if (!moveFolderUuids) {
       showMoveError();
       return;
     }
+    const { destinationFolderUuid } = moveFolderUuids;
 
     setConfirmModalOpen(true);
     setIsMovingItem(true);
@@ -265,9 +287,7 @@ function MoveItemsModal(): JSX.Element {
         actionsByUuid,
         destinationFolderUuid,
         onDestinationItemsTrashed: (trashedItemUuids) =>
-          trashedItemUuids.forEach((trashedItemUuid) =>
-            driveCtx.removeItemFromTree(destinationFolderUuid, trashedItemUuid),
-          ),
+          removeTrashedItemsFromDestination(destinationFolderUuid, trashedItemUuids),
       });
     } catch (error) {
       errorService.reportError(error);
