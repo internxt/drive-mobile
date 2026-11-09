@@ -142,7 +142,8 @@ describe('Resolving the collisions of a move', () => {
       })),
       actionsByUuid: new Map(actions),
       destinationFolderUuid: DESTINATION_FOLDER_UUID,
-    }).then(({ finalItemsToMove }) => finalItemsToMove);
+      onDestinationItemsTrashed: jest.fn(),
+    });
 
   test('when an item replaces the existing one, then the existing item goes to trash and the item keeps its name', async () => {
     const itemsToMove = await resolveWithActions([invoicesFolder, reportFile], [['file-1', 'replace']]);
@@ -191,23 +192,43 @@ describe('Resolving the collisions of a move', () => {
     expect(drive.trash.moveToTrash).not.toHaveBeenCalled();
   });
 
-  test('when more items are replaced than one trash request accepts, then they go to trash in several requests', async () => {
-    const manyFiles = Array.from({ length: TRASH_REQUEST_LIMIT + 1 }, (_, index) => ({
-      uuid: `file-${index}`,
-      name: `File ${index}`,
-      type: 'txt',
-      isFolder: false,
-    }));
+  const manyFiles: MovableItem[] = Array.from({ length: TRASH_REQUEST_LIMIT + 1 }, (_, index) => ({
+    uuid: `file-${index}`,
+    name: `File ${index}`,
+    type: 'txt',
+    isFolder: false,
+  }));
 
-    const { trashedDestinationItemUuids } = await resolveMoveCollisions({
+  const replaceManyFiles = (onDestinationItemsTrashed: (trashedItemUuids: string[]) => void) =>
+    resolveMoveCollisions({
       items: manyFiles,
       collisions: manyFiles.map((file) => ({ item: file, existingItemUuid: `existing-${file.uuid}` })),
       actionsByUuid: new Map(manyFiles.map((file) => [file.uuid, 'replace'])),
       destinationFolderUuid: DESTINATION_FOLDER_UUID,
+      onDestinationItemsTrashed,
     });
 
+  test('when more items are replaced than one trash request accepts, then each request reports the items it sent to trash', async () => {
+    const onDestinationItemsTrashed = jest.fn();
+
+    await replaceManyFiles(onDestinationItemsTrashed);
+
     expect(drive.trash.moveToTrash).toHaveBeenCalledTimes(2);
-    expect(trashedDestinationItemUuids).toHaveLength(TRASH_REQUEST_LIMIT + 1);
+    expect(onDestinationItemsTrashed).toHaveBeenCalledTimes(2);
+    expect(onDestinationItemsTrashed.mock.calls[0][0]).toHaveLength(TRASH_REQUEST_LIMIT);
+    expect(onDestinationItemsTrashed.mock.calls[1][0]).toStrictEqual([`existing-file-${TRASH_REQUEST_LIMIT}`]);
+  });
+
+  test('when a later trash request fails, then the items of the earlier requests are still reported as in trash', async () => {
+    const onDestinationItemsTrashed = jest.fn();
+    jest
+      .mocked(drive.trash.moveToTrash)
+      .mockResolvedValueOnce(undefined as never)
+      .mockRejectedValueOnce(new Error('server error'));
+
+    await expect(replaceManyFiles(onDestinationItemsTrashed)).rejects.toThrow('server error');
+    expect(onDestinationItemsTrashed).toHaveBeenCalledTimes(1);
+    expect(onDestinationItemsTrashed.mock.calls[0][0]).toHaveLength(TRASH_REQUEST_LIMIT);
   });
 
   test('when the free name belongs to another item of the same move, then the kept item gets the next one', async () => {
