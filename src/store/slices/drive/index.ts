@@ -16,7 +16,6 @@ import {
   notifyDownloadSizeCheck,
 } from '../../../services/drive/file/utils/downloadSizeCheck';
 import fileSystemService from '../../../services/FileSystemService';
-import notificationsService from '../../../services/NotificationsService';
 import { DriveEventKey } from '../../../types/drive/events';
 import { FolderUploadState } from '../../../types/drive/folderUpload';
 import {

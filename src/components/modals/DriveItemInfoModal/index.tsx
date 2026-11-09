@@ -121,13 +121,8 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
-  const downloadFocusedFile = async (): Promise<string | null> => {
+  const downloadFocusedFile = (): Promise<string> => {
     const fileSize = getFileSize(item);
-    if (driveUseCases.isFileTooLargeToDownload(item)) {
-      notifyDownloadSizeCheck('tooLarge', fileSize);
-      return null;
-    }
-
     return driveUseCases.downloadFileToDevice({
       file: item,
       onDownloadStarted: () => {

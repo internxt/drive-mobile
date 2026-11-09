@@ -1,6 +1,5 @@
 import { GeneratedThumbnail, generateVideoThumbnail } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
-import { getDownloadSizeMessage } from '@internxt-mobile/services/drive/file/utils/downloadSizeCheck';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import { notifications } from '@internxt-mobile/services/NotificationsService';
@@ -196,7 +195,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
               <WarningCircleIcon weight="fill" size={20} color={tailwind('text-red').color as string} />
               <AppText style={tailwind('text-center text-red ml-1')}>{error}</AppText>
             </View>
-            {downloadingFile && error !== getDownloadSizeMessage('tooLarge') && (
+            {downloadingFile && (
               <AppButton
                 style={tailwind('mt-5')}
                 title={strings.buttons.tryAgain}
