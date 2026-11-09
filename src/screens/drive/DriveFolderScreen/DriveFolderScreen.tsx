@@ -38,6 +38,7 @@ import { DriveSelectionToolbar } from './DriveSelectionToolbar';
 import { useDeepLinkNavigationResolver } from './useDeepLinkNavigationResolver';
 import { useDriveSelection } from './useDriveSelection';
 import { useFocusFolderOnScreenFocus } from './useFocusFolderOnScreenFocus';
+import { useTrashSelectedItems } from './useTrashSelectedItems';
 import { useReloadFolderInChosenSort } from './useReloadFolderInChosenSort';
 
 const ROOT_HEADER_TOP_MARGIN = 22;
@@ -175,6 +176,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     loadRemainingItems: () => driveCtx.loadFolderContent(folderUuid, { loadAllContent: true }),
   });
   const shouldShowSelectionToolbar = selection.isSelectionMode && selection.selectedUuids.size > 0;
+  const selectionTrash = useTrashSelectedItems({ folderUuid, onTrashed: selection.exitSelectionMode });
+  const isTrashDisabled = selectionTrash.isTrashing || selection.isSelectingAll;
 
   const onBackButtonPressed = () => {
     if (selection.isSelectionMode) {
@@ -230,7 +233,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     }
 
     if (selection.isSelectionMode) {
-      if (canSelectDriveItem(driveItem)) {
+      if (canSelectDriveItem(driveItem) && !selectionTrash.isTrashing) {
         selection.toggleSelection(driveItem.data.uuid);
       }
       return;
@@ -314,6 +317,17 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     if (selectedItem) {
       openDriveItemMenu(selectedItem);
     }
+  };
+
+  const handleTrashSelectedItemsPress = () => {
+    setIsSelectionActionsModalOpen(false);
+    const selectedItems = driveSortedItems.filter((item) => selection.selectedUuids.has(item.data.uuid));
+    if (selectedItems.length === 0) {
+      return;
+    }
+    selectionTrash.trashItems(selectedItems).catch((error) => {
+      errorService.reportError(error);
+    });
   };
 
   const handleSortButtonPress = () => {
@@ -409,7 +423,9 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       return;
     }
     if (selection.isSelectionMode) {
-      selection.toggleSelection(driveItem.data.uuid);
+      if (!selectionTrash.isTrashing) {
+        selection.toggleSelection(driveItem.data.uuid);
+      }
       return;
     }
     selection.enterSelectionMode(driveItem.data.uuid);
@@ -420,6 +436,9 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleSelectAllPress = () => {
+    if (selectionTrash.isTrashing) {
+      return;
+    }
     selection.toggleSelectAll().catch((error) => {
       errorService.reportError(error);
       const err = errorService.castError(error, 'content');
@@ -459,6 +478,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         <DriveSelectionActionsModal
           isOpen={isSelectionActionsModalOpen}
           selectedCount={selection.selectedUuids.size}
+          trashDisabled={isTrashDisabled}
+          onTrashPress={handleTrashSelectedItemsPress}
           onClose={() => setIsSelectionActionsModalOpen(false)}
         />
       </Portal>
@@ -539,7 +560,13 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             contentContainerStyle={{ paddingBottom: FLOATING_BUTTON_CLEARANCE }}
           />
         )}
-        <DriveSelectionToolbar visible={shouldShowSelectionToolbar} onMorePress={handleSelectionMorePress} />
+        <DriveSelectionToolbar
+          visible={shouldShowSelectionToolbar}
+          trashDisabled={isTrashDisabled}
+          moreDisabled={selectionTrash.isTrashing}
+          onTrashPress={handleTrashSelectedItemsPress}
+          onMorePress={handleSelectionMorePress}
+        />
       </AppScreen>
     </>
   );
