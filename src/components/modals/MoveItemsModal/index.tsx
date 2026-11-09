@@ -259,18 +259,20 @@ function MoveItemsModal(): JSX.Element {
     setIsMovingItem(true);
     let finalItemsToMove: driveUseCases.MovableItem[];
     try {
-      const resolvedCollisions = await driveUseCases.resolveMoveCollisions({
+      finalItemsToMove = await driveUseCases.resolveMoveCollisions({
         items: movableItems,
         collisions: moveCollisions,
         actionsByUuid,
         destinationFolderUuid,
+        onDestinationItemsTrashed: (trashedItemUuids) =>
+          trashedItemUuids.forEach((trashedItemUuid) =>
+            driveCtx.removeItemFromTree(destinationFolderUuid, trashedItemUuid),
+          ),
       });
-      finalItemsToMove = resolvedCollisions.finalItemsToMove;
-      resolvedCollisions.trashedDestinationItemUuids.forEach((trashedItemUuid) =>
-        driveCtx.removeItemFromTree(destinationFolderUuid, trashedItemUuid),
-      );
     } catch (error) {
       errorService.reportError(error);
+      setMoveCollisions([]);
+      setCollisionActionsByUuid(new Map());
       setIsMovingItem(false);
       showMoveError();
       return;
