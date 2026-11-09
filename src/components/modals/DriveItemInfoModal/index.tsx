@@ -71,7 +71,7 @@ function DriveItemInfoModal(): JSX.Element {
   const handleMoveItem = () => {
     dispatch(uiActions.setShowItemModal(false));
     dispatch(uiActions.setShowMoveModal(true));
-    dispatch(driveActions.setItemToMove(item));
+    dispatch(driveActions.setItemsToMove([item]));
   };
 
   const isFileDownloadable = async (fileSize: number): Promise<boolean> => {

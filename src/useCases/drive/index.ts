@@ -4,6 +4,8 @@ export * from './filterSharedItems';
 export * from './getShareLink';
 export * from './loadRecentItems';
 export * from './loadSharedItems';
+export * from './move';
+export * from './onDriveItemMoved';
 export * from './onDriveItemRestored';
 export * from './onDriveItemTrashed';
 export * from './onDriveItemUploaded';

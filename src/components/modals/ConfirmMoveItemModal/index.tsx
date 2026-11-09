@@ -29,6 +29,8 @@ const ConfirmMoveItemModal: React.FC<ConfirmMoveItemModalProps> = (props) => {
   return (
     <CenterModal
       isOpen={props.isOpen}
+      backdropPressToClose={!props.isMovingItem}
+      backButtonClose={!props.isMovingItem}
       onClosed={() => {
         props.onClose();
       }}

@@ -50,6 +50,18 @@ describe('Selecting items in a Drive folder', () => {
     expect(result.current.isSelectionMode).toBe(true);
   });
 
+  test('when only some items are kept selected, then the rest are deselected and selection stays open', () => {
+    const { result } = renderSelection();
+    act(() => result.current.enterSelectionMode('file-1'));
+    act(() => result.current.toggleSelection('file-2'));
+    act(() => result.current.toggleSelection('folder-1'));
+
+    act(() => result.current.selectOnly(['file-2']));
+
+    expect([...result.current.selectedUuids]).toStrictEqual(['file-2']);
+    expect(result.current.isSelectionMode).toBe(true);
+  });
+
   test('when selection is cancelled, then nothing stays selected', () => {
     const { result } = renderSelection();
     act(() => result.current.enterSelectionMode('file-1'));
