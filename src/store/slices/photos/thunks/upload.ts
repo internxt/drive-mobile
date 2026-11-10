@@ -38,7 +38,12 @@ export const evaluateNetworkPause = (
 };
 
 const buildUploadJobs = (
-  pendingAssets: Array<{ assetId: string; status: AssetSyncStatus; remoteFileId: string | null }>,
+  pendingAssets: Array<{
+    assetId: string;
+    status: AssetSyncStatus;
+    remoteFileId: string | null;
+    pairedVideoRemoteFileId: string | null;
+  }>,
   assetById: Map<string, MediaLibrary.Asset>,
 ): AssetUploadJob[] =>
   pendingAssets.flatMap((dbAsset) => {
@@ -53,7 +58,16 @@ const buildUploadJobs = (
         `[Upload] Asset ${dbAsset.assetId} is pending_edit but has no remote_file_id — DB may be corrupted`,
       );
     }
-    return dbAsset.remoteFileId ? [{ asset, existingRemoteFileId: dbAsset.remoteFileId }] : [{ asset }];
+    if (!dbAsset.remoteFileId) {
+      return [{ asset }];
+    }
+    return [
+      {
+        asset,
+        existingRemoteFileId: dbAsset.remoteFileId,
+        existingPairedVideoRemoteFileId: dbAsset.pairedVideoRemoteFileId ?? undefined,
+      },
+    ];
   });
 
 export const completeSyncForAsset = async (
