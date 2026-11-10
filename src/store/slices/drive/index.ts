@@ -5,7 +5,6 @@ import drive from '@internxt-mobile/services/drive';
 import { items } from '@internxt/lib';
 import { checkIsFolder, isValidFilename } from 'src/helpers';
 import errorService from 'src/services/ErrorService';
-import { notifyParentChanged } from 'src/services/native/InternxtSignalingModule';
 import { ErrorCodes } from 'src/types/errors';
 import { RootState } from '../..';
 import strings from '../../../../assets/lang/strings';
@@ -17,8 +16,6 @@ import {
   notifyDownloadSizeCheck,
 } from '../../../services/drive/file/utils/downloadSizeCheck';
 import fileSystemService from '../../../services/FileSystemService';
-import notificationsService from '../../../services/NotificationsService';
-import { NotificationType } from '../../../types';
 import { DriveEventKey } from '../../../types/drive/events';
 import { FolderUploadState } from '../../../types/drive/folderUpload';
 import {
@@ -35,17 +32,18 @@ export interface FocusedShareItem {
   hashedPassword?: string;
   views: number;
 }
+export type DriveItemToMove = DriveItemData | NonNullable<DriveItemFocused>;
+
 export interface DriveState {
   isLoading: boolean;
   items: DriveItemData[];
   hiddenItemsIds: string[];
   uploadingFiles: UploadingFile[];
   downloadingFile?: DownloadingFile;
-  selectedItems: DriveItemData[];
   folderContent: DriveItemData[];
   focusedItem: DriveItemFocused;
   focusedShareItem: FocusedShareItem | null;
-  itemToMove: DriveItemFocused;
+  itemsToMove: DriveItemToMove[];
   searchString: string;
   isUploading: boolean;
   isUploadingFileName: string | null;
@@ -67,10 +65,9 @@ const initialState: DriveState = {
   folderContent: [],
   focusedItem: null,
   absolutePath: '/',
-  itemToMove: null,
+  itemsToMove: [],
   uploadingFiles: [],
   downloadingFile: undefined,
-  selectedItems: [],
   searchString: '',
   isUploading: false,
   isUploadingFileName: '',
@@ -192,9 +189,9 @@ const downloadFileThunk = createAsyncThunk<
       folderUuid: folderUuid,
     };
 
-    const destinationPath = drive.file.getDecryptedFilePath(name, type);
+    const destinationPath = drive.file.getDecryptedFilePath(uuid, name, type);
     logger.info(`Download destination path: ${destinationPath} `);
-    const fileAlreadyExists = await drive.file.existsDecrypted(name, type);
+    const fileAlreadyExists = await drive.file.existsDecrypted(uuid, name, type);
 
     if (!fileAlreadyExists && Number(size) > 0) {
       const downloadSizeCheck = await checkDownloadSize(Number(size));
@@ -216,6 +213,7 @@ const downloadFileThunk = createAsyncThunk<
       if (!fileAlreadyExists) {
         analytics.trackStart(fileInfo);
         downloadProgressCallback(0);
+        await drive.file.createDecryptedFileFolder(uuid);
 
         const fileSizeNumber = Number(size);
 
@@ -285,63 +283,6 @@ const createFolderThunk = createAsyncThunk<
 >('drive/createFolder', async ({ parentFolderUuid, newFolderName }) => {
   await drive.folder.createFolder(parentFolderUuid, newFolderName);
 });
-export interface MoveItemThunkPayload {
-  isFolder: boolean;
-  origin: {
-    name: string;
-    parentUuid: string;
-    uuid: string;
-    updatedAt: string;
-    createdAt: string;
-  };
-  destinationUuid: string;
-  itemMovedAction: () => void;
-  optimisticCallbacks?: {
-    onOptimisticUpdate: () => void;
-    onRollback: () => void;
-  };
-}
-
-const moveItemThunk = createAsyncThunk<void, MoveItemThunkPayload, { state: RootState }>(
-  'drive/moveItem',
-  async ({ isFolder, origin, destinationUuid, itemMovedAction, optimisticCallbacks }) => {
-    try {
-      await drive.database.deleteItem({
-        uuid: origin.uuid,
-      });
-
-      if (!isFolder) {
-        await drive.file.moveFile({
-          fileUuid: origin?.uuid,
-          destinationFolderUuid: destinationUuid,
-        });
-      } else {
-        await drive.folder.moveFolder({
-          folderUuid: origin.uuid,
-          destinationFolderUuid: destinationUuid,
-        });
-      }
-
-      void notifyParentChanged(origin.parentUuid);
-
-      optimisticCallbacks?.onOptimisticUpdate();
-
-      const totalMovedItems = 1;
-      notificationsService.show({
-        text1: strings.formatString(strings.messages.itemsMoved, totalMovedItems).toString(),
-        action: {
-          text: strings.generic.view_folder,
-          onActionPress: itemMovedAction,
-        },
-        type: NotificationType.Success,
-      });
-    } catch (error) {
-      optimisticCallbacks?.onRollback();
-      throw error;
-    }
-  },
-);
-
 const loadUsageThunk = createAsyncThunk<number, void, { state: RootState }>('drive/loadUsage', async () => {
   return drive.usage.getUsage();
 });
@@ -400,9 +341,6 @@ export const driveSlice = createSlice({
         }
       }
     },
-    deselectAll(state) {
-      state.selectedItems = [];
-    },
     setFolderContent(state, action: PayloadAction<DriveItemData[]>) {
       state.folderContent = action.payload;
     },
@@ -416,8 +354,8 @@ export const driveSlice = createSlice({
     blurItem(state) {
       state.focusedItem = null;
     },
-    setItemToMove(state, action: PayloadAction<DriveItemFocused | null>) {
-      state.itemToMove = action.payload;
+    setItemsToMove(state, action: PayloadAction<DriveItemToMove[]>) {
+      state.itemsToMove = action.payload;
     },
     updateDownloadingFile(state, action: PayloadAction<Partial<DownloadingFile>>) {
       state.downloadingFile && Object.assign(state.downloadingFile, action.payload);
@@ -469,28 +407,10 @@ export const driveSlice = createSlice({
       })
       .addCase(createFolderThunk.fulfilled, (state) => {
         state.isLoading = false;
-        state.selectedItems = [];
       })
       .addCase(createFolderThunk.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.error.message;
-      });
-
-    builder
-      .addCase(moveItemThunk.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(moveItemThunk.fulfilled, (state) => {
-        state.isLoading = false;
-      })
-      .addCase(moveItemThunk.rejected, (state, action) => {
-        state.isLoading = false;
-
-        const castedError = errorService.castError(action.error);
-        notificationsService.show({
-          text1: castedError.message,
-          type: NotificationType.Error,
-        });
       });
 
     builder.addCase(loadUsageThunk.fulfilled, (state, action) => {
@@ -569,7 +489,6 @@ export const driveThunks = {
   cancelDownloadThunk,
   downloadFileThunk,
   createFolderThunk,
-  moveItemThunk,
   loadUsageThunk,
 };
 

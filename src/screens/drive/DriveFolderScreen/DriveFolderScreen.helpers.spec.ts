@@ -1,5 +1,6 @@
 import type { DriveFoldersTreeNode } from '../../../contexts/Drive/Drive.context';
-import { canLoadNextPage } from './DriveFolderScreen.helpers';
+import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
+import { canLoadNextPage, hasSelectedFolder } from './DriveFolderScreen.helpers';
 
 const aFolderNode = (overrides: Partial<DriveFoldersTreeNode> = {}): DriveFoldersTreeNode => ({
   name: 'Invoices',
@@ -30,5 +31,19 @@ describe('Loading the next page of a folder', () => {
 
   test('when the folder has finished loading, then the next page can be requested', () => {
     expect(canLoadNextPage(aFolderNode())).toBe(true);
+  });
+});
+
+describe('Checking whether the selection contains a folder', () => {
+  const buildItem = (uuid: string, isFolder: boolean) =>
+    ({ id: uuid, status: DriveItemStatus.Idle, data: { uuid, isFolder } }) as DriveListItem;
+  const items = [buildItem('folder-uuid', true), buildItem('file-uuid', false)];
+
+  test('when a folder is selected, then the selection counts as containing one', () => {
+    expect(hasSelectedFolder(items, new Set(['folder-uuid', 'file-uuid']))).toBe(true);
+  });
+
+  test('when only files are selected, then the selection does not count as containing a folder', () => {
+    expect(hasSelectedFolder(items, new Set(['file-uuid']))).toBe(false);
   });
 });
