@@ -6,7 +6,6 @@ import { ArrowCircleUp, DotsThree, Link } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import strings from '../../../../../assets/lang/strings';
 import { FolderIcon, getFileTypeIcon } from '../../../../helpers';
-import { useAppSelector } from '../../../../store/hooks';
 import ProgressBar from '../../../AppProgressBar';
 import AppText from '../../../AppText';
 
@@ -21,8 +20,6 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
   const tailwind = useTailwind();
   const getColor = useGetColor();
 
-  const { selectedItems } = useAppSelector((state) => state.drive);
-  const isSelectionMode = selectedItems.length > 0;
   const spinValue = new Animated.Value(1);
   const iconSize = 40;
   const IconFile = getFileTypeIcon(props.data.type || '');
@@ -161,7 +158,6 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
 
         <TouchableOpacity
           disabled={isUploading || isDownloading}
-          style={isSelectionMode && tailwind('hidden')}
           onPress={onActionsButtonPressed}
           onLongPress={onActionsButtonPressed}
         >

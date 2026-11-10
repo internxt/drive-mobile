@@ -12,4 +12,5 @@ export enum DriveEventKey {
   SharedLinksUpdated = 'shared-links-updated',
   DriveItemTrashed = 'drive-item-trashed',
   DriveItemRestored = 'drive-item-restored',
+  DriveItemMoved = 'drive-item-moved',
 }

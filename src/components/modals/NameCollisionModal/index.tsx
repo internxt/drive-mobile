@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
+import { SelectionCheckbox } from 'src/components/drive/lists/items/SelectionCheckbox';
 import useGetColor from 'src/hooks/useColor';
 import { useTailwind } from 'tailwind-rn';
 import CenterModal from '../CenterModal';
 
 export type NameCollisionAction = 'replace' | 'keep-both';
+type NameCollisionOption = NameCollisionAction | 'skip';
 
 export interface NameCollisionModalProps {
   isOpen: boolean;
@@ -16,8 +18,10 @@ export interface NameCollisionModalProps {
   collisionCount: number;
   itemType: 'file' | 'folder';
   confirmLabel: string;
+  showApplyToAll?: boolean;
   onClose: () => void;
-  onConfirm: (action: NameCollisionAction) => void;
+  onConfirm: (action: NameCollisionAction, shouldApplyToAll: boolean) => void;
+  onSkip?: (shouldApplyToAll: boolean) => void;
 }
 
 const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
@@ -26,21 +30,27 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
   collisionCount,
   itemType,
   confirmLabel,
+  showApplyToAll = false,
   onClose,
   onConfirm,
+  onSkip,
 }) => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
-  const [selectedAction, setSelectedAction] = useState<NameCollisionAction>('replace');
+  const [selectedAction, setSelectedAction] = useState<NameCollisionOption>('replace');
+  const [isApplyToAllChecked, setIsApplyToAllChecked] = useState(false);
 
   const isMultiple = collisionCount > 1;
 
   const title = isMultiple ? strings.modals.nameCollision.titleMultiple : strings.modals.nameCollision.title;
 
   const singleMessageKey = itemType === 'folder' ? 'messageSingleFolder' : 'messageSingleFile';
+  const singleMessageTemplate = onSkip
+    ? strings.modals.nameCollision.messageSingleItemWithSkip
+    : strings.modals.nameCollision[singleMessageKey];
   const message = isMultiple
     ? strings.modals.nameCollision.messageMultiple
-    : (strings.formatString(strings.modals.nameCollision[singleMessageKey], itemName) as string);
+    : (strings.formatString(singleMessageTemplate, itemName) as string);
 
   const replaceLabel = isMultiple
     ? strings.modals.nameCollision.replaceAll
@@ -49,7 +59,11 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
   const keepLabel = isMultiple ? strings.modals.nameCollision.keepAll : strings.modals.nameCollision.keepBoth;
 
   const handleConfirm = () => {
-    onConfirm(selectedAction);
+    if (selectedAction === 'skip') {
+      onSkip?.(isApplyToAllChecked);
+      return;
+    }
+    onConfirm(selectedAction, isApplyToAllChecked);
   };
 
   return (
@@ -85,6 +99,28 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
               onPress={() => setSelectedAction('keep-both')}
             />
           </View>
+
+          {onSkip ? (
+            <View style={tailwind('mt-3')}>
+              <RadioOption
+                label={strings.modals.nameCollision.skipItem}
+                selected={selectedAction === 'skip'}
+                onPress={() => setSelectedAction('skip')}
+              />
+            </View>
+          ) : null}
+
+          {showApplyToAll ? (
+            <Pressable
+              onPress={() => setIsApplyToAllChecked((isChecked) => !isChecked)}
+              style={tailwind('flex-row items-center mt-5')}
+            >
+              <SelectionCheckbox checked={isApplyToAllChecked} shape="square" />
+              <AppText style={[tailwind('ml-3 text-base'), { color: getColor('text-gray-100') }]}>
+                {strings.modals.nameCollision.applyToAll}
+              </AppText>
+            </Pressable>
+          ) : null}
 
           <View style={tailwind('flex-row mt-6')}>
             <AppButton title={strings.buttons.cancel} type="cancel" onPress={onClose} style={tailwind('flex-1')} />

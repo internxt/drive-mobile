@@ -1,16 +1,9 @@
 import { setStringAsync } from 'expo-clipboard';
 import Toast, { ToastShowParams } from 'react-native-toast-message';
 
-import { NotificationType } from '../types';
+import { NotificationData, NotificationType } from '../types';
 
-type ShowNotificationOptions = {
-  text1: string;
-  text2?: string;
-  type: NotificationType;
-  action?: { text: string; onActionPress: () => void };
-  autoHide?: boolean;
-  visibilityTime?: number;
-};
+const ACTION_NOTIFICATION_VISIBILITY_TIME_MS = 6000;
 
 class NotificationsService {
   private readonly defaultShowOptions: Partial<ToastShowParams> = {
@@ -20,7 +13,7 @@ class NotificationsService {
     bottomOffset: 70,
   };
   private readonly showNextNotificationDelay = 500;
-  private readonly notifications: ShowNotificationOptions[] = [];
+  private readonly notifications: NotificationData[] = [];
 
   public success(text: string) {
     this.show({ text1: text, type: NotificationType.Success });
@@ -38,9 +31,9 @@ class NotificationsService {
     this.show({ text1: text, type: NotificationType.Error });
   }
 
-  public show(options: ShowNotificationOptions) {
+  public show(options: NotificationData) {
     if (this.notifications.length === 0) {
-      this.showToast(options);
+      Toast.show(this.buildToastOptions(options));
     }
 
     this.notifications.push(options);
@@ -59,30 +52,36 @@ class NotificationsService {
     });
   }
 
+  private buildToastOptions(notification: NotificationData): ToastShowParams {
+    const autoHide = notification.autoHide ?? true;
+    const defaultVisibilityTime = notification.action ? ACTION_NOTIFICATION_VISIBILITY_TIME_MS : undefined;
+    const visibilityTime = notification.visibilityTime ?? defaultVisibilityTime;
+    const autoHideVisibilityOptions = visibilityTime === undefined ? {} : { visibilityTime };
+    const visibilityOptions: Partial<ToastShowParams> = autoHide
+      ? autoHideVisibilityOptions
+      : { autoHide: false, visibilityTime: undefined };
+
+    return {
+      ...this.defaultShowOptions,
+      ...visibilityOptions,
+      text1: notification.text1,
+      text2: notification.text2,
+      type: notification.type,
+      onHide: () => this.onNotificationHide(),
+      props: {
+        action: notification.action,
+      },
+    };
+  }
+
   private onNotificationHide() {
     this.notifications.shift();
 
     setTimeout(() => {
       if (this.notifications.length > 0) {
-        this.showToast(this.notifications[0]);
+        Toast.show(this.buildToastOptions(this.notifications[0]));
       }
     }, this.showNextNotificationDelay);
-  }
-
-  private showToast(options: ShowNotificationOptions) {
-    const autoHide = options.autoHide ?? true;
-    Toast.show({
-      ...this.defaultShowOptions,
-      ...(options.visibilityTime !== undefined ? { visibilityTime: options.visibilityTime } : {}),
-      ...(autoHide ? {} : { autoHide: false, visibilityTime: undefined }),
-      text1: options.text1,
-      text2: options.text2,
-      type: options.type,
-      onHide: () => this.onNotificationHide(),
-      props: {
-        action: options.action,
-      },
-    });
   }
 }
 
