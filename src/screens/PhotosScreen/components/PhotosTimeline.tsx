@@ -1,14 +1,16 @@
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Animated, Platform, StyleSheet, View } from 'react-native';
+import { Animated, LayoutChangeEvent, Platform, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
 import { useDragSelectGesture } from '../hooks/useDragSelectGesture';
+import { usePhotosScrubber } from '../hooks/usePhotosScrubber';
 import { PhotoBackupState, PhotoDateGroup, TimelinePhotoItem } from '../types';
 import { GroupBoundary, buildFlatTimeline, findGroupForIndex } from '../utils/photoTimelineGroups';
 import PhotosGroupHeader, { GroupSyncStatus } from './GroupHeader/PhotosGroupHeader';
 import PhotoItem from './PhotoItem';
 import PhotosEmptyState from './PhotosEmptyState';
+import PhotosScrubber from './PhotosScrubber';
 
 export interface PhotosTimelineHandle {
   scrollToAssetId: (id: string) => void;
@@ -63,10 +65,18 @@ const HEADER_FADE_SCROLL_DISTANCE = 24;
 const FLOATING_HEADER_MIN_OPACITY = 0.02;
 const PULL_TO_REFRESH_FADE_START = -10;
 const PULL_TO_REFRESH_FADE_END = -60;
+const LIST_PADDING_BOTTOM = 80;
+
+// Hoisted so the FlashList does not see a new object identity on every render.
+const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
+const CONTENT_STYLE_EMPTY = { paddingBottom: LIST_PADDING_BOTTOM, flexGrow: 1 };
+const CONTENT_STYLE = { paddingTop: HEADER_HEIGHT, paddingBottom: LIST_PADDING_BOTTOM };
+const CONTENT_STYLE_REFRESHING = { paddingTop: 0, paddingBottom: LIST_PADDING_BOTTOM };
 
 interface PhotosTimelineProps {
   assetsGroupsByDate: TimelineDateGroup[];
   isLoading?: boolean;
+  isTimelineReady?: boolean;
   onPhotoPress?: (id: string) => void;
   onPhotoLongPress?: (id: string) => void;
   isSelectMode?: boolean;
@@ -90,6 +100,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     {
       assetsGroupsByDate,
       isLoading,
+      isTimelineReady,
       onPhotoPress,
       onPhotoLongPress,
       isSelectMode,
@@ -126,6 +137,23 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     const boundariesRef = useRef<GroupBoundary[]>(boundaries);
     boundariesRef.current = boundaries;
 
+    const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+    const [listHeaderHeight, setListHeaderHeight] = useState(0);
+
+    const onListHeaderLayout = useCallback(
+      (e: LayoutChangeEvent) => setListHeaderHeight(e.nativeEvent.layout.height),
+      [],
+    );
+
+    useEffect(() => {
+      if (!ListHeaderComponent) {
+        setListHeaderHeight(0);
+      }
+    }, [ListHeaderComponent]);
+
+    const cellSize = containerSize.width / NUM_COLUMNS;
+    const contentTopInset = HEADER_HEIGHT + listHeaderHeight;
+
     const scrollY = useRef(new Animated.Value(0)).current;
     // UIKit drops touches below alpha 0.01, so use FLOATING_HEADER_MIN_OPACITY as the floor so
     // pause/resume buttons are always touchable even when the floating layer is nearly invisible
@@ -141,7 +169,12 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       extrapolate: 'clamp',
     });
 
-    const { gesture, onContainerLayout, onScroll, scrollOffsetRef } = useDragSelectGesture({
+    const {
+      gesture,
+      onContainerLayout,
+      onScroll: onDragSelectScroll,
+      scrollOffsetRef,
+    } = useDragSelectGesture({
       isSelectMode: !!isSelectMode,
       photos,
       scrollY,
@@ -152,6 +185,40 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       onDragUpdate,
       onDragEnd,
     });
+
+    const scrollToOffset = useCallback((offset: number) => {
+      flashListRef.current?.scrollToOffset({ offset, animated: false });
+    }, []);
+
+    const scrubber = usePhotosScrubber({
+      scrollY,
+      boundaries,
+      itemCount: photos.length,
+      cellSize,
+      contentTopInset,
+      containerHeight: containerSize.height,
+      numColumns: NUM_COLUMNS,
+      listPaddingBottom: LIST_PADDING_BOTTOM,
+      isEnabled: !isSelectMode,
+      scrollToOffset,
+    });
+
+    const onScroll = useCallback(
+      (e: Parameters<typeof onDragSelectScroll>[0]) => {
+        onDragSelectScroll(e);
+        scrubber.notifyScroll();
+      },
+      // notifyScroll specifically, not `scrubber`, which is a new object literal every render.
+      [onDragSelectScroll, scrubber.notifyScroll],
+    );
+
+    const onContainerLayoutMerged = useCallback(
+      (e: LayoutChangeEvent) => {
+        onContainerLayout(e);
+        setContainerSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height });
+      },
+      [onContainerLayout],
+    );
 
     const extraData = useMemo(
       () => ({ isSelectMode, selectedIds, onPausePress, onResumePress, onRetryPress }),
@@ -224,20 +291,40 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       wasIosRefreshingRef.current = isIosRefreshing;
     }, [isIosRefreshing]);
 
+    const maintainVisibleContentPosition = useMemo(() => ({ disabled: !isTimelineReady }), [isTimelineReady]);
+
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
-    const currentBoundary = boundaries.find((b) => b.id === topGroupId) ?? boundaries[0];
-    const currentSyncStatus = currentBoundary?.syncStatus ?? { type: 'none' };
-    const overlaySyncStatus = resolveOverlaySyncStatus({
-      isSelectMode: !!isSelectMode,
-      selectedCount: selectedIds?.size ?? 0,
-      isAtListTop,
-      currentSyncStatus,
-      totalAssetsCount,
-    });
+
+    const currentBoundary = useMemo(
+      () => boundaries.find((b) => b.id === topGroupId) ?? boundaries[0],
+      [boundaries, topGroupId],
+    );
+
+    const overlaySyncStatus = useMemo(
+      () =>
+        resolveOverlaySyncStatus({
+          isSelectMode: !!isSelectMode,
+          selectedCount: selectedIds?.size ?? 0,
+          isAtListTop,
+          currentSyncStatus: currentBoundary?.syncStatus ?? { type: 'none' },
+          totalAssetsCount,
+        }),
+      [isSelectMode, selectedIds, isAtListTop, currentBoundary, totalAssetsCount],
+    );
+
+    const contentContainerStyle = isEmpty
+      ? CONTENT_STYLE_EMPTY
+      : isIosRefreshing
+        ? CONTENT_STYLE_REFRESHING
+        : CONTENT_STYLE;
+
+    const measuredListHeader = ListHeaderComponent ? (
+      <View onLayout={onListHeaderLayout}>{ListHeaderComponent}</View>
+    ) : undefined;
 
     return (
       <GestureDetector gesture={gesture}>
-        <View style={tailwind('flex-1')} onLayout={onContainerLayout}>
+        <View style={tailwind('flex-1')} onLayout={onContainerLayoutMerged}>
           <FlashList
             ref={flashListRef}
             data={photos}
@@ -245,24 +332,20 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             keyExtractor={keyExtractor}
             numColumns={NUM_COLUMNS}
             extraData={extraData}
-            ListHeaderComponent={ListHeaderComponent}
+            ListHeaderComponent={measuredListHeader}
             ListEmptyComponent={isEmpty ? <PhotosEmptyState /> : undefined}
-            contentContainerStyle={
-              isEmpty
-                ? { paddingBottom: 80, flexGrow: 1 }
-                : { paddingTop: isIosRefreshing ? 0 : HEADER_HEIGHT, paddingBottom: 80 }
-            }
+            contentContainerStyle={contentContainerStyle}
             showsVerticalScrollIndicator={false}
             onEndReached={onEndReached}
             onEndReachedThreshold={0.5}
             refreshing={refreshing}
             onRefresh={onRefresh}
             onViewableItemsChanged={onViewableItemsChanged}
-            viewabilityConfig={{ itemVisiblePercentThreshold: 10 }}
+            viewabilityConfig={VIEWABILITY_CONFIG}
             onScroll={onScroll}
             scrollEventThrottle={16}
             progressViewOffset={Platform.OS === 'android' ? HEADER_HEIGHT : 0}
-            maintainVisibleContentPosition={{ disabled: true }}
+            maintainVisibleContentPosition={maintainVisibleContentPosition}
             drawDistance={500}
           />
 
@@ -286,6 +369,8 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
               </Animated.View>
             </>
           )}
+
+          {!isEmpty && <PhotosScrubber scrubber={scrubber} />}
         </View>
       </GestureDetector>
     );
