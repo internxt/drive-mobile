@@ -429,3 +429,86 @@ describe('PhotoUploadService.upload of a Live Photo', () => {
     expect(result.contentFileId).toBeUndefined();
   });
 });
+
+describe('PhotoUploadService.replace of a Live Photo', () => {
+  const makeLivePhotoAsset = () =>
+    makeAsset({ filename: 'IMG_0001.HEIC', mediaSubtypes: ['livePhoto'] } as Partial<MediaLibrary.Asset>);
+
+  beforeEach(() => {
+    mockExportLivePhotoComponents.mockResolvedValue({
+      photo: { uri: 'file:///tmp/photo.heic', size: 2_000_000, fileName: 'FullSizeRender.heic' },
+      video: { uri: 'file:///tmp/video.mov', size: 3_000_000, fileName: 'FullSizeRender.mov' },
+    });
+    mockUploadFile
+      .mockReset()
+      .mockResolvedValueOnce('photo-bucket-file-id')
+      .mockResolvedValueOnce('thumb-bucket-file-id')
+      .mockResolvedValueOnce('video-bucket-file-id');
+  });
+
+  test('when an edited Live Photo that already has its video in Drive is replaced, then the content of both files is swapped in place', async () => {
+    const result = await PhotoUploadService.replace(makeLivePhotoAsset(), 'photo-remote-id', DEVICE_ID, PHOTOS_BUCKET, {
+      existingPairedVideoRemoteFileId: 'video-remote-id',
+    });
+
+    expect(mockReplaceFileEntry).toHaveBeenCalledWith('photo-remote-id', {
+      fileId: 'photo-bucket-file-id',
+      size: 2_000_000,
+    });
+    expect(mockReplaceFileEntry).toHaveBeenCalledWith('video-remote-id', {
+      fileId: 'video-bucket-file-id',
+      size: 2_000_000,
+    });
+    expect(mockCheckFileExistence).not.toHaveBeenCalled();
+    expect(result.photoUuid).toBe('photo-remote-id');
+    expect(result.pairedVideoUuid).toBe('video-remote-id');
+  });
+
+  test('when the video of an edited Live Photo is replaced, then only the photo gets a new thumbnail', async () => {
+    await PhotoUploadService.replace(makeLivePhotoAsset(), 'photo-remote-id', DEVICE_ID, PHOTOS_BUCKET, {
+      existingPairedVideoRemoteFileId: 'video-remote-id',
+    });
+
+    expect(mockCreateThumbnailEntry).toHaveBeenCalledTimes(1);
+    expect(mockCreateThumbnailEntry).toHaveBeenCalledWith(expect.objectContaining({ fileUuid: 'photo-remote-id' }));
+  });
+
+  test('when an edited Live Photo without a video in Drive is replaced, then its video is uploaded as a new file', async () => {
+    mockCreateFileEntry.mockResolvedValue({ uuid: 'new-video-uuid' });
+
+    const result = await PhotoUploadService.replace(makeLivePhotoAsset(), 'photo-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(mockReplaceFileEntry).toHaveBeenCalledTimes(1);
+    expect(mockCreateFileEntry).toHaveBeenCalledWith(expect.objectContaining({ fileId: 'video-bucket-file-id' }));
+    expect(result.pairedVideoUuid).toBe('new-video-uuid');
+  });
+
+  test('when replacing the video of an edited Live Photo fails, then the photo is still replaced and no video is returned', async () => {
+    mockReplaceFileEntry
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new AppError('internal server error', 500));
+
+    const result = await PhotoUploadService.replace(makeLivePhotoAsset(), 'photo-remote-id', DEVICE_ID, PHOTOS_BUCKET, {
+      existingPairedVideoRemoteFileId: 'video-remote-id',
+    });
+
+    expect(result.photoUuid).toBe('photo-remote-id');
+    expect(result.pairedVideoUuid).toBeUndefined();
+  });
+
+  test('when the video of an edited Live Photo was trashed in Drive, then a new video entry is created and returned', async () => {
+    mockReplaceFileEntry
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new AppError('file can not be replaced', 400));
+    mockCreateFileEntry.mockResolvedValue({ uuid: 'new-video-uuid' });
+
+    const result = await PhotoUploadService.replace(makeLivePhotoAsset(), 'photo-remote-id', DEVICE_ID, PHOTOS_BUCKET, {
+      existingPairedVideoRemoteFileId: 'trashed-video-id',
+    });
+
+    expect(mockCreateFileEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ fileId: 'video-bucket-file-id', type: 'mov' }),
+    );
+    expect(result.pairedVideoUuid).toBe('new-video-uuid');
+  });
+});
