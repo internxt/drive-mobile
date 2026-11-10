@@ -580,4 +580,69 @@ describe('merging cloud items into local groups', () => {
     const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
     expect(new Date(result[0].id).getTime()).toBeGreaterThan(new Date(result[1].id).getTime());
   });
+
+  test('when a local photo at 09:00 and a cloud-only photo with creationTimeApi at 18:00 share the same day, then the cloud-only photo appears before the local one', () => {
+    const day = new Date('2024-06-15T00:00:00');
+    const localGroups = [
+      makeDateGroup({
+        id: day.toDateString(),
+        photos: [makePhotoItem({ id: 'local-morning', createdAt: new Date('2024-06-15T09:00:00').getTime() })],
+      }),
+    ];
+    const cloudItem = cloudEntryToPhotoItem(
+      makeCloudEntry({
+        remoteFileId: 'cloud-evening',
+        folderDate: day.getTime(),
+        creationTimeApi: new Date('2024-06-15T18:00:00').getTime(),
+      }),
+    );
+
+    const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
+
+    expect(result[0].photos.map((p) => p.id)).toEqual(['cloud-evening', 'local-morning']);
+  });
+
+  test('when a legacy cloud-only photo has no creationTimeApi, then it falls back to folderDate and the order stays deterministic', () => {
+    const day = new Date('2024-06-15T00:00:00');
+    const localGroups = [
+      makeDateGroup({
+        id: day.toDateString(),
+        photos: [makePhotoItem({ id: 'local-noon', createdAt: new Date('2024-06-15T12:00:00').getTime() })],
+      }),
+    ];
+    // folderDate is midnight of the day — older than any local capture time within that day, so
+    // a legacy row with no creationTimeApi sorts after local items, not interleaved incorrectly.
+    const cloudItem = cloudEntryToPhotoItem(
+      makeCloudEntry({ remoteFileId: 'cloud-legacy', folderDate: day.getTime(), creationTimeApi: null }),
+    );
+
+    const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
+
+    expect(result[0].photos.map((p) => p.id)).toEqual(['local-noon', 'cloud-legacy']);
+  });
+
+  test('when two cloud-only photos share the same creationTimeApi, then they are ordered by id', () => {
+    const day = new Date('2024-06-15T00:00:00');
+    const sameTime = new Date('2024-06-15T10:00:00').getTime();
+    const localGroups = [makeDateGroup({ id: day.toDateString(), photos: [] })];
+    const cloudItems = [
+      cloudEntryToPhotoItem(makeCloudEntry({ remoteFileId: 'b-remote', folderDate: day.getTime(), creationTimeApi: sameTime })),
+      cloudEntryToPhotoItem(makeCloudEntry({ remoteFileId: 'a-remote', folderDate: day.getTime(), creationTimeApi: sameTime })),
+    ];
+
+    const result = mergeCloudIntoGroups(localGroups, cloudItems);
+
+    expect(result[0].photos.map((p) => p.id)).toEqual(['a-remote', 'b-remote']);
+  });
+
+  test('when a day group has no cloud additions, then the same group reference is returned', () => {
+    const localGroups = [makeDateGroup()];
+    const otherDayCloudItem = cloudEntryToPhotoItem(
+      makeCloudEntry({ folderDate: new Date('2024-05-01T12:00:00').getTime() }),
+    );
+
+    const result = mergeCloudIntoGroups(localGroups, [otherDayCloudItem]);
+
+    expect(result.find((g) => g.id === localGroups[0].id)).toBe(localGroups[0]);
+  });
 });
