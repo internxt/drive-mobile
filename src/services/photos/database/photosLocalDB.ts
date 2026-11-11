@@ -6,7 +6,7 @@ import photoMonthSyncTable from './tables/photo_month_sync';
 
 const DB_NAME = 'photos_sync.db';
 // Bump when a migration is added to migrateSchema.
-const PHOTOS_DB_SCHEMA_VERSION = 2;
+const PHOTOS_DB_SCHEMA_VERSION = 3;
 
 export type LivePhotoRole = 'photo' | 'paired_video';
 // BURST:
@@ -221,6 +221,14 @@ export interface SyncedAssetInfo {
 export interface IncompleteBurstAsset {
   assetId: string;
   remoteFileId: string | null;
+  fileName: string | null;
+  creationTime: number | null;
+  modificationTime: number | null;
+}
+
+export interface IncompleteLivePhoto {
+  assetId: string;
+  pairedVideoRemoteFileId: string | null;
   fileName: string | null;
   creationTime: number | null;
   modificationTime: number | null;
@@ -942,6 +950,51 @@ class PhotosLocalDB {
       creationTime: r.creation_time,
       modificationTime: r.modification_time,
     }));
+  }
+
+  /**
+   * Returns backed-up Live Photos whose video failed (`'error'`) or still has the content from before an
+   * edit (`'outdated'`), that still have retry attempts left and whose wait since the last attempt is over.
+   */
+  async getIncompleteLivePhotos(): Promise<IncompleteLivePhoto[]> {
+    const rows = await sqliteService.getAllAsync<{
+      asset_id: string;
+      paired_video_remote_file_id: string | null;
+      file_name: string | null;
+      creation_time: number | null;
+      modification_time: number | null;
+    }>(DB_NAME, assetSyncTable.statements.getIncompleteLivePhotos);
+    return rows.map((row) => ({
+      assetId: row.asset_id,
+      pairedVideoRemoteFileId: row.paired_video_remote_file_id,
+      fileName: row.file_name,
+      creationTime: row.creation_time,
+      modificationTime: row.modification_time,
+    }));
+  }
+
+  /**
+   * Links the uploaded video to its Live Photo. Does nothing unless the row is still a backed-up Live Photo
+   * waiting for its video.
+   */
+  async markPairedVideoSynced(assetId: string, pairedVideoRemoteFileId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markPairedVideoSynced, [
+      pairedVideoRemoteFileId,
+      assetId,
+    ]);
+  }
+
+  async addPairedVideoAttempt(assetId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.addPairedVideoAttempt, [assetId]);
+  }
+
+  /** Uses up every retry attempt of the Live Photo's video at once. */
+  async stopPairedVideoRetries(assetId: string): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.stopPairedVideoRetries, [assetId]);
+  }
+
+  async resetPairedVideoAttempts(): Promise<void> {
+    await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.resetPairedVideoAttempts);
   }
 
   async hasAnyAssetSyncEntry(): Promise<boolean> {

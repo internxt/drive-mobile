@@ -1,4 +1,13 @@
 const TABLE_NAME = 'asset_sync';
+const PAIRED_VIDEO_MAX_ATTEMPTS = 5;
+
+/** SQL for how long to wait, in ms, before the next attempt, given the attempts made so far. */
+const retryDelayMsSql = (attemptCountColumn: string) => `CASE
+           WHEN ${attemptCountColumn} <= 1 THEN       0
+           WHEN ${attemptCountColumn} <= 2 THEN   30000
+           WHEN ${attemptCountColumn} <= 3 THEN  300000
+           ELSE                         1800000
+         END`;
 
 const statements = {
   createTable: `
@@ -23,6 +32,7 @@ const statements = {
       is_live_photo               INTEGER NOT NULL DEFAULT 0,
       paired_video_remote_file_id TEXT,
       paired_video_status         TEXT,
+      paired_video_attempt_count  INTEGER NOT NULL DEFAULT 0,
       -- BURST: burst photo columns (iOS only). Clean install required when adding these.
       is_burst                    INTEGER NOT NULL DEFAULT 0,
       burst_id                    TEXT,
@@ -98,8 +108,8 @@ const statements = {
     INSERT INTO ${TABLE_NAME} (asset_id, status, remote_file_id, synced_at, last_attempt_at, modification_time,
                                is_live_photo, paired_video_remote_file_id, paired_video_status,
                                thumbnail_bucket_id, thumbnail_bucket_file, thumbnail_type, content_file_id, bucket,
-                               folder_uuid)
-    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?, ?, ?, ?, ?, ?, ?)
+                               folder_uuid, paired_video_attempt_count)
+    VALUES (?, 'synced', ?, (unixepoch() * 1000), (unixepoch() * 1000), ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, 0)
     ON CONFLICT(asset_id) DO UPDATE SET
       status                      = 'synced',
       remote_file_id              = excluded.remote_file_id,
@@ -109,6 +119,7 @@ const statements = {
       is_live_photo               = 1,
       paired_video_remote_file_id = excluded.paired_video_remote_file_id,
       paired_video_status         = excluded.paired_video_status,
+      paired_video_attempt_count  = 0,
       thumbnail_bucket_id         = COALESCE(excluded.thumbnail_bucket_id, ${TABLE_NAME}.thumbnail_bucket_id),
       thumbnail_bucket_file       = COALESCE(excluded.thumbnail_bucket_file, ${TABLE_NAME}.thumbnail_bucket_file),
       thumbnail_type              = COALESCE(excluded.thumbnail_type, ${TABLE_NAME}.thumbnail_type),
@@ -193,12 +204,7 @@ const statements = {
          status = 'error'
          AND attempt_count < 5
          AND last_attempt_at IS NOT NULL
-         AND last_attempt_at < (unixepoch() * 1000) - CASE
-           WHEN attempt_count <= 1 THEN       0
-           WHEN attempt_count <= 2 THEN   30000
-           WHEN attempt_count <= 3 THEN  300000
-           ELSE                         1800000
-         END
+         AND last_attempt_at < (unixepoch() * 1000) - ${retryDelayMsSql('attempt_count')}
        )
     ORDER BY creation_time DESC NULLS LAST;
   `,
@@ -252,6 +258,38 @@ const statements = {
       AND burst_member_count IS NULL;
   `,
 
+  getIncompleteLivePhotos: `
+    SELECT asset_id, paired_video_remote_file_id, file_name, creation_time, modification_time
+    FROM ${TABLE_NAME}
+    WHERE status = 'synced'
+      AND is_live_photo = 1
+      AND paired_video_status IN ('error', 'outdated')
+      AND paired_video_attempt_count < ${PAIRED_VIDEO_MAX_ATTEMPTS}
+      AND (
+        last_attempt_at IS NULL
+        OR last_attempt_at < (unixepoch() * 1000) - ${retryDelayMsSql('paired_video_attempt_count')}
+      );
+  `,
+  markPairedVideoSynced: `
+    UPDATE ${TABLE_NAME}
+    SET paired_video_remote_file_id = ?, paired_video_status = 'synced', paired_video_attempt_count = 0
+    WHERE asset_id = ?
+      AND status = 'synced'
+      AND is_live_photo = 1
+      AND paired_video_status IN ('error', 'outdated');
+  `,
+  addPairedVideoAttempt: `
+    UPDATE ${TABLE_NAME}
+    SET paired_video_attempt_count = paired_video_attempt_count + 1, last_attempt_at = (unixepoch() * 1000)
+    WHERE asset_id = ?;
+  `,
+  stopPairedVideoRetries: `
+    UPDATE ${TABLE_NAME} SET paired_video_attempt_count = ${PAIRED_VIDEO_MAX_ATTEMPTS} WHERE asset_id = ?;
+  `,
+  resetPairedVideoAttempts: `
+    UPDATE ${TABLE_NAME} SET paired_video_attempt_count = 0 WHERE paired_video_status IN ('error', 'outdated');
+  `,
+
   hasAnyEntry: `SELECT EXISTS(SELECT 1 FROM ${TABLE_NAME}) AS result;`,
 
   getManifestEntries: `
@@ -284,6 +322,7 @@ const addedColumns = [
   { name: 'content_file_id', type: 'TEXT' },
   { name: 'bucket', type: 'TEXT' },
   { name: 'folder_uuid', type: 'TEXT' },
+  { name: 'paired_video_attempt_count', type: 'INTEGER NOT NULL DEFAULT 0' },
 ];
 
 export default { TABLE_NAME, statements, addedColumns };

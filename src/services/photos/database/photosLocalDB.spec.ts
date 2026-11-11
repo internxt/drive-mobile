@@ -29,6 +29,7 @@ describe('photosLocalDB', () => {
     'content_file_id',
     'bucket',
     'folder_uuid',
+    'paired_video_attempt_count',
   ];
   const PHOTO_MONTH_SYNC_ADDED_COLUMNS = ['last_server_updated_at', 'last_delta_check_at', 'last_full_sync_at'];
   // 11 create table/index statements.
@@ -63,7 +64,7 @@ describe('photosLocalDB', () => {
 
     const statements = getExecutedStatements();
     expect(statements.some((s) => s.includes('ALTER TABLE'))).toBe(false);
-    expect(statements).toContain('PRAGMA user_version = 2;');
+    expect(statements).toContain('PRAGMA user_version = 3;');
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(CREATE_STATEMENT_COUNT + 1);
   });
 
@@ -78,14 +79,15 @@ describe('photosLocalDB', () => {
     const alterStatements = getExecutedStatements().filter((s) => s.includes('ADD COLUMN'));
     expect(alterStatements).toEqual([
       'ALTER TABLE asset_sync ADD COLUMN folder_uuid TEXT;',
+      'ALTER TABLE asset_sync ADD COLUMN paired_video_attempt_count INTEGER NOT NULL DEFAULT 0;',
       'ALTER TABLE photo_month_sync ADD COLUMN last_delta_check_at INTEGER;',
       'ALTER TABLE photo_month_sync ADD COLUMN last_full_sync_at INTEGER;',
     ]);
-    expect(getExecutedStatements()).toContain('PRAGMA user_version = 2;');
+    expect(getExecutedStatements()).toContain('PRAGMA user_version = 3;');
   });
 
   test('when the database is already at the current schema version, then no migration runs', async () => {
-    mockSqlite.getFirstAsync.mockResolvedValueOnce({ user_version: 2 });
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ user_version: 3 });
 
     await photosLocalDB.init();
 
@@ -93,6 +95,22 @@ describe('photosLocalDB', () => {
     const statements = getExecutedStatements();
     expect(statements.some((s) => s.includes('ALTER TABLE') || s.includes('PRAGMA user_version'))).toBe(false);
     expect(mockSqlite.executeSql).toHaveBeenCalledTimes(CREATE_STATEMENT_COUNT);
+  });
+
+  test('when a database at the previous schema version is opened, then the Live Photo video attempt column is added', async () => {
+    mockSqlite.getFirstAsync.mockResolvedValueOnce({ user_version: 2 });
+    mockExistingColumns({
+      asset_sync: ASSET_SYNC_ADDED_COLUMNS.filter((column) => column !== 'paired_video_attempt_count'),
+      photo_month_sync: PHOTO_MONTH_SYNC_ADDED_COLUMNS,
+    });
+
+    await photosLocalDB.init();
+
+    const alterStatements = getExecutedStatements().filter((s) => s.includes('ADD COLUMN'));
+    expect(alterStatements).toEqual([
+      'ALTER TABLE asset_sync ADD COLUMN paired_video_attempt_count INTEGER NOT NULL DEFAULT 0;',
+    ]);
+    expect(getExecutedStatements()).toContain('PRAGMA user_version = 3;');
   });
 
   test('when the database is initialized a second time, then no database calls are made', async () => {
@@ -1386,5 +1404,91 @@ describe('photosLocalDB month and day folder tracking', () => {
     const result = await photosLocalDB.getMonthLastFullSyncAt('device-1', 2026, 9);
 
     expect(result).toBe(1788350000000);
+  });
+  describe('Live Photos whose video is missing or outdated in Drive', () => {
+    const normalize = (sql: string) => sql.replace(/\s+/g, ' ');
+    const getLastStatement = () => normalize(mockSqlite.executeSql.mock.calls.at(-1)?.[1] as string);
+
+    test('when a Live Photo is marked as backed up, then its video attempt count starts again from zero', async () => {
+      await photosLocalDB.markSyncedLivePhoto('asset-1', 'photo-uuid', 1000, 'video-uuid', 'synced');
+
+      expect(getLastStatement()).toContain('paired_video_attempt_count = 0');
+    });
+
+    test('when looking for Live Photos to retry, then only backed-up Live Photos with a failed or outdated video and attempts left are asked for', async () => {
+      await photosLocalDB.getIncompleteLivePhotos();
+
+      const query = normalize(mockSqlite.getAllAsync.mock.calls.at(-1)?.[1] as string);
+      expect(query).toContain('status = \'synced\'');
+      expect(query).toContain('is_live_photo = 1');
+      expect(query).toContain('paired_video_status IN (\'error\', \'outdated\')');
+      expect(query).toContain('paired_video_attempt_count < 5');
+    });
+
+    test('when looking for Live Photos to retry, then one whose last attempt was too recent is left for later', async () => {
+      await photosLocalDB.getIncompleteLivePhotos();
+
+      const query = normalize(mockSqlite.getAllAsync.mock.calls.at(-1)?.[1] as string);
+      expect(query).toContain('last_attempt_at IS NULL OR last_attempt_at < (unixepoch() * 1000) - CASE');
+      expect(query).toContain('WHEN paired_video_attempt_count <= 1');
+    });
+
+    test('when Live Photos to retry are found, then each one comes with its current video in Drive, its name and its dates', async () => {
+      mockSqlite.getAllAsync.mockResolvedValueOnce([
+        {
+          asset_id: 'asset-1',
+          paired_video_remote_file_id: 'old-video-uuid',
+          file_name: 'IMG_0001.HEIC',
+          creation_time: 1000,
+          modification_time: 2000,
+        },
+      ]);
+
+      const [livePhoto] = await photosLocalDB.getIncompleteLivePhotos();
+
+      expect(livePhoto).toEqual({
+        assetId: 'asset-1',
+        pairedVideoRemoteFileId: 'old-video-uuid',
+        fileName: 'IMG_0001.HEIC',
+        creationTime: 1000,
+        modificationTime: 2000,
+      });
+    });
+
+    test('when a retried video is uploaded, then only the video fields change and only if the photo is still backed up and still waiting for it', async () => {
+      await photosLocalDB.markPairedVideoSynced('asset-1', 'new-video-uuid');
+
+      const statement = getLastStatement();
+      expect(statement).toContain('paired_video_status = \'synced\'');
+      expect(statement).toContain('paired_video_attempt_count = 0');
+      expect(statement).toContain('WHERE asset_id = ? AND status = \'synced\' AND is_live_photo = 1');
+      expect(statement).toContain('paired_video_status IN (\'error\', \'outdated\')');
+      expect(statement).not.toContain('modification_time');
+      expect(statement).not.toContain('synced_at');
+      expect(mockSqlite.executeSql.mock.calls.at(-1)?.[2]).toEqual(['new-video-uuid', 'asset-1']);
+    });
+
+    test('when a video retry fails, then one attempt is added to that Live Photo and the time of the attempt is saved', async () => {
+      await photosLocalDB.addPairedVideoAttempt('asset-1');
+
+      expect(getLastStatement()).toContain('paired_video_attempt_count = paired_video_attempt_count + 1');
+      expect(getLastStatement()).toContain('last_attempt_at = (unixepoch() * 1000)');
+      expect(mockSqlite.executeSql.mock.calls.at(-1)?.[2]).toEqual(['asset-1']);
+    });
+
+    test('when a video can never be exported, then that Live Photo uses up all its attempts at once', async () => {
+      await photosLocalDB.stopPairedVideoRetries('asset-1');
+
+      expect(getLastStatement()).toContain('paired_video_attempt_count = 5');
+      expect(mockSqlite.executeSql.mock.calls.at(-1)?.[2]).toEqual(['asset-1']);
+    });
+
+    test('when the user forces a refresh, then every Live Photo still waiting for its video gets its attempts back', async () => {
+      await photosLocalDB.resetPairedVideoAttempts();
+
+      const statement = getLastStatement();
+      expect(statement).toContain('paired_video_attempt_count = 0');
+      expect(statement).toContain('paired_video_status IN (\'error\', \'outdated\')');
+    });
   });
 });
