@@ -12,7 +12,7 @@ import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
 import { useCloudThumbnail } from '../../PhotosScreen/hooks/useCloudThumbnail';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
-import { getLocalThumbnailCacheKey } from '../../PhotosScreen/utils/photoUtils';
+import { getThumbnailSource, ThumbnailSource } from '../../PhotosScreen/utils/photoUtils';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
 
@@ -24,15 +24,13 @@ const THUMB_ACTIVE_MARGIN = 4;
 const THUMB_ITEM_WIDTH = THUMB_W_INACTIVE + THUMB_GAP;
 
 const CarouselThumb = ({
-  uri,
-  cacheKey,
+  source,
   width,
   marginHorizontal,
   onPress,
   onError,
 }: {
-  uri: string | null | undefined;
-  cacheKey?: string;
+  source: ThumbnailSource | null;
   width: number;
   marginHorizontal: number;
   onPress: () => void;
@@ -48,13 +46,8 @@ const CarouselThumb = ({
           { width, height: THUMB_H, borderRadius: 3, marginHorizontal, backgroundColor: getColor('bg-gray-90') },
         ]}
       >
-        {uri ? (
-          <ExpoImage
-            source={{ uri, cacheKey }}
-            style={tailwind('w-full h-full')}
-            contentFit="cover"
-            onError={onError}
-          />
+        {source ? (
+          <ExpoImage source={source} style={tailwind('w-full h-full')} contentFit="cover" onError={onError} />
         ) : null}
       </View>
     </TouchableOpacity>
@@ -73,7 +66,7 @@ const CloudCarouselItem = ({
   const { uri, onImageError } = useCloudThumbnail(item);
   return (
     <CarouselThumb
-      uri={uri}
+      source={uri ? getThumbnailSource(item, uri) : null}
       width={isActive ? THUMB_W_ACTIVE : THUMB_W_INACTIVE}
       marginHorizontal={isActive ? THUMB_ACTIVE_MARGIN : 0}
       onPress={onPress}
@@ -89,8 +82,7 @@ const CarouselItem = memo(
     }
     return (
       <CarouselThumb
-        uri={item.uri}
-        cacheKey={getLocalThumbnailCacheKey(item)}
+        source={item.uri ? getThumbnailSource(item, item.uri) : null}
         width={isActive ? THUMB_W_ACTIVE : THUMB_W_INACTIVE}
         marginHorizontal={isActive ? THUMB_ACTIVE_MARGIN : 0}
         onPress={onPress}

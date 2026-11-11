@@ -15,7 +15,7 @@ import { photosLocalDB } from '../../../services/photos/database/photosLocalDB';
 import { photoMediaLibraryService } from '../../../services/photos/PhotoMediaLibraryService';
 import { resolveAssetCreationTime } from '../../../services/photos/utils/resolveAssetCreationTime';
 import { CloudPhotoItem, PhotoItem, TimelinePhotoItem } from '../../PhotosScreen/types';
-import { getLocalThumbnailCacheKey } from '../../PhotosScreen/utils/photoUtils';
+import { getThumbnailSource } from '../../PhotosScreen/utils/photoUtils';
 import { formatBytes, formatDate, formatDimensions, formatExtension } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
@@ -190,6 +190,7 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
   const [headerSubtitle, setHeaderSubtitle] = useState(item.type === 'cloud-only' ? formatDate(item.folderDate) : '');
   const mountedRef = useRef(true);
   const thumbnailUri = item.type === 'local' ? (item.uri ?? null) : (item.thumbnailPath ?? null);
+  const thumbnailSource = thumbnailUri ? getThumbnailSource(item, thumbnailUri) : null;
 
   useEffect(() => {
     return () => {
@@ -278,12 +279,8 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
           { gap: 12, paddingVertical: 24, borderBottomWidth: 1, borderBottomColor: SEPARATOR_SECTION },
         ]}
       >
-        {thumbnailUri ? (
-          <ExpoImage
-            source={{ uri: thumbnailUri, cacheKey: getLocalThumbnailCacheKey(item) }}
-            style={tailwind('w-12 h-12 rounded-lg')}
-            contentFit="cover"
-          />
+        {thumbnailSource ? (
+          <ExpoImage source={thumbnailSource} style={tailwind('w-12 h-12 rounded-lg')} contentFit="cover" />
         ) : (
           <View style={tailwind('bg-gray-5 w-12 h-12 rounded-lg')} />
         )}

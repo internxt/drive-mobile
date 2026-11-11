@@ -1,5 +1,14 @@
 import strings from 'assets/lang/strings';
+import { Platform } from 'react-native';
+import { FILE_URI_PREFIX } from 'src/services/common/uri/uriHelpers';
 import { TimelinePhotoItem } from '../types';
+
+const THUMBNAIL_VERSION_PARAM = 'v';
+
+export interface ThumbnailSource {
+  uri: string;
+  cacheKey?: string;
+}
 
 export const isItemBacked = (item: TimelinePhotoItem): boolean =>
   item.type === 'cloud-only' || (item.type === 'local' && item.backupState === 'backed');
@@ -12,8 +21,21 @@ export const isItemCloudDeleted = (item: TimelinePhotoItem): boolean =>
 
 export const isItemSelectable = (item: TimelinePhotoItem): boolean => !isItemCloudDeleted(item);
 
-export const getLocalThumbnailCacheKey = (item: TimelinePhotoItem): string | undefined =>
-  item.type === 'local' ? `${item.id}-${item.modificationTime}` : undefined;
+/**
+ * Image source for a thumbnail. Local items get a cache key that changes when the asset is modified. On Android,
+ * expo-image ignores the cache key for local files, so a `file://` URI also gets the modification time as a query.
+ */
+export const getThumbnailSource = (item: TimelinePhotoItem, uri: string): ThumbnailSource => {
+  if (item.type !== 'local') {
+    return { uri };
+  }
+  const cacheKey = `${item.id}-${item.modificationTime}`;
+  const isAndroidFileUri = Platform.OS === 'android' && uri.startsWith(FILE_URI_PREFIX);
+  if (!isAndroidFileUri) {
+    return { uri, cacheKey };
+  }
+  return { uri: `${uri}?${THUMBNAIL_VERSION_PARAM}=${item.modificationTime}`, cacheKey };
+};
 
 const isVideo = (item: TimelinePhotoItem): boolean => item.mediaType === 'video';
 

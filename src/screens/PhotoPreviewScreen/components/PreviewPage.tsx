@@ -6,7 +6,7 @@ import { useTailwind } from 'tailwind-rn';
 import { VideoViewer } from '../../../components/photos/VideoViewer/VideoViewer';
 import { ImageViewer } from '../../../components/ui-kit/view/ImageViewer/ImageViewer';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
-import { getLocalThumbnailCacheKey } from '../../PhotosScreen/utils/photoUtils';
+import { getThumbnailSource, ThumbnailSource } from '../../PhotosScreen/utils/photoUtils';
 import { useCloudThumbnailBackfill } from '../hooks/useCloudThumbnailBackfill';
 import { usePreviewSource } from '../hooks/usePreviewSource';
 
@@ -14,8 +14,7 @@ const VIDEO_ACTIVATION_DELAY_MS = 200;
 
 interface ThumbnailFallbackProps {
   itemId: string;
-  thumbnailUri: string | null;
-  thumbnailCacheKey?: string;
+  thumbnailSource: ThumbnailSource | null;
   isLoading: boolean;
   mediaLabel: 'video' | 'photo';
   containerClassName: string;
@@ -23,8 +22,7 @@ interface ThumbnailFallbackProps {
 
 const ThumbnailFallback = ({
   itemId,
-  thumbnailUri,
-  thumbnailCacheKey,
+  thumbnailSource,
   isLoading,
   mediaLabel,
   containerClassName,
@@ -32,14 +30,14 @@ const ThumbnailFallback = ({
   const tailwind = useTailwind();
   return (
     <View style={tailwind(containerClassName)}>
-      {thumbnailUri ? (
+      {thumbnailSource ? (
         <ExpoImage
-          source={{ uri: thumbnailUri, cacheKey: thumbnailCacheKey }}
+          source={thumbnailSource}
           style={tailwind('w-full h-full')}
           contentFit="contain"
           onError={(e) =>
             logger.error(
-              `[PreviewPage] ${mediaLabel} thumbnail failed to load — id: ${itemId}, uri: ${thumbnailUri}, error: ${e.error}`,
+              `[PreviewPage] ${mediaLabel} thumbnail failed to load — id: ${itemId}, uri: ${thumbnailSource.uri}, error: ${e.error}`,
             )
           }
         />
@@ -78,7 +76,7 @@ const PageContent = ({
   onVideoEnd,
   videoResetKey,
 }: PageContentProps): JSX.Element => {
-  const thumbnailCacheKey = getLocalThumbnailCacheKey(item);
+  const thumbnailSource = thumbnailUri ? getThumbnailSource(item, thumbnailUri) : null;
 
   if (item.mediaType === 'video') {
     if (uri && isActive) {
@@ -86,8 +84,8 @@ const PageContent = ({
         <VideoViewer
           key={videoResetKey}
           source={uri}
-          thumbnail={thumbnailUri ?? undefined}
-          thumbnailCacheKey={thumbnailCacheKey}
+          thumbnail={thumbnailSource?.uri}
+          thumbnailCacheKey={thumbnailSource?.cacheKey}
           onPlay={onVideoPlay}
           onPause={onVideoPause}
           onEnd={onVideoEnd}
@@ -97,8 +95,7 @@ const PageContent = ({
     return (
       <ThumbnailFallback
         itemId={item.id}
-        thumbnailUri={thumbnailUri}
-        thumbnailCacheKey={thumbnailCacheKey}
+        thumbnailSource={thumbnailSource}
         isLoading={isLoading}
         mediaLabel="video"
         containerClassName="flex-1 bg-black justify-center items-center"
@@ -113,8 +110,7 @@ const PageContent = ({
   return (
     <ThumbnailFallback
       itemId={item.id}
-      thumbnailUri={thumbnailUri}
-      thumbnailCacheKey={thumbnailCacheKey}
+      thumbnailSource={thumbnailSource}
       isLoading={isLoading}
       mediaLabel="photo"
       containerClassName="flex-1 justify-center items-center"
