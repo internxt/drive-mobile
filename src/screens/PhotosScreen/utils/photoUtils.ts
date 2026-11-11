@@ -12,6 +12,9 @@ export const isItemCloudDeleted = (item: TimelinePhotoItem): boolean =>
 
 export const isItemSelectable = (item: TimelinePhotoItem): boolean => !isItemCloudDeleted(item);
 
+export const getLocalThumbnailCacheKey = (item: TimelinePhotoItem): string | undefined =>
+  item.type === 'local' ? `${item.id}-${item.modificationTime}` : undefined;
+
 const isVideo = (item: TimelinePhotoItem): boolean => item.mediaType === 'video';
 
 export const getSavedNotificationMessage = (item: TimelinePhotoItem): string =>

@@ -20,6 +20,7 @@ import { useAppSelector } from 'src/store/hooks';
 import { useTailwind } from 'tailwind-rn';
 import { useCloudThumbnail } from '../hooks/useCloudThumbnail';
 import { CloudPhotoItem, PhotoItem as PhotoItemType, TimelinePhotoItem } from '../types';
+import { getLocalThumbnailCacheKey } from '../utils/photoUtils';
 
 const SkeletonCell = ({ style }: { style?: StyleProp<ViewStyle> }): JSX.Element => {
   const getColor = useGetColor();
@@ -207,7 +208,7 @@ const LocalPhotoCell = memo(
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
         {/* recyclingKey clears the previous asset's bitmap immediately when FlashList reuses this cell */}
         <ExpoImage
-          source={{ uri: item.uri, cacheKey: `${item.id}-${item.modificationTime}` }}
+          source={{ uri: item.uri, cacheKey: getLocalThumbnailCacheKey(item) }}
           recyclingKey={item.id}
           style={[StyleSheet.absoluteFill, isCloudDeleted && styles.dimmed]}
           contentFit="cover"

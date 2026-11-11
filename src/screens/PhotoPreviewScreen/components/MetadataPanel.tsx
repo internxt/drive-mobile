@@ -1,6 +1,7 @@
+import { Image as ExpoImage } from 'expo-image';
 import { CaretLeftIcon } from 'phosphor-react-native';
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ import { photosLocalDB } from '../../../services/photos/database/photosLocalDB';
 import { photoMediaLibraryService } from '../../../services/photos/PhotoMediaLibraryService';
 import { resolveAssetCreationTime } from '../../../services/photos/utils/resolveAssetCreationTime';
 import { CloudPhotoItem, PhotoItem, TimelinePhotoItem } from '../../PhotosScreen/types';
+import { getLocalThumbnailCacheKey } from '../../PhotosScreen/utils/photoUtils';
 import { formatBytes, formatDate, formatDimensions, formatExtension } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
@@ -277,7 +279,11 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
         ]}
       >
         {thumbnailUri ? (
-          <Image source={{ uri: thumbnailUri }} style={tailwind('w-12 h-12 rounded-lg')} resizeMode="cover" />
+          <ExpoImage
+            source={{ uri: thumbnailUri, cacheKey: getLocalThumbnailCacheKey(item) }}
+            style={tailwind('w-12 h-12 rounded-lg')}
+            contentFit="cover"
+          />
         ) : (
           <View style={tailwind('bg-gray-5 w-12 h-12 rounded-lg')} />
         )}

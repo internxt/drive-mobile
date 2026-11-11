@@ -1,7 +1,8 @@
+import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CloudArrowUpIcon, DotsThreeOutlineIcon, ExportIcon, TrashIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
-import { FlatList, Image, ListRenderItem, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { FlatList, ListRenderItem, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
@@ -11,6 +12,7 @@ import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
 import { useCloudThumbnail } from '../../PhotosScreen/hooks/useCloudThumbnail';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
+import { getLocalThumbnailCacheKey } from '../../PhotosScreen/utils/photoUtils';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
 
@@ -23,12 +25,14 @@ const THUMB_ITEM_WIDTH = THUMB_W_INACTIVE + THUMB_GAP;
 
 const CarouselThumb = ({
   uri,
+  cacheKey,
   width,
   marginHorizontal,
   onPress,
   onError,
 }: {
   uri: string | null | undefined;
+  cacheKey?: string;
   width: number;
   marginHorizontal: number;
   onPress: () => void;
@@ -44,7 +48,14 @@ const CarouselThumb = ({
           { width, height: THUMB_H, borderRadius: 3, marginHorizontal, backgroundColor: getColor('bg-gray-90') },
         ]}
       >
-        {uri ? <Image source={{ uri }} style={tailwind('w-full h-full')} resizeMode="cover" onError={onError} /> : null}
+        {uri ? (
+          <ExpoImage
+            source={{ uri, cacheKey }}
+            style={tailwind('w-full h-full')}
+            contentFit="cover"
+            onError={onError}
+          />
+        ) : null}
       </View>
     </TouchableOpacity>
   );
@@ -79,6 +90,7 @@ const CarouselItem = memo(
     return (
       <CarouselThumb
         uri={item.uri}
+        cacheKey={getLocalThumbnailCacheKey(item)}
         width={isActive ? THUMB_W_ACTIVE : THUMB_W_INACTIVE}
         marginHorizontal={isActive ? THUMB_ACTIVE_MARGIN : 0}
         onPress={onPress}

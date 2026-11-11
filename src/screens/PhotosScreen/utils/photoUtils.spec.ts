@@ -1,5 +1,11 @@
 import { CloudPhotoItem, PhotoItem } from '../types';
-import { isItemBacked, isItemCloudDeleted, isItemSelectable, isLocalItemNotBacked } from './photoUtils';
+import {
+  getLocalThumbnailCacheKey,
+  isItemBacked,
+  isItemCloudDeleted,
+  isItemSelectable,
+  isLocalItemNotBacked,
+} from './photoUtils';
 
 const makeLocalItem = (overrides: Partial<PhotoItem> = {}): PhotoItem => ({
   id: 'asset-1',
@@ -81,5 +87,18 @@ describe('isLocalItemNotBacked', () => {
 
   test('when a local item is cloud-deleted, then it is false', () => {
     expect(isLocalItemNotBacked(makeLocalItem({ backupState: 'cloud-deleted' }))).toBe(false);
+  });
+});
+
+describe('getLocalThumbnailCacheKey', () => {
+  test('when a local photo is edited on the device, then its thumbnail gets a different cache key', () => {
+    const beforeEdit = getLocalThumbnailCacheKey(makeLocalItem({ modificationTime: 1000 }));
+    const afterEdit = getLocalThumbnailCacheKey(makeLocalItem({ modificationTime: 2000 }));
+
+    expect(afterEdit).not.toBe(beforeEdit);
+  });
+
+  test('when the item is only in the cloud, then no cache key is given', () => {
+    expect(getLocalThumbnailCacheKey(makeCloudItem())).toBeUndefined();
   });
 });
