@@ -16,6 +16,18 @@ export class FileAlreadyExistsError extends Error {
   }
 }
 
+/** A failed upload to the bucket, with the HTTP status of the original error when it had one. */
+export class BucketUploadError extends Error {
+  constructor(
+    fileName: string,
+    reason: string,
+    public readonly status?: number,
+  ) {
+    super(`Bucket upload failed for ${fileName}: ${reason}`);
+    this.name = 'BucketUploadError';
+  }
+}
+
 export class PhotoDeviceNameConflictError extends Error {
   constructor(deviceName: string) {
     super(`A photos device folder with name "${deviceName}" already exists`);
