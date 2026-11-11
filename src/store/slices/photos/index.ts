@@ -1,6 +1,5 @@
 import { AxiosResponseError } from '@internxt/sdk/dist/shared/types/errors';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Platform } from 'react-native';
 import appService from 'src/services/AppService';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import errorService from 'src/services/ErrorService';
@@ -24,7 +23,7 @@ import { AsyncStorageKey } from 'src/types';
 import { logger } from '../../../services/common';
 import { RootState } from '../../index';
 import { hasPhotosFeatureAccess } from './selectors';
-import { evaluateNetworkPause, runUploadThunk } from './thunks/upload';
+import { evaluateNetworkPause, hasIncompleteBackupWork, runUploadThunk } from './thunks/upload';
 export { uploadAssetsManuallyThunk } from './thunks/upload';
 export { runUploadThunk };
 
@@ -394,13 +393,14 @@ export const forceRefreshThunk = createAsyncThunk<void, void, { state: RootState
     dispatch(runFullCloudHistorySyncThunk({ force: true }));
 
     await photosLocalDB.resetErrorsToPending();
+    await photosLocalDB.resetPairedVideoAttempts();
     dispatch(photosSlice.actions.setAssetUploadErroredCount(await photosLocalDB.getAssetUploadErroredCount()));
     await dispatch(runDiscoveryThunk()).unwrap();
     const pending = getState().photos.pendingBackupAssets;
-    const incompleteBursts = Platform.OS === 'ios' ? await photosLocalDB.getIncompleteBurstAssets() : [];
-    if (pending > 0 || incompleteBursts.length > 0) {
+    const hasIncompleteWork = await hasIncompleteBackupWork();
+    if (pending > 0 || hasIncompleteWork) {
       logger.info(
-        `[ForceRefresh] Discovery found ${pending} pending assets, ${incompleteBursts.length} incomplete bursts — starting upload`,
+        `[ForceRefresh] Discovery found ${pending} pending assets, incomplete bursts or Live Photos: ${hasIncompleteWork} — starting upload`,
       );
       await dispatch(runUploadThunk()).unwrap();
     } else {
@@ -453,8 +453,7 @@ export const runBackupCycleThunk = createAsyncThunk<void, void, { state: RootSta
       return;
     }
 
-    const incompleteBursts = Platform.OS === 'ios' ? await photosLocalDB.getIncompleteBurstAssets() : [];
-    if (pendingBackupAssets > 0 || incompleteBursts.length > 0) {
+    if (pendingBackupAssets > 0 || (await hasIncompleteBackupWork())) {
       await dispatch(runUploadThunk());
     }
   },
