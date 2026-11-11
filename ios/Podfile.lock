@@ -1,5 +1,5 @@
 PODS:
-  - EASClient (57.0.4):
+  - EASClient (57.0.5):
     - ExpoModulesCore
   - EXApplication (57.0.3):
     - ExpoModulesCore
@@ -142,7 +142,7 @@ PODS:
   - ExpoSystemUI (57.0.4):
     - ExpoModulesCore
   - EXStructuredHeaders (57.0.1)
-  - EXUpdates (57.0.24):
+  - EXUpdates (57.0.27):
     - EASClient
     - EXManifests
     - ExpoModulesCore
@@ -1627,7 +1627,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-blob-util (0.24.6):
+  - react-native-blob-util (0.24.13):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -3134,7 +3134,7 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
 SPEC CHECKSUMS:
-  EASClient: 0a37063ccb7acd90d4a490e804b16c9bf709d34a
+  EASClient: c0ccc7ee5d3da785fbbd8c87b881d151a7428742
   EXApplication: a727f05eb8592f0bc764f6ab8d51eacc158652ec
   EXConstants: fdc6f92b1559e5bd69df9e684e8c7ba5d912890e
   EXJSONUtils: a49e3ef80dff762108e5690c7b2f360675dcf7f6
@@ -3170,7 +3170,7 @@ SPEC CHECKSUMS:
   ExpoSQLite: 72e6ada0504a27cd043eb1bf172db70485a761b6
   ExpoSystemUI: 05ee8d4aaba1b6af330f3621e19b39ff9f21e718
   EXStructuredHeaders: 07c88ee9f7dfcbafeaaab0e78ea276dfe0eb332e
-  EXUpdates: 3b0a69685dabd87e6388e8f41b9cc24ec0a12949
+  EXUpdates: c31702bd1fceae0977a38c3ef08efe9ce0505662
   EXUpdatesInterface: 4c96533f11c8cefe879bd506564cc2d537f56804
   FBLazyVector: 2138c6c2ab66c31bf5754dc18097fbc498a49c7f
   hermes-engine: 63c5db7d529c36335fada6582fd293ae2a105d77
@@ -3216,7 +3216,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 3c805ea54675b00ef1755f23b3c1fccf34962b93
   React-microtasksnativemodule: 97a771dbbb4315c71579995b53e4e3e351a99d89
   React-mutationobservernativemodule: 530bff1bba9511a5133e3cf8170e3b2c0df49e89
-  react-native-blob-util: 1d269e9a0fa61991bf30ca8e89b0636163310325
+  react-native-blob-util: 0543b91787b0f42083518e0d00c9e7c3798990f5
   react-native-capture-protection: cbc4f0aa1a8bc26ebae41441c2f51da0065afe28
   react-native-create-thumbnail: c15cedc37f3822777d44e6035be041f7961341ea
   react-native-document-picker: 15cca2d1a6bfb6d0d3ff0283bd9b903e57cb028b
