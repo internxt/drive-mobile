@@ -8,6 +8,7 @@ import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { photoSyncManifestService } from 'src/services/photos/PhotoSyncManifestService';
 import { AssetUploadJob, PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
+import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
 import { PhotoUploadEvent, PhotoUploadResult, uploadSingleFile } from 'src/services/photos/PhotoUploadService';
 import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
 import { AssetSyncStatus, photosLocalDB, SyncedUploadRefs } from 'src/services/photos/database/photosLocalDB';
@@ -70,6 +71,23 @@ const buildUploadJobs = (
     ];
   });
 
+/**
+ * Deletes the cached copies of the video the Live Photo had before the upload, if any, and reloads its month from
+ * the cloud.
+ */
+const refreshPairedVideoInCloudIndex = async (
+  deviceId: string,
+  creationTime: number | null,
+  previousPairedVideoUuid: string | null,
+): Promise<void> => {
+  if (previousPairedVideoUuid) {
+    await PhotoAssetFetchService.evictCachedPairedVideo(previousPairedVideoUuid).catch((err) =>
+      logger.warn(`[Upload] Failed to delete the cached copies of ${previousPairedVideoUuid}: ${err}`),
+    );
+  }
+  photoCloudBrowser.queueMonthBackfill(deviceId, creationTime, 'after Live Photo video upload');
+};
+
 export const completeSyncForAsset = async (
   assetId: string,
   result: PhotoUploadResult,
@@ -113,6 +131,9 @@ export const completeSyncForAsset = async (
       'synced',
       uploadRefs,
     );
+    if (deviceId && status?.pairedVideoRemoteFileId) {
+      await refreshPairedVideoInCloudIndex(deviceId, status.creationTime, status.pairedVideoRemoteFileId);
+    }
   } else if (status?.isLivePhoto) {
     const isSameDriveEntry = status.remoteFileId === result.photoUuid;
     const keptPairedVideoRemoteFileId = isSameDriveEntry ? status.pairedVideoRemoteFileId : null;

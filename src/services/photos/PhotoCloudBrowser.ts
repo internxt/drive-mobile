@@ -388,7 +388,7 @@ class PhotoCloudBrowserService {
    *   only to resolve which year/month to fetch. No-op if null.
    * @param context - Short label included in log lines to distinguish callers (e.g. "after upload").
    */
-  private queueMonthBackfill(deviceId: string, creationTimeMs: number | null, context: string): void {
+  queueMonthBackfill(deviceId: string, creationTimeMs: number | null, context: string): void {
     if (!creationTimeMs) {
       return;
     }

@@ -4,6 +4,7 @@ import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
 import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
+import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
 import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
@@ -88,6 +89,10 @@ jest.mock('src/services/photos/burst/BurstUploadHandler', () => ({
   retryIncompleteBursts: jest.fn().mockResolvedValue(0),
 }));
 
+jest.mock('src/services/photos/PhotoAssetFetchService', () => ({
+  PhotoAssetFetchService: { evictCachedPairedVideo: jest.fn().mockResolvedValue(undefined) },
+}));
+
 jest.mock('src/services/photos/PhotoDeduplicator', () => ({
   PhotoDeduplicator: { getAssetsToSync: jest.fn().mockResolvedValue({ newAssets: [], editedAssets: [] }) },
 }));
@@ -99,6 +104,7 @@ jest.mock('src/services/photos/PhotoCloudBrowser', () => ({
     syncDeltaChanges: jest.fn().mockResolvedValue(undefined),
     cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
     recordSyncedAsset: jest.fn().mockResolvedValue(undefined),
+    queueMonthBackfill: jest.fn(),
     subscribeToCloudIndexUpdates: jest.fn().mockReturnValue(jest.fn()),
   },
 }));
@@ -167,6 +173,7 @@ const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
 const mockPhotoSyncManifestService = photoSyncManifestService as jest.Mocked<typeof photoSyncManifestService>;
 const mockUploadQueue = PhotoUploadQueue as jest.Mocked<typeof PhotoUploadQueue>;
 const mockRetryIncompleteBursts = retryIncompleteBursts as jest.Mock;
+const mockEvictCachedPairedVideo = PhotoAssetFetchService.evictCachedPairedVideo as jest.Mock;
 
 const makeStore = () => {
   const store = configureStore({ reducer: { photos: photosReducer } });
@@ -207,6 +214,7 @@ describe('photos slice', () => {
     mockScanner.getAssetsByIds.mockResolvedValue([]);
     mockUploadQueue.start.mockResolvedValue(undefined);
     mockRetryIncompleteBursts.mockResolvedValue(0);
+    mockEvictCachedPairedVideo.mockResolvedValue(undefined);
     mockDeduplicator.getAssetsToSync.mockResolvedValue({ newAssets: [], editedAssets: [] });
     mockPhotosLocalDB.init.mockResolvedValue(undefined);
     mockPhotosLocalDB.getPendingAssets.mockResolvedValue([]);
@@ -2079,6 +2087,40 @@ describe('completing the sync of a Live Photo whose video could not be uploaded'
       'error',
       expect.anything(),
     );
+  });
+
+  test('when the video of an edited Live Photo is replaced in Drive, then its cached copy is deleted and its month is reloaded from the cloud', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(makeLivePhotoSyncEntry({ creationTime: 1000 }));
+
+    await completeSyncForAsset(
+      'live-1',
+      { photoUuid: 'photo-remote-1', pairedVideoUuid: 'video-remote-1' },
+      1000,
+      'device-1',
+    );
+
+    expect(mockEvictCachedPairedVideo).toHaveBeenCalledWith('video-remote-1');
+    expect(mockCloudBrowser.queueMonthBackfill).toHaveBeenCalledWith('device-1', 1000, expect.any(String));
+  });
+
+  test('when a Live Photo is uploaded for the first time with its video, then no cached copy is deleted', async () => {
+    mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
+      makeLivePhotoSyncEntry({
+        status: 'pending',
+        remoteFileId: null,
+        pairedVideoRemoteFileId: null,
+        pairedVideoStatus: null,
+      }),
+    );
+
+    await completeSyncForAsset(
+      'live-1',
+      { photoUuid: 'photo-remote-1', pairedVideoUuid: 'video-remote-1' },
+      1000,
+      'device-1',
+    );
+
+    expect(mockEvictCachedPairedVideo).not.toHaveBeenCalled();
   });
 
   test('when a Live Photo is uploaded for the first time and its video fails, then it keeps no video', async () => {
