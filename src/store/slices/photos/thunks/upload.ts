@@ -9,8 +9,14 @@ import { photoCloudBrowser } from 'src/services/photos/PhotoCloudBrowser';
 import { photoSyncManifestService } from 'src/services/photos/PhotoSyncManifestService';
 import { AssetUploadJob, PhotoUploadQueue } from 'src/services/photos/PhotoUploadQueue';
 import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
-import { PhotoUploadEvent, PhotoUploadResult, uploadSingleFile } from 'src/services/photos/PhotoUploadService';
+import {
+  PhotoUploadEvent,
+  PhotoUploadResult,
+  uploadCurrentPairedVideo,
+  uploadSingleFile,
+} from 'src/services/photos/PhotoUploadService';
 import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
+import { retryIncompleteLivePhotos } from 'src/services/photos/livePhoto/LivePhotoUploadHandler';
 import { AssetSyncStatus, photosLocalDB, SyncedUploadRefs } from 'src/services/photos/database/photosLocalDB';
 import { isPermissionActive } from 'src/services/photos/photoPermissionService';
 import { logger } from '../../../../services/common';
@@ -156,10 +162,19 @@ export const completeSyncForAsset = async (
     .catch((err) => logger.warn(`[Upload] Failed to record cloud_asset entry for ${assetId}: ${err}`));
 };
 
-const hasRemainingAssets = async (isIOS: boolean): Promise<boolean> => {
+/** Whether some iOS burst is missing its members or some Live Photo is missing its current video. */
+export const hasIncompleteBackupWork = async (): Promise<boolean> => {
+  if (Platform.OS !== 'ios') {
+    return false;
+  }
+  const incompleteBursts = await photosLocalDB.getIncompleteBurstAssets();
+  const incompleteLivePhotos = await photosLocalDB.getIncompleteLivePhotos();
+  return incompleteBursts.length > 0 || incompleteLivePhotos.length > 0;
+};
+
+const hasRemainingAssets = async (): Promise<boolean> => {
   const remainingPending = await photosLocalDB.getPendingAssets();
-  const remainingBursts = isIOS ? await photosLocalDB.getIncompleteBurstAssets() : [];
-  return remainingPending.length > 0 || remainingBursts.length > 0;
+  return remainingPending.length > 0 || (await hasIncompleteBackupWork());
 };
 
 const isQuotaExceededError = (error: Error): boolean => (error as { status?: number })?.status === HTTP_QUOTA_EXCEEDED;
@@ -266,8 +281,16 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
           .map((asset) => asset.assetId),
       );
       const incompleteBurstAssets = isIOS ? await photosLocalDB.getIncompleteBurstAssets() : [];
-      logger.info(`[Upload] pending=${localDBPendingAssets.length} incompleteBursts=${incompleteBurstAssets.length}`);
-      if (localDBPendingAssets.length === 0 && incompleteBurstAssets.length === 0) {
+      const incompleteLivePhotos = isIOS ? await photosLocalDB.getIncompleteLivePhotos() : [];
+      logger.info(
+        `[Upload] pending=${localDBPendingAssets.length} incompleteBursts=${incompleteBurstAssets.length} ` +
+          `incompleteLivePhotos=${incompleteLivePhotos.length}`,
+      );
+      if (
+        localDBPendingAssets.length === 0 &&
+        incompleteBurstAssets.length === 0 &&
+        incompleteLivePhotos.length === 0
+      ) {
         dispatch(photosSlice.actions.setSyncStatus('synced'));
         return;
       }
@@ -279,7 +302,11 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
       const uploadAssetJobs = buildUploadJobs(localDBPendingAssets, assetById);
 
       dispatch(photosSlice.actions.setSyncStatus('uploading'));
-      dispatch(photosSlice.actions.setSessionUploadTotalAssets(uploadAssetJobs.length + incompleteBurstAssets.length));
+      dispatch(
+        photosSlice.actions.setSessionUploadTotalAssets(
+          uploadAssetJobs.length + incompleteBurstAssets.length + incompleteLivePhotos.length,
+        ),
+      );
 
       const applyBurstEvent = (assetId: string, event: PhotoUploadEvent) => {
         switch (event.type) {
@@ -358,6 +385,30 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
         },
       });
 
+      const canRetryLivePhotos =
+        incompleteLivePhotos.length > 0 &&
+        !uploadCycleAbortSignal.aborted &&
+        !getState().photos.isPaused &&
+        getState().photos.disabledReason === null;
+      if (canRetryLivePhotos) {
+        const livePhotoRetryResult = await retryIncompleteLivePhotos({
+          incompleteLivePhotos,
+          deviceId,
+          photosBucket,
+          signal: uploadCycleAbortSignal,
+          uploadPairedVideo: uploadCurrentPairedVideo,
+          isQuotaExceededError,
+          onPairedVideoUploaded: ({ creationTime, previousPairedVideoUuid }) =>
+            refreshPairedVideoInCloudIndex(deviceId, creationTime, previousPairedVideoUuid),
+        });
+        for (let i = 0; i < livePhotoRetryResult.completedCount; i++) {
+          dispatch(photosSlice.actions.incrementSessionUploadedAssets());
+        }
+        if (livePhotoRetryResult.isQuotaExceeded) {
+          dispatch(photosSlice.actions.pauseForQuotaExceeded());
+        }
+      }
+
       const {
         isPaused: finalIsPaused,
         disabledReason: finalDisabledReason,
@@ -378,7 +429,7 @@ export const runUploadThunk = createAsyncThunk<void, { bypassEnabled?: boolean }
           .uploadManifest(deviceId, photosBucket)
           .catch((err) => logger.error('[Upload] Failed to upload sync manifest', err));
       }
-      if (!finalIsPaused && finalDisabledReason === null && hasUploadSomeAssets && (await hasRemainingAssets(isIOS))) {
+      if (!finalIsPaused && finalDisabledReason === null && hasUploadSomeAssets && (await hasRemainingAssets())) {
         logger.info('[Upload] Work remains after this cycle — restarting');
         dispatch(runBackupCycleThunk());
       }

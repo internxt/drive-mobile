@@ -4,6 +4,7 @@ import { AbortError } from 'src/network/errors';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { networkMonitorService, NetworkState, NetworkStateType } from 'src/services/NetworkMonitorService';
 import { retryIncompleteBursts } from 'src/services/photos/burst/BurstUploadHandler';
+import { retryIncompleteLivePhotos } from 'src/services/photos/livePhoto/LivePhotoUploadHandler';
 import { PhotoAssetFetchService } from 'src/services/photos/PhotoAssetFetchService';
 import { photosLocalDB } from 'src/services/photos/database/photosLocalDB';
 import { PhotoAssetScanner } from 'src/services/photos/PhotoAssetScanner';
@@ -89,6 +90,10 @@ jest.mock('src/services/photos/burst/BurstUploadHandler', () => ({
   retryIncompleteBursts: jest.fn().mockResolvedValue(0),
 }));
 
+jest.mock('src/services/photos/livePhoto/LivePhotoUploadHandler', () => ({
+  retryIncompleteLivePhotos: jest.fn().mockResolvedValue({ completedCount: 0, isQuotaExceeded: false }),
+}));
+
 jest.mock('src/services/photos/PhotoAssetFetchService', () => ({
   PhotoAssetFetchService: { evictCachedPairedVideo: jest.fn().mockResolvedValue(undefined) },
 }));
@@ -137,6 +142,8 @@ jest.mock('src/services/photos/database/photosLocalDB', () => ({
     markError: jest.fn().mockResolvedValue(undefined),
     getStatus: jest.fn().mockResolvedValue(null),
     getIncompleteBurstAssets: jest.fn().mockResolvedValue([]),
+    getIncompleteLivePhotos: jest.fn().mockResolvedValue([]),
+    resetPairedVideoAttempts: jest.fn().mockResolvedValue(undefined),
     cleanupOrphanedAssetSync: jest.fn().mockResolvedValue(0),
     resetErrorsToPending: jest.fn().mockResolvedValue(undefined),
     getAssetUploadErroredCount: jest.fn().mockResolvedValue(0),
@@ -173,6 +180,7 @@ const mockPhotosLocalDB = photosLocalDB as jest.Mocked<typeof photosLocalDB>;
 const mockPhotoSyncManifestService = photoSyncManifestService as jest.Mocked<typeof photoSyncManifestService>;
 const mockUploadQueue = PhotoUploadQueue as jest.Mocked<typeof PhotoUploadQueue>;
 const mockRetryIncompleteBursts = retryIncompleteBursts as jest.Mock;
+const mockRetryIncompleteLivePhotos = retryIncompleteLivePhotos as jest.Mock;
 const mockEvictCachedPairedVideo = PhotoAssetFetchService.evictCachedPairedVideo as jest.Mock;
 
 const makeStore = () => {
@@ -214,6 +222,7 @@ describe('photos slice', () => {
     mockScanner.getAssetsByIds.mockResolvedValue([]);
     mockUploadQueue.start.mockResolvedValue(undefined);
     mockRetryIncompleteBursts.mockResolvedValue(0);
+    mockRetryIncompleteLivePhotos.mockResolvedValue({ completedCount: 0, isQuotaExceeded: false });
     mockEvictCachedPairedVideo.mockResolvedValue(undefined);
     mockDeduplicator.getAssetsToSync.mockResolvedValue({ newAssets: [], editedAssets: [] });
     mockPhotosLocalDB.init.mockResolvedValue(undefined);
@@ -224,6 +233,8 @@ describe('photos slice', () => {
     mockPhotosLocalDB.markSyncedBurst.mockResolvedValue(undefined);
     mockPhotosLocalDB.markError.mockResolvedValue(undefined);
     mockPhotosLocalDB.getIncompleteBurstAssets.mockResolvedValue([]);
+    mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([]);
+    mockPhotosLocalDB.resetPairedVideoAttempts.mockResolvedValue(undefined);
     mockPhotosLocalDB.hasAnyAssetSyncEntry.mockResolvedValue(true);
     mockPhotosLocalDB.reset.mockResolvedValue(undefined);
     mockPhotosLocalDB.resetCloudAssets.mockResolvedValue(undefined);
@@ -818,6 +829,32 @@ describe('photos slice', () => {
       await store.dispatch(forceRefreshThunk());
 
       expect(mockUploadQueue.start).toHaveBeenCalled();
+    });
+
+    test('when the user forces a refresh, then Live Photos still waiting for their video get their attempts back', async () => {
+      const store = makeStore();
+      store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockPhotosLocalDB.resetPairedVideoAttempts).toHaveBeenCalled();
+    });
+
+    test('when the only pending work is a Live Photo missing its video, then a forced refresh starts the upload', async () => {
+      mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
+      );
+
+      await store.dispatch(forceRefreshThunk());
+
+      expect(mockRetryIncompleteLivePhotos).toHaveBeenCalled();
     });
 
     test('when discovery finds no pending assets, then upload does not run', async () => {
@@ -1754,6 +1791,120 @@ describe('photos slice', () => {
 
       expect(mockRetryIncompleteBursts).toHaveBeenCalled();
     });
+
+    describe('Live Photos whose video is missing or outdated in Drive', () => {
+      const makeUploadReadyStore = () => {
+        const store = makeStore();
+        store.dispatch(
+          photosSlice.actions.setState({
+            enabled: true,
+            permissionStatus: 'granted',
+            deviceId: 'device-1',
+            photosBucket: 'photos-bucket-1',
+            networkCondition: 'wifi-and-data',
+          }),
+        );
+        return store;
+      };
+
+      test('when the only pending work is a Live Photo missing its video, then a normal backup cycle retries it', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        const store = makeStore();
+        store.dispatch(photosSlice.actions.setState({ enabled: true, permissionStatus: 'granted' }));
+
+        await store.dispatch(runBackupCycleThunk());
+        await flushAsyncWork();
+
+        expect(mockRetryIncompleteLivePhotos).toHaveBeenCalled();
+      });
+
+      test('when there are new photos and Live Photo videos to retry, then the videos are retried after the new photos', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockPhotosLocalDB.getPendingAssets.mockResolvedValue([{ assetId: 'a1', status: 'pending' }] as never);
+        mockScanner.getAssetsByIds.mockResolvedValue([{ id: 'a1', modificationTime: 1 }] as never);
+
+        await makeUploadReadyStore().dispatch(runUploadThunk());
+
+        const queueCallOrder = mockUploadQueue.start.mock.invocationCallOrder[0];
+        const retryCallOrder = mockRetryIncompleteLivePhotos.mock.invocationCallOrder[0];
+        expect(queueCallOrder).toBeLessThan(retryCallOrder);
+      });
+
+      test('when the videos are retried, then only the Live Photos counted at the start of the cycle are retried', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValueOnce([{ assetId: 'live-1' }] as never);
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([
+          { assetId: 'live-1' },
+          { assetId: 'live-2' },
+        ] as never);
+
+        await makeUploadReadyStore().dispatch(runUploadThunk());
+
+        expect(mockRetryIncompleteLivePhotos).toHaveBeenCalledWith(
+          expect.objectContaining({ incompleteLivePhotos: [{ assetId: 'live-1' }] }),
+        );
+      });
+
+      test('when a Live Photo video is retried, then it counts toward this session but not as a newly backed-up photo', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockRetryIncompleteLivePhotos.mockResolvedValue({ completedCount: 1, isQuotaExceeded: false });
+        const store = makeUploadReadyStore();
+        const totalAssetsUploadedBefore = store.getState().photos.totalAssetsUploaded;
+
+        await store.dispatch(runUploadThunk());
+
+        expect(store.getState().photos.sessionUploadedAssets).toBe(1);
+        expect(store.getState().photos.totalAssetsUploaded).toBe(totalAssetsUploadedBefore);
+      });
+
+      test('when the storage quota is exceeded while retrying a video, then backup pauses for lack of space', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockRetryIncompleteLivePhotos.mockResolvedValue({ completedCount: 0, isQuotaExceeded: true });
+        const store = makeUploadReadyStore();
+
+        await store.dispatch(runUploadThunk());
+
+        expect(store.getState().photos.disabledReason).toBe('quota-exceeded');
+      });
+
+      test('when backup is paused before the videos are retried, then no video is retried', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        const store = makeUploadReadyStore();
+        mockUploadQueue.start.mockImplementationOnce(async () => {
+          await store.dispatch(pauseBackupThunk());
+        });
+
+        await store.dispatch(runUploadThunk());
+
+        expect(mockRetryIncompleteLivePhotos).not.toHaveBeenCalled();
+      });
+
+      test('when a retried video is uploaded, then the cached copies of the older video are deleted and its month is reloaded from the cloud', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockRetryIncompleteLivePhotos.mockImplementationOnce(async ({ onPairedVideoUploaded }) => {
+          await onPairedVideoUploaded({ creationTime: 1000, previousPairedVideoUuid: 'old-video-uuid' });
+          return { completedCount: 1, isQuotaExceeded: false };
+        });
+
+        await makeUploadReadyStore().dispatch(runUploadThunk());
+
+        expect(mockEvictCachedPairedVideo).toHaveBeenCalledTimes(1);
+        expect(mockEvictCachedPairedVideo).toHaveBeenCalledWith('old-video-uuid');
+        expect(mockCloudBrowser.queueMonthBackfill).toHaveBeenCalledWith('device-1', 1000, expect.any(String));
+      });
+
+      test('when a retried video is uploaded for a Live Photo that had no video, then nothing is deleted from the cache and its month is reloaded', async () => {
+        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockRetryIncompleteLivePhotos.mockImplementationOnce(async ({ onPairedVideoUploaded }) => {
+          await onPairedVideoUploaded({ creationTime: 1000, previousPairedVideoUuid: null });
+          return { completedCount: 1, isQuotaExceeded: false };
+        });
+
+        await makeUploadReadyStore().dispatch(runUploadThunk());
+
+        expect(mockEvictCachedPairedVideo).not.toHaveBeenCalled();
+        expect(mockCloudBrowser.queueMonthBackfill).toHaveBeenCalledWith('device-1', 1000, expect.any(String));
+      });
+    });
   });
 
   describe('upload progress', () => {
@@ -2125,7 +2276,12 @@ describe('completing the sync of a Live Photo whose video could not be uploaded'
 
   test('when a Live Photo is uploaded for the first time and its video fails, then it keeps no video', async () => {
     mockPhotosLocalDB.getStatus.mockResolvedValueOnce(
-      makeLivePhotoSyncEntry({ status: 'pending', remoteFileId: null, pairedVideoRemoteFileId: null, pairedVideoStatus: null }),
+      makeLivePhotoSyncEntry({
+        status: 'pending',
+        remoteFileId: null,
+        pairedVideoRemoteFileId: null,
+        pairedVideoStatus: null,
+      }),
     );
 
     await completeSyncForAsset('live-1', { photoUuid: 'photo-remote-1' }, 1000, 'device-1');
