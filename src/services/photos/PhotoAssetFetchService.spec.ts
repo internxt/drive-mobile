@@ -4,6 +4,7 @@ import * as ExpoFileSystemLegacy from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { CloudPhotoItem, PhotoItem } from 'src/screens/PhotosScreen/types';
 import fileSystemService from 'src/services/FileSystemService';
+import storageService from '@internxt-mobile/services/StorageService';
 import { PhotoAssetFetchService } from './PhotoAssetFetchService';
 import { photoMediaLibraryService } from './PhotoMediaLibraryService';
 import { photosLocalDB } from './database/photosLocalDB';
@@ -13,7 +14,7 @@ jest.mock('./PhotoMediaLibraryService', () => ({
 }));
 
 jest.mock('./database/photosLocalDB', () => ({
-  photosLocalDB: { getCloudAssetById: jest.fn() },
+  photosLocalDB: { getCloudAssetById: jest.fn(), upsertCloudAsset: jest.fn() },
 }));
 
 jest.mock('src/services/FileSystemService', () => ({
@@ -24,7 +25,13 @@ jest.mock('src/services/FileSystemService', () => ({
     ensureDir: jest.fn(),
     pathToUri: jest.fn((p: string) => `file://${p}`),
     unlinkIfExists: jest.fn(),
+    readDir: jest.fn(),
   },
+}));
+
+jest.mock('@internxt-mobile/services/StorageService', () => ({
+  __esModule: true,
+  default: { getFileMetadata: jest.fn() },
 }));
 
 jest.mock('@internxt-mobile/services/AsyncStorageService', () => ({
@@ -50,6 +57,9 @@ const mockCopyAsync = ExpoFileSystemLegacy.copyAsync as jest.Mock;
 const mockGetCloudAssetById = photosLocalDB.getCloudAssetById as jest.Mock;
 const mockGetUser = asyncStorageService.getUser as jest.Mock;
 const mockDownloadFile = driveFileService.downloadFile as jest.Mock;
+const mockReadDir = fileSystemService.readDir as jest.Mock;
+const mockGetFileMetadata = storageService.getFileMetadata as jest.Mock;
+const mockUpsertCloudAsset = photosLocalDB.upsertCloudAsset as jest.Mock;
 
 const makeLocalItem = (overrides: Partial<PhotoItem> = {}): PhotoItem => ({
   id: 'ABCD-1234/L0/001',
@@ -249,5 +259,97 @@ describe('resolveExportUri', () => {
     result?.cleanup?.();
 
     expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith('/cache/photo_share/ABCD-1234_L0_001.JPG');
+  });
+});
+
+describe('getting the video of a Live Photo that is only in the cloud', () => {
+  const PREVIEW_DIR = '/cache/photo_preview/';
+  const savedVideo = {
+    remoteFileId: 'video-uuid',
+    fileId: 'old-content',
+    bucket: 'photos-bucket',
+    fileSize: 100,
+    extension: 'mov',
+  };
+  const livePhoto = makeCloudItem({ isLivePhoto: true, pairedVideoRemoteFileId: 'video-uuid' });
+  const cachedCopy = (name: string) => ({ name, path: `${PREVIEW_DIR}${name}` });
+
+  beforeEach(() => {
+    mockExists.mockResolvedValue(true);
+    mockGetCloudAssetById.mockImplementation(async (remoteFileId: string) =>
+      remoteFileId === 'video-uuid' ? savedVideo : { fileId: 'photo-content', bucket: 'photos-bucket' },
+    );
+    mockReadDir.mockResolvedValue([]);
+  });
+
+  test('when the cached copy has the content Drive has now, then it is used without downloading', async () => {
+    mockGetFileMetadata.mockResolvedValue({ fileId: 'old-content', bucket: 'photos-bucket', size: '100' });
+    mockReadDir.mockResolvedValue([cachedCopy('video-uuid.old-content.mov')]);
+
+    const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
+
+    expect(result?.videoPath).toBe(`${PREVIEW_DIR}video-uuid.old-content.mov`);
+    expect(mockDownloadFile).not.toHaveBeenCalled();
+  });
+
+  test('when the video was replaced in Drive, then the old copies are deleted, the new content is downloaded and saved as the current one', async () => {
+    mockGetFileMetadata.mockResolvedValue({ fileId: 'new-content', bucket: 'photos-bucket', size: '200' });
+    mockReadDir.mockResolvedValue([cachedCopy('video-uuid.old-content.mov'), cachedCopy('video-uuid.MOV')]);
+
+    const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
+
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith(`${PREVIEW_DIR}video-uuid.old-content.mov`);
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith(`${PREVIEW_DIR}video-uuid.MOV`);
+    expect(mockDownloadFile).toHaveBeenCalledWith(
+      expect.anything(),
+      'photos-bucket',
+      'new-content',
+      expect.objectContaining({ downloadPath: `${PREVIEW_DIR}video-uuid.new-content.mov` }),
+      200,
+    );
+    expect(mockUpsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ fileId: 'new-content', fileSize: 200 }),
+    );
+    expect(result?.videoPath).toBe(`${PREVIEW_DIR}video-uuid.new-content.mov`);
+  });
+
+  test('when Drive cannot be asked and a copy is cached, then that copy is used', async () => {
+    mockGetFileMetadata.mockRejectedValue(new Error('Network Error'));
+    mockReadDir.mockResolvedValue([cachedCopy('video-uuid.mov')]);
+
+    const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
+
+    expect(result?.videoPath).toBe(`${PREVIEW_DIR}video-uuid.mov`);
+    expect(mockDownloadFile).not.toHaveBeenCalled();
+  });
+
+  test('when the cached copies of a video are removed, then every copy of that video is deleted in either name format and no other file is touched', async () => {
+    mockReadDir.mockResolvedValue([
+      cachedCopy('video-uuid.mov'),
+      cachedCopy('video-uuid.old-content.mov'),
+      cachedCopy('other-video-uuid.mov'),
+    ]);
+
+    await PhotoAssetFetchService.evictCachedPairedVideo('video-uuid');
+
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledTimes(2);
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith(`${PREVIEW_DIR}video-uuid.mov`);
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith(`${PREVIEW_DIR}video-uuid.old-content.mov`);
+  });
+
+  test('when Drive cannot be asked and no copy is cached, then the saved content is downloaded', async () => {
+    mockGetFileMetadata.mockRejectedValue(new Error('Network Error'));
+
+    const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
+
+    expect(mockDownloadFile).toHaveBeenCalledWith(
+      expect.anything(),
+      'photos-bucket',
+      'old-content',
+      expect.objectContaining({ downloadPath: `${PREVIEW_DIR}video-uuid.old-content.mov` }),
+      100,
+    );
+    expect(mockUpsertCloudAsset).not.toHaveBeenCalled();
+    expect(result?.videoPath).toBe(`${PREVIEW_DIR}video-uuid.old-content.mov`);
   });
 });
