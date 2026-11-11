@@ -490,26 +490,30 @@ const replaceRemoteFile = async (params: {
   return { photoUuid, contentFileId: fileId, bucketId, thumbnail, folderUuid };
 };
 
-/**
- * Swaps the content of an existing Live Photo paired video in Drive.
- * @returns UUID of the replaced (or recreated, if it was trashed) Drive entry, or null if the replace failed.
- */
-const replacePairedVideo = async (params: {
+export interface PairedVideoUploadParams {
   videoLocalPath: string;
   videoFileName: string;
-  existingPairedVideoRemoteFileId: string;
   photoPlainName: string;
+  existingPairedVideoRemoteFileId?: string;
   folderUuid: string;
   creationIso: string;
   modificationIso: string;
   credentials: UploadCredentials;
   signal?: AbortSignal;
-}): Promise<string | null> => {
+}
+
+/**
+ * Puts the current content of a Live Photo video in Drive. Replaces the content of the existing video when
+ * there is one (by id, or else by name in the folder) and uploads a new file otherwise.
+ * @returns UUID of the video entry in Drive, which is new if the previous one was trashed.
+ * @throws Any upload error, including cancellation.
+ */
+export const uploadCurrentPairedVideo = async (params: PairedVideoUploadParams): Promise<string> => {
   const {
     videoLocalPath,
     videoFileName,
-    existingPairedVideoRemoteFileId,
     photoPlainName,
+    existingPairedVideoRemoteFileId,
     folderUuid,
     creationIso,
     modificationIso,
@@ -517,12 +521,14 @@ const replacePairedVideo = async (params: {
     signal,
   } = params;
   const { fileExtension } = splitFileNameAndExtension(videoFileName);
-  try {
+  const plainName = getPairedVideoPlainNameFromPhoto(photoPlainName);
+
+  const replaceVideoContent = async (existingRemoteFileId: string): Promise<string> => {
     const videoFileStat = await fileSystemService.stat(videoLocalPath);
     const { photoUuid: pairedVideoUuid } = await replaceRemoteFile({
       localFilePath: videoLocalPath,
-      existingRemoteFileId: existingPairedVideoRemoteFileId,
-      plainName: getPairedVideoPlainNameFromPhoto(photoPlainName),
+      existingRemoteFileId,
+      plainName,
       fileExtension,
       fileSize: videoFileStat.size,
       folderUuid,
@@ -533,8 +539,36 @@ const replacePairedVideo = async (params: {
       signal,
     });
     return pairedVideoUuid;
+  };
+
+  if (existingPairedVideoRemoteFileId) {
+    return replaceVideoContent(existingPairedVideoRemoteFileId);
+  }
+  const { uuid, contentFileId } = await uploadSingleFileWithContentId({
+    localFilePath: videoLocalPath,
+    folderUuid,
+    plainName,
+    fileExtension,
+    creationIso,
+    modificationIso,
+    credentials,
+    signal,
+  });
+  const isExistingFileReused = contentFileId === undefined;
+  return isExistingFileReused ? replaceVideoContent(uuid) : uuid;
+};
+
+/**
+ * Same as `uploadCurrentPairedVideo`, but logs the error and resolves to null instead of throwing.
+ */
+const replacePairedVideo = async (params: PairedVideoUploadParams): Promise<string | null> => {
+  try {
+    return await uploadCurrentPairedVideo(params);
   } catch (err) {
-    logger.error(`[PhotoUploadService] Failed to replace Live Photo paired video for photo "${photoPlainName}":`, err);
+    logger.error(
+      `[PhotoUploadService] Failed to replace Live Photo paired video for photo "${params.photoPlainName}":`,
+      err,
+    );
     return null;
   }
 };
@@ -752,19 +786,17 @@ export const PhotoUploadService = {
             signal,
           });
 
-          const pairedVideoParams = {
+          const pairedVideoUuid = await replacePairedVideo({
             videoLocalPath,
             videoFileName: components.video.fileName,
             photoPlainName: plainName,
+            existingPairedVideoRemoteFileId,
             folderUuid,
             creationIso,
             modificationIso,
             credentials,
             signal,
-          };
-          const pairedVideoUuid = existingPairedVideoRemoteFileId
-            ? await replacePairedVideo({ ...pairedVideoParams, existingPairedVideoRemoteFileId })
-            : await uploadPairedVideo(pairedVideoParams);
+          });
 
           return {
             photoUuid,
