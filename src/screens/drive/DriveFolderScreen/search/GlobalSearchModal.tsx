@@ -55,7 +55,6 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           updatedAt: undefined,
           isFolder: isFolder,
           type: isFolder ? undefined : result.item.type,
-          id: result.id,
           fileId: isFolder ? undefined : result.item.fileId,
           bucket: isFolder ? undefined : result.item.bucket,
           currentThumbnail: null,
@@ -109,7 +108,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
       const fileMeta = await storageService.getFileMetadata(fileUuid);
       const driveFileData = {
         status: 'idle' as const,
-        id: fileMeta.id.toString(),
+        id: fileMeta.uuid,
         data: {
           folderUuid: fileMeta.folderUuid,
           uuid: fileMeta.uuid,
@@ -118,26 +117,21 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           createdAt: fileMeta.createdAt,
           updatedAt: fileMeta.updatedAt,
           fileId: fileMeta.fileId,
-          folderId: fileMeta.folderId,
           bucket: fileMeta.bucket,
           type: fileMeta.type,
           isFolder: false,
           currentThumbnail: null,
-          id: fileMeta.id,
           // @ts-expect-error thumbnails missing in type in SDK
           thumbnails: fileMeta.thumbnails ?? [],
-          parentId: fileMeta.folderId,
         },
       };
       dispatch(
         driveActions.setFocusedItem({
           ...driveFileData.data,
           name: driveFileData.data.name ?? '',
-          id: driveFileData.data.id,
           uuid: driveFileData.data.uuid,
           folderUuid: driveFileData.data.folderUuid,
           shareId: undefined,
-          parentId: driveFileData.data.folderId,
           size: driveFileData.data.size,
           updatedAt: driveFileData.data.updatedAt,
           isFolder: driveFileData.data.isFolder,
@@ -150,12 +144,12 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           ...driveFileData,
           bucketId: driveFileData.data.bucket as string,
           size: driveFileData.data.size as unknown as number,
-          parentId: driveFileData.data.parentId as number,
+          folderUuid: driveFileData.data.folderUuid ?? undefined,
           name: driveFileData.data.name ?? '',
           type: driveFileData.data.type as string,
           fileId: driveFileData.data.fileId as string,
           updatedAt: new Date(driveFileData.data.updatedAt).toISOString(),
-          id: driveFileData.data.id,
+          uuid: driveFileData.data.uuid,
           openFileViewer: false,
         }),
       );

@@ -27,7 +27,7 @@ export const buildCandidates = (base: string, fromCounter: number, count: number
 
 const defaultChecker: FolderNameChecker = async (parentFolderUuid, names) => {
   const { existentFolders } = await driveFolderService.checkDuplicatedFolders(parentFolderUuid, names);
-  return new Set(existentFolders.map((file) => file.plainName ?? file.plain_name));
+  return new Set(existentFolders.map((file) => file.plainName));
 };
 
 /**

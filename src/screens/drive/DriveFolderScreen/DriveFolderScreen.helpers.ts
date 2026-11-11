@@ -1,4 +1,5 @@
-import { FolderAncestor } from '../../../services/drive/folder/driveFolder.service';
+import type { DriveFoldersTreeNode } from '../../../contexts/Drive/Drive.context';
+import { FolderAncestor } from '../../../types/drive/folder';
 import { DriveItemData, DriveItemStatus, DriveListItem } from '../../../types/drive';
 import { FolderUploadState } from '../../../types/drive/folderUpload';
 import { DriveStackParamList } from '../../../types/navigation';
@@ -14,7 +15,7 @@ export const buildDeepLinkRoutes = (folderUuid: string, ancestors: FolderAncesto
 
   if (targetFolder.uuid !== folderUuid) return null;
 
-  const nameByUuid = new Map(ancestors.map((ancestor) => [ancestor.uuid, ancestor.plainName ?? undefined]));
+  const nameByUuid = new Map(ancestors.map((ancestor) => [ancestor.uuid, ancestor.plainName]));
   const ancestorFoldersFromRoot = [...ancestorFolders].reverse();
 
   const routes: DriveFolderRoute[] = ancestorFoldersFromRoot.map((ancestor) => ({
@@ -40,6 +41,17 @@ export const buildDeepLinkRoutes = (folderUuid: string, ancestors: FolderAncesto
   return routes;
 };
 
+export const canLoadNextPage = (folderNode: DriveFoldersTreeNode | undefined): boolean =>
+  !!folderNode && !folderNode.loading && (folderNode.nextFoldersOffset !== null || folderNode.nextFilesOffset !== null);
+
+export const hasUnloadedPages = (folderNode: DriveFoldersTreeNode | undefined): boolean =>
+  !!folderNode && (folderNode.nextFoldersOffset !== null || folderNode.nextFilesOffset !== null);
+
+export const canSelectDriveItem = (item: DriveListItem): boolean => item.status === DriveItemStatus.Idle;
+
+export const hasSelectedFolder = (items: DriveListItem[], selectedUuids: Set<string>): boolean =>
+  items.some((item) => item.data.isFolder && selectedUuids.has(item.data.uuid));
+
 const FOLDER_UPLOAD_ID_PREFIX = 'folder-upload-';
 
 export const isFolderUploadItem = (item: DriveListItem): boolean => item.id.startsWith(FOLDER_UPLOAD_ID_PREFIX);
@@ -57,7 +69,6 @@ export const buildFolderUploadListItem = (state: FolderUploadState): DriveListIt
           failedFiles: state.failedFiles,
         },
   data: {
-    id: -1,
     uuid: state.uploadId,
     name: state.folderName,
     isFolder: true,

@@ -150,7 +150,7 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
               token: sharedLink.token === null ? undefined : sharedLink.token,
               name: sharedLink?.plainName,
               type: 'folderId' in sharedLink ? sharedLink.type : undefined,
-              shareId: sharedLink.id.toString(),
+              shareId: sharedLink.uuid,
               thumbnails: [],
               currentThumbnail: null,
               code: (sharedLink as unknown as { code: string }).code,

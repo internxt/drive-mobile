@@ -189,9 +189,9 @@ const MoreActionsBottomSheet = ({
   );
 
   return (
-    <View style={StyleSheet.absoluteFillObject} pointerEvents={isOpen ? 'box-none' : 'none'}>
+    <View style={StyleSheet.absoluteFill} pointerEvents={isOpen ? 'box-none' : 'none'}>
       <TouchableWithoutFeedback onPress={onClose}>
-        <Animated.View style={[StyleSheet.absoluteFillObject, styles.backdrop, { opacity: backdropOpacity }]} />
+        <Animated.View style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: backdropOpacity }]} />
       </TouchableWithoutFeedback>
 
       <Animated.View

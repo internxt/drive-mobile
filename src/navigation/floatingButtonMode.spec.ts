@@ -1,6 +1,6 @@
 import { NavigationState, PartialState } from '@react-navigation/native';
 
-import { getFloatingButtonMode } from './floatingButtonMode';
+import { getFloatingButtonMode, shouldHideFloatingButton } from './floatingButtonMode';
 
 type NestedState = PartialState<NavigationState>;
 
@@ -83,5 +83,36 @@ describe('The floating button shown on each tab', () => {
     ['the mail search', 'MailSearch'],
   ])('when %s is open, then no button is shown', (_, screen) => {
     expect(getFloatingButtonMode(tabsFocusedOn('Mail', mailStackFocusedOn(screen)))).toBeNull();
+  });
+});
+
+describe('Hiding the floating button', () => {
+  const visibleButtonState = {
+    isTabBarHidden: false,
+    hasMailAccess: true,
+    isFloatingButtonHidden: false,
+    mailAccountStatus: 'ready' as const,
+  };
+
+  test('when mail is opened by a user who has not set up a mail account, then no button is shown', () => {
+    const isHidden = shouldHideFloatingButton({
+      ...visibleButtonState,
+      focusedMode: 'compose',
+      mode: 'compose',
+      mailAccountStatus: 'notSetUp',
+    });
+
+    expect(isHidden).toBe(true);
+  });
+
+  test('when a user without a mail account is on the drive tab, then the upload button is still shown', () => {
+    const isHidden = shouldHideFloatingButton({
+      ...visibleButtonState,
+      focusedMode: 'upload',
+      mode: 'upload',
+      mailAccountStatus: 'notSetUp',
+    });
+
+    expect(isHidden).toBe(false);
   });
 });

@@ -1,15 +1,17 @@
 import renameIfNeeded from '@internxt/lib/dist/items/renameIfNeeded';
-import { DriveFileData } from '@internxt/sdk/dist/drive/storage/types';
+import { DriveFileData } from '../../../../types/drive/file';
+
+type FileNameAndType = Pick<DriveFileData, 'plainName' | 'type'>;
 
 export type CheckDuplicates = (
   folderUuid: string,
   files: { plainName: string; type: string }[],
-) => Promise<DriveFileData[]>;
+) => Promise<FileNameAndType[]>;
 
 export const getUniqueFilename = async (
   filename: string,
   extension: string,
-  duplicatedFiles: DriveFileData[],
+  duplicatedFiles: FileNameAndType[],
   parentFolderUuid: string,
   checkDuplicates: CheckDuplicates,
 ): Promise<string> => {
@@ -19,7 +21,7 @@ export const getUniqueFilename = async (
 
   do {
     const currentFolderFilesToCheckDuplicates = currentDuplicatedFiles.map((file) => ({
-      name: file.plainName ?? file.name,
+      name: file.plainName,
       type: file.type,
     }));
 

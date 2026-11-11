@@ -133,11 +133,7 @@ const PhotosGroupHeader = memo(
         ]}
       >
         {isSticky && (
-          <LinearGradient
-            colors={gradientColors}
-            locations={GRADIENT_LOCATIONS}
-            style={StyleSheet.absoluteFillObject}
-          />
+          <LinearGradient colors={gradientColors} locations={GRADIENT_LOCATIONS} style={StyleSheet.absoluteFill} />
         )}
 
         {backupUploadProgress != null && (

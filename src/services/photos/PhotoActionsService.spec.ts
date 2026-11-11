@@ -1,6 +1,6 @@
 import * as RNFS from '@dr.pogodin/react-native-fs';
 import * as Clipboard from 'expo-clipboard';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { CloudPhotoItem, PhotoItem } from 'src/screens/PhotosScreen/types';
 import fileSystemService from 'src/services/FileSystemService';
 import { driveTrashService } from 'src/services/drive/trash/driveTrash.service';
@@ -20,7 +20,7 @@ jest.mock('src/services/FileSystemService', () => ({
   default: { shareFile: jest.fn(), getCacheDir: jest.fn(() => '/cache') },
 }));
 
-jest.mock('expo-media-library', () => ({
+jest.mock('expo-media-library/legacy', () => ({
   requestPermissionsAsync: jest.fn(),
   saveToLibraryAsync: jest.fn(),
 }));

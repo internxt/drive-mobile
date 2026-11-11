@@ -69,7 +69,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const updateItemWithNewThumbnail = (thumbnail: Thumbnail) => {
     if (!focusedItem?.folderUuid) return;
 
-    driveCtx.updateItemInTree(focusedItem.folderUuid, focusedItem.id, {
+    driveCtx.updateItemInTree(focusedItem.folderUuid, focusedItem.uuid, {
       thumbnails: [thumbnail],
     });
     dispatch(
@@ -112,7 +112,6 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         NavigationBar.setVisibilityAsync('visible');
       } else {
         NavigationBar.setVisibilityAsync('hidden');
-        NavigationBar.setBehaviorAsync('overlay-swipe');
       }
     }
   }, [topbarVisible]);
@@ -196,7 +195,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
               <WarningCircleIcon weight="fill" size={20} color={tailwind('text-red').color as string} />
               <AppText style={tailwind('text-center text-red ml-1')}>{error}</AppText>
             </View>
-            {downloadingFile && error !== strings.messages.downloadLimit && (
+            {downloadingFile && (
               <AppButton
                 style={tailwind('mt-5')}
                 title={strings.buttons.tryAgain}

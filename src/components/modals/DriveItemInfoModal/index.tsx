@@ -4,14 +4,12 @@ import { Platform, TouchableOpacity, View } from 'react-native';
 
 import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
-import AuthService from '@internxt-mobile/services/AuthService';
+import { NotEnoughSpaceOnDeviceError } from '@internxt-mobile/services/common/filesystem/errors';
 import errorService from '@internxt-mobile/services/ErrorService';
-import fileSystemService, { fs } from '@internxt-mobile/services/FileSystemService';
-import notificationsService, { notifications } from '@internxt-mobile/services/NotificationsService';
+import { fs } from '@internxt-mobile/services/FileSystemService';
+import { notifications } from '@internxt-mobile/services/NotificationsService';
 import { logger } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
-import drive from '@internxt-mobile/services/drive';
-import { driveLocalDB } from '@internxt-mobile/services/drive/database';
 import { notifyParentChanged } from '@internxt-mobile/services/native/InternxtSignalingModule';
 import { Abortable } from '@internxt-mobile/types/index';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
@@ -29,9 +27,10 @@ import AppText from 'src/components/AppText';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
-import { checkIsFolder, FolderIcon, getFileSize, getFileTypeIcon, isEmptyFile } from '../../../helpers';
+import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
-import { MAX_SIZE_TO_DOWNLOAD } from '../../../services/drive/constants';
+import { getFileSize } from '../../../helpers/driveItems';
+import { isLargeDownload, notifyDownloadSizeCheck } from '../../../services/drive/file/utils/downloadSizeCheck';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { driveActions } from '../../../store/slices/drive';
 import { uiActions } from '../../../store/slices/ui';
@@ -53,6 +52,7 @@ function DriveItemInfoModal(): JSX.Element {
   const [sharedLinkSettingsModalOpen, setSharedLinkSettingsModalOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
   const downloadAbortableRef = useRef<Abortable>();
+  const isDownloadCancelledByUserRef = useRef(false);
   if (!item) {
     return <></>;
   }
@@ -67,15 +67,7 @@ function DriveItemInfoModal(): JSX.Element {
   const handleMoveItem = () => {
     dispatch(uiActions.setShowItemModal(false));
     dispatch(uiActions.setShowMoveModal(true));
-    dispatch(driveActions.setItemToMove(item));
-  };
-
-  const isFileDownloadable = (): boolean => {
-    if (parseInt(item.size?.toString() ?? '0') > MAX_SIZE_TO_DOWNLOAD['10GB']) {
-      notificationsService.info(strings.messages.downloadLimit);
-      return false;
-    }
-    return true;
+    dispatch(driveActions.setItemsToMove([item]));
   };
 
   const handleUndoMoveToTrash = async () => {
@@ -89,18 +81,16 @@ function DriveItemInfoModal(): JSX.Element {
       ],
       { displayNotification: false },
     );
-    if (success && driveCtx.focusedFolder?.id) {
+    if (success && driveCtx.focusedFolder?.uuid) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
     }
   };
   const handleTrashItem = async () => {
-    const dbItem = await driveLocalDB.getDriveItem(item.id);
     dispatch(uiActions.setShowItemModal(false));
     const { success } = await driveUseCases.moveItemsToTrash(
       [
         {
-          dbItemId: dbItem?.id || item.id,
           uuid: item.uuid,
           type: isFolder ? 'folder' : 'file',
         },
@@ -116,9 +106,6 @@ function DriveItemInfoModal(): JSX.Element {
       }
     }
 
-    if (success && dbItem?.id) {
-      await driveLocalDB.deleteItem({ id: dbItem.id });
-    }
     if (driveCtx.focusedFolder?.uuid) {
       await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
       driveCtx.loadFolderContent(driveCtx.focusedFolder.uuid, { pullFrom: ['network'], resetPagination: true });
@@ -134,85 +121,54 @@ function DriveItemInfoModal(): JSX.Element {
     return;
   };
 
-  const downloadItem = async (fileId: string, bucketId: string, decryptedFilePath: string, fileSize: number) => {
-    const { credentials } = await AuthService.getAuthCredentials();
-    try {
-      const hasEnoughSpace = await fileSystemService.checkAvailableStorage(fileSize);
-      if (!hasEnoughSpace) {
-        notifications.error(strings.errors.notEnoughSpaceOnDevice);
-        throw new Error(strings.errors.notEnoughSpaceOnDevice);
-      }
-    } catch (error) {
-      logger.error('Error on downloadItem function:', JSON.stringify(error));
-      errorService.reportError(error);
-    }
-
-    const { downloadPath } = await drive.file.downloadFile(
-      credentials.user,
-      bucketId,
-      fileId,
-      {
-        downloadPath: decryptedFilePath,
-        downloadProgressCallback(progress, bytesReceived, totalBytes) {
-          setDownloadProgress({
-            progress,
-            bytesReceived,
-            totalBytes,
-          });
-        },
-        onAbortableReady(abortable) {
-          downloadAbortableRef.current = abortable;
-        },
-      },
-      fileSize,
-    );
-
-    return downloadPath;
-  };
-
-  const handleExportFile = async () => {
-    try {
-      const fileSize = getFileSize(item);
-      if (!item.fileId && fileSize !== 0) {
-        throw new Error('Item fileID not found');
-      }
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
-        return;
-      }
-
-      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
-      const exists = await drive.file.existsDecrypted(item.name, item.type);
-      if (exists) {
-        await fs.shareFile({
-          title: item.name,
-          fileUri: decryptedFilePath,
-        });
-
-        return decryptedFilePath;
-      }
-
-      let downloadPath: string;
-
-      if (isEmptyFile(item)) {
-        await drive.file.createEmptyDownloadedFile(decryptedFilePath);
-        downloadPath = decryptedFilePath;
-      } else {
-        if (!item.fileId) {
-          throw new Error('Item fileID not found for non-empty file');
+  const downloadFocusedFile = (): Promise<string> => {
+    const fileSize = getFileSize(item);
+    return driveUseCases.downloadFileToDevice({
+      file: item,
+      onDownloadStarted: () => {
+        if (isLargeDownload(fileSize)) {
+          notifyDownloadSizeCheck('large', fileSize);
         }
         setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
         setExporting(true);
-        downloadPath = await downloadItem(item.fileId, item.bucket as string, decryptedFilePath, fileSize);
-        setExporting(false);
+      },
+      onProgress: (progress, bytesReceived, totalBytes) => {
+        setDownloadProgress({ progress, bytesReceived, totalBytes });
+      },
+      onAbortableReady: (abortable) => {
+        downloadAbortableRef.current = abortable;
+      },
+    });
+  };
+
+  const showDownloadError = (error: unknown) => {
+    if (error instanceof NotEnoughSpaceOnDeviceError) {
+      notifyDownloadSizeCheck('notEnoughSpace', getFileSize(item));
+      return;
+    }
+    notifications.error(strings.errors.generic.message);
+  };
+
+  const handleExportFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
+    try {
+      const downloadPath = await downloadFocusedFile();
+      setExporting(false);
+      if (!downloadPath) {
+        return;
       }
       await fs.shareFile({
         title: item.name,
         fileUri: downloadPath,
       });
     } catch (error) {
-      notifications.error(strings.errors.generic.message);
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
+      showDownloadError(error);
+      if (error instanceof NotEnoughSpaceOnDeviceError) {
+        return;
+      }
       logger.error('Error on handleExportFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
@@ -222,6 +178,7 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleAbortDownload = () => {
+    isDownloadCancelledByUserRef.current = true;
     setExporting(false);
     dispatch(uiActions.setShowItemModal(false));
 
@@ -231,42 +188,27 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleAndroidDownloadFile = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
-      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-      const fileSize = getFileSize(item);
-      if (!item.fileId && fileSize !== 0) {
-        throw new Error('Item fileID not found');
-      }
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
+      dispatch(uiActions.setShowItemModal(false));
+      const decryptedFilePath = await downloadFocusedFile();
+      setExporting(false);
+      if (!decryptedFilePath) {
         return;
       }
 
-      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
-
-      // 1. Check if file exists already
-      const existsDecrypted = await drive.file.existsDecrypted(item.name, item.type);
-
-      dispatch(uiActions.setShowItemModal(false));
-
-      // 2. If the file doesn't exists, download it
-      if (!existsDecrypted) {
-        if (isEmptyFile(item)) {
-          await drive.file.createEmptyDownloadedFile(decryptedFilePath);
-        } else {
-          setExporting(true);
-          await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
-          setExporting(false);
-        }
-      }
-
-      // 3. Copy the decrypted file (is a tmp, so this will dissapear, that's why we copy it)
+      // The decrypted file lives in a temp dir that gets cleared, so it is saved to Downloads
       await fs.moveToAndroidDownloads(decryptedFilePath);
 
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
-      notifications.error(strings.errors.generic.message);
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
+      showDownloadError(error);
+      if (error instanceof NotEnoughSpaceOnDeviceError) {
+        return;
+      }
       logger.error('Error on handleAndroidDownloadFile function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {
@@ -275,38 +217,15 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const handleiOSSaveToFiles = async () => {
+    isDownloadCancelledByUserRef.current = false;
     try {
-      setDownloadProgress({ totalBytes: 0, progress: 0, bytesReceived: 0 });
-      const fileSize = getFileSize(item);
-      if (!item.fileId && fileSize !== 0) {
-        throw new Error('Item fileID not found');
-      }
-      const canDownloadFile = isFileDownloadable();
-      if (!canDownloadFile) {
-        dispatch(uiActions.setShowItemModal(false));
+      dispatch(uiActions.setShowItemModal(false));
+      const decryptedFilePath = await downloadFocusedFile();
+      setExporting(false);
+      if (!decryptedFilePath) {
         return;
       }
 
-      const decryptedFilePath = drive.file.getDecryptedFilePath(item.name, item.type);
-
-      // 1. Check if file exists already
-      const existsDecrypted = await drive.file.existsDecrypted(item.name, item.type);
-
-      dispatch(uiActions.setShowItemModal(false));
-
-      // 2. If the file doesn't exists, download it
-      if (!existsDecrypted) {
-        if (isEmptyFile(item)) {
-          await drive.file.createEmptyDownloadedFile(decryptedFilePath);
-        } else {
-          setExporting(true);
-
-          await downloadItem(item.fileId as string, item.bucket as string, decryptedFilePath, fileSize);
-          setExporting(false);
-        }
-      }
-
-      // 3. Share to iOS files app
       await fs.shareFile({
         title: item.name,
         fileUri: decryptedFilePath,
@@ -315,7 +234,13 @@ function DriveItemInfoModal(): JSX.Element {
 
       notifications.success(strings.messages.driveDownloadSuccess);
     } catch (error) {
-      notifications.error(strings.errors.generic.message);
+      if (isDownloadCancelledByUserRef.current) {
+        return;
+      }
+      showDownloadError(error);
+      if (error instanceof NotEnoughSpaceOnDeviceError) {
+        return;
+      }
       logger.error('Error on handleiOSSaveToFiles function:', JSON.stringify(error));
       errorService.reportError(error);
     } finally {

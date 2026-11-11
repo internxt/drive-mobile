@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { isVideoExtension } from 'src/services/drive/file/utils/exifHelpers';
 import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
 import { isLivePhotoAsset } from 'src/services/photos/livePhoto.constants';

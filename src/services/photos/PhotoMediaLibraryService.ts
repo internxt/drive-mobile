@@ -1,4 +1,4 @@
-import { AssetInfo, MediaLibraryAssetInfoQueryOptions, getAssetInfoAsync } from 'expo-media-library';
+import { AssetInfo, MediaLibraryAssetInfoQueryOptions, getAssetInfoAsync } from 'expo-media-library/legacy';
 import { stripUriFragment } from 'src/services/common/uri/uriHelpers';
 
 export const photoMediaLibraryService = {
