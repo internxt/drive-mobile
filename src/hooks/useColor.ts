@@ -1,5 +1,4 @@
 import { useTheme } from '@internxt-mobile/contexts/Theme';
-import { useTailwind } from 'tailwind-rn';
 
 const lightThemeColors = {
   // Primary colors
@@ -190,19 +189,12 @@ const darkThemeColors = {
 type ColorMap = typeof lightThemeColors;
 
 const useGetColor = () => {
-  const tailwind = useTailwind();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   const getColor = (textColorClass: string): string => {
     const themeColors: ColorMap = isDark ? darkThemeColors : lightThemeColors;
-
-    if (themeColors[textColorClass as keyof ColorMap]) {
-      return themeColors[textColorClass as keyof ColorMap];
-    }
-
-    const fallbackColor = tailwind(textColorClass).color as string;
-    return fallbackColor;
+    return themeColors[textColorClass as keyof ColorMap];
   };
 
   return getColor;
