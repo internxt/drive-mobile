@@ -6,7 +6,6 @@ import { WarningCircleIcon } from 'phosphor-react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 
 import AppText from 'src/components/AppText';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
 import AppScreen from '../../components/AppScreen';
@@ -22,7 +21,6 @@ import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 
 function SignInScreen(): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -59,9 +57,11 @@ function SignInScreen(): JSX.Element {
     }
 
     return (
-      <View style={tailwind('flex flex-row items-center mt-0.5')}>
+      <View className="flex flex-row items-center mt-0.5">
         <WarningCircleIcon weight="fill" color={getColor('text-red')} size={13} />
-        <AppText style={[tailwind('text-sm ml-1'), { color: getColor('text-red') }]}>{error}</AppText>
+        <AppText className="text-sm ml-1" style={{ color: getColor('text-red') }}>
+          {error}
+        </AppText>
       </View>
     );
   };
@@ -69,58 +69,58 @@ function SignInScreen(): JSX.Element {
   return (
     <AppScreen
       safeAreaTop
-      style={[tailwind('h-full px-6'), { backgroundColor: isDark ? 'transparent' : getColor('bg-surface') }]}
+      className="h-full px-6"
+      style={{ backgroundColor: isDark ? 'transparent' : getColor('bg-surface') }}
     >
       {isDark ? (
         <LinearGradient
           colors={['#1C1C1C', '#031632']}
           locations={[0, 1]}
-          style={[tailwind('w-full h-full absolute'), { height: dimensions.height, width: dimensions.width }]}
+          className="w-full h-full absolute"
+          style={{ height: dimensions.height, width: dimensions.width }}
         />
       ) : (
         <LinearGradient
           colors={['rgba(249, 249, 252, 0)', '#f9f9fc']}
           locations={[0, 1]}
-          style={[tailwind('w-full h-full absolute'), { height: dimensions.height, width: dimensions.width }]}
+          className="w-full h-full absolute"
+          style={{ height: dimensions.height, width: dimensions.width }}
         />
       )}
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[tailwind('flex-grow px-6'), { backgroundColor: 'transparent' }]}
+        contentContainerClassName="flex-grow px-6"
+        contentContainerStyle={{ backgroundColor: 'transparent' }}
       >
-        <AppVersionWidget displayLogo style={tailwind('mb-5')} />
-        <View style={tailwind('flex-grow justify-center')}>
-          <View style={tailwind('flex mb-5')}>
-            <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
+        <AppVersionWidget displayLogo className="mb-5" />
+        <View className="flex-grow justify-center">
+          <View className="flex mb-5">
+            <AppText medium className="text-2xl" style={{ color: getColor('text-gray-100') }}>
               {strings.screens.SignInScreen.title}
             </AppText>
           </View>
 
-          <View style={tailwind('items-center')}>
+          <View className="items-center">
             <AppButton
-              style={tailwind('w-full py-0 h-11')}
+              className="w-full py-0 h-11"
               type="accept"
               onPress={onSignInWithBrowserPressed}
               title={strings.buttons.sign_in}
             />
-            <View
-              style={[tailwind('w-full border-b my-6'), { borderBottomColor: isDark ? '#474747' : '#E5E5EB' }]}
-            ></View>
+            <View className="w-full border-b my-6" style={{ borderBottomColor: isDark ? '#474747' : '#E5E5EB' }}></View>
             <AppText
-              style={[
-                tailwind('text-base mb-3 text-center'),
-                {
-                  backgroundColor: 'transparent',
-                  color: getColor('text-gray-80'),
-                },
-              ]}
+              className="text-base mb-3 text-center"
+              style={{
+                backgroundColor: 'transparent',
+                color: getColor('text-gray-80'),
+              }}
               medium
             >
               {strings.screens.SignInScreen.no_register}
             </AppText>
 
             <AppButton
-              style={tailwind('w-full py-0 h-11')}
+              className="w-full py-0 h-11"
               type="secondary"
               onPress={onSignUpWithBrowserPressed}
               title={strings.buttons.sing_up}
@@ -129,9 +129,9 @@ function SignInScreen(): JSX.Element {
           {renderErrorMessage()}
         </View>
 
-        <View style={tailwind('mt-auto pb-4 items-center')}>
-          <TouchableOpacity onPress={onNeedHelpPressed} style={tailwind('pb-6')}>
-            <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]} medium>
+        <View className="mt-auto pb-4 items-center">
+          <TouchableOpacity onPress={onNeedHelpPressed} className="pb-6">
+            <AppText className="text-base" style={{ color: getColor('text-primary') }} medium>
               {strings.screens.SignInScreen.needHelp}
             </AppText>
           </TouchableOpacity>

@@ -159,7 +159,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       exiting={HEADER_ROW_EXITING}
       style={[tailwind('flex-row items-center'), style]}
     >
-      <View style={[tailwind('items-start'), { minWidth: selectionCancelWidth }]}>
+      <View className="items-start" style={{ minWidth: selectionCancelWidth }}>
         <TouchableOpacity
           hitSlop={INCREASED_TOUCH_AREA}
           onPress={selectionConfig.onSelectAllPress}
@@ -174,11 +174,8 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       </View>
       <AppText
         medium
-        style={[
-          tailwind('text-base text-center flex-1 mx-2'),
-          SELECTION_TITLE_FONT_VARIANT,
-          { color: getColor('text-gray-100') },
-        ]}
+        className="text-base text-center flex-1 mx-2"
+        style={[SELECTION_TITLE_FONT_VARIANT, { color: getColor('text-gray-100') }]}
         numberOfLines={1}
       >
         {getSelectionTitle(selectionConfig.selectedCount)}
@@ -188,7 +185,9 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
         onPress={selectionConfig.onCancelPress}
         onLayout={(event) => setSelectionCancelWidth(event.nativeEvent.layout.width)}
       >
-        <AppText style={[tailwind('text-base'), { color: getColor('text-primary') }]}>{strings.buttons.cancel}</AppText>
+        <AppText className="text-base" style={{ color: getColor('text-primary') }}>
+          {strings.buttons.cancel}
+        </AppText>
       </TouchableOpacity>
     </Reanimated.View>
   );
@@ -206,14 +205,14 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
         >
           <BackButton label={label} onPress={onBackButtonPressed} />
 
-          <View style={tailwind('flex-row -m-2')}>
-            <View style={tailwind('items-center justify-center')}>
-              <TouchableOpacity style={tailwind('p-2')} onPress={onSearchButtonPress}>
+          <View className="flex-row -m-2">
+            <View className="items-center justify-center">
+              <TouchableOpacity className="p-2" onPress={onSearchButtonPress}>
                 <MagnifyingGlass weight="bold" color={getColor('text-gray-80')} size={24} />
               </TouchableOpacity>
             </View>
-            <View style={tailwind('items-center justify-center')}>
-              <TouchableOpacity style={tailwind('p-2')} onPress={props.onFolderActionsPress}>
+            <View className="items-center justify-center">
+              <TouchableOpacity className="p-2" onPress={props.onFolderActionsPress}>
                 <DotsThree weight="bold" color={getColor('text-gray-80')} size={24} />
               </TouchableOpacity>
             </View>
@@ -221,7 +220,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
         </Reanimated.View>
       )}
 
-      <View style={[tailwind('flex-row items-center px-4'), { marginBottom: 14, height: TITLE_ROW_HEIGHT }]}>
+      <View className="flex-row items-center px-4" style={{ marginBottom: 14, height: TITLE_ROW_HEIGHT }}>
         {isRootSelectionMode && props.selectionConfig ? (
           renderSelectionRow(props.selectionConfig, tailwind('flex-1'))
         ) : (
@@ -232,7 +231,8 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
             style={tailwind('flex-1')}
           >
             <AppText
-              style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}
+              className="text-2xl"
+              style={{ color: getColor('text-gray-100') }}
               medium
               ellipsizeMode="tail"
               numberOfLines={1}
@@ -243,8 +243,8 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
         )}
         {props.onSelectPress && (
           <Reanimated.View entering={HEADER_ROW_ENTERING} exiting={HEADER_ROW_EXITING}>
-            <TouchableOpacity style={tailwind('pl-3')} onPress={props.onSelectPress}>
-              <AppText medium style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+            <TouchableOpacity className="pl-3" onPress={props.onSelectPress}>
+              <AppText medium className="text-base" style={{ color: getColor('text-primary') }}>
                 {strings.buttons.select}
               </AppText>
             </TouchableOpacity>
@@ -273,10 +273,10 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
         </TouchableOpacity>
       </Animated.View> */}
 
-      <View style={[tailwind('flex-row justify-between items-center px-4')]}>
+      <View className="flex-row justify-between items-center px-4">
         <TouchableOpacity onPress={onSortButtonPress}>
-          <View style={tailwind('flex-row items-center')}>
-            <AppText style={[tailwind('text-base mr-1'), { color: getColor('text-gray-80') }]}>
+          <View className="flex-row items-center">
+            <AppText className="text-base mr-1" style={{ color: getColor('text-gray-80') }}>
               {strings.screens.drive.sort[sortMode.type]}
             </AppText>
             {sortMode.direction === SortDirection.Asc ? (
@@ -288,7 +288,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
         </TouchableOpacity>
 
         <TouchableOpacity onPress={onViewModeButtonPress}>
-          <View style={tailwind('py-2')}>
+          <View className="py-2">
             {viewMode === 'list' ? (
               <SquaresFour size={22} color={getColor('text-gray-80')} />
             ) : (

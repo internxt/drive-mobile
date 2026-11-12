@@ -8,7 +8,6 @@ import useGetColor from 'src/hooks/useColor';
 import { logger } from 'src/services/common';
 import { useAppDispatch } from 'src/store/hooks';
 import { enableBackupThunk } from 'src/store/slices/photos';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 
 import discoverPhotosImg from 'assets/images/discover_photos.png';
@@ -22,7 +21,6 @@ interface EnableBackupBottomSheetProps {
 type SheetStatus = 'idle' | 'loading' | 'denied';
 
 const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBottomSheetProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [status, setStatus] = useState<SheetStatus>('idle');
@@ -62,7 +60,8 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
   return (
     <BottomModal isOpen={isOpen} onClosed={handleClose} topDecoration={false} backdropPressToClose>
       <ScrollView
-        contentContainerStyle={[tailwind('px-5 pb-6'), styles.contentContainer]}
+        contentContainerClassName="px-5 pb-6"
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
         <TouchableOpacity
@@ -79,18 +78,19 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
 
         <AppText
           semibold
-          style={[tailwind('text-center mt-6'), { fontSize: 30, lineHeight: 36, color: getColor('text-gray-100') }]}
+          className="text-center mt-6"
+          style={{ fontSize: 30, lineHeight: 36, color: getColor('text-gray-100') }}
         >
           {enableSheetStrings.title}
         </AppText>
 
-        <View style={[tailwind('mt-6'), { gap: 12 }]}>
+        <View className="mt-6" style={{ gap: 12 }}>
           {featureRows.map(({ id, Icon, text }) => (
-            <View key={id} style={tailwind('flex-row items-start')}>
+            <View key={id} className="flex-row items-start">
               <View style={[styles.iconBox, { backgroundColor: getColor('bg-primary-10') }]}>
                 <Icon size={20} color={getColor('text-primary')} weight="light" />
               </View>
-              <AppText style={[tailwind('flex-1 ml-3 text-base'), { color: getColor('text-gray-80'), lineHeight: 22 }]}>
+              <AppText className="flex-1 ml-3 text-base" style={{ color: getColor('text-gray-80'), lineHeight: 22 }}>
                 {text}
               </AppText>
             </View>
@@ -99,13 +99,13 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
 
         {status === 'denied' && (
           <View style={[styles.hintBox, { backgroundColor: getColor('bg-primary-10') }]}>
-            <AppText style={[tailwind('text-sm'), { color: getColor('text-primary-dark'), lineHeight: 20 }]}>
+            <AppText className="text-sm" style={{ color: getColor('text-primary-dark'), lineHeight: 20 }}>
               {enableSheetStrings.deniedHintPrefix}
-              <AppText semibold style={[tailwind('text-sm'), { color: getColor('text-primary-dark') }]}>
+              <AppText semibold className="text-sm" style={{ color: getColor('text-primary-dark') }}>
                 {enableSheetStrings.deniedHintNone}
               </AppText>
               {enableSheetStrings.deniedHintMiddle}
-              <AppText semibold style={[tailwind('text-sm'), { color: getColor('text-primary-dark') }]}>
+              <AppText semibold className="text-sm" style={{ color: getColor('text-primary-dark') }}>
                 {enableSheetStrings.deniedHintAllPhotos}
               </AppText>
               {'.'}
@@ -118,12 +118,10 @@ const EnableBackupBottomSheet = ({ isOpen, onClose, onSuccess }: EnableBackupBot
           type="accept"
           loading={status === 'loading'}
           onPress={handleAllowPress}
-          style={tailwind('mt-6')}
+          className="mt-6"
         />
 
-        <AppText
-          style={[tailwind('text-center mt-4'), { fontSize: 12, lineHeight: 17, color: getColor('text-gray-40') }]}
-        >
+        <AppText className="text-center mt-4" style={{ fontSize: 12, lineHeight: 17, color: getColor('text-gray-40') }}>
           {enableSheetStrings.disclaimer}
         </AppText>
       </ScrollView>

@@ -25,7 +25,6 @@ import {
 import AppProgressBar from 'src/components/AppProgressBar';
 import AppText from 'src/components/AppText';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
@@ -41,7 +40,6 @@ import CenterModal from '../CenterModal';
 import { SharedLinkSettingsModal } from '../SharedLinkSettingsModal';
 
 function DriveItemInfoModal(): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
@@ -323,37 +321,38 @@ function DriveItemInfoModal(): JSX.Element {
   };
 
   const header = (
-    <View style={tailwind('flex-row')}>
-      <View style={tailwind('mr-3')}>
+    <View className="flex-row">
+      <View className="mr-3">
         {isFolder ? <FolderIcon width={40} height={40} /> : <FileIcon width={40} height={40} />}
       </View>
 
-      <View style={tailwind('flex-shrink w-full')}>
+      <View className="flex-shrink w-full">
         <AppText
           numberOfLines={1}
           ellipsizeMode="middle"
-          style={[tailwind('text-base'), { color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}
+          className="text-base"
+          style={[{ color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}
         >
           {item?.name}
           {item?.type ? '.' + item.type : ''}
         </AppText>
-        <View style={tailwind('flex flex-row items-center')}>
-          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+        <View className="flex flex-row items-center">
+          <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
             {!isFolder && <>{prettysize(item?.size || 0)}</>}
           </AppText>
           {!isFolder && (
             <View
-              style={[
-                tailwind('rounded-full mx-1.5'),
-                {
-                  width: 3,
-                  height: 3,
-                  backgroundColor: getColor('bg-gray-60'),
-                },
-              ]}
+              className="rounded-full mx-1.5"
+              style={{
+                width: 3,
+                height: 3,
+                backgroundColor: getColor('bg-gray-60'),
+              }}
             />
           )}
-          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
+          <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
+            {getUpdatedAt()}
+          </AppText>
         </View>
       </View>
     </View>
@@ -368,8 +367,8 @@ function DriveItemInfoModal(): JSX.Element {
         onClosed={() => dispatch(uiActions.setShowItemModal(false))}
         header={header}
       >
-        <View style={tailwind('p-4')}>
-          <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
+        <View className="p-4">
+          <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: getColor('bg-surface') }}>
             {options
               .filter((opt) => opt.visible !== false)
               .map((opt, index) => {
@@ -379,8 +378,8 @@ function DriveItemInfoModal(): JSX.Element {
                     key={index}
                     leftSlot={opt.icon}
                     rightSlot={
-                      <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                        <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-100') }, opt.textStyle]}>
+                      <View className="flex-grow items-center justify-center flex-row">
+                        <AppText className="text-lg" style={[{ color: getColor('text-gray-100') }, opt.textStyle]}>
                           {opt.label}
                         </AppText>
                       </View>
@@ -406,24 +405,22 @@ function DriveItemInfoModal(): JSX.Element {
         }}
       >
         <>
-          <View style={tailwind('mt-6 mb-4 mx-6')}>
-            <AppText medium style={[tailwind('text-lg text-center'), { color: getColor('text-gray-100') }]}>
+          <View className="mt-6 mb-4 mx-6">
+            <AppText medium className="text-lg text-center" style={{ color: getColor('text-gray-100') }}>
               {strings.modals.downloadingFile.title}
             </AppText>
 
-            <AppText style={[tailwind('text-center mt-1'), { color: getColor('text-gray-50') }]}>
+            <AppText className="text-center mt-1" style={{ color: getColor('text-gray-50') }}>
               {getDownloadProgressMessage()}
             </AppText>
           </View>
-          <View style={tailwind('mx-6 mb-6')}>
+          <View className="mx-6 mb-6">
             <AppProgressBar totalValue={1} height={4} currentValue={downloadProgress.progress} />
           </View>
           <TouchableOpacity
             onPress={handleAbortDownload}
-            style={[
-              tailwind('h-14 flex items-center justify-center border-t'),
-              { borderTopColor: getColor('border-gray-10') },
-            ]}
+            className="h-14 flex items-center justify-center border-t"
+            style={{ borderTopColor: getColor('border-gray-10') }}
           >
             <AppText medium style={{ color: getColor('text-gray-100') }}>
               {strings.buttons.cancel}

@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import { View } from 'react-native';
 
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import appService from '../../../services/AppService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -14,7 +13,6 @@ import UserProfilePicture from '../../UserProfilePicture';
 import CenterModal from '../CenterModal';
 
 function SignOutModal(): JSX.Element {
-  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const userFullName = useAppSelector(authSelectors.userFullName);
   const user = useAppSelector((state) => state.auth.user);
@@ -48,39 +46,39 @@ function SignOutModal(): JSX.Element {
       backButtonClose={!isSigningOut}
     >
       {isSigningOut ? (
-        <View style={tailwind('w-full px-6 py-8 items-center')}>
+        <View className="w-full px-6 py-8 items-center">
           <View style={{ width: 48, height: 48 }}>
             <LoadingSpinner size={40} />
           </View>
-          <AppText style={tailwind('text-gray-80 text-center text-base mt-5')} medium>
+          <AppText className="text-gray-80 text-center text-base mt-5" medium>
             {appService.isPhotosEnabled
               ? strings.modals.SignOutModal.signingOut
               : strings.modals.SignOutModal.signingOutGeneric}
           </AppText>
         </View>
       ) : (
-        <View style={tailwind('w-full px-3 pt-7 pb-3')}>
-          <AppText style={tailwind('mx-4 text-center text-xl')} numberOfLines={1} semibold>
+        <View className="w-full px-3 pt-7 pb-3">
+          <AppText className="mx-4 text-center text-xl" numberOfLines={1} semibold>
             {strings.modals.SignOutModal.title}
           </AppText>
 
-          <View style={tailwind('items-center my-6')}>
+          <View className="items-center my-6">
             <UserProfilePicture uri={user?.avatar} size={80} />
-            <AppText style={tailwind('text-lg text-gray-80 mt-2')} medium>
+            <AppText className="text-lg text-gray-80 mt-2" medium>
               {userFullName}
             </AppText>
-            <AppText style={tailwind('text-gray-40')}>{user?.email}</AppText>
+            <AppText className="text-gray-40">{user?.email}</AppText>
           </View>
 
-          <View style={tailwind('flex-row')}>
+          <View className="flex-row">
             <AppButton
-              style={tailwind('flex-1 mr-2')}
+              className="flex-1 mr-2"
               title={strings.buttons.cancel}
               type="cancel"
               onPress={onCancelButtonPressed}
             />
             <AppButton
-              style={tailwind('flex-1')}
+              className="flex-1"
               title={strings.buttons.signOut}
               type="delete"
               onPress={onSignOutButtonPressed}

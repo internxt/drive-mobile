@@ -31,7 +31,7 @@ const ThumbnailFallback = ({
       {thumbnailUri ? (
         <Image
           source={{ uri: thumbnailUri }}
-          style={tailwind('w-full h-full')}
+          className="w-full h-full"
           resizeMode="contain"
           onError={(e) =>
             logger.error(
@@ -40,7 +40,7 @@ const ThumbnailFallback = ({
           }
         />
       ) : null}
-      {isLoading ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
+      {isLoading ? <ActivityIndicator className="absolute" color="white" size="large" /> : null}
     </View>
   );
 };
@@ -172,7 +172,7 @@ export const PreviewPage = ({
   }, [onVideoEnd]);
 
   return (
-    <View style={[tailwind('flex-1 bg-black'), { width: screenWidth }]}>
+    <View className="flex-1 bg-black" style={{ width: screenWidth }}>
       <PageContent
         item={item}
         uri={uri}

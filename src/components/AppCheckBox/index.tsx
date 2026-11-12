@@ -24,8 +24,8 @@ const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
 
   return (
     <TouchableWithoutFeedback testID={props.testID} onPress={handleOnPress}>
-      <View style={[tailwind('flex-row p-0'), props.style]}>
-        <View style={tailwind('my-1 mr-2')}>
+      <View className="flex-row p-0" style={props.style}>
+        <View className="my-1 mr-2">
           <Svg
             width="16"
             height="16"
@@ -56,8 +56,8 @@ const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
             />
           </Svg>
         </View>
-        <View style={tailwind('my-1')}>
-          <Text style={tailwind('text-base text-xs')}>{props.text || ''}</Text>
+        <View className="my-1">
+          <Text className="text-base text-xs">{props.text || ''}</Text>
         </View>
       </View>
     </TouchableWithoutFeedback>

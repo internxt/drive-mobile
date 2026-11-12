@@ -17,12 +17,10 @@ export const ThreadGapPill = ({ hiddenMessageCount, onPress }: { hiddenMessageCo
   const label = strings.formatString(strings.screens.email_detail.moreMessages, hiddenMessageCount) as string;
 
   return (
-    <View style={[tailwind('items-center justify-center'), { height: GAP_ROW_HEIGHT }]}>
+    <View className="items-center justify-center" style={{ height: GAP_ROW_HEIGHT }}>
       <View
-        style={[
-          tailwind('absolute'),
-          { left: 0, right: 0, top: GAP_ROW_HEIGHT / 2, height: 1, backgroundColor: getColor('border-gray-10') },
-        ]}
+        className="absolute"
+        style={{ left: 0, right: 0, top: GAP_ROW_HEIGHT / 2, height: 1, backgroundColor: getColor('border-gray-10') }}
       />
       <Pressable
         accessibilityRole="button"
@@ -41,7 +39,7 @@ export const ThreadGapPill = ({ hiddenMessageCount, onPress }: { hiddenMessageCo
         ]}
       >
         <CaretUpDownIcon size={CARET_SIZE} weight="bold" color={getColor('text-primary')} />
-        <AppText medium style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
+        <AppText medium className="ml-1.5 text-xs" style={{ color: getColor('text-primary') }}>
           {label}
         </AppText>
       </Pressable>

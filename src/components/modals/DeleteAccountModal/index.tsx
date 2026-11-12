@@ -1,7 +1,6 @@
 import { ClockCounterClockwise, FolderSimple, ImageSquare, Tray, WarningCircle } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -13,7 +12,6 @@ import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 
 const DeleteAccountModal = (props: BaseModalProps) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
 
@@ -46,15 +44,15 @@ const DeleteAccountModal = (props: BaseModalProps) => {
 
   const renderConfirmationStep = () => (
     <>
-      <View style={tailwind('items-center mb-4')}>
+      <View className="items-center mb-4">
         <Tray size={48} color={getColor('text-primary')} />
       </View>
 
-      <AppText medium style={tailwind('mb-4 px-4 text-center text-lg')}>
+      <AppText medium className="mb-4 px-4 text-center text-lg">
         {strings.modals.DeleteAccount.confirmationEmail}
       </AppText>
 
-      <AppText style={tailwind('mb-10 text-center text-gray-60')}>
+      <AppText className="mb-10 text-center text-gray-60">
         {strings.modals.DeleteAccount.confirmationEmailExpiration}
       </AppText>
 
@@ -73,11 +71,11 @@ const DeleteAccountModal = (props: BaseModalProps) => {
 
   return (
     <BottomModal isOpen={props.isOpen} onClosed={props.onClose} topDecoration>
-      <View style={tailwind('px-4 pb-4')}>
-        <AppText style={tailwind('text-center')} semibold>
+      <View className="px-4 pb-4">
+        <AppText className="text-center" semibold>
           {strings.modals.DeleteAccount.title.toUpperCase()}
         </AppText>
-        <AppText style={tailwind('mt-0.5 mb-6 text-sm text-gray-40 text-center')}>
+        <AppText className="mt-0.5 mb-6 text-sm text-gray-40 text-center">
           {strings.formatString(strings.generic.iOfN, currentStep + 1, steps.length)}
         </AppText>
 

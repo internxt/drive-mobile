@@ -85,11 +85,9 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
   };
 
   const renderStateMessage = (icon: JSX.Element, message: string, action?: JSX.Element) => (
-    <View style={tailwind('flex-1 items-center justify-center')}>
+    <View className="flex-1 items-center justify-center">
       {icon}
-      <AppText
-        style={[tailwind('mt-3 text-center text-gray-50'), { paddingHorizontal: STATE_TEXT_HORIZONTAL_PADDING }]}
-      >
+      <AppText className="mt-3 text-center text-gray-50" style={{ paddingHorizontal: STATE_TEXT_HORIZONTAL_PADDING }}>
         {message}
       </AppText>
       {action}
@@ -97,7 +95,7 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
   );
 
   const renderTryAgainButton = (onPress: () => void) => (
-    <TouchableOpacity onPress={onPress} style={tailwind('mt-4 px-4 py-2')}>
+    <TouchableOpacity onPress={onPress} className="mt-4 px-4 py-2">
       <AppText medium style={{ color: getColor('text-primary') }}>
         {strings.buttons.tryAgain}
       </AppText>
@@ -107,13 +105,13 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
   const renderListFooter = () => {
     if (isLoadingNextPage) {
       return (
-        <View style={tailwind('items-center py-4')}>
+        <View className="items-center py-4">
           <ActivityIndicator color={getColor('text-primary')} />
         </View>
       );
     }
     if (hasNextPageFailed) {
-      return <View style={tailwind('items-center py-2')}>{renderTryAgainButton(retryNextPage)}</View>;
+      return <View className="items-center py-2">{renderTryAgainButton(retryNextPage)}</View>;
     }
     return null;
   };
@@ -143,8 +141,8 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
     }
     return (
       <FlatList
-        style={tailwind('flex-1')}
-        contentContainerStyle={tailwind('pb-8')}
+        className="flex-1"
+        contentContainerClassName="pb-8"
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         data={emails}
@@ -169,8 +167,8 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
   };
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
-      <View style={tailwind('flex-row items-center pl-4')}>
+    <AppScreen safeAreaTop className="flex-1 flex-grow">
+      <View className="flex-row items-center pl-4">
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={strings.buttons.back}
@@ -180,7 +178,7 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
           <CaretLeftIcon weight="bold" color={getColor('text-primary')} size={HEADER_ICON_SIZE} />
         </TouchableOpacity>
         <SearchInput
-          style={tailwind('flex-1')}
+          className="flex-1"
           value={text}
           placeholder={strings.screens.mail.search.placeholder}
           autoFocus

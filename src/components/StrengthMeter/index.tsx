@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import { cssInterop } from 'nativewind';
@@ -15,7 +14,6 @@ interface StrengthMeterProps {
 }
 
 const StrengthMeter = ({ style, value, maxValue, message }: StrengthMeterProps) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const color = useMemo(() => {
     let color = getColor('text-red');
@@ -32,15 +30,16 @@ const StrengthMeter = ({ style, value, maxValue, message }: StrengthMeterProps) 
     return _.times(maxValue, (n) => (
       <View
         key={n.toString()}
-        style={[tailwind('h-1 w-10 bg-gray-10 mr-1.5 rounded-full'), value > n && { backgroundColor: color }]}
+        className="h-1 w-10 bg-gray-10 mr-1.5 rounded-full"
+        style={value > n && { backgroundColor: color }}
       />
     ));
   };
 
   return (
     <View style={style}>
-      <View style={tailwind('flex-row')}>{renderItems()}</View>
-      <AppText style={[tailwind('mt-1.5 text-sm'), { color }]} medium>
+      <View className="flex-row">{renderItems()}</View>
+      <AppText className="mt-1.5 text-sm" style={{ color }} medium>
         {message}
       </AppText>
     </View>

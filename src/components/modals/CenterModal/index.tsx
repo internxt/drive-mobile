@@ -1,7 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Keyboard, TouchableWithoutFeedback, View, ViewStyle, useColorScheme } from 'react-native';
 import Modal from 'react-native-modal';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 import { cssInterop } from 'nativewind';
 
@@ -30,7 +29,6 @@ const CenterModal = ({
   backButtonClose = defaultProps.backButtonClose,
   style,
 }: CenterModalProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -62,9 +60,9 @@ const CenterModal = ({
       <StatusBar style={statusBarStyle} />
 
       <TouchableWithoutFeedback onPress={backdropPressToClose ? handleOnClose : undefined}>
-        <View style={[tailwind('px-5 flex-grow justify-center items-center')]}>
+        <View className="px-5 flex-grow justify-center items-center">
           <TouchableWithoutFeedback>
-            <View style={[tailwind('w-full rounded-xl'), { backgroundColor: getColor('bg-surface') }, style]}>
+            <View className="w-full rounded-xl" style={[{ backgroundColor: getColor('bg-surface') }, style]}>
               {children}
             </View>
           </TouchableWithoutFeedback>

@@ -1,5 +1,4 @@
 import { TouchableOpacity } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import { addEmailEntries } from '@internxt-mobile/services/mail/mailSearch';
 import strings from '../../../../../assets/lang/strings';
@@ -20,7 +19,6 @@ export const EmailFilterPanel = ({
   onChange: (changes: { emails?: string[]; pendingText?: string }) => void;
   onDone: () => void;
 }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -34,7 +32,7 @@ export const EmailFilterPanel = ({
       onFinishEntry={(typedText) => onChange({ emails: addEmailEntries(emails, typedText), pendingText: '' })}
       onRemoveRecipient={(removedEmail) => onChange({ emails: emails.filter((email) => email !== removedEmail) })}
       renderAppend={
-        <TouchableOpacity accessibilityRole="button" onPress={onDone} style={tailwind('px-3 py-1')}>
+        <TouchableOpacity accessibilityRole="button" onPress={onDone} className="px-3 py-1">
           <AppText medium style={{ color: getColor('text-primary') }}>
             {strings.screens.mail.search.filters.done}
           </AppText>

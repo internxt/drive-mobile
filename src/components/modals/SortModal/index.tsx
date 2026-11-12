@@ -30,7 +30,8 @@ const SortModal: React.FC<SortModalProps> = (props) => {
         numberOfLines={1}
         ellipsizeMode="middle"
         semibold
-        style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}
+        className="text-lg"
+        style={{ color: getColor('text-gray-100') }}
       >
         {strings.screens.drive.sortBy}
       </AppText>
@@ -42,7 +43,7 @@ const SortModal: React.FC<SortModalProps> = (props) => {
       isOpen={props.isOpen}
       onClosed={onClosed}
       header={header}
-      containerStyle={tailwind('p-4')}
+      containerClassName="p-4"
       style={{ backgroundColor: getColor('bg-surface') }}
     >
       <SortModalItem
@@ -114,7 +115,7 @@ function SortModalItem(props: {
   };
 
   return (
-    <TouchableOpacity activeOpacity={0.65} style={tailwind('rounded-lg')} onPress={onPress}>
+    <TouchableOpacity activeOpacity={0.65} className="rounded-lg" onPress={onPress}>
       <View
         style={[
           tailwind('items-center flex-row rounded-lg px-4 py-2.5'),
@@ -122,20 +123,18 @@ function SortModalItem(props: {
         ]}
       >
         <AppText
-          style={[
-            tailwind('text-lg mr-2'),
-            {
-              color: props.isSelected ? getColor('text-primary') : getColor('text-gray-100'),
-            },
-          ]}
+          className="text-lg mr-2"
+          style={{
+            color: props.isSelected ? getColor('text-primary') : getColor('text-gray-100'),
+          }}
           semibold
         >
           {props.text}
         </AppText>
         <AppText
+          className="opacity-50"
           style={[
             { textAlignVertical: 'center' },
-            tailwind('opacity-50'),
             {
               color: props.isSelected ? getColor('text-primary') : getColor('text-gray-100'),
             },

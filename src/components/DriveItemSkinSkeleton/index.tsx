@@ -30,16 +30,16 @@ const DriveItemSkinSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ viewM
   if (viewMode === 'grid') {
     const renderGridItem = () => {
       return (
-        <View style={[tailwind('items-center flex-col justify-center pt-6 mb-6 w-1/3')]}>
-          <View style={tailwind('w-20 h-20 rounded bg-gray-5 mb-4')}></View>
-          <View style={tailwind('w-full px-5 mb-1.5')}>
-            <View style={tailwind('w-full h-3.5 rounded bg-gray-5')}></View>
+        <View className="items-center flex-col justify-center pt-6 mb-6 w-1/3">
+          <View className="w-20 h-20 rounded bg-gray-5 mb-4"></View>
+          <View className="w-full px-5 mb-1.5">
+            <View className="w-full h-3.5 rounded bg-gray-5"></View>
           </View>
-          <View style={tailwind('w-full px-8 mb-1.5')}>
-            <View style={tailwind('w-full h-3 rounded bg-gray-5')}></View>
+          <View className="w-full px-8 mb-1.5">
+            <View className="w-full h-3 rounded bg-gray-5"></View>
           </View>
-          <View style={tailwind('w-full px-10 mb-1')}>
-            <View style={tailwind('w-full h-3 rounded bg-gray-5')}></View>
+          <View className="w-full px-10 mb-1">
+            <View className="w-full h-3 rounded bg-gray-5"></View>
           </View>
         </View>
       );
@@ -54,12 +54,12 @@ const DriveItemSkinSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ viewM
   }
   return (
     <Animated.View style={[tailwind('flex-row my-3 mx-5'), { opacity: fadeAnim }]}>
-      <View style={tailwind('bg-gray-5 h-10 w-10 mr-4 rounded')} />
+      <View className="bg-gray-5 h-10 w-10 mr-4 rounded" />
 
-      <View style={tailwind('flex-col flex-grow justify-center')}>
-        <View style={tailwind('h-3 w-2/6 mb-2 bg-gray-5 rounded')} />
+      <View className="flex-col flex-grow justify-center">
+        <View className="h-3 w-2/6 mb-2 bg-gray-5 rounded" />
 
-        <View style={tailwind('h-2.5 w-3/4 bg-gray-5 rounded')} />
+        <View className="h-2.5 w-3/4 bg-gray-5 rounded" />
       </View>
     </Animated.View>
   );

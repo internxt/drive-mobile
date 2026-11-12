@@ -9,7 +9,6 @@ import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppScreen from '../../../components/AppScreen';
 import DriveList from '../../../components/drive/lists/DriveList/DriveList';
@@ -55,8 +54,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const { folderUuid, folderName, parentFolderName } = route.params;
   const { user } = useAppSelector((state) => state.auth);
   const isRootFolder = folderUuid === user?.rootFolderId;
-
-  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
   const { downloadingFile } = useAppSelector((state) => state.drive);
@@ -542,7 +539,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         />
       </Portal>
 
-      <AppScreen safeAreaTop style={tailwind('flex-1')}>
+      <AppScreen safeAreaTop className="flex-1">
         <View style={{ marginTop: isRootFolder ? ROOT_HEADER_TOP_MARGIN : 0 }}>
           <DriveFolderScreenHeader
             onFolderActionsPress={handleFolderActionsPress}
@@ -581,7 +578,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
           />
         </View>
         {folderHasError ? (
-          <View style={tailwind('flex-1 flex justify-center px-8')}>
+          <View className="flex-1 flex justify-center px-8">
             <DriveFolderError
               error={{
                 title: strings.errors.driveFolderContent.title,
@@ -594,7 +591,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         ) : (
           <DriveList
             renderEmpty={() => (
-              <View style={tailwind('flex-1 flex justify-center px-8')}>
+              <View className="flex-1 flex justify-center px-8">
                 <DriveFolderEmpty
                   title={strings.screens.drive.emptyFolder.title}
                   message={strings.screens.drive.emptyFolder.message}

@@ -11,7 +11,6 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import { cssInterop } from 'nativewind';
@@ -28,7 +27,6 @@ export interface AppTextInputProps extends TextInputProps {
 }
 
 const AppTextInput = (props: AppTextInputProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [isFocused, setIsFocused] = useState(false);
   const [selection, setSelection] = useState<{ start: number; end: number } | undefined>();
@@ -92,12 +90,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
         template = (
           <AppText
             medium={status === 'error'}
-            style={[
-              tailwind('mt-1 text-sm'),
-              status === 'success' && tailwind('text-green'),
-              status === 'warning' && tailwind('text-warning-'),
-              status === 'error' && tailwind('text-red'),
-            ]}
+            className={`mt-1 text-sm ${status === 'success' ? 'text-green' : ''} ${status === 'warning' ? 'text-warning-' : ''} ${status === 'error' ? 'text-red' : ''}`}
           >
             {statusMessage}
           </AppText>
@@ -120,29 +113,23 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
 
   return (
     <View style={props.containerStyle}>
-      {props.label && <AppText style={tailwind('text-sm mb-1')}>{props.label}</AppText>}
+      {props.label && <AppText className="text-sm mb-1">{props.label}</AppText>}
       <View
-        style={[
-          tailwind('flex-row items-center rounded-lg border border-gray-20 py-1.5'),
-          isFocused && tailwind('border-primary'),
-          status === 'error' && tailwind('border-red'),
-          status === 'warning' && tailwind('border-orange'),
-          status === 'success' && tailwind('border-green'),
-          !editable && tailwind('border-gray-10'),
-          props.wrapperStyle,
-        ]}
+        className={`flex-row items-center rounded-lg border border-gray-20 py-1.5 ${isFocused ? 'border-primary' : ''} ${status === 'error' ? 'border-red' : ''} ${status === 'warning' ? 'border-orange' : ''} ${status === 'success' ? 'border-green' : ''} ${!editable ? 'border-gray-10' : ''}`}
+        style={props.wrapperStyle}
       >
         <TextInput
           placeholderTextColor={getColor('text-gray-30')}
           {...inputProps}
-          style={[tailwind('flex-1 py-2 px-4'), { color: getColor('text-gray-80') }, props.style]}
+          className="flex-1 py-2 px-4"
+          style={[{ color: getColor('text-gray-80') }, props.style]}
           onFocus={(e) => handleOnFocusInput(e as NativeSyntheticEvent<TextInputFocusEventData>)}
           onBlur={(e) => {
             setIsFocused(false);
             props.onBlur?.(e as NativeSyntheticEvent<TextInputFocusEventData>);
           }}
         />
-        {props.renderAppend && <View style={tailwind('px-4')}>{props.renderAppend({ isFocused })}</View>}
+        {props.renderAppend && <View className="px-4">{props.renderAppend({ isFocused })}</View>}
       </View>
 
       {renderStatusMessage()}

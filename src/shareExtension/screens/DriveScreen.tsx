@@ -150,10 +150,8 @@ export const DriveScreen = ({
 
   return (
     <View
-      style={[
-        tailwind('flex-1'),
-        { borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden', backgroundColor: colors.surface },
-      ]}
+      className="flex-1"
+      style={{ borderTopLeftRadius: 16, borderTopRightRadius: 16, overflow: 'hidden', backgroundColor: colors.surface }}
     >
       <DriveHeader
         onClose={onClose}
@@ -163,7 +161,7 @@ export const DriveScreen = ({
       />
 
       {showUploadingBanner && (
-        <View style={tailwind('pt-2')}>
+        <View className="pt-2">
           <UploadFeedback
             status={uploadStatus}
             errorMessage={getUploadErrorMessage(uploadErrorType, uploadError)}

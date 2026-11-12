@@ -1,7 +1,6 @@
 import DateTimePicker, { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { Platform, TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import { DateFilter, DatePreset } from '@internxt-mobile/services/mail/mailSearch';
 import strings from '../../../../../assets/lang/strings';
@@ -34,7 +33,6 @@ const DateOption = ({
   isSelected: boolean;
   onPress: () => void;
 }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -43,12 +41,10 @@ const DateOption = ({
       accessibilityState={{ checked: isSelected }}
       activeOpacity={OPTION_PRESSED_OPACITY}
       onPress={onPress}
-      style={[tailwind('rounded-lg px-4 py-2.5'), isSelected && { backgroundColor: getColor('bg-primary-10') }]}
+      className="rounded-lg px-4 py-2.5"
+      style={isSelected && { backgroundColor: getColor('bg-primary-10') }}
     >
-      <AppText
-        semibold
-        style={[tailwind('text-lg'), { color: getColor(isSelected ? 'text-primary' : 'text-gray-100') }]}
-      >
+      <AppText semibold className="text-lg" style={{ color: getColor(isSelected ? 'text-primary' : 'text-gray-100') }}>
         {label}
       </AppText>
     </TouchableOpacity>
@@ -68,7 +64,6 @@ const DateField = ({
   maximumDate: Date;
   onChange: (date: Date) => void;
 }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const onPickerChange = (event: DateTimePickerEvent, pickedDate?: Date) => {
@@ -81,8 +76,10 @@ const DateField = ({
     DateTimePickerAndroid.open({ value, mode: 'date', minimumDate, maximumDate, onChange: onPickerChange });
 
   return (
-    <View style={tailwind('flex-row items-center justify-between px-4 py-2')}>
-      <AppText style={[tailwind('text-base'), { color: getColor('text-gray-60') }]}>{label}</AppText>
+    <View className="flex-row items-center justify-between px-4 py-2">
+      <AppText className="text-base" style={{ color: getColor('text-gray-60') }}>
+        {label}
+      </AppText>
       {Platform.OS === 'ios' ? (
         <DateTimePicker
           value={value}
@@ -93,8 +90,8 @@ const DateField = ({
           onChange={onPickerChange}
         />
       ) : (
-        <TouchableOpacity accessibilityRole="button" onPress={openAndroidPicker} style={tailwind('py-1.5')}>
-          <AppText medium style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+        <TouchableOpacity accessibilityRole="button" onPress={openAndroidPicker} className="py-1.5">
+          <AppText medium className="text-base" style={{ color: getColor('text-primary') }}>
             {time.getFormattedDate(value, PICKED_DATE_FORMAT)}
           </AppText>
         </TouchableOpacity>
@@ -115,7 +112,6 @@ export const DateFilterModal = ({
   onClose: () => void;
   onChange: (date: DateFilter) => void;
 }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [editedRange, setEditedRange] = useState<DateRange | null>(null);
   const { filters } = strings.screens.mail.search;
@@ -131,14 +127,14 @@ export const DateFilterModal = ({
   };
 
   const header = (
-    <AppText semibold style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
+    <AppText semibold className="text-lg" style={{ color: getColor('text-gray-100') }}>
       {filters.date}
     </AppText>
   );
 
   return (
     <BottomModal isOpen={isOpen} onClosed={close} header={header}>
-      <View style={tailwind('px-4 pb-4')}>
+      <View className="px-4 pb-4">
         {DATE_PRESETS.map((preset) => (
           <DateOption
             key={preset}
@@ -153,7 +149,7 @@ export const DateFilterModal = ({
           onPress={() => setEditedRange(getInitialRange(date))}
         />
         {editedRange ? (
-          <View style={tailwind('mt-2')}>
+          <View className="mt-2">
             <DateField
               label={filters.startDate}
               value={editedRange.startDate}
@@ -168,7 +164,7 @@ export const DateFilterModal = ({
               onChange={(endDate) => setEditedRange({ ...editedRange, endDate })}
             />
             <AppButton
-              style={tailwind('mt-4')}
+              className="mt-4"
               type="accept"
               title={strings.buttons.apply}
               onPress={() => choose({ preset: 'customRange', ...editedRange })}

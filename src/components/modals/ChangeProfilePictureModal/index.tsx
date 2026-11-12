@@ -11,7 +11,6 @@ import {
 import { Camera, ImageSquare, Trash } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
 import { imageService } from '../../../services/common/media/image.service';
@@ -25,7 +24,6 @@ import BottomModal from '../BottomModal';
 
 const ChangeProfilePictureModal = (props: BaseModalProps) => {
   const dispatch = useAppDispatch();
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { user } = useAppSelector((state) => state.auth);
   const [isLoading, setIsLoading] = useState(false);
@@ -117,17 +115,15 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
   ];
   const renderActions = () =>
     actions.map((action) => (
-      <TouchableOpacity key={action.key} style={tailwind('flex-1')} onPress={action.onPress} disabled={action.disabled}>
+      <TouchableOpacity key={action.key} className="flex-1" onPress={action.onPress} disabled={action.disabled}>
         <View
-          style={[
-            tailwind('rounded-xl items-center py-3 mr-1'),
-            {
-              backgroundColor: action.disabled ? getColor('bg-gray-10') : getColor('bg-gray-5'),
-              borderColor: getColor('border-gray-10'),
-              borderWidth: 1,
-              opacity: action.disabled ? 0.5 : 1,
-            },
-          ]}
+          className="rounded-xl items-center py-3 mr-1"
+          style={{
+            backgroundColor: action.disabled ? getColor('bg-gray-10') : getColor('bg-gray-5'),
+            borderColor: getColor('border-gray-10'),
+            borderWidth: 1,
+            opacity: action.disabled ? 0.5 : 1,
+          }}
         >
           <action.iconComponent
             weight="thin"
@@ -135,10 +131,8 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
             color={action.disabled ? getColor('text-gray-40') : getColor('text-gray-80')}
           />
           <AppText
-            style={[
-              tailwind('text-xs'),
-              { color: action.disabled ? getColor('text-gray-40') : getColor('text-gray-100') },
-            ]}
+            className="text-xs"
+            style={{ color: action.disabled ? getColor('text-gray-40') : getColor('text-gray-100') }}
             medium
           >
             {action.label}
@@ -161,27 +155,27 @@ const ChangeProfilePictureModal = (props: BaseModalProps) => {
       backdropPressToClose={!isLoading}
       backButtonClose={!isLoading}
     >
-      <View style={tailwind('px-4 pb-4')}>
-        <AppText style={tailwind('text-center')} semibold>
+      <View className="px-4 pb-4">
+        <AppText className="text-center" semibold>
           {strings.modals.ChangeProfilePicture.title.toUpperCase()}
         </AppText>
 
-        <View style={tailwind('items-center my-6')}>
+        <View className="items-center my-6">
           <UserProfilePicture uri={avatar} size={112} />
         </View>
 
-        <View style={tailwind('flex-row mb-6')}>{renderActions()}</View>
+        <View className="flex-row mb-6">{renderActions()}</View>
 
-        <View style={tailwind('flex-row')}>
+        <View className="flex-row">
           <AppButton
-            style={tailwind('flex-1 mr-1.5')}
+            className="flex-1 mr-1.5"
             onPress={onCancelButtonPressed}
             title={strings.buttons.cancel}
             type="cancel"
             disabled={isLoading}
           />
           <AppButton
-            style={tailwind('flex-1')}
+            className="flex-1"
             onPress={onSaveButtonPressed}
             title={isLoading ? strings.buttons.saving : strings.buttons.saveChanges}
             disabled={!isDirty || isLoading}

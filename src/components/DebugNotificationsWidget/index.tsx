@@ -48,27 +48,27 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     notificationsService.show({ text1: strings.screens.DebugScreen.notifications.test.text1, type });
 
   return (
-    <View style={[tailwind('px-5'), props.style]}>
-      <AppText style={tailwind('text-xl')}>{strings.screens.DebugScreen.notifications.title}</AppText>
-      <AppText style={tailwind('text-gray-50 text-base')}>{strings.screens.DebugScreen.notifications.advice}</AppText>
+    <View className="px-5" style={props.style}>
+      <AppText className="text-xl">{strings.screens.DebugScreen.notifications.title}</AppText>
+      <AppText className="text-gray-50 text-base">{strings.screens.DebugScreen.notifications.advice}</AppText>
 
-      <View style={tailwind('h-3')}></View>
-      <View style={tailwind('flex flex-row flex-wrap')}>
+      <View className="h-3"></View>
+      <View className="flex flex-row flex-wrap">
         {notifications.map((info, index) => {
           return (
-            <View style={tailwind('w-1/2')} key={index}>
+            <View className="w-1/2" key={index}>
               <AppButton
                 onPress={() => onNotificationButtonPressed(info)}
                 title={
-                  <View style={tailwind('flex-row')}>
+                  <View className="flex-row">
                     {info.icon && info.icon}
-                    <AppText style={tailwind('text-white')}>
+                    <AppText className="text-white">
                       {strings.screens.DebugScreen.notifications.type[info.type]}
                     </AppText>
                   </View>
                 }
                 type="accept"
-                style={tailwind('mx-1 flex-1 my-1')}
+                className="mx-1 flex-1 my-1"
               />
             </View>
           );

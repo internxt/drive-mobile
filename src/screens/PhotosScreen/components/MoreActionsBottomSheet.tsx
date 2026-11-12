@@ -12,7 +12,6 @@ import { Animated, Easing, StyleSheet, TouchableOpacity, TouchableWithoutFeedbac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { TimelinePhotoItem } from '../types';
 import { isItemBacked, isLocalItemNotBacked } from '../utils/photoUtils';
@@ -41,13 +40,13 @@ interface ActionRowProps {
 const SLIDE_DISTANCE = 600;
 
 const ActionRow = ({ icon, label, onPress, isDestructive, isLast }: ActionRowProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[tailwind('flex-row items-center px-4'), styles.row]}
+      className="flex-row items-center px-4"
+      style={styles.row}
       hitSlop={{ top: 2, bottom: 2 }}
     >
       <View
@@ -59,10 +58,8 @@ const ActionRow = ({ icon, label, onPress, isDestructive, isLast }: ActionRowPro
         <View style={styles.iconContainer}>{icon}</View>
         <AppText
           medium
-          style={[
-            tailwind('text-base flex-1'),
-            { color: isDestructive ? getColor('text-red') : getColor('text-gray-100') },
-          ]}
+          className="text-base flex-1"
+          style={{ color: isDestructive ? getColor('text-red') : getColor('text-gray-100') }}
         >
           {label}
         </AppText>
@@ -83,7 +80,6 @@ const MoreActionsBottomSheet = ({
   onTrash,
   onRestore,
 }: MoreActionsBottomSheetProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const insets = useSafeAreaInsets();
 
@@ -204,10 +200,11 @@ const MoreActionsBottomSheet = ({
           onPress={onClose}
           activeOpacity={0.7}
           hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-          style={[tailwind('flex-row items-center px-4'), styles.row]}
+          className="flex-row items-center px-4"
+          style={styles.row}
         >
-          <View style={[tailwind('absolute'), { top: 0, left: 0, right: 0, alignItems: 'center' }]}>
-            <View style={[tailwind('bg-gray-20'), { width: 48, height: 4, borderRadius: 2, marginTop: 8 }]} />
+          <View className="absolute" style={{ top: 0, left: 0, right: 0, alignItems: 'center' }}>
+            <View className="bg-gray-20" style={{ width: 48, height: 4, borderRadius: 2, marginTop: 8 }} />
           </View>
 
           <View
@@ -217,7 +214,7 @@ const MoreActionsBottomSheet = ({
             ]}
           >
             <CaretLeftIcon size={24} color={getColor('text-primary')} />
-            <AppText medium style={tailwind('text-base text-primary ml-1')}>
+            <AppText medium className="text-base text-primary ml-1">
               {actionStrings.back}
             </AppText>
           </View>

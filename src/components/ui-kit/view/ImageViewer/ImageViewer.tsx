@@ -236,7 +236,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
   const composedGesture = Gesture.Race(tapGestures, simultaneousGestures);
 
   return (
-    <View style={tailwind('flex-1 overflow-hidden')}>
+    <View className="flex-1 overflow-hidden">
       <GestureDetector gesture={composedGesture}>
         <Animated.View style={tailwind('flex-1')}>
           <Animated.Image

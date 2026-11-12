@@ -77,18 +77,19 @@ export const MessageHeader = ({
 
   return (
     <View>
-      <View style={tailwind('flex-row items-center')}>
+      <View className="flex-row items-center">
         <SenderAvatar name={sender?.name} address={senderAddress} />
-        <View style={tailwind('flex-1 ml-3')}>
-          <View style={tailwind('flex-row items-center justify-between')}>
+        <View className="flex-1 ml-3">
+          <View className="flex-row items-center justify-between">
             <AppText
               semibold
               numberOfLines={1}
-              style={[tailwind('flex-1 mr-2 text-base'), { color: getColor('text-gray-100') }]}
+              className="flex-1 mr-2 text-base"
+              style={{ color: getColor('text-gray-100') }}
             >
               {sender?.name || senderAddress}
             </AppText>
-            <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-50') }]}>
+            <AppText className="text-xs" style={{ color: getColor('text-gray-50') }}>
               {formatShortMessageTime(message.receivedAt)}
             </AppText>
           </View>
@@ -98,9 +99,10 @@ export const MessageHeader = ({
               accessibilityHint={areDetailsShown ? detailStrings.hideDetails : detailStrings.showDetails}
               accessibilityState={{ expanded: areDetailsShown }}
               onPress={() => setAreDetailsShown(!areDetailsShown)}
-              style={[tailwind('flex-row items-center mt-0.5'), { alignSelf: 'flex-start' }]}
+              className="flex-row items-center mt-0.5"
+              style={{ alignSelf: 'flex-start' }}
             >
-              <AppText numberOfLines={1} style={[tailwind('text-sm mr-1'), { color: getColor('text-gray-50') }]}>
+              <AppText numberOfLines={1} className="text-sm mr-1" style={{ color: getColor('text-gray-50') }}>
                 {describeRecipientSummary(recipientSummary)}
               </AppText>
               <Animated.View style={caretStyle}>
@@ -130,22 +132,22 @@ export const MessageHeader = ({
       </View>
 
       {areDetailsShown && (
-        <View style={[tailwind('mt-3 rounded-xl px-3.5 py-3'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <View className="mt-3 rounded-xl px-3.5 py-3" style={{ backgroundColor: getColor('bg-gray-5') }}>
           {detailRows.map(({ label, value }, rowIndex) => (
-            <View key={label} style={[tailwind('flex-row'), rowIndex > 0 && tailwind('mt-1.5')]}>
+            <View key={label} className={`flex-row ${rowIndex > 0 ? 'mt-1.5' : ''}`}>
               <AppText
                 onLayout={(event) => {
                   const { width } = event.nativeEvent.layout;
                   setDetailLabelWidth((widestLabelWidth) => Math.max(widestLabelWidth, width));
                 }}
-                style={[
-                  tailwind('text-sm'),
-                  { minWidth: detailLabelWidth, marginRight: DETAIL_LABEL_GAP, color: getColor('text-gray-50') },
-                ]}
+                className="text-sm"
+                style={{ minWidth: detailLabelWidth, marginRight: DETAIL_LABEL_GAP, color: getColor('text-gray-50') }}
               >
                 {label}
               </AppText>
-              <AppText style={[tailwind('flex-1 text-sm'), { color: getColor('text-gray-100') }]}>{value}</AppText>
+              <AppText className="flex-1 text-sm" style={{ color: getColor('text-gray-100') }}>
+                {value}
+              </AppText>
             </View>
           ))}
         </View>

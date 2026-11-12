@@ -12,7 +12,6 @@ import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Animated, Easing, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../../assets/lang/strings';
 
 const ICON_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
@@ -36,22 +35,20 @@ interface CountProps extends StickyProps {
 }
 
 export const GroupHeaderCount = ({ count, isSticky }: CountProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { statusColor } = useGroupHeaderColors(isSticky);
   return (
-    <AppText medium style={[tailwind('text-base'), { color: statusColor }]}>
+    <AppText medium className="text-base" style={{ color: statusColor }}>
       {count.toLocaleString()} {strings.screens.photos.groupHeader.items}
     </AppText>
   );
 };
 
 export const GroupHeaderScanning = ({ isSticky }: StickyProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { statusColor } = useGroupHeaderColors(isSticky);
   return (
     <>
       <ActivityIndicator size="small" color={statusColor} />
-      <AppText medium style={[tailwind('text-base'), { color: statusColor }]}>
+      <AppText medium className="text-base" style={{ color: statusColor }}>
         {strings.screens.photos.groupHeader.scanningGallery}
       </AppText>
       <DeviceMobileIcon size={24} color={statusColor} weight="regular" />
@@ -60,7 +57,6 @@ export const GroupHeaderScanning = ({ isSticky }: StickyProps): JSX.Element => {
 };
 
 export const GroupHeaderFetching = ({ isSticky }: StickyProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { statusColor, primaryColor } = useGroupHeaderColors(isSticky);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -80,7 +76,7 @@ export const GroupHeaderFetching = ({ isSticky }: StickyProps): JSX.Element => {
       <Animated.View style={{ opacity: pulseAnim }}>
         <CloudArrowDownIcon size={24} color={primaryColor} weight="regular" />
       </Animated.View>
-      <AppText medium style={[tailwind('text-base'), { color: statusColor }]}>
+      <AppText medium className="text-base" style={{ color: statusColor }}>
         {strings.screens.photos.groupHeader.gettingPhotos}
       </AppText>
     </>
@@ -93,7 +89,6 @@ interface UploadingProps extends StickyProps {
 }
 
 export const GroupHeaderUploading = ({ count, isSticky, onPausePress }: UploadingProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { primaryColor, labelColor, statusColor } = useGroupHeaderColors(isSticky);
   return (
     <>
@@ -101,12 +96,13 @@ export const GroupHeaderUploading = ({ count, isSticky, onPausePress }: Uploadin
       <AppText
         medium
         numberOfLines={1}
-        style={[tailwind('text-base'), { color: labelColor, lineHeight: 24, flexShrink: 1 }]}
+        className="text-base"
+        style={{ color: labelColor, lineHeight: 24, flexShrink: 1 }}
       >
         {strings.screens.photos.groupHeader.backingUp}
       </AppText>
       {count != null && (
-        <AppText style={[tailwind('text-sm'), { color: statusColor, lineHeight: 24 }]}>
+        <AppText className="text-sm" style={{ color: statusColor, lineHeight: 24 }}>
           {count.toLocaleString()} {strings.screens.photos.groupHeader.items}
         </AppText>
       )}
@@ -118,12 +114,11 @@ export const GroupHeaderUploading = ({ count, isSticky, onPausePress }: Uploadin
 };
 
 export const GroupHeaderPausing = ({ isSticky }: StickyProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { labelColor } = useGroupHeaderColors(isSticky);
   return (
     <>
       <ActivityIndicator size="small" color={labelColor} />
-      <AppText medium style={[tailwind('text-base'), { color: labelColor, lineHeight: 24 }]}>
+      <AppText medium className="text-base" style={{ color: labelColor, lineHeight: 24 }}>
         {strings.screens.photos.groupHeader.backupPausing}
       </AppText>
     </>
@@ -136,18 +131,18 @@ interface PausedProps extends StickyProps {
 }
 
 export const GroupHeaderPaused = ({ count, isSticky, onResumePress }: PausedProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { primaryColor, labelColor, statusColor } = useGroupHeaderColors(isSticky);
   return (
     <>
       <AppText
         medium
         numberOfLines={1}
-        style={[tailwind('text-base'), { color: labelColor, lineHeight: 24, flexShrink: 1 }]}
+        className="text-base"
+        style={{ color: labelColor, lineHeight: 24, flexShrink: 1 }}
       >
         {strings.screens.photos.groupHeader.backupPaused}
       </AppText>
-      <AppText style={[tailwind('text-sm'), { color: statusColor, lineHeight: 24 }]}>
+      <AppText className="text-sm" style={{ color: statusColor, lineHeight: 24 }}>
         {count.toLocaleString()} {strings.screens.photos.groupHeader.items}
       </AppText>
       <TouchableOpacity onPress={onResumePress} hitSlop={ICON_HIT_SLOP}>
@@ -158,11 +153,10 @@ export const GroupHeaderPaused = ({ count, isSticky, onResumePress }: PausedProp
 };
 
 export const GroupHeaderPausedNoWifi = ({ isSticky }: StickyProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { statusColor } = useGroupHeaderColors(isSticky);
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <AppText medium style={[tailwind('text-base'), { color: statusColor }]}>
+      <AppText medium className="text-base" style={{ color: statusColor }}>
         {strings.screens.photos.groupHeader.waitingForWifi}
       </AppText>
       <WifiSlashIcon size={24} color={statusColor} />
@@ -171,11 +165,10 @@ export const GroupHeaderPausedNoWifi = ({ isSticky }: StickyProps): JSX.Element 
 };
 
 export const GroupHeaderPausedNoConnection = ({ isSticky }: StickyProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { statusColor } = useGroupHeaderColors(isSticky);
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <AppText medium style={[tailwind('text-base'), { color: statusColor }]}>
+      <AppText medium className="text-base" style={{ color: statusColor }}>
         {strings.screens.photos.groupHeader.noConnection}
       </AppText>
       <CloudSlashIcon size={24} color={statusColor} />
@@ -184,15 +177,14 @@ export const GroupHeaderPausedNoConnection = ({ isSticky }: StickyProps): JSX.El
 };
 
 export const GroupHeaderPausedStorageFull = (): JSX.Element => {
-  const tailwind = useTailwind();
   const { dangerColor } = useGroupHeaderColors();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', columnGap: 8, flexShrink: 1 }}>
-        <AppText medium style={[tailwind('text-base'), { color: dangerColor, flexShrink: 0 }]}>
+        <AppText medium className="text-base" style={{ color: dangerColor, flexShrink: 0 }}>
           {strings.screens.photos.groupHeader.backupPaused}
         </AppText>
-        <AppText style={[tailwind('text-sm'), { color: dangerColor, flexShrink: 1 }]}>
+        <AppText className="text-sm" style={{ color: dangerColor, flexShrink: 1 }}>
           {strings.screens.photos.groupHeader.storageFull}
         </AppText>
       </View>
@@ -202,11 +194,10 @@ export const GroupHeaderPausedStorageFull = (): JSX.Element => {
 };
 
 export const GroupHeaderCompleted = ({ isSticky }: StickyProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { labelColor } = useGroupHeaderColors(isSticky);
   return (
     <>
-      <AppText medium style={[tailwind('text-base'), { color: labelColor }]}>
+      <AppText medium className="text-base" style={{ color: labelColor }}>
         {strings.screens.photos.groupHeader.backupCompleted}
       </AppText>
       <CheckCircleIcon size={24} color={labelColor} weight="fill" />
@@ -235,18 +226,16 @@ const getSelectionText = (count: number): string => {
 };
 
 export const GroupHeaderSelection = ({ count, isSticky }: SelectionProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { labelColor } = useGroupHeaderColors(isSticky);
   const text = getSelectionText(count);
   return (
-    <AppText medium style={[tailwind('text-base'), { color: labelColor }]}>
+    <AppText medium className="text-base" style={{ color: labelColor }}>
       {text}
     </AppText>
   );
 };
 
 export const GroupHeaderUploadError = ({ count, isSticky, onPress }: UploadErrorProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { statusColor } = useGroupHeaderColors(isSticky);
   return (
     <TouchableOpacity
@@ -254,7 +243,7 @@ export const GroupHeaderUploadError = ({ count, isSticky, onPress }: UploadError
       hitSlop={ICON_HIT_SLOP}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}
     >
-      <AppText medium style={[tailwind('text-base'), { color: statusColor }]}>
+      <AppText medium className="text-base" style={{ color: statusColor }}>
         {count.toLocaleString()} {strings.screens.photos.groupHeader.withError}
       </AppText>
       <WarningCircleIcon size={24} color={statusColor} weight="fill" />

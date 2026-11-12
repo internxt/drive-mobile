@@ -2,7 +2,6 @@ import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
 import { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../../assets/lang/strings';
 import AppText from '../../../../components/AppText';
@@ -12,7 +11,6 @@ import { ForwardedQuote as ForwardedQuoteContent } from '../../../../types/mail'
 import { useEmailBodyHeight } from '../../hooks/useEmailBodyHeight';
 
 export const ForwardedQuote = ({ quote, originalSender }: { quote: ForwardedQuoteContent; originalSender: string }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -28,17 +26,17 @@ export const ForwardedQuote = ({ quote, originalSender }: { quote: ForwardedQuot
   const CaretIcon = isOpen ? CaretUpIcon : CaretDownIcon;
 
   return (
-    <View style={[tailwind('mx-4 mb-2 rounded-lg overflow-hidden'), { backgroundColor }]}>
+    <View className="mx-4 mb-2 rounded-lg overflow-hidden" style={{ backgroundColor }}>
       <TouchableOpacity
         accessibilityRole="button"
         accessibilityLabel={isOpen ? hideForwarded : showForwarded}
         onPress={() => setIsOpen(!isOpen)}
-        style={tailwind('flex-row items-center px-3 py-2')}
+        className="flex-row items-center px-3 py-2"
       >
-        <AppText numberOfLines={1} style={[tailwind('flex-1 text-sm'), { color: getColor('text-gray-60') }]}>
+        <AppText numberOfLines={1} className="flex-1 text-sm" style={{ color: getColor('text-gray-60') }}>
           {strings.formatString(forwardedFrom, originalSender)}
         </AppText>
-        <AppText style={[tailwind('mr-1 text-sm'), { color: getColor('text-primary') }]}>
+        <AppText className="mr-1 text-sm" style={{ color: getColor('text-primary') }}>
           {isOpen ? hideForwarded : showForwarded}
         </AppText>
         <CaretIcon size={16} color={getColor('text-primary')} />

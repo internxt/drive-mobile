@@ -20,18 +20,18 @@ export const TrashScreenHeader: React.FC<TrashScreenHeaderProps> = (props) => {
   const getColor = useGetColor();
 
   return (
-    <View style={tailwind('flex justify-evenly flex-row pt-4 pb-2 ')}>
-      <View style={tailwind('flex-1')}>
+    <View className="flex justify-evenly flex-row pt-4 pb-2">
+      <View className="flex-1">
         <BackButton onPress={props.onBackButtonPress} label={strings.screens.SettingsScreen.title} />
       </View>
-      <View style={tailwind('flex-1')}>
-        <AppText medium style={[tailwind('text-center text-xl'), { color: getColor('text-gray-100') }]}>
+      <View className="flex-1">
+        <AppText medium className="text-center text-xl" style={{ color: getColor('text-gray-100') }}>
           {strings.screens.TrashScreen.title}
         </AppText>
       </View>
       <View style={tailwind(`flex-1 items-end justify-center ${props.emptyTrashIsDisabled ? 'opacity-50' : ''}`)}>
         <TouchableOpacity
-          style={tailwind('w-12 items-center')}
+          className="w-12 items-center"
           disabled={props.emptyTrashIsDisabled}
           onPress={props.onTrashButtonPress}
           hitSlop={INCREASED_TOUCH_AREA}

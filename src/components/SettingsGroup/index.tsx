@@ -1,5 +1,4 @@
 import { GestureResponderEvent, StyleProp, TouchableHighlight, View, ViewProps, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import { cssInterop } from 'nativewind';
@@ -39,7 +38,6 @@ const SettingsGroupItem = (props: SettingsGroupItemProps) => {
 };
 
 function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupProps) {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const renderItems = () =>
@@ -67,17 +65,19 @@ function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupPr
     });
 
   return (
-    <View style={[tailwind('mb-8'), style]} {...rest}>
+    <View className="mb-8" style={style} {...rest}>
       {title !== undefined && (
-        <AppText style={[tailwind('text-xs ml-4 mb-2'), { color: getColor('text-gray-60') }]} semibold>
+        <AppText className="text-xs ml-4 mb-2" style={{ color: getColor('text-gray-60') }} semibold>
           {title.toUpperCase()}
         </AppText>
       )}
-      <View style={[tailwind('rounded-xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
+      <View className="rounded-xl overflow-hidden" style={{ backgroundColor: getColor('bg-surface') }}>
         {renderItems()}
       </View>
       {advice && (
-        <AppText style={[tailwind('mt-2 mx-4 text-xs'), { color: getColor('text-gray-40') }]}>{advice}</AppText>
+        <AppText className="mt-2 mx-4 text-xs" style={{ color: getColor('text-gray-40') }}>
+          {advice}
+        </AppText>
       )}
     </View>
   );

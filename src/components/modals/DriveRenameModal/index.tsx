@@ -6,7 +6,6 @@ import { useDrive } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import AppText from 'src/components/AppText';
 import AppTextInput from 'src/components/AppTextInput';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
 import { logger } from '../../../services/common';
@@ -21,7 +20,6 @@ import AppButton from '../../AppButton';
 import CenterModal from '../CenterModal';
 
 function RenameModal(): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
@@ -126,11 +124,11 @@ function RenameModal(): JSX.Element {
         onClosed={onClosed}
         onOpened={onOpened}
       >
-        <View style={tailwind('flex-grow px-4 py-4')}>
-          <AppText medium style={[tailwind('mb-4 text-xl'), { color: getColor('text-gray-100') }]}>
+        <View className="flex-grow px-4 py-4">
+          <AppText medium className="mb-4 text-xl" style={{ color: getColor('text-gray-100') }}>
             {strings.modals.rename.title}
           </AppText>
-          <View style={tailwind('flex-grow justify-center mb-5')}>
+          <View className="flex-grow justify-center mb-5">
             <AppTextInput
               label={strings.modals.rename.label}
               value={newName}
@@ -144,16 +142,16 @@ function RenameModal(): JSX.Element {
             />
           </View>
 
-          <View style={tailwind('flex-row justify-between')}>
+          <View className="flex-row justify-between">
             <AppButton
               title={strings.buttons.cancel}
               type="white"
               onPress={onCancelButtonPressed}
               disabled={isLoading}
-              style={tailwind('flex-1')}
+              className="flex-1"
             />
 
-            <View style={tailwind('w-3')}></View>
+            <View className="w-3"></View>
 
             <AppButton
               loading={isLoading}
@@ -161,7 +159,7 @@ function RenameModal(): JSX.Element {
               type={'accept'}
               onPress={onRenameButtonPressed}
               disabled={isLoading}
-              style={tailwind('flex-1')}
+              className="flex-1"
             />
           </View>
         </View>

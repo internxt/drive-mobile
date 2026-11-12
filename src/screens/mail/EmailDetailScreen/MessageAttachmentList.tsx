@@ -37,10 +37,12 @@ export const MessageAttachmentList = ({
     <View>
       <AppText
         semibold
-        style={[
-          tailwind('text-sm'),
-          { color: getColor('text-gray-50'), letterSpacing: SECTION_LABEL_LETTER_SPACING, textTransform: 'uppercase' },
-        ]}
+        className="text-sm"
+        style={{
+          color: getColor('text-gray-50'),
+          letterSpacing: SECTION_LABEL_LETTER_SPACING,
+          textTransform: 'uppercase',
+        }}
       >
         {sectionLabel}
       </AppText>
@@ -69,11 +71,11 @@ export const MessageAttachmentList = ({
             ]}
           >
             <FileTypeIcon width={FILE_ICON_SIZE} height={FILE_ICON_SIZE} />
-            <View style={tailwind('flex-1 mx-3')}>
-              <AppText medium numberOfLines={1} style={[tailwind('text-base'), { color: getColor('text-gray-100') }]}>
+            <View className="flex-1 mx-3">
+              <AppText medium numberOfLines={1} className="text-base" style={{ color: getColor('text-gray-100') }}>
                 {attachment.name}
               </AppText>
-              <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-50') }]}>
+              <AppText className="text-sm" style={{ color: getColor('text-gray-50') }}>
                 {prettysize(attachment.size)}
               </AppText>
             </View>

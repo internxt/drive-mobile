@@ -1,7 +1,6 @@
 import _ from 'lodash';
 import { createRef, useState } from 'react';
 import { NativeSyntheticEvent, StyleProp, TextInput, TextInputKeyPressEventData, View, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import AppText from '../AppText';
 import AppTextInput from '../AppTextInput';
 
@@ -15,7 +14,6 @@ interface CodeInputProps {
 }
 const CodeInput = (props: CodeInputProps) => {
   const [refs] = useState(_.times(props.length).map(() => createRef<TextInput>()));
-  const tailwind = useTailwind();
   const renderInputs = () =>
     _.times(props.length).map((n, index) => {
       const isTheLast = index === props.length - 1;
@@ -46,8 +44,8 @@ const CodeInput = (props: CodeInputProps) => {
           key={n}
           maxLength={1}
           inputRef={refs[index]}
-          style={tailwind('text-center py-3.5 px-0')}
-          containerStyle={[tailwind('flex-1'), !isTheLast && tailwind('mr-2')]}
+          className="text-center py-3.5 px-0"
+          containerClassName={`flex-1 ${!isTheLast ? 'mr-2' : ''}`}
           value={digitValue}
           onChangeText={onDigitChangeText}
           onKeyPress={onDigitKeyPressed}
@@ -59,8 +57,8 @@ const CodeInput = (props: CodeInputProps) => {
 
   return (
     <View style={props.style}>
-      {props.label && <AppText style={tailwind('text-sm mb-1')}>{props.label}</AppText>}
-      <View style={tailwind('flex-row')}>{renderInputs()}</View>
+      {props.label && <AppText className="text-sm mb-1">{props.label}</AppText>}
+      <View className="flex-row">{renderInputs()}</View>
     </View>
   );
 };

@@ -15,7 +15,6 @@ import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/u
 import * as useCases from '@internxt-mobile/useCases/drive';
 import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
 import NoResultsImage from 'assets/images/screens/no-results.svg';
-import { useTailwind } from 'tailwind-rn';
 import { checkIsFolder } from '../../../helpers';
 import { DriveItemStatus } from '../../../types/drive/item';
 
@@ -32,7 +31,6 @@ export function RecentsScreen({
   isLoading,
   searchText,
 }: RecentsScreenProps): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -90,7 +88,7 @@ export function RecentsScreen({
   };
 
   return (
-    <View style={[tailwind('flex-1'), { backgroundColor: getColor('bg-surface') }]}>
+    <View className="flex-1" style={{ backgroundColor: getColor('bg-surface') }}>
       {getStatus() === UseCaseStatus.LOADING && !recentItems && (
         <View style={{ backgroundColor: getColor('bg-surface') }}>
           {lodash.times(20, (n) => (
@@ -110,10 +108,8 @@ export function RecentsScreen({
               progressBackgroundColor={getColor('bg-gray-5')}
             />
           }
-          contentContainerStyle={[
-            tailwind('flex-grow'),
-            { backgroundColor: getColor('bg-surface'), paddingBottom: FLOATING_BUTTON_CLEARANCE },
-          ]}
+          contentContainerClassName="flex-grow"
+          contentContainerStyle={{ backgroundColor: getColor('bg-surface'), paddingBottom: FLOATING_BUTTON_CLEARANCE }}
           style={{ backgroundColor: getColor('bg-surface') }}
         >
           {renderContent()}

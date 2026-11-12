@@ -1,5 +1,4 @@
 import { StyleProp, View, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import InternxtLogo from '../../../assets/logo.svg';
 import InternxtLogoWhite from '../../../assets/logo_white.svg';
 import { useTheme } from '../../contexts/Theme/Theme.context';
@@ -14,7 +13,6 @@ interface AppVersionWidgetProps {
 }
 
 function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
-  const tailwind = useTailwind();
   const { theme } = useTheme();
 
   const LogoComponent = theme === 'dark' ? InternxtLogoWhite : InternxtLogo;
@@ -22,11 +20,11 @@ function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
   return (
     <View style={props.style}>
       {props.displayLogo ? (
-        <View style={tailwind('flex items-center justify-center mb-0.5 mt-5')}>
+        <View className="flex items-center justify-center mb-0.5 mt-5">
           <LogoComponent height={10} />
         </View>
       ) : null}
-      <AppText style={[tailwind('text-center text-xs text-gray-50')]}>
+      <AppText className="text-center text-xs text-gray-50">
         v{appService.version} ({appService.constants.APP_BUILD_NUMBER})
       </AppText>
     </View>

@@ -1,7 +1,6 @@
 import { useCallback } from 'react';
 import { ActivityIndicator, Linking, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 import { AppLinks } from '../navigation/AppLinks';
 import errorService from '../services/ErrorService';
 import { RootStackScreenProps } from '../types/navigation';
@@ -12,7 +11,6 @@ import { NotSignedInScreen } from './screens/NotSignedInScreen';
 import { useShareColors } from './theme';
 
 const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'AndroidShare'>) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   const { status, rootFolderUuid, sharedFiles, mnemonic, bucket, bridgeUser, userId } = useShareExtension(
     route.params?.files ?? [],
@@ -53,7 +51,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
 
   if (status === 'unauthenticated') {
     return (
-      <SafeAreaView style={[tailwind('flex-1'), { backgroundColor: colors.surface }]}>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colors.surface }}>
         <NotSignedInScreen onClose={handleClose} onOpenLogin={handleOpenLogin} />
       </SafeAreaView>
     );
@@ -61,8 +59,8 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
 
   if (status === 'loading' || !rootFolderUuid) {
     return (
-      <SafeAreaView style={[tailwind('flex-1'), { backgroundColor: colors.surface }]}>
-        <View style={tailwind('flex-1 items-center justify-center')}>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: colors.surface }}>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
@@ -70,7 +68,7 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
   }
 
   return (
-    <SafeAreaView style={[tailwind('flex-1'), { backgroundColor: colors.surface }]}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: colors.surface }}>
       <DriveScreen
         sharedFiles={sharedFiles}
         rootFolderUuid={rootFolderUuid}

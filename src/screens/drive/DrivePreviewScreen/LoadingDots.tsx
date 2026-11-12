@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import AppText from 'src/components/AppText';
-import { useTailwind } from 'tailwind-rn';
 
 interface AnimatedLoadingDotsProps {
   previousDotsText?: string;
@@ -10,7 +9,6 @@ interface AnimatedLoadingDotsProps {
 
 const AnimatedLoadingDots: React.FC<AnimatedLoadingDotsProps> = ({ previousDotsText, progress }) => {
   const [dots, setDots] = useState('.');
-  const tailwind = useTailwind();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -30,8 +28,8 @@ const AnimatedLoadingDots: React.FC<AnimatedLoadingDotsProps> = ({ previousDotsT
   }, []);
 
   return (
-    <View style={tailwind('flex-row items-center justify-center')}>
-      <AppText style={tailwind('text-gray-60 text-center')}>{`${previousDotsText ?? ''}${dots}${
+    <View className="flex-row items-center justify-center">
+      <AppText className="text-gray-60 text-center">{`${previousDotsText ?? ''}${dots}${
         progress !== undefined ? ` ${progress}%` : ''
       }`}</AppText>
     </View>
