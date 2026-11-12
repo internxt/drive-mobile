@@ -1,6 +1,5 @@
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import { fontStyles, useShareColors } from '../theme';
 
@@ -22,45 +21,39 @@ const LoginIcon = ({ color }: { color: string }) => (
 );
 
 export const NotSignedInScreen = ({ onClose, onOpenLogin }: NotSignedInScreenProps) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   const translations = strings.screens.ShareExtension;
 
   return (
-    <View style={[tailwind('flex-1'), { backgroundColor: colors.surface }]}>
+    <View className="flex-1" style={{ backgroundColor: colors.surface }}>
       <View
-        style={[
-          tailwind('mt-2'),
-          { alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: colors.gray20 },
-        ]}
+        className="mt-2"
+        style={{ alignSelf: 'center', width: 36, height: 4, borderRadius: 2, backgroundColor: colors.gray20 }}
       />
 
       <View
-        style={[
-          tailwind('flex-row items-center px-4 py-3'),
-          { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.gray10 },
-        ]}
+        className="flex-row items-center px-4 py-3"
+        style={{ borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.gray10 }}
       >
-        <TouchableOpacity style={tailwind('w-8 h-8 items-center justify-center')} onPress={onClose} hitSlop={8}>
-          <Text style={[tailwind('text-lg'), { color: colors.gray60 }]}>✕</Text>
+        <TouchableOpacity className="w-8 h-8 items-center justify-center" onPress={onClose} hitSlop={8}>
+          <Text className="text-lg" style={{ color: colors.gray60 }}>
+            ✕
+          </Text>
         </TouchableOpacity>
         <Text
-          style={[
-            tailwind('flex-1 text-center text-base'),
-            fontStyles.semibold,
-            { lineHeight: 24, color: colors.gray100 },
-          ]}
+          className="flex-1 text-center text-base"
+          style={[fontStyles.semibold, { lineHeight: 24, color: colors.gray100 }]}
         >
           {translations.title}
         </Text>
         <View style={{ width: 32 }} />
       </View>
 
-      <View style={[tailwind('flex-1 items-center justify-center px-6'), { paddingBottom: 36, gap: 12 }]}>
+      <View className="flex-1 items-center justify-center px-6" style={{ paddingBottom: 36, gap: 12 }}>
         <LoginIcon color={colors.primary} />
         <Text
+          className="text-center"
           style={[
-            tailwind('text-center'),
             fontStyles.semibold,
             {
               color: colors.gray100,
@@ -73,27 +66,24 @@ export const NotSignedInScreen = ({ onClose, onOpenLogin }: NotSignedInScreenPro
           {translations.notSignedIn.title}
         </Text>
         <Text
-          style={[
-            tailwind('text-center'),
-            {
-              ...fontStyles.regular,
-              fontSize: Platform.select({ ios: 20, android: 18 }),
-              lineHeight: Platform.select({ ios: 24, android: 22 }),
-              color: colors.gray60,
-            },
-          ]}
+          className="text-center"
+          style={{
+            ...fontStyles.regular,
+            fontSize: Platform.select({ ios: 20, android: 18 }),
+            lineHeight: Platform.select({ ios: 24, android: 22 }),
+            color: colors.gray60,
+          }}
         >
           {translations.notSignedIn.subtitle}
         </Text>
         <TouchableOpacity
-          style={[
-            tailwind('rounded-xl items-center justify-center'),
-            { alignSelf: 'stretch', paddingVertical: 16, marginTop: 12, backgroundColor: colors.primary },
-          ]}
+          className="rounded-xl items-center justify-center"
+          style={{ alignSelf: 'stretch', paddingVertical: 16, marginTop: 12, backgroundColor: colors.primary }}
           onPress={onOpenLogin}
         >
           <Text
-            style={[tailwind('text-base text-center'), fontStyles.semibold, { lineHeight: 20, color: colors.white }]}
+            className="text-base text-center"
+            style={[fontStyles.semibold, { lineHeight: 20, color: colors.white }]}
           >
             {translations.notSignedIn.openLogin}
           </Text>

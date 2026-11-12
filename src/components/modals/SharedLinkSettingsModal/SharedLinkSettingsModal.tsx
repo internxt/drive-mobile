@@ -166,7 +166,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
       <BottomModal
         header={
           <View>
-            <AppText medium style={tailwind('text-xl')}>
+            <AppText medium className="text-xl">
               {strings.modals.shareLinkSettings.title}
             </AppText>
           </View>
@@ -175,15 +175,13 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         isOpen={isOpen}
         style={{ paddingBottom: keyboardShown ? keyboardHeight : 20 }}
       >
-        <View style={tailwind('px-5 mt-4')}>
-          {!isCreatingShareLink && <View style={tailwind('border-b border-gray-10')} />}
-        </View>
+        <View className="px-5 mt-4">{!isCreatingShareLink && <View className="border-b border-gray-10" />}</View>
         <>
           {!isCreatingShareLink ? (
             <>
-              <View style={tailwind('flex flex-row px-5 flex items-center justify-between py-4 mb-4')}>
-                <AppText style={tailwind('text-lg')}>Views</AppText>
-                <AppText style={tailwind('text-gray-60')}>{focusedShareItem?.views || 'No views yet'}</AppText>
+              <View className="flex flex-row px-5 flex items-center justify-between py-4 mb-4">
+                <AppText className="text-lg">Views</AppText>
+                <AppText className="text-gray-60">{focusedShareItem?.views || 'No views yet'}</AppText>
               </View>
             </>
           ) : null}
@@ -193,9 +191,9 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
           style={[tailwind('px-5 overflow-hidden'), { height: copyLinkActionsHeight, opacity: copyLinkActionsOpacity }]}
         >
           <AppButton
-            style={tailwind('flex-1 mr-1')}
+            className="flex-1 mr-1"
             title={
-              <View style={tailwind('flex flex-row items-center')}>
+              <View className="flex flex-row items-center">
                 {!generatedShareLink && (
                   <Copy color={tailwind('text-white').color as string} style={tailwind('mr-2')} />
                 )}
@@ -205,7 +203,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
                 <AppText
                   medium
                   numberOfLines={1}
-                  style={[tailwind('text-lg'), generatedShareLink ? tailwind('text-primary') : tailwind('text-white')]}
+                  className={`text-lg ${generatedShareLink ? 'text-primary' : 'text-white'}`}
                 >
                   {generatedShareLink ? strings.buttons.linkCopiedToClipboard : strings.buttons.copyLink}
                 </AppText>

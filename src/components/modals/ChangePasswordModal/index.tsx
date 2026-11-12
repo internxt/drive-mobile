@@ -1,5 +1,4 @@
 import { View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { BaseModalProps } from '../../../types/ui';
 import AppButton from '../../AppButton';
@@ -8,7 +7,6 @@ import ChangePasswordForm from '../../forms/ChangePasswordForm';
 import CenterModal from '../CenterModal';
 
 const ChangePasswordModal = (props: BaseModalProps) => {
-  const tailwind = useTailwind();
   const onCancelButtonPressed = () => {
     props.onClose();
   };
@@ -18,17 +16,17 @@ const ChangePasswordModal = (props: BaseModalProps) => {
 
   return (
     <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
-      <View style={tailwind('p-4')}>
-        <AppText style={tailwind('text-xl mb-6')} medium>
+      <View className="p-4">
+        <AppText className="text-xl mb-6" medium>
           {strings.modals.ChangePassword.title}
         </AppText>
 
         <ChangePasswordForm
           onFormSubmitSuccess={onFormSubmitSuccess}
           renderActionsContainer={({ onSubmitButtonPressed, isValid, isLoading }) => (
-            <View style={tailwind('flex-row')}>
+            <View className="flex-row">
               <AppButton
-                style={tailwind('flex-1 mr-1.5')}
+                className="flex-1 mr-1.5"
                 type="cancel"
                 title={strings.buttons.cancel}
                 onPress={onCancelButtonPressed}
@@ -36,7 +34,7 @@ const ChangePasswordModal = (props: BaseModalProps) => {
               <AppButton
                 loading={isLoading}
                 disabled={!isValid}
-                style={tailwind('flex-1')}
+                className="flex-1"
                 type="accept"
                 title={isLoading ? strings.buttons.changing : strings.buttons.change}
                 onPress={onSubmitButtonPressed}

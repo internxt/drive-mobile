@@ -4,7 +4,6 @@ import { TouchableOpacity, View } from 'react-native';
 import useGetColor from 'src/hooks/useColor';
 import { appThunks } from 'src/store/slices/app';
 import { Language } from 'src/types';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch } from '../../../store/hooks';
 import { BaseModalProps } from '../../../types/ui';
@@ -14,7 +13,6 @@ import BottomModal from '../BottomModal';
 
 const LanguageModal = (props: BaseModalProps) => {
   const dispatch = useAppDispatch();
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [isLoading, setIsLoading] = useState(false);
   const [language, setLanguage] = useState(strings.getLanguage());
@@ -45,8 +43,8 @@ const LanguageModal = (props: BaseModalProps) => {
       return (
         <TouchableOpacity key={l} onPress={onPress}>
           <View>
-            <View style={tailwind('flex-row items-center')}>
-              <View style={tailwind('px-2.5')}>
+            <View className="flex-row items-center">
+              <View className="px-2.5">
                 {isSelected ? (
                   <CheckCircle weight="fill" color={getColor('text-primary')} />
                 ) : (
@@ -54,15 +52,15 @@ const LanguageModal = (props: BaseModalProps) => {
                 )}
               </View>
 
-              <View style={[tailwind('w-full mr-4 pl-2.5 py-2.5')]}>
-                <AppText style={[tailwind('text-lg'), isSelected && tailwind('text-primary')]}>
+              <View className="w-full mr-4 pl-2.5 py-2.5">
+                <AppText className={`text-lg ${isSelected ? 'text-primary' : ''}`}>
                   {strings.getNativeLanguageName(l)}
                 </AppText>
-                <AppText style={tailwind('text-xs text-gray-60')}>{strings.getString('languages.' + l, l)}</AppText>
+                <AppText className="text-xs text-gray-60">{strings.getString('languages.' + l, l)}</AppText>
               </View>
             </View>
 
-            {!isTheLast && <View style={[{ height: 1 }, tailwind('ml-12 bg-gray-5')]} />}
+            {!isTheLast && <View className="ml-12 bg-gray-5" style={{ height: 1 }} />}
           </View>
         </TouchableOpacity>
       );
@@ -82,23 +80,23 @@ const LanguageModal = (props: BaseModalProps) => {
       backdropPressToClose={!isLoading}
       backButtonClose={!isLoading}
     >
-      <View style={tailwind('px-4 pb-4')}>
-        <AppText style={tailwind('text-center')} semibold>
+      <View className="px-4 pb-4">
+        <AppText className="text-center" semibold>
           {strings.modals.Language.title.toUpperCase()}
         </AppText>
 
-        <View style={tailwind('my-6')}>{renderRadioButtons()}</View>
+        <View className="my-6">{renderRadioButtons()}</View>
 
-        <View style={tailwind('flex-row')}>
+        <View className="flex-row">
           <AppButton
-            style={tailwind('flex-1 mr-1.5')}
+            className="flex-1 mr-1.5"
             onPress={onCancelButtonPressed}
             title={strings.buttons.cancel}
             type="cancel"
             disabled={isLoading}
           />
           <AppButton
-            style={tailwind('flex-1')}
+            className="flex-1"
             onPress={onApplyButtonPressed}
             title={isLoading ? strings.buttons.applying : strings.buttons.apply}
             disabled={!isDirty || isLoading}

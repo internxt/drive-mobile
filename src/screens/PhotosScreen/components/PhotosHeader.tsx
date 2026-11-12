@@ -1,7 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { PhotoDeviceOption } from '../hooks/usePhotoDevices';
 import DeviceFilterDropdown from './DeviceFilterDropdown';
@@ -27,20 +26,19 @@ const PhotosHeader = ({
   onSelectDevice,
   onOpenDeviceFilter,
 }: PhotosHeaderProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
     <View
+      className="pt-4"
       style={[
-        tailwind('pt-4'),
         styles.border,
         { backgroundColor: getColor('bg-surface'), borderBottomColor: getColor('border-gray-10') },
       ]}
     >
-      <View style={tailwind('flex-row items-center h-11')}>
-        <View style={tailwind('px-4 justify-center')}>
-          <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
+      <View className="flex-row items-center h-11">
+        <View className="px-4 justify-center">
+          <AppText medium className="text-2xl" style={{ color: getColor('text-gray-100') }}>
             {strings.screens.photos.title}
           </AppText>
         </View>
@@ -54,11 +52,8 @@ const PhotosHeader = ({
             onOpen={onOpenDeviceFilter}
           />
         )}
-        <TouchableOpacity
-          onPress={isSelectMode ? onCancelPress : onSelectPress}
-          style={tailwind('p-5 pl-3 py-2.5 mr-1 ml-2')}
-        >
-          <AppText medium style={[tailwind('text-base'), { color: getColor('text-primary') }]}>
+        <TouchableOpacity onPress={isSelectMode ? onCancelPress : onSelectPress} className="p-5 pl-3 py-2.5 mr-1 ml-2">
+          <AppText medium className="text-base" style={{ color: getColor('text-primary') }}>
             {isSelectMode ? strings.screens.photos.selection.cancel : strings.screens.photos.select}
           </AppText>
         </TouchableOpacity>

@@ -26,8 +26,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = (props) => {
   return (
     <Portal>
       <CenterModal isOpen={props.isOpen} onClosed={props.onClose}>
-        <View style={tailwind('px-4 py-4 rounded-xl overflow-hidden')}>
-          <AppText medium style={[tailwind('text-xl'), { color: getColor('text-gray-100') }]}>
+        <View className="px-4 py-4 rounded-xl overflow-hidden">
+          <AppText medium className="text-xl" style={{ color: getColor('text-gray-100') }}>
             {props.title}
           </AppText>
           <AppText
@@ -41,19 +41,14 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = (props) => {
           >
             {props.message}
           </AppText>
-          <View style={tailwind('flex-row justify-center')}>
-            <AppButton
-              title={strings.buttons.cancel}
-              type="cancel"
-              onPress={props.onCancel}
-              style={tailwind('flex-1')}
-            />
-            <View style={tailwind('w-3')} />
+          <View className="flex-row justify-center">
+            <AppButton title={strings.buttons.cancel} type="cancel" onPress={props.onCancel} className="flex-1" />
+            <View className="w-3" />
             <AppButton
               title={props.confirmLabel}
               type={props.type === 'confirm-danger' ? 'delete' : 'accept'}
               onPress={props.onConfirm}
-              style={tailwind('flex-1')}
+              className="flex-1"
             />
           </View>
         </View>

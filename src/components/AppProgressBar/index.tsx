@@ -18,7 +18,7 @@ export default function AppProgressBar(props: AppProgressBarProps): JSX.Element 
   const tailwind = useTailwind();
 
   return (
-    <View style={[tailwind('bg-gray-5 rounded'), props.style]}>
+    <View className="bg-gray-5 rounded" style={props.style}>
       <ProgressBar
         borderRadius={props.borderRadius || 10}
         width={null}

@@ -1,7 +1,6 @@
 import { DrawerContentComponentProps, DrawerContentScrollView } from '@react-navigation/drawer';
 import { NotePencilIcon, PaperPlaneTiltIcon, TrashIcon, TrayIcon, WarningIcon } from 'phosphor-react-native';
 import { TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../assets/lang/strings';
 import AppText from '../components/AppText';
@@ -20,7 +19,6 @@ const MAILBOX_ICONS = {
 };
 
 const MailDrawerContent = (props: DrawerContentComponentProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const unreadByMailbox = useAppSelector(selectUnreadByMailbox);
   useLanguage();
@@ -39,10 +37,8 @@ const MailDrawerContent = (props: DrawerContentComponentProps): JSX.Element => {
         key={mailboxId}
         accessibilityRole="button"
         accessibilityState={isActive ? { selected: true } : {}}
-        style={[
-          tailwind('flex-row items-center rounded-full px-4 py-3 mx-2'),
-          isActive ? { backgroundColor: getColor('bg-gray-5') } : undefined,
-        ]}
+        className="flex-row items-center rounded-full px-4 py-3 mx-2"
+        style={isActive ? { backgroundColor: getColor('bg-gray-5') } : undefined}
         onPress={() => props.navigation.navigate(mailboxId)}
       >
         <Icon
@@ -52,18 +48,19 @@ const MailDrawerContent = (props: DrawerContentComponentProps): JSX.Element => {
         />
         <AppText
           numberOfLines={1}
-          style={[tailwind('ml-3 flex-1 text-lg'), isActive ? { color: getColor('text-primary') } : undefined]}
+          className="ml-3 flex-1 text-lg"
+          style={isActive ? { color: getColor('text-primary') } : undefined}
         >
           {mailboxLabels[mailboxId]}
         </AppText>
         {showUnreadBadge && (
           <View
-            style={[
-              tailwind('ml-2 items-center justify-center rounded-full px-2'),
-              { backgroundColor: getColor('text-primary'), minWidth: 22, height: 22 },
-            ]}
+            className="ml-2 items-center justify-center rounded-full px-2"
+            style={{ backgroundColor: getColor('text-primary'), minWidth: 22, height: 22 }}
           >
-            <AppText style={[tailwind('text-xs'), { color: getColor('text-white') }]}>{unreadCount}</AppText>
+            <AppText className="text-xs" style={{ color: getColor('text-white') }}>
+              {unreadCount}
+            </AppText>
           </View>
         )}
       </TouchableOpacity>
@@ -72,8 +69,8 @@ const MailDrawerContent = (props: DrawerContentComponentProps): JSX.Element => {
 
   return (
     <DrawerContentScrollView {...props}>
-      <View style={tailwind('px-4 pb-4')}>
-        <AppText medium style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
+      <View className="px-4 pb-4">
+        <AppText medium className="text-2xl" style={{ color: getColor('text-gray-100') }}>
           {strings.screens.mail.title}
         </AppText>
       </View>

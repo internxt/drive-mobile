@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleProp, View, ViewStyle } from 'react-native';
 import { Circle } from 'react-native-progress';
-import { useTailwind } from 'tailwind-rn';
 import SpinnerImage from '../../../assets/icons/spinner.svg';
 import useGetColor from '../../hooks/useColor';
 
@@ -26,7 +25,6 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   fill,
   progress,
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const defaultColor = getColor('text-primary');
   const syncingSpinnerRotationAnimation = useRef(new Animated.Value(0)).current;
@@ -51,7 +49,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   }, []);
 
   return (
-    <View style={[tailwind('flex-1 justify-center items-center')]}>
+    <View className="flex-1 justify-center items-center">
       <Animated.View
         style={[
           {
@@ -68,7 +66,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
           <SpinnerImage width={size} height={size} color={color || defaultColor} />
         )}
       </Animated.View>
-      <View style={tailwind('absolute')}>{children}</View>
+      <View className="absolute">{children}</View>
     </View>
   );
 };

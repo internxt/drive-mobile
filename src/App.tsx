@@ -6,7 +6,6 @@ import { AppStateStatus, KeyboardAvoidingView, NativeEventSubscription, Platform
 import { CaptureProtectionProvider } from 'react-native-capture-protection';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 import AppToast from './components/AppToast';
 import ChangeProfilePictureModal from './components/modals/ChangeProfilePictureModal';
 import DeleteAccountModal from './components/modals/DeleteAccountModal';
@@ -44,7 +43,6 @@ let listener: NativeEventSubscription | null = null;
 function AppContent(): JSX.Element {
   const navigationRef = useNavigationContainerRef<RootStackParamList>();
   const dispatch = useAppDispatch();
-  const tailwind = useTailwind();
   const { theme } = useTheme();
 
   const { isReady: fontsAreReady } = useLoadFonts();
@@ -221,7 +219,7 @@ function AppContent(): JSX.Element {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <KeyboardAvoidingView behavior="height" style={tailwind('flex-grow w-full')}>
+        <KeyboardAvoidingView behavior="height" className="flex-grow w-full">
           <CaptureProtectionProvider>
             {isAppInitialized && fontsAreReady ? (
               <DriveContextProvider rootFolderId={user?.rootFolderId as string}>
@@ -246,9 +244,7 @@ function AppContent(): JSX.Element {
                 <AppToast />
               </DriveContextProvider>
             ) : (
-              <View style={tailwind('items-center flex-1 justify-center')}>
-                {loadError ? <Text>{loadError}</Text> : null}
-              </View>
+              <View className="items-center flex-1 justify-center">{loadError ? <Text>{loadError}</Text> : null}</View>
             )}
           </CaptureProtectionProvider>
         </KeyboardAvoidingView>

@@ -6,7 +6,6 @@ import Tabs from '../../components/Tabs';
 import { RecentsScreen } from '../drive/RecentsScreen';
 
 import AppScreen from '../../components/AppScreen';
-import { useTailwind } from 'tailwind-rn';
 import { useUseCase } from '@internxt-mobile/hooks/common';
 import * as useCases from '@internxt-mobile/useCases/drive';
 import { SearchInput } from 'src/components/SearchInput';
@@ -25,7 +24,6 @@ enum HomeTab {
 }
 
 const HomeScreen = (props: TabExplorerScreenProps<'Home'>): JSX.Element => {
-  const tailwind = useTailwind();
   const profileAvatar = useProfileAvatar();
   useLanguage();
   const [searchText, setSearchText] = useState('');
@@ -87,7 +85,7 @@ const HomeScreen = (props: TabExplorerScreenProps<'Home'>): JSX.Element => {
   );
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
+    <AppScreen safeAreaTop className="flex-1 flex-grow">
       <ScreenTitle text={strings.screens.home.title} showBackButton={false} rightSlot={avatarSlot} />
       <SearchInput value={searchText} onChangeText={setSearchText} placeholder={searchPlaceholder} />
       <Tabs value={currentTab} onTabChanged={onTabChanged} tabs={tabs} />

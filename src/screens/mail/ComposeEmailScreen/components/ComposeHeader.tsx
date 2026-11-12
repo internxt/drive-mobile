@@ -44,35 +44,31 @@ export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: Co
     <View>
       {Platform.OS === 'ios' && (
         <View
-          style={[
-            tailwind('rounded-full mt-2'),
-            {
-              alignSelf: 'center',
-              width: GRABBER_WIDTH,
-              height: GRABBER_HEIGHT,
-              backgroundColor: getColor('bg-gray-20'),
-            },
-          ]}
+          className="rounded-full mt-2"
+          style={{
+            alignSelf: 'center',
+            width: GRABBER_WIDTH,
+            height: GRABBER_HEIGHT,
+            backgroundColor: getColor('bg-gray-20'),
+          }}
         />
       )}
-      <View style={[tailwind('flex-row items-center px-4 pt-2'), { paddingBottom: HEADER_BOTTOM_PADDING }]}>
-        <View style={tailwind('flex-1 items-start')}>
+      <View className="flex-row items-center px-4 pt-2" style={{ paddingBottom: HEADER_BOTTOM_PADDING }}>
+        <View className="flex-1 items-start">
           <TouchableOpacity
             accessibilityRole="button"
             accessibilityLabel={strings.screens.compose_email.close}
             onPress={onClose}
-            style={[
-              tailwind('items-center justify-center rounded-full'),
-              { width: CLOSE_BUTTON_SIZE, height: CLOSE_BUTTON_SIZE, backgroundColor: getColor('bg-gray-5') },
-            ]}
+            className="items-center justify-center rounded-full"
+            style={{ width: CLOSE_BUTTON_SIZE, height: CLOSE_BUTTON_SIZE, backgroundColor: getColor('bg-gray-5') }}
           >
             <XIcon size={CLOSE_ICON_SIZE} weight="bold" color={getColor('text-gray-80')} />
           </TouchableOpacity>
         </View>
-        <AppText semibold numberOfLines={1} style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
+        <AppText semibold numberOfLines={1} className="text-lg" style={{ color: getColor('text-gray-100') }}>
           {title}
         </AppText>
-        <View style={tailwind('flex-1 flex-row items-center justify-end')}>
+        <View className="flex-1 flex-row items-center justify-end">
           <Animated.View
             layout={LinearTransition.duration(SEND_BUTTON_RESIZE_DURATION)}
             style={[
@@ -101,7 +97,7 @@ export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: Co
                   exiting={FadeOut.duration(SEND_LABEL_FADE_DURATION)}
                   style={tailwind('flex-row items-center')}
                 >
-                  <AppText semibold style={[tailwind('text-base mr-1.5'), { color: getColor('text-white') }]}>
+                  <AppText semibold className="text-base mr-1.5" style={{ color: getColor('text-white') }}>
                     {strings.buttons.send}
                   </AppText>
                   <ArrowRightIcon size={SEND_ICON_SIZE} weight="bold" color={getColor('text-white')} />

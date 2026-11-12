@@ -17,25 +17,24 @@ export const DrivePreviewScreenHeader: React.FC<DrivePreviewScreenHeaderProps> =
   const tailwind = useTailwind();
   return (
     <View
-      style={[
-        tailwind('border-b border-gray-10 flex flex-row items-center px-4 justify-between'),
-        { height: DRIVE_PREVIEW_HEADER_HEIGHT },
-      ]}
+      className="border-b border-gray-10 flex flex-row items-center px-4 justify-between"
+      style={{ height: DRIVE_PREVIEW_HEADER_HEIGHT }}
     >
       <SwipeBackHandler swipeBack={props.onCloseButtonPress} />
       <TouchableOpacity hitSlop={INCREASED_TOUCH_AREA} onPress={props.onCloseButtonPress}>
         <X size={28} color={tailwind('text-gray-100').color as string} />
       </TouchableOpacity>
-      <View style={tailwind('flex-1 px-4')}>
+      <View className="flex-1 px-4">
         <AppText
           ellipsizeMode="middle"
           medium
           numberOfLines={1}
-          style={[tailwind('text-center text-gray-100'), { lineHeight: 16 }]}
+          className="text-center text-gray-100"
+          style={{ lineHeight: 16 }}
         >
           {props.title}
         </AppText>
-        <AppText style={[tailwind('text-center text-sm text-gray-60 mt-0'), { lineHeight: 16 }]}>
+        <AppText className="text-center text-sm text-gray-60 mt-0" style={{ lineHeight: 16 }}>
           {props.subtitle}
         </AppText>
       </View>

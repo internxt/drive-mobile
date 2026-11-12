@@ -5,7 +5,7 @@ import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import _ from 'lodash';
 import { ArrowDown, ArrowUp, CaretLeft, X } from 'phosphor-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Dimensions, FlatList, Platform, TouchableOpacity, View } from 'react-native';
+import { DimensionValue, Dimensions, FlatList, Platform, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import strings from '../../../../assets/lang/strings';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -19,7 +19,6 @@ import DriveNavigableItem from '../../DriveNavigableItem';
 import Portal from '@burstware/react-native-portal';
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { useNavigation } from '@react-navigation/native';
-import { useTailwind } from 'tailwind-rn';
 import { checkIsFile, checkIsFolder } from '../../../helpers';
 import useGetColor from '../../../hooks/useColor';
 import errorService from '../../../services/ErrorService';
@@ -40,7 +39,6 @@ const INITIAL_SORT_MODE: SortMode = {
 };
 
 function MoveItemsModal(): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const driveCtx = useDrive();
@@ -63,7 +61,7 @@ function MoveItemsModal(): JSX.Element {
   const safeInsets = useSafeAreaInsets();
   const modalHeight = useMemo(
     () =>
-      Platform.select<string | number>({
+      Platform.select<DimensionValue>({
         android: Dimensions.get('window').height - (40 + safeInsets.top),
         ios: '100%',
       }),
@@ -398,9 +396,9 @@ function MoveItemsModal(): JSX.Element {
   };
   const renderListHeader = () => {
     return (
-      <TouchableOpacity onPress={onSortButtonPressed} style={tailwind('px-4 mt-3')}>
-        <View style={tailwind('py-1 flex-row items-center')}>
-          <AppText medium style={[tailwind('text-sm mr-1'), { color: getColor('text-gray-60') }]}>
+      <TouchableOpacity onPress={onSortButtonPressed} className="px-4 mt-3">
+        <View className="py-1 flex-row items-center">
+          <AppText medium className="text-sm mr-1" style={{ color: getColor('text-gray-60') }}>
             {strings.screens.drive.sort[sortMode.type]}
           </AppText>
           {sortMode.direction === SortDirection.Asc ? (
@@ -417,7 +415,7 @@ function MoveItemsModal(): JSX.Element {
       return <></>;
     }
     return (
-      <View style={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}>
+      <View className="h-full" style={{ backgroundColor: getColor('bg-surface') }}>
         {_.times(20, (n) => (
           <DriveItemSkinSkeleton key={n} />
         ))}
@@ -437,30 +435,25 @@ function MoveItemsModal(): JSX.Element {
       <BottomModal
         isOpen={showMoveModal}
         onClosed={onCloseMoveModal}
-        style={[
-          tailwind('rounded-t-2xl overflow-hidden'),
-          {
-            height: modalHeight,
-            backgroundColor: getColor('bg-surface'),
-          },
-        ]}
+        className="rounded-t-2xl overflow-hidden"
+        style={{
+          height: modalHeight,
+          backgroundColor: getColor('bg-surface'),
+        }}
       >
-        <View style={[tailwind('h-full flex flex-col'), { backgroundColor: getColor('bg-surface') }]}>
-          <View style={tailwind('flex flex-row justify-between')}>
+        <View className="h-full flex flex-col" style={{ backgroundColor: getColor('bg-surface') }}>
+          <View className="flex flex-row justify-between">
             {canGoBack ? (
-              <TouchableOpacity onPress={onNavigateBack} style={tailwind('py-4 px-5 flex items-center justify-center')}>
+              <TouchableOpacity onPress={onNavigateBack} className="py-4 px-5 flex items-center justify-center">
                 <CaretLeft size={28} color={getColor('text-gray-100')} />
               </TouchableOpacity>
             ) : null}
-            <View style={tailwind('px-5 flex items-center justify-center')}>
-              <AppText medium style={[tailwind('text-xl'), { color: getColor('text-gray-80') }]}>
+            <View className="px-5 flex items-center justify-center">
+              <AppText medium className="text-xl" style={{ color: getColor('text-gray-80') }}>
                 {getHeaderName()}
               </AppText>
             </View>
-            <TouchableOpacity
-              style={tailwind('py-4 px-5 flex items-center justify-center')}
-              onPress={onCancelButtonPressed}
-            >
+            <TouchableOpacity className="py-4 px-5 flex items-center justify-center" onPress={onCancelButtonPressed}>
               <X size={28} color={getColor('text-gray-100')} />
             </TouchableOpacity>
           </View>
@@ -500,19 +493,17 @@ function MoveItemsModal(): JSX.Element {
             style={{ backgroundColor: getColor('bg-surface') }}
           />
 
-          <AppSeparator style={tailwind('mb-3')} />
+          <AppSeparator className="mb-3" />
 
           <View
-            style={[
-              tailwind('flex justify-between flex-row px-8'),
-              {
-                marginBottom: safeInsets.bottom,
-                backgroundColor: getColor('bg-surface'),
-              },
-            ]}
+            className="flex justify-between flex-row px-8"
+            style={{
+              marginBottom: safeInsets.bottom,
+              backgroundColor: getColor('bg-surface'),
+            }}
           >
             <TouchableOpacity activeOpacity={0.7} onPress={onCreateNewFolder}>
-              <AppText medium style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
+              <AppText medium className="text-lg" style={{ color: getColor('text-primary') }}>
                 {strings.buttons.newFolder}
               </AppText>
             </TouchableOpacity>
@@ -520,12 +511,10 @@ function MoveItemsModal(): JSX.Element {
             <TouchableOpacity activeOpacity={0.7} onPress={onMoveButtonPressed} disabled={moveIsDisabled()}>
               <AppText
                 medium
-                style={[
-                  tailwind('text-lg'),
-                  {
-                    color: moveIsDisabled() ? getColor('text-gray-30') : getColor('text-primary'),
-                  },
-                ]}
+                className="text-lg"
+                style={{
+                  color: moveIsDisabled() ? getColor('text-gray-30') : getColor('text-primary'),
+                }}
               >
                 {strings.buttons.moveHere}
               </AppText>

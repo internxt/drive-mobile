@@ -1,6 +1,5 @@
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
-import { useTailwind } from 'tailwind-rn';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
@@ -23,7 +22,6 @@ const schema: yup.ObjectSchema<AuthenticationFormData> = yup
 const AuthenticationForm = (props: BaseFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const {
@@ -77,7 +75,7 @@ const AuthenticationForm = (props: BaseFormProps) => {
             onChangeText={field.onChange}
             value={field.value}
             status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
-            containerStyle={tailwind('mb-6')}
+            containerClassName="mb-6"
             label={strings.inputs.password}
             secureTextEntry={!showPassword}
             autoFocus

@@ -93,7 +93,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
   const renderEmptyState = () => {
     if (props.isLoading || !props.items) {
       return (
-        <View style={[tailwind('h-full w-full'), { backgroundColor: getColor('bg-surface') }]}>
+        <View className="h-full w-full" style={{ backgroundColor: getColor('bg-surface') }}>
           {_.times(20, (n) => (
             <View style={tailwind(`${props.viewMode === DriveListViewMode.Grid ? 'h-auto' : 'h-16'} `)} key={n}>
               <DriveItemSkinSkeleton viewMode={props.viewMode} />
@@ -131,7 +131,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
     }
 
     return (
-      <View style={tailwind('items-center py-4')}>
+      <View className="items-center py-4">
         <ActivityIndicator color={getColor('text-primary')} />
       </View>
     );
@@ -185,7 +185,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
         refreshing={refreshing}
         onRefresh={handleOnRefresh}
         ListEmptyComponent={
-          <View style={[tailwind('h-full'), { backgroundColor: getColor('bg-surface') }]}>
+          <View className="h-full" style={{ backgroundColor: getColor('bg-surface') }}>
             {renderEmptyState() as React.ReactElement}
           </View>
         }
@@ -193,9 +193,9 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
         key={props.viewMode}
         numColumns={props.viewMode === DriveListViewMode.List ? 1 : 3}
         renderItem={renderItem}
+        contentContainerClassName={`${props.viewMode === DriveListViewMode.Grid ? 'py-6 ml-2' : ''}`}
         contentContainerStyle={[
           { flex: props.items?.length ? 0 : 1 },
-          props.viewMode === DriveListViewMode.Grid && tailwind('py-6 ml-2'),
           props.contentContainerStyle,
           { backgroundColor: getColor('bg-surface') },
         ]}

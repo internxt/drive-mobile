@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
@@ -10,7 +9,6 @@ interface DebugInternetWidgetProps {
 }
 
 const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [speed] = useState(0);
   const bySpeedFeatures = [
@@ -35,8 +33,8 @@ const DebugInternetWidget = (props: DebugInternetWidgetProps): JSX.Element => {
   };
 
   return (
-    <View style={[tailwind('flex-row justify-center'), props.style]}>
-      <AppText style={tailwind('text-gray-100')}>{`${strings.screens.DebugScreen.internet.speed}: `}</AppText>
+    <View className="flex-row justify-center" style={props.style}>
+      <AppText className="text-gray-100">{`${strings.screens.DebugScreen.internet.speed}: `}</AppText>
       <AppText style={{ color: getSpeedColor() }}>{speed > 0 ? speed.toFixed(2) : '-'}</AppText>
     </View>
   );

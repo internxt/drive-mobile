@@ -1,6 +1,5 @@
 import { ReactNode, useRef } from 'react';
 import { TextInput, TextInputKeyPressEvent, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import useGetColor from '../../../hooks/useColor';
 import { isEntryTerminator, parseRecipients } from '../../../services/mail/parseRecipients';
@@ -45,7 +44,6 @@ export const RecipientRow = ({
   autoFocus,
   hasCompactLabel,
 }: RecipientRowProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const inputRef = useRef<TextInput>(null);
 
@@ -76,7 +74,7 @@ export const RecipientRow = ({
       hasCompactLabel={hasCompactLabel}
       onPress={() => inputRef.current?.focus()}
     >
-      <View style={tailwind('flex-row flex-wrap items-center py-1.5')}>
+      <View className="flex-row flex-wrap items-center py-1.5">
         {recipients.map((recipient) => (
           <RecipientChip key={recipient} address={recipient} onRemove={() => onRemoveRecipient(recipient)} />
         ))}
@@ -95,7 +93,8 @@ export const RecipientRow = ({
           autoCorrect={false}
           keyboardType="email-address"
           returnKeyType="next"
-          style={[tailwind('flex-1'), composeFieldTextStyle, { minWidth: 140, color: getColor('text-gray-100') }]}
+          className="flex-1"
+          style={[composeFieldTextStyle, { minWidth: 140, color: getColor('text-gray-100') }]}
         />
       </View>
     </ComposeFieldRow>

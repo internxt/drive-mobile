@@ -4,7 +4,6 @@ import { Animated, Easing, Text, TouchableWithoutFeedback, View } from 'react-na
 
 import { EnvelopeIcon, FolderSimpleIcon, GearIcon, HouseIcon, ImageIcon, UsersIcon } from 'phosphor-react-native';
 import { storageThunks } from 'src/store/slices/storage';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 import { useLanguage } from '../../hooks/useLanguage';
@@ -23,7 +22,6 @@ const BADGE_TOP_OFFSET = -2;
 const MAX_BADGE_COUNT = 99;
 
 function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const isHidden = useAppSelector((state) => state.ui.isTabBarHidden);
@@ -67,20 +65,18 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
 
   const renderUnreadBadge = () => (
     <View
-      style={[
-        tailwind('absolute items-center justify-center rounded-full px-1'),
-        {
-          top: BADGE_TOP_OFFSET,
-          left: TAB_ICON_SIZE / 2 + BADGE_OFFSET_FROM_CENTER,
-          minWidth: BADGE_SIZE,
-          height: BADGE_SIZE,
-          backgroundColor: getColor('text-red'),
-          borderWidth: BADGE_BORDER_WIDTH,
-          borderColor: getColor('bg-surface'),
-        },
-      ]}
+      className="absolute items-center justify-center rounded-full px-1"
+      style={{
+        top: BADGE_TOP_OFFSET,
+        left: TAB_ICON_SIZE / 2 + BADGE_OFFSET_FROM_CENTER,
+        minWidth: BADGE_SIZE,
+        height: BADGE_SIZE,
+        backgroundColor: getColor('text-red'),
+        borderWidth: BADGE_BORDER_WIDTH,
+        borderColor: getColor('bg-surface'),
+      }}
     >
-      <Text style={[tailwind('text-supporting-2'), globalStyle.fontWeight.semibold, { color: getColor('text-white') }]}>
+      <Text className="text-supporting-2" style={[globalStyle.fontWeight.semibold, { color: getColor('text-white') }]}>
         {unreadInboxCount > MAX_BADGE_COUNT ? `${MAX_BADGE_COUNT}+` : unreadInboxCount}
       </Text>
     </View>
@@ -102,7 +98,7 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
         onPress={() => onTabPress(route, isFocused)}
         onLongPress={() => onLongPressTab(route)}
       >
-        <View style={tailwind('h-14 items-center justify-center flex-1')}>
+        <View className="h-14 items-center justify-center flex-1">
           <View>
             <Icon weight={isFocused ? 'fill' : undefined} color={color} size={TAB_ICON_SIZE} />
             {hasUnreadBadge && renderUnreadBadge()}
@@ -110,11 +106,8 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
 
           {options.tabBarShowLabel && (
             <Text
-              style={[
-                tailwind('text-supporting-2'),
-                { color },
-                isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular,
-              ]}
+              className="text-supporting-2"
+              style={[{ color }, isFocused ? globalStyle.fontWeight.medium : globalStyle.fontWeight.regular]}
             >
               {label}
             </Text>
@@ -132,15 +125,13 @@ function BottomTabNavigator(props: BottomTabBarProps): JSX.Element {
     <View style={{ backgroundColor: getColor('bg-surface') }}>
       <Animated.View style={{ height: heightAnim, overflow: 'hidden' }}>
         <View
-          style={[
-            tailwind('flex-row px-2 justify-around items-center'),
-            {
-              height: TAB_BAR_HEIGHT,
-              backgroundColor: getColor('bg-surface'),
-              borderTopWidth: 1,
-              borderTopColor: getColor('border-gray-10'),
-            },
-          ]}
+          className="flex-row px-2 justify-around items-center"
+          style={{
+            height: TAB_BAR_HEIGHT,
+            backgroundColor: getColor('bg-surface'),
+            borderTopWidth: 1,
+            borderTopColor: getColor('border-gray-10'),
+          }}
         >
           {items}
         </View>

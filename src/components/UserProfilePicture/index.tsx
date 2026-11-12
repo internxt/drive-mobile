@@ -26,8 +26,8 @@ const UserProfilePicture = (props: UserProfilePictureProps) => {
 
   return (
     <View
+      className="rounded-full overflow-hidden border"
       style={[
-        tailwind('rounded-full overflow-hidden border '),
         { borderColor: getColor('bg-gray-5'), backgroundColor: getColor('bg-gray-10') },
         {
           height: props.size,

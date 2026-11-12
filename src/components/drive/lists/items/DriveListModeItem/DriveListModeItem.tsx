@@ -59,16 +59,16 @@ const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JS
   const renderUploadProgress = () => {
     if (isFolderScanning) {
       return (
-        <AppText style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
+        <AppText className="text-xs" style={{ color: getColor('text-primary') }}>
           {strings.screens.drive.scanningFolder}
         </AppText>
       );
     }
     if (isFolderUploading) {
       return (
-        <View style={tailwind('flex-row items-center')}>
+        <View className="flex-row items-center">
           <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
-          <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
+          <AppText className="ml-1.5 text-xs" style={{ color: getColor('text-primary') }}>
             {`${props.folderUploadProgress!.uploadedFiles} / ${props.folderUploadProgress!.totalFiles}`}
             {props.folderUploadProgress!.failedFiles > 0
               ? `  •  ${props.folderUploadProgress!.failedFiles} failed`
@@ -79,20 +79,20 @@ const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JS
     }
     if (progress === 0) {
       return (
-        <AppText style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
+        <AppText className="text-xs" style={{ color: getColor('text-primary') }}>
           {strings.screens.drive.encrypting}
         </AppText>
       );
     }
     return (
-      <View style={tailwind('flex-row items-center')}>
+      <View className="flex-row items-center">
         <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
-        <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
+        <AppText className="ml-1.5 text-xs" style={{ color: getColor('text-primary') }}>
           {((progress || 0) * 100).toFixed(0) + '%'}
         </AppText>
         <ProgressBar
-          style={tailwind('flex-grow h-1 ml-1.5')}
-          progressStyle={tailwind('h-1')}
+          className="flex-grow h-1 ml-1.5"
+          progressClassName="h-1"
           totalValue={1}
           currentValue={progress || 0}
         />
@@ -119,29 +119,25 @@ const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JS
   }
 
   return (
-    <View style={[tailwind('flex-row flex-1 py-3')]}>
-      <View style={[tailwind('mb-1 mr-4 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
+    <View className="flex-row flex-1 py-3">
+      <View className={`mb-1 mr-4 items-center justify-center ${isUploading ? 'opacity-40' : ''}`}>
         {leadingVisual}
         {props.type === DriveListType.Shared && (
           <View
-            style={[
-              tailwind('absolute -bottom-1 -right-2 flex items-center justify-center rounded-full'),
-              {
-                width: 20,
-                height: 20,
-                backgroundColor: getColor('bg-surface'),
-              },
-            ]}
+            className="absolute -bottom-1 -right-2 flex items-center justify-center rounded-full"
+            style={{
+              width: 20,
+              height: 20,
+              backgroundColor: getColor('bg-surface'),
+            }}
           >
             <View
-              style={[
-                tailwind('rounded-full flex items-center justify-center'),
-                {
-                  width: 16,
-                  height: 16,
-                  backgroundColor: getColor('text-primary'),
-                },
-              ]}
+              className="rounded-full flex items-center justify-center"
+              style={{
+                width: 16,
+                height: 16,
+                backgroundColor: getColor('text-primary'),
+              }}
             >
               <Link weight="bold" size={10} color={getColor('text-white')} />
             </View>
@@ -149,13 +145,10 @@ const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JS
         )}
       </View>
 
-      <View style={[tailwind('flex-1 flex items-start justify-center')]}>
+      <View className="flex-1 flex items-start justify-center">
         <AppText
-          style={[
-            tailwind('text-left text-base'),
-            { color: getColor('text-gray-100') },
-            isUploading && tailwind('opacity-40'),
-          ]}
+          className={`text-left text-base ${isUploading ? 'opacity-40' : ''}`}
+          style={{ color: getColor('text-gray-100') }}
           numberOfLines={1}
           ellipsizeMode={'middle'}
         >
@@ -172,25 +165,25 @@ const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JS
           (props.subtitle ? (
             props.subtitle
           ) : (
-            <View style={tailwind('flex flex-row items-center')}>
+            <View className="flex flex-row items-center">
               {!isFolder && (
-                <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+                <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
                   {prettysize(props.data.size || 0)}
                 </AppText>
               )}
               {!isFolder && (
                 <View
-                  style={[
-                    tailwind('rounded-full mx-1.5'),
-                    {
-                      width: 3,
-                      height: 3,
-                      backgroundColor: getColor('text-gray-60'),
-                    },
-                  ]}
+                  className="rounded-full mx-1.5"
+                  style={{
+                    width: 3,
+                    height: 3,
+                    backgroundColor: getColor('text-gray-60'),
+                  }}
                 />
               )}
-              <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
+              <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
+                {getUpdatedAt()}
+              </AppText>
             </View>
           ))}
       </View>
@@ -220,7 +213,7 @@ export const DriveListModeItem = (props: DriveItemProps): JSX.Element => {
           accessibilityLabel={strings.buttons.cancel + ' folder upload'}
           hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
-          <View style={tailwind('px-5 flex-1 items-center justify-center')}>
+          <View className="px-5 flex-1 items-center justify-center">
             <XCircle weight="bold" size={22} color={getColor('text-primary')} />
           </View>
         </TouchableOpacity>
@@ -230,11 +223,11 @@ export const DriveListModeItem = (props: DriveItemProps): JSX.Element => {
       <Animated.View style={optionsButtonAnimatedStyle}>
         <TouchableOpacity
           disabled={isUploading || isDownloading}
-          style={tailwind('flex-1')}
+          className="flex-1"
           onPress={props.onActionsPress}
           onLongPress={props.onActionsPress}
         >
-          <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
+          <View className={`px-5 flex-1 items-center justify-center ${isUploading ? 'opacity-40' : ''}`}>
             <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
           </View>
         </TouchableOpacity>

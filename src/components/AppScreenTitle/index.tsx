@@ -1,7 +1,6 @@
 import { StyleProp, TextStyle, TouchableOpacity, View } from 'react-native';
 
 import { CaretLeftIcon } from 'phosphor-react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import { cssInterop } from 'nativewind';
@@ -35,13 +34,12 @@ const AppScreenTitle = ({
   rightSlot,
   onBackButtonPressed,
 }: AppScreenTitleProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
     <View
+      className="flex-row justify-center items-center px-4"
       style={[
-        tailwind('flex-row justify-center items-center px-4'),
         {
           paddingTop: 22,
           paddingBottom: 14,
@@ -52,28 +50,29 @@ const AppScreenTitle = ({
     >
       {showBackButton && (
         <TouchableOpacity
-          style={compactBackButton ? tailwind('mr-2') : tailwind('flex-1')}
+          className={`${compactBackButton ? 'mr-2' : 'flex-1'}`}
           hitSlop={compactBackButton ? BACK_BUTTON_HIT_SLOP : undefined}
           disabled={!onBackButtonPressed}
           onPress={onBackButtonPressed}
         >
-          <View style={[tailwind('flex justify-center'), !onBackButtonPressed && tailwind('opacity-50')]}>
+          <View className={`flex justify-center ${!onBackButtonPressed ? 'opacity-50' : ''}`}>
             <CaretLeftIcon weight="bold" color={getColor('text-primary')} size={24} />
           </View>
         </TouchableOpacity>
       )}
 
-      <View pointerEvents="none" style={[tailwind('flex-row flex-grow'), centerText && tailwind('justify-center')]}>
+      <View pointerEvents="none" className={`flex-row flex-grow ${centerText ? 'justify-center' : ''}`}>
         <AppText
           numberOfLines={1}
           medium
-          style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }, textStyle]}
+          className="text-2xl"
+          style={[{ color: getColor('text-gray-100') }, textStyle]}
         >
           {text}
         </AppText>
       </View>
 
-      {rightSlot ? rightSlot : showBackButton && !compactBackButton && <View style={tailwind('flex-1')} />}
+      {rightSlot ? rightSlot : showBackButton && !compactBackButton && <View className="flex-1" />}
     </View>
   );
 };

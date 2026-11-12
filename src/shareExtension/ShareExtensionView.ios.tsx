@@ -1,7 +1,6 @@
 import { close, openHostApp } from 'expo-share-extension';
 import { useCallback } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import { AppPaths } from '../navigation/AppLinks';
 import { useShareExtension } from './hooks/useShareExtension.ios';
 import { useShareUpload } from './hooks/useShareUpload';
@@ -37,7 +36,6 @@ const ShareExtensionView = ({
   images,
   videos,
 }: ShareExtensionProps) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   const { sdkReady, sharedFiles } = useShareExtension({
     photosToken,
@@ -97,7 +95,7 @@ const ShareExtensionView = ({
     );
   } else if (photosToken) {
     content = (
-      <View style={[tailwind('flex-1 items-center justify-center'), { backgroundColor: colors.surface }]}>
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.surface }}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );

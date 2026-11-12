@@ -61,14 +61,12 @@ const FloatingActionMenu = ({ isOpen, actions, onClose }: FloatingActionMenuProp
     >
       <Pressable accessible={false} style={StyleSheet.absoluteFill} onPress={onClose} />
       <View
-        style={[
-          tailwind('absolute items-end'),
-          {
-            right: FLOATING_BUTTON_MARGIN,
-            bottom: FLOATING_BUTTON_BOTTOM + safeAreaInsets.bottom + FLOATING_BUTTON_SIZE + MENU_GAP_ABOVE_BUTTON,
-            gap: ACTIONS_GAP,
-          },
-        ]}
+        className="absolute items-end"
+        style={{
+          right: FLOATING_BUTTON_MARGIN,
+          bottom: FLOATING_BUTTON_BOTTOM + safeAreaInsets.bottom + FLOATING_BUTTON_SIZE + MENU_GAP_ABOVE_BUTTON,
+          gap: ACTIONS_GAP,
+        }}
       >
         {actions.map((action, index) => {
           const ActionIcon = action.icon;
@@ -83,25 +81,21 @@ const FloatingActionMenu = ({ isOpen, actions, onClose }: FloatingActionMenuProp
                 style={({ pressed }) => [tailwind('flex-row items-center'), { opacity: pressed ? PRESSED_OPACITY : 1 }]}
               >
                 <View
-                  style={[
-                    tailwind('rounded-xl px-3.5 py-2 mr-3'),
-                    { backgroundColor: getColor('bg-surface'), boxShadow: ACTION_SHADOW },
-                  ]}
+                  className="rounded-xl px-3.5 py-2 mr-3"
+                  style={{ backgroundColor: getColor('bg-surface'), boxShadow: ACTION_SHADOW }}
                 >
-                  <AppText medium style={[tailwind('text-base'), { color: getColor('text-gray-100') }]}>
+                  <AppText medium className="text-base" style={{ color: getColor('text-gray-100') }}>
                     {action.label}
                   </AppText>
                 </View>
                 <View
-                  style={[
-                    tailwind('items-center justify-center rounded-full'),
-                    {
-                      width: ACTION_BUTTON_SIZE,
-                      height: ACTION_BUTTON_SIZE,
-                      backgroundColor: getColor('bg-surface'),
-                      boxShadow: ACTION_SHADOW,
-                    },
-                  ]}
+                  className="items-center justify-center rounded-full"
+                  style={{
+                    width: ACTION_BUTTON_SIZE,
+                    height: ACTION_BUTTON_SIZE,
+                    backgroundColor: getColor('bg-surface'),
+                    boxShadow: ACTION_SHADOW,
+                  }}
                 >
                   <ActionIcon color={getColor('text-primary')} size={ACTION_ICON_SIZE} />
                 </View>

@@ -1,5 +1,4 @@
 import { StyleProp, TouchableHighlight, View, ViewStyle, useColorScheme } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import LoadingSpinner from '../LoadingSpinner';
@@ -17,7 +16,6 @@ interface AppButtonProps {
 }
 
 const AppButton = (props: AppButtonProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -100,7 +98,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
 
   const renderContent = () => {
     const title = isTitleString ? (
-      <AppText medium numberOfLines={1} style={[tailwind('text-base'), { color: buttonStyles.textColor }]}>
+      <AppText medium numberOfLines={1} className="text-base" style={{ color: buttonStyles.textColor }}>
         {props.title}
       </AppText>
     ) : (
@@ -108,9 +106,9 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     );
 
     return (
-      <View style={tailwind('flex-row items-center')}>
+      <View className="flex-row items-center">
         {props.loading && (
-          <View style={tailwind('mr-2 items-center justify-center')}>
+          <View className="mr-2 items-center justify-center">
             <LoadingSpinner color={buttonStyles.textColor} size={16} />
           </View>
         )}
@@ -123,8 +121,8 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     <TouchableHighlight
       testID={props.testID}
       underlayColor={buttonStyles.underlayColor}
+      className="rounded-lg px-4 py-3 items-center justify-center"
       style={[
-        tailwind('rounded-lg px-4 py-3 items-center justify-center'),
         {
           backgroundColor: buttonStyles.backgroundColor,
           borderColor: buttonStyles.borderColor,

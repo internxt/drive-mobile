@@ -112,12 +112,14 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
     {
       key: 'name',
       template: (
-        <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-          <View style={tailwind('flex-grow justify-center')}>
-            <AppText style={[tailwind('text-lg')]}>{strings.screens.AccountScreen.accountDetails.name}</AppText>
+        <View className="flex-row items-center px-4 py-3">
+          <View className="flex-grow justify-center">
+            <AppText className="text-lg">{strings.screens.AccountScreen.accountDetails.name}</AppText>
           </View>
-          <View style={tailwind('flex-row items-center')}>
-            <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>{userFullName}</AppText>
+          <View className="flex-row items-center">
+            <AppText className="mr-2.5" style={{ color: getColor('text-gray-40') }}>
+              {userFullName}
+            </AppText>
             <CaretRight color={getColor('text-gray-40')} size={20} />
           </View>
         </View>
@@ -127,12 +129,14 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
     {
       key: 'email',
       template: (
-        <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-          <View style={tailwind('flex-grow justify-center')}>
-            <AppText style={[tailwind('text-lg')]}>{strings.screens.AccountScreen.accountDetails.email}</AppText>
+        <View className="flex-row items-center px-4 py-3">
+          <View className="flex-grow justify-center">
+            <AppText className="text-lg">{strings.screens.AccountScreen.accountDetails.email}</AppText>
           </View>
-          <View style={tailwind('flex-row items-center')}>
-            <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>{user?.email}</AppText>
+          <View className="flex-row items-center">
+            <AppText className="mr-2.5" style={{ color: getColor('text-gray-40') }}>
+              {user?.email}
+            </AppText>
             {user?.emailVerified ? (
               <CheckCircle weight="fill" color={getColor('text-green')} size={20} />
             ) : (
@@ -148,18 +152,18 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
     accountDetailsItems.push({
       key: 'resend-email',
       template: (
-        <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-          <View style={tailwind('flex-row flex-grow items-center justify-between')}>
+        <View className="flex-row items-center px-4 py-3">
+          <View className="flex-row flex-grow items-center justify-between">
             {isVerificationEmailEnabled ? (
-              <AppText style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
+              <AppText className="text-lg" style={{ color: getColor('text-primary') }}>
                 {strings.screens.AccountScreen.accountDetails.resendEmail}
               </AppText>
             ) : (
               <>
-                <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-50') }]}>
+                <AppText className="text-lg" style={{ color: getColor('text-gray-50') }}>
                   {strings.screens.AccountScreen.accountDetails.resendEmail}
                 </AppText>
-                <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-20') }]}>
+                <AppText className="text-lg" style={{ color: getColor('text-gray-20') }}>
                   {formattedVerificationEmailTime}
                 </AppText>
               </>
@@ -177,7 +181,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
   }, [verificationEmailTime]);
 
   return (
-    <AppScreen safeAreaTop style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+    <AppScreen safeAreaTop className="flex-1" style={{ backgroundColor: getColor('bg-gray-5') }}>
       <SecurityModal isOpen={isSecurityModalOpen} onClose={onSecurityModalClosed} />
       <AppScreenTitle
         text={strings.screens.AccountScreen.title}
@@ -186,9 +190,9 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
         onBackButtonPressed={onBackButtonPressed}
       />
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <View className="pb-10 px-4" style={{ backgroundColor: getColor('bg-gray-5') }}>
           {/* PROFILE PICTURE */}
-          <View style={tailwind('items-center my-8 px-4')}>
+          <View className="items-center my-8 px-4">
             <TouchableWithoutFeedback onPress={onProfilePicturePressed}>
               <View>
                 <UserProfilePicture uri={profileAvatar} size={112} />
@@ -198,16 +202,20 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                     overflow: 'hidden',
                   }}
                 >
-                  <View style={[tailwind('pt-1 pb-1.5'), { backgroundColor: 'rgba(0,0,0,0.6)' }]}>
-                    <AppText style={[tailwind('text-xs text-center'), { color: getColor('text-white') }]}>
+                  <View className="pt-1 pb-1.5" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+                    <AppText className="text-xs text-center" style={{ color: getColor('text-white') }}>
                       {strings.buttons.edit.toUpperCase()}
                     </AppText>
                   </View>
                 </View>
               </View>
             </TouchableWithoutFeedback>
-            <AppText style={[tailwind('text-2xl'), { color: getColor('text-gray-80') }]}>{userFullName}</AppText>
-            <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-40') }]}>{user?.email}</AppText>
+            <AppText className="text-2xl" style={{ color: getColor('text-gray-80') }}>
+              {userFullName}
+            </AppText>
+            <AppText className="text-lg" style={{ color: getColor('text-gray-40') }}>
+              {user?.email}
+            </AppText>
           </View>
           {/* PLAN */}
           <SettingsGroup
@@ -216,19 +224,19 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
               {
                 key: 'plan',
                 template: (
-                  <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
+                  <View className="flex-row items-center justify-between px-4 py-3">
                     <View>
-                      <AppText style={[tailwind('text-2xl'), { color: getColor('text-primary') }]}>
+                      <AppText className="text-2xl" style={{ color: getColor('text-primary') }}>
                         {storageService.toString(limit)}
                       </AppText>
-                      <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-80') }]}>
+                      <AppText className="text-sm" style={{ color: getColor('text-gray-80') }}>
                         {strings.subscriptions[subscription.type]}
                       </AppText>
                     </View>
                     {showBilling ? (
                       hasPaidPlan ? (
-                        <View style={tailwind('flex-row items-center')}>
-                          <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>
+                        <View className="flex-row items-center">
+                          <AppText className="mr-2.5" style={{ color: getColor('text-gray-40') }}>
                             {strings.buttons.manage}
                           </AppText>
                           <CaretRight color={getColor('text-gray-40')} size={20} />
@@ -238,7 +246,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
                           type="accept"
                           title={strings.buttons.upgrade}
                           onPress={onBillingPressed}
-                          style={tailwind('rounded-3xl px-8 py-2')}
+                          className="rounded-3xl px-8 py-2"
                         />
                       )
                     ) : null}
@@ -257,11 +265,11 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
               {
                 key: 'debug',
                 template: (
-                  <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                    <View style={tailwind('flex-grow justify-center')}>
-                      <AppText style={[tailwind('text-lg')]}>{strings.screens.AccountScreen.security.title}</AppText>
+                  <View className="flex-row items-center px-4 py-3">
+                    <View className="flex-grow justify-center">
+                      <AppText className="text-lg">{strings.screens.AccountScreen.security.title}</AppText>
                     </View>
-                    <View style={tailwind('justify-center')}>
+                    <View className="justify-center">
                       <CaretRight color={getColor('text-gray-40')} size={20} />
                     </View>
                   </View>
@@ -277,8 +285,8 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
               {
                 key: 'delete-account',
                 template: (
-                  <View style={tailwind('px-4 py-3')}>
-                    <AppText style={[tailwind('text-center text-lg'), { color: getColor('text-red') }]}>
+                  <View className="px-4 py-3">
+                    <AppText className="text-center text-lg" style={{ color: getColor('text-red') }}>
                       {strings.screens.AccountScreen.deleteAccount}
                     </AppText>
                   </View>

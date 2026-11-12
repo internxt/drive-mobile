@@ -11,7 +11,6 @@ import Animated, {
   ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../assets/lang/strings';
 import { applyOpacity } from '../../helpers/colors';
@@ -37,7 +36,6 @@ const COUNTDOWN_TRACK_OPACITY = 0.2;
 const SHADOW = '0px 6px 20px rgba(0, 0, 0, 0.25)';
 
 export const SentMessageSnackbar = (): JSX.Element | null => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const safeAreaInsets = useSafeAreaInsets();
@@ -76,20 +74,21 @@ export const SentMessageSnackbar = (): JSX.Element | null => {
       accessibilityLiveRegion="polite"
       style={[styles.container, { bottom: bottomOffset, backgroundColor: getColor('bg-highlight'), boxShadow: SHADOW }]}
     >
-      <View style={tailwind('flex-1 flex-row items-center px-4')}>
+      <View className="flex-1 flex-row items-center px-4">
         <Animated.View
           entering={ZoomIn.springify().damping(CHECK_SPRING_DAMPING)}
           style={[styles.checkCircle, { backgroundColor: getColor('text-green') }]}
         >
           <CheckIcon size={CHECK_ICON_SIZE} weight="bold" color={getColor('text-white')} />
         </Animated.View>
-        <View style={tailwind('flex-1 ml-3')}>
-          <AppText semibold numberOfLines={1} style={[tailwind('text-base'), { color: textColor }]}>
+        <View className="flex-1 ml-3">
+          <AppText semibold numberOfLines={1} className="text-base" style={{ color: textColor }}>
             {strings.screens.compose_email.sentNotice.title}
           </AppText>
           <AppText
             numberOfLines={1}
-            style={[tailwind('text-sm'), { color: applyOpacity(textColor, RECIPIENTS_TEXT_OPACITY) }]}
+            className="text-sm"
+            style={{ color: applyOpacity(textColor, RECIPIENTS_TEXT_OPACITY) }}
           >
             {strings.formatString(strings.screens.compose_email.sentNotice.recipients, notice.recipientsLabel)}
           </AppText>

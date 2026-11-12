@@ -158,7 +158,8 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
         safeAreaTop
         safeAreaColor={getColor('bg-surface')}
         backgroundColor={getColor('bg-gray-5')}
-        style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}
+        className="flex-1"
+        style={{ backgroundColor: getColor('bg-gray-5') }}
       >
         <AppScreenTitle
           text={strings.screens.SettingsScreen.title}
@@ -167,26 +168,26 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
           compactBackButton
           onBackButtonPressed={() => navigation.goBack()}
           rightSlot={
-            <View style={tailwind('flex-grow items-end justify-center')}>
+            <View className="flex-grow items-end justify-center">
               <AppVersionWidget />
             </View>
           }
         />
         <ScrollView ref={scrollViewRef}>
-          <View style={[tailwind('px-4 pt-8  flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
+          <View className="px-4 pt-8  flex-1" style={{ backgroundColor: getColor('bg-gray-5') }}>
             {/* ACCOUNT */}
             <SettingsGroup
-              style={tailwind('mb-2')}
+              className="mb-2"
               title={strings.screens.SettingsScreen.account.title}
               items={[
                 {
                   key: 'account',
                   template: (
-                    <View style={tailwind('flex-row items-center p-4')}>
+                    <View className="flex-row items-center p-4">
                       <UserProfilePicture uri={profileAvatar} size={56} />
 
-                      <View style={tailwind('flex-grow flex-1 ml-3')}>
-                        <AppText numberOfLines={1} medium style={tailwind('text-xl')}>
+                      <View className="flex-grow flex-1 ml-3">
+                        <AppText numberOfLines={1} medium className="text-xl">
                           {userFullName}
                         </AppText>
                         <AppText numberOfLines={1} style={{ color: getColor('text-gray-40') }}>
@@ -196,7 +197,7 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                         </AppText>
                       </View>
 
-                      <View style={tailwind('items-end')}>
+                      <View className="items-end">
                         <CaretRightIcon color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
@@ -212,8 +213,8 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'sign-out',
                   template: (
-                    <View style={tailwind('px-4 py-3')}>
-                      <AppText style={[tailwind('text-center text-lg'), { color: getColor('text-red') }]}>
+                    <View className="px-4 py-3">
+                      <AppText className="text-center text-lg" style={{ color: getColor('text-red') }}>
                         {strings.buttons.signOut}
                       </AppText>
                     </View>
@@ -230,14 +231,14 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'storage',
                   template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <View className="flex-row items-center px-4 py-3">
                       <FolderSimpleIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.storage}</AppText>
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg">{strings.screens.SettingsScreen.storage}</AppText>
                       </View>
-                      <View style={tailwind('flex-row items-center')}>
+                      <View className="flex-row items-center">
                         {Number(usagePercent) ? (
-                          <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>
+                          <AppText className="mr-2.5" style={{ color: getColor('text-gray-40') }}>
                             {strings.formatString(strings.generic.usagePercent, usagePercent)}
                           </AppText>
                         ) : null}
@@ -250,12 +251,12 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'trash',
                   template: (
-                    <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
+                    <View className="flex-row items-center  px-4 py-3">
                       <TrashIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.trash}</AppText>
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg">{strings.screens.SettingsScreen.trash}</AppText>
                       </View>
-                      <View style={tailwind('flex-row items-center')}>
+                      <View className="flex-row items-center">
                         {/* Disabled until we can get the Trash size */}
                         {/* <AppText style={tailwind('text-gray-40 mr-2.5')}>{prettysize(0)}</AppText> */}
                         <CaretRightIcon color={getColor('text-gray-40')} size={20} />
@@ -267,13 +268,13 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'language',
                   template: (
-                    <View style={[tailwind('flex-row items-center  px-4 py-3')]}>
+                    <View className="flex-row items-center  px-4 py-3">
                       <TranslateIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.language}</AppText>
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg">{strings.screens.SettingsScreen.language}</AppText>
                       </View>
-                      <View style={tailwind('flex-row items-center')}>
-                        <AppText style={[tailwind('mr-2.5'), { color: getColor('text-gray-40') }]}>
+                      <View className="flex-row items-center">
+                        <AppText className="mr-2.5" style={{ color: getColor('text-gray-40') }}>
                           {strings.languages[strings.getLanguage() as Language]}
                         </AppText>
                         <CaretRightIcon color={getColor('text-gray-40')} size={20} />
@@ -285,15 +286,15 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'dark-mode',
                   template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <View className="flex-row items-center px-4 py-3">
                       <MoonIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.darkMode}</AppText>
-                        <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}>
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg">{strings.screens.SettingsScreen.darkMode}</AppText>
+                        <AppText className="text-sm" style={{ color: getColor('text-gray-40') }}>
                           {strings.screens.SettingsScreen.darkModeDescription}
                         </AppText>
                       </View>
-                      <View style={tailwind('flex-row items-center')}>
+                      <View className="flex-row items-center">
                         <AppSwitch
                           trackColor={{
                             false: getColor('text-gray-20'),
@@ -312,17 +313,15 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'screen-protection',
                   template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <View className="flex-row items-center px-4 py-3">
                       <ShieldIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>
-                          {strings.screens.SettingsScreen.screenProtection}
-                        </AppText>
-                        <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}>
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg">{strings.screens.SettingsScreen.screenProtection}</AppText>
+                        <AppText className="text-sm" style={{ color: getColor('text-gray-40') }}>
                           {strings.screens.SettingsScreen.screenProtectionDescription}
                         </AppText>
                       </View>
-                      <View style={tailwind('flex-row items-center')}>
+                      <View className="flex-row items-center">
                         <AppSwitch
                           trackColor={{
                             false: getColor('text-gray-20'),
@@ -349,12 +348,10 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   {
                     key: 'photos-backup',
                     template: (
-                      <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                        <View style={tailwind('flex-1 mr-3')}>
-                          <AppText style={[tailwind('text-lg')]}>
-                            {strings.screens.SettingsScreen.photos.backupTitle}
-                          </AppText>
-                          <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
+                      <View className="flex-row items-center px-4 py-3">
+                        <View className="flex-1 mr-3">
+                          <AppText className="text-lg">{strings.screens.SettingsScreen.photos.backupTitle}</AppText>
+                          <AppText className="text-xs mt-0.5" style={{ color: getColor('text-gray-40') }}>
                             {strings.screens.SettingsScreen.photos.backupDescription}
                           </AppText>
                         </View>
@@ -377,12 +374,10 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   {
                     key: 'photos-mobile-data',
                     template: (
-                      <View style={[tailwind('flex-row items-center px-4 py-3'), !photosEnabled && { opacity: 0.4 }]}>
-                        <View style={tailwind('flex-1 mr-3')}>
-                          <AppText style={[tailwind('text-lg')]}>
-                            {strings.screens.SettingsScreen.photos.mobileDataTitle}
-                          </AppText>
-                          <AppText style={[tailwind('text-xs mt-0.5'), { color: getColor('text-gray-40') }]}>
+                      <View className="flex-row items-center px-4 py-3" style={!photosEnabled && { opacity: 0.4 }}>
+                        <View className="flex-1 mr-3">
+                          <AppText className="text-lg">{strings.screens.SettingsScreen.photos.mobileDataTitle}</AppText>
+                          <AppText className="text-xs mt-0.5" style={{ color: getColor('text-gray-40') }}>
                             {strings.screens.SettingsScreen.photos.mobileDataDescription}
                           </AppText>
                         </View>
@@ -414,12 +409,12 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                 {
                   key: 'support',
                   template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <View className="flex-row items-center px-4 py-3">
                       <QuestionIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.support}</AppText>
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg">{strings.screens.SettingsScreen.support}</AppText>
                       </View>
-                      <View style={tailwind('justify-center')}>
+                      <View className="justify-center">
                         <CaretRightIcon color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
@@ -430,12 +425,12 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   key: 'share-logs',
                   loading: gettingLogs,
                   template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                    <View className="flex-row items-center px-4 py-3">
                       <FileTextIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg')]}>{strings.screens.SettingsScreen.saveLogs}</AppText>
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg">{strings.screens.SettingsScreen.saveLogs}</AppText>
                       </View>
-                      <View style={tailwind('justify-center')}>
+                      <View className="justify-center">
                         <CaretRightIcon color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>
@@ -453,12 +448,12 @@ function SettingsScreen({ navigation }: SettingsScreenProps<'SettingsHome'>): JS
                   {
                     key: 'debug',
                     template: (
-                      <View style={[tailwind('flex-row items-center px-4 py-3')]}>
+                      <View className="flex-row items-center px-4 py-3">
                         <BugIcon size={24} color={getColor('text-primary')} style={tailwind('mr-3')} />
-                        <View style={tailwind('flex-grow justify-center')}>
-                          <AppText style={[tailwind('text-lg')]}>{strings.screens.DebugScreen.title}</AppText>
+                        <View className="flex-grow justify-center">
+                          <AppText className="text-lg">{strings.screens.DebugScreen.title}</AppText>
                         </View>
-                        <View style={tailwind('justify-center')}>
+                        <View className="justify-center">
                           <CaretRightIcon color={getColor('text-gray-40')} size={20} />
                         </View>
                       </View>

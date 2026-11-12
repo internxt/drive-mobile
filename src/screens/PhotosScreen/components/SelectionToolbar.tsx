@@ -3,7 +3,6 @@ import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { TimelinePhotoItem } from '../types';
 import { isItemBacked } from '../utils/photoUtils';
@@ -47,7 +46,6 @@ const SelectionToolbar = ({
   onMore,
   onDelete,
 }: SelectionToolbarProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const heightRef = useRef(new Animated.Value(visible ? TOOLBAR_HEIGHT : 0)).current;
   const animRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -88,7 +86,7 @@ const SelectionToolbar = ({
         ]}
       >
         <View style={styles.pullBar}>
-          <View style={[tailwind('bg-gray-20'), styles.pill]} />
+          <View className="bg-gray-20" style={styles.pill} />
         </View>
 
         <View style={styles.navbar}>

@@ -27,7 +27,7 @@ export const DriveVideoPreview: React.FC<DriveVideoPreviewProps> = (props) => {
   };
   return (
     <Animated.View entering={FadeInDown.delay(150).duration(250)} style={tailwind('flex-1')}>
-      <View style={tailwind('flex-1')}>
+      <View className="flex-1">
         <VideoViewer
           thumbnail={props.thumbnail}
           source={props.source}

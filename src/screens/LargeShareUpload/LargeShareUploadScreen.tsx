@@ -4,7 +4,6 @@ import { ActivityIndicator, Alert, Linking, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppGroupPendingShareService } from 'src/services/AppGroupPendingShareService';
 import errorService from 'src/services/ErrorService';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import { AppLinks } from '../../navigation/AppLinks';
 import { useShareAuth } from '../../shareExtension/hooks/useShareAuth';
@@ -35,7 +34,6 @@ const handleFileUploaded = async (uploadedFile: SharedFile): Promise<void> => {
 };
 
 export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Element => {
-  const tailwind = useTailwind();
   const { metadata } = route.params;
 
   const { status, rootFolderUuid, mnemonic, bucket, bridgeUser, userId } = useShareAuth();
@@ -121,7 +119,7 @@ export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Elemen
 
   if (status === 'unauthenticated') {
     return (
-      <SafeAreaView style={tailwind('flex-1 bg-white')}>
+      <SafeAreaView className="flex-1 bg-white">
         <NotSignedInScreen onClose={() => navigation.goBack()} onOpenLogin={handleOpenLogin} />
       </SafeAreaView>
     );
@@ -129,8 +127,8 @@ export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Elemen
 
   if (status === 'loading' || !rootFolderUuid) {
     return (
-      <SafeAreaView style={tailwind('flex-1 bg-white')}>
-        <View style={tailwind('flex-1 items-center justify-center')}>
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={colors.primary} />
         </View>
       </SafeAreaView>
@@ -138,7 +136,7 @@ export const LargeShareUploadScreen = ({ route, navigation }: Props): JSX.Elemen
   }
 
   return (
-    <SafeAreaView style={tailwind('flex-1 bg-white')}>
+    <SafeAreaView className="flex-1 bg-white">
       <DriveScreen
         sharedFiles={sharedFiles}
         rootFolderUuid={rootFolderUuid}

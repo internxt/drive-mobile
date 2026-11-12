@@ -4,7 +4,6 @@ import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import BottomModal from 'src/components/modals/BottomModal';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 
 import illustrationImg from '../../../assets/images/photos-discover-illustration.png';
@@ -20,7 +19,6 @@ const DiscoverPhotosBottomSheet = ({
   onDismiss,
   onStartPhotos,
 }: DiscoverPhotosBottomSheetProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const discoverSheetStrings = strings.screens.photos.discoverSheet;
   const surfaceColor = getColor('bg-surface');
@@ -28,7 +26,7 @@ const DiscoverPhotosBottomSheet = ({
 
   return (
     <BottomModal isOpen={isOpen} onClosed={onDismiss} topDecoration backdropPressToClose ignoreSafeAreaTop>
-      <View style={tailwind('pb-6')}>
+      <View className="pb-6">
         <View style={styles.illustrationWrapper}>
           <View style={styles.illustrationContainer}>
             <Image source={illustrationImg} style={styles.illustration} resizeMode="contain" />
@@ -36,15 +34,16 @@ const DiscoverPhotosBottomSheet = ({
           </View>
         </View>
 
-        <View style={[tailwind('px-6'), { gap: 32 }]}>
+        <View className="px-6" style={{ gap: 32 }}>
           <View style={{ gap: 8 }}>
             <AppText
               semibold
-              style={[tailwind('text-center'), { fontSize: 20, lineHeight: 24, color: getColor('text-gray-100') }]}
+              className="text-center"
+              style={{ fontSize: 20, lineHeight: 24, color: getColor('text-gray-100') }}
             >
               {discoverSheetStrings.title}
             </AppText>
-            <AppText style={[tailwind('text-center text-base'), { color: getColor('text-gray-80'), lineHeight: 22 }]}>
+            <AppText className="text-center text-base" style={{ color: getColor('text-gray-80'), lineHeight: 22 }}>
               {discoverSheetStrings.subtitle}
             </AppText>
           </View>

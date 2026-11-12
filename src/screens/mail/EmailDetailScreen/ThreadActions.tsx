@@ -64,7 +64,7 @@ export const ThreadActions = ({
   };
 
   return (
-    <View style={tailwind('flex-row items-center')}>
+    <View className="flex-row items-center">
       {ACTIONS_BY_MAILBOX[mailboxId].map((actionKey) => {
         const { label, icon: ActionIcon, onPress } = threadActions[actionKey];
         const isRunningAction = isDisabled && pressedActionKey === actionKey;

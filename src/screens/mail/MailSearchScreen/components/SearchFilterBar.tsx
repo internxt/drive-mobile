@@ -1,6 +1,5 @@
 import { CaretDownIcon, XIcon } from 'phosphor-react-native';
 import { ScrollView, StyleSheet } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import { DateFilter, SearchCriteria } from '@internxt-mobile/services/mail/mailSearch';
 import strings from '../../../../../assets/lang/strings';
@@ -52,7 +51,6 @@ export const SearchFilterBar = ({
   onClearDateFilter: () => void;
   onToggleFilter: (field: ToggleField) => void;
 }): JSX.Element => {
-  const tailwind = useTailwind();
   const hasDate = searchCriteria.date.preset !== 'anyDate';
   const filterLabels = {
     from: strings.screens.mail.search.filters.from,
@@ -67,7 +65,7 @@ export const SearchFilterBar = ({
       showsHorizontalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       style={styles.filterRow}
-      contentContainerStyle={tailwind('px-4 pb-2')}
+      contentContainerClassName="px-4 pb-2"
     >
       {EMAIL_FIELDS.map((field) => {
         const emails = searchCriteria[field];
@@ -75,7 +73,7 @@ export const SearchFilterBar = ({
         return (
           <FilterChip
             key={field}
-            style={tailwind('mr-2')}
+            className="mr-2"
             label={hasEmails ? describeEmails(filterLabels[field], emails) : filterLabels[field]}
             active={hasEmails || expandedEmailSearchInput === field}
             trailingIcon={hasEmails ? XIcon : CaretDownIcon}
@@ -85,7 +83,7 @@ export const SearchFilterBar = ({
         );
       })}
       <FilterChip
-        style={tailwind('mr-2')}
+        className="mr-2"
         label={describeDate(searchCriteria.date)}
         active={hasDate}
         trailingIcon={hasDate ? XIcon : CaretDownIcon}
@@ -95,7 +93,7 @@ export const SearchFilterBar = ({
       {TOGGLE_FIELDS.map((field) => (
         <FilterChip
           key={field}
-          style={tailwind('mr-2')}
+          className="mr-2"
           label={filterLabels[field]}
           active={searchCriteria[field]}
           onPress={() => onToggleFilter(field)}

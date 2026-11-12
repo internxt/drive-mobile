@@ -92,7 +92,8 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
         safeAreaTop
         safeAreaBottom
         safeAreaColor={getColor('bg-surface')}
-        style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}
+        className="flex-1"
+        style={{ backgroundColor: getColor('bg-gray-5') }}
       >
         <AppScreenTitle
           text={strings.screens.SecurityScreen.title}
@@ -100,8 +101,8 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
           centerText
           onBackButtonPressed={onBackButtonPressed}
         />
-        <ScrollView style={{ height: '100%' }} contentContainerStyle={tailwind('pb-10')}>
-          <View style={[tailwind('px-4 pt-8'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <ScrollView style={{ height: '100%' }} contentContainerClassName="pb-10">
+          <View className="px-4 pt-8" style={{ backgroundColor: getColor('bg-gray-5') }}>
             {/* SCREEN LOCK */}
             {deviceHasBiometricAccess && biometricAccessType ? (
               <SettingsGroup
@@ -110,24 +111,22 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                   {
                     key: 'screen-lock-text',
                     template: (
-                      <View style={tailwind('p-4 flex flex-row')}>
-                        <View style={tailwind('flex-1')}>
-                          <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
+                      <View className="p-4 flex flex-row">
+                        <View className="flex-1">
+                          <AppText className="text-lg" style={{ color: getColor('text-gray-100') }}>
                             {strings.screens.SecurityScreen.screenLock.subtitle[biometricAccessType]}
                           </AppText>
                           <AppText
-                            style={[
-                              tailwind('text-xs'),
-                              {
-                                color: getColor('text-gray-60'),
-                                lineHeight: getLineHeight(12, 1.2),
-                              },
-                            ]}
+                            className="text-xs"
+                            style={{
+                              color: getColor('text-gray-60'),
+                              lineHeight: getLineHeight(12, 1.2),
+                            }}
                           >
                             {strings.screens.SecurityScreen.screenLock.message[biometricAccessType]}
                           </AppText>
                         </View>
-                        <View style={tailwind('flex justify-center')}>
+                        <View className="flex justify-center">
                           <AppSwitch onValueChange={handleToggleScreenLockEnabled} value={screenLockEnabled} />
                         </View>
                       </View>
@@ -171,7 +170,7 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                 {
                   key: 'two-factor-text',
                   template: (
-                    <View style={tailwind('p-4')}>
+                    <View className="p-4">
                       <AppText style={{ color: getColor('text-gray-100') }}>
                         {strings.screens.SecurityScreen.twoFactor.text}
                       </AppText>
@@ -181,17 +180,17 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                 {
                   key: 'two-factor-action',
                   template: (
-                    <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
+                    <View className="flex-row items-center justify-between px-4 py-3">
                       {is2FAEnabled ? (
                         <>
-                          <AppText style={[tailwind('text-lg'), { color: getColor('text-red') }]}>
+                          <AppText className="text-lg" style={{ color: getColor('text-red') }}>
                             {strings.screens.SecurityScreen.twoFactor.disable}
                           </AppText>
                           <CaretRight size={20} color={getColor('text-red')} />
                         </>
                       ) : (
                         <>
-                          <AppText style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
+                          <AppText className="text-lg" style={{ color: getColor('text-primary') }}>
                             {strings.screens.SecurityScreen.twoFactor.enable}
                           </AppText>
                           <CaretRight size={20} color={getColor('text-primary')} />

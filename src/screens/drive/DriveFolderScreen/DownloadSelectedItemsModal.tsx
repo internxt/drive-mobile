@@ -6,7 +6,6 @@ import AppText from 'src/components/AppText';
 import CenterModal from 'src/components/modals/CenterModal';
 import { getDisplayName } from 'src/helpers/itemNames';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import { FILE_COMPLETE_PROGRESS, SelectionDownloadProgress } from './useFetchSelectedFiles';
 
 const PROGRESS_BAR_HEIGHT = 4;
@@ -38,7 +37,6 @@ export const DownloadSelectedItemsModal = ({
   downloadProgress,
   onCancelPress,
 }: DownloadSelectedItemsModalProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const fileCount = downloadProgress?.fileCount ?? 0;
   const currentFileNumber = (downloadProgress?.currentFileIndex ?? 0) + 1;
@@ -53,11 +51,11 @@ export const DownloadSelectedItemsModal = ({
       }}
     >
       <>
-        <View style={tailwind('mt-6 mb-4 mx-6')}>
-          <AppText medium style={[tailwind('text-lg text-center'), { color: getColor('text-gray-100') }]}>
+        <View className="mt-6 mb-4 mx-6">
+          <AppText medium className="text-lg text-center" style={{ color: getColor('text-gray-100') }}>
             {strings.modals.downloadingFiles.title}
           </AppText>
-          <AppText style={[tailwind('text-center mt-1'), { color: getColor('text-gray-50') }]}>
+          <AppText className="text-center mt-1" style={{ color: getColor('text-gray-50') }}>
             {strings.formatString(strings.modals.downloadingFiles.progress, currentFileNumber, fileCount)}
           </AppText>
           {downloadProgress && (
@@ -65,17 +63,18 @@ export const DownloadSelectedItemsModal = ({
               <AppText
                 numberOfLines={1}
                 ellipsizeMode="middle"
-                style={[tailwind('text-center mt-2'), { color: getColor('text-gray-100') }]}
+                className="text-center mt-2"
+                style={{ color: getColor('text-gray-100') }}
               >
                 {getDisplayName(downloadProgress.currentFile)}
               </AppText>
-              <AppText style={[tailwind('text-sm text-center mt-1'), { color: getColor('text-gray-50') }]}>
+              <AppText className="text-sm text-center mt-1" style={{ color: getColor('text-gray-50') }}>
                 {getFileProgressText(downloadProgress)}
               </AppText>
             </>
           )}
         </View>
-        <View style={tailwind('mx-6 mb-6')}>
+        <View className="mx-6 mb-6">
           <AppProgressBar
             totalValue={FILE_COMPLETE_PROGRESS}
             height={PROGRESS_BAR_HEIGHT}
@@ -85,10 +84,8 @@ export const DownloadSelectedItemsModal = ({
         </View>
         <TouchableOpacity
           onPress={onCancelPress}
-          style={[
-            tailwind('h-14 flex items-center justify-center border-t'),
-            { borderTopColor: getColor('border-gray-10') },
-          ]}
+          className="h-14 flex items-center justify-center border-t"
+          style={{ borderTopColor: getColor('border-gray-10') }}
         >
           <AppText medium style={{ color: getColor('text-gray-100') }}>
             {strings.buttons.cancel}

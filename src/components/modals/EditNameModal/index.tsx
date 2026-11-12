@@ -4,13 +4,11 @@ import { View } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
-import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
 import { BaseModalProps } from '../../../types/ui';
 import EditNameForm from '../../forms/EditNameForm';
 
 const EditNameModal = (props: BaseModalProps) => {
-  const tailwind = useTailwind();
   const [isLoading, setIsLoading] = useState(false);
   const onFormLoadingChanged = (isLoading: boolean) => {
     setIsLoading(isLoading);
@@ -32,8 +30,8 @@ const EditNameModal = (props: BaseModalProps) => {
       backdropPressToClose={!isLoading}
       backButtonClose={!isLoading}
     >
-      <View style={tailwind('p-4')}>
-        <AppText style={tailwind('text-xl mb-6')} medium>
+      <View className="p-4">
+        <AppText className="text-xl mb-6" medium>
           {strings.modals.EditName.title}
         </AppText>
 
@@ -41,16 +39,16 @@ const EditNameModal = (props: BaseModalProps) => {
           onFormLoadingChange={onFormLoadingChanged}
           onFormSubmitSuccess={onFormSubmitSuccess}
           renderActionsContainer={({ isDirty, isValid, isLoading, onSubmitButtonPressed }) => (
-            <View style={tailwind('mt-6 flex-row justify-between')}>
+            <View className="mt-6 flex-row justify-between">
               <AppButton
                 title={strings.buttons.cancel}
                 type="cancel"
                 onPress={onCancelButtonPressed}
                 disabled={isLoading}
-                style={tailwind('flex-1')}
+                className="flex-1"
               />
 
-              <View style={tailwind('px-1')}></View>
+              <View className="px-1"></View>
 
               <AppButton
                 title={isLoading ? strings.buttons.updating : strings.buttons.update}
@@ -58,7 +56,7 @@ const EditNameModal = (props: BaseModalProps) => {
                 onPress={onSubmitButtonPressed}
                 loading={isLoading}
                 disabled={!isDirty || !isValid || isLoading}
-                style={tailwind('flex-1')}
+                className="flex-1"
               />
             </View>
           )}

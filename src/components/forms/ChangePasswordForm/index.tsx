@@ -2,7 +2,6 @@ import { Eye, EyeSlash } from 'phosphor-react-native';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { useMemo, useState } from 'react';
 import { TouchableWithoutFeedback, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
@@ -15,7 +14,6 @@ import { useAppDispatch, useAppSelector } from '../../../store/hooks';
 import { authThunks } from 'src/store/slices/auth';
 
 const ChangePasswordForm = (props: BaseFormProps) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +75,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
     return {
       strength: passwordStrengthResult.valid ? passwordStrengthResult.strength : '',
       newPasswordStatusMessage: isDirty ? (
-        <StrengthMeter style={tailwind('mt-2')} value={strength} maxValue={3} message={message as string} />
+        <StrengthMeter className="mt-2" value={strength} maxValue={3} message={message as string} />
       ) : (
         ''
       ),
@@ -114,15 +112,15 @@ const ChangePasswordForm = (props: BaseFormProps) => {
             value={field.value}
             secureTextEntry={!showNewPassword}
             autoFocus
-            containerStyle={tailwind('mb-3')}
+            containerClassName="mb-3"
             status={[
               isDirty && fieldState.error
                 ? 'error'
                 : strength === 'medium'
-                ? 'warning'
-                : strength === 'hard'
-                ? 'success'
-                : 'idle',
+                  ? 'warning'
+                  : strength === 'hard'
+                    ? 'success'
+                    : 'idle',
               newPasswordStatusMessage,
             ]}
             label={strings.inputs.newPassword}
@@ -150,7 +148,7 @@ const ChangePasswordForm = (props: BaseFormProps) => {
             value={field.value}
             secureTextEntry={!showConfirmNewPassword}
             status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
-            containerStyle={tailwind('mb-6')}
+            containerClassName="mb-6"
             label={strings.inputs.confirmNewPassword}
             renderAppend={() => (
               <TouchableWithoutFeedback onPress={toggleShowConfirmNewPassword}>

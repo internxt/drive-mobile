@@ -38,13 +38,13 @@ export const BlockingLoaderModal = ({
 
   return (
     <CenterModal isOpen={isOpen} onClosed={() => undefined} backdropPressToClose={false} backButtonClose={false}>
-      <View style={tailwind('w-full px-6 py-8 items-center')}>
+      <View className="w-full px-6 py-8 items-center">
         {isLoading && (
-          <View style={[tailwind('mb-5'), { width: 48, height: 48 }]}>
+          <View className="mb-5" style={{ width: 48, height: 48 }}>
             <LoadingSpinner size={40} />
           </View>
         )}
-        <AppText style={[tailwind('text-center text-base'), { color: getColor('text-gray-80') }]} medium>
+        <AppText className="text-center text-base" style={{ color: getColor('text-gray-80') }} medium>
           {message}
         </AppText>
         {actions.map((action, actionIndex) => (
