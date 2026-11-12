@@ -4,7 +4,6 @@ import { useColorScheme, View } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 
 import { TouchableOpacity } from 'react-native-gesture-handler';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 import { SortDirection, SortMode, SortType } from '../../../types/drive/ui';
 import { BaseModalProps } from '../../../types/ui';
@@ -17,7 +16,6 @@ export interface SortModalProps extends BaseModalProps {
   sortMode: SortMode;
 }
 const SortModal: React.FC<SortModalProps> = (props) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const onClosed = () => {
@@ -106,7 +104,6 @@ function SortModalItem(props: {
   isSelected: boolean;
   onSortModeChange: (change: SortMode) => void;
 }) {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -117,10 +114,8 @@ function SortModalItem(props: {
   return (
     <TouchableOpacity activeOpacity={0.65} className="rounded-lg" onPress={onPress}>
       <View
-        style={[
-          tailwind('items-center flex-row rounded-lg px-4 py-2.5'),
-          props.isSelected && (isDark ? { backgroundColor: getColor('bg-gray-10') } : tailwind('bg-primary/10')),
-        ]}
+        className={`items-center flex-row rounded-lg px-4 py-2.5 ${props.isSelected && !isDark ? 'bg-primary/10' : ''}`}
+        style={props.isSelected && isDark ? { backgroundColor: getColor('bg-gray-10') } : undefined}
       >
         <AppText
           className="text-lg mr-2"

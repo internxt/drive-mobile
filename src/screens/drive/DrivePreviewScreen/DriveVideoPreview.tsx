@@ -1,10 +1,8 @@
 import { fs } from '@internxt-mobile/services/FileSystemService';
 import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { VideoViewer } from 'src/components/photos/VideoViewer';
-
-import { useTailwind } from 'tailwind-rn';
 
 export interface DriveVideoPreviewProps {
   source: string;
@@ -13,7 +11,6 @@ export interface DriveVideoPreviewProps {
 
 export const DriveVideoPreview: React.FC<DriveVideoPreviewProps> = (props) => {
   const [videoHasLoadError, setVideoHasLoadError] = useState(false);
-  const tailwind = useTailwind();
 
   useEffect(() => {
     setVideoHasLoadError(false);
@@ -26,7 +23,7 @@ export const DriveVideoPreview: React.FC<DriveVideoPreviewProps> = (props) => {
     }
   };
   return (
-    <Animated.View entering={FadeInDown.delay(150).duration(250)} style={tailwind('flex-1')}>
+    <Animated.View entering={FadeInDown.delay(150).duration(250)} style={styles.fill}>
       <View className="flex-1">
         <VideoViewer
           thumbnail={props.thumbnail}
@@ -40,3 +37,9 @@ export const DriveVideoPreview: React.FC<DriveVideoPreviewProps> = (props) => {
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
+});

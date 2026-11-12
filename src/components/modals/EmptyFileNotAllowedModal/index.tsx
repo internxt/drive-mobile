@@ -5,11 +5,9 @@ import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
-import { useTailwind } from 'tailwind-rn';
 import CenterModal from '../CenterModal';
 
 function EmptyFileNotAllowedModal(): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const isOpen = useAppSelector((state) => state.ui.showEmptyFileNotAllowedModal);
@@ -24,15 +22,7 @@ function EmptyFileNotAllowedModal(): JSX.Element {
         <AppText medium className="text-xl mb-2" style={{ color: getColor('text-gray-100') }}>
           {strings.modals.EmptyFileNotAllowedModal.title}
         </AppText>
-        <AppText
-          style={[
-            tailwind('mb-6'),
-            {
-              color: getColor('text-gray-60'),
-              lineHeight: (tailwind('text-base').fontSize as number) * 1.4,
-            },
-          ]}
-        >
+        <AppText className="mb-6" lineHeight={1.4} style={{ color: getColor('text-gray-60') }}>
           {strings.modals.EmptyFileNotAllowedModal.message}
         </AppText>
         <AppButton title={strings.buttons.close} type="accept" onPress={handleClose} />

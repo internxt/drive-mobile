@@ -1,7 +1,7 @@
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { Bar as ProgressBar } from 'react-native-progress';
-import { useTailwind } from 'tailwind-rn';
 import { cssInterop } from 'nativewind';
+import useGetColor from 'src/hooks/useColor';
 interface AppProgressBarProps {
   currentValue: number;
   totalValue: number;
@@ -15,7 +15,7 @@ interface AppProgressBarProps {
 }
 
 export default function AppProgressBar(props: AppProgressBarProps): JSX.Element {
-  const tailwind = useTailwind();
+  const getColor = useGetColor();
 
   return (
     <View className="bg-gray-5 rounded" style={props.style}>
@@ -25,7 +25,7 @@ export default function AppProgressBar(props: AppProgressBarProps): JSX.Element 
         animated
         height={props.height || 4}
         borderWidth={0}
-        color={tailwind('text-primary').color as string}
+        color={getColor('text-primary')}
         progress={(props.currentValue * 100) / props.totalValue / 100}
       />
     </View>

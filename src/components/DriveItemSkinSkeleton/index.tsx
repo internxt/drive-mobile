@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, Easing, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
+
+const LIST_ROW_VERTICAL_MARGIN = 12;
+const LIST_ROW_HORIZONTAL_MARGIN = 20;
 
 const DriveItemSkinSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ viewMode }) => {
-  const tailwind = useTailwind();
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -45,7 +46,7 @@ const DriveItemSkinSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ viewM
       );
     };
     return (
-      <Animated.View style={[tailwind('flex-row w-full'), { opacity: fadeAnim }]}>
+      <Animated.View style={[styles.gridRow, { opacity: fadeAnim }]}>
         {renderGridItem()}
         {renderGridItem()}
         {renderGridItem()}
@@ -53,7 +54,7 @@ const DriveItemSkinSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ viewM
     );
   }
   return (
-    <Animated.View style={[tailwind('flex-row my-3 mx-5'), { opacity: fadeAnim }]}>
+    <Animated.View style={[styles.listRow, { opacity: fadeAnim }]}>
       <View className="bg-gray-5 h-10 w-10 mr-4 rounded" />
 
       <View className="flex-col flex-grow justify-center">
@@ -66,3 +67,15 @@ const DriveItemSkinSkeleton: React.FC<{ viewMode?: 'grid' | 'list' }> = ({ viewM
 };
 
 export default DriveItemSkinSkeleton;
+
+const styles = StyleSheet.create({
+  gridRow: {
+    flexDirection: 'row',
+    width: '100%',
+  },
+  listRow: {
+    flexDirection: 'row',
+    marginVertical: LIST_ROW_VERTICAL_MARGIN,
+    marginHorizontal: LIST_ROW_HORIZONTAL_MARGIN,
+  },
+});

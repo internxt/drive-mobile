@@ -4,7 +4,6 @@ import { ActivityIndicator, FlatList, useWindowDimensions, View, ViewStyle } fro
 
 import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
-import { useTailwind } from 'tailwind-rn';
 import EmptyDriveImage from '../../../../../assets/images/screens/empty-drive.svg';
 import EmptyFolderImage from '../../../../../assets/images/screens/empty-folder.svg';
 import NoResultsImage from '../../../../../assets/images/screens/no-results.svg';
@@ -17,6 +16,9 @@ import { SelectionModeContext } from '../items/SelectionModeContext';
 import { useSelectionProgress } from '../items/useSelectionProgress';
 import { DriveListRow } from './DriveListRow';
 import { cssInterop } from 'nativewind';
+
+const LIST_ITEM_HEIGHT = 64;
+const GRID_ITEM_HEIGHT = 192;
 
 interface DriveListProps {
   type?: DriveListType;
@@ -45,7 +47,6 @@ interface DriveListProps {
 }
 
 export const DriveList = (props: DriveListProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const [refreshing, setRefreshing] = useState(false);
@@ -58,13 +59,13 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
   const sizeByMode = {
     [DriveListViewMode.List]: {
       width,
-      height: tailwind('h-16').height as number,
+      height: LIST_ITEM_HEIGHT,
     },
     [DriveListViewMode.Grid]: {
       // Remove 8px from each side of the list
       // in the grid view
       width: (width - 16) / 3,
-      height: tailwind('h-48').height as number,
+      height: GRID_ITEM_HEIGHT,
     },
   };
   const renderNoResults = () => (
@@ -95,7 +96,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
       return (
         <View className="h-full w-full" style={{ backgroundColor: getColor('bg-surface') }}>
           {_.times(20, (n) => (
-            <View style={tailwind(`${props.viewMode === DriveListViewMode.Grid ? 'h-auto' : 'h-16'} `)} key={n}>
+            <View className={props.viewMode === DriveListViewMode.Grid ? 'h-auto' : 'h-16'} key={n}>
               <DriveItemSkinSkeleton viewMode={props.viewMode} />
             </View>
           ))}
