@@ -5,8 +5,6 @@ import { DriveItemStatus, DriveListItem } from '../../../../types/drive/item';
 import { DriveListViewMode } from '../../../../types/drive/ui';
 import DriveList from './DriveList';
 
-jest.mock('tailwind-rn', () => ({ useTailwind: () => () => ({}) }));
-
 jest.mock('../../../../hooks/useColor', () => ({
   __esModule: true,
   default: () => () => '#000000',
