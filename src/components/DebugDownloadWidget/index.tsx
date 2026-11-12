@@ -4,9 +4,11 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface DebugDownloadWidgetProps {
   style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
 const DebugDownloadWidget = (props: DebugDownloadWidgetProps): JSX.Element => {
@@ -24,5 +26,7 @@ const DebugDownloadWidget = (props: DebugDownloadWidgetProps): JSX.Element => {
     </View>
   );
 };
+
+cssInterop(DebugDownloadWidget, { className: 'style' });
 
 export default DebugDownloadWidget;

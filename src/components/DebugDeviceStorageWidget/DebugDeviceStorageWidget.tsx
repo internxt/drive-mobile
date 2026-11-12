@@ -8,8 +8,9 @@ import { useTailwind } from 'tailwind-rn/dist';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
 import BottomModal from '../modals/BottomModal';
+import { cssInterop } from 'nativewind';
 
-export const DebugDeviceStorageWidget = ({ style }: { style: ViewStyle }) => {
+export const DebugDeviceStorageWidget = ({ style }: { style?: ViewStyle; className?: string }) => {
   const tailwind = useTailwind();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [usageData, setUsageData] = useState<UsageStatsResult | null>(null);
@@ -73,3 +74,5 @@ export const DebugDeviceStorageWidget = ({ style }: { style: ViewStyle }) => {
     </View>
   );
 };
+
+cssInterop(DebugDeviceStorageWidget, { className: 'style' });

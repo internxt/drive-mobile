@@ -2,6 +2,7 @@ import { Icon as ChipIcon } from 'phosphor-react-native';
 import { StyleProp, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
+import { cssInterop } from 'nativewind';
 
 interface FilterChipProps {
   label?: string;
@@ -14,6 +15,7 @@ interface FilterChipProps {
   onIconPress?: () => void;
   onTrailingIconPress?: () => void;
   style?: StyleProp<ViewStyle>;
+  className?: string;
   testID?: string;
 }
 
@@ -107,5 +109,7 @@ const styles = StyleSheet.create({
     flexShrink: 1,
   },
 });
+
+cssInterop(FilterChip, { className: 'style' });
 
 export default FilterChip;

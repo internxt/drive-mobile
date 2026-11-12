@@ -5,9 +5,11 @@ import InternxtLogoWhite from '../../../assets/logo_white.svg';
 import { useTheme } from '../../contexts/Theme/Theme.context';
 import appService from '../../services/AppService';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface AppVersionWidgetProps {
   style?: StyleProp<ViewStyle>;
+  className?: string;
   displayLogo?: boolean;
 }
 
@@ -30,5 +32,7 @@ function AppVersionWidget(props: AppVersionWidgetProps): JSX.Element {
     </View>
   );
 }
+
+cssInterop(AppVersionWidget, { className: 'style' });
 
 export default AppVersionWidget;

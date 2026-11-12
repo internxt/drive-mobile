@@ -7,6 +7,7 @@ import { fontStyles, useShareColors } from '../../theme';
 import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../../types';
 import { FileListItem } from '../FileListItem';
 import { TextButton } from '../TextButton';
+import { cssInterop } from 'nativewind';
 
 export type DriveListItem = { type: 'folder'; data: ShareFolderItem } | { type: 'file'; data: ShareFileItem };
 
@@ -37,6 +38,7 @@ interface DriveListErrorProps {
   isSessionExpired: boolean;
   onRetry: () => void;
   style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
 const DriveListError = ({ isSessionExpired, onRetry, style }: DriveListErrorProps) => {
@@ -144,3 +146,5 @@ export const DriveList = ({
     />
   );
 };
+
+cssInterop(DriveListError, { className: 'style' });
