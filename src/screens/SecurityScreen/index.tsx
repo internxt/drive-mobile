@@ -12,7 +12,6 @@ import { appActions } from 'src/store/slices/app';
 import { authSelectors } from 'src/store/slices/auth';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppScreen from '../../components/AppScreen';
 import AppScreenTitle from '../../components/AppScreenTitle';
@@ -29,7 +28,6 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
   const { deviceHasBiometricAccess, biometricAccessType, screenLockEnabled } = useAppSelector((state) => state.app);
 
   const is2FAEnabled = useAppSelector(authSelectors.is2FAEnabled);
-  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const getColor = useGetColor();
 
@@ -143,7 +141,7 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                 {
                   key: 'change-password-text',
                   template: (
-                    <View style={tailwind('p-4')}>
+                    <View className="p-4">
                       <AppText>{strings.screens.SecurityScreen.changePassword.text}</AppText>
                     </View>
                   ),
@@ -151,8 +149,8 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                 {
                   key: 'change-password-action',
                   template: (
-                    <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
-                      <AppText style={tailwind('text-lg text-primary')}>
+                    <View className="flex-row items-center justify-between px-4 py-3">
+                      <AppText className="text-lg text-primary">
                         {strings.screens.SecurityScreen.changePassword.title}
                       </AppText>
                       <CaretRight size={20} color={getColor('text-primary')} />
@@ -216,7 +214,7 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                 {
                   key: 'backup-key-text',
                   template: (
-                    <View style={tailwind('p-4')}>
+                    <View className="p-4">
                       <AppText>{strings.screens.SecurityScreen.backupKey.text}</AppText>
                     </View>
                   ),
@@ -224,8 +222,8 @@ const SecurityScreen = ({ navigation }: SettingsScreenProps<'Security'>) => {
                 {
                   key: 'backup-key-action',
                   template: (
-                    <View style={tailwind('flex-row items-center justify-between px-4 py-3')}>
-                      <AppText style={tailwind('text-lg text-primary')}>
+                    <View className="flex-row items-center justify-between px-4 py-3">
+                      <AppText className="text-lg text-primary">
                         {strings.screens.SecurityScreen.backupKey.action}
                       </AppText>
                       <CaretRight size={20} color={getColor('text-primary')} />

@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Animated, Keyboard, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { Animated, Keyboard, StyleSheet, View } from 'react-native';
 import strings from '../../../assets/lang/strings';
 import { BottomFilePanel } from '../components/BottomFilePanel';
 import { DriveHeader } from '../components/DriveHeader';
@@ -63,7 +62,6 @@ export const DriveScreen = ({
   onDismissError,
   onCollisionAction,
 }: DriveScreenProps) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   const {
     currentFolder,
@@ -170,7 +168,7 @@ export const DriveScreen = ({
         </View>
       )}
 
-      <Animated.View style={[tailwind('flex-1'), { opacity: contentOpacity, transform: [{ translateX }] }]}>
+      <Animated.View style={[styles.content, { opacity: contentOpacity, transform: [{ translateX }] }]}>
         {isRoot ? (
           <RootHeader
             searchQuery={searchQuery}
@@ -258,3 +256,9 @@ export const DriveScreen = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  content: {
+    flex: 1,
+  },
+});

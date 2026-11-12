@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, ScrollView, TouchableWithoutFeedback, View } from 'react-native';
 import storageService from 'src/services/StorageService';
 import { paymentsSelectors } from 'src/store/slices/payments';
-import { useTailwind } from 'tailwind-rn';
 import { useCountdown } from 'usehooks-ts';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../../components/AppButton';
@@ -40,7 +39,6 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
     return `${minutesText}:${secondsText}`;
   }, [verificationEmailTime]);
   const [isVerificationEmailEnabled, setIsVerificationEmailEnabled] = useState(true);
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [profileAvatar, setProfileAvatar] = useState<string>();
@@ -196,12 +194,7 @@ function AccountScreen({ navigation }: SettingsScreenProps<'Account'>): JSX.Elem
             <TouchableWithoutFeedback onPress={onProfilePicturePressed}>
               <View>
                 <UserProfilePicture uri={profileAvatar} size={112} />
-                <View
-                  style={{
-                    ...tailwind('rounded-b-full justify-end w-28 h-28 absolute'),
-                    overflow: 'hidden',
-                  }}
-                >
+                <View className="rounded-b-full justify-end w-28 h-28 absolute overflow-hidden">
                   <View className="pt-1 pb-1.5" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
                     <AppText className="text-xs text-center" style={{ color: getColor('text-white') }}>
                       {strings.buttons.edit.toUpperCase()}

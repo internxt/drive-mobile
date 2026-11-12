@@ -3,7 +3,6 @@ import React from 'react';
 import InternxtLogo from '../../../assets/logo.svg';
 import AppScreen from '../../components/AppScreen';
 import AppButton from '../../components/AppButton';
-import { useTailwind } from 'tailwind-rn';
 import { CheckCircle } from 'phosphor-react-native';
 import AppText from 'src/components/AppText';
 import strings from 'assets/lang/strings';
@@ -13,9 +12,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import appService from 'src/services/AppService';
 import { useAppDispatch } from 'src/store/hooks';
 import { authThunks } from 'src/store/slices/auth';
+import useGetColor from 'src/hooks/useColor';
 
 export function DeactivatedAccountScreen(): JSX.Element {
-  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const dispatch = useAppDispatch();
 
   const handleGoToSignIn = () => {
@@ -34,7 +34,7 @@ export function DeactivatedAccountScreen(): JSX.Element {
         className="w-full h-full absolute"
         style={{ height: dimensions.height, width: dimensions.width }}
       />
-      <CheckCircle weight="thin" color={tailwind('text-primary').color as string} size={88} />
+      <CheckCircle weight="thin" color={getColor('text-primary')} size={88} />
       <AppText medium className="text-center text-2xl mt-6">
         {strings.screens.deactivation_screen.account_deleted}
       </AppText>
@@ -49,7 +49,9 @@ export function DeactivatedAccountScreen(): JSX.Element {
       />
       <AppButton className="w-full mt-3" title={strings.buttons.sign_in} type="white" onPress={handleGoToSignIn} />
       <View className="mt-auto">
-        <InternxtLogo width={90} style={tailwind('my-2')} />
+        <View className="my-2">
+          <InternxtLogo width={90} />
+        </View>
         <AppVersionWidget className="mb-5" />
       </View>
     </AppScreen>

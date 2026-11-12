@@ -1,7 +1,6 @@
 import { ArrowRightIcon, CheckIcon, XIcon } from 'phosphor-react-native';
-import { ActivityIndicator, Platform, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition, ZoomIn } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../../assets/lang/strings';
 import AppText from '../../../../components/AppText';
@@ -31,7 +30,6 @@ type ComposeHeaderProps = {
 };
 
 export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: ComposeHeaderProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const isIdle = sendPhase === 'idle';
   const sendButtonLabels: Record<SendPhase, string> = {
@@ -72,7 +70,7 @@ export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: Co
           <Animated.View
             layout={LinearTransition.duration(SEND_BUTTON_RESIZE_DURATION)}
             style={[
-              tailwind('rounded-full items-center justify-center overflow-hidden'),
+              styles.sendButtonContainer,
               {
                 backgroundColor: getColor('text-primary'),
                 opacity: canSend || !isIdle ? 1 : DISABLED_SEND_OPACITY,
@@ -85,17 +83,14 @@ export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: Co
               accessibilityState={{ disabled: !canSend || !isIdle, busy: sendPhase === 'sending' }}
               disabled={!canSend || !isIdle}
               onPress={onSend}
-              style={[
-                tailwind('flex-row items-center justify-center'),
-                isIdle ? tailwind('pl-4 pr-3.5') : { width: SEND_BUTTON_HEIGHT },
-                { height: SEND_BUTTON_HEIGHT },
-              ]}
+              className={`flex-row items-center justify-center ${isIdle ? 'pl-4 pr-3.5' : ''}`}
+              style={[!isIdle && { width: SEND_BUTTON_HEIGHT }, { height: SEND_BUTTON_HEIGHT }]}
             >
               {isIdle && (
                 <Animated.View
                   entering={FadeIn.duration(SEND_LABEL_FADE_DURATION)}
                   exiting={FadeOut.duration(SEND_LABEL_FADE_DURATION)}
-                  style={tailwind('flex-row items-center')}
+                  style={styles.sendLabel}
                 >
                   <AppText semibold className="text-base mr-1.5" style={{ color: getColor('text-white') }}>
                     {strings.buttons.send}
@@ -120,3 +115,16 @@ export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: Co
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  sendButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: SEND_BUTTON_HEIGHT / 2,
+    overflow: 'hidden',
+  },
+  sendLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});

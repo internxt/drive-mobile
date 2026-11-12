@@ -1,10 +1,9 @@
 import { CaretLeftIcon } from 'phosphor-react-native';
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
@@ -29,7 +28,6 @@ interface MetadataRow {
 }
 
 const Row = ({ label, value, isLast }: MetadataRow & { isLast: boolean }) => {
-  const tailwind = useTailwind();
   return (
     <View
       className="flex-row items-center px-2"
@@ -178,7 +176,6 @@ interface MetadataPanelProps {
 }
 
 export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const insets = useSafeAreaInsets();
   const [rows, setRows] = useState<MetadataRow[]>([]);
@@ -236,7 +233,7 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
     <Animated.View
       style={[
         animatedStyle,
-        tailwind('absolute bg-white'),
+        styles.panel,
         { bottom: 0, left: 0, right: 0, borderTopLeftRadius: 16, borderTopRightRadius: 16, maxHeight: '80%' },
       ]}
     >
@@ -301,3 +298,10 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  panel: {
+    position: 'absolute',
+    backgroundColor: 'white',
+  },
+});

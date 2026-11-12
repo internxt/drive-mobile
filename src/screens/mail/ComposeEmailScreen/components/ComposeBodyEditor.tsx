@@ -1,14 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { ContextMenuItem, EnrichedTextInput, EnrichedTextInputInstance } from 'react-native-enriched-html';
-import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../../assets/lang/strings';
 import useGetColor from '../../../../hooks/useColor';
 import { toEditorInitialBody, unwrapEditorHtml } from '../utils/composeBodyHtml';
 import { BodyLinkModal } from './BodyLinkModal';
+import { StyleSheet } from 'react-native';
 
 const BODY_EDITOR_MIN_HEIGHT = 200;
+const BODY_EDITOR_HORIZONTAL_PADDING = 16;
+const BODY_EDITOR_VERTICAL_PADDING = 12;
+const BODY_EDITOR_FONT_SIZE = 16;
+const BODY_EDITOR_LINE_HEIGHT = 24;
 
 type SelectionToLink = { start: number; end: number; text: string };
 
@@ -19,7 +23,6 @@ type ComposeBodyEditorProps = {
 };
 
 export const ComposeBodyEditor = ({ initialBody, onChangeBody, onReady }: ComposeBodyEditorProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const bodyEditorRef = useRef<EnrichedTextInputInstance>(null);
   const [editorInitialBody] = useState(() => toEditorInitialBody(initialBody));
@@ -91,9 +94,19 @@ export const ComposeBodyEditor = ({ initialBody, onChangeBody, onReady }: Compos
           blockquote: { borderColor: getColor('border-gray-10'), color: textColor },
           a: { color: getColor('text-primary') },
         }}
-        style={{ ...tailwind('px-4 py-3 text-base'), minHeight: BODY_EDITOR_MIN_HEIGHT, color: textColor }}
+        style={{ ...styles.editor, color: textColor }}
       />
       <BodyLinkModal isOpen={!!selectionToLink} onConfirm={addLink} onCancel={() => setSelectionToLink(null)} />
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  editor: {
+    paddingHorizontal: BODY_EDITOR_HORIZONTAL_PADDING,
+    paddingVertical: BODY_EDITOR_VERTICAL_PADDING,
+    fontSize: BODY_EDITOR_FONT_SIZE,
+    lineHeight: BODY_EDITOR_LINE_HEIGHT,
+    minHeight: BODY_EDITOR_MIN_HEIGHT,
+  },
+});
