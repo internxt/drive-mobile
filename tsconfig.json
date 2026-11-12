@@ -14,5 +14,5 @@
       "@internxt-mobile/contexts/*": ["src/contexts/*"]
     }
   },
-  "include": ["app.config.ts", "src", "__tests__", "../modile-sdk"]
+  "include": ["app.config.ts", "nativewind-env.d.ts", "src", "__tests__", "../modile-sdk"]
 }
