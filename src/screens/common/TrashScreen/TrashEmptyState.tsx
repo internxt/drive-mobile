@@ -3,14 +3,14 @@ import { Trash } from 'phosphor-react-native';
 import React from 'react';
 import { View } from 'react-native';
 import AppText from 'src/components/AppText';
-import { useTailwind } from 'tailwind-rn';
+import useGetColor from 'src/hooks/useColor';
 
 export const TrashEmptyState: React.FC = () => {
-  const tailwind = useTailwind();
+  const getColor = useGetColor();
   return (
     <View className="flex-1 items-center justify-center px-8">
       <View className="mb-5">
-        <Trash weight="thin" color={tailwind('text-gray-100').color as string} size={64} />
+        <Trash weight="thin" color={getColor('text-gray-100')} size={64} />
       </View>
       <AppText medium className="text-lg text-gray-80 text-center">
         {strings.screens.TrashScreen.empty.title}

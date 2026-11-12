@@ -2,7 +2,6 @@ import { CaretRight } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import React from 'react';
 import { TouchableHighlight, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import { checkIsFolder, FolderIcon, getFileTypeIcon } from '../../helpers';
 import { getDisplayName } from '../../helpers/itemNames';
 import useGetColor from '../../hooks/useColor';
@@ -11,7 +10,6 @@ import { DriveNavigableItemProps } from '../../types/drive/ui';
 import AppText from '../AppText';
 
 const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disabled, ...props }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const isFolder = checkIsFolder(props.data);
@@ -31,7 +29,7 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
 
   return (
     <TouchableHighlight
-      style={tailwind(`${isDisabled ? 'opacity-40' : 'opacity-100'}`)}
+      className={isDisabled ? 'opacity-40' : 'opacity-100'}
       underlayColor={isDisabled ? 'transparent' : getColor('bg-gray-10')}
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}

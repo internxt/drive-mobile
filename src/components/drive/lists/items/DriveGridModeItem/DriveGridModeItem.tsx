@@ -6,9 +6,8 @@ import { ArrowCircleUpIcon, XCircleIcon } from 'phosphor-react-native';
 import prettysize from 'prettysize';
 import { useMemo, useState } from 'react';
 import { Image } from 'expo-image';
-import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableHighlight, TouchableOpacity, View } from 'react-native';
 import Animated, { interpolate, interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 import { FolderIcon, getFileTypeIcon } from '../../../../../helpers';
 import useGetColor from '../../../../../hooks/useColor';
 import { DriveItemStatus } from '../../../../../types/drive/item';
@@ -22,9 +21,11 @@ import { useSelectionProgress } from '../useSelectionProgress';
 const PREVIEW_BOX_SIZE = 96;
 const SELECTED_PREVIEW_INSET = 4;
 const SELECTED_PREVIEW_SCALE = (PREVIEW_BOX_SIZE - 2 * SELECTED_PREVIEW_INSET) / PREVIEW_BOX_SIZE;
+const UPLOADING_FOLDER_OPACITY = 0.4;
+const NAME_RADIUS = 6;
+const NAME_HORIZONTAL_PADDING = 4;
 
 function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const downloadedThumbnail = useDownloadedThumbnail(props.data);
   const [maxThumbnailWidth, setMaxThumbnailWidth] = useState<number | null>(null);
@@ -115,7 +116,9 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
             <AppText className="text-xs" style={{ color: getColor('text-white') }}>
               {strings.screens.drive.scanningFolderShort}
             </AppText>
-            <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
+            <View className="ml-1">
+              <XCircleIcon weight="bold" color={getColor('text-white')} size={14} />
+            </View>
           </View>
         </TouchableOpacity>
       );
@@ -138,7 +141,9 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
                 ? `${props.folderUploadProgress.uploadedFiles}/${props.folderUploadProgress.totalFiles}`
                 : '...'}
             </AppText>
-            <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
+            <View className="ml-1">
+              <XCircleIcon weight="bold" color={getColor('text-white')} size={14} />
+            </View>
           </View>
         </TouchableOpacity>
       );
@@ -158,7 +163,9 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
 
   const previewContent = useMemo(() => {
     if (isFolder) {
-      return <FolderIcon width={iconSize} height={iconSize} style={isUploading && tailwind('opacity-40')} />;
+      return (
+        <FolderIcon width={iconSize} height={iconSize} style={isUploading ? styles.uploadingFolderIcon : undefined} />
+      );
     }
     if (downloadedThumbnail) {
       return renderThumbnail(downloadedThumbnail);
@@ -216,10 +223,10 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
       <View>
         <View className="flex-grow flex-col items-center justify-center">
           <View className="w-full items-center justify-center">
-            <Animated.View style={[tailwind('h-24 w-24 flex items-center justify-center'), previewAnimatedStyle]}>
+            <Animated.View style={[styles.preview, previewAnimatedStyle]}>
               {previewContent}
               {props.selectable && (
-                <Animated.View style={[tailwind('absolute items-center justify-center'), checkboxAnimatedStyle]}>
+                <Animated.View style={[styles.checkbox, checkboxAnimatedStyle]}>
                   <SelectionCheckbox checked={!!props.isSelected} shape="circle" />
                 </Animated.View>
               )}
@@ -229,9 +236,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
           </View>
 
           <View className="flex items-start justify-center items-center mt-2.5 px-2 py-1">
-            <Animated.View style={[tailwind('rounded-md px-1 overflow-hidden'), nameAnimatedStyle]}>
-              {nameText}
-            </Animated.View>
+            <Animated.View style={[styles.name, nameAnimatedStyle]}>{nameText}</Animated.View>
             {detailsText}
           </View>
         </View>
@@ -241,3 +246,25 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
 }
 
 export const DriveGridModeItem = DriveGridModeItemComp;
+
+const styles = StyleSheet.create({
+  uploadingFolderIcon: {
+    opacity: UPLOADING_FOLDER_OPACITY,
+  },
+  preview: {
+    width: PREVIEW_BOX_SIZE,
+    height: PREVIEW_BOX_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkbox: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  name: {
+    borderRadius: NAME_RADIUS,
+    paddingHorizontal: NAME_HORIZONTAL_PADDING,
+    overflow: 'hidden',
+  },
+});

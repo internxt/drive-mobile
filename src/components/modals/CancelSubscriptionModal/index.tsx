@@ -5,7 +5,6 @@ import StorageUsageBar from 'src/components/StorageUsageBar';
 import storageService, { FREE_STORAGE } from 'src/services/StorageService';
 import { paymentsActions, paymentsThunks } from 'src/store/slices/payments';
 import { storageSelectors } from 'src/store/slices/storage';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -16,7 +15,6 @@ import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 
 const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancelled: () => void }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const usage = useAppSelector(storageSelectors.usage);
@@ -53,7 +51,9 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
       {isDowngrading && (
         <View className="mb-9">
           <View className="p-3 rounded-lg bg-red/5 flex-row">
-            <Warning weight="fill" color={getColor('text-red')} size={20} style={tailwind('mt-0.5 mr-3')} />
+            <View className="mt-0.5 mr-3">
+              <Warning weight="fill" color={getColor('text-red')} size={20} />
+            </View>
             <AppText lineHeight={1.2} className="text-sm flex-1 text-red">
               {strings.formatString(
                 strings.modals.CancelSubscription.steps['cancel-subscription'].storageDowngradeWarning,
@@ -76,7 +76,9 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
       <View className="rounded-xl bg-gray-5/50 p-4 mb-10">
         <View className="flex-row justify-center items-center">
           <AppText className="text-4xl text-red">{storageService.toString(FREE_STORAGE)}</AppText>
-          <ArrowLeft style={tailwind('mx-3')} />
+          <View className="mx-3">
+            <ArrowLeft />
+          </View>
           <AppText className="text-4xl line-through">{storageService.toString(limit)}</AppText>
         </View>
         <AppText className="mt-2 text-center">

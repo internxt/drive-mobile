@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dimensions, Image, View } from 'react-native';
+import { Dimensions, Image, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -10,7 +10,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
-import { useTailwind } from 'tailwind-rn/dist';
 interface ImageViewerProps {
   source: string;
   onTapImage: () => void;
@@ -22,7 +21,6 @@ const SCALE_LIMIT = 25;
 const DEFAULT_EASING = Easing.bezier(0, 0, 0.58, 1);
 
 export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, onZoomImage, onImageViewReset }) => {
-  const tailwind = useTailwind();
   const [panEnabled, setPanEnabled] = useState(false);
   const imageRef = useAnimatedRef<Animated.Image>();
   const rotate = useSharedValue(0);
@@ -238,7 +236,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
   return (
     <View className="flex-1 overflow-hidden">
       <GestureDetector gesture={composedGesture}>
-        <Animated.View style={tailwind('flex-1')}>
+        <Animated.View style={styles.fill}>
           <Animated.Image
             ref={imageRef}
             source={{ uri: source }}
@@ -256,3 +254,9 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
+});

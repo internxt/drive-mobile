@@ -1,8 +1,9 @@
 import { Text, TextProps, TextStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import styles from '../../styles/global';
 import { cssInterop } from 'nativewind';
+
+const BASE_FONT_SIZE = 16;
 
 interface AppTextProps extends TextProps {
   medium?: boolean;
@@ -12,14 +13,13 @@ interface AppTextProps extends TextProps {
 }
 
 const AppText = (props: AppTextProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const getFontSize = (): number => {
     if ((props.style as TextStyle)?.fontSize) {
       return (props.style as TextStyle).fontSize as number;
     }
-    return tailwind('text-base').fontSize as number;
+    return BASE_FONT_SIZE;
   };
 
   const hasCustomColor =

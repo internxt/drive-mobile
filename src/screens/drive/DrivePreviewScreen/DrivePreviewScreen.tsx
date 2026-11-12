@@ -9,7 +9,7 @@ import strings from 'assets/lang/strings';
 import * as NavigationBar from 'expo-navigation-bar';
 import { WarningCircleIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Platform, useWindowDimensions, View } from 'react-native';
+import { Animated, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppButton from 'src/components/AppButton';
 import AppProgressBar from 'src/components/AppProgressBar';
@@ -21,7 +21,6 @@ import { useDrive } from 'src/hooks/drive';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { getLineHeight } from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
 import { DriveImagePreview } from './DriveImagePreview';
 import { DrivePdfPreview } from './DrivePdfPreview';
@@ -29,13 +28,15 @@ import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePr
 import { DriveVideoPreview } from './DriveVideoPreview';
 import { useThumbnailRegeneration } from './hooks/useThumbnailRegeneration';
 import AnimatedLoadingDots from './LoadingDots';
+import useGetColor from 'src/hooks/useColor';
 
 const IMAGE_PREVIEW_TYPES = new Set([FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC]);
 const VIDEO_PREVIEW_TYPES = new Set([FileExtension.MP4, FileExtension.MOV, FileExtension.AVI]);
 const PDF_PREVIEW_TYPES = new Set([FileExtension.PDF]);
+const TOP_BAR_Z_INDEX = 10;
 
 export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> = (props) => {
-  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const [topbarVisible, setTopbarVisible] = useState(true);
   const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail>();
 
@@ -193,7 +194,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         {error ? (
           <View className="mt-1">
             <View className="flex flex-row items-center">
-              <WarningCircleIcon weight="fill" size={20} color={tailwind('text-red').color as string} />
+              <WarningCircleIcon weight="fill" size={20} color={getColor('text-red')} />
               <AppText className="text-center text-red ml-1">{error}</AppText>
             </View>
             {downloadingFile && (
@@ -279,12 +280,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   };
   return (
     <AppScreen className="flex-1">
-      <Animated.View
-        style={[
-          tailwind('absolute w-full z-10 bg-white'),
-          { paddingTop: insets.top, transform: [{ translateY: topbarYPosition }] },
-        ]}
-      >
+      <Animated.View style={[styles.topBar, { paddingTop: insets.top, transform: [{ translateY: topbarYPosition }] }]}>
         <DrivePreviewScreenHeader
           title={filename}
           subtitle={time.getFormattedDate(downloadingFile.data.updatedAt, time.formats.dateAtTimeLong)}
@@ -300,3 +296,12 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     </AppScreen>
   );
 };
+
+const styles = StyleSheet.create({
+  topBar: {
+    position: 'absolute',
+    width: '100%',
+    zIndex: TOP_BAR_Z_INDEX,
+    backgroundColor: 'white',
+  },
+});

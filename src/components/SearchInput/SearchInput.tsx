@@ -1,7 +1,6 @@
 import { MagnifyingGlassIcon, XCircleIcon } from 'phosphor-react-native';
 import { createRef, useState } from 'react';
 import { ReturnKeyTypeOptions, StyleProp, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
 
@@ -22,7 +21,6 @@ interface SearchInputProps {
 }
 
 export function SearchInput(props: SearchInputProps): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [inputRef] = useState(createRef<TextInput>());
   const [isFocused, setIsFocused] = useState(false);
@@ -66,9 +64,9 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
               autoFocus={props.autoFocus}
               returnKeyType={props.returnKeyType}
               value={props.value}
+              className="pl-3 h-9 flex-1"
               style={[
                 styles.fontWeight.regular,
-                tailwind('pl-3 h-9 flex-1'),
                 {
                   fontSize: 16,
                   color: getColor('text-gray-100'),

@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { TouchableHighlight, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableHighlight, TouchableOpacity, View } from 'react-native';
 import Animated, { interpolate, interpolateColor, useAnimatedStyle } from 'react-native-reanimated';
 
 import { items } from '@internxt/lib';
@@ -14,7 +14,6 @@ import { time } from '@internxt-mobile/services/common/time';
 import { useDownloadedThumbnail } from '@internxt-mobile/hooks/drive';
 import { DriveListType } from '@internxt-mobile/types/drive/ui';
 import { Image } from 'expo-image';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../../hooks/useColor';
 import { DriveItemStatus } from '../../../../../types/drive/item';
 import { DriveItemProps } from '../../../../../types/drive/ui';
@@ -34,7 +33,6 @@ type DriveListModeItemContentProps = Pick<
 >;
 
 const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const downloadedThumbnail = useDownloadedThumbnail(props.data);
 
@@ -192,7 +190,6 @@ const DriveListModeItemContent = memo((props: DriveListModeItemContentProps): JS
 });
 
 export const DriveListModeItem = (props: DriveItemProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const isFolder = props.data.isFolder;
@@ -264,15 +261,13 @@ export const DriveListModeItem = (props: DriveItemProps): JSX.Element => {
       onPress={props.onPress}
       style={{ backgroundColor: getColor('bg-surface') }}
     >
-      <Animated.View style={[tailwind('flex-row pl-5'), rowAnimatedStyle]}>
+      <Animated.View style={[styles.row, rowAnimatedStyle]}>
         {isSelectable && (
-          <Animated.View
-            style={[tailwind('absolute top-0 bottom-0 justify-center'), { left: CHECKBOX_LEFT }, checkboxAnimatedStyle]}
-          >
+          <Animated.View style={[styles.checkbox, checkboxAnimatedStyle]}>
             <SelectionCheckbox checked={!!props.isSelected} shape="square" />
           </Animated.View>
         )}
-        <Animated.View style={[tailwind('flex-1 flex-row'), contentAnimatedStyle]}>
+        <Animated.View style={[styles.content, contentAnimatedStyle]}>
           <DriveListModeItemContent
             type={props.type}
             data={props.data}
@@ -287,3 +282,21 @@ export const DriveListModeItem = (props: DriveItemProps): JSX.Element => {
     </TouchableHighlight>
   );
 };
+
+const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    paddingLeft: ROW_LEFT_PADDING,
+  },
+  checkbox: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    left: CHECKBOX_LEFT,
+  },
+  content: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+});
