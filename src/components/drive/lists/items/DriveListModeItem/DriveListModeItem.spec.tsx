@@ -19,10 +19,6 @@ jest.mock('@internxt/lib', () => ({
   },
 }));
 
-jest.mock('tailwind-rn', () => ({
-  useTailwind: () => () => ({}),
-}));
-
 jest.mock('../../../../../hooks/useColor', () => () => () => '#000000');
 
 jest.mock('../../../../../helpers', () => {

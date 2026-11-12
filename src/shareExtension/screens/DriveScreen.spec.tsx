@@ -6,10 +6,6 @@ import { DriveScreen } from './DriveScreen';
 
 jest.useFakeTimers();
 
-jest.mock('tailwind-rn', () => ({
-  useTailwind: () => () => ({}),
-}));
-
 jest.mock('../hooks/useFolderNavigation', () => ({
   useFolderNavigation: jest.fn(),
 }));
