@@ -1,5 +1,6 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const { withShareExtension } = require('expo-share-extension/metro');
+const { withNativeWind } = require('nativewind/metro');
 
 const config = (() => {
   const baseConfig = getDefaultConfig(__dirname);
@@ -25,4 +26,9 @@ const config = (() => {
   return baseConfig;
 })();
 
-module.exports = withShareExtension(config);
+const TAILWIND_RN_REM_IN_PIXELS = 16;
+
+module.exports = withNativeWind(withShareExtension(config), {
+  input: './global.css',
+  inlineRem: TAILWIND_RN_REM_IN_PIXELS,
+});

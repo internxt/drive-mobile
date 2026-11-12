@@ -73,6 +73,7 @@ export const ComposeToolbar = ({
           accessibilityRole="button"
           accessibilityLabel={strings.screens.compose_email.draft.discard}
           onPress={onDiscardDraft}
+          cssInterop={false}
           style={({ pressed }) => [
             tailwind('items-center justify-center rounded-xl'),
             {

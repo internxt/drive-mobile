@@ -2,6 +2,7 @@ import { GestureResponderEvent, StyleProp, TouchableHighlight, View, ViewProps, 
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface SettingsGroupItemProps {
   template: JSX.Element;
@@ -81,5 +82,7 @@ function SettingsGroup({ style, title, items, advice, ...rest }: SettingsGroupPr
     </View>
   );
 }
+
+cssInterop(SettingsGroup, { className: 'style' });
 
 export default SettingsGroup;

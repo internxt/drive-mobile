@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { cssInterop } from 'nativewind';
 
 export interface BottomModalProps {
   isOpen: boolean;
@@ -13,8 +14,10 @@ export interface BottomModalProps {
   header?: JSX.Element;
   children?: JSX.Element | JSX.Element[];
   style?: StyleProp<ViewStyle>;
+  className?: string;
   modalStyle?: StyleProp<ViewStyle>;
   containerStyle?: StyleProp<ViewStyle>;
+  containerClassName?: string;
   headerStyle?: StyleProp<ViewStyle>;
   safeAreaColor?: string;
   height?: number;
@@ -54,7 +57,9 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       hideModalContentWhileAnimating
       coverScreen={false}
     >
-      <View style={[tailwind('h-full bg-transparent'), { paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top }]}>
+      <View
+        style={[tailwind('h-full bg-transparent'), { paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top }]}
+      >
         <StatusBar style={statusBarStyle} />
 
         <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>
@@ -93,5 +98,7 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
     </Modal>
   );
 };
+
+cssInterop(BottomModal, { className: 'style', containerClassName: 'containerStyle' });
 
 export default BottomModal;

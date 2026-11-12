@@ -4,9 +4,11 @@ import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface DebugUploadWidgetProps {
   style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
 const DebugUploadWidget = (props: DebugUploadWidgetProps): JSX.Element => {
@@ -24,5 +26,7 @@ const DebugUploadWidget = (props: DebugUploadWidgetProps): JSX.Element => {
     </View>
   );
 };
+
+cssInterop(DebugUploadWidget, { className: 'style' });
 
 export default DebugUploadWidget;

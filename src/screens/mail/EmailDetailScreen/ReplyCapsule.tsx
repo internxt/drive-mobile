@@ -43,6 +43,7 @@ export const ReplyCapsule = ({
       accessibilityLabel={label}
       disabled={isBusy}
       onPress={onPress}
+      cssInterop={false}
       style={({ pressed }) => [
         tailwind('items-center justify-center rounded-full'),
         {
@@ -77,6 +78,7 @@ export const ReplyCapsule = ({
           accessibilityRole="button"
           disabled={isBusy}
           onPress={onReply}
+          cssInterop={false}
           style={({ pressed }) => [
             tailwind('flex-row items-center rounded-full pl-4'),
             {

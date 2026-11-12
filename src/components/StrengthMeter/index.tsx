@@ -4,9 +4,11 @@ import { StyleProp, View, ViewStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface StrengthMeterProps {
   style?: StyleProp<ViewStyle>;
+  className?: string;
   value: number;
   maxValue: number;
   message: string;
@@ -44,5 +46,7 @@ const StrengthMeter = ({ style, value, maxValue, message }: StrengthMeterProps) 
     </View>
   );
 };
+
+cssInterop(StrengthMeter, { className: 'style' });
 
 export default StrengthMeter;

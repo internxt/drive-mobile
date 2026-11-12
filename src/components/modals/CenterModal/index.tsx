@@ -3,6 +3,7 @@ import { Keyboard, TouchableWithoutFeedback, View, ViewStyle, useColorScheme } f
 import Modal from 'react-native-modal';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
+import { cssInterop } from 'nativewind';
 
 export interface CenterModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ export interface CenterModalProps {
   onOpened?: () => void;
   children?: JSX.Element;
   style?: ViewStyle;
+  className?: string;
 }
 
 const defaultProps: Partial<CenterModalProps> = {
@@ -71,5 +73,7 @@ const CenterModal = ({
     </Modal>
   );
 };
+
+cssInterop(CenterModal, { className: 'style' });
 
 export default CenterModal;

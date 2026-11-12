@@ -114,6 +114,7 @@ const FloatingActionButton = ({
         accessibilityState={isComposeMode ? {} : { expanded: isMenuOpen }}
         disabled={isHidden}
         onPress={onPress}
+        cssInterop={false}
         style={({ pressed }) => [
           tailwind('flex-row items-center justify-end'),
           { transform: [{ scale: pressed ? PRESSED_SCALE : 1 }] },

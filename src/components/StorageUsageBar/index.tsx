@@ -5,8 +5,10 @@ import { getLineHeight } from 'src/styles/global';
 import { useTailwind } from 'tailwind-rn';
 import AppText from '../AppText';
 import DashedLine from '../../../assets/icons/dashed-line.svg';
+import { cssInterop } from 'nativewind';
 interface StorageUsageBarProps {
   style?: StyleProp<ViewStyle>;
+  className?: string;
   usageBytes: number;
   limitBytes: number;
   selectedStorageBytes: number;
@@ -77,5 +79,7 @@ const StorageUsageBar = (props: StorageUsageBarProps) => {
     </View>
   );
 };
+
+cssInterop(StorageUsageBar, { className: 'style' });
 
 export default StorageUsageBar;

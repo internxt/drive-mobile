@@ -16,6 +16,7 @@ import EmptyList from '../../../EmptyList';
 import { SelectionModeContext } from '../items/SelectionModeContext';
 import { useSelectionProgress } from '../items/useSelectionProgress';
 import { DriveListRow } from './DriveListRow';
+import { cssInterop } from 'nativewind';
 
 interface DriveListProps {
   type?: DriveListType;
@@ -32,6 +33,7 @@ interface DriveListProps {
   onRefresh?: () => Promise<void>;
   renderEmpty?: () => React.ReactNode;
   contentContainerStyle?: ViewStyle;
+  contentContainerClassName?: string;
   searchValue?: string;
   onEndReached?: () => void;
   // Feels weird that this is here
@@ -205,5 +207,7 @@ export const DriveList = (props: DriveListProps): JSX.Element => {
     </SelectionModeContext.Provider>
   );
 };
+
+cssInterop(DriveList, { contentContainerClassName: 'contentContainerStyle' });
 
 export default DriveList;

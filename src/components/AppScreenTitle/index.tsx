@@ -4,10 +4,12 @@ import { CaretLeftIcon } from 'phosphor-react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface AppScreenTitleProps {
   text: string;
   textStyle?: StyleProp<TextStyle>;
+  textClassName?: string;
   containerStyle?: StyleProp<TextStyle>;
   centerText?: boolean;
   showBackButton?: boolean;
@@ -75,5 +77,7 @@ const AppScreenTitle = ({
     </View>
   );
 };
+
+cssInterop(AppScreenTitle, { textClassName: 'textStyle' });
 
 export default AppScreenTitle;
