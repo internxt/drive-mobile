@@ -1,9 +1,8 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, Pressable, TouchableOpacity, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 import type { ShouldStartLoadRequest, WebViewMessageEvent } from 'react-native-webview/lib/WebViewTypes';
-import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../assets/lang/strings';
@@ -22,9 +21,9 @@ const QUOTE_TOGGLE_MIN_WIDTH = 34;
 const QUOTE_TOGGLE_HORIZONTAL_PADDING = 8;
 const QUOTE_TOGGLE_LETTER_SPACING = 1;
 const QUOTE_TOGGLE_DOTS = '•••';
+const QUOTE_TOGGLE_TOP_MARGIN = 12;
 
 export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bodySource: EmailBodySource }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [areRemoteImagesAllowed, setAreRemoteImagesAllowed] = useState(false);
   const [isQuoteShown, setIsQuoteShown] = useState(false);
@@ -137,7 +136,7 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
           onPress={() => setIsQuoteShown(!isQuoteShown)}
           cssInterop={false}
           style={({ pressed }) => [
-            tailwind('items-center justify-center rounded-full mt-3'),
+            styles.quoteToggle,
             {
               alignSelf: 'flex-start',
               height: QUOTE_TOGGLE_HEIGHT,
@@ -162,3 +161,12 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  quoteToggle: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: QUOTE_TOGGLE_HEIGHT / 2,
+    marginTop: QUOTE_TOGGLE_TOP_MARGIN,
+  },
+});

@@ -2,8 +2,7 @@ import { items } from '@internxt/lib';
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { DownloadSimpleIcon } from 'phosphor-react-native';
 import prettysize from 'prettysize';
-import { ActivityIndicator, Pressable, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
@@ -15,6 +14,8 @@ const DOWNLOAD_ICON_SIZE = 20;
 const DISABLED_OPACITY = 0.5;
 const SECTION_LABEL_LETTER_SPACING = 0.2;
 const CARD_PADDING = 10;
+const CARD_RADIUS = 16;
+const CARD_TOP_MARGIN = 8;
 
 export type MessageAttachment = NonNullable<EmailResponse['attachments']>[number];
 
@@ -27,7 +28,6 @@ export const MessageAttachmentList = ({
   openingAttachmentId: string | null;
   onPressAttachment: (attachment: MessageAttachment) => void;
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { attachmentCount, singleAttachment } = strings.screens.email_detail;
   const sectionLabel =
@@ -60,7 +60,7 @@ export const MessageAttachmentList = ({
             onPress={() => onPressAttachment(attachment)}
             cssInterop={false}
             style={({ pressed }) => [
-              tailwind('flex-row items-center rounded-2xl mt-2'),
+              styles.attachmentCard,
               {
                 padding: CARD_PADDING,
                 borderWidth: 1,
@@ -90,3 +90,12 @@ export const MessageAttachmentList = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  attachmentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: CARD_RADIUS,
+    marginTop: CARD_TOP_MARGIN,
+  },
+});

@@ -14,7 +14,6 @@ import {
 } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import { formatMaxAttachmentSize } from '@internxt-mobile/services/mail/attachmentLimits';
@@ -79,7 +78,6 @@ const calculateSheetTopInWindow = (windowHeight: number, sheetContentHeight: num
 };
 
 export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'ComposeEmail'>): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
@@ -419,7 +417,8 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
                       <SenderAvatar address={senderAddress} size="small" />
                       <Text
                         numberOfLines={1}
-                        style={[composeFieldTextStyle, tailwind('ml-2 flex-1'), { color: getColor('text-gray-100') }]}
+                        className="ml-2 flex-1"
+                        style={[composeFieldTextStyle, { color: getColor('text-gray-100') }]}
                       >
                         {senderAddress}
                       </Text>

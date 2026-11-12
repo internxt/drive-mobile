@@ -1,6 +1,5 @@
 import { CaretUpDownIcon } from 'phosphor-react-native';
-import { Pressable, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
@@ -12,7 +11,6 @@ const PILL_HORIZONTAL_PADDING = 12;
 const CARET_SIZE = 12;
 
 export const ThreadGapPill = ({ hiddenMessageCount, onPress }: { hiddenMessageCount: number; onPress: () => void }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const label = strings.formatString(strings.screens.email_detail.moreMessages, hiddenMessageCount) as string;
 
@@ -28,7 +26,7 @@ export const ThreadGapPill = ({ hiddenMessageCount, onPress }: { hiddenMessageCo
         onPress={onPress}
         cssInterop={false}
         style={({ pressed }) => [
-          tailwind('flex-row items-center rounded-full'),
+          styles.pill,
           {
             height: PILL_HEIGHT,
             paddingHorizontal: PILL_HORIZONTAL_PADDING,
@@ -46,3 +44,11 @@ export const ThreadGapPill = ({ hiddenMessageCount, onPress }: { hiddenMessageCo
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  pill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: PILL_HEIGHT / 2,
+  },
+});

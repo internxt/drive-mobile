@@ -7,8 +7,7 @@ import {
   WarningIcon,
 } from 'phosphor-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
@@ -49,7 +48,6 @@ export const ThreadActions = ({
   onRestore: () => void;
   onDeletePermanently: () => void;
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { actions } = strings.screens.email_detail;
   const [pressedActionKey, setPressedActionKey] = useState<ThreadActionKey | null>(null);
@@ -80,7 +78,7 @@ export const ThreadActions = ({
             disabled={isDisabled}
             cssInterop={false}
             style={({ pressed }) => [
-              tailwind('items-center justify-center rounded-full'),
+              styles.actionButton,
               {
                 width: ACTION_BUTTON_SIZE,
                 height: ACTION_BUTTON_SIZE,
@@ -100,3 +98,11 @@ export const ThreadActions = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  actionButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: ACTION_BUTTON_SIZE / 2,
+  },
+});

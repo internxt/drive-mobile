@@ -23,7 +23,6 @@ import {
   View,
 } from 'react-native';
 import Animated, { FadeIn, FadeOut, LayoutAnimationConfig, ZoomIn, ZoomOut } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common';
 import strings from '../../../../assets/lang/strings';
@@ -56,10 +55,11 @@ const CHECK_ICON_SIZE = 14;
 const LIST_BOTTOM_PADDING_UNDER_SELECTION_BAR = 96;
 const COMPOSE_BUTTON_COLLAPSE_OFFSET = 20;
 const SCROLL_EVENT_THROTTLE_MS = 16;
+const HEADER_HORIZONTAL_PADDING = 16;
+const SELECTION_BOX_RADIUS = 6;
 
 const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Element => {
   const selectedMailboxId = route.name as MailboxId;
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -193,7 +193,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
     <Animated.View
       entering={FadeIn.duration(SELECTION_TRANSITION_DURATION)}
       exiting={FadeOut.duration(SELECTION_TRANSITION_DURATION)}
-      style={[StyleSheet.absoluteFill, tailwind('flex-row items-center px-4')]}
+      style={[StyleSheet.absoluteFill, styles.headerRow]}
     >
       <TouchableOpacity
         accessibilityRole="button"
@@ -246,7 +246,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
     <Animated.View
       entering={FadeIn.duration(SELECTION_TRANSITION_DURATION)}
       exiting={FadeOut.duration(SELECTION_TRANSITION_DURATION)}
-      style={[StyleSheet.absoluteFill, tailwind('flex-row items-center px-4')]}
+      style={[StyleSheet.absoluteFill, styles.headerRow]}
     >
       <TouchableOpacity
         accessibilityRole="button"
@@ -282,7 +282,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
       entering={FadeIn.duration(SELECTION_TRANSITION_DURATION)}
       exiting={FadeOut.duration(SELECTION_TRANSITION_DURATION)}
       style={[
-        tailwind('rounded-md'),
+        styles.selectionBox,
         {
           width: SELECTION_BOX_SIZE,
           height: SELECTION_BOX_SIZE,
@@ -296,7 +296,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
           entering={ZoomIn.duration(SELECTION_TRANSITION_DURATION)}
           exiting={ZoomOut.duration(SELECTION_TRANSITION_DURATION)}
           style={[
-            tailwind('absolute items-center justify-center rounded-md'),
+            styles.selectionBoxFill,
             {
               top: -SELECTION_BOX_BORDER_WIDTH,
               left: -SELECTION_BOX_BORDER_WIDTH,
@@ -443,6 +443,20 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
 };
 
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: HEADER_HORIZONTAL_PADDING,
+  },
+  selectionBox: {
+    borderRadius: SELECTION_BOX_RADIUS,
+  },
+  selectionBoxFill: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: SELECTION_BOX_RADIUS,
+  },
   widthReferenceLabel: { height: 0, opacity: 0 },
 });
 

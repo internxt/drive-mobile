@@ -1,5 +1,4 @@
 import { View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import AppButton from '../../../../components/AppButton';
 import AppText from '../../../../components/AppText';
@@ -33,7 +32,6 @@ export const BlockingLoaderModal = ({
   isLoading: boolean;
   actions: BlockingLoaderAction[];
 }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -53,7 +51,7 @@ export const BlockingLoaderModal = ({
             title={action.label}
             type={action.type}
             onPress={action.onPress}
-            style={tailwind(actionIndex === 0 ? 'mt-6 w-full' : 'mt-3 w-full')}
+            className={actionIndex === 0 ? 'mt-6 w-full' : 'mt-3 w-full'}
           />
         ))}
       </View>
