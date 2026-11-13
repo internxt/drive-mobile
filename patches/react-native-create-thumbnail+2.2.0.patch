@@ -1,3 +1,87 @@
+diff --git a/node_modules/react-native-create-thumbnail/android/src/main/java/com/createthumbnail/CreateThumbnailModule.java b/node_modules/react-native-create-thumbnail/android/src/main/java/com/createthumbnail/CreateThumbnailModule.java
+index ecc91d9..e0e3df3 100644
+--- a/node_modules/react-native-create-thumbnail/android/src/main/java/com/createthumbnail/CreateThumbnailModule.java
++++ b/node_modules/react-native-create-thumbnail/android/src/main/java/com/createthumbnail/CreateThumbnailModule.java
+@@ -58,7 +58,7 @@ public class CreateThumbnailModule extends ReactContextBaseJavaModule {
+                 handler.post(() -> {
+                     promise.resolve(data);
+                 });
+-            } catch (IOException | IllegalStateException e) {
++            } catch (Exception e) {
+                 handler.post(() -> {
+                     promise.reject("CreateThumbnail_ERROR", e);
+                 });
+@@ -163,39 +163,42 @@ public class CreateThumbnailModule extends ReactContextBaseJavaModule {
+ 
+     private static Bitmap getBitmapAtTime(Context context, String filePath, int time, int maxWidth, int maxHeight, boolean onlySyncedFrames, Map headers) throws IOException, IllegalStateException {
+         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+-        if (URLUtil.isFileUrl(filePath)) {
+-            String decodedPath;
+-            try {
+-                decodedPath = URLDecoder.decode(filePath, "UTF-8");
+-            } catch (UnsupportedEncodingException e) {
+-                decodedPath = filePath;
++        Bitmap image;
++        try {
++            if (URLUtil.isFileUrl(filePath)) {
++                String decodedPath;
++                try {
++                    decodedPath = URLDecoder.decode(filePath, "UTF-8");
++                } catch (UnsupportedEncodingException e) {
++                    decodedPath = filePath;
++                }
++
++                retriever.setDataSource(decodedPath.replace("file://", ""));
++            } else if (filePath.contains("content://")) {
++                retriever.setDataSource(context, Uri.parse(filePath));
++            } else {
++                if (VERSION.SDK_INT < 14) {
++                    throw new IllegalStateException("Remote videos aren't supported on sdk_version < 14");
++                }
++                retriever.setDataSource(filePath, headers);
+             }
+ 
+-            retriever.setDataSource(decodedPath.replace("file://", ""));
+-        } else if (filePath.contains("content://")) {
+-            retriever.setDataSource(context, Uri.parse(filePath));
+-        } else {
+-            if (VERSION.SDK_INT < 14) {
+-                throw new IllegalStateException("Remote videos aren't supported on sdk_version < 14");
++            if (Build.VERSION.SDK_INT >= 27) {
++                image = retriever.getScaledFrameAtTime(time * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, maxWidth, maxHeight);
++            } else {
++                // If on versions lower than API 27, use other methods to get frames
++                image = retriever.getFrameAtTime(time * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
++                if (image != null) {
++                    image = Bitmap.createScaledBitmap(image, maxWidth, maxHeight, true);
++                }
+             }
+-            retriever.setDataSource(filePath, headers);
+-        }
+-
+-        Bitmap image;
+-        if (Build.VERSION.SDK_INT >= 27) {
+-            image = retriever.getScaledFrameAtTime(time * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, maxWidth, maxHeight);
+-        } else {
+-            // If on versions lower than API 27, use other methods to get frames
+-            image = retriever.getFrameAtTime(time * 1000, MediaMetadataRetriever.OPTION_CLOSEST_SYNC);
+-            if (image != null) {
+-                image = Bitmap.createScaledBitmap(image, maxWidth, maxHeight, true);
++        } finally {
++            try {
++                retriever.release();
++            } catch(IOException e) {
++                e.printStackTrace();
+             }
+         }
+-        try {
+-            retriever.release();
+-        } catch(IOException e) {
+-            e.printStackTrace();
+-        }
+         if (image == null) {
+             throw new IllegalStateException("File doesn't exist or not supported");
+         }
 diff --git a/node_modules/react-native-create-thumbnail/ios/CreateThumbnail.m b/node_modules/react-native-create-thumbnail/ios/CreateThumbnail.m
 index 4c87cfa..4764b8b 100644
 --- a/node_modules/react-native-create-thumbnail/ios/CreateThumbnail.m
