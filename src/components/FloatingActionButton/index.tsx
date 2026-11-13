@@ -6,6 +6,7 @@ import Animated, {
   FadeOut,
   LinearTransition,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
   ZoomIn,
@@ -60,6 +61,7 @@ const FloatingActionButton = ({
   const tailwind = useTailwind();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
+  const isReducedMotion = useReducedMotion();
   useLanguage();
 
   const plusRotation = useSharedValue(0);
@@ -93,7 +95,7 @@ const FloatingActionButton = ({
 
   return (
     <Animated.View
-      layout={LinearTransition.duration(RESIZE_DURATION)}
+      layout={isReducedMotion ? undefined : LinearTransition.duration(RESIZE_DURATION)}
       pointerEvents={isHidden ? 'none' : 'auto'}
       accessibilityElementsHidden={isHidden}
       importantForAccessibility={isHidden ? 'no-hide-descendants' : 'auto'}

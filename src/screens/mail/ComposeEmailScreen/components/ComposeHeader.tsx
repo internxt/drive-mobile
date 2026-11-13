@@ -1,6 +1,6 @@
 import { ArrowRightIcon, CheckIcon, XIcon } from 'phosphor-react-native';
 import { ActivityIndicator, Platform, TouchableOpacity, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, LinearTransition, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, LinearTransition, useReducedMotion, ZoomIn } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../../assets/lang/strings';
@@ -33,6 +33,7 @@ type ComposeHeaderProps = {
 export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: ComposeHeaderProps): JSX.Element => {
   const tailwind = useTailwind();
   const getColor = useGetColor();
+  const isReducedMotion = useReducedMotion();
   const isIdle = sendPhase === 'idle';
   const sendButtonLabels: Record<SendPhase, string> = {
     idle: strings.buttons.send,
@@ -74,7 +75,7 @@ export const ComposeHeader = ({ title, canSend, sendPhase, onClose, onSend }: Co
         </AppText>
         <View style={tailwind('flex-1 flex-row items-center justify-end')}>
           <Animated.View
-            layout={LinearTransition.duration(SEND_BUTTON_RESIZE_DURATION)}
+            layout={isReducedMotion ? undefined : LinearTransition.duration(SEND_BUTTON_RESIZE_DURATION)}
             style={[
               tailwind('rounded-full items-center justify-center overflow-hidden'),
               {
