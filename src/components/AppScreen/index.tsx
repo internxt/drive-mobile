@@ -3,7 +3,6 @@ import React from 'react';
 import { Keyboard, StyleProp, View, ViewStyle, useColorScheme } from 'react-native';
 import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import { cssInterop } from 'nativewind';
 
@@ -21,7 +20,6 @@ interface AppScreenProps {
 }
 
 const AppScreen = (props: AppScreenProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -39,8 +37,8 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
 
   return (
     <View
+      className="flex-1"
       style={[
-        tailwind('flex-1'),
         {
           paddingBottom: props.hasBottomTabs ? 0 : 0,
           backgroundColor,
@@ -59,7 +57,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
 
       {/* DISMISS KEYBOARD ON OUTSIDE TAP */}
       <TouchableWithoutFeedback onPress={onBackgroundPressed}>
-        <View style={tailwind('absolute h-full w-full')} />
+        <View className="absolute h-full w-full" />
       </TouchableWithoutFeedback>
 
       {props.children}

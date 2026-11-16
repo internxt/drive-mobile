@@ -10,7 +10,6 @@ import BottomModalOption from 'src/components/BottomModalOption';
 import BottomModal from 'src/components/modals/BottomModal';
 import { FolderIcon, getFileTypeIcon } from 'src/helpers';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 
 export interface TrashOptionsModalProps {
   isOpen: boolean;
@@ -21,7 +20,6 @@ export interface TrashOptionsModalProps {
 }
 
 export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const isFolder = props.item?.data.type ? false : true;
@@ -49,33 +47,33 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
   ];
 
   const header = (
-    <View style={tailwind('flex-row')}>
-      <View style={tailwind('mr-3')}>
+    <View className="flex-row">
+      <View className="mr-3">
         {isFolder ? <FolderIcon width={40} height={40} /> : <FileIcon width={40} height={40} />}
       </View>
 
-      <View style={tailwind('flex-shrink w-full')}>
-        <AppText medium ellipsizeMode="middle" style={[tailwind('text-base'), { color: getColor('text-gray-100') }]}>
+      <View className="flex-shrink w-full">
+        <AppText medium ellipsizeMode="middle" className="text-base" style={{ color: getColor('text-gray-100') }}>
           {props.item?.data.name}
           {props.item?.data.type ? '.' + props.item?.data.type : ''}
         </AppText>
-        <View style={tailwind('flex flex-row items-center')}>
-          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+        <View className="flex flex-row items-center">
+          <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
             {!isFolder && <>{prettysize(props.item?.data.size || 0)}</>}
           </AppText>
           {!isFolder && (
             <View
-              style={[
-                tailwind('rounded-full mx-1.5'),
-                {
-                  width: 3,
-                  height: 3,
-                  backgroundColor: getColor('bg-gray-60'),
-                },
-              ]}
+              className="rounded-full mx-1.5"
+              style={{
+                width: 3,
+                height: 3,
+                backgroundColor: getColor('bg-gray-60'),
+              }}
             />
           )}
-          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
+          <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
+            {getUpdatedAt()}
+          </AppText>
         </View>
       </View>
     </View>
@@ -95,8 +93,10 @@ export const TrashOptionsModal: React.FC<TrashOptionsModalProps> = (props) => {
               key={index}
               leftSlot={opt.icon}
               rightSlot={
-                <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                  <AppText style={[tailwind('text-lg'), opt.textStyle]}>{opt.label}</AppText>
+                <View className="flex-grow items-center justify-center flex-row">
+                  <AppText className="text-lg" style={opt.textStyle}>
+                    {opt.label}
+                  </AppText>
                 </View>
               }
               hideBorderBottom={index === options.length - 1}

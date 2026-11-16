@@ -69,8 +69,8 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
   return (
     <Portal>
       <CenterModal isOpen={isOpen} onClosed={onClose}>
-        <View style={[tailwind('px-4 py-4'), { backgroundColor: getColor('bg-surface') }]}>
-          <AppText medium style={[tailwind('text-xl mb-2'), { color: getColor('text-gray-100') }]}>
+        <View className="px-4 py-4" style={{ backgroundColor: getColor('bg-surface') }}>
+          <AppText medium className="text-xl mb-2" style={{ color: getColor('text-gray-100') }}>
             {title}
           </AppText>
 
@@ -92,7 +92,7 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
             onPress={() => setSelectedAction('replace')}
           />
 
-          <View style={tailwind('mt-3')}>
+          <View className="mt-3">
             <RadioOption
               label={keepLabel}
               selected={selectedAction === 'keep-both'}
@@ -101,7 +101,7 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
           </View>
 
           {onSkip ? (
-            <View style={tailwind('mt-3')}>
+            <View className="mt-3">
               <RadioOption
                 label={strings.modals.nameCollision.skipItem}
                 selected={selectedAction === 'skip'}
@@ -113,19 +113,19 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
           {showApplyToAll ? (
             <Pressable
               onPress={() => setIsApplyToAllChecked((isChecked) => !isChecked)}
-              style={tailwind('flex-row items-center mt-5')}
+              className="flex-row items-center mt-5"
             >
               <SelectionCheckbox checked={isApplyToAllChecked} shape="square" />
-              <AppText style={[tailwind('ml-3 text-base'), { color: getColor('text-gray-100') }]}>
+              <AppText className="ml-3 text-base" style={{ color: getColor('text-gray-100') }}>
                 {strings.modals.nameCollision.applyToAll}
               </AppText>
             </Pressable>
           ) : null}
 
-          <View style={tailwind('flex-row mt-6')}>
-            <AppButton title={strings.buttons.cancel} type="cancel" onPress={onClose} style={tailwind('flex-1')} />
-            <View style={tailwind('w-3')} />
-            <AppButton title={confirmLabel} type="accept" onPress={handleConfirm} style={tailwind('flex-1')} />
+          <View className="flex-row mt-6">
+            <AppButton title={strings.buttons.cancel} type="cancel" onPress={onClose} className="flex-1" />
+            <View className="w-3" />
+            <AppButton title={confirmLabel} type="accept" onPress={handleConfirm} className="flex-1" />
           </View>
         </View>
       </CenterModal>
@@ -144,19 +144,19 @@ const RadioOption: React.FC<RadioOptionProps> = ({ label, selected, onPress }) =
   const getColor = useGetColor();
 
   return (
-    <Pressable onPress={onPress} style={tailwind('flex-row items-center')}>
+    <Pressable onPress={onPress} className="flex-row items-center">
       <View
-        style={[
-          tailwind('rounded-full items-center justify-center'),
-          {
-            width: 20,
-            height: 20,
-            borderWidth: selected ? 6 : 1.5,
-            borderColor: selected ? getColor('text-primary') : getColor('border-gray-30'),
-          },
-        ]}
+        className="rounded-full items-center justify-center"
+        style={{
+          width: 20,
+          height: 20,
+          borderWidth: selected ? 6 : 1.5,
+          borderColor: selected ? getColor('text-primary') : getColor('border-gray-30'),
+        }}
       />
-      <AppText style={[tailwind('ml-3 text-base'), { color: getColor('text-gray-100') }]}>{label}</AppText>
+      <AppText className="ml-3 text-base" style={{ color: getColor('text-gray-100') }}>
+        {label}
+      </AppText>
     </Pressable>
   );
 };

@@ -1,7 +1,6 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 
 interface ActionProgressModalProps {
   visible: boolean;
@@ -9,7 +8,6 @@ interface ActionProgressModalProps {
 }
 
 const ActionProgressModal = ({ visible, label }: ActionProgressModalProps): JSX.Element | null => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   if (!visible) return null;
@@ -18,7 +16,9 @@ const ActionProgressModal = ({ visible, label }: ActionProgressModalProps): JSX.
     <View style={styles.backdrop}>
       <View style={[styles.card, { backgroundColor: getColor('bg-surface') }]}>
         <ActivityIndicator size="large" color={getColor('text-primary')} />
-        <AppText style={[tailwind('mt-4 text-base text-center'), { color: getColor('text-gray-80') }]}>{label}</AppText>
+        <AppText className="mt-4 text-base text-center" style={{ color: getColor('text-gray-80') }}>
+          {label}
+        </AppText>
       </View>
     </View>
   );

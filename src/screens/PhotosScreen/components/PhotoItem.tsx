@@ -93,7 +93,7 @@ const VideoBadge = ({ duration }: { duration?: string }): JSX.Element => {
   const getColor = useGetColor();
 
   return (
-    <View style={[tailwind('absolute justify-center items-end'), { bottom: 8, right: 8 }]} pointerEvents="none">
+    <View className="absolute justify-center items-end" style={{ bottom: 8, right: 8 }} pointerEvents="none">
       <LinearGradient
         colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.6)']}
         locations={[0, 0.4, 0.7, 1]}
@@ -102,7 +102,7 @@ const VideoBadge = ({ duration }: { duration?: string }): JSX.Element => {
         style={styles.durationShadow}
       />
       {duration ? (
-        <AppText medium style={[tailwind('text-sm'), { color: getColor('text-white') }]}>
+        <AppText medium className="text-sm" style={{ color: getColor('text-white') }}>
           {duration}
         </AppText>
       ) : (
@@ -117,7 +117,7 @@ const LiveBadge = (): JSX.Element => {
   const getColor = useGetColor();
 
   return (
-    <View style={[tailwind('absolute justify-center items-start'), { top: 8, left: 8 }]} pointerEvents="none">
+    <View className="absolute justify-center items-start" style={{ top: 8, left: 8 }} pointerEvents="none">
       <LinearGradient
         colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.08)', 'transparent']}
         locations={[0, 0.3, 0.6, 1]}
@@ -125,7 +125,7 @@ const LiveBadge = (): JSX.Element => {
         end={{ x: 1, y: 1 }}
         style={styles.liveBadgeShadow}
       />
-      <AppText medium style={[tailwind('text-xs'), { color: getColor('text-white'), letterSpacing: 0.5 }]}>
+      <AppText medium className="text-xs" style={{ color: getColor('text-white'), letterSpacing: 0.5 }}>
         LIVE
       </AppText>
     </View>
@@ -137,7 +137,7 @@ const BurstBadge = ({ isBurstIncomplete }: { isBurstIncomplete?: boolean }): JSX
   const getColor = useGetColor();
 
   return (
-    <View style={[tailwind('absolute justify-center items-start'), { top: 8, left: 8 }]} pointerEvents="none">
+    <View className="absolute justify-center items-start" style={{ top: 8, left: 8 }} pointerEvents="none">
       <LinearGradient
         colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.08)', 'transparent']}
         locations={[0, 0.3, 0.6, 1]}
@@ -145,8 +145,8 @@ const BurstBadge = ({ isBurstIncomplete }: { isBurstIncomplete?: boolean }): JSX
         end={{ x: 1, y: 1 }}
         style={styles.liveBadgeShadow}
       />
-      <View style={tailwind('flex-row items-center')}>
-        <AppText medium style={[tailwind('text-xs'), { color: getColor('text-white'), letterSpacing: 0.5 }]}>
+      <View className="flex-row items-center">
+        <AppText medium className="text-xs" style={{ color: getColor('text-white'), letterSpacing: 0.5 }}>
           {strings.screens.photos.photoPreview.burstBadge}
         </AppText>
         {isBurstIncomplete && <WarningIcon size={10} weight="fill" color="#F59E0B" style={{ marginLeft: 2 }} />}
@@ -218,7 +218,7 @@ const LocalPhotoCell = memo(
         {(item.backupState === 'not-backed' ||
           item.backupState === 'uploading' ||
           item.backupState === 'cloud-deleted') && (
-          <View style={[tailwind('absolute justify-center items-center'), { bottom: 8, left: 8 }]} pointerEvents="none">
+          <View className="absolute justify-center items-center" style={{ bottom: 8, left: 8 }} pointerEvents="none">
             <LinearGradient
               colors={['transparent', 'rgba(0,0,0,0.08)', 'rgba(0,0,0,0.32)', 'rgba(0,0,0,0.6)']}
               locations={[0, 0.4, 0.7, 1]}

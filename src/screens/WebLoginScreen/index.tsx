@@ -1,7 +1,6 @@
 import { CheckCircle, WarningCircle } from 'phosphor-react-native';
 import { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppScreen from '../../components/AppScreen';
 import AppText from '../../components/AppText';
@@ -16,7 +15,6 @@ import { RootStackScreenProps } from '../../types/navigation';
 type LoadingState = 'processing' | 'success' | 'error';
 
 function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const [loadingState, setLoadingState] = useState<LoadingState>('processing');
@@ -71,8 +69,8 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
     switch (loadingState) {
       case 'processing':
         return (
-          <View style={tailwind('items-center')}>
-            <AppText medium style={[tailwind('text-xl'), { color: getColor('text-gray-100') }]}>
+          <View className="items-center">
+            <AppText medium className="text-xl" style={{ color: getColor('text-gray-100') }}>
               {strings.screens.WebLoginScreen.processing}
             </AppText>
           </View>
@@ -80,11 +78,11 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
 
       case 'success':
         return (
-          <View style={tailwind('items-center')}>
-            <View style={tailwind('mb-4')}>
+          <View className="items-center">
+            <View className="mb-4">
               <CheckCircle size={64} color={getColor('text-green')} weight="fill" />
             </View>
-            <AppText medium style={[tailwind('text-xl'), { color: getColor('text-gray-100') }]}>
+            <AppText medium className="text-xl" style={{ color: getColor('text-gray-100') }}>
               {strings.screens.WebLoginScreen.success}
             </AppText>
           </View>
@@ -92,11 +90,11 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
 
       case 'error':
         return (
-          <View style={tailwind('items-center')}>
-            <View style={tailwind('mb-4')}>
+          <View className="items-center">
+            <View className="mb-4">
               <WarningCircle size={64} color={getColor('text-red')} weight="fill" />
             </View>
-            <AppText medium style={[tailwind('text-xl text-center px-6'), { color: getColor('text-red') }]}>
+            <AppText medium className="text-xl text-center px-6" style={{ color: getColor('text-red') }}>
               {error || strings.screens.WebLoginScreen.authenticationFailed}
             </AppText>
           </View>
@@ -108,7 +106,8 @@ function WebLoginScreen({ route, navigation }: RootStackScreenProps<'WebLogin'>)
     <AppScreen
       safeAreaTop
       safeAreaBottom
-      style={[tailwind('h-full justify-center items-center'), { backgroundColor: getColor('bg-surface') }]}
+      className="h-full justify-center items-center"
+      style={{ backgroundColor: getColor('bg-surface') }}
     >
       {renderContent()}
     </AppScreen>

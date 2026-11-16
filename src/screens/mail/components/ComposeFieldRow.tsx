@@ -38,10 +38,8 @@ export const ComposeFieldRow = ({
       accessible={false}
       disabled={!onPress}
       onPress={onPress}
-      style={[
-        tailwind('flex-row items-center px-4'),
-        { minHeight: COMPOSE_ROW_HEIGHT, borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') },
-      ]}
+      className="flex-row items-center px-4"
+      style={{ minHeight: COMPOSE_ROW_HEIGHT, borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') }}
     >
       <Text
         style={[
@@ -52,7 +50,7 @@ export const ComposeFieldRow = ({
       >
         {label}
       </Text>
-      <View style={tailwind('flex-1')}>{children}</View>
+      <View className="flex-1">{children}</View>
       {renderAppend}
     </Pressable>
   );

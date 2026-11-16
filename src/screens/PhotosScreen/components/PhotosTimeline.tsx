@@ -2,7 +2,6 @@ import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
-import { useTailwind } from 'tailwind-rn';
 import { useDragSelectGesture } from '../hooks/useDragSelectGesture';
 import { PhotoBackupState, PhotoDateGroup, TimelinePhotoItem } from '../types';
 import { GroupBoundary, buildFlatTimeline, findGroupForIndex } from '../utils/photoTimelineGroups';
@@ -107,8 +106,6 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     },
     ref,
   ) => {
-    const tailwind = useTailwind();
-
     const { photos, boundaries } = useMemo(() => {
       const effectiveGroups = isLoading ? [...assetsGroupsByDate, SKELETON_GROUP] : assetsGroupsByDate;
       return buildFlatTimeline(effectiveGroups);
@@ -198,7 +195,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     const renderItem: ListRenderItem<TimelinePhotoItem> = useCallback(
       ({ item }) => (
-        <View style={[tailwind('flex-1'), { aspectRatio: 1, margin: 1 }]}>
+        <View className="flex-1" style={{ aspectRatio: 1, margin: 1 }}>
           <PhotoItem
             item={item}
             isSelectMode={isSelectMode}
@@ -208,7 +205,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
           />
         </View>
       ),
-      [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, tailwind],
+      [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress],
     );
 
     const isIosRefreshing = Platform.OS === 'ios' && !!refreshing;
@@ -237,7 +234,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     return (
       <GestureDetector gesture={gesture}>
-        <View style={tailwind('flex-1')} onLayout={onContainerLayout}>
+        <View className="flex-1" onLayout={onContainerLayout}>
           <FlashList
             ref={flashListRef}
             data={photos}

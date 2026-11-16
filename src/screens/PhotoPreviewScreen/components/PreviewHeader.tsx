@@ -12,7 +12,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
@@ -89,8 +88,6 @@ const TimelineInfo = ({
   timestamp,
   hasTimeAccuracy,
 }: TimelineInfoProps): JSX.Element | null => {
-  const tailwind = useTailwind();
-
   const uploadLabel = getUploadingLabel(isBurst, burstLiveProgress);
   const backedBurstLabel = getBackedBurstLabel(isBurst, isUploading, burstTotal);
 
@@ -101,32 +98,28 @@ const TimelineInfo = ({
   const showSeparator = showUploadRow && timestamp && hasTimeAccuracy;
 
   return (
-    <View style={[tailwind('flex-row items-center justify-center opacity-75'), { gap: 8 }]}>
-      {timestamp && hasTimeAccuracy && (
-        <AppText style={tailwind('text-sm text-white')}>{formatHeaderTime(timestamp)}</AppText>
-      )}
-      {showSeparator && <AppText style={tailwind('text-sm text-white')}>·</AppText>}
+    <View className="flex-row items-center justify-center opacity-75" style={{ gap: 8 }}>
+      {timestamp && hasTimeAccuracy && <AppText className="text-sm text-white">{formatHeaderTime(timestamp)}</AppText>}
+      {showSeparator && <AppText className="text-sm text-white">·</AppText>}
       {isCloudDeleted && (
-        <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
+        <View className="flex-row items-center" style={{ gap: 4 }}>
           <CloudXIcon size={16} color="white" />
-          <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.deletedFromCloud}</AppText>
+          <AppText className="text-sm text-white">{photoPreviewStrings.deletedFromCloud}</AppText>
         </View>
       )}
       {isWaitingToUpload && (
-        <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
+        <View className="flex-row items-center" style={{ gap: 4 }}>
           <CloudSlashIcon size={16} color="white" />
-          <AppText style={tailwind('text-sm text-white')}>{photoPreviewStrings.waitingToUpload}</AppText>
+          <AppText className="text-sm text-white">{photoPreviewStrings.waitingToUpload}</AppText>
         </View>
       )}
       {isUploading && (
-        <View style={[tailwind('flex-row items-center'), { gap: 4 }]}>
+        <View className="flex-row items-center" style={{ gap: 4 }}>
           <AnimatedArrowUp size={16} color="white" />
-          <AppText style={tailwind('text-sm text-white')}>{uploadLabel}</AppText>
+          <AppText className="text-sm text-white">{uploadLabel}</AppText>
         </View>
       )}
-      {backedBurstLabel && !showUploadRow && (
-        <AppText style={tailwind('text-sm text-white')}>{backedBurstLabel}</AppText>
-      )}
+      {backedBurstLabel && !showUploadRow && <AppText className="text-sm text-white">{backedBurstLabel}</AppText>}
     </View>
   );
 };
@@ -139,7 +132,6 @@ interface PreviewHeaderProps {
 }
 
 export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderProps): JSX.Element => {
-  const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
 
   const {
@@ -170,18 +162,19 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
         end={{ x: 0, y: 1 }}
         style={{ paddingTop: insets.top + 8, paddingBottom: 20, paddingHorizontal: 16 }}
       >
-        <View style={[tailwind('flex-row'), { height: 80 }]}>
+        <View className="flex-row" style={{ height: 80 }}>
           <TouchableOpacity
             onPress={onClose}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            style={[tailwind('justify-center items-center'), { width: 60, height: 80 }]}
+            className="justify-center items-center"
+            style={{ width: 60, height: 80 }}
           >
             <XIcon size={28} color="white" />
           </TouchableOpacity>
 
-          <View style={[tailwind('flex-1 justify-center items-center px-2'), { height: 80, gap: 16 }]}>
-            <View style={tailwind('w-full items-center')}>
-              <AppText medium style={tailwind('text-base text-white')} numberOfLines={1}>
+          <View className="flex-1 justify-center items-center px-2" style={{ height: 80, gap: 16 }}>
+            <View className="w-full items-center">
+              <AppText medium className="text-base text-white" numberOfLines={1}>
                 {timestamp ? formatHeaderDate(timestamp) : '-'}
               </AppText>
               <TimelineInfo
@@ -197,10 +190,8 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
             </View>
             {isUploading && (
               <View
-                style={[
-                  tailwind('w-full overflow-hidden'),
-                  { height: 3, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.2)' },
-                ]}
+                className="w-full overflow-hidden"
+                style={{ height: 3, borderRadius: 100, backgroundColor: 'rgba(255,255,255,0.2)' }}
               >
                 <View style={{ width: `${uploadProgress * 100}%`, height: '100%', backgroundColor: 'white' }} />
               </View>
@@ -210,7 +201,8 @@ export const PreviewHeader = ({ visible, item, onClose, onMore }: PreviewHeaderP
           <TouchableOpacity
             onPress={onMore}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            style={[tailwind('justify-center items-center'), { width: 60, height: 80 }]}
+            className="justify-center items-center"
+            style={{ width: 60, height: 80 }}
           >
             <DotsThreeVerticalIcon size={28} color="white" />
           </TouchableOpacity>

@@ -12,7 +12,6 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import { applyOpacity } from '../../../helpers/colors';
 import useGetColor from '../../../hooks/useColor';
@@ -71,7 +70,6 @@ const SkeletonBlock = ({ shimmerProgress, style }: { shimmerProgress: SharedValu
 };
 
 export const MailListSkeleton = (): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const shimmerProgress = useSharedValue(0);
 
@@ -88,14 +86,12 @@ export const MailListSkeleton = (): JSX.Element => {
           entering={FadeInDown.duration(ROW_ENTRY_DURATION).delay(rowIndex * ROW_ENTRY_STAGGER)}
         >
           <View
-            style={[
-              tailwind('flex-row px-4 py-3'),
-              {
-                opacity: 1 - rowIndex * ROW_OPACITY_STEP,
-                borderBottomWidth: 1,
-                borderBottomColor: getColor('border-gray-5'),
-              },
-            ]}
+            className="flex-row px-4 py-3"
+            style={{
+              opacity: 1 - rowIndex * ROW_OPACITY_STEP,
+              borderBottomWidth: 1,
+              borderBottomColor: getColor('border-gray-5'),
+            }}
           >
             <SkeletonBlock
               shimmerProgress={shimmerProgress}
@@ -106,8 +102,8 @@ export const MailListSkeleton = (): JSX.Element => {
                 marginRight: AVATAR_GAP,
               }}
             />
-            <View style={tailwind('flex-1 pt-1')}>
-              <View style={tailwind('flex-row justify-between')}>
+            <View className="flex-1 pt-1">
+              <View className="flex-row justify-between">
                 <SkeletonBlock
                   shimmerProgress={shimmerProgress}
                   style={{ width: toPercent(senderWidth), height: LINE_HEIGHT, borderRadius: LINE_RADIUS }}

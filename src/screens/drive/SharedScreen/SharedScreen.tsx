@@ -12,7 +12,6 @@ import { RefreshControl, ScrollView, View } from 'react-native';
 import AppScreen from 'src/components/AppScreen';
 import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/floatingButtonLayout';
 import { SearchInput } from 'src/components/SearchInput';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import ScreenTitle from '../../../components/AppScreenTitle';
 import DriveItem from '../../../components/drive/lists/items';
@@ -24,7 +23,6 @@ import { DriveItemStatus } from '../../../types/drive/item';
 
 type SharedItem = SharedFolders & SharedFiles;
 export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
   const { loading: sharedLoading, executeUseCase: getSharedItems } = useUseCase(driveUseCases.getSharedItems);
@@ -167,10 +165,10 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
   };
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
+    <AppScreen safeAreaTop className="flex-1 flex-grow">
       <ScreenTitle text={strings.screens.shared.title} showBackButton={false} />
       <SearchInput value={searchText} onChangeText={setSearchText} placeholder={strings.inputs.searchInShared} />
-      <View style={[tailwind('flex-1'), { backgroundColor: getColor('bg-surface') }]}>
+      <View className="flex-1" style={{ backgroundColor: getColor('bg-surface') }}>
         {getStatus() === UseCaseStatus.LOADING && !sharedItems?.length && (
           <View>
             {_.times(20, (n) => (
@@ -182,7 +180,8 @@ export const SharedScreen: React.FC<TabExplorerScreenProps<'Shared'>> = (props) 
         {(getStatus() === UseCaseStatus.SUCCESS || sharedItems) && (
           <ScrollView
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
-            contentContainerStyle={[tailwind('flex-grow'), { paddingBottom: FLOATING_BUTTON_CLEARANCE }]}
+            contentContainerClassName="flex-grow"
+            contentContainerStyle={{ paddingBottom: FLOATING_BUTTON_CLEARANCE }}
             onTouchEnd={handleOnEndOfListReached}
           >
             {renderContent()}

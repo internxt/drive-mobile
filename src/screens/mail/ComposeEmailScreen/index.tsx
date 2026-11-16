@@ -350,13 +350,13 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
   const sheetTopInWindow = calculateSheetTopInWindow(windowHeight, sheetContentHeight, safeAreaInsets.bottom);
 
   return (
-    <AppScreen safeAreaTop={!isPresentedAsSheet} safeAreaBottom style={tailwind('flex-1 flex-grow')}>
-      <View onLayout={(event) => setSheetContentHeight(event.nativeEvent.layout.height)} style={tailwind('flex-1')}>
+    <AppScreen safeAreaTop={!isPresentedAsSheet} safeAreaBottom className="flex-1 flex-grow">
+      <View onLayout={(event) => setSheetContentHeight(event.nativeEvent.layout.height)} className="flex-1">
         <KeyboardAvoidingView
           enabled={isPresentedAsSheet}
           behavior="padding"
           keyboardVerticalOffset={sheetTopInWindow}
-          style={tailwind('flex-1')}
+          className="flex-1"
         >
           <ComposeHeader
             title={composeTitle}
@@ -366,20 +366,20 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
             onSend={onSend}
           />
 
-          <View style={tailwind('flex-1')}>
+          <View className="flex-1">
             {hasFailedToSaveDraft && (
-              <AppText style={[tailwind('px-4 py-2 text-sm'), { color: getColor('text-red') }]}>
+              <AppText className="px-4 py-2 text-sm" style={{ color: getColor('text-red') }}>
                 {strings.screens.compose_email.draft.notSaved}
               </AppText>
             )}
 
             {!isDraftLoaded ? (
-              <View style={tailwind('flex-1 items-center justify-center')}>
+              <View className="flex-1 items-center justify-center">
                 <ActivityIndicator color={getColor('text-primary')} />
               </View>
             ) : (
               <ScrollView
-                style={tailwind('flex-1')}
+                className="flex-1"
                 keyboardShouldPersistTaps="handled"
                 keyboardDismissMode={KEYBOARD_DISMISS_MODE}
               >
@@ -394,9 +394,9 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
                         accessibilityState={{ expanded: areExtraRecipientsVisible }}
                         onPress={() => setIsExtraRecipientsSectionOpen(!isExtraRecipientsSectionOpen)}
                         hitSlop={TOUCH_SLOP}
-                        style={tailwind('pl-2 py-1')}
+                        className="pl-2 py-1"
                       >
-                        <AppText medium style={[tailwind('text-sm'), { color: getColor('text-primary') }]}>
+                        <AppText medium className="text-sm" style={{ color: getColor('text-primary') }}>
                           {areExtraRecipientsVisible
                             ? strings.screens.compose_email.hideCopyFields
                             : strings.screens.compose_email.showCopyFields}
@@ -415,7 +415,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
 
                 {!!senderAddress && (
                   <ComposeFieldRow label={strings.inputs.from}>
-                    <View style={tailwind('flex-row items-center')}>
+                    <View className="flex-row items-center">
                       <SenderAvatar address={senderAddress} size="small" />
                       <Text
                         numberOfLines={1}
@@ -433,8 +433,8 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
                   onChangeText={setSubject}
                   placeholder={strings.placeholders.emailSubject}
                   placeholderTextColor={getColor('text-gray-40')}
+                  className="px-4 pt-4 pb-1"
                   style={[
-                    tailwind('px-4 pt-4 pb-1'),
                     globalStyle.fontWeight.semibold,
                     { fontSize: SUBJECT_FONT_SIZE, color: getColor('text-gray-100') },
                   ]}
@@ -447,12 +447,12 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
             )}
 
             {hasAttachments && (
-              <View style={tailwind('pb-3')}>
+              <View className="pb-3">
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={tailwind('px-4')}
+                  contentContainerClassName="px-4"
                 >
                   {forwardedAttachments.map((attachment) => (
                     <ComposeAttachmentCard
@@ -478,7 +478,7 @@ export const ComposeEmailScreen = ({ route, navigation }: RootStackScreenProps<'
                   ))}
                 </ScrollView>
                 {failedAttachmentCount > 0 && (
-                  <AppText style={[tailwind('px-4 mt-2 text-xs'), { color: getColor('text-gray-50') }]}>
+                  <AppText className="px-4 mt-2 text-xs" style={{ color: getColor('text-gray-50') }}>
                     {strings.screens.compose_email.attachments.removeFailedToSend}
                   </AppText>
                 )}

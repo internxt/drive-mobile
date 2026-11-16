@@ -11,13 +11,11 @@ import AppText from '../../../AppText';
 
 import { time } from '@internxt-mobile/services/common/time';
 import { DriveListType } from '@internxt-mobile/types/drive/ui';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../hooks/useColor';
 import useDriveItem from '../../../../hooks/useDriveItem';
 import { DriveItemProps } from '../../../../types/drive/ui';
 
 function DriveItemTable(props: DriveItemProps): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const spinValue = new Animated.Value(1);
@@ -57,9 +55,9 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
       onPress={handleItemPress}
       style={{ backgroundColor: getColor('bg-surface') }}
     >
-      <View style={[tailwind('flex-row pl-5'), { backgroundColor: getColor('bg-surface') }]}>
-        <View style={[tailwind('flex-row flex-1 py-3')]}>
-          <View style={[tailwind('mb-1 mr-4 items-center justify-center'), isUploading && tailwind('opacity-40')]}>
+      <View className="flex-row pl-5" style={{ backgroundColor: getColor('bg-surface') }}>
+        <View className="flex-row flex-1 py-3">
+          <View className={`mb-1 mr-4 items-center justify-center ${isUploading ? 'opacity-40' : ''}`}>
             {isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
@@ -67,24 +65,20 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
             )}
             {props.type === DriveListType.Shared && (
               <View
-                style={[
-                  tailwind('absolute -bottom-1 -right-2 flex items-center justify-center rounded-full'),
-                  {
-                    width: 20,
-                    height: 20,
-                    backgroundColor: getColor('bg-surface'),
-                  },
-                ]}
+                className="absolute -bottom-1 -right-2 flex items-center justify-center rounded-full"
+                style={{
+                  width: 20,
+                  height: 20,
+                  backgroundColor: getColor('bg-surface'),
+                }}
               >
                 <View
-                  style={[
-                    tailwind('rounded-full flex items-center justify-center'),
-                    {
-                      width: 16,
-                      height: 16,
-                      backgroundColor: getColor('text-primary'),
-                    },
-                  ]}
+                  className="rounded-full flex items-center justify-center"
+                  style={{
+                    width: 16,
+                    height: 16,
+                    backgroundColor: getColor('text-primary'),
+                  }}
                 >
                   <Link weight="bold" size={10} color={getColor('text-white')} />
                 </View>
@@ -92,13 +86,10 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
             )}
           </View>
 
-          <View style={[tailwind('flex-1 flex items-start justify-center')]}>
+          <View className="flex-1 flex items-start justify-center">
             <AppText
-              style={[
-                tailwind('text-left text-base'),
-                { color: getColor('text-gray-100') },
-                isUploading && tailwind('opacity-40'),
-              ]}
+              className={`text-left text-base ${isUploading ? 'opacity-40' : ''}`}
+              style={{ color: getColor('text-gray-100') }}
               numberOfLines={1}
               ellipsizeMode={'middle'}
               medium
@@ -108,18 +99,18 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
 
             {isUploading &&
               (props.progress === 0 ? (
-                <Text style={[tailwind('text-xs'), { color: getColor('text-primary') }]}>
+                <Text className="text-xs" style={{ color: getColor('text-primary') }}>
                   {strings.screens.drive.encrypting}
                 </Text>
               ) : (
-                <View style={tailwind('flex-row items-center')}>
+                <View className="flex-row items-center">
                   <ArrowCircleUp weight="fill" color={getColor('text-primary')} size={16} />
-                  <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-primary') }]}>
+                  <AppText className="ml-1.5 text-xs" style={{ color: getColor('text-primary') }}>
                     {((props.progress || 0) * 100).toFixed(0) + '%'}
                   </AppText>
                   <ProgressBar
-                    style={tailwind('flex-grow h-1 ml-1.5')}
-                    progressStyle={tailwind('h-1')}
+                    className="flex-grow h-1 ml-1.5"
+                    progressClassName="h-1"
                     totalValue={1}
                     height={4}
                     currentValue={props.progress || 0}
@@ -132,25 +123,25 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
               (props.subtitle ? (
                 props.subtitle
               ) : (
-                <View style={tailwind('flex flex-row items-center')}>
+                <View className="flex flex-row items-center">
                   {!isFolder && (
-                    <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>
+                    <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
                       {prettysize(props.data.size || 0)}
                     </AppText>
                   )}
                   {!isFolder && (
                     <View
-                      style={[
-                        tailwind('rounded-full mx-1.5'),
-                        {
-                          width: 3,
-                          height: 3,
-                          backgroundColor: getColor('text-gray-60'),
-                        },
-                      ]}
+                      className="rounded-full mx-1.5"
+                      style={{
+                        width: 3,
+                        height: 3,
+                        backgroundColor: getColor('text-gray-60'),
+                      }}
                     />
                   )}
-                  <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-60') }]}>{getUpdatedAt()}</AppText>
+                  <AppText className="text-xs" style={{ color: getColor('text-gray-60') }}>
+                    {getUpdatedAt()}
+                  </AppText>
                 </View>
               ))}
           </View>
@@ -161,7 +152,7 @@ function DriveItemTable(props: DriveItemProps): JSX.Element {
           onPress={onActionsButtonPressed}
           onLongPress={onActionsButtonPressed}
         >
-          <View style={[isUploading && tailwind('opacity-40'), tailwind('px-5 flex-1 items-center justify-center')]}>
+          <View className={`px-5 flex-1 items-center justify-center ${isUploading ? 'opacity-40' : ''}`}>
             <DotsThree weight="bold" size={22} color={getColor('text-gray-40')} />
           </View>
         </TouchableOpacity>

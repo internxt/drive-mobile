@@ -3,7 +3,6 @@ import { TouchableHighlight, TouchableWithoutFeedback, View } from 'react-native
 import Modal from 'react-native-modal';
 
 import AppText from 'src/components/AppText';
-import { useTailwind } from 'tailwind-rn';
 import RunOutImage from '../../../../assets/images/modals/runout.svg';
 import strings from '../../../../assets/lang/strings';
 import { openUrl } from '../../../helpers/utils';
@@ -15,7 +14,6 @@ import { uiActions } from '../../../store/slices/ui';
 import { INFINITE_PLAN } from '../../../types';
 
 function RunOutOfStorageModal(): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const dispatch = useAppDispatch();
   const { limit, totalUsage } = useAppSelector((state) => state.storage);
@@ -66,60 +64,58 @@ function RunOutOfStorageModal(): JSX.Element {
       hideModalContentWhileAnimating
       coverScreen={false}
     >
-      <View style={tailwind('bg-transparent')}>
+      <View className="bg-transparent">
         <TouchableWithoutFeedback
-          style={tailwind('flex-grow')}
+          className="flex-grow"
           onPress={() => {
             dispatch(uiActions.setShowRunOutSpaceModal(false));
           }}
         >
-          <View style={tailwind('flex-grow')} />
+          <View className="flex-grow" />
         </TouchableWithoutFeedback>
 
         <View>
-          <View style={tailwind('flex-row bg-white px-5 py-3 rounded-t-xl justify-center')}>
-            <View style={tailwind('h-1 w-20 bg-gray-20 rounded-full')} />
+          <View className="flex-row bg-white px-5 py-3 rounded-t-xl justify-center">
+            <View className="h-1 w-20 bg-gray-20 rounded-full" />
           </View>
 
-          <View style={tailwind('bg-white justify-center px-5 pt-3 pb-8')}>
-            <AppText style={tailwind('text-center text-lg text-gray-100')} medium>
+          <View className="bg-white justify-center px-5 pt-3 pb-8">
+            <AppText className="text-center text-lg text-gray-100" medium>
               {strings.modals.OutOfSpaceModal.title}
             </AppText>
 
-            <View style={tailwind('items-center my-6')}>
-              <View style={tailwind('items-center')}>
+            <View className="items-center my-6">
+              <View className="items-center">
                 <RunOutImage width={80} height={80} />
               </View>
 
-              <AppText style={tailwind('text-sm text-gray-50 mt-3')} medium>
+              <AppText className="text-sm text-gray-50 mt-3" medium>
                 {strings.screens.StorageScreen.space.used.used} {getUsageString()}{' '}
                 {strings.screens.StorageScreen.space.used.of} {getLimitString()}
               </AppText>
             </View>
 
-            <View style={tailwind('flex-grow mb-6')}>
-              <AppText style={tailwind('text-sm text-center text-gray-50')}>
-                {strings.modals.OutOfSpaceModal.advice}
-              </AppText>
+            <View className="flex-grow mb-6">
+              <AppText className="text-sm text-center text-gray-50">{strings.modals.OutOfSpaceModal.advice}</AppText>
             </View>
 
             {showBilling ? (
               <TouchableHighlight
                 underlayColor={getColor('text-primary-dark')}
-                style={tailwind('bg-primary rounded-lg py-2 mx-6 items-center justify-center')}
+                className="bg-primary rounded-lg py-2 mx-6 items-center justify-center"
                 onPress={onUpgradeNowButtonPressed}
               >
-                <AppText style={tailwind('text-lg text-white')} medium>
+                <AppText className="text-lg text-white" medium>
                   {strings.buttons.upgradeNow}
                 </AppText>
               </TouchableHighlight>
             ) : (
               <TouchableHighlight
                 underlayColor={getColor('text-gray-10')}
-                style={tailwind('bg-gray-5 rounded-lg py-2 mx-6 items-center justify-center')}
+                className="bg-gray-5 rounded-lg py-2 mx-6 items-center justify-center"
                 onPress={handleClose}
               >
-                <AppText style={tailwind('text-lg text-gray-80')} medium>
+                <AppText className="text-lg text-gray-80" medium>
                   {strings.buttons.close}
                 </AppText>
               </TouchableHighlight>

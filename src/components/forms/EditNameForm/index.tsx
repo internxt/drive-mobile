@@ -1,6 +1,5 @@
 import { Controller, useForm } from 'react-hook-form';
 import { useEffect, useState } from 'react';
-import { useTailwind } from 'tailwind-rn';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import strings from '../../../../assets/lang/strings';
@@ -19,7 +18,6 @@ const schema: yup.ObjectSchema<EditNameFormData> = yup
 
 const EditNameForm = (props: BaseFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const {
@@ -59,7 +57,7 @@ const EditNameForm = (props: BaseFormProps) => {
             onChangeText={field.onChange}
             value={field.value}
             autoFocus
-            containerStyle={tailwind('mb-3')}
+            containerClassName="mb-3"
             status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message]}
             label={strings.inputs.name}
           />
@@ -74,7 +72,7 @@ const EditNameForm = (props: BaseFormProps) => {
             onChangeText={field.onChange}
             value={field.value}
             status={[fieldState.error ? 'error' : 'idle', fieldState.error?.message || '']}
-            containerStyle={tailwind('mb-6')}
+            containerClassName="mb-6"
             label={strings.inputs.lastName}
           />
         )}

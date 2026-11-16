@@ -46,15 +46,15 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
   };
   const renderCancelSubscription = () => (
     <>
-      <AppText lineHeight={1.2} style={tailwind('text-center text-lg mb-5')} medium>
+      <AppText lineHeight={1.2} className="text-center text-lg mb-5" medium>
         {strings.formatString(strings.modals.CancelSubscription.steps['cancel-subscription'].advice, userFullName)}
       </AppText>
 
       {isDowngrading && (
-        <View style={tailwind('mb-9')}>
-          <View style={tailwind('p-3 rounded-lg bg-red/5 flex-row')}>
+        <View className="mb-9">
+          <View className="p-3 rounded-lg bg-red/5 flex-row">
             <Warning weight="fill" color={getColor('text-red')} size={20} style={tailwind('mt-0.5 mr-3')} />
-            <AppText lineHeight={1.2} style={tailwind('text-sm flex-1 text-red')}>
+            <AppText lineHeight={1.2} className="text-sm flex-1 text-red">
               {strings.formatString(
                 strings.modals.CancelSubscription.steps['cancel-subscription'].storageDowngradeWarning,
                 storageService.toString(usage),
@@ -62,9 +62,9 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
               )}
             </AppText>
           </View>
-          <View style={tailwind('mt-5')}>
+          <View className="mt-5">
             <StorageUsageBar
-              style={tailwind('mt-5')}
+              className="mt-5"
               usageBytes={usage}
               limitBytes={limit}
               selectedStorageBytes={FREE_STORAGE}
@@ -73,13 +73,13 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
         </View>
       )}
 
-      <View style={tailwind('rounded-xl bg-gray-5/50 p-4 mb-10')}>
-        <View style={tailwind('flex-row justify-center items-center')}>
-          <AppText style={tailwind('text-4xl text-red')}>{storageService.toString(FREE_STORAGE)}</AppText>
+      <View className="rounded-xl bg-gray-5/50 p-4 mb-10">
+        <View className="flex-row justify-center items-center">
+          <AppText className="text-4xl text-red">{storageService.toString(FREE_STORAGE)}</AppText>
           <ArrowLeft style={tailwind('mx-3')} />
-          <AppText style={tailwind('text-4xl line-through')}>{storageService.toString(limit)}</AppText>
+          <AppText className="text-4xl line-through">{storageService.toString(limit)}</AppText>
         </View>
-        <AppText style={tailwind('mt-2 text-center')}>
+        <AppText className="mt-2 text-center">
           {strings.formatString(
             strings.modals.CancelSubscription.steps['cancel-subscription'].storageDowngrade,
             storageService.toString(limit),
@@ -99,15 +99,15 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
   );
   const renderConfirmationStep = () => (
     <>
-      <View style={tailwind('items-center mb-4')}>
+      <View className="items-center mb-4">
         <Tray size={48} color={getColor('text-primary')} />
       </View>
 
-      <AppText medium style={tailwind('mb-4 px-4 text-center text-lg')}>
+      <AppText medium className="mb-4 px-4 text-center text-lg">
         {strings.modals.CancelSubscription.steps.confirmation.advice}
       </AppText>
 
-      <AppText style={tailwind('mb-10 text-center text-gray-60')}>
+      <AppText className="mb-10 text-center text-gray-60">
         {strings.modals.CancelSubscription.steps.confirmation.spam}
       </AppText>
 
@@ -127,8 +127,8 @@ const CancelSubscriptionModal = (props: BaseModalProps & { onSubscriptionCancell
 
   return (
     <BottomModal isOpen={props.isOpen} onClosed={props.onClose} topDecoration>
-      <View style={tailwind('px-4 pb-4')}>
-        <AppText style={tailwind('text-center mb-6')} semibold>
+      <View className="px-4 pb-4">
+        <AppText className="text-center mb-6" semibold>
           {strings.modals.CancelSubscription.title.toUpperCase()}
         </AppText>
 

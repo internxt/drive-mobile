@@ -7,7 +7,6 @@ import SettingsGroup from 'src/components/SettingsGroup';
 import storageService from 'src/services/StorageService';
 import { paymentsSelectors } from 'src/store/slices/payments';
 import { storageSelectors } from 'src/store/slices/storage';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 import AppProgressBar from '../../components/AppProgressBar';
 import AppScreen from '../../components/AppScreen';
@@ -29,7 +28,6 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   const usage = useAppSelector(storageSelectors.usage);
   const availableStorage = useAppSelector(storageSelectors.availableStorage);
   const usagePercent = useAppSelector(storageSelectors.usagePercent);
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const getLimitString = () => {
@@ -53,18 +51,18 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   const statusSteps = [
     () => (
       <>
-        <AppText style={tailwind('text-lg text-center')}>{strings.generic.used}</AppText>
-        <AppText style={tailwind('text-5xl text-center')}>{storageService.toString(usage)}</AppText>
-        <AppText style={tailwind('text-lg text-center')}>
+        <AppText className="text-lg text-center">{strings.generic.used}</AppText>
+        <AppText className="text-5xl text-center">{storageService.toString(usage)}</AppText>
+        <AppText className="text-lg text-center">
           {strings.formatString(strings.generic.ofN, storageService.toString(limit))}
         </AppText>
       </>
     ),
     () => (
       <>
-        <AppText style={tailwind('text-lg text-center')}>{strings.generic.avaiblable}</AppText>
-        <AppText style={tailwind('text-5xl text-center')}>{storageService.toString(availableStorage)}</AppText>
-        <AppText style={tailwind('text-lg text-center')}>
+        <AppText className="text-lg text-center">{strings.generic.avaiblable}</AppText>
+        <AppText className="text-5xl text-center">{storageService.toString(availableStorage)}</AppText>
+        <AppText className="text-lg text-center">
           {strings.formatString(strings.generic.ofN, storageService.toString(limit))}
         </AppText>
       </>
@@ -82,7 +80,7 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
   };
 
   return (
-    <AppScreen safeAreaTop safeAreaColor={getColor('bg-surface')} style={tailwind('flex-1 bg-gray-5')}>
+    <AppScreen safeAreaTop safeAreaColor={getColor('bg-surface')} className="flex-1 bg-gray-5">
       <AppScreenTitle
         text={strings.screens.StorageScreen.title}
         containerStyle={{ backgroundColor: getColor('bg-surface') }}
@@ -90,8 +88,8 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
         onBackButtonPressed={onBackButtonPressed}
       />
 
-      <ScrollView style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}>
-        <View style={[tailwind('pb-10 px-4'), { backgroundColor: getColor('bg-gray-5') }]}>
+      <ScrollView className="flex-1" style={{ backgroundColor: getColor('bg-gray-5') }}>
+        <View className="pb-10 px-4" style={{ backgroundColor: getColor('bg-gray-5') }}>
           {/* STATUS */}
           <GestureRecognizer
             onSwipeLeft={onStatusSwipeLeft}
@@ -101,17 +99,13 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
               directionalOffsetThreshold: 80,
             }}
           >
-            <View style={tailwind('my-8')}>
+            <View className="my-8">
               {renderStatusStep()}
-              <View style={tailwind('mt-2 flex-row justify-center ')}>
+              <View className="mt-2 flex-row justify-center">
                 {statusSteps.map((step, index) => (
                   <View
                     key={index}
-                    style={[
-                      tailwind('rounded-full w-1 h-1'),
-                      index === currentStatusStep ? tailwind('bg-gray-80') : tailwind('bg-gray-30'),
-                      index !== statusSteps.length - 1 && tailwind('mr-1'),
-                    ]}
+                    className={`rounded-full w-1 h-1 ${index === currentStatusStep ? 'bg-gray-80' : 'bg-gray-30'} ${index !== statusSteps.length - 1 ? 'mr-1' : ''}`}
                   />
                 ))}
               </View>
@@ -125,17 +119,17 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
               {
                 key: 'usage',
                 template: (
-                  <View style={tailwind('p-5')}>
+                  <View className="p-5">
                     <View>
-                      <View style={tailwind('flex-row justify-between')}>
-                        <AppText style={tailwind('text-lg')}>
+                      <View className="flex-row justify-between">
+                        <AppText className="text-lg">
                           {strings.screens.StorageScreen.space.used.used} {storageService.toString(usage)}{' '}
                           {strings.screens.StorageScreen.space.used.of} {getLimitString()}
                         </AppText>
-                        <AppText style={tailwind('text-lg text-gray-40')}>{`${usagePercent}%`}</AppText>
+                        <AppText className="text-lg text-gray-40">{`${usagePercent}%`}</AppText>
                       </View>
 
-                      <View style={tailwind('my-3')}>
+                      <View className="my-3">
                         <AppProgressBar height={12} totalValue={limit} currentValue={usage} />
                       </View>
                     </View>
@@ -143,14 +137,14 @@ function StorageScreen({ navigation }: SettingsScreenProps<'Storage'>): JSX.Elem
                     {showBilling &&
                       (hasPaidPlan ? (
                         <AppButton
-                          style={tailwind('mt-3')}
+                          className="mt-3"
                           type="accept-2"
                           onPress={onUpgradePressed}
                           title={strings.buttons.changePlan}
                         />
                       ) : (
                         <AppButton
-                          style={tailwind('mt-3')}
+                          className="mt-3"
                           type="accept"
                           onPress={onUpgradePressed}
                           title={strings.buttons.upgrade}

@@ -36,9 +36,9 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
       onLongPress={onItemLongPressed}
       onPress={onItemPressed}
     >
-      <View style={[tailwind('px-4 flex-row justify-between')]}>
-        <View style={[tailwind('flex-row flex-1 py-3')]}>
-          <View style={[tailwind('mb-1 mr-4 items-center justify-center')]}>
+      <View className="px-4 flex-row justify-between">
+        <View className="flex-row flex-1 py-3">
+          <View className="mb-1 mr-4 items-center justify-center">
             {isFolder ? (
               <FolderIcon width={iconSize} height={iconSize} />
             ) : (
@@ -46,20 +46,17 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
             )}
           </View>
 
-          <View style={[tailwind('flex-1 flex items-start justify-center')]}>
+          <View className="flex-1 flex items-start justify-center">
             <AppText
-              style={[
-                tailwind('text-left text-base'),
-                { color: getColor('text-gray-100') },
-                globalStyle.fontWeight.medium,
-              ]}
+              className="text-left text-base"
+              style={[{ color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}
               numberOfLines={1}
               ellipsizeMode={'middle'}
             >
               {getDisplayName(props.data)}
             </AppText>
 
-            <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-50') }]}>
+            <AppText className="text-xs" style={{ color: getColor('text-gray-50') }}>
               {!isFolder && (
                 <>
                   {prettysize(props.data.size || 0)}
@@ -77,7 +74,7 @@ const DriveNavigableItem: React.FC<DriveNavigableItemProps> = ({ isLoading, disa
         </View>
 
         {isFolder && (
-          <View style={[tailwind('items-center justify-center')]}>
+          <View className="items-center justify-center">
             <CaretRight weight="bold" size={22} color={getColor('text-gray-60')} />
           </View>
         )}

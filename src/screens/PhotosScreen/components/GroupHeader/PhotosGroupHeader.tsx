@@ -3,7 +3,6 @@ import { memo } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import {
   GroupHeaderCompleted,
   GroupHeaderCount,
@@ -114,7 +113,6 @@ const PhotosGroupHeader = memo(
     onResumePress,
     onRetryPress,
   }: PhotosGroupHeaderProps): JSX.Element => {
-    const tailwind = useTailwind();
     const getColor = useGetColor();
     const { labelColor, primaryColor } = useGroupHeaderColors(isSticky);
 
@@ -126,11 +124,8 @@ const PhotosGroupHeader = memo(
 
     const content = (
       <View
-        style={[
-          tailwind('h-16 justify-center'),
-          !isSticky && { backgroundColor: getColor('bg-surface') },
-          { overflow: 'visible' },
-        ]}
+        className="h-16 justify-center"
+        style={[!isSticky && { backgroundColor: getColor('bg-surface') }, { overflow: 'visible' }]}
       >
         {isSticky && (
           <LinearGradient colors={gradientColors} locations={GRADIENT_LOCATIONS} style={StyleSheet.absoluteFill} />
@@ -140,17 +135,17 @@ const PhotosGroupHeader = memo(
           <BackupProgressBar progress={backupUploadProgress} fillColor={primaryColor} trackColor={progressTrackColor} />
         )}
 
-        <View style={tailwind('flex-row items-center px-4')}>
+        <View className="flex-row items-center px-4">
           {syncStatus.type === 'selection' ? (
             <View style={{ flex: 1 }}>
               <GroupHeaderSelection count={syncStatus.count} isSticky={isSticky} />
             </View>
           ) : (
             <>
-              <AppText semibold style={[tailwind('text-lg'), { color: labelColor, flex: 1 }]}>
+              <AppText semibold className="text-lg" style={{ color: labelColor, flex: 1 }}>
                 {label}
               </AppText>
-              <View style={[tailwind('flex-row items-center'), { gap: 8, maxWidth: 250 }]}>
+              <View className="flex-row items-center" style={{ gap: 8, maxWidth: 250 }}>
                 {renderSyncStatus({ syncStatus, isSticky, onPausePress, onResumePress, onRetryPress })}
               </View>
             </>

@@ -101,7 +101,8 @@ export const BottomFilePanel = ({
   const collapseButton = (
     <TouchableOpacity
       onPress={toggle}
-      style={[tailwind('items-center justify-center'), styles.collapseButton]}
+      className="items-center justify-center"
+      style={styles.collapseButton}
       hitSlop={4}
     >
       {isCollapsed ? (
@@ -123,12 +124,12 @@ export const BottomFilePanel = ({
         {collapseButton}
         {divider}
         <StackedFilesIcon />
-        <View style={tailwind('flex-1')}>
-          <Text style={[tailwind('text-sm'), fontStyles.medium, { color: colors.gray100 }]}>
+        <View className="flex-1">
+          <Text className="text-sm" style={[fontStyles.medium, { color: colors.gray100 }]}>
             {strings.formatString(strings.screens.ShareExtension.itemsSelected, sharedFiles.length)}
           </Text>
           {totalSize !== null || formats ? (
-            <Text style={[tailwind('text-xs mt-0.5'), fontStyles.regular, { color: colors.gray40 }]}>
+            <Text className="text-xs mt-0.5" style={[fontStyles.regular, { color: colors.gray40 }]}>
               {[totalSize === null ? null : formatBytes(totalSize), formats || null].filter(Boolean).join(' · ')}
             </Text>
           ) : null}
@@ -147,17 +148,22 @@ export const BottomFilePanel = ({
     <Animated.View style={panelStyle} onLayout={handleLayout}>
       {collapseButton}
       {divider}
-      <View style={tailwind('items-center justify-center mr-3 w-10 h-10')}>
+      <View className="items-center justify-center mr-3 w-10 h-10">
         {isImage ? (
           <Image source={{ uri: file.uri }} style={styles.fileImage} resizeMode="cover" />
         ) : (
           <IconComponent width={36} height={36} />
         )}
       </View>
-      <View style={tailwind('flex-1')}>
+      <View className="flex-1">
         {isRenaming ? (
           <TextInput
-            style={[tailwind('text-sm p-0'), fontStyles.medium, styles.renameInputBase, { color: colors.gray100, borderBottomColor: colors.primary }]}
+            className="text-sm p-0"
+            style={[
+              fontStyles.medium,
+              styles.renameInputBase,
+              { color: colors.gray100, borderBottomColor: colors.primary },
+            ]}
             value={nameWithoutExt}
             onChangeText={handleRenameChange}
             onBlur={handleEndRename}
@@ -168,13 +174,14 @@ export const BottomFilePanel = ({
           />
         ) : (
           <Text
-            style={[tailwind('text-sm'), fontStyles.medium, styles.fileNameText, { color: colors.gray100 }]}
+            className="text-sm"
+            style={[fontStyles.medium, styles.fileNameText, { color: colors.gray100 }]}
             numberOfLines={1}
           >
             {displayName}
           </Text>
         )}
-        <Text style={[tailwind('text-xs mt-0.5'), fontStyles.regular, { color: colors.gray40 }]}>
+        <Text className="text-xs mt-0.5" style={[fontStyles.regular, { color: colors.gray40 }]}>
           {file.size === null ? ext : `${formatBytes(file.size)} · ${ext}`}
         </Text>
       </View>

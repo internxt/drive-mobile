@@ -47,14 +47,12 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
   };
 
   return (
-    <View style={[tailwind('flex-row'), props.style]}>
-      <View style={[tailwind('flex-1 py-2'), isFocused ? tailwind('pl-3') : tailwind('px-4')]}>
-        <View
-          style={[tailwind('bg-gray-5 flex-grow rounded-xl flex-shrink'), { backgroundColor: getColor('bg-gray-5') }]}
-        >
-          <View style={tailwind('flex-row items-center')}>
+    <View className="flex-row" style={props.style}>
+      <View className={`flex-1 py-2 ${isFocused ? 'pl-3' : 'px-4'}`}>
+        <View className="bg-gray-5 flex-grow rounded-xl flex-shrink" style={{ backgroundColor: getColor('bg-gray-5') }}>
+          <View className="flex-row items-center">
             {!isFocused && (
-              <View style={tailwind('pl-3')}>
+              <View className="pl-3">
                 <MagnifyingGlassIcon color={getColor('text-gray-40')} size={18} />
               </View>
             )}
@@ -85,7 +83,7 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
 
             {!!props.value && (
               <TouchableOpacity onPress={onClearButtonPressed}>
-                <View style={tailwind('py-1.5 px-3 items-center justify-center')}>
+                <View className="py-1.5 px-3 items-center justify-center">
                   <XCircleIcon weight="fill" color={getColor('text-gray-40')} size={24} />
                 </View>
               </TouchableOpacity>
@@ -96,8 +94,8 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
 
       {isFocused && (
         <TouchableOpacity onPress={onCancelButtonPressed}>
-          <View style={tailwind('flex-grow px-3 justify-center')}>
-            <AppText style={tailwind('text-sm text-primary')}>{strings.buttons.cancel}</AppText>
+          <View className="flex-grow px-3 justify-center">
+            <AppText className="text-sm text-primary">{strings.buttons.cancel}</AppText>
           </View>
         </TouchableOpacity>
       )}

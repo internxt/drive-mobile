@@ -5,7 +5,6 @@ import BottomModalOption from 'src/components/BottomModalOption';
 import BottomModal from 'src/components/modals/BottomModal';
 import useGetColor from 'src/hooks/useColor';
 import globalStyle from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
 import StackedFilesIllustration from '../../../../assets/icons/stacked-files.svg';
 import strings from '../../../../assets/lang/strings';
 import { getSelectionTitle } from './DriveFolderScreenHeader';
@@ -41,7 +40,6 @@ export const DriveSelectionActionsModal = ({
   onDownloadPress,
   onClose,
 }: DriveSelectionActionsModalProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const iconColor = getColor('text-gray-80');
 
@@ -77,16 +75,14 @@ export const DriveSelectionActionsModal = ({
   ];
 
   const header = (
-    <View style={tailwind('flex-row items-center')}>
+    <View className="flex-row items-center">
       <View
-        style={[
-          tailwind('mr-3 items-center justify-center'),
-          { width: ILLUSTRATION_CONTAINER_SIZE, height: ILLUSTRATION_CONTAINER_SIZE },
-        ]}
+        className="mr-3 items-center justify-center"
+        style={{ width: ILLUSTRATION_CONTAINER_SIZE, height: ILLUSTRATION_CONTAINER_SIZE }}
       >
         <StackedFilesIllustration width={ILLUSTRATION_SIZE} height={ILLUSTRATION_SIZE} />
       </View>
-      <AppText style={[tailwind('text-base'), { color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}>
+      <AppText className="text-base" style={[{ color: getColor('text-gray-100') }, globalStyle.fontWeight.medium]}>
         {getSelectionTitle(selectedCount)}
       </AppText>
     </View>
@@ -100,8 +96,8 @@ export const DriveSelectionActionsModal = ({
       onClosed={onClose}
       header={header}
     >
-      <View style={tailwind('p-4')}>
-        <View style={[tailwind('rounded-2xl overflow-hidden'), { backgroundColor: getColor('bg-surface') }]}>
+      <View className="p-4">
+        <View className="rounded-2xl overflow-hidden" style={{ backgroundColor: getColor('bg-surface') }}>
           {options.map((option, index) => (
             <BottomModalOption
               disabled={option.disabled}
@@ -109,8 +105,10 @@ export const DriveSelectionActionsModal = ({
               key={option.label}
               leftSlot={option.icon}
               rightSlot={
-                <View style={tailwind('flex-grow items-center justify-center flex-row')}>
-                  <AppText style={[tailwind('text-lg'), { color: option.color }]}>{option.label}</AppText>
+                <View className="flex-grow items-center justify-center flex-row">
+                  <AppText className="text-lg" style={{ color: option.color }}>
+                    {option.label}
+                  </AppText>
                 </View>
               }
               hideBorderBottom={index === options.length - 1}

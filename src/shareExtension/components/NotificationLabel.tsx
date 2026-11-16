@@ -65,7 +65,9 @@ export const NotificationLabel = ({
   if (hasAction) {
     actionComponent = (
       <TouchableOpacity onPress={onAction} hitSlop={8}>
-        <Text style={[tailwind('text-base'), fontStyles.medium, { color: colors.primary }]}>{actionLabel}</Text>
+        <Text className="text-base" style={[fontStyles.medium, { color: colors.primary }]}>
+          {actionLabel}
+        </Text>
       </TouchableOpacity>
     );
   } else {
@@ -79,25 +81,24 @@ export const NotificationLabel = ({
   return (
     <Animated.View style={[tailwind('mx-4'), { transform: [{ translateY }] }]}>
       <View
-        style={[
-          tailwind('flex-row items-center rounded-lg px-3 py-3'),
-          {
-            backgroundColor: isSuccess ? colors.surface : colors.redBg,
-            borderWidth: 1,
-            borderColor: isSuccess ? colors.gray10 : colors.redBorder,
-            gap: 6,
-            minHeight: 48,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.08,
-            shadowRadius: 8,
-            elevation: 4,
-          },
-        ]}
+        className="flex-row items-center rounded-lg px-3 py-3"
+        style={{
+          backgroundColor: isSuccess ? colors.surface : colors.redBg,
+          borderWidth: 1,
+          borderColor: isSuccess ? colors.gray10 : colors.redBorder,
+          gap: 6,
+          minHeight: 48,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.08,
+          shadowRadius: 8,
+          elevation: 4,
+        }}
       >
         <Icon size={20} color={iconColor} weight="fill" />
         <Text
-          style={[tailwind('flex-1 text-base'), fontStyles.regular, { lineHeight: 19, color: colors.gray100 }]}
+          className="flex-1 text-base"
+          style={[fontStyles.regular, { lineHeight: 19, color: colors.gray100 }]}
           numberOfLines={2}
         >
           {message}

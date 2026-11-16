@@ -32,15 +32,13 @@ const Row = ({ label, value, isLast }: MetadataRow & { isLast: boolean }) => {
   const tailwind = useTailwind();
   return (
     <View
-      style={[
-        tailwind('flex-row items-center px-2'),
-        { height: ROW_HEIGHT, borderBottomWidth: isLast ? 0 : 1, borderBottomColor: SEPARATOR_ROW },
-      ]}
+      className="flex-row items-center px-2"
+      style={{ height: ROW_HEIGHT, borderBottomWidth: isLast ? 0 : 1, borderBottomColor: SEPARATOR_ROW }}
     >
-      <AppText medium style={tailwind('text-base text-gray-100')}>
+      <AppText medium className="text-base text-gray-100">
         {label}
       </AppText>
-      <AppText style={[tailwind('flex-1 text-base text-gray-60'), { textAlign: 'right' }]} numberOfLines={1}>
+      <AppText className="flex-1 text-base text-gray-60" style={{ textAlign: 'right' }} numberOfLines={1}>
         {value}
       </AppText>
     </View>
@@ -245,24 +243,22 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
       {/* Back row  */}
       <GestureDetector gesture={swipeGesture}>
         <View
-          style={[
-            tailwind('flex-row items-center px-4'),
-            { height: ROW_HEIGHT, borderBottomWidth: 1, borderBottomColor: SEPARATOR_ROW },
-          ]}
+          className="flex-row items-center px-4"
+          style={{ height: ROW_HEIGHT, borderBottomWidth: 1, borderBottomColor: SEPARATOR_ROW }}
         >
           {/* Pull indicator pill */}
-          <View style={[tailwind('absolute'), { top: 0, left: 0, right: 0, alignItems: 'center' }]}>
-            <View style={[tailwind('bg-gray-20'), { width: 48, height: 4, borderRadius: 2, marginTop: 8 }]} />
+          <View className="absolute" style={{ top: 0, left: 0, right: 0, alignItems: 'center' }}>
+            <View className="bg-gray-20" style={{ width: 48, height: 4, borderRadius: 2, marginTop: 8 }} />
           </View>
 
           <TouchableOpacity
             onPress={onClose}
             activeOpacity={0.7}
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-            style={tailwind('flex-row items-center')}
+            className="flex-row items-center"
           >
             <CaretLeftIcon size={24} color={getColor('text-primary')} />
-            <AppText medium style={tailwind('text-base text-primary')}>
+            <AppText medium className="text-base text-primary">
               {photoPreviewStrings.back}
             </AppText>
           </TouchableOpacity>
@@ -271,24 +267,22 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
 
       {/* Photo info header */}
       <View
-        style={[
-          tailwind('flex-row items-center px-4'),
-          { gap: 12, paddingVertical: 24, borderBottomWidth: 1, borderBottomColor: SEPARATOR_SECTION },
-        ]}
+        className="flex-row items-center px-4"
+        style={{ gap: 12, paddingVertical: 24, borderBottomWidth: 1, borderBottomColor: SEPARATOR_SECTION }}
       >
         {thumbnailUri ? (
-          <Image source={{ uri: thumbnailUri }} style={tailwind('w-12 h-12 rounded-lg')} resizeMode="cover" />
+          <Image source={{ uri: thumbnailUri }} className="w-12 h-12 rounded-lg" resizeMode="cover" />
         ) : (
-          <View style={tailwind('bg-gray-5 w-12 h-12 rounded-lg')} />
+          <View className="bg-gray-5 w-12 h-12 rounded-lg" />
         )}
-        <View style={tailwind('flex-1')}>
+        <View className="flex-1">
           {headerName ? (
-            <AppText medium style={tailwind('text-base text-gray-100')} numberOfLines={1}>
+            <AppText medium className="text-base text-gray-100" numberOfLines={1}>
               {headerName}
             </AppText>
           ) : null}
           {headerSubtitle ? (
-            <AppText style={[tailwind('text-sm text-gray-60'), { marginTop: 2 }]} numberOfLines={1}>
+            <AppText className="text-sm text-gray-60" style={{ marginTop: 2 }} numberOfLines={1}>
               {headerSubtitle}
             </AppText>
           ) : null}
@@ -296,7 +290,7 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={tailwind('px-4 py-2')}>
+        <View className="px-4 py-2">
           {rows.map((row, index) => (
             <Row key={row.label} label={row.label} value={row.value} isLast={index === rows.length - 1} />
           ))}

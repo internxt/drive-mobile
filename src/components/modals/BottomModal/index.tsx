@@ -4,7 +4,6 @@ import Modal from 'react-native-modal';
 import { StatusBar } from 'expo-status-bar';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
 import { cssInterop } from 'nativewind';
 
@@ -30,7 +29,6 @@ export interface BottomModalProps {
 }
 
 const BottomModal = (props: BottomModalProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -57,29 +55,25 @@ const BottomModal = (props: BottomModalProps): JSX.Element => {
       hideModalContentWhileAnimating
       coverScreen={false}
     >
-      <View
-        style={[tailwind('h-full bg-transparent'), { paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top }]}
-      >
+      <View className="h-full bg-transparent" style={{ paddingTop: props.ignoreSafeAreaTop ? 0 : safeAreaInsets.top }}>
         <StatusBar style={statusBarStyle} />
 
         <TouchableWithoutFeedback hitSlop={INCREASED_TOUCH_AREA} onPress={props.onClosed}>
-          <View style={tailwind('flex-grow')}>
-            <View style={tailwind('flex-grow')} />
+          <View className="flex-grow">
+            <View className="flex-grow" />
             <TouchableWithoutFeedback>
-              <View style={[tailwind('rounded-t-xl'), { backgroundColor: getColor('bg-surface') }, props.style]}>
+              <View className="rounded-t-xl" style={[{ backgroundColor: getColor('bg-surface') }, props.style]}>
                 {props.topDecoration && (
-                  <View style={tailwind('py-4 items-center')}>
-                    <View style={[tailwind('rounded-full h-1 w-14'), { backgroundColor: getColor('bg-gray-10') }]} />
+                  <View className="py-4 items-center">
+                    <View className="rounded-full h-1 w-14" style={{ backgroundColor: getColor('bg-gray-10') }} />
                   </View>
                 )}
                 {props.header && (
                   <View
-                    style={[
-                      tailwind('flex-row px-5 py-6 items-center justify-between overflow-hidden rounded-t-xl'),
-                      props.headerStyle,
-                    ]}
+                    className="flex-row px-5 py-6 items-center justify-between overflow-hidden rounded-t-xl"
+                    style={props.headerStyle}
                   >
-                    <View style={tailwind('flex-1')}>{props.header}</View>
+                    <View className="flex-1">{props.header}</View>
                   </View>
                 )}
 

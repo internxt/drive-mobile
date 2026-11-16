@@ -2,7 +2,6 @@ import { memo } from 'react';
 import { View } from 'react-native';
 
 import { DriveListType, DriveListViewMode } from '@internxt-mobile/types/drive/ui';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../../hooks/useColor';
 import { DriveListItem } from '../../../../types/drive/item';
 import { DriveGridModeItem } from '../items/DriveGridModeItem';
@@ -34,17 +33,14 @@ const DriveListRowComponent = ({
   onPress,
   onLongPress,
 }: DriveListRowProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const isList = viewMode === DriveListViewMode.List;
   const ItemComponent = isList ? DriveListModeItem : DriveGridModeItem;
 
   return (
     <View
-      style={[
-        tailwind('flex justify-center'),
-        { width: isList ? '100%' : '33%', backgroundColor: getColor('bg-surface') },
-      ]}
+      className="flex justify-center"
+      style={{ width: isList ? '100%' : '33%', backgroundColor: getColor('bg-surface') }}
     >
       <ItemComponent
         type={type}

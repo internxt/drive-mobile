@@ -3,7 +3,6 @@ import { Keyboard, View } from 'react-native';
 
 import drive from '@internxt-mobile/services/drive';
 import { driveLocalDB } from '@internxt-mobile/services/drive/database';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
 import errorService from '../../../services/ErrorService';
@@ -22,7 +21,6 @@ interface CreateFolderModalProps extends BaseModalProps {
 }
 
 const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [folderName, setFolderName] = useState(strings.screens.create_folder.defaultName);
   const [isLoading, setIsLoading] = useState(false);
@@ -74,13 +72,13 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
 
   return (
     <CenterModal isOpen={props.isOpen} onClosed={onClosed} backdropPressToClose={false}>
-      <View style={[tailwind('p-4 rounded-xl'), { backgroundColor: getColor('bg-surface') }]}>
-        <AppText style={[tailwind('text-xl mb-6'), { color: getColor('text-gray-100') }]} medium>
+      <View className="p-4 rounded-xl" style={{ backgroundColor: getColor('bg-surface') }}>
+        <AppText className="text-xl mb-6" style={{ color: getColor('text-gray-100') }} medium>
           {strings.modals.CreateFolder.title}
         </AppText>
 
         <AppTextInput
-          containerStyle={tailwind('mb-8')}
+          containerClassName="mb-8"
           label={strings.inputs.name}
           value={folderName}
           onChangeText={(value) => setFolderName(value)}
@@ -93,16 +91,16 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
           autoCorrect={false}
         />
 
-        <View style={tailwind('flex-row justify-between')}>
+        <View className="flex-row justify-between">
           <AppButton
             title={strings.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
             disabled={isLoading}
-            style={tailwind('flex-1')}
+            className="flex-1"
           />
 
-          <View style={tailwind('px-1')}></View>
+          <View className="px-1"></View>
 
           <AppButton
             title={isLoading ? strings.buttons.creating : strings.buttons.create}
@@ -110,7 +108,7 @@ const CreateFolderModal: React.FC<CreateFolderModalProps> = (props) => {
             onPress={onCreateFolderButtonPressed}
             loading={isLoading}
             disabled={isLoading}
-            style={tailwind('flex-1')}
+            className="flex-1"
           />
         </View>
       </View>

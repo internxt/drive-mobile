@@ -1,6 +1,5 @@
 import { XIcon } from 'phosphor-react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import useGetColor from '../../../hooks/useColor';
 import globalStyle from '../../../styles/global';
@@ -28,26 +27,21 @@ type RecipientChipProps = {
  * @param props.onRemove - Called when the user removes the chip.
  */
 export const RecipientChip = ({ address, onRemove }: RecipientChipProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
     <View
-      style={[
-        tailwind('flex-row items-center rounded-full mr-1.5 mb-1'),
-        {
-          paddingLeft: CHIP_LEADING_PADDING,
-          height: CHIP_HEIGHT,
-          maxWidth: '100%',
-          backgroundColor: getColor('bg-primary-10'),
-        },
-      ]}
+      className="flex-row items-center rounded-full mr-1.5 mb-1"
+      style={{
+        paddingLeft: CHIP_LEADING_PADDING,
+        height: CHIP_HEIGHT,
+        maxWidth: '100%',
+        backgroundColor: getColor('bg-primary-10'),
+      }}
     >
       <View
-        style={[
-          tailwind('items-center justify-center rounded-full mr-1.5'),
-          { width: INITIAL_SIZE, height: INITIAL_SIZE, backgroundColor: getColor('text-primary') },
-        ]}
+        className="items-center justify-center rounded-full mr-1.5"
+        style={{ width: INITIAL_SIZE, height: INITIAL_SIZE, backgroundColor: getColor('text-primary') }}
       >
         <Text style={[globalStyle.fontWeight.semibold, { fontSize: INITIAL_FONT_SIZE, color: getColor('text-white') }]}>
           {initialOf(undefined, address)}
@@ -61,14 +55,12 @@ export const RecipientChip = ({ address, onRemove }: RecipientChipProps): JSX.El
         accessibilityLabel={address}
         onPress={onRemove}
         hitSlop={REMOVE_BUTTON_HIT_SLOP}
-        style={[
-          tailwind('items-center justify-center'),
-          {
-            height: CHIP_HEIGHT,
-            paddingLeft: REMOVE_BUTTON_LEADING_PADDING,
-            paddingRight: REMOVE_BUTTON_TRAILING_PADDING,
-          },
-        ]}
+        className="items-center justify-center"
+        style={{
+          height: CHIP_HEIGHT,
+          paddingLeft: REMOVE_BUTTON_LEADING_PADDING,
+          paddingRight: REMOVE_BUTTON_TRAILING_PADDING,
+        }}
       >
         <XIcon size={REMOVE_ICON_SIZE} weight="bold" color={getColor('text-primary-dark')} />
       </TouchableOpacity>

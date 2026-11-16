@@ -20,8 +20,8 @@ function EmptyFileNotAllowedModal(): JSX.Element {
 
   return (
     <CenterModal isOpen={isOpen} onClosed={handleClose} style={{ overflow: 'hidden' }}>
-      <View style={[tailwind('px-4 py-4'), { backgroundColor: getColor('bg-surface') }]}>
-        <AppText medium style={[tailwind('text-xl mb-2'), { color: getColor('text-gray-100') }]}>
+      <View className="px-4 py-4" style={{ backgroundColor: getColor('bg-surface') }}>
+        <AppText medium className="text-xl mb-2" style={{ color: getColor('text-gray-100') }}>
           {strings.modals.EmptyFileNotAllowedModal.title}
         </AppText>
         <AppText

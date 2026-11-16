@@ -1,7 +1,6 @@
 import { ReactNode, useCallback } from 'react';
 import { FlatList, Keyboard, StyleProp, Text, View, ViewStyle } from 'react-native';
 import DriveItemSkinSkeleton from 'src/components/DriveItemSkinSkeleton';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { fontStyles, useShareColors } from '../../theme';
 import { DriveViewMode, ShareFileItem, ShareFolderItem } from '../../types';
@@ -24,10 +23,9 @@ interface DriveListMessageProps {
 }
 
 const DriveListMessage = ({ message, style = FULL_SCREEN_MESSAGE_STYLE, children }: DriveListMessageProps) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   return (
-    <View style={[tailwind('items-center'), style]}>
+    <View className="items-center" style={style}>
       <Text style={[{ fontSize: 16, color: colors.gray40 }, fontStyles.regular]}>{message}</Text>
       {children}
     </View>
@@ -84,7 +82,6 @@ export const DriveList = ({
   onNavigate,
   onLoadMore,
 }: DriveListProps) => {
-  const tailwind = useTailwind();
   const numColumns = viewMode === 'grid' ? 3 : 1;
 
   const renderItem = useCallback(
@@ -98,9 +95,9 @@ export const DriveList = ({
 
   if (loading) {
     return (
-      <View style={tailwind('flex-1')}>
+      <View className="flex-1">
         {SKELETON_KEYS.map((key) => (
-          <View style={viewMode === 'grid' ? undefined : tailwind('h-16')} key={key}>
+          <View className={`${viewMode === 'grid' ? '' : 'h-16'}`} key={key}>
             <DriveItemSkinSkeleton viewMode={viewMode} />
           </View>
         ))}
@@ -115,13 +112,13 @@ export const DriveList = ({
   const renderFooter = () => {
     if (loadingMore) {
       return (
-        <View style={tailwind('h-16')}>
+        <View className="h-16">
           <DriveItemSkinSkeleton viewMode={viewMode} />
         </View>
       );
     }
     if (hasLoadMoreError) {
-      return <DriveListError isSessionExpired={isSessionExpired} onRetry={onRetryLoadMore} style={tailwind('py-6')} />;
+      return <DriveListError isSessionExpired={isSessionExpired} onRetry={onRetryLoadMore} className="py-6" />;
     }
     return null;
   };
@@ -133,7 +130,8 @@ export const DriveList = ({
       keyExtractor={keyExtractor}
       numColumns={numColumns}
       renderItem={renderItem}
-      contentContainerStyle={[viewMode === 'grid' && tailwind('px-2'), { paddingBottom: bottomInset }]}
+      contentContainerClassName={`${viewMode === 'grid' ? 'px-2' : ''}`}
+      contentContainerStyle={{ paddingBottom: bottomInset }}
       ListEmptyComponent={
         <DriveListMessage
           message={searchQuery ? strings.screens.ShareExtension.noResults : strings.screens.ShareExtension.emptyFolder}

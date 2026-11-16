@@ -36,7 +36,7 @@ const AppToast = (): JSX.Element => {
   const iconDefaultProps = {
     size: 20,
   };
-  const renderIcon = (icon: ReactNode) => <View style={tailwind('justify-center mr-2.5')}>{icon}</View>;
+  const renderIcon = (icon: ReactNode) => <View className="justify-center mr-2.5">{icon}</View>;
   const renderAction = (toastProps: ToastConfigParams<AppToastExtraProps>) => {
     const callback = () => {
       if (toastProps.props.action) {
@@ -47,9 +47,9 @@ const AppToast = (): JSX.Element => {
 
     const text = toastProps.props.action ? toastProps.props.action.text : strings.buttons.dismiss;
     return (
-      <TouchableHighlight onPress={callback} underlayColor={getColor('text-gray-5')} style={tailwind('rounded-r-xl ')}>
-        <View style={tailwind('justify-center flex-1 px-3.5')}>
-          <Text style={tailwind('text-primary text-base')}>{text}</Text>
+      <TouchableHighlight onPress={callback} underlayColor={getColor('text-gray-5')} className="rounded-r-xl">
+        <View className="justify-center flex-1 px-3.5">
+          <Text className="text-primary text-base">{text}</Text>
         </View>
       </TouchableHighlight>
     );
