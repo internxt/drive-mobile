@@ -124,7 +124,7 @@ const FloatingActionButton = ({
       >
         {isComposeMode && isLabelShown && (
           <Animated.Text
-            entering={FadeIn.duration(LABEL_FADE_DURATION)}
+            entering={FadeIn.duration(LABEL_FADE_DURATION).delay(RESIZE_DURATION)}
             exiting={FadeOut.duration(LABEL_FADE_DURATION)}
             numberOfLines={1}
             style={[
@@ -136,7 +136,10 @@ const FloatingActionButton = ({
             {strings.components.floatingActionButton.compose}
           </Animated.Text>
         )}
-        <Animated.View style={[tailwind('items-center justify-center'), styles.iconSlot]}>
+        <Animated.View
+          layout={LinearTransition.duration(RESIZE_DURATION)}
+          style={[tailwind('items-center justify-center'), styles.iconSlot]}
+        >
           {isComposeMode ? (
             <Animated.View
               key="compose"
