@@ -5,6 +5,7 @@ import { TouchableWithoutFeedback } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
+import { cssInterop } from 'nativewind';
 
 interface AppScreenProps {
   backgroundColor?: string;
@@ -15,6 +16,7 @@ interface AppScreenProps {
   safeAreaBottom?: boolean;
   children?: React.ReactNode | React.ReactNode[];
   style?: StyleProp<ViewStyle>;
+  className?: string;
   hasBottomTabs?: boolean;
 }
 
@@ -71,5 +73,7 @@ const AppScreen = (props: AppScreenProps): JSX.Element => {
     </View>
   );
 };
+
+cssInterop(AppScreen, { className: 'style' });
 
 export default AppScreen;

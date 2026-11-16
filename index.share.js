@@ -1,3 +1,5 @@
+import './global.css';
+
 // Polyfills
 import { Buffer } from 'buffer';
 import 'react-native-get-random-values';

@@ -114,6 +114,7 @@ export const MessageHeader = ({
             accessibilityRole="button"
             accessibilityLabel={detailStrings.actions.reply}
             onPress={onReply}
+            cssInterop={false}
             style={({ pressed }) => [
               tailwind('items-center justify-center rounded-full ml-2'),
               {

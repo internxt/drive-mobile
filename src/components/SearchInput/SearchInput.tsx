@@ -7,12 +7,14 @@ import useGetColor from '../../hooks/useColor';
 
 import styles from '../../styles/global';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface SearchInputProps {
   value?: string;
   onChangeText: (value: string) => void;
   placeholder?: string;
   style?: StyleProp<ViewStyle>;
+  className?: string;
   onFocusChange?: (isFocused: boolean) => void;
   onSubmitEditing?: () => void;
   autoFocus?: boolean;
@@ -102,3 +104,5 @@ export function SearchInput(props: SearchInputProps): JSX.Element {
     </View>
   );
 }
+
+cssInterop(SearchInput, { className: 'style' });

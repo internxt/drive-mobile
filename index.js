@@ -1,4 +1,6 @@
 import './shim';
+import './global.css';
+import './src/styles/nativeWindInterop';
 
 // Polyfills
 import 'expo-asset';

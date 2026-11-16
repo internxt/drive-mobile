@@ -79,6 +79,7 @@ const FloatingActionMenu = ({ isOpen, actions, onClose }: FloatingActionMenuProp
                 accessibilityRole="button"
                 accessibilityLabel={action.label}
                 onPress={action.onPress}
+                cssInterop={false}
                 style={({ pressed }) => [tailwind('flex-row items-center'), { opacity: pressed ? PRESSED_OPACITY : 1 }]}
               >
                 <View

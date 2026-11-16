@@ -78,6 +78,7 @@ export const ThreadActions = ({
               onPress();
             }}
             disabled={isDisabled}
+            cssInterop={false}
             style={({ pressed }) => [
               tailwind('items-center justify-center rounded-full'),
               {
