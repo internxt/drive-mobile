@@ -1,15 +1,17 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import { Image as ExpoImage } from 'expo-image';
 import * as NavigationBar from 'expo-navigation-bar';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { PlayIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Platform, TouchableOpacity, View } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import Video, { BufferConfig, BufferingStrategyType, VideoRef } from 'react-native-video';
 import { useTailwind } from 'tailwind-rn';
 
 interface VideoViewerProps {
   source?: string;
   thumbnail?: string;
+  thumbnailCacheKey?: string;
   onPlay?: () => void;
   onPause?: () => void;
   onEnd?: () => void;
@@ -44,6 +46,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
   onPause,
   onEnd,
   thumbnail,
+  thumbnailCacheKey,
   onVideoLoadError,
 }) => {
   const tailwind = useTailwind();
@@ -138,10 +141,10 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
           </View>
         )}
         {showThumbnail && thumbnail && (
-          <Image
-            source={{ uri: fileSystemService.pathToUri(thumbnail) }}
+          <ExpoImage
+            source={{ uri: fileSystemService.pathToUri(thumbnail), cacheKey: thumbnailCacheKey }}
             style={tailwind('w-full h-full')}
-            resizeMode="contain"
+            contentFit="contain"
           />
         )}
         {source && (
