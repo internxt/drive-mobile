@@ -5,6 +5,7 @@ import { useTailwind } from 'tailwind-rn';
 import { AppLinks } from '../navigation/AppLinks';
 import errorService from '../services/ErrorService';
 import { RootStackScreenProps } from '../types/navigation';
+import { useKeepFilesUntilSignIn } from './AndroidShareSignInContext';
 import { useShareExtension } from './hooks/useShareExtension.android';
 import { useShareUpload } from './hooks/useShareUpload';
 import { DriveScreen } from './screens/DriveScreen';
@@ -31,7 +32,11 @@ const ShareExtensionView = ({ navigation, route }: RootStackScreenProps<'Android
   } = useShareUpload();
 
   const handleClose = useCallback(() => navigation.goBack(), [navigation]);
-  const handleOpenLogin = useCallback(() => navigation.navigate('SignIn'), [navigation]);
+  const keepFilesUntilSignIn = useKeepFilesUntilSignIn();
+  const handleOpenLogin = useCallback(() => {
+    keepFilesUntilSignIn(route.params?.files ?? []);
+    navigation.navigate('SignIn');
+  }, [keepFilesUntilSignIn, navigation, route.params?.files]);
 
   const handleSave = useCallback(
     (destinationFolderUuid: string, renamedFileName?: string) => {
