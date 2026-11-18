@@ -49,8 +49,6 @@ struct FileProviderUploadService {
             type: fileExtension,
             bucket: bucket,
             size: fileSize,
-            folderId: meta.id,
-            name: baseName,
             plainName: baseName,
             folderUuid: parentUuid
         ))

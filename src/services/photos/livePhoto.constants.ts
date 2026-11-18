@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 
 export const LIVE_PHOTO_PLAIN_NAME_SUFFIX = '.livephoto';
 export const LIVE_PHOTO_VIDEO_TYPE = 'mov';

@@ -1,6 +1,7 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { DriveFileData } from '@internxt-mobile/types/drive/file';
-import { FetchPaginatedFolder, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { FetchPaginatedFolder } from '@internxt-mobile/types/drive/folder';
+import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { logger } from 'src/services/common';
 import { driveFolderService } from 'src/services/drive/folder/driveFolder.service';
 import { buildBurstBaseSet, linkBurst } from './burst/BurstCloudLinker';
@@ -201,7 +202,7 @@ class PhotoCloudBrowserService {
     const foundIds = new Set<string>();
 
     for (const dayFolder of dayFolders) {
-      const day = Number.parseInt(dayFolder.plainName ?? '', 10);
+      const day = Number.parseInt(dayFolder.plainName, 10);
       const folderDate = new Date(year, month - 1, Number.isNaN(day) ? 1 : day).getTime();
 
       const files = await this.listFilesWithThumbnails(dayFolder.uuid);
@@ -439,11 +440,11 @@ class PhotoCloudBrowserService {
     const monthsForDevice: { deviceId: string; year: number; month: number; monthFolderUuid: string }[] = [];
     const yearFolders = await this.listAllFolders(device.uuid);
     for (const yearFolder of yearFolders) {
-      const year = Number.parseInt(yearFolder.plainName ?? '', 10);
+      const year = Number.parseInt(yearFolder.plainName, 10);
       if (Number.isNaN(year)) continue;
       const monthFolders = await this.listAllFolders(yearFolder.uuid);
       for (const monthFolder of monthFolders) {
-        const month = Number.parseInt(monthFolder.plainName ?? '', 10);
+        const month = Number.parseInt(monthFolder.plainName, 10);
         if (Number.isNaN(month) || month < MIN_MONTH_NUMBER || month > MAX_MONTH_NUMBER) continue;
         monthsForDevice.push({ deviceId: device.uuid, year, month, monthFolderUuid: monthFolder.uuid });
       }
@@ -463,7 +464,7 @@ class PhotoCloudBrowserService {
   private buildPlainNameIndex(files: DriveFileData[]): Map<string, string> {
     const index = new Map<string, string>();
     for (const file of files) {
-      const baseName = file.plainName ?? file.name;
+      const baseName = file.plainName;
       index.set(baseName.toLowerCase(), file.uuid);
     }
     return index;
@@ -483,10 +484,10 @@ class PhotoCloudBrowserService {
     now: number;
   }): CloudAssetEntry[] {
     const entries: CloudAssetEntry[] = [];
-    const burstBaseSet = buildBurstBaseSet(files.map((f) => f.plainName ?? f.name ?? null));
+    const burstBaseSet = buildBurstBaseSet(files.map((f) => f.plainName));
 
     for (const file of files) {
-      const baseName = file.plainName ?? file.name;
+      const baseName = file.plainName;
       const type = file.type ?? '';
       const fileName = type ? `${baseName}.${type}` : baseName;
       const thumb = pickLatestThumbnail(file.thumbnails);
@@ -524,7 +525,7 @@ class PhotoCloudBrowserService {
         thumbnailBucketFile: thumb?.bucket_file ?? null,
         thumbnailType: thumb?.type ?? null,
         discoveredAt: now,
-        plainName: file.plainName ?? null,
+        plainName: file.plainName,
         extension: type || null,
         bucket: file.bucket ?? null,
         folderUuid: file.folderUuid ?? null,
@@ -578,7 +579,7 @@ class PhotoCloudBrowserService {
     const folders = await fetchAllPages((offset) =>
       this.folderService.getFolderFolders(parentUuid, offset, PAGE_SIZE).then((r) => r.folders),
     );
-    return folders.find((f) => (f.plainName ?? '') === name) ?? null;
+    return folders.find((f) => f.plainName === name) ?? null;
   }
 
   private async listAllFolders(parentUuid: string): Promise<FetchPaginatedFolder[]> {

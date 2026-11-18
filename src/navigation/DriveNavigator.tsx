@@ -15,7 +15,7 @@ export const DriveNavigator = () => {
         initialParams={{
           folderUuid: user?.rootFolderId,
         }}
-        options={{ animation: 'default' }}
+        options={{ animation: 'default', freezeOnBlur: true }}
       />
     </DriveStack.Navigator>
   );

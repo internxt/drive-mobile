@@ -550,15 +550,13 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         if (cacheFile.exists() && cacheFile.length() > 0) {
             return openCached(ctx, id, cacheFile)
         }
-        materializeIntoCache(ctx, id, api, cfg.mnemonic, file, cacheFile)
+        if (file.fileId == null) {
+            cacheFile.writeBytes(ByteArray(0))
+            return openCached(ctx, id, cacheFile)
+        }
+        materializeIntoCache(ctx, id, api, cfg.mnemonic, file.bucket, file.fileId, cacheFile)
         return openCached(ctx, id, cacheFile)
     }
-
-    private data class FileMetadata(
-        val bucket: String,
-        val fileId: String,
-        val updatedAt: String,
-    )
 
     private fun requireFileMetadata(api: InternxtApiClient, fileUuid: String): FileMetadata {
         val file = try {
@@ -566,11 +564,7 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         } catch (e: InternxtApiException) {
             throw FileNotFoundException("getFile $fileUuid failed: ${e.message}")
         }
-        return FileMetadata(
-            bucket = file.bucket ?: throw FileNotFoundException("File $fileUuid has no bucket"),
-            fileId = file.fileId ?: throw FileNotFoundException("File $fileUuid has no fileId"),
-            updatedAt = file.updatedAt ?: throw FileNotFoundException("File $fileUuid has no updatedAt"),
-        )
+        return FileMetadata.from(file)
     }
 
     private suspend fun materializeIntoCache(
@@ -578,15 +572,16 @@ class InternxtDocumentsProvider : DocumentsProvider() {
         id: String,
         api: InternxtApiClient,
         mnemonic: String,
-        file: FileMetadata,
+        bucket: String,
+        fileId: String,
         cacheFile: File,
     ) {
         val (tempEnc, tempDec) = DocumentCache.tempPaths(ctx, id)
         try {
-            val links = api.getDownloadLinks(file.bucket, file.fileId)
+            val links = api.getDownloadLinks(bucket, fileId)
             EncryptedFileDownloader.download(HttpClients.download, links.shards, tempEnc)
 
-            val key = FileKeyDeriver.deriveFileKey(mnemonic, file.bucket, links.index)
+            val key = FileKeyDeriver.deriveFileKey(mnemonic, bucket, links.index)
             val iv = FileKeyDeriver.deriveIv(links.index)
             decryptFile(tempEnc, tempDec, key.toHex(), iv.toHex())
 

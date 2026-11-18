@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 import { photosActions, runBackupCycleThunk } from 'src/store/slices/photos';

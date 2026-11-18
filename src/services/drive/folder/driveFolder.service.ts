@@ -1,13 +1,45 @@
 import asyncStorageService from '@internxt-mobile/services/AsyncStorageService';
 import { SdkManager } from '@internxt-mobile/services/common';
+import { DEFAULT_SORT_MODE, SortDirection, SortMode, SortType } from '@internxt-mobile/types/drive/ui';
 import { AsyncStorageKey } from '@internxt-mobile/types/index';
-import { FolderAncestor as SdkFolderAncestor } from '@internxt/sdk/dist/drive/storage/types';
 import { getHeaders } from '../../../helpers/headers';
-import { ModifiedFolder } from '../../../types/drive/folder';
+import {
+  CheckDuplicatedFoldersResponse,
+  CreateFolderResponse,
+  FetchFolderContentResponse,
+  FetchPaginatedFoldersContent,
+  FolderAncestor,
+  FolderMeta,
+  ModifiedFolder,
+} from '../../../types/drive/folder';
+import { FetchPaginatedFilesContent } from '../../../types/drive/file';
 import { constants } from '../../AppService';
 import { notifyParentChanged } from '../../native/InternxtSignalingModule';
 
-export type FolderAncestor = SdkFolderAncestor & { parentUuid: string | null };
+type SortOrder = 'ASC' | 'DESC';
+type SortQuery = { field: string; order: SortOrder };
+
+const SORT_FIELD_BY_TYPE: Record<SortType, string> = {
+  [SortType.Name]: 'plainName',
+  [SortType.Size]: 'size',
+  [SortType.UpdatedAt]: 'updatedAt',
+};
+
+const FOLDERS_SORT_WHEN_SORTING_BY_SIZE: SortQuery = { field: 'plainName', order: 'ASC' };
+
+const getSortOrder = ({ type, direction }: SortMode): SortOrder => {
+  const isAscendingDirection = direction === SortDirection.Asc;
+  const isAscendingSortOrder = type === SortType.UpdatedAt ? !isAscendingDirection : isAscendingDirection;
+  return isAscendingSortOrder ? 'ASC' : 'DESC';
+};
+
+const getFilesSortQuery = (sortMode: SortMode): SortQuery => ({
+  field: SORT_FIELD_BY_TYPE[sortMode.type],
+  order: getSortOrder(sortMode),
+});
+
+const getFoldersSortQuery = (sortMode: SortMode): SortQuery =>
+  sortMode.type === SortType.Size ? FOLDERS_SORT_WHEN_SORTING_BY_SIZE : getFilesSortQuery(sortMode);
 
 class DriveFolderService {
   private sdk: SdkManager;
@@ -16,19 +48,31 @@ class DriveFolderService {
     this.sdk = sdk;
   }
 
-  public async getFolderFiles(folderId: string, offset: number, limit: number) {
-    const [promise] = this.sdk.storageV2.getFolderFilesByUuid(folderId, offset, limit, 'plainName', 'ASC');
+  public async getFolderFiles(
+    folderId: string,
+    offset: number,
+    limit: number,
+    sortMode = DEFAULT_SORT_MODE,
+  ): Promise<FetchPaginatedFilesContent> {
+    const { field, order } = getFilesSortQuery(sortMode);
+    const [promise] = this.sdk.storageV2.getFolderFilesByUuid(folderId, offset, limit, field, order);
 
     return promise;
   }
 
-  public async getFolderFolders(folderId: string, offset: number, limit: number) {
-    const [promise] = this.sdk.storageV2.getFolderFoldersByUuid(folderId, offset, limit, 'plainName', 'ASC');
+  public async getFolderFolders(
+    folderId: string,
+    offset: number,
+    limit: number,
+    sortMode = DEFAULT_SORT_MODE,
+  ): Promise<FetchPaginatedFoldersContent> {
+    const { field, order } = getFoldersSortQuery(sortMode);
+    const [promise] = this.sdk.storageV2.getFolderFoldersByUuid(folderId, offset, limit, field, order);
 
     return promise;
   }
 
-  public async createFolder(parentFolderId: string, folderName: string) {
+  public async createFolder(parentFolderId: string, folderName: string): Promise<CreateFolderResponse> {
     const sdkResult = this.sdk.storageV2.createFolderByUuid({
       parentFolderUuid: parentFolderId,
       plainName: folderName,
@@ -41,18 +85,29 @@ class DriveFolderService {
     return folder;
   }
 
-  public async checkDuplicatedFolders(parentFolderUuid: string, folderNamesList: string[]) {
-    return this.sdk.storageV2.checkDuplicatedFolders({ folderUuid: parentFolderUuid, folderNamesList });
+  public async checkDuplicatedFolders(
+    parentFolderUuid: string,
+    folderNamesList: string[],
+  ): Promise<CheckDuplicatedFoldersResponse> {
+    return this.sdk.storageV2.checkDuplicatedFolders({
+      folderUuid: parentFolderUuid,
+      folderNamesList,
+    }) as Promise<CheckDuplicatedFoldersResponse>;
   }
 
   public async moveFolder({
     destinationFolderUuid,
     folderUuid,
+    name,
   }: {
     folderUuid: string;
     destinationFolderUuid: string;
-  }) {
-    const moved = await this.sdk.storageV2.moveFolderByUuid(folderUuid, { destinationFolder: destinationFolderUuid });
+    name?: string;
+  }): Promise<FolderMeta> {
+    const moved = await this.sdk.storageV2.moveFolderByUuid(folderUuid, {
+      destinationFolder: destinationFolderUuid,
+      name,
+    });
     void notifyParentChanged(destinationFolderUuid);
     return moved;
   }
@@ -65,12 +120,16 @@ class DriveFolderService {
   }
 
   public async getFolderAncestors(folderUuid: string): Promise<FolderAncestor[]> {
-    return this.sdk.storageV2.getFolderAncestors(folderUuid) as Promise<FolderAncestor[]>;
+    return this.sdk.storageV2.getFolderAncestors(folderUuid);
   }
 
-  public getFolderContentByUuid(folderUuid: string, offset?: number, limit?: number) {
+  public getFolderContentByUuid(
+    folderUuid: string,
+    offset?: number,
+    limit?: number,
+  ): Promise<FetchFolderContentResponse> {
     const [contentPromise] = this.sdk.storageV2.getFolderContentByUuid({ folderUuid, offset, limit });
-    return contentPromise;
+    return contentPromise as Promise<FetchFolderContentResponse>;
   }
 
   public async getModifiedFolders({
@@ -82,7 +141,7 @@ class DriveFolderService {
     limit?: number;
     offset?: number;
     updatedAt: string;
-    status: 'ALL' | 'TRASHED' | 'REMOVED';
+    status: 'ALL' | 'EXISTS' | 'TRASHED' | 'DELETED';
   }): Promise<ModifiedFolder[] | undefined> {
     const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
     const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;

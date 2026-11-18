@@ -1,11 +1,4 @@
-import {
-  errorCodes,
-  isErrorWithCode,
-  keepLocalCopy,
-  pick,
-  types,
-  type FileToCopy,
-} from '@react-native-documents/picker';
+import { errorCodes, isErrorWithCode, pick, types } from '@react-native-documents/picker';
 import {
   ImagePickerAsset,
   launchCameraAsync,
@@ -14,12 +7,13 @@ import {
   requestCameraPermissionsAsync,
   UIImagePickerPreferredAssetRepresentationMode,
 } from 'expo-image-picker';
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { ReactNode, useCallback, useState } from 'react';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
 import { useDrive } from '@internxt-mobile/hooks/drive';
 import { imageService, logger } from '@internxt-mobile/services/common';
+import { exportPhAsset, pickPhotoAssets, withRetry } from '@internxt-mobile/services/common/media/cameraRollAssets';
 import { uploadService } from '@internxt-mobile/services/common/network/upload/upload.service';
 import drive from '@internxt-mobile/services/drive';
 import {
@@ -55,7 +49,9 @@ import network from '../../../network';
 import analytics, { DriveAnalyticsEvent } from '../../../services/AnalyticsService';
 import appService, { constants } from '../../../services/AppService';
 import { uploadQueueService } from '../../../services/drive/file/uploadQueue.service';
+import { copyFileFromEncodedUri } from '../../../services/common/filesystem/copyFileFromEncodedUri';
 import {
+  createFileEntryWithRetry,
   createUploadingFiles,
   handleDuplicateFiles,
   initializeUploads,
@@ -63,6 +59,7 @@ import {
   uploadSingleFile,
   validateAndFilterFiles,
 } from '../../../services/drive/file/utils/uploadFileUtils';
+import { preparePickedFilesForUpload } from '../../../services/drive/file/utils/pickedFilesUpload';
 import fileSystemService from '../../../services/FileSystemService';
 import notificationsService from '../../../services/NotificationsService';
 import { useAppDispatch, useAppSelector } from '../../../store/hooks';
@@ -132,7 +129,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
     const fileExtension = fileToUpload.type;
     const destPath = fileSystemService.tmpFilePath(name);
 
-    await fileSystemService.copyFile(fileToUpload.uri, destPath);
+    await copyFileFromEncodedUri(fileToUpload.uri, destPath);
 
     if (fileType === 'document') {
       const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE, {
@@ -225,7 +222,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
         creationTime: creationTimeISO,
       };
       try {
-        const entry = await uploadService.createFileEntry(emptyEntry);
+        const entry = await createFileEntryWithRetry(emptyEntry, signal);
         drive.events.emit({ event: DriveEventKey.UploadCompleted });
         return { ...entry, thumbnails: [] } as DriveFileData;
       } catch (err) {
@@ -272,7 +269,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
     let uploadedThumbnail: Thumbnail | null = null;
     let generatedDriveItem: DriveFileData;
     try {
-      generatedDriveItem = await uploadService.createFileEntry(fileEntryByUuid);
+      generatedDriveItem = await createFileEntryWithRetry(fileEntryByUuid, signal);
     } catch (err) {
       if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
       throw err;
@@ -281,7 +278,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
     // If thumbnail generation fails, don't block the upload, we can
     // try thumbnail generation later
     try {
-      const generatedThumbnail = await imageService.generateThumbnail(filePath.replace(/ /g, '%20'), {
+      const generatedThumbnail = await imageService.generateThumbnail(filePath, {
         extension: fileExtension,
         thumbnailFormat: SaveFormat.JPEG,
         // Android needs an extension to generate the thumbnails, otherwise it crashes
@@ -381,7 +378,7 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
       size: file.size,
       type: file.type,
       file_id: file.id,
-      parent_folder_id: file.parentId,
+      parent_folder_uuid: file.parentUuid,
     });
   }
 
@@ -503,25 +500,10 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
       }
 
       // 2. Copy files to cache so they are accessible as file:// URIs
-      const filesToCopy = pickedFiles.map((file): FileToCopy => ({ uri: file.uri, fileName: file.name ?? 'file' })) as [
-        FileToCopy,
-        ...FileToCopy[],
-      ];
-      const localCopiedFiles = await keepLocalCopy({ destination: 'cachesDirectory', files: filesToCopy });
-      const filesWithLocalUri: DocumentPickerFile[] = pickedFiles.map((file) => {
-        const copy = localCopiedFiles.find((localFile) => localFile.sourceUri === file.uri);
-        if (copy?.status === 'error') {
-          logger.warn(
-            `keepLocalCopy failed for "${file.name}", falling back to original URI. Error: ${copy.copyError}`,
-          );
-        }
-        return {
-          uri: copy?.status === 'success' ? copy.localUri : file.uri,
-          name: file.name ?? 'file',
-          size: file.size ?? 0,
-          type: file.type ?? '',
-        };
-      });
+      const filesWithLocalUri = await preparePickedFilesForUpload(pickedFiles);
+      if (filesWithLocalUri.length === 0) {
+        return;
+      }
 
       // 3. Add them to the uploader
       await processFilesFromPicker(filesWithLocalUri);
@@ -560,87 +542,81 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
     if (Platform.OS === 'ios') {
       const { status } = await MediaLibrary.requestPermissionsAsync();
 
-      if (status === 'granted') {
+      if (status !== 'granted') return;
+
+      let pickedAssets: { localIdentifier: string }[];
+      try {
+        pickedAssets = await pickPhotoAssets(MAX_FILES_BULK_UPLOAD);
+      } catch (error) {
+        logger.error(
+          'Error opening the photo picker:',
+          (error as Error)?.message ?? String(error),
+          (error as { code?: string })?.code,
+        );
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.errors.cameraRollPickerFailed,
+        });
+        return;
+      }
+
+      if (pickedAssets.length === 0) return;
+
+      dispatch(uiActions.setShowUploadFileModal(false));
+
+      const documents: DocumentPickerFile[] = [];
+      let failedCount = 0;
+
+      for (const asset of pickedAssets) {
         try {
-          const result = await launchImageLibraryAsync({
-            mediaTypes: MediaTypeOptions.All,
-            allowsMultipleSelection: true,
-            selectionLimit: MAX_FILES_BULK_UPLOAD,
-            allowsEditing: false,
-            preferredAssetRepresentationMode: UIImagePickerPreferredAssetRepresentationMode.Current,
-            base64: false,
-            exif: false,
+          const exported = await withRetry(() => exportPhAsset(asset.localIdentifier));
+          documents.push({
+            name: decodeURIComponent(exported.fileName ?? ''),
+            size: exported.size ?? 0,
+            type: drive.file.getExtensionFromUri(exported.uri)?.toLowerCase() ?? '',
+            uri: exported.uri,
           });
-
-          if (!result.canceled && result.assets) {
-            const documents: DocumentPickerFile[] = [];
-
-            for (const asset of result.assets) {
-              try {
-                const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.assetId || asset.uri);
-                const cleanUri = assetInfo.mediaType === 'video' ? asset.uri : assetInfo.localUri || asset.uri;
-                const originalFileName = assetInfo.filename || asset.fileName;
-
-                let fileSize = asset.fileSize;
-                if (!fileSize) {
-                  try {
-                    const fileInfo = fileSystemService.getFileInfo(cleanUri);
-                    fileSize = fileInfo.exists ? (fileInfo.size ?? 0) : 0;
-                  } catch (error) {
-                    logger.warn('The file size could not be obtained:', error);
-                    fileSize = 0;
-                  }
-                }
-
-                documents.push({
-                  name: decodeURIComponent(originalFileName ?? ''),
-                  size: fileSize ?? 0,
-                  type: drive.file.getExtensionFromUri(cleanUri)?.toLowerCase() ?? '',
-                  uri: cleanUri,
-                });
-              } catch (error) {
-                logger.error('Error obtaining original asset info:', error);
-                const cleanUri = asset.uri;
-                const fallbackName = generateFileName(cleanUri);
-
-                documents.push({
-                  name: fallbackName,
-                  size: asset.fileSize ?? 0,
-                  type: asset.type ?? '',
-                  uri: cleanUri,
-                });
-              }
-            }
-
-            dispatch(uiActions.setShowUploadFileModal(false));
-
-            uploadDocuments(documents)
-              .then(async () => {
-                dispatch(driveThunks.loadUsageThunk());
-
-                if (focusedFolder) {
-                  await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
-                  driveCtx.loadFolderContent(focusedFolder.uuid, {
-                    pullFrom: ['network'],
-                    resetPagination: true,
-                  });
-                }
-              })
-              .catch((err) => {
-                logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
-                const error = errorService.castError(err, 'upload');
-                notificationsService.show({
-                  type: NotificationType.Error,
-                  text1: error.message,
-                });
-              })
-              .finally(() => {
-                dispatch(uiActions.setShowUploadFileModal(false));
-              });
-          }
         } catch (error) {
-          logger.error('Error accessing media library:', error);
+          failedCount++;
+          logger.error(
+            'Error exporting camera roll asset:',
+            (error as Error)?.message ?? String(error),
+            (error as { code?: string })?.code,
+          );
         }
+      }
+
+      if (documents.length > 0) {
+        uploadDocuments(documents)
+          .then(async () => {
+            dispatch(driveThunks.loadUsageThunk());
+
+            if (focusedFolder) {
+              await SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET(500);
+              driveCtx.loadFolderContent(focusedFolder.uuid, {
+                pullFrom: ['network'],
+                resetPagination: true,
+              });
+            }
+          })
+          .catch((err) => {
+            logger.error('Error on handleUploadFromCameraRoll function:', JSON.stringify(err));
+            const error = errorService.castError(err, 'upload');
+            notificationsService.show({
+              type: NotificationType.Error,
+              text1: error.message,
+            });
+          })
+          .finally(() => {
+            dispatch(uiActions.setShowUploadFileModal(false));
+          });
+      }
+
+      if (failedCount > 0) {
+        notificationsService.show({
+          type: NotificationType.Error,
+          text1: strings.formatString(strings.errors.cameraRollPartialFailure, failedCount) as string,
+        });
       }
     } else {
       const { status } = await MediaLibrary.requestPermissionsAsync();
@@ -782,7 +758,6 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
           id: new Date().getTime(),
           uuid: uuid.v4().toString(),
           name,
-          parentId: focusedFolder.id,
           parentUuid: focusedFolder.uuid,
           createdAt: new Date().toString(),
           updatedAt: new Date().toString(),
@@ -836,13 +811,18 @@ const AddModal = ({ floatingButton }: { floatingButton?: ReactNode }): JSX.Eleme
   }, [dispatch]);
 
   const uploadMenuActions: FloatingMenuAction[] = [
-    { key: 'uploadFiles', label: strings.buttons.uploadFiles, icon: FileArrowUpIcon, onPress: handleUploadFiles },
+    {
+      key: 'uploadFiles',
+      label: strings.buttons.uploadFiles,
+      icon: FileArrowUpIcon,
+      onPress: () => void handleUploadFiles(),
+    },
     { key: 'uploadFolder', label: strings.buttons.uploadFolder, icon: BoxArrowUpIcon, onPress: handleUploadFolder },
     {
       key: 'uploadFromCameraRoll',
       label: strings.buttons.uploadFromCameraRoll,
       icon: ImageSquareIcon,
-      onPress: handleUploadFromCameraRoll,
+      onPress: () => void handleUploadFromCameraRoll(),
     },
     {
       key: 'takePhoto',

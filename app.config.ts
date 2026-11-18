@@ -20,12 +20,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   slug: 'drive-mobile',
   version: packageVersion,
   orientation: 'portrait',
-  newArchEnabled: true,
-  splash: {
-    image: './assets/images/splash.png',
-    resizeMode: 'cover',
-    backgroundColor: '#091e42',
-  },
   userInterfaceStyle: 'automatic',
 
   updates: {
@@ -35,7 +29,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
   assetBundlePatterns: ['**/*'],
   runtimeVersion: packageVersion,
   ios: {
-    jsEngine: 'hermes',
     icon: './assets/icon-ios.png',
     supportsTablet: true,
     bundleIdentifier: 'com.internxt.snacks',
@@ -59,7 +52,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     },
   },
   android: {
-    jsEngine: 'hermes',
     versionCode: env[stage].ANDROID_VERSION_CODE,
     icon: './assets/icon-android.png',
     adaptiveIcon: {
@@ -94,10 +86,6 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     barStyle: 'light-content',
     backgroundColor: '#091e42',
   },
-  androidNavigationBar: {
-    barStyle: 'dark-content',
-    backgroundColor: '#091e42',
-  },
   extra: {
     eas: {
       projectId: '680f4feb-6315-4a50-93ec-36dcd0b831d2',
@@ -107,15 +95,22 @@ const appConfig: ExpoConfig & { extra: AppEnv & { NODE_ENV: AppStage; RELEASE_ID
     ...env[stage],
   },
   plugins: [
+    '@react-native-community/datetimepicker',
     'expo-asset',
     'expo-font',
+    'expo-image',
     'expo-localization',
     'expo-secure-store',
+    'expo-sharing',
     'expo-sqlite',
+    'expo-status-bar',
     ['expo-screen-orientation', { initialOrientation: 'PORTRAIT' }],
     [
       'expo-splash-screen',
       {
+        image: './assets/images/splash.png',
+        resizeMode: 'cover',
+        backgroundColor: '#091e42',
         android: {
           backgroundColor: '#091e42',
           image: './assets/images/splash.png',

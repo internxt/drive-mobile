@@ -1,4 +1,4 @@
-import * as MediaLibrary from 'expo-media-library';
+import * as MediaLibrary from 'expo-media-library/legacy';
 import { CloudAssetEntry } from 'src/services/photos/database/photosLocalDB';
 import { GroupSyncStatus } from '../components/GroupHeader/PhotosGroupHeader';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
@@ -16,7 +16,7 @@ import {
   mergeCloudIntoGroups,
 } from './photoTimelineGroups';
 
-jest.mock('expo-media-library', () => ({
+jest.mock('expo-media-library/legacy', () => ({
   MediaType: { photo: 'photo', video: 'video' },
 }));
 

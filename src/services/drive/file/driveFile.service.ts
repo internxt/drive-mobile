@@ -1,5 +1,9 @@
 import { getHeaders } from '../../../helpers/headers';
-import { DownloadedThumbnail, ModifiedFile as GetModifiedFiles } from '../../../types/drive/file';
+import {
+  CheckDuplicatedFilesResponse,
+  DownloadedThumbnail,
+  ModifiedFile as GetModifiedFiles,
+} from '../../../types/drive/file';
 import { DriveListItem } from '../../../types/drive/item';
 import { SortDirection, SortType } from '../../../types/drive/ui';
 import { constants } from '../../AppService';
@@ -104,11 +108,13 @@ class DriveFileService {
   public async moveFile({
     fileUuid,
     destinationFolderUuid,
+    name,
   }: {
     fileUuid: string;
     destinationFolderUuid: string;
+    name?: string;
   }): Promise<FileMeta> {
-    const moved = await this.sdk.storageV2.moveFileByUuid(fileUuid, { destinationFolder: destinationFolderUuid });
+    const moved = await this.sdk.storageV2.moveFileByUuid(fileUuid, { destinationFolder: destinationFolderUuid, name });
     void notifyParentChanged(destinationFolderUuid);
     return moved;
   }
@@ -167,13 +173,13 @@ class DriveFileService {
                 const aTime = new Date(a.data.updatedAt).getTime();
                 const bTime = new Date(b.data.updatedAt).getTime();
 
-                return aTime < bTime ? 1 : -1;
+                return bTime - aTime;
               }
             : (a: DriveListItem, b: DriveListItem) => {
                 const aTime = new Date(a.data.updatedAt).getTime();
                 const bTime = new Date(b.data.updatedAt).getTime();
 
-                return aTime > bTime ? 1 : -1;
+                return aTime - bTime;
               };
         break;
     }
@@ -190,7 +196,7 @@ class DriveFileService {
     limit?: number;
     offset?: number;
     updatedAt?: string;
-    status: 'ALL' | 'TRASHED' | 'REMOVED';
+    status: 'ALL' | 'EXISTS' | 'TRASHED' | 'DELETED';
   }): Promise<GetModifiedFiles[] | undefined> {
     const updatedAtDate = updatedAt && `&updatedAt=${updatedAt}`;
     const query = `status=${status}&offset=${offset}&limit=${limit}${updatedAtDate}`;
@@ -348,23 +354,32 @@ class DriveFileService {
   }
 
   /**
-   * Obtain a path to store the decrypted file
+   * Obtain a path to store the decrypted file, inside a temporary folder named after the file uuid
    *
+   * @param fileUuid Uuid of the file to download
    * @param filename Filename of the file to download
    * @returns A path to store the decrypted file
    */
-  getDecryptedFilePath(filename: string, type?: string) {
+  getDecryptedFilePath(fileUuid: string, filename: string, type?: string) {
     // Use a tmp file so the decrypted file is not persisted
-    return fs.tmpFilePath(filename + (type ? `.${type}` : ''));
+    return fs.tmpFilePath(`${fileUuid}/${this.getName(filename, type)}`);
+  }
+
+  /**
+   * Creates the temporary folder that holds the decrypted file
+   */
+  async createDecryptedFileFolder(fileUuid: string) {
+    await fs.ensureDir(fs.tmpFilePath(fileUuid));
   }
 
   /**
    *
+   * @param fileUuid Uuid of the file to check
    * @param filename Filename of the file to check
    * @returns If the file exists decrypted in the filesystem
    */
-  async existsDecrypted(filename: string, type?: string) {
-    const path = this.getDecryptedFilePath(filename, type);
+  async existsDecrypted(fileUuid: string, filename: string, type?: string) {
+    const path = this.getDecryptedFilePath(fileUuid, filename, type);
     const exists = await fs.exists(path);
     if (!exists) return false;
 
@@ -377,8 +392,14 @@ class DriveFileService {
     return filename + (type ? `.${type}` : '');
   }
 
-  public async checkFileExistence(parentFolderUuid: string, filesList: { plainName: string; type: string }[]) {
-    return this.sdk.storageV2.checkDuplicatedFiles({ folderUuid: parentFolderUuid, filesList });
+  public async checkFileExistence(
+    parentFolderUuid: string,
+    filesList: { plainName: string; type: string }[],
+  ): Promise<CheckDuplicatedFilesResponse> {
+    return this.sdk.storageV2.checkDuplicatedFiles({
+      folderUuid: parentFolderUuid,
+      filesList,
+    }) as Promise<CheckDuplicatedFilesResponse>;
   }
 
   /**

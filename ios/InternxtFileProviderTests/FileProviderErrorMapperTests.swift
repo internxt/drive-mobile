@@ -93,8 +93,27 @@ final class FileProviderErrorMapperTests: XCTestCase {
         assertCode(enriched(.apiNotFound), .noSuchItem)
     }
 
-    func testWhenApiClientErrorNonAuthPositiveStatusThenNoSuchItem() {
-        assertCode(apiError(statusCode: 500), .noSuchItem)
+    func testWhenApiClientErrorServerStatusThenTheErrorIsReturnedUnchanged() {
+        for statusCode in [500, 502, 503] {
+            let serverError = apiError(statusCode: statusCode)
+            let mapped = FileProviderErrorMapper.lookupError(from: serverError)
+            XCTAssertEqual((mapped as? APIClientError)?.statusCode, statusCode)
+        }
+    }
+
+    func testWhenEnrichedCauseIsServerErrorThenTheErrorIsReturnedUnchanged() {
+        let nested = enriched(.downloadInfoFailed, cause: apiError(statusCode: 503))
+        let mapped = FileProviderErrorMapper.lookupError(from: nested)
+        XCTAssertEqual((mapped as? EnrichedError)?.code, .downloadInfoFailed)
+    }
+
+    func testWhenEnrichedApiServerErrorThenTheErrorIsReturnedUnchanged() {
+        let mapped = FileProviderErrorMapper.lookupError(from: enriched(.apiServerError))
+        XCTAssertEqual((mapped as? EnrichedError)?.code, .apiServerError)
+    }
+
+    func testWhenApiClientErrorNotFoundThenNoSuchItem() {
+        assertCode(apiError(statusCode: 404), .noSuchItem)
     }
 
     func testWhenUnrelatedErrorThenNoSuchItem() {

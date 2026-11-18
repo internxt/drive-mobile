@@ -8,6 +8,7 @@ import { prepareFilesToUpload } from './prepareFilesToUpload';
 
 import errorService from '../../../ErrorService';
 
+import fileSystemService from '@internxt-mobile/services/FileSystemService';
 import { DriveFileData, EncryptionVersion, FileEntryByUuid } from '@internxt-mobile/types/drive/file';
 import { UserSettings } from '@internxt/sdk/dist/shared/types/userSettings';
 import { Dispatch } from 'react';
@@ -17,13 +18,30 @@ import { getEnvironmentConfigFromUser } from '../../../../lib/network';
 import { uiActions } from '../../../../store/slices/ui';
 import analyticsService, { DriveAnalyticsEvent } from '../../../AnalyticsService';
 import { logger } from '../../../common';
+import { isServerError } from '../../../common/httpErrorStatus';
 import { uploadService } from '../../../common/network/upload/upload.service';
+import { retryWithBackoff } from '../../../common/retryWithBackoff';
 import { notifyParentChanged } from '../../../native/InternxtSignalingModule';
+import { UPLOAD_FREE_SPACE_MULTIPLIER, isNativeIOError } from './deviceStorageErrors';
 import { EmptyFileNotAllowedError, isEmptyFilePlanError } from './emptyFileErrors';
 import { FileSizeExceededError, isFileSizeExceededError } from './fileSizeErrors';
 import { BucketNotFoundError } from './upload.errors';
 
 export { validateAndFilterFiles } from './validateAndFilterFiles';
+
+const FILE_ENTRY_RETRY_DELAYS_MS = [500, 1000, 2000];
+
+/**
+ * Registers `entry` in Drive, retrying server errors (5xx or no response) with backoff. Rethrows any other error,
+ * and throws `AbortError` if `signal` aborts while waiting to retry.
+ */
+export const createFileEntryWithRetry = (entry: FileEntryByUuid, signal?: AbortSignal): Promise<DriveFileData> =>
+  retryWithBackoff(() => uploadService.createFileEntry(entry), {
+    delaysMs: FILE_ENTRY_RETRY_DELAYS_MS,
+    shouldRetry: isServerError,
+    context: `[Upload] File entry "${entry.plainName}"`,
+    signal,
+  });
 
 /**
  * Handle duplicate files by checking for existing files in the target folder and optionally prompting the user.
@@ -124,7 +142,6 @@ export function createUploadingFiles(
       uri: preparedFile.uri,
       name: preparedFile.name,
       type: preparedFile.type,
-      parentId: focusedFolder.id,
       parentUuid: focusedFolder.uuid,
       createdAt: new Date().toString(),
       updatedAt: new Date().toString(),
@@ -192,7 +209,7 @@ export async function createEmptyFileEntry(bucketId: string, file: UploadingFile
   };
 
   try {
-    return await uploadService.createFileEntry(fileEntry);
+    return await createFileEntryWithRetry(fileEntry);
   } catch (err) {
     if (isEmptyFilePlanError(err)) throw new EmptyFileNotAllowedError();
     if (isFileSizeExceededError(err)) throw new FileSizeExceededError();
@@ -226,6 +243,16 @@ export async function uploadSingleFile(
 
       await createEmptyFileEntry(bucketId, file);
     } else {
+      const hasDeviceSpace = await fileSystemService
+        .checkAvailableStorage(file.size, UPLOAD_FREE_SPACE_MULTIPLIER)
+        .catch(() => true);
+
+      if (!hasDeviceSpace) {
+        dispatch(uiActions.setShowNotEnoughDeviceSpaceModal(true));
+        dispatch(driveActions.uploadFileFinished());
+        return;
+      }
+
       await uploadFile(file, 'document');
     }
     uploadSuccess(file);
@@ -252,6 +279,10 @@ export async function uploadSingleFile(
       },
     });
     trackUploadError(file, err);
+    if (isNativeIOError(e)) {
+      dispatch(uiActions.setShowNotEnoughDeviceSpaceModal(true));
+      return;
+    }
     const castedError = errorService.castError(e, 'upload');
     dispatch(driveActions.uploadFileFailed({ errorMessage: castedError.message, id: file.id }));
     logger.error('File upload process failed: ', JSON.stringify(err));

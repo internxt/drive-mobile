@@ -25,15 +25,15 @@ export const getModifiedDriveItemsAndUpdateLocalCache = async () => {
 
   if (!modifiedFiles || !modifiedFolders || (!modifiedFiles.length && !modifiedFolders.length)) return;
 
-  const modifiedFilesIds = modifiedFiles.map((file) => file.id);
-  const modifiedFoldersIds = modifiedFolders.map((folder) => folder.id);
+  const modifiedFilesUuids = modifiedFiles.map((file) => file.uuid);
+  const modifiedFoldersUuids = modifiedFolders.map((folder) => folder.uuid);
 
-  for (const modifiedFileId of modifiedFilesIds) {
-    await driveLocalDB.deleteItem({ id: modifiedFileId });
+  for (const modifiedFileUuid of modifiedFilesUuids) {
+    await driveLocalDB.deleteItem({ uuid: modifiedFileUuid });
   }
 
-  for (const modifiedFolderId of modifiedFoldersIds) {
-    await driveLocalDB.deleteFolderRecord(modifiedFolderId);
+  for (const modifiedFolderUuid of modifiedFoldersUuids) {
+    await driveLocalDB.deleteFolderRecord(modifiedFolderUuid);
   }
 
   // Get the last updatedAt date from the modified files and folders

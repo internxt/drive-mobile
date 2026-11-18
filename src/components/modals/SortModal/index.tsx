@@ -6,15 +6,11 @@ import strings from '../../../../assets/lang/strings';
 import { TouchableOpacity } from 'react-native-gesture-handler';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../../hooks/useColor';
-import { SortDirection, SortType } from '../../../types/drive/ui';
+import { SortDirection, SortMode, SortType } from '../../../types/drive/ui';
 import { BaseModalProps } from '../../../types/ui';
 import AppText from '../../AppText';
 import BottomModal from '../BottomModal';
 
-export type SortMode = {
-  direction: SortDirection;
-  type: SortType;
-};
 export interface SortModalProps extends BaseModalProps {
   onSortModeChange: (change: SortMode) => void;
 

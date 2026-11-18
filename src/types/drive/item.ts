@@ -1,4 +1,4 @@
-import { FolderChild, Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
+import { Thumbnail } from '@internxt/sdk/dist/drive/storage/types';
 import { DownloadedThumbnail } from './file';
 
 /**
@@ -6,7 +6,6 @@ import { DownloadedThumbnail } from './file';
  * Simplified from DriveItem with all fields optional except the base ones
  */
 export interface DriveItemData {
-  id: number;
   name: string;
   uuid: string;
   plainName?: string | null;
@@ -14,14 +13,12 @@ export interface DriveItemData {
   createdAt: string;
   isFolder: boolean;
   // File-specific fields (only present when isFolder = false)
-  folderId?: number;
   folderUuid?: string | null;
   fileId?: string | null;
   type?: string;
   size?: number | string;
   bucket?: string | null;
   // Folder-specific fields (only present when isFolder = true)
-  parentId?: number | null;
   parentUuid?: string;
   // Shared/Link fields
   code?: string;
@@ -38,16 +35,13 @@ export interface DriveItemData {
  * Represents the item currently being acted upon
  */
 export type FocusedItem = {
-  id: number;
   name: string;
-  parentId?: number;
   parentUuid?: string;
   folderUuid?: string;
   fileId?: string | null;
   type?: string;
   size?: string | number;
   updatedAt: string;
-  folderId?: number;
   code?: string;
   token?: string;
   shareId?: string;
@@ -85,28 +79,9 @@ export interface DriveListItem {
 }
 
 /**
- * Navigation stack type for folder breadcrumbs
- */
-export interface DriveNavigationStackItem {
-  id: number;
-  parentId: number;
-  name: string;
-  item: DriveItemData;
-  updatedAt: string;
-}
-
-export type DriveNavigationStack = DriveNavigationStackItem[];
-
-/**
- * Folder content child item (from SDK)
- */
-export type FolderContentChild = FolderChild;
-
-/**
  * SQLite row representation of a drive item
  */
 export interface SqliteDriveItemRow {
-  id: number;
   bucket: string | null;
   color: string | null;
   encrypt_version: string | null;
@@ -114,7 +89,6 @@ export interface SqliteDriveItemRow {
   icon_id: number | null;
   is_folder: boolean;
   name: string;
-  parent_id: number | null;
   user_id: number;
   file_id: string | null;
   size: number | null;
@@ -123,7 +97,7 @@ export interface SqliteDriveItemRow {
   updated_at: string;
   thumbnails: Array<Thumbnail>;
   plain_name: string;
-  uuid?: string;
+  uuid: string;
   parent_uuid?: string;
   folder_uuid?: string;
 }
@@ -133,7 +107,6 @@ export interface SqliteDriveItemRow {
  */
 export type InsertSqliteDriveItemRowData = Pick<
   SqliteDriveItemRow,
-  | 'id'
   | 'bucket'
   | 'color'
   | 'encrypt_version'
@@ -141,7 +114,6 @@ export type InsertSqliteDriveItemRowData = Pick<
   | 'icon_id'
   | 'is_folder'
   | 'name'
-  | 'parent_id'
   | 'user_id'
   | 'file_id'
   | 'size'

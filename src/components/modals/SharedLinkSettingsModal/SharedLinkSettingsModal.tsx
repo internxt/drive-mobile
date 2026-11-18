@@ -134,7 +134,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         });
         if (!existingLink?.link) return;
         setGeneratedShareLink(existingLink?.link);
-        Clipboard.setString(existingLink?.link);
+        await Clipboard.setStringAsync(existingLink?.link);
 
         return;
       }
@@ -151,7 +151,7 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
 
       if (!result?.link) return;
       setGeneratedShareLink(result.link);
-      Clipboard.setString(result.link);
+      await Clipboard.setStringAsync(result.link);
     } catch (error) {
       notificationsService.error(strings.errors.generateShareLinkError);
     } finally {

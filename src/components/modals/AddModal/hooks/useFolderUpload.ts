@@ -211,21 +211,19 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     isOpen: boolean;
     folderName: string;
     existingFolderUuid: string;
-    existingFolderId: number;
-  }>({ isOpen: false, folderName: '', existingFolderUuid: '', existingFolderId: 0 });
+  }>({ isOpen: false, folderName: '', existingFolderUuid: '' });
 
   const waitForCollisionResolution = (
     folderName: string,
     existingFolderUuid: string,
-    existingFolderId: number,
   ): Promise<NameCollisionAction | null> => {
     return new Promise((resolve) => {
       collisionResolverRef.current = resolve;
-      setCollisionState({ isOpen: true, folderName, existingFolderUuid, existingFolderId });
+      setCollisionState({ isOpen: true, folderName, existingFolderUuid });
     });
   };
 
-  const closedCollisionState = { isOpen: false, folderName: '', existingFolderUuid: '', existingFolderId: 0 };
+  const closedCollisionState = { isOpen: false, folderName: '', existingFolderUuid: '' };
 
   const handleCollisionConfirm = (action: NameCollisionAction) => {
     setCollisionState(closedCollisionState);
@@ -241,7 +239,7 @@ export const useFolderUpload = ({ uploadAndCreateFileEntry }: { uploadAndCreateF
     const { existentFolders } = await driveFolderService.checkDuplicatedFolders(parentUuid, [pickedName]);
     if (existentFolders.length === 0) return pickedName;
     const existing = existentFolders[0];
-    const action = await waitForCollisionResolution(pickedName, existing.uuid, existing.id);
+    const action = await waitForCollisionResolution(pickedName, existing.uuid);
     if (action === null) return null;
     if (action === 'replace') {
       await driveTrashService.moveToTrash([{ uuid: existing.uuid, type: 'folder' }]);

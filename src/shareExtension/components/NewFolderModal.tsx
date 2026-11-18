@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, Text, TextInput, TouchableHighlight, View } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
@@ -18,14 +18,20 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
   const [focused, setFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const isCreatingRef = useRef(false);
 
   const handleCreate = async () => {
+    if (isCreatingRef.current) {
+      return;
+    }
+
     const trimmed = name.trim();
     if (!trimmed) {
       setError(strings.screens.ShareExtension.folderNameEmpty);
       return;
     }
     setError(null);
+    isCreatingRef.current = true;
     setLoading(true);
     try {
       await onCreate(trimmed);
@@ -38,6 +44,7 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
           : strings.screens.ShareExtension.folderCreateError,
       );
     } finally {
+      isCreatingRef.current = false;
       setLoading(false);
     }
   };
@@ -93,6 +100,7 @@ export const NewFolderModal = ({ visible, onCancel, onCreate }: NewFolderModalPr
                 onChangeText={handleChangeName}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
+                editable={!loading}
                 autoFocus
                 autoCorrect={false}
                 selectTextOnFocus

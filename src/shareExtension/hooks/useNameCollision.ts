@@ -45,8 +45,7 @@ export const useNameCollision = (): UseNameCollisionReturn => {
       const existentFiles = await shareDriveService.checkDuplicatedFiles(folderUuid, filesList);
       if (existentFiles.length === 0) return new Map();
 
-      const itemNameWithoutExtension =
-        existentFiles.length === 1 ? (existentFiles[0].plainName ?? existentFiles[0].name) : '';
+      const itemNameWithoutExtension = existentFiles.length === 1 ? existentFiles[0].plainName : '';
       const action = await new Promise<NameCollisionAction | null>((resolve) => {
         collisionResolverRef.current = resolve;
         setCollisionState({ visible: true, itemNameWithoutExtension, collisionCount: existentFiles.length });
@@ -66,7 +65,7 @@ export const useNameCollision = (): UseNameCollisionReturn => {
         const originalPlainName = getFileNameWithoutExtension(checkName);
         const extension = getFileExtension(checkName);
         const existingFileInDrive = existentFiles.find(
-          (file) => (file.plainName ?? file.name) === originalPlainName && file.type === extension,
+          (file) => file.plainName === originalPlainName && file.type === extension,
         );
         if (!existingFileInDrive) {
           continue;

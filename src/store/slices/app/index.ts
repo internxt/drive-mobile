@@ -11,7 +11,6 @@ import notificationsService from 'src/services/NotificationsService';
 import { Language, NotificationType } from 'src/types';
 import { RootState } from '../..';
 import { authThunks } from '../auth';
-import { driveThunks } from '../drive';
 import { paymentsThunks } from '../payments';
 import { storageThunks } from '../storage';
 
@@ -63,7 +62,6 @@ const initializeThunk = createAsyncThunk<void, void, { state: RootState }>(
     await dispatch(initializeLanguageThunk()).unwrap();
 
     dispatch(authThunks.initializeThunk());
-    dispatch(driveThunks.initializeThunk());
     dispatch(paymentsThunks.initializeThunk());
     dispatch(storageThunks.initializeThunk());
   },

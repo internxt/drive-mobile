@@ -1,3 +1,10 @@
+import { SdkManager } from '@internxt-mobile/services/common';
+import asyncStorageService from '../../../services/AsyncStorageService';
+import authService from '../../../services/AuthService';
+import { clearCredentials, setCredentials } from '../../../services/native/InternxtAuthCredentialsModule';
+import { AsyncStorageKey } from '../../../types';
+import { refreshTokensThunk, signInThunk, signOutThunk, silentSignInThunk } from './index';
+
 jest.mock('../../../services/native/InternxtAuthCredentialsModule', () => ({
   setCredentials: jest.fn().mockResolvedValue(undefined),
   clearCredentials: jest.fn().mockResolvedValue(undefined),
@@ -45,6 +52,7 @@ jest.mock('../../../services/AsyncStorageService', () => ({
 jest.mock('../../../services/AuthService', () => ({
   __esModule: true,
   default: {
+    authTokenHasExpired: jest.fn().mockReturnValue(false),
     emitLoginEvent: jest.fn(),
     emitLogoutEvent: jest.fn(),
     signout: jest.fn().mockResolvedValue(undefined),
@@ -55,10 +63,6 @@ jest.mock('../../../services/AuthService', () => ({
 
 jest.mock('../../../services/NotificationsService', () => ({ __esModule: true, default: {} }));
 jest.mock('../../../services/UserService', () => ({ __esModule: true, default: {} }));
-
-import authService from '../../../services/AuthService';
-import { clearCredentials, setCredentials } from '../../../services/native/InternxtAuthCredentialsModule';
-import { refreshTokensThunk, signInThunk, signOutThunk } from './index';
 
 const setCredentialsMock = setCredentials as jest.Mock;
 const clearCredentialsMock = clearCredentials as jest.Mock;
@@ -73,17 +77,24 @@ const user = {
   email: 'user@internxt.com',
 } as never;
 
+const legacyUser = {
+  userId: 'user-1',
+  bridgeUser: 'bridge@internxt.com',
+  mnemonic: 'pretty cloud secret words',
+  rootFolderId: 'legacy-root-uuid',
+  email: 'user@internxt.com',
+} as never;
+
 type DispatchableThunk = (dispatch: jest.Mock, getState: jest.Mock, extra: undefined) => Promise<unknown>;
 
-const runThunk = (action: unknown) =>
-  (action as DispatchableThunk)(jest.fn(), jest.fn(), undefined);
+const runThunk = (action: unknown) => (action as DispatchableThunk)(jest.fn(), jest.fn(), undefined);
 
 describe('auth thunks native credentials handoff', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('when the login completes, then the wrapper receives the new token', async () => {
+  test('when the login completes, then the wrapper receives the new token', async () => {
     await runThunk(signInThunk({ user, token: 'access-token', newToken: 'login-new-token' }));
 
     expect(setCredentialsMock).toHaveBeenCalledWith(
@@ -91,7 +102,36 @@ describe('auth thunks native credentials handoff', () => {
     );
   });
 
-  it('when the token is refreshed in the foreground, then the wrapper receives the refreshed token', async () => {
+  test('when the account arrives without the root folder uuid, then the root folder id it carries is used and nothing is asked of the server', async () => {
+    const userWithoutRootFolderUuid = {
+      ...(user as object),
+      rootFolderUuid: undefined,
+      rootFolderId: 'root-folder-uuid',
+    } as never;
+
+    await runThunk(
+      signInThunk({ user: userWithoutRootFolderUuid, token: 'access-token', newToken: 'login-new-token' }),
+    );
+
+    expect(SdkManager.getInstance).not.toHaveBeenCalled();
+    expect(asyncStorageService.saveItem).toHaveBeenCalledWith(
+      AsyncStorageKey.User,
+      expect.stringContaining('"rootFolderUuid":"root-folder-uuid"'),
+    );
+    expect(setCredentialsMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolderUuid: 'root-folder-uuid' }));
+  });
+
+  test('when the account already carries the root folder uuid, then it is kept as it is', async () => {
+    const userWithBothRootFolderFields = { ...(user as object), rootFolderId: 'other-root-folder-uuid' } as never;
+
+    await runThunk(
+      signInThunk({ user: userWithBothRootFolderFields, token: 'access-token', newToken: 'login-new-token' }),
+    );
+
+    expect(setCredentialsMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolderUuid: 'root-uuid-123' }));
+  });
+
+  test('when the token is refreshed in the foreground, then the wrapper receives the refreshed token', async () => {
     refreshAuthTokenMock.mockResolvedValue({ token: 'access-2', newToken: 'refreshed-new-token' });
     getAuthCredentialsMock.mockResolvedValue({
       credentials: { accessToken: 'access-2', photosToken: 'refreshed-new-token', user },
@@ -102,7 +142,23 @@ describe('auth thunks native credentials handoff', () => {
     expect(setCredentialsMock).toHaveBeenCalledWith(expect.objectContaining({ bearerToken: 'refreshed-new-token' }));
   });
 
-  it('when the logout completes, then clearCredentials is invoked', async () => {
+  test('when a session stored by an older app version is restored at startup, then the wrapper receives the stored token and rootFolderId as the root uuid', async () => {
+    getAuthCredentialsMock.mockResolvedValue({
+      credentials: { accessToken: 'access-3', photosToken: 'stored-new-token', user: legacyUser },
+    });
+
+    await runThunk(silentSignInThunk());
+
+    expect(setCredentialsMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bearerToken: 'stored-new-token',
+        driveBaseUrl: 'https://drive',
+        rootFolderUuid: 'legacy-root-uuid',
+      }),
+    );
+  });
+
+  test('when the logout completes, then clearCredentials is invoked', async () => {
     await runThunk(signOutThunk({ reason: 'manual' }));
 
     expect(clearCredentialsMock).toHaveBeenCalledTimes(1);

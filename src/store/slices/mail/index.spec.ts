@@ -827,6 +827,15 @@ describe('Scrolling through a mailbox', () => {
 
       expect(mail.unreadByMailbox()).toEqual({});
     });
+
+    test('when a user without a mail account signs out, then the next session starts with the account as ready', () => {
+      const mail = createMailStore();
+      mail.dispatch(mailActions.setAccountStatus('notSetUp'));
+
+      mail.dispatch(mailActions.resetState());
+
+      expect(mail.getState().mail.accountStatus).toBe('ready');
+    });
   });
 });
 

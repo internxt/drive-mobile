@@ -3,6 +3,7 @@ import { useCallback, useMemo } from 'react';
 import {
   Animated,
   Image,
+  LayoutChangeEvent,
   StyleSheet,
   Text,
   TextInput,
@@ -14,7 +15,7 @@ import { useTailwind } from 'tailwind-rn';
 import StackedFilesIconSvg from '../../../assets/icons/stacked-files.svg';
 import strings from '../../../assets/lang/strings';
 import { getFileTypeIcon } from '../../helpers/filetypes';
-import { useBottomPanelAnimation } from '../hooks/useBottomPanelAnimation';
+import { PANEL_BOTTOM, useBottomPanelAnimation } from '../hooks/useBottomPanelAnimation';
 import { fontStyles, useShareColors } from '../theme';
 import { SharedFile } from '../types';
 import { formatBytes, getSharedFileExtension } from '../utils';
@@ -27,6 +28,7 @@ interface BottomFilePanelProps {
   onStartRename: () => void;
   onChangeName: (name: string) => void;
   onEndRename: () => void;
+  onOverlapChange?: (overlap: number) => void;
 }
 
 const getFormats = (files: SharedFile[]): string => {
@@ -49,6 +51,7 @@ export const BottomFilePanel = ({
   onStartRename,
   onChangeName,
   onEndRename,
+  onOverlapChange,
 }: BottomFilePanelProps) => {
   const tailwind = useTailwind();
   const colors = useShareColors();
@@ -88,6 +91,11 @@ export const BottomFilePanel = ({
     onEndRename();
   }, [nameWithoutExt, onChangeName, onEndRename, originalFileName]);
 
+  const handleLayout = useCallback(
+    (event: LayoutChangeEvent) => onOverlapChange?.(PANEL_BOTTOM + event.nativeEvent.layout.height),
+    [onOverlapChange],
+  );
+
   if (sharedFiles.length === 0) return null;
 
   const collapseButton = (
@@ -107,10 +115,11 @@ export const BottomFilePanel = ({
   const divider = <View style={[styles.dividerBase, { backgroundColor: colors.gray10 }]} />;
 
   const animatedStyle = { bottom: keyboardBottom, transform: [{ translateX: slideAnimation }] };
+  const panelStyle = [tailwind('flex-row items-center'), ...containerStyle, animatedStyle];
 
   if (sharedFiles.length > 1) {
     return (
-      <Animated.View style={[tailwind('flex-row items-center'), ...containerStyle, animatedStyle]}>
+      <Animated.View style={panelStyle} onLayout={handleLayout}>
         {collapseButton}
         {divider}
         <StackedFilesIcon />
@@ -135,7 +144,7 @@ export const BottomFilePanel = ({
   const isImage = file.mimeType?.startsWith('image/') ?? false;
 
   return (
-    <Animated.View style={[tailwind('flex-row items-center'), ...containerStyle, animatedStyle]}>
+    <Animated.View style={panelStyle} onLayout={handleLayout}>
       {collapseButton}
       {divider}
       <View style={tailwind('items-center justify-center mr-3 w-10 h-10')}>

@@ -29,30 +29,16 @@ enum SharedAuthKeychain {
 
   static func read(_ sharedKey: String) -> Data? {
     guard let accessGroup = accessGroup else { return nil }
-    var result: AnyObject?
-    let query: [String: Any] = [
-      kSecClass as String: kSecClassGenericPassword,
-      kSecAttrService as String: service,
-      kSecAttrGeneric as String: Data(sharedKey.utf8),
-      kSecAttrAccount as String: Data(sharedKey.utf8),
-      kSecAttrAccessGroup as String: accessGroup,
-      kSecMatchLimit as String: kSecMatchLimitOne,
-      kSecReturnData as String: true,
-    ]
-    guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
-          let data = result as? Data else { return nil }
-    return data
+    return copyData(matching: query(for: sharedKey, accessGroup: accessGroup))
   }
 
   static func write(_ value: Data, for sharedKey: String) {
     guard let accessGroup = accessGroup else { return }
-    delete(sharedKey)
-    let query: [String: Any] = [
-      kSecClass as String: kSecClassGenericPassword,
-      kSecAttrService as String: service,
-      kSecAttrGeneric as String: Data(sharedKey.utf8),
-      kSecAttrAccount as String: Data(sharedKey.utf8),
-      kSecAttrAccessGroup as String: accessGroup,
+    let existing = read(sharedKey)
+    if existing == value { return }
+
+    let query = Self.query(for: sharedKey, accessGroup: accessGroup)
+    let attributes: [String: Any] = [
       // These credentials are read by the File Provider extension in the
       // background with no UI, so a user-authentication gate (SecAccessControl /
       // .userPresence) is intentionally NOT used — it would block every
@@ -62,7 +48,14 @@ enum SharedAuthKeychain {
       kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock,
       kSecValueData as String: value,
     ]
-    SecItemAdd(query as CFDictionary, nil)
+
+    let updateStatus = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+    if updateStatus == errSecSuccess { return }
+
+    if updateStatus != errSecItemNotFound {
+      delete(sharedKey)
+    }
+    SecItemAdd(query.merging(attributes) { $1 } as CFDictionary, nil)
   }
 
   static func write(_ value: String, for sharedKey: String) {
@@ -71,14 +64,7 @@ enum SharedAuthKeychain {
 
   static func delete(_ sharedKey: String) {
     guard let accessGroup = accessGroup else { return }
-    let query: [String: Any] = [
-      kSecClass as String: kSecClassGenericPassword,
-      kSecAttrService as String: service,
-      kSecAttrGeneric as String: Data(sharedKey.utf8),
-      kSecAttrAccount as String: Data(sharedKey.utf8),
-      kSecAttrAccessGroup as String: accessGroup,
-    ]
-    SecItemDelete(query as CFDictionary)
+    SecItemDelete(query(for: sharedKey, accessGroup: accessGroup) as CFDictionary)
   }
 
   static func clearAll() {
@@ -86,18 +72,45 @@ enum SharedAuthKeychain {
   }
 
   static func readPrivate(_ privateKey: String) -> Data? {
-    var result: AnyObject?
-    let query: [String: Any] = [
+    readPrivateRaw(privateKey) ?? readPrivateChunked(privateKey)
+  }
+
+  private static func readPrivateChunked(_ privateKey: String) -> Data? {
+    guard let countData = readPrivateRaw("\(privateKey)_chunks"),
+          let count = Int(String(decoding: countData, as: UTF8.self)),
+          count > 0 else { return nil }
+    var joined = Data()
+    for index in 0..<count {
+      guard let chunk = readPrivateRaw("\(privateKey)_chunk_\(index)") else { return nil }
+      joined.append(chunk)
+    }
+    return joined
+  }
+
+  private static func readPrivateRaw(_ privateKey: String) -> Data? {
+    copyData(matching: query(for: privateKey))
+  }
+
+  private static func query(for key: String, accessGroup: String? = nil) -> [String: Any] {
+    var query: [String: Any] = [
       kSecClass as String: kSecClassGenericPassword,
       kSecAttrService as String: service,
-      kSecAttrGeneric as String: Data(privateKey.utf8),
-      kSecAttrAccount as String: Data(privateKey.utf8),
-      kSecMatchLimit as String: kSecMatchLimitOne,
-      kSecReturnData as String: true,
+      kSecAttrGeneric as String: Data(key.utf8),
+      kSecAttrAccount as String: Data(key.utf8),
     ]
-    guard SecItemCopyMatching(query as CFDictionary, &result) == errSecSuccess,
-          let data = result as? Data else { return nil }
-    return data
+    if let accessGroup = accessGroup {
+      query[kSecAttrAccessGroup as String] = accessGroup
+    }
+    return query
+  }
+
+  private static func copyData(matching query: [String: Any]) -> Data? {
+    var readQuery = query
+    readQuery[kSecMatchLimit as String] = kSecMatchLimitOne
+    readQuery[kSecReturnData as String] = true
+    var result: AnyObject?
+    guard SecItemCopyMatching(readQuery as CFDictionary, &result) == errSecSuccess else { return nil }
+    return result as? Data
   }
 
   static func syncFromPrivateKeychain() {
@@ -106,10 +119,7 @@ enum SharedAuthKeychain {
     syncThemePreference()
 
     let isAuthenticated = readPrivate("photosToken") != nil
-    guard isAuthenticated else {
-      clearAll()
-      return
-    }
+    guard isAuthenticated else { return }
 
     copyFromPrivate(privateKey: "photosToken", sharedKey: photosTokenKey)
     copyFromPrivate(privateKey: "xUser_mnemonic", sharedKey: mnemonicKey, isJSONEncoded: true)

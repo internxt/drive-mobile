@@ -1,7 +1,7 @@
 import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { createSlice, isAnyOf, isFulfilled, isPending, isRejected, PayloadAction } from '@reduxjs/toolkit';
 
-import { MailboxId } from '../../../types/mail';
+import { MailAccountStatus, MailboxId } from '../../../types/mail';
 import { createInitialMailboxListState, createInitialMailState, emailsAdapter } from './initialState';
 import { mergeNewestPage } from './pagination';
 import { loadFirstPageThunk, loadNextPageThunk, loadUnreadCountsThunk, refreshNewestEmailsThunk } from './thunks';
@@ -81,6 +81,9 @@ export const mailSlice = createSlice({
   initialState: createInitialMailState(),
   reducers: {
     resetState: () => createInitialMailState(),
+    setAccountStatus: (state, action: PayloadAction<MailAccountStatus>) => {
+      state.accountStatus = action.payload;
+    },
     nextPageRetryRequested: (state, action: PayloadAction<{ mailboxId: MailboxId }>) => {
       mailboxListOf(state, action.payload.mailboxId).hasNextPageFailed = false;
     },

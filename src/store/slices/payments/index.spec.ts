@@ -34,7 +34,20 @@ jest.mock('assets/lang/strings', () => ({ errors: { loadPrices: '', cancelSubscr
 
 const mockPaymentService = paymentService as jest.Mocked<typeof paymentService>;
 
+const GRANTED_FEATURE_ACCESS_CACHE_TTL_MS = 5 * 60 * 1000;
+
 describe('payments slice — loadFileLimitsThunk', () => {
+  beforeEach(() => {
+    mockPaymentService.getFileLimits.mockReset();
+    jest.spyOn(asyncStorageService, 'getItem').mockResolvedValue(null);
+    jest.spyOn(asyncStorageService, 'saveItem').mockResolvedValue();
+    jest.spyOn(asyncStorageService, 'deleteItem').mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
   test('when the thunk resolves with photos access, then photosAccess is true in state', async () => {
     mockPaymentService.getFileLimits.mockResolvedValue({ photosAccess: true });
     const store = makeStore();
@@ -56,19 +69,81 @@ describe('payments slice — loadFileLimitsThunk', () => {
     expect(store.getState().payments.photosAccess).toBeUndefined();
   });
 
-  test('when a valid cached value exists, then it is used and the backend is not called', async () => {
-    mockPaymentService.getFileLimits.mockClear();
+  test('when access was granted less than five minutes ago, then it is not asked again', async () => {
     jest
       .spyOn(asyncStorageService, 'getItem')
-      .mockResolvedValue(JSON.stringify({ photosAccess: true, cachedAt: Date.now() }));
+      .mockResolvedValue(JSON.stringify({ hasAccess: true, cachedAt: Date.now() }));
     const store = makeStore();
 
     await store.dispatch(paymentsThunks.loadFileLimitsThunk());
 
     expect(mockPaymentService.getFileLimits).not.toHaveBeenCalled();
     expect(store.getState().payments.photosAccess).toBe(true);
+  });
 
-    jest.restoreAllMocks();
+  test('when access was granted more than five minutes ago, then it is asked again', async () => {
+    jest
+      .spyOn(asyncStorageService, 'getItem')
+      .mockResolvedValue(
+        JSON.stringify({ hasAccess: true, cachedAt: Date.now() - GRANTED_FEATURE_ACCESS_CACHE_TTL_MS - 1 }),
+      );
+    mockPaymentService.getFileLimits.mockResolvedValue({ photosAccess: false });
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadFileLimitsThunk());
+
+    expect(mockPaymentService.getFileLimits).toHaveBeenCalledTimes(1);
+    expect(store.getState().payments.photosAccess).toBe(false);
+  });
+
+  test('when the user had no access and asks again, then the server is asked every time', async () => {
+    mockPaymentService.getFileLimits.mockResolvedValueOnce({ photosAccess: false });
+    mockPaymentService.getFileLimits.mockResolvedValueOnce({ photosAccess: true });
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadFileLimitsThunk());
+    await store.dispatch(paymentsThunks.loadFileLimitsThunk());
+
+    expect(mockPaymentService.getFileLimits).toHaveBeenCalledTimes(2);
+    expect(asyncStorageService.saveItem).toHaveBeenCalledTimes(1);
+    expect(store.getState().payments.photosAccess).toBe(true);
+  });
+
+  test('when the server says there is no access, then a previously granted access is removed', async () => {
+    mockPaymentService.getFileLimits.mockResolvedValue({ photosAccess: false });
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadFileLimitsThunk());
+
+    expect(asyncStorageService.saveItem).not.toHaveBeenCalled();
+    expect(asyncStorageService.deleteItem).toHaveBeenCalledTimes(1);
+  });
+
+  test('when the granted access has expired and the server cannot be reached, then the access is kept', async () => {
+    jest
+      .spyOn(asyncStorageService, 'getItem')
+      .mockResolvedValue(
+        JSON.stringify({ hasAccess: true, cachedAt: Date.now() - GRANTED_FEATURE_ACCESS_CACHE_TTL_MS - 1 }),
+      );
+    mockPaymentService.getFileLimits.mockResolvedValue(null);
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadFileLimitsThunk());
+
+    expect(store.getState().payments.photosAccess).toBe(true);
+  });
+
+  test('when the stored access was saved by an older version, then the server is asked again', async () => {
+    jest
+      .spyOn(asyncStorageService, 'getItem')
+      .mockResolvedValue(JSON.stringify({ photosAccess: true, cachedAt: Date.now() }));
+    mockPaymentService.getFileLimits.mockResolvedValue({ photosAccess: true });
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadFileLimitsThunk());
+
+    expect(mockPaymentService.getFileLimits).toHaveBeenCalledTimes(1);
+    expect(store.getState().payments.photosAccess).toBe(true);
   });
 });
 
@@ -112,12 +187,11 @@ describe('payments selectors — hasPhotosAccess', () => {
 });
 
 describe('Knowing whether the plan includes Mail', () => {
-  const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-
   beforeEach(() => {
     mockPaymentService.getMailAccess.mockReset();
     jest.spyOn(asyncStorageService, 'getItem').mockResolvedValue(null);
     jest.spyOn(asyncStorageService, 'saveItem').mockResolvedValue();
+    jest.spyOn(asyncStorageService, 'deleteItem').mockResolvedValue();
   });
 
   afterEach(() => {
@@ -157,10 +231,10 @@ describe('Knowing whether the plan includes Mail', () => {
     expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(true);
   });
 
-  test('when the plan was checked less than a day ago, then it is not asked again', async () => {
+  test('when Mail was granted less than five minutes ago, then it is not asked again', async () => {
     jest
       .spyOn(asyncStorageService, 'getItem')
-      .mockResolvedValue(JSON.stringify({ mailAccess: true, cachedAt: Date.now() }));
+      .mockResolvedValue(JSON.stringify({ hasAccess: true, cachedAt: Date.now() }));
     const store = makeStore();
 
     await store.dispatch(paymentsThunks.loadMailAccessThunk());
@@ -169,10 +243,37 @@ describe('Knowing whether the plan includes Mail', () => {
     expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(true);
   });
 
-  test('when the plan was checked more than a day ago, then it is asked again', async () => {
+  test('when the stored Mail access was saved by an older version, then the server is asked again', async () => {
     jest
       .spyOn(asyncStorageService, 'getItem')
-      .mockResolvedValue(JSON.stringify({ mailAccess: true, cachedAt: Date.now() - ONE_DAY_MS - 1 }));
+      .mockResolvedValue(JSON.stringify({ mailAccess: true, cachedAt: Date.now() }));
+    mockPaymentService.getMailAccess.mockResolvedValue(true);
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+
+    expect(mockPaymentService.getMailAccess).toHaveBeenCalledTimes(1);
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(true);
+  });
+
+  test('when the plan did not include Mail, then it is asked again every time', async () => {
+    mockPaymentService.getMailAccess.mockResolvedValueOnce(false);
+    mockPaymentService.getMailAccess.mockResolvedValueOnce(true);
+    const store = makeStore();
+
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+    await store.dispatch(paymentsThunks.loadMailAccessThunk());
+
+    expect(mockPaymentService.getMailAccess).toHaveBeenCalledTimes(2);
+    expect(paymentsSelectors.hasMailAccess(store.getState() as RootState)).toBe(true);
+  });
+
+  test('when Mail was granted more than five minutes ago, then it is asked again', async () => {
+    jest
+      .spyOn(asyncStorageService, 'getItem')
+      .mockResolvedValue(
+        JSON.stringify({ hasAccess: true, cachedAt: Date.now() - GRANTED_FEATURE_ACCESS_CACHE_TTL_MS - 1 }),
+      );
     mockPaymentService.getMailAccess.mockResolvedValue(false);
     const store = makeStore();
 

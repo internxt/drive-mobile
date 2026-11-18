@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Keyboard, Platform } from 'react-native';
 
-const PANEL_BOTTOM = 40;
+export const PANEL_BOTTOM = 40;
 const PANEL_MARGIN = 16;
 const TAB_WIDTH = 44;
 

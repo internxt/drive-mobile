@@ -7,6 +7,7 @@ import {
   HttpUploadError,
   MissingFileUriError,
   UploadNetworkError,
+  isSessionExpiredError,
 } from '../errors';
 import {
   ShareUploadCredentials,
@@ -41,9 +42,7 @@ const PHAssetExport = NativeModules.PHAssetExport as PHAssetExportNativeModule;
 const exportPhAsset = (phAssetId: string): Promise<PHAssetExportResult> => PHAssetExport.exportAsset(phAssetId);
 
 const HTTP_STATUS = {
-  UNAUTHORIZED: 401,
   PAYMENT_REQUIRED: 402,
-  FORBIDDEN: 403,
   CONFLICT: 409,
 } as const;
 
@@ -79,7 +78,7 @@ const classifyError = (error: unknown): UploadErrorType => {
   if (error instanceof FileSizeExceededError) return 'file_too_large';
   if (error instanceof EmptyFileNotAllowedError) return 'payment_required';
   if (error instanceof HttpUploadError) {
-    if (error.status === HTTP_STATUS.UNAUTHORIZED || error.status === HTTP_STATUS.FORBIDDEN) return 'session_expired';
+    if (isSessionExpiredError(error)) return 'session_expired';
     if (error.status === HTTP_STATUS.CONFLICT) return 'file_already_exists';
     if (error.status === HTTP_STATUS.PAYMENT_REQUIRED) return 'payment_required';
   }

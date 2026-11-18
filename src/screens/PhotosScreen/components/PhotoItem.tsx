@@ -20,6 +20,7 @@ import { useAppSelector } from 'src/store/hooks';
 import { useTailwind } from 'tailwind-rn';
 import { useCloudThumbnail } from '../hooks/useCloudThumbnail';
 import { CloudPhotoItem, PhotoItem as PhotoItemType, TimelinePhotoItem } from '../types';
+import { getThumbnailSource } from '../utils/photoUtils';
 
 const SkeletonCell = ({ style }: { style?: StyleProp<ViewStyle> }): JSX.Element => {
   const getColor = useGetColor();
@@ -38,9 +39,7 @@ const SkeletonCell = ({ style }: { style?: StyleProp<ViewStyle> }): JSX.Element 
 
   return (
     <View style={[styles.container, { backgroundColor: getColor('bg-gray-10') }, style]}>
-      <Animated.View
-        style={[StyleSheet.absoluteFillObject, { backgroundColor: getColor('bg-gray-1'), opacity: fadeAnim }]}
-      />
+      <Animated.View style={[StyleSheet.absoluteFill, { backgroundColor: getColor('bg-gray-1'), opacity: fadeAnim }]} />
     </View>
   );
 };
@@ -58,7 +57,7 @@ const UploadProgressRing = ({ assetId, color }: { assetId: string; color: string
         unfilledColor="rgba(255,255,255,0.3)"
         borderWidth={0}
       />
-      <View style={[StyleSheet.absoluteFillObject, styles.progressRingIcon]}>
+      <View style={[StyleSheet.absoluteFill, styles.progressRingIcon]}>
         <ArrowUpIcon size={10} color={color} weight="bold" />
       </View>
     </View>
@@ -82,7 +81,7 @@ const SelectOverlay = ({
 
   return (
     <>
-      <View style={[StyleSheet.absoluteFillObject, styles.scrim]} />
+      <View style={[StyleSheet.absoluteFill, styles.scrim]} />
       <View style={[styles.checkbox, { backgroundColor: getColor('text-primary') }]}>
         <CheckIcon size={16} color="white" weight="bold" />
       </View>
@@ -180,10 +179,11 @@ const LocalPhotoCell = memo(
     const tailwind = useTailwind();
     const getColor = useGetColor();
     const [isImageLoaded, setIsImageLoaded] = useRecyclingState(false, [item.id]);
+    const thumbnailSource = item.uri ? getThumbnailSource(item, item.uri) : null;
     // A late onLoad for the cell's *previous* asset (fired after fast-scroll recycled it to
     // a new item) must not mark the new, still-loading asset as loaded — hence the uri check below.
-    const currentUriRef = useRef(item.uri);
-    currentUriRef.current = item.uri;
+    const currentUriRef = useRef(thumbnailSource?.uri);
+    currentUriRef.current = thumbnailSource?.uri;
 
     const handlePress = useCallback(() => {
       onPress?.(item.id);
@@ -198,7 +198,7 @@ const LocalPhotoCell = memo(
       [setIsImageLoaded],
     );
 
-    if (item.backupState === 'loading' || !item.uri) {
+    if (item.backupState === 'loading' || !thumbnailSource) {
       return <SkeletonCell />;
     }
 
@@ -209,13 +209,13 @@ const LocalPhotoCell = memo(
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
         {/* recyclingKey clears the previous asset's bitmap immediately when FlashList reuses this cell */}
         <ExpoImage
-          source={{ uri: item.uri, cacheKey: `${item.id}-${item.modificationTime}` }}
+          source={thumbnailSource}
           recyclingKey={item.id}
-          style={[StyleSheet.absoluteFillObject, isCloudDeleted && styles.dimmed]}
+          style={[StyleSheet.absoluteFill, isCloudDeleted && styles.dimmed]}
           contentFit="cover"
           onLoad={handleLoad}
         />
-        {!isImageLoaded && <SkeletonCell style={StyleSheet.absoluteFillObject} />}
+        {!isImageLoaded && <SkeletonCell style={StyleSheet.absoluteFill} />}
 
         {(item.backupState === 'not-backed' ||
           item.backupState === 'uploading' ||
@@ -268,12 +268,12 @@ const CloudPhotoCell = memo(
           <ExpoImage
             source={{ uri: thumbnailUri }}
             recyclingKey={item.id}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             contentFit="cover"
             onError={onImageError}
           />
         ) : (
-          <View style={[StyleSheet.absoluteFillObject, tailwind('items-center justify-center')]}>
+          <View style={[StyleSheet.absoluteFill, tailwind('items-center justify-center')]}>
             <ImageIcon size={24} color={getColor('text-gray-40')} weight="thin" />
           </View>
         )}
