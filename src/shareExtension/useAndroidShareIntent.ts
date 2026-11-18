@@ -1,5 +1,5 @@
 import { NavigationContainerRef } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { DeviceEventEmitter, NativeModules, Platform } from 'react-native';
 import { logger } from '../services/common';
 import { RootStackParamList } from '../types/navigation';
@@ -10,6 +10,9 @@ export const useAndroidShareIntent = (
   isLoggedIn: boolean | null,
 ) => {
   const [pendingFiles, setPendingFiles] = useState<SharedFile[] | null>(null);
+  const [filesWaitingForSignIn, setFilesWaitingForSignIn] = useState<SharedFile[] | null>(null);
+
+  const keepFilesUntilSignIn = useCallback((files: SharedFile[]) => setFilesWaitingForSignIn(files), []);
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
@@ -29,6 +32,14 @@ export const useAndroidShareIntent = (
   }, [pendingFiles, isLoggedIn, navigationContainerRef]);
 
   useEffect(() => {
+    if (!isLoggedIn || !filesWaitingForSignIn) {
+      return;
+    }
+    navigationContainerRef?.navigate('AndroidShare', { files: filesWaitingForSignIn });
+    setFilesWaitingForSignIn(null);
+  }, [filesWaitingForSignIn, isLoggedIn, navigationContainerRef]);
+
+  useEffect(() => {
     if (Platform.OS !== 'android') return;
     const subscription = DeviceEventEmitter.addListener('ShareIntentReceived', (files: SharedFile[]) => {
       if (files?.length) {
@@ -37,4 +48,6 @@ export const useAndroidShareIntent = (
     });
     return () => subscription.remove();
   }, [navigationContainerRef]);
+
+  return { keepFilesUntilSignIn };
 };
