@@ -7,6 +7,7 @@ import { useShareExtension } from './hooks/useShareExtension.ios';
 import { useShareUpload } from './hooks/useShareUpload';
 import { DriveScreen } from './screens/DriveScreen';
 import { NotSignedInScreen } from './screens/NotSignedInScreen';
+import { savePendingShareAndOpenLogin } from './services/pendingShareLogin';
 import { ShareThemeProvider } from './ShareThemeProvider';
 import { useShareColors } from './theme';
 
@@ -102,7 +103,7 @@ const ShareExtensionView = ({
       </View>
     );
   } else {
-    content = <NotSignedInScreen onClose={close} onOpenLogin={() => openHostApp(AppPaths.signIn())} />;
+    content = <NotSignedInScreen onClose={close} onOpenLogin={() => savePendingShareAndOpenLogin(sharedFiles)} />;
   }
 
   return <ShareThemeProvider themePreference={themePreference}>{content}</ShareThemeProvider>;

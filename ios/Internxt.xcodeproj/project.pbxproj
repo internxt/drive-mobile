@@ -40,6 +40,8 @@
 		CEF3BECD880147688CACD8B5 /* FileProviderEnumerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47642F87A94000E14783 /* FileProviderEnumerator.swift */; };
 		DEBEAEBF2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */; };
 		DEBEAEC02F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
+		DEBEAEC12F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBE2F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift */; };
+		DEBEAEC22F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */ = {isa = PBXBuildFile; fileRef = DEBEAEBD2F72E65B00A6E6D5 /* AppGroupPendingShareModule.m */; };
 		E969AA12C7375D21048F65E7 /* libPods-InternxtFileProvider.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B795FB0D0D82BE9A80DF7EBF /* libPods-InternxtFileProvider.a */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 		F603918B0E78918549FB9494 /* FileProviderItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE1D47652F87A94000E14783 /* FileProviderItem.swift */; };
@@ -865,6 +867,8 @@
 			files = (
 				8F8148045BC14A539BD1917D /* ShareExtensionViewController.swift in Sources */,
 				18D7DE9587FA2B2314575ED6 /* ExpoModulesProvider.swift in Sources */,
+				DEBEAEC12F72E65B00A6E6D5 /* AppGroupPendingShareModule.swift in Sources */,
+				DEBEAEC22F72E65B00A6E6D5 /* AppGroupPendingShareModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
