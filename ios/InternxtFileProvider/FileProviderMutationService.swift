@@ -28,27 +28,39 @@ struct FileProviderMutationService {
 
     func rename(
         _ decoded: (kind: DriveItemKind, uuid: String),
+        identifier: NSFileProviderItemIdentifier,
         to newFilename: String
-    ) async throws {
+    ) async throws -> FileProviderItem? {
         switch decoded.kind {
         case .folder:
-            _ = try await driveAPI.updateFolderNew(folderUuid: decoded.uuid, folderName: newFilename)
+            let response = try await driveAPI.updateFolderNew(folderUuid: decoded.uuid, folderName: newFilename)
+            return FileProviderItem(updatedFolder: response, identifier: identifier)
         case .file:
             let meta = try await driveAPI.getFileMetaByUuidV2(uuid: decoded.uuid)
             let (baseName, _) = FileProviderItem.splitNameExtension(newFilename, kind: .file)
-            _ = try await driveAPI.updateFileNew(uuid: decoded.uuid, bucketId: meta.bucket, newFilename: baseName)
+            let response = try await driveAPI.updateFileNew(uuid: decoded.uuid, bucketId: meta.bucket, newFilename: baseName)
+            return FileProviderItem(updatedFile: response, identifier: identifier)
         }
     }
 
     func move(
         _ decoded: (kind: DriveItemKind, uuid: String),
-        toParentUuid destinationFolderUuid: String
-    ) async throws {
+        identifier: NSFileProviderItemIdentifier,
+        toParentUuid destinationFolderUuid: String,
+        renamingTo newFilename: String? = nil
+    ) async throws -> FileProviderItem? {
         switch decoded.kind {
         case .folder:
-            _ = try await driveAPI.moveFolderNew(uuid: decoded.uuid, destinationFolder: destinationFolderUuid)
+            let response = try await driveAPI.moveFolderNew(
+                uuid: decoded.uuid, destinationFolder: destinationFolderUuid, newName: newFilename
+            )
+            return FileProviderItem(updatedFolder: response, identifier: identifier)
         case .file:
-            _ = try await driveAPI.moveFileNew(uuid: decoded.uuid, destinationFolder: destinationFolderUuid)
+            let newBaseName = newFilename.map { FileProviderItem.splitNameExtension($0, kind: .file).0 }
+            let response = try await driveAPI.moveFileNew(
+                uuid: decoded.uuid, destinationFolder: destinationFolderUuid, newName: newBaseName
+            )
+            return FileProviderItem(updatedFile: response, identifier: identifier)
         }
     }
 

@@ -232,16 +232,28 @@ class FileProviderExtension: NSObject, NSFileProviderReplicatedExtension {
         let progress = Progress(totalUnitCount: 1)
         Task {
             do {
-                if shouldRename {
-                    try await mutationService.rename(decoded, to: newFilename)
-                }
+                var updatedItem: FileProviderItem?
                 if let destinationFolderUuid {
-                    try await mutationService.move(decoded, toParentUuid: destinationFolderUuid)
+                    updatedItem = try await mutationService.move(
+                        decoded,
+                        identifier: item.itemIdentifier,
+                        toParentUuid: destinationFolderUuid,
+                        renamingTo: shouldRename ? newFilename : nil
+                    )
+                } else if shouldRename {
+                    updatedItem = try await mutationService.rename(
+                        decoded, identifier: item.itemIdentifier, to: newFilename
+                    )
                 }
                 progress.completedUnitCount = 1
-                let modified = await Self.resolveModifiedItem(
-                    item, decoded: decoded, shouldRename: shouldRename, mutationService: mutationService
-                )
+                let modified: NSFileProviderItem
+                if let updatedItem {
+                    modified = updatedItem
+                } else {
+                    modified = await Self.resolveModifiedItem(
+                        item, decoded: decoded, shouldRename: shouldRename, mutationService: mutationService
+                    )
+                }
                 completionHandler(modified, [], false, nil)
             } catch {
                 if FileProviderErrorMapper.isNameCollision(error),
