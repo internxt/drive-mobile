@@ -3,6 +3,7 @@ import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
 import LoadingSpinner from '../LoadingSpinner';
+import { cssInterop } from 'nativewind';
 
 interface AppButtonProps {
   testID?: string;
@@ -12,6 +13,7 @@ interface AppButtonProps {
   disabled?: boolean;
   loading?: boolean;
   style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
 const AppButton = (props: AppButtonProps): JSX.Element => {
@@ -142,5 +144,7 @@ const AppButton = (props: AppButtonProps): JSX.Element => {
     </TouchableHighlight>
   );
 };
+
+cssInterop(AppButton, { className: 'style' });
 
 export default AppButton;

@@ -139,6 +139,7 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
             isQuoteShown ? strings.screens.email_detail.hideQuotedText : strings.screens.email_detail.showQuotedText
           }
           onPress={() => setIsQuoteShown(!isQuoteShown)}
+          cssInterop={false}
           style={({ pressed }) => [
             tailwind('items-center justify-center rounded-full mt-3'),
             {

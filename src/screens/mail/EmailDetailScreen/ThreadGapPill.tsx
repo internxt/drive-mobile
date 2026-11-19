@@ -28,6 +28,7 @@ export const ThreadGapPill = ({ hiddenMessageCount, onPress }: { hiddenMessageCo
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={onPress}
+        cssInterop={false}
         style={({ pressed }) => [
           tailwind('flex-row items-center rounded-full'),
           {

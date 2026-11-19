@@ -2,6 +2,7 @@ import { Text, TextProps, TextStyle } from 'react-native';
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import styles from '../../styles/global';
+import { cssInterop } from 'nativewind';
 
 interface AppTextProps extends TextProps {
   medium?: boolean;
@@ -49,5 +50,7 @@ const AppText = (props: AppTextProps): JSX.Element => {
     </Text>
   );
 };
+
+cssInterop(AppText, { className: 'style' });
 
 export default AppText;

@@ -14,10 +14,12 @@ import {
 import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 export interface AppTextInputProps extends TextInputProps {
   status?: ['idle' | 'warning' | 'error' | 'success', string | JSX.Element | undefined];
   containerStyle?: StyleProp<ViewStyle>;
+  containerClassName?: string;
   wrapperStyle?: StyleProp<ViewStyle>;
   label?: string;
   renderAppend?: ({ isFocused }: { isFocused: boolean }) => JSX.Element | undefined;
@@ -147,5 +149,7 @@ const AppTextInput = (props: AppTextInputProps): JSX.Element => {
     </View>
   );
 };
+
+cssInterop(AppTextInput, { className: 'style', containerClassName: 'containerStyle' });
 
 export default AppTextInput;
