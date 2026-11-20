@@ -75,6 +75,8 @@ const FLOATING_HEADER_MIN_OPACITY = 0.02;
 const PULL_TO_REFRESH_FADE_START = -10;
 const PULL_TO_REFRESH_FADE_END = -60;
 const LIST_PADDING_BOTTOM = 80;
+const PHOTO_CELL_GAP = 2;
+const PHOTO_CELL_PADDING = PHOTO_CELL_GAP / 2;
 
 // Hoisted so the FlashList does not see a new object identity on every render.
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
@@ -317,7 +319,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     const renderItem: ListRenderItem<TimelinePhotoItem> = useCallback(
       ({ item }) => (
-        <View style={[tailwind('flex-1'), { aspectRatio: 1, margin: 1 }]}>
+        <View style={[tailwind('flex-1'), { aspectRatio: 1, padding: PHOTO_CELL_PADDING }]}>
           <PhotoItem
             item={item}
             isSelectMode={isSelectMode}
