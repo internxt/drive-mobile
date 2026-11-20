@@ -216,6 +216,102 @@ export const mergeCloudIntoGroups = (localGroups: PhotoDateGroup[], cloudItems: 
   return result.sort((a, b) => new Date(b.id).getTime() - new Date(a.id).getTime());
 };
 
+/** Keeps the cloud items whose folder date falls on a local day after the day of `timestamp`. */
+export const filterCloudItemsAfterDayOf = (cloudItems: CloudPhotoItem[], timestamp: number): CloudPhotoItem[] => {
+  const nextDayStart = new Date(timestamp);
+  nextDayStart.setHours(0, 0, 0, 0);
+  nextDayStart.setDate(nextDayStart.getDate() + 1);
+  const nextDayStartTime = nextDayStart.getTime();
+  return cloudItems.filter((item) => item.folderDate >= nextDayStartTime);
+};
+
+/**
+ * Removes from `groups` the photos missing from `displayedPhotoIds` that come before
+ * `firstVisiblePhotoId`, and drops the groups left empty. Returns `groups` unchanged when nothing is
+ * removed or when `firstVisiblePhotoId` is not in `groups`.
+ */
+export const withholdPhotosInsertedAbove = ({
+  groups,
+  displayedPhotoIds,
+  firstVisiblePhotoId,
+}: {
+  groups: TimelineDateGroup[];
+  displayedPhotoIds: Set<string>;
+  firstVisiblePhotoId: string;
+}): TimelineDateGroup[] => {
+  const keptGroups: TimelineDateGroup[] = [];
+  let hasWithheldPhotos = false;
+  let isBeforeFirstVisiblePhoto = true;
+
+  for (const timelineGroup of groups) {
+    if (!isBeforeFirstVisiblePhoto) {
+      keptGroups.push(timelineGroup);
+      continue;
+    }
+
+    const keptPhotos: TimelinePhotoItem[] = [];
+    for (const photo of timelineGroup.group.photos) {
+      if (photo.id === firstVisiblePhotoId) {
+        isBeforeFirstVisiblePhoto = false;
+      }
+      if (isBeforeFirstVisiblePhoto && !displayedPhotoIds.has(photo.id)) {
+        hasWithheldPhotos = true;
+        continue;
+      }
+      keptPhotos.push(photo);
+    }
+
+    if (keptPhotos.length === timelineGroup.group.photos.length) {
+      keptGroups.push(timelineGroup);
+    } else if (keptPhotos.length > 0) {
+      keptGroups.push({ ...timelineGroup, group: { ...timelineGroup.group, photos: keptPhotos } });
+    }
+  }
+
+  if (!hasWithheldPhotos || isBeforeFirstVisiblePhoto) {
+    return groups;
+  }
+  return keptGroups;
+};
+
+export interface WithheldPhotoPositions {
+  positionById: Map<string, number>;
+  lastWithheldPosition: number;
+}
+
+/**
+ * Position of every photo of `groups` in timeline order, and the position of the last photo that
+ * `withholdPhotosInsertedAbove` holds back with the same arguments, or -1 when none is held back.
+ */
+export const getWithheldPhotoPositions = ({
+  groups,
+  displayedPhotoIds,
+  firstVisiblePhotoId,
+}: {
+  groups: TimelineDateGroup[];
+  displayedPhotoIds: Set<string>;
+  firstVisiblePhotoId: string;
+}): WithheldPhotoPositions => {
+  const positionById = new Map<string, number>();
+  let lastWithheldPosition = -1;
+  let isBeforeFirstVisiblePhoto = true;
+
+  for (const timelineGroup of groups) {
+    for (const photo of timelineGroup.group.photos) {
+      const position = positionById.size;
+      positionById.set(photo.id, position);
+      if (photo.id === firstVisiblePhotoId) {
+        isBeforeFirstVisiblePhoto = false;
+      }
+      if (isBeforeFirstVisiblePhoto && !displayedPhotoIds.has(photo.id)) {
+        lastWithheldPosition = position;
+      }
+    }
+  }
+
+  return { positionById, lastWithheldPosition: isBeforeFirstVisiblePhoto ? -1 : lastWithheldPosition };
+};
+
 export interface GroupBoundary {
   startIndex: number;
   id: string;

@@ -30,6 +30,7 @@ export interface PagedLocalAssetsResult {
   assets: MediaLibrary.Asset[];
   isLoading: boolean;
   hasLoadedLocalAssetsOnce: boolean;
+  hasLoadedAllLocalAssets: boolean;
   loadNextPage: () => void;
   reloadFromStart: () => Promise<Set<string> | undefined>;
   reconcileHead: () => Promise<string[]>;
@@ -58,6 +59,7 @@ export const usePagedLocalAssets = (isEnabled: boolean): PagedLocalAssetsResult 
   const [assetMap, setAssetMap] = useState<Map<string, AssetEntry>>(new Map());
   const [isLoading, setIsLoading] = useState(true);
   const [hasLoadedLocalAssetsOnce, setHasLoadedLocalAssetsOnce] = useState(false);
+  const [hasLoadedAllLocalAssets, setHasLoadedAllLocalAssets] = useState(false);
   const paginationRef = useRef<PaginationState>({ runId: 0, cursor: undefined, hasMore: true, isRunning: false });
 
   const fetchLocalPage = useCallback(async (after?: string): Promise<LocalAssetsPage> => {
@@ -111,6 +113,7 @@ export const usePagedLocalAssets = (isEnabled: boolean): PagedLocalAssetsResult 
           }
           pagination.cursor = page.hasNextPage ? page.endCursor : undefined;
           pagination.hasMore = page.hasNextPage;
+          setHasLoadedAllLocalAssets(!page.hasNextPage);
           const replace = isFirstPage; // captured: the updater may run after isFirstPage is mutated below
           setAssetMap((prev) => {
             const next = replace ? new Map<string, AssetEntry>() : new Map(prev);
@@ -222,6 +225,7 @@ export const usePagedLocalAssets = (isEnabled: boolean): PagedLocalAssetsResult 
     if (!isEnabled) {
       setIsLoading(false);
       setHasLoadedLocalAssetsOnce(true);
+      setHasLoadedAllLocalAssets(true);
       return;
     }
     const loadInitialPages = async () => {
@@ -249,6 +253,7 @@ export const usePagedLocalAssets = (isEnabled: boolean): PagedLocalAssetsResult 
     assets,
     isLoading,
     hasLoadedLocalAssetsOnce,
+    hasLoadedAllLocalAssets,
     loadNextPage,
     reloadFromStart,
     reconcileHead,

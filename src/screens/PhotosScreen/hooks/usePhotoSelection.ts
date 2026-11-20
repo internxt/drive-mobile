@@ -9,8 +9,8 @@ export interface PhotoSelection {
   enterSelectMode: (id?: string) => void;
   exitSelectMode: () => void;
   toggleSelect: (id: string) => void;
-  beginDragSelect: (index: number) => void;
-  updateDragSelect: (index: number) => void;
+  beginDragSelect: (index: number, displayedItems: TimelinePhotoItem[]) => void;
+  updateDragSelect: (index: number, displayedItems: TimelinePhotoItem[]) => void;
   endDragSelect: () => void;
 }
 
@@ -48,8 +48,8 @@ export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection
   // Snapshots the current selection so updateDragSelect can recompute the full
   // range from scratch on each move — prevents toggle-thrash when backtracking.
   const beginDragSelect = useCallback(
-    (index: number) => {
-      const anchorItem = allItems[index];
+    (index: number, displayedItems: TimelinePhotoItem[]) => {
+      const anchorItem = displayedItems[index];
       if (!anchorItem || !isItemSelectable(anchorItem)) {
         return;
       }
@@ -57,37 +57,34 @@ export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection
       dragSelectionSnapshotRef.current = new Set(selectedIds);
       dragShouldSelectRef.current = !selectedIds.has(anchorItem.id);
     },
-    [allItems, selectedIds],
+    [selectedIds],
   );
 
-  const updateDragSelect = useCallback(
-    (index: number) => {
-      const anchor = dragAnchorIndexRef.current;
-      if (anchor === null) {
-        return;
-      }
-      const rangeStart = Math.min(anchor, index);
-      const rangeEnd = Math.max(anchor, index);
-      const shouldSelect = dragShouldSelectRef.current;
-      const selectionSnapshot = dragSelectionSnapshotRef.current;
-      setSelectedIds(() => {
-        const updatedSelection = new Set(selectionSnapshot);
-        for (let i = rangeStart; i <= rangeEnd; i++) {
-          const item = allItems[i];
-          if (!item || !isItemSelectable(item)) {
-            continue;
-          }
-          if (shouldSelect) {
-            updatedSelection.add(item.id);
-          } else {
-            updatedSelection.delete(item.id);
-          }
+  const updateDragSelect = useCallback((index: number, displayedItems: TimelinePhotoItem[]) => {
+    const anchor = dragAnchorIndexRef.current;
+    if (anchor === null) {
+      return;
+    }
+    const rangeStart = Math.min(anchor, index);
+    const rangeEnd = Math.max(anchor, index);
+    const shouldSelect = dragShouldSelectRef.current;
+    const selectionSnapshot = dragSelectionSnapshotRef.current;
+    setSelectedIds(() => {
+      const updatedSelection = new Set(selectionSnapshot);
+      for (let i = rangeStart; i <= rangeEnd; i++) {
+        const item = displayedItems[i];
+        if (!item || !isItemSelectable(item)) {
+          continue;
         }
-        return updatedSelection;
-      });
-    },
-    [allItems],
-  );
+        if (shouldSelect) {
+          updatedSelection.add(item.id);
+        } else {
+          updatedSelection.delete(item.id);
+        }
+      }
+      return updatedSelection;
+    });
+  }, []);
 
   const endDragSelect = useCallback(() => {
     dragAnchorIndexRef.current = null;
