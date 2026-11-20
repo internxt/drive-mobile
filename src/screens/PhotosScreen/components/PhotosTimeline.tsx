@@ -95,8 +95,8 @@ interface PhotosTimelineProps {
   onPausePress?: () => void;
   onResumePress?: () => void;
   onRetryPress?: () => void;
-  onDragBegin?: (index: number) => void;
-  onDragUpdate?: (index: number) => void;
+  onDragBegin?: (index: number, displayedPhotos: TimelinePhotoItem[]) => void;
+  onDragUpdate?: (index: number, displayedPhotos: TimelinePhotoItem[]) => void;
   onDragEnd?: () => void;
 }
 
