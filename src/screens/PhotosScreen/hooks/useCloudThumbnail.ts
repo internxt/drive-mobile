@@ -24,19 +24,19 @@ export const useCloudThumbnail = (item: CloudPhotoItem): { uri: string | null; o
   }, [item.id]);
 
   useEffect(() => {
-    const idChanged = lastItemIdRef.current !== item.id;
-    const persistedPathChanged = lastThumbnailPathPropRef.current !== item.thumbnailPath;
+    const hasItemIdChanged = lastItemIdRef.current !== item.id;
+    const hasPersistedPathChanged = lastThumbnailPathPropRef.current !== item.thumbnailPath;
     lastItemIdRef.current = item.id;
     lastThumbnailPathPropRef.current = item.thumbnailPath;
 
-    if (idChanged || persistedPathChanged) {
+    if (hasItemIdChanged || hasPersistedPathChanged) {
       setLocalPath(item.thumbnailPath);
     }
 
     // retryCount belongs to the cell, which FlashList recycles across items, so it only counts as a
     // retry for the item that actually failed — otherwise one failed image would make every later
     // item in that cell refetch a thumbnail it already has on disk.
-    const isRetry = retryCount > 0 && !idChanged;
+    const isRetry = retryCount > 0 && !hasItemIdChanged;
     if (!isRetry && item.thumbnailPath) {
       return;
     }
