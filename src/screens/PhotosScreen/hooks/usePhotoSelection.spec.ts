@@ -107,8 +107,8 @@ describe('usePhotoSelection', () => {
     const { result } = renderHook(() => usePhotoSelection(items));
 
     act(() => result.current.enterSelectMode());
-    act(() => result.current.beginDragSelect(0));
-    act(() => result.current.updateDragSelect(1));
+    act(() => result.current.beginDragSelect(0, items));
+    act(() => result.current.updateDragSelect(1, items));
 
     expect(result.current.selectedIds.size).toBe(0);
   });
@@ -118,11 +118,23 @@ describe('usePhotoSelection', () => {
     const { result } = renderHook(() => usePhotoSelection(items));
 
     act(() => result.current.enterSelectMode());
-    act(() => result.current.beginDragSelect(0));
-    act(() => result.current.updateDragSelect(2));
+    act(() => result.current.beginDragSelect(0, items));
+    act(() => result.current.updateDragSelect(2, items));
 
     expect(result.current.selectedIds.has('a')).toBe(true);
     expect(result.current.selectedIds.has('b')).toBe(false);
     expect(result.current.selectedIds.has('c')).toBe(true);
+  });
+
+  test('when photos are hidden from the grid, then a drag selects the photos under the finger, not the hidden ones', () => {
+    const allItems = [makeLocalItem('new-1'), makeLocalItem('new-2'), makeLocalItem('a'), makeLocalItem('b')];
+    const displayedItems = allItems.slice(2);
+    const { result } = renderHook(() => usePhotoSelection(allItems));
+
+    act(() => result.current.enterSelectMode());
+    act(() => result.current.beginDragSelect(0, displayedItems));
+    act(() => result.current.updateDragSelect(1, displayedItems));
+
+    expect([...result.current.selectedIds]).toEqual(['a', 'b']);
   });
 });
