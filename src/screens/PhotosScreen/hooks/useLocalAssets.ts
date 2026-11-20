@@ -15,6 +15,7 @@ export interface LocalAssetsResult {
   assets: MediaLibrary.Asset[];
   isLoading: boolean;
   hasLoadedLocalAssetsOnce: boolean;
+  hasLoadedAllLocalAssets: boolean;
   syncedIds: Set<string>;
   cloudDeletedIds: Set<string>;
   uploadingIdSet: Set<string>;
@@ -45,6 +46,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
     assets,
     isLoading,
     hasLoadedLocalAssetsOnce,
+    hasLoadedAllLocalAssets,
     loadNextPage,
     reloadFromStart,
     reconcileHead,
@@ -146,6 +148,7 @@ export const useLocalAssets = (): LocalAssetsResult => {
     assets,
     isLoading,
     hasLoadedLocalAssetsOnce,
+    hasLoadedAllLocalAssets,
     syncedIds,
     cloudDeletedIds,
     uploadingIdSet,
