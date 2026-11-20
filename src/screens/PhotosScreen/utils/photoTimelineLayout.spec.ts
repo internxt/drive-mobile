@@ -3,6 +3,7 @@ import {
   buildTimelineDateIndex,
   findLastIndexAtOrBefore,
   getOffsetForIndex,
+  getPlaceholderBackdropFrame,
   getRailAnchorForScroll,
   getRowHeightFromContent,
 } from './photoTimelineLayout';
@@ -173,5 +174,82 @@ describe('finding the last value at or before a target', () => {
     expect(findLastIndexAtOrBefore(values, 20)).toBe(2);
     expect(findLastIndexAtOrBefore(values, 25)).toBe(2);
     expect(findLastIndexAtOrBefore(values, 15)).toBe(1);
+  });
+});
+
+describe('placing the placeholder grid behind the timeline', () => {
+  const ROW_HEIGHT = 100;
+  const TOP_INSET = 64;
+  const VIEWPORT_HEIGHT = 800;
+
+  test('when the list is at the top, then the grid starts under the header and has no row offset', () => {
+    expect(
+      getPlaceholderBackdropFrame({
+        scrollOffset: 0,
+        contentTopInset: TOP_INSET,
+        rowHeight: ROW_HEIGHT,
+        rowCount: 50,
+        viewportHeight: VIEWPORT_HEIGHT,
+      }),
+    ).toEqual({ visibleTop: TOP_INSET, visibleHeight: VIEWPORT_HEIGHT - TOP_INSET, firstRowOffset: 0 });
+  });
+
+  test('when the list is scrolled partway into a row, then the grid shifts up by that same amount', () => {
+    const frame = getPlaceholderBackdropFrame({
+      scrollOffset: TOP_INSET + 5 * ROW_HEIGHT + 30,
+      contentTopInset: TOP_INSET,
+      rowHeight: ROW_HEIGHT,
+      rowCount: 50,
+      viewportHeight: VIEWPORT_HEIGHT,
+    });
+
+    expect(frame).toEqual({ visibleTop: 0, visibleHeight: VIEWPORT_HEIGHT, firstRowOffset: -30 });
+  });
+
+  test('when the list is scrolled to an exact row edge, then the grid has no row offset', () => {
+    const frame = getPlaceholderBackdropFrame({
+      scrollOffset: TOP_INSET + 7 * ROW_HEIGHT,
+      contentTopInset: TOP_INSET,
+      rowHeight: ROW_HEIGHT,
+      rowCount: 50,
+      viewportHeight: VIEWPORT_HEIGHT,
+    });
+
+    expect(frame.firstRowOffset).toBe(0);
+  });
+
+  test('when the end of the timeline is in view, then the grid stops before the last row', () => {
+    const rowCount = 10;
+    const scrollOffset = TOP_INSET + rowCount * ROW_HEIGHT - 500;
+
+    const frame = getPlaceholderBackdropFrame({
+      scrollOffset,
+      contentTopInset: TOP_INSET,
+      rowHeight: ROW_HEIGHT,
+      rowCount,
+      viewportHeight: VIEWPORT_HEIGHT,
+    });
+
+    expect(frame.visibleTop + frame.visibleHeight).toBe(500 - ROW_HEIGHT);
+  });
+
+  test('when the timeline has a single row or no measured height yet, then no grid is shown', () => {
+    const singleRow = getPlaceholderBackdropFrame({
+      scrollOffset: 0,
+      contentTopInset: TOP_INSET,
+      rowHeight: ROW_HEIGHT,
+      rowCount: 1,
+      viewportHeight: VIEWPORT_HEIGHT,
+    });
+    const unmeasured = getPlaceholderBackdropFrame({
+      scrollOffset: 0,
+      contentTopInset: TOP_INSET,
+      rowHeight: 0,
+      rowCount: 50,
+      viewportHeight: VIEWPORT_HEIGHT,
+    });
+
+    expect(singleRow.visibleHeight).toBe(0);
+    expect(unmeasured.visibleHeight).toBe(0);
   });
 });
