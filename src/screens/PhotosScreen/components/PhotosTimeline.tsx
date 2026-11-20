@@ -18,6 +18,7 @@ import {
 import PhotosGroupHeader, { GroupSyncStatus } from './GroupHeader/PhotosGroupHeader';
 import PhotoItem from './PhotoItem';
 import PhotosEmptyState from './PhotosEmptyState';
+import PhotosPlaceholderBackdrop from './PhotosPlaceholderBackdrop';
 import PhotosScrubber from './PhotosScrubber';
 
 export interface PhotosTimelineHandle {
@@ -376,6 +377,17 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     return (
       <GestureDetector gesture={gesture}>
         <View style={tailwind('flex-1')} onLayout={onContainerLayoutMerged}>
+          {!isEmpty && (
+            <PhotosPlaceholderBackdrop
+              scrollOffset={scrubber.drag.scrollOffset}
+              contentTopInset={contentTopInset}
+              rowCount={Math.ceil(photos.length / NUM_COLUMNS)}
+              numColumns={NUM_COLUMNS}
+              cellPadding={PHOTO_CELL_PADDING}
+              viewportWidth={containerSize.width}
+              viewportHeight={containerSize.height}
+            />
+          )}
           <FlashList
             ref={setListRef}
             data={photos}

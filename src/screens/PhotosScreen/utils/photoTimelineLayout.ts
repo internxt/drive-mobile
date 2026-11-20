@@ -153,3 +153,39 @@ export const findLastIndexAtOrBefore = (values: number[], target: number): numbe
 
   return foundIndex;
 };
+
+export interface PlaceholderBackdropFrame {
+  visibleTop: number;
+  visibleHeight: number;
+  firstRowOffset: number;
+}
+
+/**
+ * Visible part of the viewport covered by full grid rows, and where the first row starts in it.
+ * Leaves out the last row.
+ */
+export const getPlaceholderBackdropFrame = ({
+  scrollOffset,
+  contentTopInset,
+  rowHeight,
+  rowCount,
+  viewportHeight,
+}: {
+  scrollOffset: number;
+  contentTopInset: number;
+  rowHeight: number;
+  rowCount: number;
+  viewportHeight: number;
+}): PlaceholderBackdropFrame => {
+  'worklet';
+  if (rowHeight <= 0 || rowCount <= 1) {
+    return { visibleTop: 0, visibleHeight: 0, firstRowOffset: 0 };
+  }
+  const firstRowTop = contentTopInset - scrollOffset;
+  const fullRowsBottom = firstRowTop + (rowCount - 1) * rowHeight;
+  const visibleTop = Math.max(0, firstRowTop);
+  const visibleBottom = Math.min(viewportHeight, fullRowsBottom);
+  const rowPhase = (((firstRowTop - visibleTop) % rowHeight) + rowHeight) % rowHeight;
+  const firstRowOffset = rowPhase === 0 ? 0 : rowPhase - rowHeight;
+  return { visibleTop, visibleHeight: Math.max(0, visibleBottom - visibleTop), firstRowOffset };
+};
