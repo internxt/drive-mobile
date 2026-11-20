@@ -7,7 +7,14 @@ import { useTailwind } from 'tailwind-rn';
 import { useDragSelectGesture } from '../hooks/useDragSelectGesture';
 import { MeasuredTimelineContent, usePhotosScrubber } from '../hooks/usePhotosScrubber';
 import { PhotoBackupState, PhotoDateGroup, TimelinePhotoItem } from '../types';
-import { GroupBoundary, buildFlatTimeline, findGroupForIndex } from '../utils/photoTimelineGroups';
+import {
+  GroupBoundary,
+  buildFlatTimeline,
+  findGroupForIndex,
+  getWithheldPhotoPositions,
+  withholdPhotosInsertedAbove,
+  WithheldPhotoPositions,
+} from '../utils/photoTimelineGroups';
 import PhotosGroupHeader, { GroupSyncStatus } from './GroupHeader/PhotosGroupHeader';
 import PhotoItem from './PhotoItem';
 import PhotosEmptyState from './PhotosEmptyState';
@@ -59,6 +66,7 @@ const SKELETON_GROUP: TimelineDateGroup = {
   },
   syncStatus: { type: 'none' },
 };
+const SKELETON_PHOTO_IDS = new Set(SKELETON_GROUP.group.photos.map((photo) => photo.id));
 
 const NUM_COLUMNS = 3;
 const HEADER_HEIGHT = 64;
@@ -119,13 +127,42 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
   ) => {
     const tailwind = useTailwind();
 
+    const [isAtListTop, setIsAtListTop] = useState(true);
+    const displayedPhotoIdsRef = useRef<Set<string>>(new Set());
+    const firstVisiblePhotoIdRef = useRef<string | undefined>(undefined);
+    const withheldPhotoPositionsRef = useRef<WithheldPhotoPositions | null>(null);
+    const [withheldReleaseCount, setWithheldReleaseCount] = useState(0);
+
+    // Inserting above the first visible photo moves every visible photo, so new photos there wait
+    // until they scroll into view or the list is back at the top.
+    const displayedGroups = useMemo(() => {
+      withheldPhotoPositionsRef.current = null;
+      const firstVisiblePhotoId = firstVisiblePhotoIdRef.current;
+      if (isAtListTop || firstVisiblePhotoId === undefined) {
+        return assetsGroupsByDate;
+      }
+      const withholdParams = {
+        groups: assetsGroupsByDate,
+        displayedPhotoIds: displayedPhotoIdsRef.current,
+        firstVisiblePhotoId,
+      };
+      const keptGroups = withholdPhotosInsertedAbove(withholdParams);
+      if (keptGroups !== assetsGroupsByDate) {
+        withheldPhotoPositionsRef.current = getWithheldPhotoPositions(withholdParams);
+      }
+      return keptGroups;
+    }, [assetsGroupsByDate, isAtListTop, withheldReleaseCount]);
+
     const { photos, boundaries } = useMemo(() => {
-      const effectiveGroups = isLoading ? [...assetsGroupsByDate, SKELETON_GROUP] : assetsGroupsByDate;
+      const effectiveGroups = isLoading ? [...displayedGroups, SKELETON_GROUP] : displayedGroups;
       return buildFlatTimeline(effectiveGroups);
-    }, [assetsGroupsByDate, isLoading]);
+    }, [displayedGroups, isLoading]);
+
+    useEffect(() => {
+      displayedPhotoIdsRef.current = new Set(photos.map((photo) => photo.id));
+    }, [photos]);
 
     const [topGroupId, setTopGroupId] = useState<string | undefined>(() => boundaries[0]?.id);
-    const [isAtListTop, setIsAtListTop] = useState(true);
 
     const totalAssetsCount = useMemo(
       () => assetsGroupsByDate.reduce((sum, { group }) => sum + group.photos.length, 0),
@@ -249,9 +286,24 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     );
 
     const onViewableItemsChanged = useCallback(
-      ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+      ({ viewableItems }: { viewableItems: Array<{ index: number | null; item: TimelinePhotoItem }> }) => {
         if (viewableItems.length === 0) {
           return;
+        }
+        const firstVisiblePhoto = viewableItems.find(({ item }) => !SKELETON_PHOTO_IDS.has(item.id));
+        if (firstVisiblePhoto) {
+          firstVisiblePhotoIdRef.current = firstVisiblePhoto.item.id;
+        }
+        const withheldPositions = withheldPhotoPositionsRef.current;
+        const firstVisiblePosition =
+          firstVisiblePhoto && withheldPositions?.positionById.get(firstVisiblePhoto.item.id);
+        if (
+          withheldPositions &&
+          firstVisiblePosition !== undefined &&
+          firstVisiblePosition < withheldPositions.lastWithheldPosition
+        ) {
+          withheldPhotoPositionsRef.current = null;
+          setWithheldReleaseCount((count) => count + 1);
         }
         const topIndex = viewableItems[0].index ?? 0;
         setIsAtListTop((prev) => (prev === (topIndex === 0) ? prev : topIndex === 0));
@@ -292,8 +344,9 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
 
     const currentBoundary = useMemo(
-      () => boundaries.find((boundary) => boundary.id === topGroupId) ?? boundaries[0],
-      [boundaries, topGroupId],
+      () =>
+        isAtListTop ? boundaries[0] : (boundaries.find((boundary) => boundary.id === topGroupId) ?? boundaries[0]),
+      [boundaries, topGroupId, isAtListTop],
     );
 
     const overlaySyncStatus = useMemo(

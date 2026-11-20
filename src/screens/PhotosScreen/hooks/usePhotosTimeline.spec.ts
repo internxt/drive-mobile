@@ -67,6 +67,7 @@ beforeEach(() => {
     assets: [localAsset],
     isLoading: false,
     hasLoadedLocalAssetsOnce: true,
+    hasLoadedAllLocalAssets: true,
     syncedIds: new Set(),
     uploadingIdSet: new Set(),
     burstRepresentativeIdSet: new Set(),
@@ -141,5 +142,46 @@ describe('usePhotosTimeline', () => {
 
     const allIds = result.current.timelineDateGroups.flatMap((entry) => entry.group.photos.map((photo) => photo.id));
     expect(allIds).toEqual(['cloud-1']);
+  });
+  test('when more local pages are still loading, then cloud photos from the oldest loaded day or before wait', () => {
+    const olderCloudItem: CloudPhotoItem = {
+      ...cloudItem,
+      id: 'cloud-older',
+      folderDate: 1_000_000 - 2 * 24 * 60 * 60 * 1000,
+    };
+    const newerCloudItem: CloudPhotoItem = {
+      ...cloudItem,
+      id: 'cloud-newer',
+      folderDate: 1_000_000 + 2 * 24 * 60 * 60 * 1000,
+    };
+    mockUseLocalAssets.mockReturnValue({
+      ...mockUseLocalAssets(),
+      hasLoadedAllLocalAssets: false,
+    });
+    mockUseCloudAssets.mockReturnValue({
+      cloudItems: [newerCloudItem, cloudItem, olderCloudItem],
+      reloadCloud: jest.fn(),
+    });
+
+    const { result } = renderHook(() => usePhotosTimeline(null));
+
+    const allIds = result.current.timelineDateGroups.flatMap((entry) => entry.group.photos.map((photo) => photo.id));
+    expect(allIds).toEqual(expect.arrayContaining(['local-1', 'cloud-newer']));
+    expect(allIds).not.toContain('cloud-1');
+    expect(allIds).not.toContain('cloud-older');
+  });
+
+  test('when every local page has loaded, then older cloud photos are shown too', () => {
+    const olderCloudItem: CloudPhotoItem = {
+      ...cloudItem,
+      id: 'cloud-older',
+      folderDate: 1_000_000 - 2 * 24 * 60 * 60 * 1000,
+    };
+    mockUseCloudAssets.mockReturnValue({ cloudItems: [cloudItem, olderCloudItem], reloadCloud: jest.fn() });
+
+    const { result } = renderHook(() => usePhotosTimeline(null));
+
+    const allIds = result.current.timelineDateGroups.flatMap((entry) => entry.group.photos.map((photo) => photo.id));
+    expect(allIds).toContain('cloud-older');
   });
 });
