@@ -1,11 +1,10 @@
 import { GroupBoundary } from './photoTimelineGroups';
 import {
   buildTimelineDateIndex,
-  findAnchorForIndex,
-  getIndexForOffset,
+  findLastIndexAtOrBefore,
   getOffsetForIndex,
   getRailAnchorForScroll,
-  getTimelineContentHeight,
+  getRowHeightFromContent,
 } from './photoTimelineLayout';
 
 const makeBoundary = (overrides: Partial<GroupBoundary> = {}): GroupBoundary => ({
@@ -69,6 +68,20 @@ describe('building the year and month anchors of the timeline', () => {
     expect(monthAnchors).toHaveLength(1);
   });
 
+  test('when every month of a year has photos, then each month label is the short English month and the year', () => {
+    const daysNewestFirst = Array.from({ length: 12 }, (_, monthsBack) => new Date(2025, 11 - monthsBack, 20));
+    const boundaries = daysNewestFirst.map((day, dayIndex) =>
+      makeBoundary({ startIndex: dayIndex * 3, id: day.toDateString() }),
+    );
+
+    const { yearAnchors, monthAnchors } = buildTimelineDateIndex(boundaries);
+
+    expect(monthAnchors.map((anchor) => anchor.label)).toEqual(
+      daysNewestFirst.map((day) => day.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })),
+    );
+    expect(yearAnchors).toEqual([{ startIndex: 33, label: '2025' }]);
+  });
+
   test('when the timeline is empty, then no anchors are produced', () => {
     const { yearAnchors, monthAnchors } = buildTimelineDateIndex([]);
 
@@ -79,7 +92,7 @@ describe('building the year and month anchors of the timeline', () => {
 
 describe('converting between an item position and a scroll offset', () => {
   test('when an item index is given, then its pixel offset accounts for the header inset and the row height', () => {
-    const offset = getOffsetForIndex({ index: 7, cellSize: 120, contentTopInset: 64, numColumns: 3 });
+    const offset = getOffsetForIndex({ index: 7, rowHeight: 120, contentTopInset: 64, numColumns: 3 });
 
     // row = floor(7 / 3) = 2
     expect(offset).toBe(64 + 2 * 120);
@@ -92,17 +105,38 @@ describe('converting between an item position and a scroll offset', () => {
       makeBoundary({ startIndex: 60, id: new Date(2024, 5, 1).toDateString() }),
     ];
     const { monthAnchors } = buildTimelineDateIndex(boundaries);
+    const metrics = { rowHeight: 120, contentTopInset: 64, numColumns: 3 };
+    const monthOffsets = monthAnchors.map((anchor) => getOffsetForIndex({ index: anchor.startIndex, ...metrics }));
 
-    const cellSize = 120;
-    const contentTopInset = 64;
-    const numColumns = 3;
+    const offset = getOffsetForIndex({ index: 40, ...metrics });
 
-    // Offset that lands inside the second month's range (index 30..59)
-    const offset = getOffsetForIndex({ index: 40, cellSize, contentTopInset, numColumns });
-    const index = getIndexForOffset({ offset, cellSize, contentTopInset, numColumns });
-    const anchor = findAnchorForIndex(monthAnchors, index);
+    expect(monthAnchors[findLastIndexAtOrBefore(monthOffsets, offset)].startIndex).toBe(30);
+  });
+});
 
-    expect(anchor?.startIndex).toBe(30);
+describe('deriving the row height from the measured list', () => {
+  test('when the list reports its content height, then the row height excludes the header inset and the bottom padding', () => {
+    const rowHeight = getRowHeightFromContent({
+      contentHeight: 64 + 4 * 144.5 + 80,
+      itemCount: 10,
+      contentTopInset: 64,
+      paddingBottom: 80,
+      numColumns: 3,
+    });
+
+    expect(rowHeight).toBeCloseTo(144.5);
+  });
+
+  test('when there are no items, then the row height is zero', () => {
+    expect(
+      getRowHeightFromContent({
+        contentHeight: 500,
+        itemCount: 0,
+        contentTopInset: 64,
+        paddingBottom: 80,
+        numColumns: 3,
+      }),
+    ).toBe(0);
   });
 });
 
@@ -128,39 +162,16 @@ describe('placing the scrubber handle for a scroll position', () => {
   });
 });
 
-describe('finding the anchor that owns a given item position', () => {
-  test('when the index precedes every anchor, then no anchor is returned', () => {
-    const anchors = [{ startIndex: 10, label: 'a' }];
-
-    expect(findAnchorForIndex(anchors, 5)).toBeUndefined();
+describe('finding the last value at or before a target', () => {
+  test('when the target precedes every value, then nothing is found', () => {
+    expect(findLastIndexAtOrBefore([10, 20], 5)).toBe(-1);
   });
 
-  test('when the index matches the last anchor exactly, then that anchor is returned', () => {
-    const anchors = [
-      { startIndex: 0, label: 'a' },
-      { startIndex: 10, label: 'b' },
-      { startIndex: 20, label: 'c' },
-    ];
+  test('when the target matches or passes a value, then that value is the one found', () => {
+    const values = [0, 10, 20];
 
-    expect(findAnchorForIndex(anchors, 20)?.label).toBe('c');
-    expect(findAnchorForIndex(anchors, 25)?.label).toBe('c');
-    expect(findAnchorForIndex(anchors, 15)?.label).toBe('b');
-  });
-});
-
-describe('measuring the total height of the timeline', () => {
-  test('when the content is shorter than the viewport, then the scroll range never collapses to zero', () => {
-    const contentHeight = getTimelineContentHeight({
-      itemCount: 3,
-      cellSize: 120,
-      contentTopInset: 64,
-      paddingBottom: 80,
-      numColumns: 3,
-    });
-
-    // 1 row of 3 items + header inset + bottom padding
-    expect(contentHeight).toBe(64 + 120 + 80);
-    const maxScroll = Math.max(1, contentHeight - 900);
-    expect(maxScroll).toBe(1);
+    expect(findLastIndexAtOrBefore(values, 20)).toBe(2);
+    expect(findLastIndexAtOrBefore(values, 25)).toBe(2);
+    expect(findLastIndexAtOrBefore(values, 15)).toBe(1);
   });
 });
