@@ -1,6 +1,6 @@
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Animated, LayoutChangeEvent, Platform, StyleSheet, View } from 'react-native';
+import { Animated, LayoutChangeEvent, Platform, StyleSheet, View, ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useAnimatedRef } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
@@ -308,11 +308,12 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       [isSelectMode, selectedIds, isAtListTop, currentBoundary, totalAssetsCount],
     );
 
-    const contentContainerStyle = isEmpty
-      ? CONTENT_STYLE_EMPTY
-      : isIosRefreshing
-        ? CONTENT_STYLE_REFRESHING
-        : CONTENT_STYLE;
+    let contentContainerStyle: ViewStyle = CONTENT_STYLE;
+    if (isEmpty) {
+      contentContainerStyle = CONTENT_STYLE_EMPTY;
+    } else if (isIosRefreshing) {
+      contentContainerStyle = CONTENT_STYLE_REFRESHING;
+    }
 
     const measuredListHeader = ListHeaderComponent ? (
       <View onLayout={onListHeaderLayout}>{ListHeaderComponent}</View>
