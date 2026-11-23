@@ -550,6 +550,13 @@ describe('finding the group that owns a given flat index', () => {
     const c = makeBoundary(7, 'day-c');
     expect(findGroupForIndex([a, b, c], 10)).toEqual(c);
   });
+
+  test('when an empty day shares its start with the next day, then the day with photos is returned', () => {
+    const dayWithPhotosBefore = makeBoundary(0, 'day-a');
+    const emptyDay = makeBoundary(3, 'day-b');
+    const dayWithPhotos = makeBoundary(3, 'day-c');
+    expect(findGroupForIndex([dayWithPhotosBefore, emptyDay, dayWithPhotos], 3)).toEqual(dayWithPhotos);
+  });
 });
 
 describe('merging cloud items into local groups', () => {
