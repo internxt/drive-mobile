@@ -14,12 +14,18 @@ export interface PhotoSelection {
   endDragSelect: () => void;
 }
 
+interface DragAnchor {
+  id: string;
+  index: number;
+  displayedItems: TimelinePhotoItem[];
+}
+
 export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection => {
   const [isSelectMode, setIsSelectMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 
   // Refs instead of state so updates during a drag don't trigger extra re-renders
-  const dragAnchorIndexRef = useRef<number | null>(null);
+  const dragAnchorRef = useRef<DragAnchor | null>(null);
   const dragSelectionSnapshotRef = useRef<Set<string>>(new Set());
   const dragShouldSelectRef = useRef(true);
 
@@ -53,7 +59,7 @@ export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection
       if (!anchorItem || !isItemSelectable(anchorItem)) {
         return;
       }
-      dragAnchorIndexRef.current = index;
+      dragAnchorRef.current = { id: anchorItem.id, index, displayedItems };
       dragSelectionSnapshotRef.current = new Set(selectedIds);
       dragShouldSelectRef.current = !selectedIds.has(anchorItem.id);
     },
@@ -61,12 +67,19 @@ export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection
   );
 
   const updateDragSelect = useCallback((index: number, displayedItems: TimelinePhotoItem[]) => {
-    const anchor = dragAnchorIndexRef.current;
-    if (anchor === null) {
+    const dragAnchor = dragAnchorRef.current;
+    if (dragAnchor === null) {
       return;
     }
-    const rangeStart = Math.min(anchor, index);
-    const rangeEnd = Math.max(anchor, index);
+    if (dragAnchor.displayedItems !== displayedItems) {
+      dragAnchor.index = displayedItems.findIndex((item) => item.id === dragAnchor.id);
+      dragAnchor.displayedItems = displayedItems;
+    }
+    if (dragAnchor.index === -1) {
+      return;
+    }
+    const rangeStart = Math.min(dragAnchor.index, index);
+    const rangeEnd = Math.max(dragAnchor.index, index);
     const shouldSelect = dragShouldSelectRef.current;
     const selectionSnapshot = dragSelectionSnapshotRef.current;
     setSelectedIds(() => {
@@ -87,7 +100,7 @@ export const usePhotoSelection = (allItems: TimelinePhotoItem[]): PhotoSelection
   }, []);
 
   const endDragSelect = useCallback(() => {
-    dragAnchorIndexRef.current = null;
+    dragAnchorRef.current = null;
     dragSelectionSnapshotRef.current = new Set();
   }, []);
 
