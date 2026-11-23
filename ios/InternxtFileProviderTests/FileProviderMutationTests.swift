@@ -204,4 +204,45 @@ final class FileProviderMutationTests: XCTestCase {
 
         XCTAssertEqual(item.filename, "folder-uuid")
     }
+
+    func testWhenAFileIsMovedAndRenamedThenTheItemTakesTheNameAndFolderTheServerSentBack() throws {
+        let json = """
+        {
+          "uuid": "file-uuid", "plainName": "notes 2", "type": "txt", "size": "2048",
+          "folderUuid": "destination-uuid",
+          "createdAt": "2026-10-20T10:00:00.000Z", "updatedAt": "2026-10-21T10:00:00.000Z"
+        }
+        """
+        let response = try JSONDecoder().decode(MoveFileResponseNew.self, from: Data(json.utf8))
+
+        let item = try XCTUnwrap(FileProviderItem(updatedFile: response, identifier: fileIdentifier))
+
+        XCTAssertEqual(item.filename, "notes 2.txt")
+        XCTAssertEqual(item.parentItemIdentifier, destinationIdentifier)
+        XCTAssertEqual(item.documentSize, 2048)
+    }
+
+    func testWhenTheServerAnswerToAMoveLacksTheUpdateDateThenNoItemIsBuilt() throws {
+        let json = """
+        { "plainName": "notes 2", "type": "txt", "size": "2048", "folderUuid": "destination-uuid" }
+        """
+        let response = try JSONDecoder().decode(MoveFileResponseNew.self, from: Data(json.utf8))
+
+        XCTAssertNil(FileProviderItem(updatedFile: response, identifier: fileIdentifier))
+    }
+
+    func testWhenAFolderIsRenamedThenTheItemTakesTheNameTheServerSentBackAndKeepsItsParent() throws {
+        let json = """
+        {
+          "uuid": "folder-uuid", "plainName": "Reports", "parentUuid": "destination-uuid",
+          "createdAt": "2026-10-20T10:00:00.000Z", "updatedAt": "2026-10-21T10:00:00.000Z"
+        }
+        """
+        let response = try JSONDecoder().decode(UpdateFolderResponse.self, from: Data(json.utf8))
+
+        let item = try XCTUnwrap(FileProviderItem(updatedFolder: response, identifier: folderIdentifier))
+
+        XCTAssertEqual(item.filename, "Reports")
+        XCTAssertEqual(item.parentItemIdentifier, destinationIdentifier)
+    }
 }

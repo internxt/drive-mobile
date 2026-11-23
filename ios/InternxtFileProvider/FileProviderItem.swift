@@ -162,6 +162,107 @@ class FileProviderItem: NSObject, NSFileProviderItem {
     )
   }
 
+  convenience init?(updatedFile response: MoveFileResponseNew, identifier: NSFileProviderItemIdentifier) {
+    guard let plainName = response.plainName,
+          let folderUuid = response.folderUuid,
+          let updatedAt = response.updatedAt else {
+      return nil
+    }
+    self.init(
+      updatedFileIdentifier: identifier,
+      plainName: plainName,
+      fileExtension: response.type,
+      folderUuid: folderUuid,
+      createdAt: response.createdAt,
+      updatedAt: updatedAt,
+      sizeInBytes: response.size
+    )
+  }
+
+  convenience init?(updatedFile response: UpdateFileResponseNew, identifier: NSFileProviderItemIdentifier) {
+    guard let folderUuid = response.folderUuid,
+          let updatedAt = response.updatedAt else {
+      return nil
+    }
+    self.init(
+      updatedFileIdentifier: identifier,
+      plainName: response.plainName,
+      fileExtension: response.type,
+      folderUuid: folderUuid,
+      createdAt: response.createdAt,
+      updatedAt: updatedAt,
+      sizeInBytes: response.size
+    )
+  }
+
+  convenience init?(updatedFolder response: MoveFolderResponseNew, identifier: NSFileProviderItemIdentifier) {
+    guard let plainName = response.plainName,
+          let parentUuid = response.parentUuid,
+          let updatedAt = response.updatedAt else {
+      return nil
+    }
+    self.init(
+      updatedFolderIdentifier: identifier,
+      plainName: plainName,
+      parentUuid: parentUuid,
+      createdAt: response.createdAt,
+      updatedAt: updatedAt
+    )
+  }
+
+  convenience init?(updatedFolder response: UpdateFolderResponse, identifier: NSFileProviderItemIdentifier) {
+    guard let parentUuid = response.parentUuid,
+          let updatedAt = response.updatedAt else {
+      return nil
+    }
+    self.init(
+      updatedFolderIdentifier: identifier,
+      plainName: response.plainName,
+      parentUuid: parentUuid,
+      createdAt: response.createdAt,
+      updatedAt: updatedAt
+    )
+  }
+
+  private convenience init(
+    updatedFileIdentifier identifier: NSFileProviderItemIdentifier,
+    plainName: String,
+    fileExtension: String?,
+    folderUuid: String,
+    createdAt: String?,
+    updatedAt: String,
+    sizeInBytes: String?
+  ) {
+    self.init(
+      identifier: identifier,
+      parent: FileProviderItemID.parentIdentifier(folderUuid: folderUuid),
+      name: plainName,
+      kind: .file,
+      metadata: Metadata(
+        fileExtension: fileExtension,
+        createdAt: createdAt,
+        updatedAt: updatedAt,
+        sizeInBytes: sizeInBytes
+      )
+    )
+  }
+
+  private convenience init(
+    updatedFolderIdentifier identifier: NSFileProviderItemIdentifier,
+    plainName: String,
+    parentUuid: String,
+    createdAt: String?,
+    updatedAt: String
+  ) {
+    self.init(
+      identifier: identifier,
+      parent: FileProviderItemID.parentIdentifier(folderUuid: parentUuid),
+      name: plainName,
+      kind: .folder,
+      metadata: Metadata(createdAt: createdAt, updatedAt: updatedAt)
+    )
+  }
+
   var itemIdentifier: NSFileProviderItemIdentifier {
     identifier
   }
