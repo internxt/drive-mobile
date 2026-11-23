@@ -23,6 +23,7 @@ import { Abortable } from '../types';
 import { generateFileKey } from './crypto';
 import { EncryptedFileDownloadedParams } from './download';
 import { downloadChunkWithRetry } from './downloadChunk';
+import { wrapNativeCryptoError } from './nativeCryptoError';
 import { getAuthFromCredentials, NetworkCredentials } from './requests';
 
 const getCaseInsensitiveHeader = (headers: Record<string, string>, name: string): string | undefined => {
@@ -287,7 +288,7 @@ export class NetworkFacade {
           (key as Buffer).toString('hex'),
           (iv as Buffer).toString('hex'),
           partSize,
-          (error: Error | null) => (error ? reject(error) : resolve()),
+          (error: unknown) => (error ? reject(wrapNativeCryptoError(error)) : resolve()),
         );
       });
     };
@@ -855,7 +856,7 @@ const androidDecryptFileFromFs: DecryptFileFromFsFunction = (
   return new Promise((resolve, reject) => {
     decryptFile(originPath, destinationPath, key.toString('hex'), iv.toString('hex'), (err) => {
       if (err) {
-        reject(err);
+        reject(wrapNativeCryptoError(err));
       } else resolve();
     });
   });
@@ -870,7 +871,7 @@ const iosDecryptFileFromFs: DecryptFileFromFsFunction = (
   return new Promise((resolve, reject) => {
     decryptFile(originPath, destinationPath, key.toString('hex'), iv.toString('hex'), async (err) => {
       if (err) {
-        reject(err);
+        reject(wrapNativeCryptoError(err));
       } else {
         resolve();
       }
@@ -895,7 +896,7 @@ const androidEncryptFileFromFs: EncryptFileFromFsFunction = (
   return new Promise((resolve, reject) => {
     encryptFile(plainFilePath, encryptedFilePath, key.toString('hex'), iv.toString('hex'), (err) => {
       if (err) {
-        reject(err);
+        reject(wrapNativeCryptoError(err));
       } else {
         resolve();
       }
@@ -912,7 +913,7 @@ const iosEncryptFileFromFs: EncryptFileFromFsFunction = async (
   return new Promise((resolve, reject) => {
     encryptFile(plainFilePath, encryptedFilePath, key.toString('hex'), iv.toString('hex'), (err) => {
       if (err) {
-        reject(err);
+        reject(wrapNativeCryptoError(err));
       } else {
         resolve();
       }
