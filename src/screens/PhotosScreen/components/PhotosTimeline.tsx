@@ -1,15 +1,24 @@
 import { FlashList, FlashListRef, ListRenderItem } from '@shopify/flash-list';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { Animated, LayoutChangeEvent, Platform, StyleSheet, View } from 'react-native';
+import { Animated, LayoutChangeEvent, Platform, StyleSheet, View, ViewStyle } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
+import { useAnimatedRef } from 'react-native-reanimated';
 import { useTailwind } from 'tailwind-rn';
 import { useDragSelectGesture } from '../hooks/useDragSelectGesture';
-import { usePhotosScrubber } from '../hooks/usePhotosScrubber';
+import { MeasuredTimelineContent, usePhotosScrubber } from '../hooks/usePhotosScrubber';
 import { PhotoBackupState, PhotoDateGroup, TimelinePhotoItem } from '../types';
-import { GroupBoundary, buildFlatTimeline, findGroupForIndex } from '../utils/photoTimelineGroups';
+import {
+  GroupBoundary,
+  buildFlatTimeline,
+  findGroupForIndex,
+  getWithheldPhotoPositions,
+  withholdPhotosInsertedAbove,
+  WithheldPhotoPositions,
+} from '../utils/photoTimelineGroups';
 import PhotosGroupHeader, { GroupSyncStatus } from './GroupHeader/PhotosGroupHeader';
 import PhotoItem from './PhotoItem';
 import PhotosEmptyState from './PhotosEmptyState';
+import PhotosPlaceholderBackdrop from './PhotosPlaceholderBackdrop';
 import PhotosScrubber from './PhotosScrubber';
 
 export interface PhotosTimelineHandle {
@@ -58,6 +67,7 @@ const SKELETON_GROUP: TimelineDateGroup = {
   },
   syncStatus: { type: 'none' },
 };
+const SKELETON_PHOTO_IDS = new Set(SKELETON_GROUP.group.photos.map((photo) => photo.id));
 
 const NUM_COLUMNS = 3;
 const HEADER_HEIGHT = 64;
@@ -66,6 +76,8 @@ const FLOATING_HEADER_MIN_OPACITY = 0.02;
 const PULL_TO_REFRESH_FADE_START = -10;
 const PULL_TO_REFRESH_FADE_END = -60;
 const LIST_PADDING_BOTTOM = 80;
+const PHOTO_CELL_GAP = 2;
+const PHOTO_CELL_PADDING = PHOTO_CELL_GAP / 2;
 
 // Hoisted so the FlashList does not see a new object identity on every render.
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 10 };
@@ -76,7 +88,6 @@ const CONTENT_STYLE_REFRESHING = { paddingTop: 0, paddingBottom: LIST_PADDING_BO
 interface PhotosTimelineProps {
   assetsGroupsByDate: TimelineDateGroup[];
   isLoading?: boolean;
-  isTimelineReady?: boolean;
   onPhotoPress?: (id: string) => void;
   onPhotoLongPress?: (id: string) => void;
   isSelectMode?: boolean;
@@ -88,8 +99,8 @@ interface PhotosTimelineProps {
   onPausePress?: () => void;
   onResumePress?: () => void;
   onRetryPress?: () => void;
-  onDragBegin?: (index: number) => void;
-  onDragUpdate?: (index: number) => void;
+  onDragBegin?: (index: number, displayedPhotos: TimelinePhotoItem[]) => void;
+  onDragUpdate?: (index: number, displayedPhotos: TimelinePhotoItem[]) => void;
   onDragEnd?: () => void;
 }
 
@@ -100,7 +111,6 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     {
       assetsGroupsByDate,
       isLoading,
-      isTimelineReady,
       onPhotoPress,
       onPhotoLongPress,
       isSelectMode,
@@ -120,20 +130,57 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
   ) => {
     const tailwind = useTailwind();
 
+    const [isAtListTop, setIsAtListTop] = useState(true);
+    const displayedPhotoIdsRef = useRef<Set<string>>(new Set());
+    const firstVisiblePhotoIdRef = useRef<string | undefined>(undefined);
+    const withheldPhotoPositionsRef = useRef<WithheldPhotoPositions | null>(null);
+    const [withheldReleaseCount, setWithheldReleaseCount] = useState(0);
+
+    // Inserting above the first visible photo moves every visible photo, so new photos there wait
+    // until they scroll into view or the list is back at the top.
+    const displayedGroups = useMemo(() => {
+      withheldPhotoPositionsRef.current = null;
+      const firstVisiblePhotoId = firstVisiblePhotoIdRef.current;
+      if (isAtListTop || firstVisiblePhotoId === undefined) {
+        return assetsGroupsByDate;
+      }
+      const withholdParams = {
+        groups: assetsGroupsByDate,
+        displayedPhotoIds: displayedPhotoIdsRef.current,
+        firstVisiblePhotoId,
+      };
+      const keptGroups = withholdPhotosInsertedAbove(withholdParams);
+      if (keptGroups !== assetsGroupsByDate) {
+        withheldPhotoPositionsRef.current = getWithheldPhotoPositions(withholdParams);
+      }
+      return keptGroups;
+    }, [assetsGroupsByDate, isAtListTop, withheldReleaseCount]);
+
     const { photos, boundaries } = useMemo(() => {
-      const effectiveGroups = isLoading ? [...assetsGroupsByDate, SKELETON_GROUP] : assetsGroupsByDate;
+      const effectiveGroups = isLoading ? [...displayedGroups, SKELETON_GROUP] : displayedGroups;
       return buildFlatTimeline(effectiveGroups);
-    }, [assetsGroupsByDate, isLoading]);
+    }, [displayedGroups, isLoading]);
+
+    useEffect(() => {
+      displayedPhotoIdsRef.current = new Set(photos.map((photo) => photo.id));
+    }, [photos]);
 
     const [topGroupId, setTopGroupId] = useState<string | undefined>(() => boundaries[0]?.id);
-    const [isAtListTop, setIsAtListTop] = useState(true);
 
     const totalAssetsCount = useMemo(
       () => assetsGroupsByDate.reduce((sum, { group }) => sum + group.photos.length, 0),
       [assetsGroupsByDate],
     );
 
-    const flashListRef = useRef<FlashListRef<TimelinePhotoItem>>(null);
+    const flashListRef = useRef<FlashListRef<TimelinePhotoItem> | null>(null);
+    const listAnimatedRef = useAnimatedRef<FlashListRef<TimelinePhotoItem>>();
+    const setListRef = useCallback(
+      (list: FlashListRef<TimelinePhotoItem> | null) => {
+        flashListRef.current = list;
+        listAnimatedRef(list);
+      },
+      [listAnimatedRef],
+    );
     const boundariesRef = useRef<GroupBoundary[]>(boundaries);
     boundariesRef.current = boundaries;
 
@@ -141,7 +188,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     const [listHeaderHeight, setListHeaderHeight] = useState(0);
 
     const onListHeaderLayout = useCallback(
-      (e: LayoutChangeEvent) => setListHeaderHeight(e.nativeEvent.layout.height),
+      (layoutEvent: LayoutChangeEvent) => setListHeaderHeight(layoutEvent.nativeEvent.layout.height),
       [],
     );
 
@@ -151,8 +198,8 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       }
     }, [ListHeaderComponent]);
 
-    const cellSize = containerSize.width / NUM_COLUMNS;
-    const contentTopInset = HEADER_HEIGHT + listHeaderHeight;
+    const isIosRefreshing = Platform.OS === 'ios' && !!refreshing;
+    const contentTopInset = (isIosRefreshing ? 0 : HEADER_HEIGHT) + listHeaderHeight;
 
     const scrollY = useRef(new Animated.Value(0)).current;
     // UIKit drops touches below alpha 0.01, so use FLOATING_HEADER_MIN_OPACITY as the floor so
@@ -169,12 +216,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       extrapolate: 'clamp',
     });
 
-    const {
-      gesture,
-      onContainerLayout,
-      onScroll: onDragSelectScroll,
-      scrollOffsetRef,
-    } = useDragSelectGesture({
+    const { gesture, onContainerLayout, onScroll, scrollOffsetRef } = useDragSelectGesture({
       isSelectMode: !!isSelectMode,
       photos,
       scrollY,
@@ -186,36 +228,34 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       onDragEnd,
     });
 
-    const scrollToOffset = useCallback((offset: number) => {
-      flashListRef.current?.scrollToOffset({ offset, animated: false });
+    const [measuredContent, setMeasuredContent] = useState<MeasuredTimelineContent>({ height: 0, itemCount: 0 });
+    const photoCountRef = useRef(photos.length);
+    photoCountRef.current = photos.length;
+
+    const onContentSizeChange = useCallback((_width: number, height: number) => {
+      const itemCount = photoCountRef.current;
+      setMeasuredContent((previous) =>
+        previous.height === height && previous.itemCount === itemCount ? previous : { height, itemCount },
+      );
     }, []);
 
     const scrubber = usePhotosScrubber({
-      scrollY,
+      listRef: listAnimatedRef,
       boundaries,
       itemCount: photos.length,
-      cellSize,
+      measuredContent,
       contentTopInset,
       containerHeight: containerSize.height,
       numColumns: NUM_COLUMNS,
       listPaddingBottom: LIST_PADDING_BOTTOM,
       isEnabled: !isSelectMode,
-      scrollToOffset,
     });
 
-    const onScroll = useCallback(
-      (e: Parameters<typeof onDragSelectScroll>[0]) => {
-        onDragSelectScroll(e);
-        scrubber.notifyScroll();
-      },
-      // notifyScroll specifically, not `scrubber`, which is a new object literal every render.
-      [onDragSelectScroll, scrubber.notifyScroll],
-    );
-
     const onContainerLayoutMerged = useCallback(
-      (e: LayoutChangeEvent) => {
-        onContainerLayout(e);
-        setContainerSize({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height });
+      (layoutEvent: LayoutChangeEvent) => {
+        onContainerLayout(layoutEvent);
+        const { width, height } = layoutEvent.nativeEvent.layout;
+        setContainerSize({ width, height });
       },
       [onContainerLayout],
     );
@@ -249,9 +289,24 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     );
 
     const onViewableItemsChanged = useCallback(
-      ({ viewableItems }: { viewableItems: Array<{ index: number | null }> }) => {
+      ({ viewableItems }: { viewableItems: Array<{ index: number | null; item: TimelinePhotoItem }> }) => {
         if (viewableItems.length === 0) {
           return;
+        }
+        const firstVisiblePhoto = viewableItems.find(({ item }) => !SKELETON_PHOTO_IDS.has(item.id));
+        if (firstVisiblePhoto) {
+          firstVisiblePhotoIdRef.current = firstVisiblePhoto.item.id;
+        }
+        const withheldPositions = withheldPhotoPositionsRef.current;
+        const firstVisiblePosition =
+          firstVisiblePhoto && withheldPositions?.positionById.get(firstVisiblePhoto.item.id);
+        if (
+          withheldPositions &&
+          firstVisiblePosition !== undefined &&
+          firstVisiblePosition < withheldPositions.lastWithheldPosition
+        ) {
+          withheldPhotoPositionsRef.current = null;
+          setWithheldReleaseCount((count) => count + 1);
         }
         const topIndex = viewableItems[0].index ?? 0;
         setIsAtListTop((prev) => (prev === (topIndex === 0) ? prev : topIndex === 0));
@@ -265,7 +320,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
 
     const renderItem: ListRenderItem<TimelinePhotoItem> = useCallback(
       ({ item }) => (
-        <View style={[tailwind('flex-1'), { aspectRatio: 1, margin: 1 }]}>
+        <View style={[tailwind('flex-1'), { aspectRatio: 1, padding: PHOTO_CELL_PADDING }]}>
           <PhotoItem
             item={item}
             isSelectMode={isSelectMode}
@@ -278,8 +333,6 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       [isSelectMode, selectedIds, onPhotoPress, onPhotoLongPress, tailwind],
     );
 
-    const isIosRefreshing = Platform.OS === 'ios' && !!refreshing;
-
     const wasIosRefreshingRef = useRef(isIosRefreshing);
     useEffect(() => {
       if (wasIosRefreshingRef.current && !isIosRefreshing) {
@@ -291,13 +344,12 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       wasIosRefreshingRef.current = isIosRefreshing;
     }, [isIosRefreshing]);
 
-    const maintainVisibleContentPosition = useMemo(() => ({ disabled: !isTimelineReady }), [isTimelineReady]);
-
     const isEmpty = !isLoading && assetsGroupsByDate.length === 0;
 
     const currentBoundary = useMemo(
-      () => boundaries.find((b) => b.id === topGroupId) ?? boundaries[0],
-      [boundaries, topGroupId],
+      () =>
+        isAtListTop ? boundaries[0] : (boundaries.find((boundary) => boundary.id === topGroupId) ?? boundaries[0]),
+      [boundaries, topGroupId, isAtListTop],
     );
 
     const overlaySyncStatus = useMemo(
@@ -312,11 +364,12 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
       [isSelectMode, selectedIds, isAtListTop, currentBoundary, totalAssetsCount],
     );
 
-    const contentContainerStyle = isEmpty
-      ? CONTENT_STYLE_EMPTY
-      : isIosRefreshing
-        ? CONTENT_STYLE_REFRESHING
-        : CONTENT_STYLE;
+    let contentContainerStyle: ViewStyle = CONTENT_STYLE;
+    if (isEmpty) {
+      contentContainerStyle = CONTENT_STYLE_EMPTY;
+    } else if (isIosRefreshing) {
+      contentContainerStyle = CONTENT_STYLE_REFRESHING;
+    }
 
     const measuredListHeader = ListHeaderComponent ? (
       <View onLayout={onListHeaderLayout}>{ListHeaderComponent}</View>
@@ -325,8 +378,19 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
     return (
       <GestureDetector gesture={gesture}>
         <View style={tailwind('flex-1')} onLayout={onContainerLayoutMerged}>
+          {!isEmpty && (
+            <PhotosPlaceholderBackdrop
+              scrollOffset={scrubber.drag.scrollOffset}
+              contentTopInset={contentTopInset}
+              rowCount={Math.ceil(photos.length / NUM_COLUMNS)}
+              numColumns={NUM_COLUMNS}
+              cellPadding={PHOTO_CELL_PADDING}
+              viewportWidth={containerSize.width}
+              viewportHeight={containerSize.height}
+            />
+          )}
           <FlashList
-            ref={flashListRef}
+            ref={setListRef}
             data={photos}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
@@ -343,9 +407,10 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             onViewableItemsChanged={onViewableItemsChanged}
             viewabilityConfig={VIEWABILITY_CONFIG}
             onScroll={onScroll}
+            onContentSizeChange={onContentSizeChange}
             scrollEventThrottle={16}
             progressViewOffset={Platform.OS === 'android' ? HEADER_HEIGHT : 0}
-            maintainVisibleContentPosition={maintainVisibleContentPosition}
+            maintainVisibleContentPosition={{ disabled: true }}
             drawDistance={500}
           />
 
