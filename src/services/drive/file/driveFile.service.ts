@@ -36,6 +36,8 @@ type DriveFileDownloadOptions = {
 };
 
 class DriveFileService {
+  private readonly thumbnailDownloadsInFlight = new Map<string, Promise<void>>();
+
   constructor(private sdk: SdkManager) {}
   public getNameFromUri(uri: string): string {
     const regex = /^(.*:\/{0,2})\/?(.*)$/gm;
@@ -251,33 +253,54 @@ class DriveFileService {
         );
       });
     };
-    if (await fileSystemService.exists(destination)) {
-      return measureThumbnail(fileSystemService.pathToUri(destination));
-    }
-
-    await networkDownload.downloadThumbnail(
-      bucketFile,
-      bucketId,
-      encryptionKey,
-      {
-        user: bridgeUser,
-        pass: bridgePass,
-      },
-      {
-        toPath: destination,
-        downloadProgressCallback: () => {
+    await this.ensureThumbnailDownloaded(destination, () =>
+      networkDownload.downloadThumbnail(
+        bucketFile,
+        bucketId,
+        encryptionKey,
+        {
+          user: bridgeUser,
+          pass: bridgePass,
+        },
+        {
+          toPath: destination,
+          downloadProgressCallback: () => {
+            /** NOOP */
+          },
+          decryptionProgressCallback: () => {
+            /** NOOP */
+          },
+        },
+        () => {
           /** NOOP */
         },
-        decryptionProgressCallback: () => {
-          /** NOOP */
-        },
-      },
-      function () {
-        /** NOOP */
-      },
+      ),
     );
 
     return measureThumbnail(fileSystemService.pathToUri(destination));
+  }
+
+  /**
+   * Resolves once the thumbnail is on disk at `destination`, downloading it only if it is not there yet.
+   * Concurrent calls for the same destination share one download and reject together if it fails.
+   */
+  private ensureThumbnailDownloaded(destination: string, downloadThumbnail: () => Promise<unknown>): Promise<void> {
+    const inFlightDownload = this.thumbnailDownloadsInFlight.get(destination);
+    if (inFlightDownload) {
+      return inFlightDownload;
+    }
+
+    const thumbnailDownload = (async () => {
+      if (await fileSystemService.exists(destination)) {
+        return;
+      }
+      await downloadThumbnail();
+    })().finally(() => {
+      this.thumbnailDownloadsInFlight.delete(destination);
+    });
+
+    this.thumbnailDownloadsInFlight.set(destination, thumbnailDownload);
+    return thumbnailDownload;
   }
 
   /**
