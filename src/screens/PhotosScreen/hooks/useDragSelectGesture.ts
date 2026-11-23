@@ -16,8 +16,8 @@ interface DragSelectGestureConfig {
   flashListRef: React.RefObject<any>;
   headerHeight: number;
   numColumns: number;
-  onDragBegin?: (index: number) => void;
-  onDragUpdate?: (index: number) => void;
+  onDragBegin?: (index: number, displayedPhotos: TimelinePhotoItem[]) => void;
+  onDragUpdate?: (index: number, displayedPhotos: TimelinePhotoItem[]) => void;
   onDragEnd?: () => void;
 }
 
@@ -164,14 +164,14 @@ export const useDragSelectGesture = ({
         const index = pointToIndexRef.current(initialPosition.x, initialPosition.y);
         if (index !== null) {
           activeDragIndexRef.current = index;
-          onDragBeginRef.current?.(index);
+          onDragBeginRef.current?.(index, photosRef.current);
         }
       })
       .onUpdate((event) => {
         const index = pointToIndexRef.current(event.x, event.y);
         if (index !== null && index !== activeDragIndexRef.current) {
           activeDragIndexRef.current = index;
-          onDragUpdateRef.current?.(index);
+          onDragUpdateRef.current?.(index, photosRef.current);
         }
         maybeAutoScrollRef.current(event.y);
       })

@@ -1,6 +1,4 @@
-import { GroupBoundary, findLastAtOrBefore } from './photoTimelineGroups';
-
-const SKELETON_GROUP_ID = '__skeleton__';
+import { GroupBoundary } from './photoTimelineGroups';
 
 export interface TimelineAnchor {
   startIndex: number;
@@ -13,12 +11,13 @@ export interface TimelineDateIndex {
 }
 
 export interface TimelineLayoutMetrics {
-  cellSize: number;
+  rowHeight: number;
   contentTopInset: number;
   numColumns: number;
 }
 
-const formatMonthLabel = (date: Date): string => date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+// `Date.prototype.toDateString()` format, e.g. "Wed Nov 18 2026": English month, four-digit year.
+const DATE_STRING_PATTERN = /^[A-Z][a-z]{2} ([A-Z][a-z]{2}) \d{2} (\d{4})$/;
 
 /**
  * Derives the year and month anchors used to position the scrubber rail.
@@ -27,38 +26,38 @@ const formatMonthLabel = (date: Date): string => date.toLocaleDateString('en-US'
  * (newest) boundary of each month instead. Both results are ordered by `startIndex` ascending and
  * can be binary searched.
  *
- * @param boundaries day boundaries of the flat timeline, ordered by `startIndex` ascending.
+ * @param boundaries day boundaries of the flat timeline, ordered by `startIndex` ascending, with ids
+ * in `Date.prototype.toDateString()` format. Other ids are skipped.
  */
 export const buildTimelineDateIndex = (boundaries: GroupBoundary[]): TimelineDateIndex => {
-  const validEntries = boundaries.reduce<Array<{ boundary: GroupBoundary; date: Date }>>((entries, boundary) => {
-    if (boundary.id === SKELETON_GROUP_ID) {
+  const datedBoundaries = boundaries.reduce<Array<{ boundary: GroupBoundary; year: string; month: string }>>(
+    (entries, boundary) => {
+      const dateParts = DATE_STRING_PATTERN.exec(boundary.id);
+      if (!dateParts) {
+        return entries;
+      }
+      entries.push({ boundary, month: dateParts[1], year: dateParts[2] });
       return entries;
-    }
-    const date = new Date(boundary.id);
-    if (Number.isNaN(date.getTime())) {
-      return entries;
-    }
-    entries.push({ boundary, date });
-    return entries;
-  }, []);
+    },
+    [],
+  );
 
   const yearAnchors: TimelineAnchor[] = [];
   const monthAnchors: TimelineAnchor[] = [];
-  let lastMonthKey: string | null = null;
+  let lastMonthLabel: string | null = null;
 
-  for (let i = 0; i < validEntries.length; i++) {
-    const { boundary, date } = validEntries[i];
-    const year = date.getFullYear();
-    const monthKey = `${year}-${date.getMonth()}`;
+  for (let entryIndex = 0; entryIndex < datedBoundaries.length; entryIndex++) {
+    const { boundary, year, month } = datedBoundaries[entryIndex];
+    const monthLabel = `${month} ${Number(year)}`;
 
-    const nextYear = validEntries[i + 1]?.date.getFullYear() ?? null;
+    const nextYear = datedBoundaries[entryIndex + 1]?.year ?? null;
     if (year !== nextYear) {
-      yearAnchors.push({ startIndex: boundary.startIndex, label: `${year}` });
+      yearAnchors.push({ startIndex: boundary.startIndex, label: `${Number(year)}` });
     }
 
-    if (monthKey !== lastMonthKey) {
-      monthAnchors.push({ startIndex: boundary.startIndex, label: formatMonthLabel(date) });
-      lastMonthKey = monthKey;
+    if (monthLabel !== lastMonthLabel) {
+      monthAnchors.push({ startIndex: boundary.startIndex, label: monthLabel });
+      lastMonthLabel = monthLabel;
     }
   }
 
@@ -69,37 +68,43 @@ export const buildTimelineDateIndex = (boundaries: GroupBoundary[]): TimelineDat
  * Scroll offset in pixels at which the row containing the given item starts.
  *
  * @param params.index item index in the flat timeline.
- * @param params.cellSize height of a grid row in pixels.
+ * @param params.rowHeight height of a grid row in pixels.
  * @param params.contentTopInset pixels above the first row (list top padding plus list header).
  * @param params.numColumns columns in the grid.
  */
 export const getOffsetForIndex = ({
   index,
-  cellSize,
+  rowHeight,
   contentTopInset,
   numColumns,
-}: TimelineLayoutMetrics & { index: number }): number => contentTopInset + Math.floor(index / numColumns) * cellSize;
+}: TimelineLayoutMetrics & { index: number }): number => contentTopInset + Math.floor(index / numColumns) * rowHeight;
 
 /**
- * Index of the first item on the row visible at the given scroll offset. Inverse of
- * {@link getOffsetForIndex}.
+ * Height of a grid row, derived from the measured content height of a list with `itemCount` items.
+ * Returns 0 when there are no rows.
  *
- * @param params.offset scroll offset in pixels.
- * @param params.cellSize height of a grid row in pixels.
+ * @param params.contentHeight measured content height of the list in pixels.
  * @param params.contentTopInset pixels above the first row (list top padding plus list header).
- * @param params.numColumns columns in the grid.
+ * @param params.paddingBottom list bottom padding in pixels.
  */
-export const getIndexForOffset = ({
-  offset,
-  cellSize,
+export const getRowHeightFromContent = ({
+  contentHeight,
+  itemCount,
   contentTopInset,
+  paddingBottom,
   numColumns,
-}: TimelineLayoutMetrics & { offset: number }): number => {
-  if (cellSize <= 0) {
+}: {
+  contentHeight: number;
+  itemCount: number;
+  contentTopInset: number;
+  paddingBottom: number;
+  numColumns: number;
+}): number => {
+  const rowCount = Math.ceil(itemCount / numColumns);
+  if (rowCount === 0) {
     return 0;
   }
-  const row = Math.floor((offset - contentTopInset) / cellSize);
-  return Math.max(0, row) * numColumns;
+  return Math.max(0, (contentHeight - contentTopInset - paddingBottom) / rowCount);
 };
 
 /**
@@ -125,30 +130,62 @@ export const getRailAnchorForScroll = ({
 };
 
 /**
- * Total scrollable content height of the timeline, derived from the item count instead of measured,
- * so it is available on the first render.
+ * Index of the last value less than or equal to `target`, or -1 when every value is greater. Runs a
+ * binary search. Callable from a worklet and from the JS thread.
  *
- * @param params.itemCount items in the flat timeline.
- * @param params.cellSize height of a grid row in pixels.
- * @param params.contentTopInset pixels above the first row (list top padding plus list header).
- * @param params.paddingBottom list bottom padding in pixels.
- * @param params.numColumns columns in the grid.
+ * @param values numbers ordered ascending.
  */
-export const getTimelineContentHeight = ({
-  itemCount,
-  cellSize,
-  contentTopInset,
-  paddingBottom,
-  numColumns,
-}: TimelineLayoutMetrics & { itemCount: number; paddingBottom: number }): number =>
-  contentTopInset + Math.ceil(itemCount / numColumns) * cellSize + paddingBottom;
+export const findLastIndexAtOrBefore = (values: number[], target: number): number => {
+  'worklet';
+  let low = 0;
+  let high = values.length - 1;
+  let foundIndex = -1;
+
+  while (low <= high) {
+    const middle = (low + high) >> 1;
+    if (values[middle] <= target) {
+      foundIndex = middle;
+      low = middle + 1;
+    } else {
+      high = middle - 1;
+    }
+  }
+
+  return foundIndex;
+};
+
+export interface PlaceholderBackdropFrame {
+  visibleTop: number;
+  visibleHeight: number;
+  firstRowOffset: number;
+}
 
 /**
- * Last anchor starting at or before the given item index, or undefined when the index precedes
- * every anchor. Runs a binary search.
- *
- * @param anchors anchors ordered by `startIndex` ascending.
- * @param index item index in the flat timeline.
+ * Visible part of the viewport covered by full grid rows, and where the first row starts in it.
+ * Leaves out the last row.
  */
-export const findAnchorForIndex = (anchors: TimelineAnchor[], index: number): TimelineAnchor | undefined =>
-  findLastAtOrBefore(anchors, index);
+export const getPlaceholderBackdropFrame = ({
+  scrollOffset,
+  contentTopInset,
+  rowHeight,
+  rowCount,
+  viewportHeight,
+}: {
+  scrollOffset: number;
+  contentTopInset: number;
+  rowHeight: number;
+  rowCount: number;
+  viewportHeight: number;
+}): PlaceholderBackdropFrame => {
+  'worklet';
+  if (rowHeight <= 0 || rowCount <= 1) {
+    return { visibleTop: 0, visibleHeight: 0, firstRowOffset: 0 };
+  }
+  const firstRowTop = contentTopInset - scrollOffset;
+  const fullRowsBottom = firstRowTop + (rowCount - 1) * rowHeight;
+  const visibleTop = Math.max(0, firstRowTop);
+  const visibleBottom = Math.min(viewportHeight, fullRowsBottom);
+  const rowPhase = (((firstRowTop - visibleTop) % rowHeight) + rowHeight) % rowHeight;
+  const firstRowOffset = rowPhase === 0 ? 0 : rowPhase - rowHeight;
+  return { visibleTop, visibleHeight: Math.max(0, visibleBottom - visibleTop), firstRowOffset };
+};
