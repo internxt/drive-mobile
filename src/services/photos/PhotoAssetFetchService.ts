@@ -7,7 +7,7 @@ import storageService from '@internxt-mobile/services/StorageService';
 import { copyAsync } from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
 import { CloudPhotoItem, PhotoItem } from 'src/screens/PhotosScreen/types';
-import { photosLocalDB } from './database/photosLocalDB';
+import { CloudAssetEntry, photosLocalDB } from './database/photosLocalDB';
 import { LIVE_PHOTO_VIDEO_TYPE } from './livePhoto.constants';
 import { photoMediaLibraryService } from './PhotoMediaLibraryService';
 import { splitFileNameAndExtension } from './PhotoUploadService.utils';
@@ -15,8 +15,6 @@ import { splitFileNameAndExtension } from './PhotoUploadService.utils';
 const getCacheDir = () => fileSystemService.getCacheDir() + '/photo_preview/';
 const getShareTempDir = () => fileSystemService.getCacheDir() + '/photo_share/';
 const assetIdToFileName = (id: string, ext: string) => `${id.replace(/\//g, '_')}.${ext}`;
-
-const cachePathFor = (remoteFileId: string, ext: string) => `${getCacheDir()}${remoteFileId}.${ext}`;
 
 const extFromFileName = (fileName: string): string => {
   const parts = fileName.split('.');
@@ -33,56 +31,16 @@ const resolveLocalUri = async (item: PhotoItem): Promise<string | null> => {
   }
 };
 
+/** Returns a local copy of a cloud photo or video with the content saved in `cloud_asset`, as a `file://` URI. */
 const downloadCloudAsset = async (item: CloudPhotoItem, signal: AbortSignal): Promise<string | null> => {
-  const ext = extFromFileName(item.fileName);
-  const cachePath = cachePathFor(item.id, ext);
-
-  const alreadyCached = await fileSystemService.exists(cachePath);
-  if (alreadyCached) {
-    return fileSystemService.pathToUri(cachePath);
-  }
-
   const asset = await photosLocalDB.getCloudAssetById(item.id);
-  if (!asset?.fileId) {
-    logger.warn(`[PhotoAssetFetchService] No fileId for cloud asset ${item.id}, skipping download`);
+  const savedContent = getSavedContent(asset);
+  if (!savedContent) {
+    logger.warn(`[PhotoAssetFetchService] No fileId/bucket for cloud asset ${item.id}, skipping download`);
     return null;
   }
-  if (!asset.bucket) {
-    logger.warn(`[PhotoAssetFetchService] No bucket for cloud asset ${item.id}, skipping download`);
-    return null;
-  }
-
-  const user = await asyncStorageService.getUser();
-
-  await fileSystemService.ensureDir(getCacheDir());
-
-  try {
-    await driveFileService.downloadFile(
-      user,
-      asset.bucket,
-      asset.fileId,
-      {
-        downloadPath: cachePath,
-        downloadProgressCallback: () => undefined,
-        decryptionProgressCallback: () => undefined,
-        signal,
-      },
-      asset.fileSize ?? 0,
-    );
-
-    if (signal.aborted) {
-      await fileSystemService.unlinkIfExists(cachePath);
-      return null;
-    }
-
-    return fileSystemService.pathToUri(cachePath);
-  } catch (error) {
-    if (!signal.aborted) {
-      logger.error(`[PhotoAssetFetchService] Download failed for ${item.id}: ${error}`);
-    }
-    await fileSystemService.unlinkIfExists(cachePath);
-    return null;
-  }
+  const cachedCopyPath = await getCopyOfContent(item.id, savedContent, extFromFileName(item.fileName), signal);
+  return cachedCopyPath ? fileSystemService.pathToUri(cachedCopyPath) : null;
 };
 
 const copyPhAssetToSandbox = async (item: PhotoItem): Promise<string> => {
@@ -100,49 +58,55 @@ const copyPhAssetToSandbox = async (item: PhotoItem): Promise<string> => {
   return destPath;
 };
 
-interface PairedVideoContent {
+interface RemoteContent {
   fileId: string;
   bucket: string;
   size: number;
 }
 
-/** Name of the cached copy of a video holding the content with the given bucket file id. */
-const pairedVideoCacheFileName = (pairedVideoRemoteFileId: string, contentFileId: string, extension: string) =>
-  `${pairedVideoRemoteFileId}.${contentFileId}.${extension}`;
+/** Name of the cached copy of a remote file holding the content with the given bucket file id. */
+const cachedCopyFileName = (remoteFileId: string, contentFileId: string, extension: string) =>
+  `${remoteFileId}.${contentFileId}.${extension}`;
 
-/** Every cached copy of a video, whatever content it holds and whatever its name format. */
-const findCachedPairedVideos = async (pairedVideoRemoteFileId: string): Promise<{ name: string; path: string }[]> => {
+/** Every cached copy of a remote file, whatever content it holds and whatever its name format. */
+const findCachedCopies = async (remoteFileId: string): Promise<{ name: string; path: string }[]> => {
   const cacheDir = getCacheDir();
   if (!(await fileSystemService.exists(cacheDir))) {
     return [];
   }
   const entries = await fileSystemService.readDir(cacheDir);
-  return entries.filter((entry) => entry.name.startsWith(`${pairedVideoRemoteFileId}.`));
+  return entries.filter((entry) => entry.name.startsWith(`${remoteFileId}.`));
 };
 
-/** Content of the video as Drive has it now, or null when Drive can't be asked. */
-const fetchCurrentPairedVideoContent = async (pairedVideoRemoteFileId: string): Promise<PairedVideoContent | null> => {
+/** Content saved in `cloud_asset` for a remote file, or null when the row lacks the file id or the bucket. */
+const getSavedContent = (asset: CloudAssetEntry | null): RemoteContent | null => {
+  if (!asset?.fileId || !asset.bucket) {
+    return null;
+  }
+  return { fileId: asset.fileId, bucket: asset.bucket, size: asset.fileSize ?? 0 };
+};
+
+/** Content of a remote file as Drive has it now, or null when Drive can't be asked. */
+const fetchCurrentContent = async (remoteFileId: string): Promise<RemoteContent | null> => {
   try {
-    const fileMeta = await storageService.getFileMetadata(pairedVideoRemoteFileId);
+    const fileMeta = await storageService.getFileMetadata(remoteFileId);
     if (!fileMeta.fileId) {
       return null;
     }
     return { fileId: fileMeta.fileId, bucket: fileMeta.bucket, size: Number(fileMeta.size) };
   } catch (error) {
-    logger.warn(
-      `[PhotoAssetFetchService] Could not get the metadata of paired video ${pairedVideoRemoteFileId}: ${error}`,
-    );
+    logger.warn(`[PhotoAssetFetchService] Could not get the metadata of ${remoteFileId}: ${error}`);
     return null;
   }
 };
 
-const downloadPairedVideoContent = async (
-  pairedVideoRemoteFileId: string,
-  content: PairedVideoContent,
+const downloadContent = async (
+  remoteFileId: string,
+  content: RemoteContent,
   extension: string,
   signal: AbortSignal,
 ): Promise<string | null> => {
-  const cachePath = `${getCacheDir()}${pairedVideoCacheFileName(pairedVideoRemoteFileId, content.fileId, extension)}`;
+  const cachePath = `${getCacheDir()}${cachedCopyFileName(remoteFileId, content.fileId, extension)}`;
   const user = await asyncStorageService.getUser();
   await fileSystemService.ensureDir(getCacheDir());
 
@@ -168,7 +132,7 @@ const downloadPairedVideoContent = async (
     return cachePath;
   } catch (error) {
     if (!signal.aborted) {
-      logger.error(`[PhotoAssetFetchService] Paired video download failed for ${pairedVideoRemoteFileId}: ${error}`);
+      logger.error(`[PhotoAssetFetchService] Download failed for ${remoteFileId}: ${error}`);
     }
     await fileSystemService.unlinkIfExists(cachePath);
     return null;
@@ -176,37 +140,53 @@ const downloadPairedVideoContent = async (
 };
 
 /**
- * Returns a local copy of the Live Photo video with the content Drive has now. Without an answer from Drive, it
- * returns any cached copy, or downloads the content saved in `cloud_asset`.
+ * Returns the cached copy of a remote file holding `content`. When it is missing, deletes the copies holding other
+ * contents and downloads it.
  */
-const downloadPairedVideo = async (pairedVideoRemoteFileId: string, signal: AbortSignal): Promise<string | null> => {
-  const asset = await photosLocalDB.getCloudAssetById(pairedVideoRemoteFileId);
-  if (!asset?.fileId || !asset.bucket) {
-    logger.warn(`[PhotoAssetFetchService] No fileId/bucket for paired video ${pairedVideoRemoteFileId}`);
+const getCopyOfContent = async (
+  remoteFileId: string,
+  content: RemoteContent,
+  extension: string,
+  signal: AbortSignal,
+): Promise<string | null> => {
+  const cachePath = `${getCacheDir()}${cachedCopyFileName(remoteFileId, content.fileId, extension)}`;
+  if (await fileSystemService.exists(cachePath)) {
+    return cachePath;
+  }
+  const outdatedCopies = await findCachedCopies(remoteFileId);
+  for (const outdatedCopy of outdatedCopies) {
+    await fileSystemService.unlinkIfExists(outdatedCopy.path);
+  }
+  return downloadContent(remoteFileId, content, extension, signal);
+};
+
+/**
+ * Returns a local copy of a remote file with the content Drive has now, and saves that content in `cloud_asset` when
+ * it changed. Without an answer from Drive, it returns any cached copy, or downloads the content saved in `cloud_asset`.
+ */
+const getCurrentCopy = async (
+  remoteFileId: string,
+  getExtension: (asset: CloudAssetEntry) => string,
+  signal: AbortSignal,
+): Promise<string | null> => {
+  const asset = await photosLocalDB.getCloudAssetById(remoteFileId);
+  const savedContent = getSavedContent(asset);
+  if (!asset || !savedContent) {
+    logger.warn(`[PhotoAssetFetchService] No fileId/bucket for ${remoteFileId}`);
     return null;
   }
-  const extension = asset.extension ?? LIVE_PHOTO_VIDEO_TYPE;
-  const currentContent = await fetchCurrentPairedVideoContent(pairedVideoRemoteFileId);
-  const cachedCopies = await findCachedPairedVideos(pairedVideoRemoteFileId);
+  const extension = getExtension(asset);
+  const currentContent = await fetchCurrentContent(remoteFileId);
 
   if (!currentContent) {
+    const cachedCopies = await findCachedCopies(remoteFileId);
     if (cachedCopies.length > 0) {
       return cachedCopies[0].path;
     }
-    const savedContent = { fileId: asset.fileId, bucket: asset.bucket, size: asset.fileSize ?? 0 };
-    return downloadPairedVideoContent(pairedVideoRemoteFileId, savedContent, extension, signal);
+    return downloadContent(remoteFileId, savedContent, extension, signal);
   }
 
-  const currentCacheFileName = pairedVideoCacheFileName(pairedVideoRemoteFileId, currentContent.fileId, extension);
-  const currentCopy = cachedCopies.find((copy) => copy.name === currentCacheFileName);
-  if (currentCopy) {
-    return currentCopy.path;
-  }
-
-  for (const outdatedCopy of cachedCopies) {
-    await fileSystemService.unlinkIfExists(outdatedCopy.path);
-  }
-  if (currentContent.fileId !== asset.fileId) {
+  if (currentContent.fileId !== savedContent.fileId) {
     await photosLocalDB.upsertCloudAsset({
       ...asset,
       fileId: currentContent.fileId,
@@ -214,7 +194,7 @@ const downloadPairedVideo = async (pairedVideoRemoteFileId: string, signal: Abor
       fileSize: currentContent.size,
     });
   }
-  return downloadPairedVideoContent(pairedVideoRemoteFileId, currentContent, extension, signal);
+  return getCopyOfContent(remoteFileId, currentContent, extension, signal);
 };
 
 export type ExportUri = { uri: string; cleanup?: () => void };
@@ -250,17 +230,15 @@ export const PhotoAssetFetchService = {
       return null;
     }
 
-    const [photoUri, videoPath] = await Promise.all([
-      downloadCloudAsset(item, signal),
-      downloadPairedVideo(item.pairedVideoRemoteFileId, signal),
+    const [photoPath, videoPath] = await Promise.all([
+      getCurrentCopy(item.id, () => extFromFileName(item.fileName), signal),
+      getCurrentCopy(item.pairedVideoRemoteFileId, (asset) => asset.extension ?? LIVE_PHOTO_VIDEO_TYPE, signal),
     ]);
 
-    if (!photoUri || !videoPath || signal.aborted) {
+    if (!photoPath || !videoPath || signal.aborted) {
       return null;
     }
 
-    // downloadCloudAsset returns a file:// URI; strip it for the native module (saveLivePhotoToLibrary function)
-    const photoPath = photoUri.startsWith('file://') ? photoUri.slice('file://'.length) : photoUri;
     return { photoPath, videoPath };
   },
 
@@ -279,7 +257,7 @@ export const PhotoAssetFetchService = {
 
   /** Deletes every cached copy of a Live Photo video, whatever content it holds and whatever its name format. */
   evictCachedPairedVideo: async (pairedVideoRemoteFileId: string): Promise<void> => {
-    const cachedCopies = await findCachedPairedVideos(pairedVideoRemoteFileId);
+    const cachedCopies = await findCachedCopies(pairedVideoRemoteFileId);
     for (const cachedCopy of cachedCopies) {
       await fileSystemService.unlinkIfExists(cachedCopy.path);
     }
