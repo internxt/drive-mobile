@@ -168,7 +168,7 @@ const uploadSingleFileWithContentId = async (
     throw toBucketUploadError(uploadError, `${plainName}.${fileExtension}`);
   }
 
-  const uuid = await createFileEntryOrFetchExisting({
+  const { uuid, isExistingEntry } = await createFileEntryOrFetchExisting({
     fileId,
     type: fileExtension,
     size: fileStat.size,
@@ -178,7 +178,7 @@ const uploadSingleFileWithContentId = async (
     modificationTime: modificationIso,
     creationTime: creationIso,
   });
-  return { uuid, contentFileId: fileId };
+  return isExistingEntry ? { uuid } : { uuid, contentFileId: fileId };
 };
 
 export const uploadSingleFile = async (params: UploadSingleFileParams): Promise<string> =>
@@ -326,14 +326,14 @@ const createFileEntryOrFetchExisting = async (params: {
   folderUuid: string;
   modificationTime: string;
   creationTime: string;
-}): Promise<string> => {
+}): Promise<{ uuid: string; isExistingEntry: boolean }> => {
   const { plainName, type, folderUuid } = params;
   try {
     const driveFile = await uploadService.createFileEntry({
       ...params,
       encryptVersion: EncryptionVersion.Aes03,
     });
-    return driveFile.uuid;
+    return { uuid: driveFile.uuid, isExistingEntry: false };
   } catch (err) {
     if ((err as { status?: number })?.status !== HTTP_CONFLICT) {
       throw err;
@@ -342,7 +342,7 @@ const createFileEntryOrFetchExisting = async (params: {
     if (!existentFiles[0]?.uuid) {
       throw err;
     }
-    return existentFiles[0].uuid;
+    return { uuid: existentFiles[0].uuid, isExistingEntry: true };
   }
 };
 
@@ -470,21 +470,23 @@ const replaceRemoteFile = async (params: {
       logger.error(`Failed to replace file entry for ${existingRemoteFileId}:`, replaceError);
       throw replaceError;
     }
-    const driveFile = await uploadService.createFileEntry({
+    const { uuid: recreatedFileUuid, isExistingEntry } = await createFileEntryOrFetchExisting({
       fileId,
       type: fileExtension,
       size: fileSize,
       plainName,
       bucket: bucketId,
       folderUuid,
-      encryptVersion: EncryptionVersion.Aes03,
       modificationTime: modificationIso,
       creationTime: creationIso,
     });
+    if (isExistingEntry) {
+      await uploadService.replaceFileEntry(recreatedFileUuid, { fileId, size: fileSize });
+    }
     thumbnail = thumbnailSource
-      ? await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials)
+      ? await uploadThumbnailForAsset(thumbnailSource, fileExtension, recreatedFileUuid, credentials)
       : null;
-    photoUuid = driveFile.uuid;
+    photoUuid = recreatedFileUuid;
   }
 
   return { photoUuid, contentFileId: fileId, bucketId, thumbnail, folderUuid };
@@ -689,7 +691,7 @@ export const PhotoUploadService = {
     } = fileUploadResult;
 
     try {
-      const photoUuid = await createFileEntryOrFetchExisting({
+      const { uuid: photoUuid, isExistingEntry } = await createFileEntryOrFetchExisting({
         fileId,
         type: fileExtension,
         size: fileSize,
@@ -719,7 +721,7 @@ export const PhotoUploadService = {
         photoUuid,
         ...(burst ? { burst } : {}),
         thumbnail: thumbnail ?? undefined,
-        contentFileId: fileId,
+        contentFileId: isExistingEntry ? undefined : fileId,
         bucketId,
         folderUuid,
       };
