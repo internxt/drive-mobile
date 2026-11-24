@@ -3,6 +3,7 @@ import { EncryptionVersion } from '@internxt/sdk/dist/drive/storage/types';
 import AppError from '@internxt/sdk/dist/shared/types/errors';
 import * as MediaLibrary from 'expo-media-library/legacy';
 import { AbortError } from 'src/network/errors';
+import { HTTP_QUOTA_EXCEEDED } from 'src/services/common/httpStatusCodes';
 import { uploadFile } from 'src/network/upload';
 import asyncStorageService from 'src/services/AsyncStorageService';
 import { isThumbnailSupported } from 'src/services/common/media/thumbnail.constants';
@@ -211,6 +212,15 @@ describe('PhotoUploadService.upload', () => {
     expect(mockCreateFileEntry).not.toHaveBeenCalled();
   });
 
+  test('when the bucket rejects the upload because the storage is full, then the error keeps that status so the backup can pause', async () => {
+    mockUploadFile.mockReset().mockRejectedValueOnce(new AppError('Max space used', HTTP_QUOTA_EXCEEDED));
+
+    await expect(PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET)).rejects.toMatchObject({
+      message: expect.stringContaining('Bucket upload failed'),
+      status: HTTP_QUOTA_EXCEEDED,
+    });
+  });
+
   test('when the asset extension is not supported for thumbnails, then no thumbnail is created and the upload still succeeds', async () => {
     mockIsThumbnailSupported.mockReturnValue(false);
     mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
@@ -322,6 +332,14 @@ describe('PhotoUploadService.replace', () => {
     expect(result.bucketId).toBe(PHOTOS_BUCKET);
   });
 
+  test('when the bucket rejects a replace because the storage is full, then the error keeps that status so the backup can pause', async () => {
+    mockUploadFile.mockReset().mockRejectedValueOnce(new AppError('Max space used', HTTP_QUOTA_EXCEEDED));
+
+    await expect(
+      PhotoUploadService.replace(makeAsset(), 'existing-remote-id', DEVICE_ID, PHOTOS_BUCKET),
+    ).rejects.toMatchObject({ status: HTTP_QUOTA_EXCEEDED });
+  });
+
   test('when thumbnail generation fails during a replace, then the replace still returns the existing remote file id', async () => {
     mockGenerateThumbnail.mockRejectedValue(new Error('codec error'));
     mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
@@ -427,6 +445,14 @@ describe('PhotoUploadService.upload of a Live Photo', () => {
 
     expect(result.photoUuid).toBe('existing-uuid');
     expect(result.contentFileId).toBeUndefined();
+  });
+
+  test('when the bucket rejects the photo of a Live Photo because the storage is full, then the error keeps that status so the backup can pause', async () => {
+    mockUploadFile.mockReset().mockRejectedValueOnce(new AppError('Max space used', HTTP_QUOTA_EXCEEDED));
+
+    await expect(PhotoUploadService.upload(makeLivePhotoAsset(), DEVICE_ID, PHOTOS_BUCKET)).rejects.toMatchObject({
+      status: HTTP_QUOTA_EXCEEDED,
+    });
   });
 });
 

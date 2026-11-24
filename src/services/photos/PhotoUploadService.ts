@@ -12,7 +12,7 @@ import { uploadService } from 'src/services/common/network/upload/upload.service
 import fileSystemService from 'src/services/FileSystemService';
 import { logger } from '../common';
 import { uploadBurstMembersForExistingRepresentative, uploadBurstMembersIfBurst } from './burst/BurstUploadHandler';
-import { FileAlreadyExistsError } from './errors';
+import { BucketUploadError, FileAlreadyExistsError } from './errors';
 import { getPairedVideoPlainNameFromPhoto, isLivePhotoAsset } from './livePhoto.constants';
 import { exportLivePhotoComponents } from './LivePhotoNativeModule';
 import { photoBackupFolders } from './PhotoBackupFolders';
@@ -121,6 +121,11 @@ interface UploadSingleFileParams {
   signal?: AbortSignal;
 }
 
+const toBucketUploadError = (uploadError: unknown, fileName: string): BucketUploadError => {
+  const reason = uploadError instanceof Error ? uploadError.message : String(uploadError);
+  return new BucketUploadError(fileName, reason, (uploadError as { status?: number } | undefined)?.status);
+};
+
 /**
  * Same as `uploadSingleFile`, plus the bucket file id of the uploaded content. `contentFileId` is
  * undefined when a file with the same name already existed in the folder and nothing was uploaded.
@@ -160,8 +165,7 @@ const uploadSingleFileWithContentId = async (
     );
   } catch (uploadError) {
     if (uploadError instanceof Error && uploadError.name !== 'Error') throw uploadError;
-    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
-    throw new Error(`Bucket upload failed for ${plainName}.${fileExtension}: ${message}`);
+    throw toBucketUploadError(uploadError, `${plainName}.${fileExtension}`);
   }
 
   const uuid = await createFileEntryOrFetchExisting({
@@ -224,8 +228,7 @@ const uploadAssetToBucket = async (
     if (uploadError instanceof Error && uploadError.name !== 'Error') {
       throw uploadError;
     }
-    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
-    throw new Error(`Bucket upload failed for ${asset.filename}: ${message}`);
+    throw toBucketUploadError(uploadError, asset.filename);
   }
 
   return {
@@ -452,8 +455,7 @@ const replaceRemoteFile = async (params: {
     if (uploadError instanceof Error && uploadError.name !== 'Error') {
       throw uploadError;
     }
-    const message = uploadError instanceof Error ? uploadError.message : String(uploadError);
-    throw new Error(`Bucket upload failed for ${plainName}.${fileExtension}: ${message}`);
+    throw toBucketUploadError(uploadError, `${plainName}.${fileExtension}`);
   }
 
   let photoUuid = existingRemoteFileId;
