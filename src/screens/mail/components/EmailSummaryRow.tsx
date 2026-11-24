@@ -48,7 +48,8 @@ export const EmailSummaryRow = ({
     <TouchableOpacity
       onPress={onPress}
       onLongPress={onLongPress}
-      style={[tailwind('flex-row px-4 py-3'), { borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') }]}
+      className="flex-row px-4 py-3"
+      style={{ borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') }}
     >
       {isSelected && (
         <Animated.View
@@ -58,10 +59,8 @@ export const EmailSummaryRow = ({
         />
       )}
       <View
-        style={[
-          tailwind('items-center justify-center'),
-          { width: SENDER_AVATAR_SIZE, height: SENDER_AVATAR_SIZE, marginRight: AVATAR_GAP },
-        ]}
+        className="items-center justify-center"
+        style={{ width: SENDER_AVATAR_SIZE, height: SENDER_AVATAR_SIZE, marginRight: AVATAR_GAP }}
       >
         {selectionBox ?? (
           <Animated.View
@@ -72,47 +71,49 @@ export const EmailSummaryRow = ({
           </Animated.View>
         )}
       </View>
-      <View style={tailwind('flex-1')}>
-        <View style={tailwind('flex-row items-center justify-between')}>
+      <View className="flex-1">
+        <View className="flex-row items-center justify-between">
           <AppText
             numberOfLines={1}
             semibold={isShownAsUnread}
-            style={[tailwind('flex-1 mr-2 text-base'), { color: getColor('text-gray-100') }]}
+            className="flex-1 mr-2 text-base"
+            style={{ color: getColor('text-gray-100') }}
           >
             {headlineLabel}
           </AppText>
           {email.hasAttachment && (
-            <View accessible accessibilityLabel={strings.screens.mail.hasAttachment} style={tailwind('mr-1')}>
+            <View accessible accessibilityLabel={strings.screens.mail.hasAttachment} className="mr-1">
               <PaperclipIcon size={14} color={getColor('text-gray-40')} />
             </View>
           )}
-          <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-40') }]}>
+          <AppText className="text-xs" style={{ color: getColor('text-gray-40') }}>
             {dayjs(email.receivedAt).format('MMM D')}
           </AppText>
           {isShownAsUnread && (
             <View
               accessible
               accessibilityLabel={strings.screens.mail.unread}
-              style={[
-                tailwind('ml-1.5 rounded-full'),
-                { width: UNREAD_DOT_SIZE, height: UNREAD_DOT_SIZE, backgroundColor: getColor('text-primary') },
-              ]}
+              className="ml-1.5 rounded-full"
+              style={{ width: UNREAD_DOT_SIZE, height: UNREAD_DOT_SIZE, backgroundColor: getColor('text-primary') }}
             />
           )}
         </View>
-        <View style={tailwind('mt-0.5 flex-row items-center')}>
+        <View className="mt-0.5 flex-row items-center">
           <AppText
             numberOfLines={1}
             semibold={isShownAsUnread}
-            style={[tailwind('flex-1 text-sm'), { color: getColor('text-gray-100') }]}
+            className="flex-1 text-sm"
+            style={{ color: getColor('text-gray-100') }}
           >
             {email.subject}
           </AppText>
           {mailboxLabel ? (
-            <AppText style={[tailwind('ml-2 text-xs'), { color: getColor('text-gray-40') }]}>{mailboxLabel}</AppText>
+            <AppText className="ml-2 text-xs" style={{ color: getColor('text-gray-40') }}>
+              {mailboxLabel}
+            </AppText>
           ) : null}
         </View>
-        <AppText numberOfLines={1} style={[tailwind('mt-0.5 text-sm'), { color: getColor('text-gray-40') }]}>
+        <AppText numberOfLines={1} className="mt-0.5 text-sm" style={{ color: getColor('text-gray-40') }}>
           {previewText}
         </AppText>
       </View>

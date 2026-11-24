@@ -41,10 +41,8 @@ export const ComposeToolbar = ({
       accessibilityLabel={label}
       disabled={disabled}
       onPress={onPress}
-      style={[
-        tailwind('items-center justify-center rounded-xl'),
-        { width: TOOLBAR_BUTTON_SIZE, height: TOOLBAR_BUTTON_SIZE, opacity: disabled ? DISABLED_OPACITY : 1 },
-      ]}
+      className="items-center justify-center rounded-xl"
+      style={{ width: TOOLBAR_BUTTON_SIZE, height: TOOLBAR_BUTTON_SIZE, opacity: disabled ? DISABLED_OPACITY : 1 }}
     >
       <Icon size={TOOLBAR_ICON_SIZE} color={getColor('text-gray-80')} />
     </TouchableOpacity>
@@ -52,18 +50,16 @@ export const ComposeToolbar = ({
 
   return (
     <View
-      style={[
-        tailwind('flex-row items-center px-2.5 py-1.5'),
-        { borderTopWidth: 1, borderTopColor: getColor('border-gray-10') },
-      ]}
+      className="flex-row items-center px-2.5 py-1.5"
+      style={{ borderTopWidth: 1, borderTopColor: getColor('border-gray-10') }}
     >
       {renderToolbarButton(attachments.addFiles, PaperclipIcon, onAddFiles)}
       {renderToolbarButton(attachments.addPhotos, ImageIcon, onAddPhotos)}
-      <View style={tailwind('flex-1')} />
+      <View className="flex-1" />
       {isMessageEndToEndEncrypted && (
-        <View style={tailwind('flex-row items-center px-2')}>
+        <View className="flex-row items-center px-2">
           <LockKeyIcon size={LOCK_ICON_SIZE} color={getColor('text-gray-50')} />
-          <AppText style={[tailwind('ml-1.5 text-sm'), { color: getColor('text-gray-50') }]}>
+          <AppText className="ml-1.5 text-sm" style={{ color: getColor('text-gray-50') }}>
             {strings.screens.compose_email.endToEndEncrypted}
           </AppText>
         </View>

@@ -3,7 +3,6 @@ import { StyleSheet, View } from 'react-native';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import LockBadgeIcon from './LockBadgeIcon';
 
 export type LockedFeatureTexts = {
@@ -25,7 +24,6 @@ const LockedFeatureOverlay = ({
   locked = true,
   action,
 }: LockedFeatureOverlayProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -42,13 +40,15 @@ const LockedFeatureOverlay = ({
           )}
         </View>
 
-        <View style={[tailwind('items-center w-full'), styles.textStack]}>
-          <AppText semibold style={[tailwind('text-xl text-center'), { color: getColor('text-gray-100') }]}>
+        <View className="items-center w-full" style={styles.textStack}>
+          <AppText semibold className="text-xl text-center" style={{ color: getColor('text-gray-100') }}>
             {texts.title}
           </AppText>
-          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>{texts.body}</AppText>
+          <AppText className="text-sm text-center" style={{ color: getColor('text-gray-60') }}>
+            {texts.body}
+          </AppText>
           {!!texts.upgradeLine && (
-            <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-gray-60') }]}>
+            <AppText className="text-sm text-center" style={{ color: getColor('text-gray-60') }}>
               {texts.upgradeLine}
             </AppText>
           )}

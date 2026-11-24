@@ -4,7 +4,6 @@ import { View } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import CenterModal from '../CenterModal';
 import AppButton from '../../AppButton';
-import { useTailwind } from 'tailwind-rn';
 import AppText from '../../AppText';
 import { BaseModalProps } from '../../../types/ui';
 import { useAppDispatch } from 'src/store/hooks';
@@ -12,7 +11,6 @@ import { authThunks } from 'src/store/slices/auth';
 import CodeInput from 'src/components/CodeInput';
 
 const DisableTwoFactorModal = (props: BaseModalProps) => {
-  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [authCode, setAuthCode] = useState('');
@@ -44,12 +42,12 @@ const DisableTwoFactorModal = (props: BaseModalProps) => {
       backdropPressToClose={!isLoading}
       backButtonClose={!isLoading}
     >
-      <View style={tailwind('p-4')}>
-        <AppText style={tailwind('text-xl mb-1.5')} medium>
+      <View className="p-4">
+        <AppText className="text-xl mb-1.5" medium>
           {strings.modals.DisableTwoFactor.title}
         </AppText>
 
-        <AppText style={tailwind('text-gray-60 text-sm mb-6')} medium>
+        <AppText className="text-gray-60 text-sm mb-6" medium>
           {strings.modals.EnableTwoFactor.enterCode}
         </AppText>
 
@@ -60,13 +58,13 @@ const DisableTwoFactorModal = (props: BaseModalProps) => {
           length={authCodeLength}
         />
 
-        <View style={tailwind('mt-6 flex-row justify-between')}>
+        <View className="mt-6 flex-row justify-between">
           <AppButton
             title={strings.buttons.cancel}
             type="cancel"
             onPress={onCancelButtonPressed}
             disabled={isLoading}
-            style={tailwind('flex-1 mr-2')}
+            className="flex-1 mr-2"
           />
 
           <AppButton
@@ -75,7 +73,7 @@ const DisableTwoFactorModal = (props: BaseModalProps) => {
             onPress={onDisableButtonPressed}
             loading={isLoading}
             disabled={isLoading || !isAuthCodeValid}
-            style={tailwind('flex-1')}
+            className="flex-1"
           />
         </View>
       </View>

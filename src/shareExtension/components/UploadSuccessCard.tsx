@@ -64,7 +64,7 @@ export const UploadSuccessCard = ({
 
   const renderFilePreview = () => {
     if (isSingleFile && displayUri) {
-      return <Image source={{ uri: displayUri }} style={tailwind('w-20 h-20')} resizeMode="cover" />;
+      return <Image source={{ uri: displayUri }} className="w-20 h-20" resizeMode="cover" />;
     }
     if (isSingleFile && IconComponent) {
       return <IconComponent width={56} height={56} />;
@@ -85,46 +85,53 @@ export const UploadSuccessCard = ({
           <XIcon size={20} color={colors.gray60} />
         </TouchableOpacity>
 
-        <View style={tailwind('items-center mb-4')}>
-          <View style={[tailwind('w-20 h-20 rounded-2xl overflow-hidden items-center justify-center'), { backgroundColor: colors.gray5 }]}>
+        <View className="items-center mb-4">
+          <View
+            className="w-20 h-20 rounded-2xl overflow-hidden items-center justify-center"
+            style={{ backgroundColor: colors.gray5 }}
+          >
             {renderFilePreview()}
           </View>
 
           <Text
-            style={[tailwind('mt-3 text-center'), fontStyles.regular, { fontSize: 16, lineHeight: 19.2, color: colors.gray100 }]}
+            className="mt-3 text-center"
+            style={[fontStyles.regular, { fontSize: 16, lineHeight: 19.2, color: colors.gray100 }]}
             numberOfLines={2}
           >
             {fileName}
           </Text>
           {sizeAndFormat ? (
             <Text
-              style={[tailwind('mt-0.5 text-center'), fontStyles.regular, { fontSize: 12, lineHeight: 14.4, color: colors.gray60 }]}
+              className="mt-0.5 text-center"
+              style={[fontStyles.regular, { fontSize: 12, lineHeight: 14.4, color: colors.gray60 }]}
             >
               {sizeAndFormat}
             </Text>
           ) : null}
         </View>
 
-        <View style={tailwind('flex-row items-center mb-2')}>
+        <View className="flex-row items-center mb-2">
           <CheckCircleIcon size={20} color={colors.successGreen} weight="fill" />
-          <Text style={[tailwind('ml-1'), fontStyles.semibold, { color: colors.gray100, fontSize: 20, lineHeight: 24 }]}>
+          <Text className="ml-1" style={[fontStyles.semibold, { color: colors.gray100, fontSize: 20, lineHeight: 24 }]}>
             {shareExtensionTrans.uploadedTitle}
           </Text>
         </View>
 
         <Text
-          style={[tailwind('text-center px-6 mb-6'), fontStyles.regular, { color: colors.gray60, fontSize: 14, lineHeight: 16.8 }]}
+          className="text-center px-6 mb-6"
+          style={[fontStyles.regular, { color: colors.gray60, fontSize: 14, lineHeight: 16.8 }]}
         >
           {shareExtensionTrans.uploadedSubtitle}
         </Text>
 
         <TouchableOpacity
           onPress={onViewInFolder}
-          style={[tailwind('flex-row items-center justify-center rounded-xl py-3.5 px-6 w-full'), { backgroundColor: colors.primary }]}
+          className="flex-row items-center justify-center rounded-xl py-3.5 px-6 w-full"
+          style={{ backgroundColor: colors.primary }}
           activeOpacity={0.85}
         >
           <FolderSimpleIcon size={18} color={colors.white} weight="regular" />
-          <Text style={[tailwind('ml-2 text-base'), fontStyles.semibold, { lineHeight: 24, color: colors.white }]}>
+          <Text className="ml-2 text-base" style={[fontStyles.semibold, { lineHeight: 24, color: colors.white }]}>
             {shareExtensionTrans.viewInFolder}
           </Text>
         </TouchableOpacity>

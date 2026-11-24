@@ -85,7 +85,8 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
       hasBottomTabs
       safeAreaTop
       safeAreaColor={getColor('bg-surface')}
-      style={[tailwind('flex-1'), { backgroundColor: getColor('bg-gray-5') }]}
+      className="flex-1"
+      style={{ backgroundColor: getColor('bg-gray-5') }}
     >
       <AppScreenTitle
         text={title}
@@ -94,31 +95,31 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
         onBackButtonPressed={onBackButtonPressed}
       />
       <ScrollView>
-        <View style={[tailwind('pt-8 pb-10 px-4 min-h-full'), { backgroundColor: getColor('bg-gray-5') }]}>
+        <View className="pt-8 pb-10 px-4 min-h-full" style={{ backgroundColor: getColor('bg-gray-5') }}>
           {/* PLAN */}
           <SettingsGroup
             items={[
               {
                 key: 'plan',
                 template: (
-                  <View style={tailwind('px-4')}>
-                    <View style={[tailwind('py-6 border-b'), { borderBottomColor: getColor('border-gray-10') }]}>
-                      <AppText style={[tailwind('text-4xl text-center'), { color: getColor('text-primary') }]}>
+                  <View className="px-4">
+                    <View className="py-6 border-b" style={{ borderBottomColor: getColor('border-gray-10') }}>
+                      <AppText className="text-4xl text-center" style={{ color: getColor('text-primary') }}>
                         {storageService.toString(limit)}
                       </AppText>
                       {subscription.type === 'subscription' ? (
-                        <AppText style={[tailwind('text-center'), { color: getColor('text-gray-100') }]}>{`${
+                        <AppText className="text-center" style={{ color: getColor('text-gray-100') }}>{`${
                           subscription.amount * 0.01
                         } €/${
                           subscription.interval === 'month' ? strings.generic.month : strings.generic.year
                         }`}</AppText>
                       ) : (
-                        <AppText style={[tailwind('text-center'), { color: getColor('text-gray-100') }]}>
+                        <AppText className="text-center" style={{ color: getColor('text-gray-100') }}>
                           {strings.screens.PlanScreen.lifetimeTitle}
                         </AppText>
                       )}
                       {subscription.type === 'subscription' && newChargeDate && (
-                        <AppText style={[tailwind('mt-4 text-center text-sm'), { color: getColor('text-gray-40') }]}>
+                        <AppText className="mt-4 text-center text-sm" style={{ color: getColor('text-gray-40') }}>
                           {strings.formatString(
                             strings.screens.PlanScreen.newChargeOn,
                             newChargeDate.toLocaleString(DateTime.DATE_FULL),
@@ -127,8 +128,8 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                       )}
                     </View>
                     {hasSubscription && (
-                      <TouchableOpacity onPress={onChangePlanPressed} style={tailwind('py-3')}>
-                        <AppText style={[tailwind('text-center text-lg'), { color: getColor('text-primary') }]}>
+                      <TouchableOpacity onPress={onChangePlanPressed} className="py-3">
+                        <AppText className="text-center text-lg" style={{ color: getColor('text-primary') }}>
                           {strings.buttons.changePlan}
                         </AppText>
                       </TouchableOpacity>
@@ -147,11 +148,8 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                 {
                   key: 'payment-method',
                   template: (
-                    <View style={tailwind('flex-row items-center px-4 py-3')}>
-                      <Image
-                        source={require('assets/images/paypal.png')}
-                        style={tailwind('w-20 h-8 rounded-md mr-2.5')}
-                      />
+                    <View className="flex-row items-center px-4 py-3">
+                      <Image source={require('assets/images/paypal.png')} className="w-20 h-8 rounded-md mr-2.5" />
                     </View>
                   ),
                 },
@@ -166,14 +164,14 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                 {
                   key: 'payment-method',
                   template: (
-                    <View style={tailwind('flex-row items-center px-4 py-3')}>
+                    <View className="flex-row items-center px-4 py-3">
                       <Image
                         source={paymentService.getCardImage(defaultPaymentMethod.card?.brand)}
-                        style={tailwind('w-12 h-8 rounded-md mr-2.5')}
+                        className="w-12 h-8 rounded-md mr-2.5"
                       />
                       <View>
-                        <View style={tailwind('flex-row items-center')}>
-                          <AppText style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]} bold>
+                        <View className="flex-row items-center">
+                          <AppText className="text-2xl" style={{ color: getColor('text-gray-100') }} bold>
                             {'···· ···· ···· '}
                           </AppText>
                           <AppText style={{ color: getColor('text-gray-100') }}>
@@ -183,7 +181,8 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
 
                         {defaultPaymentMethod.card && (
                           <AppText
-                            style={[tailwind('text-sm'), { color: getColor('text-gray-40') }]}
+                            className="text-sm"
+                            style={{ color: getColor('text-gray-40') }}
                           >{`${defaultPaymentMethod.card?.exp_month
                             .toString()
                             .padStart(2, '0')}/${defaultPaymentMethod.card?.exp_year
@@ -207,16 +206,14 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                 template: (
                   <View>
                     {invoices && invoices.length === 0 ? (
-                      <AppText style={[tailwind('px-4 py-6 text-center text-sm'), { color: getColor('text-gray-40') }]}>
+                      <AppText className="px-4 py-6 text-center text-sm" style={{ color: getColor('text-gray-40') }}>
                         {strings.screens.PlanScreen.invoices.empty}
                       </AppText>
                     ) : (
                       <>
                         <View
-                          style={[
-                            tailwind('mx-4 py-3 flex-row border-b'),
-                            { borderBottomColor: getColor('border-gray-10') },
-                          ]}
+                          className="mx-4 py-3 flex-row border-b"
+                          style={{ borderBottomColor: getColor('border-gray-10') }}
                         >
                           <AppText
                             style={[{ ...tailwind('text-xs'), flex: 2 }, { color: getColor('text-gray-80') }]}
@@ -237,21 +234,19 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                             const onDownloadPdfPressed = () => {
                               downloadInvoice(invoice.pdf);
                             };
-                            const time = DateTime.fromMillis(invoice.created * 1000).setLocale(
-                              strings.getLanguage(),
-                            );
+                            const time = DateTime.fromMillis(invoice.created * 1000).setLocale(strings.getLanguage());
                             return (
-                              <View key={invoice.id} style={tailwind('px-4')}>
-                                <View style={tailwind('flex-row items-center')}>
+                              <View key={invoice.id} className="px-4">
+                                <View className="flex-row items-center">
                                   <AppText style={[{ flex: 2 }, { color: getColor('text-gray-100') }]}>
                                     {titlerize(time.toFormat('EEEE dd, MMM yyyy'))}
                                   </AppText>
                                   <View style={{ flex: 1, ...tailwind('flex-row items-center') }}>
-                                    <AppText style={[tailwind('flex-grow'), { color: getColor('text-gray-40') }]}>
+                                    <AppText className="flex-grow" style={{ color: getColor('text-gray-40') }}>
                                       {storageService.toString(invoice.bytesInPlan)}
                                     </AppText>
                                     <TouchableOpacity onPress={onDownloadPdfPressed}>
-                                      <View style={tailwind('-mr-4 px-4 py-4')}>
+                                      <View className="-mr-4 px-4 py-4">
                                         <DownloadSimple size={20} color={getColor('text-primary')} />
                                       </View>
                                     </TouchableOpacity>
@@ -279,13 +274,13 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                 {
                   key: 'debug',
                   template: (
-                    <View style={[tailwind('flex-row items-center px-4 py-3')]}>
-                      <View style={tailwind('flex-grow justify-center')}>
-                        <AppText style={[tailwind('text-lg'), { color: getColor('text-gray-100') }]}>
+                    <View className="flex-row items-center px-4 py-3">
+                      <View className="flex-grow justify-center">
+                        <AppText className="text-lg" style={{ color: getColor('text-gray-100') }}>
                           {strings.buttons.cancelSubscription}
                         </AppText>
                       </View>
-                      <View style={tailwind('justify-center')}>
+                      <View className="justify-center">
                         <CaretRight color={getColor('text-gray-40')} size={20} />
                       </View>
                     </View>

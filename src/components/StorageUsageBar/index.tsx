@@ -2,7 +2,6 @@ import prettysize from 'prettysize';
 import { useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { getLineHeight } from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
 import AppText from '../AppText';
 import DashedLine from '../../../assets/icons/dashed-line.svg';
 import { cssInterop } from 'nativewind';
@@ -16,7 +15,6 @@ interface StorageUsageBarProps {
 
 const WHITE_SPACER_WIDTH = 9;
 const StorageUsageBar = (props: StorageUsageBarProps) => {
-  const tailwind = useTailwind();
   const [progressBarWidth, setProgressBarWidth] = useState(0);
 
   const getSelectedStorageWidth = () => {
@@ -30,30 +28,26 @@ const StorageUsageBar = (props: StorageUsageBarProps) => {
   };
   return (
     <View
-      style={[
-        tailwind('bg-white h-4 border flex flex-row border-red/15 mt-6'),
-        {
-          borderRadius: 4,
-        },
-      ]}
+      className="bg-white h-4 border flex flex-row border-red/15 mt-6"
+      style={{
+        borderRadius: 4,
+      }}
       onLayout={(e) => {
         setProgressBarWidth(e.nativeEvent.layout.width - WHITE_SPACER_WIDTH);
       }}
     >
       {/* Selected storage limit */}
       <View
-        style={[
-          tailwind('h-full bg-red/15'),
-          {
-            borderTopLeftRadius: 3,
-            borderBottomLeftRadius: 3,
-            width: getSelectedStorageWidth(),
-          },
-        ]}
+        className="h-full bg-red/15"
+        style={{
+          borderTopLeftRadius: 3,
+          borderBottomLeftRadius: 3,
+          width: getSelectedStorageWidth(),
+        }}
       ></View>
-      <View style={[tailwind('h-full bg-white'), { width: WHITE_SPACER_WIDTH }]}>
-        <View style={[tailwind('absolute w-20'), { top: -24 }]}>
-          <AppText medium style={[tailwind('text-sm absolute ml-3 mt-1'), { lineHeight: getLineHeight(14, 1) }]}>
+      <View className="h-full bg-white" style={{ width: WHITE_SPACER_WIDTH }}>
+        <View className="absolute w-20" style={{ top: -24 }}>
+          <AppText medium className="text-sm absolute ml-3 mt-1" style={{ lineHeight: getLineHeight(14, 1) }}>
             {prettysize(props.selectedStorageBytes)}
           </AppText>
           <View
@@ -67,14 +61,12 @@ const StorageUsageBar = (props: StorageUsageBarProps) => {
         </View>
       </View>
       <View
-        style={[
-          tailwind('h-full bg-red'),
-          {
-            borderTopRightRadius: 4,
-            borderBottomRightRadius: 4,
-            width: getCurrentUsageWidth(),
-          },
-        ]}
+        className="h-full bg-red"
+        style={{
+          borderTopRightRadius: 4,
+          borderBottomRightRadius: 4,
+          width: getCurrentUsageWidth(),
+        }}
       ></View>
     </View>
   );

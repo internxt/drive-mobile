@@ -199,44 +199,41 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
         accessibilityRole="button"
         accessibilityLabel={strings.screens.mail.cancelSelection}
         onPress={clearSelection}
-        style={[
-          tailwind('items-center justify-center rounded-full'),
-          {
-            width: CLOSE_BUTTON_SIZE,
-            height: CLOSE_BUTTON_SIZE,
-            marginLeft: (HEADER_ICON_SIZE - CLOSE_BUTTON_SIZE) / 2,
-            marginRight: HEADER_ICON_GAP - (CLOSE_BUTTON_SIZE - HEADER_ICON_SIZE) / 2,
-            backgroundColor: getColor('bg-gray-5'),
-          },
-        ]}
+        className="items-center justify-center rounded-full"
+        style={{
+          width: CLOSE_BUTTON_SIZE,
+          height: CLOSE_BUTTON_SIZE,
+          marginLeft: (HEADER_ICON_SIZE - CLOSE_BUTTON_SIZE) / 2,
+          marginRight: HEADER_ICON_GAP - (CLOSE_BUTTON_SIZE - HEADER_ICON_SIZE) / 2,
+          backgroundColor: getColor('bg-gray-5'),
+        }}
       >
         <XIcon color={getColor('text-gray-100')} size={CLOSE_ICON_SIZE} />
       </TouchableOpacity>
-      <AppText medium numberOfLines={1} style={[tailwind('flex-1 text-xl'), { color: getColor('text-gray-100') }]}>
+      <AppText medium numberOfLines={1} className="flex-1 text-xl" style={{ color: getColor('text-gray-100') }}>
         {strings.formatString(strings.screens.mail.selectedCount, selectedEmailIds.length)}
       </AppText>
       <TouchableOpacity
         accessibilityRole="button"
         onPress={areAllSelected ? clearSelection : selectAll}
-        style={[
-          tailwind('flex-row items-center rounded-full ml-2 px-3 py-1.5'),
-          { borderWidth: SELECT_ALL_BORDER_WIDTH, borderColor: getColor('border-gray-10') },
-        ]}
+        className="flex-row items-center rounded-full ml-2 px-3 py-1.5"
+        style={{ borderWidth: SELECT_ALL_BORDER_WIDTH, borderColor: getColor('border-gray-10') }}
       >
         {areAllSelected ? (
           <CheckSquareIcon color={getColor('text-gray-100')} size={SELECT_ALL_ICON_SIZE} />
         ) : (
           <SquareIcon color={getColor('text-gray-100')} size={SELECT_ALL_ICON_SIZE} />
         )}
-        <View style={tailwind('ml-1.5')}>
-          <AppText medium style={[tailwind('text-sm'), { color: getColor('text-gray-100') }]}>
+        <View className="ml-1.5">
+          <AppText medium className="text-sm" style={{ color: getColor('text-gray-100') }}>
             {areAllSelected ? strings.screens.mail.deselectAll : strings.screens.mail.selectAll}
           </AppText>
           <AppText
             medium
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
-            style={[tailwind('text-sm'), styles.widthReferenceLabel]}
+            className="text-sm"
+            style={styles.widthReferenceLabel}
           >
             {areAllSelected ? strings.screens.mail.selectAll : strings.screens.mail.deselectAll}
           </AppText>
@@ -255,7 +252,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
         accessibilityRole="button"
         accessibilityLabel={strings.screens.mail.openMailboxes}
         onPress={() => navigation.openDrawer()}
-        style={tailwind('pr-3 py-1')}
+        className="pr-3 py-1"
       >
         <ListIcon color={getColor('text-gray-100')} size={HEADER_ICON_SIZE} />
       </TouchableOpacity>
@@ -263,9 +260,9 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
         accessibilityRole="button"
         accessibilityHint={strings.screens.mail.refreshMailbox}
         onPress={refreshFromTitle}
-        style={tailwind('flex-1')}
+        className="flex-1"
       >
-        <AppText medium numberOfLines={1} style={[tailwind('text-2xl'), { color: getColor('text-gray-100') }]}>
+        <AppText medium numberOfLines={1} className="text-2xl" style={{ color: getColor('text-gray-100') }}>
           {strings.screens.mail.mailboxes[selectedMailboxId]}
         </AppText>
       </TouchableOpacity>
@@ -273,7 +270,7 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
         accessibilityRole="button"
         accessibilityLabel={strings.screens.mail.search.open}
         onPress={() => navigation.navigate('MailSearch')}
-        style={tailwind('pl-3 py-1')}
+        className="pl-3 py-1"
       >
         <MagnifyingGlassIcon color={getColor('text-gray-100')} size={HEADER_ICON_SIZE} />
       </TouchableOpacity>
@@ -316,9 +313,9 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   );
 
   const renderEmptyState = () => (
-    <View style={tailwind('flex-1 items-center justify-center')}>
+    <View className="flex-1 items-center justify-center">
       <EnvelopeIcon color={getColor('text-gray-30')} size={48} />
-      <AppText style={[tailwind('mt-3 text-center text-gray-50'), { paddingHorizontal: 32 }]}>
+      <AppText className="mt-3 text-center text-gray-50" style={{ paddingHorizontal: 32 }}>
         {strings.screens.mail.empty[selectedMailboxId]}
       </AppText>
     </View>
@@ -327,15 +324,15 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   const renderListFooter = () => {
     if (isLoadingNextPage) {
       return (
-        <View style={tailwind('items-center py-4')}>
+        <View className="items-center py-4">
           <ActivityIndicator color={getColor('text-primary')} />
         </View>
       );
     }
     if (hasNextPageFailed) {
       return (
-        <View style={tailwind('items-center py-2')}>
-          <TouchableOpacity onPress={() => retryNextPage()} style={tailwind('px-4 py-2')}>
+        <View className="items-center py-2">
+          <TouchableOpacity onPress={() => retryNextPage()} className="px-4 py-2">
             <AppText medium style={{ color: getColor('text-primary') }}>
               {strings.buttons.tryAgain}
             </AppText>
@@ -353,12 +350,12 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
 
     if (hasFirstPageFailed && emails.length === 0) {
       return (
-        <View style={tailwind('flex-1 items-center justify-center')}>
+        <View className="flex-1 items-center justify-center">
           <WarningIcon color={getColor('text-gray-30')} size={48} />
-          <AppText style={[tailwind('mt-3 text-center text-gray-50'), { paddingHorizontal: 32 }]}>
+          <AppText className="mt-3 text-center text-gray-50" style={{ paddingHorizontal: 32 }}>
             {strings.errors.generic.title}
           </AppText>
-          <TouchableOpacity onPress={onPullToRefresh} style={tailwind('mt-4 px-4 py-2')}>
+          <TouchableOpacity onPress={onPullToRefresh} className="mt-4 px-4 py-2">
             <AppText medium style={{ color: getColor('text-primary') }}>
               {strings.buttons.tryAgain}
             </AppText>
@@ -374,15 +371,15 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
     return (
       <>
         {hasFirstPageFailed && (
-          <View style={[tailwind('flex-row items-center px-4 py-2'), { backgroundColor: getColor('bg-gray-5') }]}>
+          <View className="flex-row items-center px-4 py-2" style={{ backgroundColor: getColor('bg-gray-5') }}>
             <WarningIcon color={getColor('text-gray-50')} size={16} />
-            <AppText style={[tailwind('ml-2 flex-1 text-sm'), { color: getColor('text-gray-60') }]}>
+            <AppText className="ml-2 flex-1 text-sm" style={{ color: getColor('text-gray-60') }}>
               {strings.errors.generic.title}
             </AppText>
           </View>
         )}
         <FlatList
-          style={tailwind('flex-1')}
+          className="flex-1"
           contentContainerStyle={{
             paddingBottom: isSelecting ? LIST_BOTTOM_PADDING_UNDER_SELECTION_BAR : FLOATING_BUTTON_CLEARANCE,
           }}
@@ -419,13 +416,13 @@ const MailboxListScreen = ({ route, navigation }: MailboxScreenProps): JSX.Eleme
   };
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
-      <View style={tailwind('h-14')}>
+    <AppScreen safeAreaTop className="flex-1 flex-grow">
+      <View className="h-14">
         <LayoutAnimationConfig skipEntering>
           {isSelecting ? renderSelectionHeader() : renderHeader()}
         </LayoutAnimationConfig>
       </View>
-      <View style={tailwind('flex-1')}>
+      <View className="flex-1">
         {renderEmailListContent()}
         {isRefreshingNewestEmails && emails.length > 0 && <RefreshLine />}
         {isSelecting && (

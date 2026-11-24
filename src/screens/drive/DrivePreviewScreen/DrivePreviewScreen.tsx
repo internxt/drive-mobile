@@ -166,11 +166,12 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     error?: string;
   }) => {
     return (
-      <View style={tailwind('flex-1 flex items-center justify-center px-10')}>
+      <View className="flex-1 flex items-center justify-center px-10">
         <FileIcon />
-        <View style={tailwind('mt-5')}>
+        <View className="mt-5">
           <AppText
-            style={[tailwind('text-center text-xl'), { lineHeight: getLineHeight(20, 1.2) }]}
+            className="text-center text-xl"
+            style={{ lineHeight: getLineHeight(20, 1.2) }}
             numberOfLines={2}
             medium
           >
@@ -184,16 +185,16 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
           ) : null}
         </View>
         {!isDownloaded && !error ? (
-          <View style={tailwind('w-full mt-10')}>
+          <View className="w-full mt-10">
             <AppProgressBar height={4} animateWidth currentValue={currentProgress} totalValue={1} />
           </View>
         ) : null}
         {error ? (
-          <View style={tailwind('mt-1')}>
-            <AppText style={tailwind('text-center text-red')}>{error}</AppText>
+          <View className="mt-1">
+            <AppText className="text-center text-red">{error}</AppText>
             {downloadingFile && (
               <AppButton
-                style={tailwind('mt-5')}
+                className="mt-5"
                 title={strings.buttons.tryAgain}
                 type={'white'}
                 onPress={() => downloadingFile?.retry?.()}
@@ -202,12 +203,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
           </View>
         ) : null}
         {isDownloaded && downloadedFilePath ? (
-          <View style={tailwind('mt-1')}>
-            <AppText style={tailwind('text-gray-60 text-center')}>
-              {strings.screens.PreviewScreen.noPreviewAvailable}
-            </AppText>
+          <View className="mt-1">
+            <AppText className="text-gray-60 text-center">{strings.screens.PreviewScreen.noPreviewAvailable}</AppText>
             <AppButton
-              style={tailwind('mt-5')}
+              className="mt-5"
               title={strings.screens.PreviewScreen.openWith}
               type={'white'}
               onPress={() => handleOpenFileWith(filename, downloadedFilePath)}
@@ -251,7 +250,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
 
     if (renderVideoPreview && downloadingFile.downloadedFilePath) {
       return (
-        <View style={[tailwind('flex-1'), { paddingTop: totalHeaderHeight, paddingBottom: insets.bottom }]}>
+        <View className="flex-1" style={{ paddingTop: totalHeaderHeight, paddingBottom: insets.bottom }}>
           <DriveVideoPreview thumbnail={generatedThumbnail?.path} source={downloadingFile.downloadedFilePath} />
         </View>
       );
@@ -275,7 +274,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     }
   };
   return (
-    <AppScreen style={tailwind('flex-1')}>
+    <AppScreen className="flex-1">
       <Animated.View
         style={[
           tailwind('absolute w-full z-10 bg-white'),

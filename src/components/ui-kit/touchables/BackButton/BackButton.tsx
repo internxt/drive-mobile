@@ -15,15 +15,15 @@ export const BackButton: React.FC<BackButtonProps> = (props) => {
   const color = tailwind('text-primary').color as string;
   const iconSize = 26;
   return (
-    <View style={tailwind('flex-1 mr-2')}>
+    <View className="flex-1 mr-2">
       <TouchableOpacity
         onPress={props.onPress}
         hitSlop={INCREASED_TOUCH_AREA}
         activeOpacity={0.7}
-        style={tailwind('flex flex-row items-center')}
+        className="flex flex-row items-center"
       >
         <CaretLeft size={iconSize} color={color} />
-        <AppText style={tailwind('text-primary')} ellipsizeMode="tail" numberOfLines={1}>
+        <AppText className="text-primary" ellipsizeMode="tail" numberOfLines={1}>
           {props.label}
         </AppText>
       </TouchableOpacity>

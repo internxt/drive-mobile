@@ -4,9 +4,8 @@ import * as NavigationBar from 'expo-navigation-bar';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { PlayIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Video, { BufferConfig, BufferingStrategyType, VideoRef } from 'react-native-video';
-import { useTailwind } from 'tailwind-rn';
 
 interface VideoViewerProps {
   source?: string;
@@ -49,7 +48,6 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
   thumbnailCacheKey,
   onVideoLoadError,
 }) => {
-  const tailwind = useTailwind();
   const [playing, setPlaying] = useState(false);
   const [hasStarted, setHasStarted] = useState(false);
   const [loadError, setLoadError] = useState<unknown>();
@@ -124,17 +122,15 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
   const showThumbnail = isIOS || !hasStarted;
 
   return (
-    <View style={tailwind('h-full')}>
-      <View style={[tailwind('flex-1 w-full h-full')]}>
+    <View className="h-full">
+      <View className="flex-1 w-full h-full">
         {!playing && (
-          <View style={[tailwind('flex h-full w-full absolute justify-center items-center'), { zIndex: 1 }]}>
+          <View className="flex h-full w-full absolute justify-center items-center" style={{ zIndex: 1 }}>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={handlePlay}
-              style={[
-                tailwind('h-20 rounded-full w-20 bg-black flex items-center justify-center'),
-                { backgroundColor: 'rgba(0,0,0,0.5)' },
-              ]}
+              className="h-20 rounded-full w-20 bg-black flex items-center justify-center"
+              style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
             >
               <PlayIcon size={40} weight="fill" color="#fff" />
             </TouchableOpacity>
@@ -143,7 +139,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
         {showThumbnail && thumbnail && (
           <ExpoImage
             source={{ uri: fileSystemService.pathToUri(thumbnail), cacheKey: thumbnailCacheKey }}
-            style={tailwind('w-full h-full')}
+            style={styles.fillImage}
             contentFit="contain"
           />
         )}
@@ -179,3 +175,10 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fillImage: {
+    width: '100%',
+    height: '100%',
+  },
+});

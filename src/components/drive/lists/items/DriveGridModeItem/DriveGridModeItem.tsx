@@ -106,15 +106,13 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
         <TouchableOpacity
           onPress={props.onActionsPress}
           accessibilityLabel={'Cancel folder upload'}
-          style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
+          className="absolute top-0 bottom-0 w-full flex-row items-center justify-center"
         >
           <View
-            style={[
-              tailwind('rounded px-1 py-0.5 flex-row items-center'),
-              { backgroundColor: getColor('text-primary') },
-            ]}
+            className="rounded px-1 py-0.5 flex-row items-center"
+            style={{ backgroundColor: getColor('text-primary') }}
           >
-            <AppText style={[tailwind('text-xs'), { color: getColor('text-white') }]}>
+            <AppText className="text-xs" style={{ color: getColor('text-white') }}>
               {strings.screens.drive.scanningFolderShort}
             </AppText>
             <XCircleIcon weight="bold" color={getColor('text-white')} size={14} style={tailwind('ml-1')} />
@@ -128,16 +126,14 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
         <TouchableOpacity
           onPress={props.onActionsPress}
           accessibilityLabel={'Cancel folder upload'}
-          style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}
+          className="absolute top-0 bottom-0 w-full flex-row items-center justify-center"
         >
           <View
-            style={[
-              tailwind('rounded px-1 py-0.5 flex-row items-center'),
-              { backgroundColor: getColor('text-primary') },
-            ]}
+            className="rounded px-1 py-0.5 flex-row items-center"
+            style={{ backgroundColor: getColor('text-primary') }}
           >
             <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={14} />
-            <AppText style={[tailwind('ml-1 text-xs'), { color: getColor('text-white') }]}>
+            <AppText className="ml-1 text-xs" style={{ color: getColor('text-white') }}>
               {props.folderUploadProgress?.totalFiles
                 ? `${props.folderUploadProgress.uploadedFiles}/${props.folderUploadProgress.totalFiles}`
                 : '...'}
@@ -149,10 +145,10 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
     }
 
     return (
-      <View style={tailwind('absolute top-0 bottom-0 w-full flex-row items-center justify-center')}>
-        <View style={[tailwind('rounded px-1 py-0.5 flex-row'), { backgroundColor: getColor('text-primary') }]}>
+      <View className="absolute top-0 bottom-0 w-full flex-row items-center justify-center">
+        <View className="rounded px-1 py-0.5 flex-row" style={{ backgroundColor: getColor('text-primary') }}>
           <ArrowCircleUpIcon weight="fill" color={getColor('text-white')} size={16} />
-          <AppText style={[tailwind('ml-1.5 text-xs'), { color: getColor('text-white') }]}>
+          <AppText className="ml-1.5 text-xs" style={{ color: getColor('text-white') }}>
             {((props.progress || 0) * 100).toFixed(0) + '%'}
           </AppText>
         </View>
@@ -174,12 +170,8 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
   const nameText = useMemo(
     () => (
       <AppText
-        style={[
-          tailwind('text-base text-center leading-5'),
-          { color: nameColor },
-          isUploading && tailwind('opacity-40'),
-          { lineHeight: 16 * 1.2 },
-        ]}
+        className={`text-base text-center leading-5 ${isUploading ? 'opacity-40' : ''}`}
+        style={[{ color: nameColor }, { lineHeight: 16 * 1.2 }]}
         numberOfLines={2}
         ellipsizeMode={'middle'}
       >
@@ -194,12 +186,14 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
     () => (
       <>
         {props.data.createdAt ? (
-          <AppText style={[tailwind('text-xs mt-1'), { color: detailsColor }, { lineHeight: 14 }]}>
+          <AppText className="text-xs mt-1" style={[{ color: detailsColor }, { lineHeight: 14 }]}>
             {time.getFormattedDate(props.data.createdAt, time.formats.shortDate)}
           </AppText>
         ) : null}
         {props.data.size ? (
-          <AppText style={[tailwind('text-xs'), { color: detailsColor }]}>{prettysize(props.data.size)}</AppText>
+          <AppText className="text-xs" style={{ color: detailsColor }}>
+            {prettysize(props.data.size)}
+          </AppText>
         ) : null}
       </>
     ),
@@ -216,11 +210,12 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
       onLayout={(event) => {
         !maxThumbnailWidth && setMaxThumbnailWidth(Math.floor(event.nativeEvent.layout.width) - 8);
       }}
-      style={[{ flex: 1 }, tailwind('mb-2 rounded-lg')]}
+      className="mb-2 rounded-lg"
+      style={{ flex: 1 }}
     >
       <View>
-        <View style={[tailwind('flex-grow'), tailwind('flex-col items-center justify-center')]}>
-          <View style={tailwind('w-full items-center justify-center')}>
+        <View className="flex-grow flex-col items-center justify-center">
+          <View className="w-full items-center justify-center">
             <Animated.View style={[tailwind('h-24 w-24 flex items-center justify-center'), previewAnimatedStyle]}>
               {previewContent}
               {props.selectable && (
@@ -233,7 +228,7 @@ function DriveGridModeItemComp(props: DriveItemProps): JSX.Element {
             {renderUploadOverlay()}
           </View>
 
-          <View style={[tailwind('flex items-start justify-center items-center mt-2.5 px-2 py-1')]}>
+          <View className="flex items-start justify-center items-center mt-2.5 px-2 py-1">
             <Animated.View style={[tailwind('rounded-md px-1 overflow-hidden'), nameAnimatedStyle]}>
               {nameText}
             </Animated.View>

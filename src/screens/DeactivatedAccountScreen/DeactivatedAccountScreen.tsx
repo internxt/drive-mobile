@@ -27,34 +27,30 @@ export function DeactivatedAccountScreen(): JSX.Element {
   };
   const dimensions = Dimensions.get('screen');
   return (
-    <AppScreen safeAreaTop safeAreaBottom style={tailwind('px-6 h-full items-center pt-20')}>
+    <AppScreen safeAreaTop safeAreaBottom className="px-6 h-full items-center pt-20">
       <LinearGradient
         colors={['#F9F9FC', '#F9F9FC']}
         locations={[0, 1]}
-        style={[tailwind('w-full h-full absolute'), { height: dimensions.height, width: dimensions.width }]}
+        className="w-full h-full absolute"
+        style={{ height: dimensions.height, width: dimensions.width }}
       />
       <CheckCircle weight="thin" color={tailwind('text-primary').color as string} size={88} />
-      <AppText medium style={tailwind('text-center text-2xl mt-6')}>
+      <AppText medium className="text-center text-2xl mt-6">
         {strings.screens.deactivation_screen.account_deleted}
       </AppText>
-      <AppText style={tailwind('text-center text-lg mt-2')}>
+      <AppText className="text-center text-lg mt-2">
         {strings.screens.deactivation_screen.account_deleted_advice}
       </AppText>
       <AppButton
-        style={tailwind('w-full mt-8')}
+        className="w-full mt-8"
         title={strings.buttons.createAccount}
         type="accept"
         onPress={handleGoToSignUp}
       />
-      <AppButton
-        style={tailwind('w-full mt-3')}
-        title={strings.buttons.sign_in}
-        type="white"
-        onPress={handleGoToSignIn}
-      />
-      <View style={tailwind('mt-auto')}>
+      <AppButton className="w-full mt-3" title={strings.buttons.sign_in} type="white" onPress={handleGoToSignIn} />
+      <View className="mt-auto">
         <InternxtLogo width={90} style={tailwind('my-2')} />
-        <AppVersionWidget style={tailwind('mb-5')} />
+        <AppVersionWidget className="mb-5" />
       </View>
     </AppScreen>
   );

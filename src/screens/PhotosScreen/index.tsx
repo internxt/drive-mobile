@@ -19,7 +19,6 @@ import {
 import { hasPhotosFeatureAccess } from 'src/store/slices/photos/selectors';
 import { uiActions } from 'src/store/slices/ui';
 import { TabExplorerScreenNavigationProp } from 'src/types/navigation';
-import { useTailwind } from 'tailwind-rn';
 import notificationsService from '../../services/NotificationsService';
 import { photoPermissionService } from '../../services/photos/photoPermissionService';
 import { NotificationType } from '../../types';
@@ -40,7 +39,6 @@ import { PhotosAccessState, TimelinePhotoItem } from './types';
 import { isItemSelectable } from './utils/photoUtils';
 
 const PhotosScreen = (): JSX.Element => {
-  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const navigation = useNavigation<TabExplorerScreenNavigationProp<'Photos'>>();
   const enabled = useAppSelector((state) => state.photos.enabled);
@@ -235,7 +233,7 @@ const PhotosScreen = (): JSX.Element => {
   );
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1')}>
+    <AppScreen safeAreaTop className="flex-1">
       <PhotosHeader
         isSelectMode={selection.isSelectMode}
         onSelectPress={handleSelectPress}
@@ -247,7 +245,7 @@ const PhotosScreen = (): JSX.Element => {
         onOpenDeviceFilter={reloadPhotoDevices}
       />
 
-      <View style={tailwind('flex-1')}>
+      <View className="flex-1">
         <PhotosTimeline
           ref={timelineRef}
           assetsGroupsByDate={timelineDateGroups}

@@ -110,7 +110,7 @@ export const MailboxSelectionBar = ({
               onPress();
             }}
             disabled={isDisabled}
-            style={[tailwind('px-4 py-3'), isDisabled && !isRunning ? tailwind('opacity-40') : undefined]}
+            className={`px-4 py-3 ${isDisabled && !isRunning ? 'opacity-40' : ''}`}
           >
             {isRunning ? (
               <ActivityIndicator color={getColor('text-gray-100')} style={{ width: ICON_SIZE, height: ICON_SIZE }} />

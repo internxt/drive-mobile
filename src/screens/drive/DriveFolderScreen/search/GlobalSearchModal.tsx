@@ -6,7 +6,15 @@ import { DriveListType } from '@internxt-mobile/types/drive/ui';
 import { useNavigation } from '@react-navigation/native';
 import { ArrowLeft, MagnifyingGlass } from 'phosphor-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from 'src/components/AppText';
 import DriveList from 'src/components/drive/lists/DriveList/DriveList';
@@ -15,7 +23,6 @@ import { useAppDispatch } from 'src/store/hooks';
 import { driveActions, driveThunks } from 'src/store/slices/drive';
 import { DriveItemStatus, DriveListItem } from 'src/types/drive/item';
 import { DriveScreenProps } from 'src/types/navigation';
-import { useTailwind } from 'tailwind-rn';
 import { logger } from '../../../../services/common';
 import storageService from '../../../../services/StorageService';
 
@@ -29,7 +36,6 @@ interface GlobalSearchModalProps {
 }
 
 export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, onClose, onItemPress }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const insets = useSafeAreaInsets();
   const [inputRef, setInputRef] = useState<TextInput | null>(null);
@@ -204,9 +210,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
   const renderEmptyState = () => {
     if (isLoading) {
       return (
-        <View style={tailwind('flex-1 justify-center items-center')}>
+        <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color={getColor('text-primary')} />
-          <AppText style={[tailwind('mt-4 text-base'), { color: getColor('text-gray-100') }]}>
+          <AppText className="mt-4 text-base" style={{ color: getColor('text-gray-100') }}>
             {strings.modals.GlobalSearchModal.searching}
           </AppText>
         </View>
@@ -214,8 +220,8 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
     }
     if (error) {
       return (
-        <View style={tailwind('flex-1 justify-center items-center px-8')}>
-          <AppText style={[tailwind('text-base text-center'), { color: getColor('text-red-100') }]}>
+        <View className="flex-1 justify-center items-center px-8">
+          <AppText className="text-base text-center" style={{ color: getColor('text-red-100') }}>
             {strings.modals.GlobalSearchModal.searchError}
           </AppText>
           <TouchableOpacity
@@ -224,9 +230,9 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
                 updateQuery(query);
               }
             }}
-            style={tailwind('mt-4 px-4 py-2 bg-primary rounded-lg')}
+            className="mt-4 px-4 py-2 bg-primary rounded-lg"
           >
-            <AppText style={[tailwind('text-sm'), { color: getColor('text-white') }]}>
+            <AppText className="text-sm" style={{ color: getColor('text-white') }}>
               {strings.modals.GlobalSearchModal.tryAgainButton}
             </AppText>
           </TouchableOpacity>
@@ -235,24 +241,24 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
     }
     if (query.trim() && !hasResults) {
       return (
-        <View style={tailwind('flex-1 justify-center items-center px-8')}>
+        <View className="flex-1 justify-center items-center px-8">
           <MagnifyingGlass size={48} color={getColor('text-gray-40')} />
-          <AppText style={[tailwind('mt-4 text-base text-center'), { color: getColor('text-gray-100') }]}>
+          <AppText className="mt-4 text-base text-center" style={{ color: getColor('text-gray-100') }}>
             {strings.modals.GlobalSearchModal.noResultsTitle}
           </AppText>
-          <AppText style={[tailwind('mt-2 text-sm text-center'), { color: getColor('text-gray-40') }]}>
+          <AppText className="mt-2 text-sm text-center" style={{ color: getColor('text-gray-40') }}>
             {strings.modals.GlobalSearchModal.noResultsMessage}
           </AppText>
         </View>
       );
     }
     return (
-      <View style={tailwind('flex-1 justify-center items-center px-8')}>
+      <View className="flex-1 justify-center items-center px-8">
         <MagnifyingGlass size={48} color={getColor('text-gray-40')} />
-        <AppText style={[tailwind('mt-4 text-base text-center'), { color: getColor('text-gray-100') }]}>
+        <AppText className="mt-4 text-base text-center" style={{ color: getColor('text-gray-100') }}>
           {strings.modals.GlobalSearchModal.searchPromptTitle}
         </AppText>
-        <AppText style={[tailwind('mt-2 text-sm text-center'), { color: getColor('text-gray-40') }]}>
+        <AppText className="mt-2 text-sm text-center" style={{ color: getColor('text-gray-40') }}>
           {strings.modals.GlobalSearchModal.searchPromptMessage}
         </AppText>
       </View>
@@ -268,27 +274,23 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
       navigationBarTranslucent
     >
       <View
-        style={[
-          tailwind('flex-1'),
-          { backgroundColor: getColor('bg-surface'), paddingTop: insets.top, paddingBottom: insets.bottom },
-        ]}
+        className="flex-1"
+        style={{ backgroundColor: getColor('bg-surface'), paddingTop: insets.top, paddingBottom: insets.bottom }}
       >
-        <KeyboardAvoidingView style={tailwind('flex-1')} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           {/* Header */}
-          <View style={tailwind('flex-row items-center px-4 py-3 border-b border-gray-5')}>
+          <View className="flex-row items-center px-4 py-3 border-b border-gray-5">
             <TouchableOpacity
               onPress={onClose}
-              style={tailwind('mr-3 p-2')}
+              className="mr-3 p-2"
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               disabled={isNavigating}
             >
               <ArrowLeft size={24} color={getColor('text-gray-80')} />
             </TouchableOpacity>
             <View
-              style={[
-                tailwind('flex-1 flex-row items-center bg-gray-5 rounded-lg px-3 py-2'),
-                { backgroundColor: getColor('bg-gray-5') },
-              ]}
+              className="flex-1 flex-row items-center bg-gray-5 rounded-lg px-3 py-2"
+              style={{ backgroundColor: getColor('bg-gray-5') }}
             >
               <MagnifyingGlass size={20} color={getColor('text-gray-100')} />
               <TextInput
@@ -297,16 +299,14 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
                 onChangeText={updateQuery}
                 placeholder={strings.modals.GlobalSearchModal.searchPlaceholder}
                 placeholderTextColor={getColor('text-gray-40')}
-                style={[
-                  tailwind('flex-1 ml-2'),
-                  {
-                    fontSize: 16,
-                    color: getColor('text-gray-100'),
-                    paddingVertical: 0,
-                    textAlignVertical: 'center',
-                    includeFontPadding: false,
-                  },
-                ]}
+                className="flex-1 ml-2"
+                style={{
+                  fontSize: 16,
+                  color: getColor('text-gray-100'),
+                  paddingVertical: 0,
+                  textAlignVertical: 'center',
+                  includeFontPadding: false,
+                }}
                 autoCapitalize="none"
                 autoCorrect={false}
                 spellCheck={false}
@@ -316,11 +316,11 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
               {query.length > 0 && (
                 <TouchableOpacity
                   onPress={clearSearch}
-                  style={tailwind('ml-2 p-2')}
+                  className="ml-2 p-2"
                   hitSlop={{ top: 5, bottom: 5, left: 5, right: 5 }}
                   disabled={isNavigating}
                 >
-                  <AppText style={[tailwind('text-sm'), { color: getColor('text-gray-100') }]}>
+                  <AppText className="text-sm" style={{ color: getColor('text-gray-100') }}>
                     {strings.modals.GlobalSearchModal.clear}
                   </AppText>
                 </TouchableOpacity>
@@ -331,22 +331,20 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
           {/* Navigation loader */}
           {isNavigating && (
             <View
-              style={[
-                {
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                  zIndex: 50,
-                },
-                tailwind('justify-center items-center'),
-              ]}
+              className="justify-center items-center"
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                zIndex: 50,
+              }}
             >
-              <View style={[tailwind('p-4 rounded-lg items-center'), { backgroundColor: getColor('bg-surface') }]}>
+              <View className="p-4 rounded-lg items-center" style={{ backgroundColor: getColor('bg-surface') }}>
                 <ActivityIndicator size="large" color={getColor('text-primary')} />
-                <AppText style={[tailwind('mt-2 text-sm'), { color: getColor('text-gray-100') }]}>
+                <AppText className="mt-2 text-sm" style={{ color: getColor('text-gray-100') }}>
                   {strings.modals.GlobalSearchModal.opening}
                 </AppText>
               </View>

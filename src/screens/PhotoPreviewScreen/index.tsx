@@ -168,7 +168,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
   );
 
   return (
-    <View style={tailwind('flex-1 bg-black')}>
+    <View className="flex-1 bg-black">
       <StatusBar hidden />
       <GestureDetector gesture={swipeDownGesture}>
         <Animated.View style={[tailwind('flex-1'), swipeDownAnimatedStyle]}>

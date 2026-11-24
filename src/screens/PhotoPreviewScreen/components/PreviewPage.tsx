@@ -1,6 +1,6 @@
 import { Image as ExpoImage } from 'expo-image';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { logger } from 'src/services/common';
 import { useTailwind } from 'tailwind-rn';
 import { VideoViewer } from '../../../components/photos/VideoViewer/VideoViewer';
@@ -33,7 +33,7 @@ const ThumbnailFallback = ({
       {thumbnailSource ? (
         <ExpoImage
           source={thumbnailSource}
-          style={tailwind('w-full h-full')}
+          style={styles.fillImage}
           contentFit="contain"
           onError={(e) =>
             logger.error(
@@ -42,7 +42,7 @@ const ThumbnailFallback = ({
           }
         />
       ) : null}
-      {isLoading ? <ActivityIndicator style={tailwind('absolute')} color="white" size="large" /> : null}
+      {isLoading ? <ActivityIndicator className="absolute" color="white" size="large" /> : null}
     </View>
   );
 };
@@ -177,7 +177,7 @@ export const PreviewPage = ({
   }, [onVideoEnd]);
 
   return (
-    <View style={[tailwind('flex-1 bg-black'), { width: screenWidth }]}>
+    <View className="flex-1 bg-black" style={{ width: screenWidth }}>
       <PageContent
         item={item}
         uri={uri}
@@ -195,3 +195,10 @@ export const PreviewPage = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fillImage: {
+    width: '100%',
+    height: '100%',
+  },
+});

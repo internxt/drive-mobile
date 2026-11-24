@@ -17,7 +17,6 @@ import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { SLEEP_BECAUSE_MAYBE_BACKEND_IS_NOT_RETURNING_FRESHLY_MODIFIED_OR_CREATED_ITEMS_YET } from 'src/helpers/services';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveActions } from 'src/store/slices/drive';
-import { useTailwind } from 'tailwind-rn';
 import { TrashOptionsModal } from './modals/TrashOptionsModal';
 import { TrashEmptyState } from './TrashEmptyState';
 import { TrashScreenHeader } from './TrashScreenHeader';
@@ -42,7 +41,6 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
   /** REDUX USAGE ENDS HERE */
   const screenIsFocused = useRef(false);
   const [selectedDriveItem, setSelectedDriveItem] = useState<DriveListItem | undefined>(undefined);
-  const tailwind = useTailwind();
 
   useEffect(() => {
     const unsubscribe = driveUseCases.onDriveItemTrashed(handleRefreshByEvent);
@@ -200,8 +198,8 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
 
   return (
     <>
-      <AppScreen safeAreaTop style={tailwind('flex-1')}>
-        <View style={tailwind('border-b border-gray-10 px-2')}>
+      <AppScreen safeAreaTop className="flex-1">
+        <View className="border-b border-gray-10 px-2">
           <TrashScreenHeader
             emptyTrashIsDisabled={emptyTrashDisabled || isEmptyingTrash}
             isEmptyingTrash={isEmptyingTrash}
@@ -209,9 +207,9 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
             onTrashButtonPress={() => setConfirmClearTrashModalOpen(true)}
           />
         </View>
-        <View style={tailwind('flex-1')}>
+        <View className="flex-1">
           {gettingDriveTrashItems && !getItems().length ? (
-            <View style={tailwind('flex-1')}>
+            <View className="flex-1">
               {times(20).map((_, index) => {
                 return <DriveItemSkinSkeleton key={index} viewMode={DriveListViewMode.List} />;
               })}
@@ -219,7 +217,7 @@ export const TrashScreen: React.FC<RootStackScreenProps<'Trash'>> = (props) => {
           ) : (
             <DriveList
               onEndReached={handleNextDriveTrashPage}
-              contentContainerStyle={tailwind('pt-2')}
+              contentContainerClassName="pt-2"
               items={getItems()}
               onRefresh={handleRefresh}
               viewMode={DriveListViewMode.List}

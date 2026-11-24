@@ -1,7 +1,6 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
@@ -36,7 +35,6 @@ export const ThreadMessageCard = ({
   openingAttachmentId: string | null;
   onPressAttachment: (attachment: MessageAttachment) => void;
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const sender = message.from?.[0];
@@ -57,7 +55,7 @@ export const ThreadMessageCard = ({
   return (
     <View style={{ borderBottomWidth: hasSeparator ? 1 : 0, borderBottomColor: getColor('border-gray-5') }}>
       {isExpanded ? (
-        <View style={tailwind('px-4 py-4')}>
+        <View className="px-4 py-4">
           <TouchableOpacity
             accessible={false}
             activeOpacity={PRESSED_OPACITY}
@@ -67,12 +65,12 @@ export const ThreadMessageCard = ({
             <MessageHeader message={message} selfAddress={selfAddress} onReply={onReply} />
           </TouchableOpacity>
 
-          <View style={tailwind('mt-4')}>
+          <View className="mt-4">
             <EmailBody message={message} bodySource={bodySource} />
           </View>
 
           {attachments.length > 0 && (
-            <View style={tailwind('mt-5')}>
+            <View className="mt-5">
               <MessageAttachmentList
                 attachments={attachments}
                 openingAttachmentId={openingAttachmentId}
@@ -86,23 +84,24 @@ export const ThreadMessageCard = ({
           activeOpacity={PRESSED_OPACITY}
           onPress={onToggleExpanded}
           disabled={!onToggleExpanded}
-          style={tailwind('flex-row items-center px-4 py-3')}
+          className="flex-row items-center px-4 py-3"
         >
           <SenderAvatar name={sender?.name} address={senderAddress} size="medium" />
-          <View style={tailwind('flex-1 ml-3')}>
-            <View style={tailwind('flex-row items-center justify-between')}>
+          <View className="flex-1 ml-3">
+            <View className="flex-row items-center justify-between">
               <AppText
                 medium
                 numberOfLines={1}
-                style={[tailwind('flex-1 mr-2 text-base'), { color: getColor('text-gray-100') }]}
+                className="flex-1 mr-2 text-base"
+                style={{ color: getColor('text-gray-100') }}
               >
                 {sender?.name || senderAddress}
               </AppText>
-              <AppText style={[tailwind('text-xs'), { color: getColor('text-gray-50') }]}>
+              <AppText className="text-xs" style={{ color: getColor('text-gray-50') }}>
                 {formatShortMessageTime(message.receivedAt)}
               </AppText>
             </View>
-            <AppText numberOfLines={1} style={[tailwind('text-sm'), { color: getColor('text-gray-50') }]}>
+            <AppText numberOfLines={1} className="text-sm" style={{ color: getColor('text-gray-50') }}>
               {snippet}
             </AppText>
           </View>

@@ -4,7 +4,6 @@ import { Dimensions, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Vie
 import Modal from 'react-native-modal';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import { PhotoDeviceOption } from '../hooks/usePhotoDevices';
 import DeviceFilterChip from './DeviceFilterChip';
@@ -33,13 +32,12 @@ const CARD_WIDTH = 224;
 const CARD_GAP = 8;
 
 const FilterRow = ({ icon, label, isSelected, onPress }: FilterRowProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
-    <TouchableOpacity onPress={onPress} style={[tailwind('flex-row items-center px-3'), styles.row]}>
+    <TouchableOpacity onPress={onPress} className="flex-row items-center px-3" style={styles.row}>
       <View style={styles.rowIcon}>{icon}</View>
-      <AppText numberOfLines={1} style={[tailwind('text-base flex-1'), { color: getColor('text-gray-100') }]}>
+      <AppText numberOfLines={1} className="text-base flex-1" style={{ color: getColor('text-gray-100') }}>
         {label}
       </AppText>
       {isSelected && <CheckIcon size={18} color={getColor('text-primary')} weight="bold" />}
@@ -54,7 +52,6 @@ const DeviceFilterDropdown = ({
   onSelect,
   onOpen,
 }: DeviceFilterDropdownProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const chipAnchorRef = useRef<View>(null);
   const [anchor, setAnchor] = useState<Anchor | null>(null);
@@ -106,7 +103,7 @@ const DeviceFilterDropdown = ({
         coverScreen
       >
         <TouchableWithoutFeedback onPress={closeMenu}>
-          <View style={tailwind('flex-1')}>
+          <View className="flex-1">
             {anchor && (
               <TouchableWithoutFeedback>
                 <View
@@ -120,7 +117,7 @@ const DeviceFilterDropdown = ({
                     },
                   ]}
                 >
-                  <AppText medium style={[tailwind('text-base px-3 pt-1 pb-2'), { color: getColor('text-gray-100') }]}>
+                  <AppText medium className="text-base px-3 pt-1 pb-2" style={{ color: getColor('text-gray-100') }}>
                     {deviceFilterStrings.title}
                   </AppText>
                   <View style={[styles.separator, { backgroundColor: getColor('border-gray-10') }]} />

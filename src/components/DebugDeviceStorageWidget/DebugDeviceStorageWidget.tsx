@@ -36,11 +36,11 @@ export const DebugDeviceStorageWidget = ({ style }: { style?: ViewStyle; classNa
                 `flex flex-row justify-between border-b border-gray-10 py-2 ${isTotal ? 'mt-8 border-0' : ''}`,
               )}
             >
-              <AppText semibold={isTotal} style={tailwind('w-1/3')}>
+              <AppText semibold={isTotal} className="w-1/3">
                 {titlerize(key)}
               </AppText>
-              <AppText style={tailwind('w-1/3')}>{value.items.length}</AppText>
-              <AppText style={tailwind('w-1/3')}>{value.prettySize}</AppText>
+              <AppText className="w-1/3">{value.items.length}</AppText>
+              <AppText className="w-1/3">{value.prettySize}</AppText>
             </View>
           );
         })}
@@ -48,23 +48,23 @@ export const DebugDeviceStorageWidget = ({ style }: { style?: ViewStyle; classNa
     );
   };
   return (
-    <View style={[tailwind('px-5'), style]}>
-      <AppText style={tailwind('text-xl')}>Device Storage</AppText>
-      <AppText style={tailwind('text-gray-50 text-base')}>Visualiza el uso del espacio en el dispositivo</AppText>
+    <View className="px-5" style={style}>
+      <AppText className="text-xl">Device Storage</AppText>
+      <AppText className="text-gray-50 text-base">Visualiza el uso del espacio en el dispositivo</AppText>
 
-      <View style={tailwind('h-3')}></View>
+      <View className="h-3"></View>
       <AppButton title={strings.buttons.showStorageSpace} onPress={() => setSheetOpen(true)} type="accept" />
 
       <Portal>
-        <BottomModal isOpen={sheetOpen} onClosed={() => setSheetOpen(false)} style={tailwind('py-8 px-5')}>
-          <View style={tailwind('flex flex-row justify-between')}>
-            <AppText semibold style={tailwind('w-1/3 text-lg')}>
+        <BottomModal isOpen={sheetOpen} onClosed={() => setSheetOpen(false)} className="py-8 px-5">
+          <View className="flex flex-row justify-between">
+            <AppText semibold className="w-1/3 text-lg">
               Directory
             </AppText>
-            <AppText semibold style={tailwind('w-1/3 text-lg')}>
+            <AppText semibold className="w-1/3 text-lg">
               Items
             </AppText>
-            <AppText semibold style={tailwind('w-1/3 text-lg')}>
+            <AppText semibold className="w-1/3 text-lg">
               Size
             </AppText>
           </View>

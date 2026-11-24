@@ -31,8 +31,8 @@ const AppText = (props: AppTextProps): JSX.Element => {
   return (
     <Text
       {...props}
+      className="text-base"
       style={[
-        tailwind('text-base'),
         { color: hasCustomColor ? undefined : getColor('text-gray-100') },
         styles.fontWeight.regular,
         props.style,

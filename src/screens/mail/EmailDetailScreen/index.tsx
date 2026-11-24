@@ -2,7 +2,6 @@ import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { CaretLeftIcon, WarningIcon } from 'phosphor-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import { logger } from '@internxt-mobile/services/common/logger/logger.service';
 import strings from '../../../../assets/lang/strings';
@@ -50,7 +49,6 @@ type ResolvedMessage = {
 };
 
 export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailDetail'>): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { user } = useAppSelector((state) => state.auth);
   useLanguage();
@@ -275,26 +273,25 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
   const hasLoadedThread = !isLoading && !hasError && thread.length > 0;
 
   return (
-    <AppScreen safeAreaTop style={tailwind('flex-1 flex-grow')}>
+    <AppScreen safeAreaTop className="flex-1 flex-grow">
       <View
-        style={[
-          tailwind('flex-row items-center justify-between'),
-          {
-            height: TOP_BAR_HEIGHT,
-            paddingLeft: TOP_BAR_LEADING_PADDING,
-            paddingRight: TOP_BAR_TRAILING_PADDING,
-          },
-        ]}
+        className="flex-row items-center justify-between"
+        style={{
+          height: TOP_BAR_HEIGHT,
+          paddingLeft: TOP_BAR_LEADING_PADDING,
+          paddingRight: TOP_BAR_TRAILING_PADDING,
+        }}
       >
         <TouchableOpacity
           accessibilityRole="button"
           accessibilityLabel={strings.buttons.back}
           onPress={onBackButtonPressed}
           hitSlop={TOUCH_SLOP}
-          style={[tailwind('flex-row items-center flex-shrink'), { paddingRight: TOP_BAR_TRAILING_PADDING }]}
+          className="flex-row items-center flex-shrink"
+          style={{ paddingRight: TOP_BAR_TRAILING_PADDING }}
         >
           <CaretLeftIcon size={BACK_ICON_SIZE} weight="bold" color={getColor('text-primary')} />
-          <AppText numberOfLines={1} style={[tailwind('text-lg'), { color: getColor('text-primary') }]}>
+          <AppText numberOfLines={1} className="text-lg" style={{ color: getColor('text-primary') }}>
             {strings.screens.mail.mailboxes[mailboxId]}
           </AppText>
         </TouchableOpacity>
@@ -311,18 +308,18 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
       </View>
 
       {isLoading && (
-        <View style={tailwind('flex-1 items-center justify-center')}>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={getColor('text-primary')} />
         </View>
       )}
 
       {!isLoading && hasError && (
-        <View style={tailwind('flex-1 items-center justify-center')}>
+        <View className="flex-1 items-center justify-center">
           <WarningIcon color={getColor('text-gray-30')} size={48} />
-          <AppText style={[tailwind('mt-3 text-center text-gray-50'), { paddingHorizontal: 32 }]}>
+          <AppText className="mt-3 text-center text-gray-50" style={{ paddingHorizontal: 32 }}>
             {strings.errors.generic.title}
           </AppText>
-          <TouchableOpacity accessibilityRole="button" onPress={loadThread} style={tailwind('mt-4 px-4 py-2')}>
+          <TouchableOpacity accessibilityRole="button" onPress={loadThread} className="mt-4 px-4 py-2">
             <AppText medium style={{ color: getColor('text-primary') }}>
               {strings.buttons.tryAgain}
             </AppText>
@@ -333,7 +330,7 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
       {hasLoadedThread && (
         <ScrollView
           ref={scrollViewRef}
-          style={tailwind('flex-1')}
+          className="flex-1"
           contentContainerStyle={{
             paddingBottom: REPLY_CAPSULE_BOTTOM + REPLY_CAPSULE_HEIGHT + CONTENT_SPACE_UNDER_CAPSULE,
           }}
@@ -341,15 +338,13 @@ export const EmailDetailScreen = ({ route, navigation }: MailScreenProps<'EmailD
         >
           <AppText
             semibold
-            style={[
-              tailwind('px-4 pt-1 pb-2'),
-              { fontSize: SUBJECT_FONT_SIZE, lineHeight: SUBJECT_LINE_HEIGHT, color: getColor('text-gray-100') },
-            ]}
+            className="px-4 pt-1 pb-2"
+            style={{ fontSize: SUBJECT_FONT_SIZE, lineHeight: SUBJECT_LINE_HEIGHT, color: getColor('text-gray-100') }}
           >
             {latestEntry?.message.subject || strings.screens.mail.title}
           </AppText>
           {isThread && (
-            <AppText style={[tailwind('px-4 pb-2 text-sm'), { color: getColor('text-gray-50') }]}>
+            <AppText className="px-4 pb-2 text-sm" style={{ color: getColor('text-gray-50') }}>
               {strings.formatString(strings.screens.email_detail.messageCount, thread.length)}
             </AppText>
           )}

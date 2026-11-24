@@ -61,18 +61,17 @@ export const ReplyCapsule = ({
   return (
     <View
       pointerEvents="box-none"
-      style={[tailwind('absolute items-center'), { left: 0, right: 0, bottom: REPLY_CAPSULE_BOTTOM }]}
+      className="absolute items-center"
+      style={{ left: 0, right: 0, bottom: REPLY_CAPSULE_BOTTOM }}
     >
       <View
-        style={[
-          tailwind('flex-row items-center rounded-full'),
-          {
-            padding: CAPSULE_PADDING,
-            backgroundColor: getColor('bg-surface'),
-            boxShadow: CAPSULE_SHADOW,
-            opacity: isBusy ? DISABLED_OPACITY : 1,
-          },
-        ]}
+        className="flex-row items-center rounded-full"
+        style={{
+          padding: CAPSULE_PADDING,
+          backgroundColor: getColor('bg-surface'),
+          boxShadow: CAPSULE_SHADOW,
+          opacity: isBusy ? DISABLED_OPACITY : 1,
+        }}
       >
         <Pressable
           accessibilityRole="button"
@@ -89,7 +88,7 @@ export const ReplyCapsule = ({
           ]}
         >
           <ArrowBendUpLeftIcon size={REPLY_ICON_SIZE} weight="bold" color={getColor('text-white')} />
-          <AppText semibold style={[tailwind('ml-2 text-base'), { color: getColor('text-white') }]}>
+          <AppText semibold className="ml-2 text-base" style={{ color: getColor('text-white') }}>
             {actions.reply}
           </AppText>
         </Pressable>

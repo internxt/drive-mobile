@@ -2,10 +2,9 @@ import { Image as ExpoImage } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CloudArrowUpIcon, DotsThreeOutlineIcon, ExportIcon, TrashIcon } from 'phosphor-react-native';
 import { memo, useCallback, useEffect, useRef } from 'react';
-import { FlatList, ListRenderItem, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { FlatList, ListRenderItem, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
 import useGetColor from '../../../hooks/useColor';
@@ -36,18 +35,15 @@ const CarouselThumb = ({
   onPress: () => void;
   onError?: () => void;
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
       <View
-        style={[
-          tailwind('overflow-hidden'),
-          { width, height: THUMB_H, borderRadius: 3, marginHorizontal, backgroundColor: getColor('bg-gray-90') },
-        ]}
+        className="overflow-hidden"
+        style={{ width, height: THUMB_H, borderRadius: 3, marginHorizontal, backgroundColor: getColor('bg-gray-90') }}
       >
         {source ? (
-          <ExpoImage source={source} style={tailwind('w-full h-full')} contentFit="cover" onError={onError} />
+          <ExpoImage source={source} style={styles.fillImage} contentFit="cover" onError={onError} />
         ) : null}
       </View>
     </TouchableOpacity>
@@ -99,16 +95,16 @@ interface ActionButtonProps {
 }
 
 const ActionButton = ({ icon, label, onPress, disabled }: ActionButtonProps) => {
-  const tailwind = useTailwind();
   return (
     <TouchableOpacity
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.7}
-      style={[tailwind('flex-1 items-center py-2'), { gap: 4, opacity: disabled ? 0.35 : 1 }]}
+      className="flex-1 items-center py-2"
+      style={{ gap: 4, opacity: disabled ? 0.35 : 1 }}
     >
       {icon}
-      <AppText style={tailwind('text-white text-supporting-2')}>{label}</AppText>
+      <AppText className="text-white text-supporting-2">{label}</AppText>
     </TouchableOpacity>
   );
 };
@@ -144,7 +140,6 @@ export const PreviewCarousel = ({
   isSynced,
   isCloudDeleted,
 }: PreviewCarouselProps): JSX.Element => {
-  const tailwind = useTailwind();
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const listRef = useRef<FlatList<TimelinePhotoItem>>(null);
@@ -251,7 +246,7 @@ export const PreviewCarousel = ({
         end={{ x: 0, y: 1 }}
         style={{ paddingTop: 16 }}
       >
-        <View style={tailwind('items-center mb-2')}>
+        <View className="items-center mb-2">
           <FlatList
             ref={listRef}
             data={items}
@@ -277,9 +272,9 @@ export const PreviewCarousel = ({
           />
         </View>
 
-        <View style={[tailwind('flex-row'), { paddingBottom: insets.bottom + 8 }]}>
+        <View className="flex-row" style={{ paddingBottom: insets.bottom + 8 }}>
           {isCloudDeleted ? (
-            <View style={tailwind('flex-1 items-center')}>
+            <View className="flex-1 items-center">
               <View style={{ width: 80 }}>
                 <ActionButton
                   icon={<CloudArrowUpIcon size={26} color="white" />}
@@ -311,3 +306,10 @@ export const PreviewCarousel = ({
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  fillImage: {
+    width: '100%',
+    height: '100%',
+  },
+});

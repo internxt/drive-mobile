@@ -75,10 +75,8 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
 
   if (bodySource.type === 'encryptedUnreadable') {
     return (
-      <View
-        style={[tailwind('flex-row items-center rounded-lg px-3 py-3'), { backgroundColor: getColor('bg-gray-5') }]}
-      >
-        <AppText style={[tailwind('flex-1 text-sm'), { color: getColor('text-gray-60') }]}>
+      <View className="flex-row items-center rounded-lg px-3 py-3" style={{ backgroundColor: getColor('bg-gray-5') }}>
+        <AppText className="flex-1 text-sm" style={{ color: getColor('text-gray-60') }}>
           {strings.screens.mail.unableToDecryptPreview}
         </AppText>
       </View>
@@ -89,16 +87,14 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
     <View>
       {areImagesBlocked && (
         <View
-          style={[
-            tailwind('mb-3 flex-row items-center justify-between rounded-lg px-3 py-2'),
-            { backgroundColor: getColor('bg-gray-5') },
-          ]}
+          className="mb-3 flex-row items-center justify-between rounded-lg px-3 py-2"
+          style={{ backgroundColor: getColor('bg-gray-5') }}
         >
-          <AppText numberOfLines={2} style={[tailwind('flex-1 pr-3 text-xs'), { color: getColor('text-gray-60') }]}>
+          <AppText numberOfLines={2} className="flex-1 pr-3 text-xs" style={{ color: getColor('text-gray-60') }}>
             {strings.screens.mail.remoteImagesBlocked}
           </AppText>
           <TouchableOpacity accessibilityRole="button" onPress={() => setAreRemoteImagesAllowed(true)}>
-            <AppText style={[tailwind('text-sm'), { color: getColor('text-primary') }]}>
+            <AppText className="text-sm" style={{ color: getColor('text-primary') }}>
               {strings.screens.mail.showRemoteImages}
             </AppText>
           </TouchableOpacity>
@@ -153,13 +149,11 @@ export const EmailBody = ({ message, bodySource }: { message: EmailResponse; bod
         >
           <AppText
             semibold
-            style={[
-              tailwind('text-xs'),
-              {
-                color: getColor('text-gray-60'),
-                letterSpacing: isQuoteShown ? 0 : QUOTE_TOGGLE_LETTER_SPACING,
-              },
-            ]}
+            className="text-xs"
+            style={{
+              color: getColor('text-gray-60'),
+              letterSpacing: isQuoteShown ? 0 : QUOTE_TOGGLE_LETTER_SPACING,
+            }}
           >
             {isQuoteShown ? strings.screens.email_detail.hideQuotedText : QUOTE_TOGGLE_DOTS}
           </AppText>
