@@ -1,8 +1,9 @@
 import { CheckCircleIcon, WarningCircleIcon, XIcon } from 'phosphor-react-native';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, Text, TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { fontStyles, useShareColors } from '../theme';
+
+const LABEL_HORIZONTAL_MARGIN = 16;
 
 type NotificationType = 'success' | 'error';
 
@@ -25,7 +26,6 @@ export const NotificationLabel = ({
   onDismiss,
   dismissAfter,
 }: NotificationLabelProps) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   const translateY = useRef(new Animated.Value(80)).current;
   const [shouldRender, setShouldRender] = useState(visible);
@@ -79,7 +79,7 @@ export const NotificationLabel = ({
   }
 
   return (
-    <Animated.View style={[tailwind('mx-4'), { transform: [{ translateY }] }]}>
+    <Animated.View style={[styles.container, { transform: [{ translateY }] }]}>
       <View
         className="flex-row items-center rounded-lg px-3 py-3"
         style={{
@@ -108,3 +108,9 @@ export const NotificationLabel = ({
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    marginHorizontal: LABEL_HORIZONTAL_MARGIN,
+  },
+});

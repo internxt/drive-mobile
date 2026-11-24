@@ -2,9 +2,8 @@ import { EmailSummaryResponse } from '@internxt/sdk/dist/mail/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { CaretLeftIcon, MagnifyingGlassIcon, WarningIcon } from 'phosphor-react-native';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Keyboard, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Keyboard, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInUp, FadeOutUp, LinearTransition } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import { ANY_DATE } from '@internxt-mobile/services/mail/mailSearch';
 import { resolveResultMailbox } from '@internxt-mobile/services/mail/threadMailboxes';
@@ -33,7 +32,6 @@ const EMAIL_PANEL_TRANSITION_DURATION = 200;
 const BACK_BUTTON_HIT_SLOP = { top: 10, bottom: 10, left: 10, right: 10 };
 
 export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   useLanguage();
   const mailboxTypeById = useAppSelector(selectMailboxTypeById);
@@ -210,7 +208,7 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
           />
         </Animated.View>
       )}
-      <Animated.View layout={LinearTransition.duration(EMAIL_PANEL_TRANSITION_DURATION)} style={tailwind('flex-1')}>
+      <Animated.View layout={LinearTransition.duration(EMAIL_PANEL_TRANSITION_DURATION)} style={styles.resultPanel}>
         {renderResult()}
       </Animated.View>
       <DateFilterModal
@@ -222,3 +220,9 @@ export const MailSearchScreen = ({ navigation }: MailScreenProps<'MailSearch'>):
     </AppScreen>
   );
 };
+
+const styles = StyleSheet.create({
+  resultPanel: {
+    flex: 1,
+  },
+});

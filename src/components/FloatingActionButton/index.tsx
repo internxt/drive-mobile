@@ -13,7 +13,6 @@ import Animated, {
   ZoomOut,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../assets/lang/strings';
 import useGetColor from '../../hooks/useColor';
@@ -38,6 +37,8 @@ const LABEL_FADE_DURATION = 150;
 const HIDE_FADE_DURATION = 150;
 const PRESSED_SCALE = 0.94;
 const SHADOW = '0px 6px 20px rgba(0, 102, 255, 0.38), 0px 2px 6px rgba(0, 0, 0, 0.12)';
+const LABEL_FONT_SIZE = 16;
+const LABEL_LINE_HEIGHT = 24;
 
 export type FloatingActionButtonMode = 'upload' | 'compose';
 
@@ -58,7 +59,6 @@ const FloatingActionButton = ({
   isHidden,
   onPress,
 }: FloatingActionButtonProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
   const isReducedMotion = useReducedMotion();
@@ -117,10 +117,7 @@ const FloatingActionButton = ({
         disabled={isHidden}
         onPress={onPress}
         cssInterop={false}
-        style={({ pressed }) => [
-          tailwind('flex-row items-center justify-end'),
-          { transform: [{ scale: pressed ? PRESSED_SCALE : 1 }] },
-        ]}
+        style={({ pressed }) => [styles.content, { transform: [{ scale: pressed ? PRESSED_SCALE : 1 }] }]}
       >
         {isComposeMode && isLabelShown && (
           <Animated.Text
@@ -128,7 +125,7 @@ const FloatingActionButton = ({
             exiting={FadeOut.duration(LABEL_FADE_DURATION)}
             numberOfLines={1}
             style={[
-              tailwind('text-base'),
+              styles.label,
               globalStyle.fontWeight.semibold,
               { color: getColor('text-white'), paddingLeft: LABEL_LEFT_PADDING },
             ]}
@@ -136,10 +133,7 @@ const FloatingActionButton = ({
             {strings.components.floatingActionButton.compose}
           </Animated.Text>
         )}
-        <Animated.View
-          layout={LinearTransition.duration(RESIZE_DURATION)}
-          style={[tailwind('items-center justify-center'), styles.iconSlot]}
-        >
+        <Animated.View layout={LinearTransition.duration(RESIZE_DURATION)} style={styles.iconSlot}>
           {isComposeMode ? (
             <Animated.View
               key="compose"
@@ -166,6 +160,15 @@ const FloatingActionButton = ({
 };
 
 const styles = StyleSheet.create({
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+  },
+  label: {
+    fontSize: LABEL_FONT_SIZE,
+    lineHeight: LABEL_LINE_HEIGHT,
+  },
   container: {
     position: 'absolute',
     right: FLOATING_BUTTON_MARGIN,
@@ -175,6 +178,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   iconSlot: {
+    alignItems: 'center',
+    justifyContent: 'center',
     width: FLOATING_BUTTON_SIZE,
     height: FLOATING_BUTTON_SIZE,
   },

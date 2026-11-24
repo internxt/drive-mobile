@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { BackHandler, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTailwind } from 'tailwind-rn';
 
 import useGetColor from '../../hooks/useColor';
 import AppText from '../AppText';
@@ -34,7 +33,6 @@ interface FloatingActionMenuProps {
 }
 
 const FloatingActionMenu = ({ isOpen, actions, onClose }: FloatingActionMenuProps): JSX.Element | null => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
 
@@ -78,7 +76,7 @@ const FloatingActionMenu = ({ isOpen, actions, onClose }: FloatingActionMenuProp
                 accessibilityLabel={action.label}
                 onPress={action.onPress}
                 cssInterop={false}
-                style={({ pressed }) => [tailwind('flex-row items-center'), { opacity: pressed ? PRESSED_OPACITY : 1 }]}
+                style={({ pressed }) => [styles.action, { opacity: pressed ? PRESSED_OPACITY : 1 }]}
               >
                 <View
                   className="rounded-xl px-3.5 py-2 mr-3"
@@ -109,3 +107,10 @@ const FloatingActionMenu = ({ isOpen, actions, onClose }: FloatingActionMenuProp
 };
 
 export default FloatingActionMenu;
+
+const styles = StyleSheet.create({
+  action: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+});

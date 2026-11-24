@@ -1,13 +1,16 @@
 import { CheckCircleIcon, FolderSimpleIcon, XIcon } from 'phosphor-react-native';
 import { useEffect, useRef } from 'react';
 import { Animated, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import StackedFilesIconSvg from '../../../assets/icons/stacked-files.svg';
 import strings from '../../../assets/lang/strings';
 import { getFileTypeIcon } from '../../helpers/filetypes';
 import { fontStyles, useShareColors } from '../theme';
 import { SharedFile } from '../types';
 import { formatBytes, getSharedFileExtension } from '../utils';
+
+const CARD_TOP_PADDING = 16;
+const CARD_BOTTOM_PADDING = 32;
+const CARD_HORIZONTAL_PADDING = 20;
 
 interface UploadSuccessCardProps {
   sharedFiles: SharedFile[];
@@ -26,7 +29,6 @@ export const UploadSuccessCard = ({
   onClose,
   onViewInFolder,
 }: UploadSuccessCardProps) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   const shareExtensionTrans = strings.screens.ShareExtension;
   const slideAnim = useRef(new Animated.Value(400)).current;
@@ -76,7 +78,7 @@ export const UploadSuccessCard = ({
     <View style={styles.overlay}>
       <Animated.View
         style={[
-          tailwind('pt-4 pb-8 px-5 items-center'),
+          styles.card,
           { borderTopLeftRadius: 16, borderTopRightRadius: 16, backgroundColor: colors.surface },
           { transform: [{ translateY: slideAnim }] },
         ]}
@@ -141,6 +143,12 @@ export const UploadSuccessCard = ({
 };
 
 const styles = StyleSheet.create({
+  card: {
+    paddingTop: CARD_TOP_PADDING,
+    paddingBottom: CARD_BOTTOM_PADDING,
+    paddingHorizontal: CARD_HORIZONTAL_PADDING,
+    alignItems: 'center',
+  },
   overlay: {
     ...StyleSheet.absoluteFill,
     justifyContent: 'flex-end',

@@ -1,9 +1,8 @@
 import { EmailResponse } from '@internxt/sdk/dist/mail/types';
 import { ArrowBendUpLeftIcon, CaretDownIcon } from 'phosphor-react-native';
 import { useState } from 'react';
-import { Pressable, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
@@ -18,6 +17,7 @@ const CARET_ROTATION_DURATION = 200;
 const DETAIL_LABEL_GAP = 14;
 const REPLY_BUTTON_SIZE = 36;
 const REPLY_ICON_SIZE = 19;
+const REPLY_BUTTON_LEFT_MARGIN = 8;
 
 type EmailAddress = NonNullable<EmailResponse['to']>[number];
 
@@ -47,7 +47,6 @@ export const MessageHeader = ({
   selfAddress: string;
   onReply?: () => void;
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [areDetailsShown, setAreDetailsShown] = useState(false);
   const [detailLabelWidth, setDetailLabelWidth] = useState(0);
@@ -118,7 +117,7 @@ export const MessageHeader = ({
             onPress={onReply}
             cssInterop={false}
             style={({ pressed }) => [
-              tailwind('items-center justify-center rounded-full ml-2'),
+              styles.replyButton,
               {
                 width: REPLY_BUTTON_SIZE,
                 height: REPLY_BUTTON_SIZE,
@@ -155,3 +154,12 @@ export const MessageHeader = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  replyButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: REPLY_BUTTON_SIZE / 2,
+    marginLeft: REPLY_BUTTON_LEFT_MARGIN,
+  },
+});

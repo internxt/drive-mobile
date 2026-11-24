@@ -1,6 +1,5 @@
 import { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 
 import useGetColor from '../../../hooks/useColor';
 import { COMPOSE_LABEL_WIDTH, COMPOSE_ROW_HEIGHT, composeFieldTextStyle } from './composeFieldStyles';
@@ -30,7 +29,6 @@ export const ComposeFieldRow = ({
   hasCompactLabel,
   onPress,
 }: ComposeFieldRowProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -42,9 +40,10 @@ export const ComposeFieldRow = ({
       style={{ minHeight: COMPOSE_ROW_HEIGHT, borderBottomWidth: 1, borderBottomColor: getColor('border-gray-5') }}
     >
       <Text
+        className={hasCompactLabel ? 'mr-2' : undefined}
         style={[
           composeFieldTextStyle,
-          hasCompactLabel ? tailwind('mr-2') : { width: COMPOSE_LABEL_WIDTH },
+          !hasCompactLabel && { width: COMPOSE_LABEL_WIDTH },
           { color: getColor('text-gray-50') },
         ]}
       >

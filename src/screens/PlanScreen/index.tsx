@@ -12,7 +12,6 @@ import paymentService from 'src/services/PaymentService';
 import storageService from 'src/services/StorageService';
 import { useAppSelector } from 'src/store/hooks';
 import { paymentsSelectors } from 'src/store/slices/payments';
-import { useTailwind } from 'tailwind-rn';
 import strings from '../../../assets/lang/strings';
 
 import AppScreen from '../../components/AppScreen';
@@ -25,7 +24,6 @@ import { PRICING_URL } from '../../services/drive/constants';
 import { SettingsScreenProps } from '../../types/navigation';
 
 function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const [isCancelSubscriptionModalOpen, setIsCancelSubscriptionModalOpen] = useState(false);
@@ -216,13 +214,15 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                           style={{ borderBottomColor: getColor('border-gray-10') }}
                         >
                           <AppText
-                            style={[{ ...tailwind('text-xs'), flex: 2 }, { color: getColor('text-gray-80') }]}
+                            className="text-xs"
+                            style={[{ flex: 2 }, { color: getColor('text-gray-80') }]}
                             semibold
                           >
                             {strings.screens.PlanScreen.invoices.billingDate.toUpperCase()}
                           </AppText>
                           <AppText
-                            style={[{ ...tailwind('text-xs'), flex: 1 }, { color: getColor('text-gray-80') }]}
+                            className="text-xs"
+                            style={[{ flex: 1 }, { color: getColor('text-gray-80') }]}
                             semibold
                           >
                             {strings.screens.PlanScreen.invoices.plan.toUpperCase()}
@@ -241,7 +241,7 @@ function PlanScreen({ navigation }: SettingsScreenProps<'Plan'>): JSX.Element {
                                   <AppText style={[{ flex: 2 }, { color: getColor('text-gray-100') }]}>
                                     {titlerize(time.toFormat('EEEE dd, MMM yyyy'))}
                                   </AppText>
-                                  <View style={{ flex: 1, ...tailwind('flex-row items-center') }}>
+                                  <View className="flex-row items-center" style={{ flex: 1 }}>
                                     <AppText className="flex-grow" style={{ color: getColor('text-gray-40') }}>
                                       {storageService.toString(invoice.bytesInPlan)}
                                     </AppText>

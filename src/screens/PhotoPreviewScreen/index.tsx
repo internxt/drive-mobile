@@ -1,13 +1,12 @@
 import { useNavigation } from '@react-navigation/native';
 import strings from 'assets/lang/strings';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StatusBar, View } from 'react-native';
+import { StatusBar, StyleSheet, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ConfirmModal } from 'src/components/modals/ConfirmModal/ConfirmModal';
 import { logger } from 'src/services/common';
 import { RootStackScreenProps } from 'src/types/navigation';
-import { useTailwind } from 'tailwind-rn';
 import MoreActionsBottomSheet from '../PhotosScreen/components/MoreActionsBottomSheet';
 import { usePhotoActionHandlers } from '../PhotosScreen/hooks/usePhotoActionHandlers';
 import { TimelinePhotoItem } from '../PhotosScreen/types';
@@ -28,7 +27,6 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     initialId,
     routeItems,
   );
-  const tailwind = useTailwind();
   const navigation = useNavigation();
 
   const [isUiVisible, setIsUiVisible] = useState(true);
@@ -171,7 +169,7 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     <View className="flex-1 bg-black">
       <StatusBar hidden />
       <GestureDetector gesture={swipeDownGesture}>
-        <Animated.View style={[tailwind('flex-1'), swipeDownAnimatedStyle]}>
+        <Animated.View style={[styles.fill, swipeDownAnimatedStyle]}>
           <PreviewThumbnailBackfillContext.Provider value={thumbnailBackfillContextValue}>
             <PreviewPager
               items={items}
@@ -245,3 +243,9 @@ export const PhotoPreviewScreen = ({ route }: Props): JSX.Element => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
+});

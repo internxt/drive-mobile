@@ -11,7 +11,6 @@ import {
   View,
   useWindowDimensions,
 } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import StackedFilesIconSvg from '../../../assets/icons/stacked-files.svg';
 import strings from '../../../assets/lang/strings';
 import { getFileTypeIcon } from '../../helpers/filetypes';
@@ -53,7 +52,6 @@ export const BottomFilePanel = ({
   onEndRename,
   onOverlapChange,
 }: BottomFilePanelProps) => {
-  const tailwind = useTailwind();
   const colors = useShareColors();
   const { width: screenWidth } = useWindowDimensions();
   const { isCollapsed, keyboardBottom, slideAnimation, toggle } = useBottomPanelAnimation(isRenaming, screenWidth);
@@ -116,7 +114,7 @@ export const BottomFilePanel = ({
   const divider = <View style={[styles.dividerBase, { backgroundColor: colors.gray10 }]} />;
 
   const animatedStyle = { bottom: keyboardBottom, transform: [{ translateX: slideAnimation }] };
-  const panelStyle = [tailwind('flex-row items-center'), ...containerStyle, animatedStyle];
+  const panelStyle = [styles.panel, ...containerStyle, animatedStyle];
 
   if (sharedFiles.length > 1) {
     return (
@@ -191,6 +189,10 @@ export const BottomFilePanel = ({
 };
 
 const styles = StyleSheet.create({
+  panel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   containerBase: {
     position: 'absolute',
     marginHorizontal: PANEL_MARGIN,

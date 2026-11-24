@@ -4,7 +4,6 @@ import { PaperclipIcon } from 'phosphor-react-native';
 import { ReactNode } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
@@ -15,6 +14,7 @@ import { SENDER_AVATAR_SIZE, SenderAvatar } from './SenderAvatar';
 const AVATAR_GAP = 12;
 const UNREAD_DOT_SIZE = 8;
 const ROW_HIGHLIGHT_DURATION = 120;
+const ROW_HIGHLIGHT_RADIUS = 12;
 
 export const EmailSummaryRow = ({
   email,
@@ -33,7 +33,6 @@ export const EmailSummaryRow = ({
   onPress: () => void;
   onLongPress?: () => void;
 }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   const sender = email.from?.[0];
@@ -55,7 +54,7 @@ export const EmailSummaryRow = ({
         <Animated.View
           entering={FadeIn.duration(ROW_HIGHLIGHT_DURATION)}
           exiting={FadeOut.duration(ROW_HIGHLIGHT_DURATION)}
-          style={[StyleSheet.absoluteFill, tailwind('rounded-xl'), { backgroundColor: getColor('bg-primary-10') }]}
+          style={[StyleSheet.absoluteFill, styles.highlight, { backgroundColor: getColor('bg-primary-10') }]}
         />
       )}
       <View
@@ -120,3 +119,9 @@ export const EmailSummaryRow = ({
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  highlight: {
+    borderRadius: ROW_HIGHLIGHT_RADIUS,
+  },
+});

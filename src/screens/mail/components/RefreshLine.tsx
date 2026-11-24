@@ -12,7 +12,6 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import { applyOpacity } from '../../../helpers/colors';
 import useGetColor from '../../../hooks/useColor';
@@ -25,7 +24,6 @@ const FADE_DURATION = 150;
 const SWEEP_EASING = Easing.bezier(0.5, 0.1, 0.4, 0.9);
 
 export const RefreshLine = (): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [lineWidth, setLineWidth] = useState(0);
   const sweepProgress = useSharedValue(0);
@@ -48,7 +46,7 @@ export const RefreshLine = (): JSX.Element => {
       accessibilityRole="progressbar"
       onLayout={(event) => setLineWidth(event.nativeEvent.layout.width)}
       style={[
-        tailwind('absolute top-0 rounded-full overflow-hidden'),
+        styles.track,
         {
           left: HORIZONTAL_INSET,
           right: HORIZONTAL_INSET,
@@ -71,6 +69,12 @@ export const RefreshLine = (): JSX.Element => {
 };
 
 const styles = StyleSheet.create({
+  track: {
+    position: 'absolute',
+    top: 0,
+    borderRadius: LINE_HEIGHT / 2,
+    overflow: 'hidden',
+  },
   sweep: {
     position: 'absolute',
     top: 0,

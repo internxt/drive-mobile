@@ -1,6 +1,5 @@
 import { ArrowBendDoubleUpLeftIcon, ArrowBendUpLeftIcon, ArrowBendUpRightIcon, type Icon } from 'phosphor-react-native';
-import { Pressable, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
 import AppText from '../../../components/AppText';
@@ -17,6 +16,7 @@ const BUTTON_GAP = 2;
 const CAPSULE_PADDING = 4;
 const REPLY_BUTTON_TRAILING_PADDING = 20;
 const CAPSULE_SHADOW = '0px 8px 28px rgba(0, 0, 0, 0.12), 0px 0px 0px 1px rgba(0, 0, 0, 0.05)';
+const REPLY_BUTTON_LEADING_PADDING = 16;
 
 export const ReplyCapsule = ({
   isBusy,
@@ -33,7 +33,6 @@ export const ReplyCapsule = ({
   onReplyAll: () => void;
   onForward: () => void;
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { actions } = strings.screens.email_detail;
 
@@ -45,7 +44,7 @@ export const ReplyCapsule = ({
       onPress={onPress}
       cssInterop={false}
       style={({ pressed }) => [
-        tailwind('items-center justify-center rounded-full'),
+        styles.iconButton,
         {
           marginLeft: BUTTON_GAP,
           width: BUTTON_SIZE,
@@ -79,7 +78,7 @@ export const ReplyCapsule = ({
           onPress={onReply}
           cssInterop={false}
           style={({ pressed }) => [
-            tailwind('flex-row items-center rounded-full pl-4'),
+            styles.replyButton,
             {
               paddingRight: REPLY_BUTTON_TRAILING_PADDING,
               height: BUTTON_SIZE,
@@ -98,3 +97,17 @@ export const ReplyCapsule = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  iconButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: BUTTON_SIZE / 2,
+  },
+  replyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BUTTON_SIZE / 2,
+    paddingLeft: REPLY_BUTTON_LEADING_PADDING,
+  },
+});

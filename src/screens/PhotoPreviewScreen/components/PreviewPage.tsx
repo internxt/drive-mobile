@@ -2,7 +2,6 @@ import { Image as ExpoImage } from 'expo-image';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { logger } from 'src/services/common';
-import { useTailwind } from 'tailwind-rn';
 import { VideoViewer } from '../../../components/photos/VideoViewer/VideoViewer';
 import { ImageViewer } from '../../../components/ui-kit/view/ImageViewer/ImageViewer';
 import { TimelinePhotoItem } from '../../PhotosScreen/types';
@@ -27,9 +26,8 @@ const ThumbnailFallback = ({
   mediaLabel,
   containerClassName,
 }: ThumbnailFallbackProps): JSX.Element => {
-  const tailwind = useTailwind();
   return (
-    <View style={tailwind(containerClassName)}>
+    <View className={containerClassName}>
       {thumbnailSource ? (
         <ExpoImage
           source={thumbnailSource}
@@ -141,7 +139,6 @@ export const PreviewPage = ({
   onVideoEnd,
   videoResetKey,
 }: PreviewPageProps): JSX.Element => {
-  const tailwind = useTailwind();
   const { width: screenWidth } = useWindowDimensions();
   const { uri, thumbnailUri, isLoading } = usePreviewSource(item, isScrubbing);
   useCloudThumbnailBackfill(item, uri);

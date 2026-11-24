@@ -1,6 +1,5 @@
 import { ImageIcon, LockKeyIcon, PaperclipIcon, TrashIcon } from 'phosphor-react-native';
-import { Pressable, TouchableOpacity, View } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
+import { Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import strings from '../../../../../assets/lang/strings';
 import AppText from '../../../../components/AppText';
@@ -13,6 +12,7 @@ const LOCK_ICON_SIZE = 14;
 const DISABLED_OPACITY = 0.5;
 const DISCARD_ICON_SIZE = 22;
 const DISCARD_PRESSED_BACKGROUND_OPACITY = 0.1;
+const DISCARD_BUTTON_RADIUS = 12;
 
 type ComposeToolbarProps = {
   disabled: boolean;
@@ -31,7 +31,6 @@ export const ComposeToolbar = ({
   onAddPhotos,
   onDiscardDraft,
 }: ComposeToolbarProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { attachments } = strings.screens.compose_email;
 
@@ -71,7 +70,7 @@ export const ComposeToolbar = ({
           onPress={onDiscardDraft}
           cssInterop={false}
           style={({ pressed }) => [
-            tailwind('items-center justify-center rounded-xl'),
+            styles.discardButton,
             {
               width: TOOLBAR_BUTTON_SIZE,
               height: TOOLBAR_BUTTON_SIZE,
@@ -87,3 +86,11 @@ export const ComposeToolbar = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  discardButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: DISCARD_BUTTON_RADIUS,
+  },
+});

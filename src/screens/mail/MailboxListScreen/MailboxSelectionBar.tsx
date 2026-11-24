@@ -8,9 +8,8 @@ import {
   WarningIcon,
 } from 'phosphor-react-native';
 import { useState } from 'react';
-import { ActivityIndicator, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
-import { useTailwind } from 'tailwind-rn';
 
 import strings from '../../../../assets/lang/strings';
 import useGetColor from '../../../hooks/useColor';
@@ -30,6 +29,8 @@ const BAR_LEFT_OFFSET = 12;
 const BAR_BORDER_WIDTH = 1;
 const BAR_SPRING_DAMPING = 18;
 const BAR_EXIT_DURATION = 150;
+const BAR_CORNER_RADIUS = 9999;
+const BAR_HORIZONTAL_PADDING = 8;
 const BAR_SHADOW = {
   shadowOpacity: 0.12,
   shadowRadius: 16,
@@ -64,7 +65,6 @@ export const MailboxSelectionBar = ({
   onRestore: () => void;
   onDeletePermanently: () => void;
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { actions } = strings.screens.email_detail;
   const [pressedActionKey, setPressedActionKey] = useState<SelectionActionKey | null>(null);
@@ -85,7 +85,7 @@ export const MailboxSelectionBar = ({
       entering={FadeInDown.springify().damping(BAR_SPRING_DAMPING)}
       exiting={FadeOutDown.duration(BAR_EXIT_DURATION)}
       style={[
-        tailwind('absolute flex-row items-center rounded-full px-2'),
+        styles.bar,
         {
           left: BAR_LEFT_OFFSET,
           bottom: BAR_BOTTOM_OFFSET,
@@ -123,3 +123,13 @@ export const MailboxSelectionBar = ({
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  bar: {
+    position: 'absolute',
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: BAR_CORNER_RADIUS,
+    paddingHorizontal: BAR_HORIZONTAL_PADDING,
+  },
+});

@@ -17,7 +17,6 @@ import { Circle } from 'react-native-progress';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { useAppSelector } from 'src/store/hooks';
-import { useTailwind } from 'tailwind-rn';
 import { useCloudThumbnail } from '../hooks/useCloudThumbnail';
 import { CloudPhotoItem, PhotoItem as PhotoItemType, TimelinePhotoItem } from '../types';
 import { getThumbnailSource } from '../utils/photoUtils';
@@ -90,7 +89,6 @@ const SelectOverlay = ({
 };
 
 const VideoBadge = ({ duration }: { duration?: string }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -114,7 +112,6 @@ const VideoBadge = ({ duration }: { duration?: string }): JSX.Element => {
 };
 
 const LiveBadge = (): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -134,7 +131,6 @@ const LiveBadge = (): JSX.Element => {
 };
 
 const BurstBadge = ({ isBurstIncomplete }: { isBurstIncomplete?: boolean }): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -176,7 +172,6 @@ export const localPhotoCellAreEqual = (
 
 const LocalPhotoCell = memo(
   ({ item, isSelectMode, isSelected, onPress, onLongPress }: CellProps & { item: PhotoItemType }): JSX.Element => {
-    const tailwind = useTailwind();
     const getColor = useGetColor();
     const [isImageLoaded, setIsImageLoaded] = useRecyclingState(false, [item.id]);
     const thumbnailSource = item.uri ? getThumbnailSource(item, item.uri) : null;
@@ -251,7 +246,6 @@ const LocalPhotoCell = memo(
 
 const CloudPhotoCell = memo(
   ({ item, isSelectMode, isSelected, onPress, onLongPress }: CellProps & { item: CloudPhotoItem }): JSX.Element => {
-    const tailwind = useTailwind();
     const getColor = useGetColor();
     const { uri: thumbnailUri, onImageError } = useCloudThumbnail(item);
 
@@ -273,12 +267,12 @@ const CloudPhotoCell = memo(
             onError={onImageError}
           />
         ) : (
-          <View style={[StyleSheet.absoluteFill, tailwind('items-center justify-center')]}>
+          <View className="items-center justify-center" style={StyleSheet.absoluteFill}>
             <ImageIcon size={24} color={getColor('text-gray-40')} weight="thin" />
           </View>
         )}
 
-        {/* <View style={[tailwind('absolute justify-center items-center'), { top: 6, right: 6 }]} pointerEvents="none">
+        {/* <View className="absolute justify-center items-center" style={{ top: 6, right: 6 }} pointerEvents="none">
           <CloudIcon size={14} color={getColor('text-white')} weight="fill" />
         </View> */}
 
