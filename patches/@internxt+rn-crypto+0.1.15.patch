@@ -26,10 +26,10 @@ index 5cfa9b1..574c59d 100644
      super(reactContext);
    }
  
-+  // A null message would reach the JS callback as success.
++  // A null or empty message would reach the JS callback as success.
 +  private static String describeError(Exception error) {
 +    String message = error.getMessage();
-+    return message != null ? message : error.toString();
++    return message != null && !message.isEmpty() ? message : error.toString();
 +  }
 +
    @Override
