@@ -382,6 +382,7 @@ const PhotosTimeline = forwardRef<PhotosTimelineHandle, PhotosTimelineProps>(
             <PhotosPlaceholderBackdrop
               scrollOffset={scrubber.drag.scrollOffset}
               contentTopInset={contentTopInset}
+              measuredRowHeight={scrubber.rowHeight}
               rowCount={Math.ceil(photos.length / NUM_COLUMNS)}
               numColumns={NUM_COLUMNS}
               cellPadding={PHOTO_CELL_PADDING}
