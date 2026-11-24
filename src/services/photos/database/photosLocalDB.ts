@@ -3,6 +3,8 @@ import assetSyncTable from './tables/asset_sync';
 import cloudAssetTable from './tables/cloud_asset';
 
 const DB_NAME = 'photos_sync.db';
+// Bump when a migration is added to migrateSchema.
+const PHOTOS_DB_SCHEMA_VERSION = 1;
 
 export type LivePhotoRole = 'photo' | 'paired_video';
 // BURST:
@@ -71,7 +73,7 @@ interface CloudAssetRow {
 }
 
 export type AssetSyncStatus = 'pending' | 'pending_edit' | 'synced' | 'error' | 'deleted' | 'cloud_deleted';
-export type PairedVideoStatus = 'synced' | 'error';
+export type PairedVideoStatus = 'synced' | 'error' | 'outdated';
 
 export interface AssetSyncEntry {
   assetId: string;
@@ -98,9 +100,16 @@ export interface AssetSyncEntry {
   burstId: string | null;
   burstMemberRemoteFileIds: string[] | null;
   burstMemberCount: number | null;
+  /** Thumbnail/content refs captured straight from the upload that produced this asset — present
+   * only when this device generated them itself (see PhotoCloudBrowser.recordSyncedAsset). */
+  thumbnailBucketId: string | null;
+  thumbnailBucketFile: string | null;
+  thumbnailType: string | null;
+  contentFileId: string | null;
+  bucket: string | null;
 }
 
-interface AssetSyncRow {
+export interface AssetSyncRow {
   asset_id: string;
   status: AssetSyncStatus;
   remote_file_id: string | null;
@@ -125,6 +134,11 @@ interface AssetSyncRow {
   burst_id: string | null;
   burst_member_remote_file_ids: string | null;
   burst_member_count: number | null;
+  thumbnail_bucket_id: string | null;
+  thumbnail_bucket_file: string | null;
+  thumbnail_type: string | null;
+  content_file_id: string | null;
+  bucket: string | null;
 }
 
 export interface SyncedAssetInfo {
@@ -271,7 +285,30 @@ const rowToAssetSyncEntry = (row: AssetSyncRow): AssetSyncEntry => ({
   burstId: row.burst_id,
   burstMemberRemoteFileIds: row.burst_member_remote_file_ids ? JSON.parse(row.burst_member_remote_file_ids) : null,
   burstMemberCount: row.burst_member_count,
+  thumbnailBucketId: row.thumbnail_bucket_id,
+  thumbnailBucketFile: row.thumbnail_bucket_file,
+  thumbnailType: row.thumbnail_type,
+  contentFileId: row.content_file_id,
+  bucket: row.bucket,
 });
+
+/** Thumbnail/content refs captured from a successful upload/replace call, passed to markSynced*
+ * so recordSyncedAsset can later write a complete cloud_asset row without fetching Drive. */
+export interface SyncedThumbnailRefs {
+  thumbnailBucketId?: string;
+  thumbnailBucketFile?: string;
+  thumbnailType?: string;
+  contentFileId?: string;
+  bucket?: string;
+}
+
+const toThumbnailRefParams = (refs?: SyncedThumbnailRefs): (string | null)[] => [
+  refs?.thumbnailBucketId ?? null,
+  refs?.thumbnailBucketFile ?? null,
+  refs?.thumbnailType ?? null,
+  refs?.contentFileId ?? null,
+  refs?.bucket ?? null,
+];
 
 const toMarkPendingParams = (assetId: string, mediaInfo?: AssetMediaInfo) => [
   assetId,
@@ -292,6 +329,7 @@ class PhotosLocalDB {
     this.initPromise ??= (async () => {
       await sqliteService.open(DB_NAME);
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createTable);
+      await this.migrateSchema();
       await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.createIndex);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createTable);
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexCreated);
@@ -301,6 +339,33 @@ class PhotosLocalDB {
       await sqliteService.executeSql(DB_NAME, cloudAssetTable.statements.createIndexBurstGroup);
     })();
     return this.initPromise;
+  }
+
+  /**
+   * Brings an existing database up to `PHOTOS_DB_SCHEMA_VERSION`, tracked in `PRAGMA user_version`.
+   * Does nothing when the database is already at that version.
+   */
+  private async migrateSchema(): Promise<void> {
+    const versionRow = await sqliteService.getFirstAsync<{ user_version: number }>(DB_NAME, 'PRAGMA user_version;');
+    const schemaVersion = versionRow?.user_version ?? 0;
+    if (schemaVersion >= PHOTOS_DB_SCHEMA_VERSION) {
+      return;
+    }
+    await this.addMissingColumns(assetSyncTable.TABLE_NAME, assetSyncTable.addedColumns);
+    await sqliteService.executeSql(DB_NAME, `PRAGMA user_version = ${PHOTOS_DB_SCHEMA_VERSION};`);
+  }
+
+  /**
+   * Runs `ALTER TABLE … ADD COLUMN` for each column the table doesn't have yet.
+   */
+  private async addMissingColumns(tableName: string, columns: { name: string; type: string }[]): Promise<void> {
+    const existingColumns = await sqliteService.getAllAsync<{ name: string }>(DB_NAME, `PRAGMA table_info(${tableName});`);
+    const existingColumnNames = new Set(existingColumns.map((column) => column.name));
+    for (const column of columns) {
+      if (!existingColumnNames.has(column.name)) {
+        await sqliteService.executeSql(DB_NAME, `ALTER TABLE ${tableName} ADD COLUMN ${column.name} ${column.type};`);
+      }
+    }
   }
 
   /**
@@ -332,11 +397,17 @@ class PhotosLocalDB {
     );
   }
 
-  async markSynced(assetId: string, remoteFileId: string, modificationTime: number | null): Promise<void> {
+  async markSynced(
+    assetId: string,
+    remoteFileId: string,
+    modificationTime: number | null,
+    thumbnailRefs?: SyncedThumbnailRefs,
+  ): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSynced, [
       assetId,
       remoteFileId,
       modificationTime,
+      ...toThumbnailRefParams(thumbnailRefs),
     ]);
   }
 
@@ -346,6 +417,7 @@ class PhotosLocalDB {
     modificationTime: number | null,
     pairedVideoRemoteFileId: string | null,
     pairedVideoStatus: PairedVideoStatus,
+    thumbnailRefs?: SyncedThumbnailRefs,
   ): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSyncedLivePhoto, [
       assetId,
@@ -353,6 +425,7 @@ class PhotosLocalDB {
       modificationTime,
       pairedVideoRemoteFileId,
       pairedVideoStatus,
+      ...toThumbnailRefParams(thumbnailRefs),
     ]);
   }
 
@@ -533,17 +606,20 @@ class PhotosLocalDB {
     );
   }
 
-  async cleanupOrphanedAssetSync(localAssetIds: Set<string>): Promise<number> {
-    const allsyncedAssets = await sqliteService.getAllAsync<{ asset_id: string }>(
+  /**
+   * Ids of `asset_sync` rows tracked locally whose asset is no longer on the device
+   * (`localAssetIds`). Read-only — callers decide what to do with the diff (see
+   * `PhotoCloudBrowser.deleteAssetSyncPreservingCloudVisibility`, which preserves cloud
+   * visibility for any orphan that had a remote backup before removing its row).
+   *
+   * @param localAssetIds - Ids of the assets currently on the device.
+   */
+  async getOrphanedAssetSyncIds(localAssetIds: Set<string>): Promise<string[]> {
+    const allSyncedAssets = await sqliteService.getAllAsync<{ asset_id: string }>(
       DB_NAME,
       assetSyncTable.statements.getAllTrackedAssetIds,
     );
-    const orphanAssetsIds = allsyncedAssets.filter((a) => !localAssetIds.has(a.asset_id)).map((a) => a.asset_id);
-    if (orphanAssetsIds.length === 0) {
-      return 0;
-    }
-    await this.deleteAssetSyncBulk(orphanAssetsIds);
-    return orphanAssetsIds.length;
+    return allSyncedAssets.filter((a) => !localAssetIds.has(a.asset_id)).map((a) => a.asset_id);
   }
 
   async reset(): Promise<void> {
@@ -699,6 +775,7 @@ class PhotosLocalDB {
     burstId: string,
     memberUuids: string[],
     memberCount: number | null,
+    thumbnailRefs?: SyncedThumbnailRefs,
   ): Promise<void> {
     await sqliteService.executeSql(DB_NAME, assetSyncTable.statements.markSyncedBurst, [
       assetId,
@@ -707,6 +784,7 @@ class PhotosLocalDB {
       burstId,
       JSON.stringify(memberUuids),
       memberCount,
+      ...toThumbnailRefParams(thumbnailRefs),
     ]);
   }
 

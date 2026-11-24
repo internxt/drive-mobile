@@ -56,26 +56,27 @@ const statements = {
       folder_date            = excluded.folder_date,
       file_name              = excluded.file_name,
       file_size              = excluded.file_size,
-      file_id                = excluded.file_id,
+      file_id                = COALESCE(excluded.file_id, ${TABLE_NAME}.file_id),
       thumbnail_path         = CASE
         WHEN excluded.thumbnail_bucket_file IS NOT NULL
          AND ${TABLE_NAME}.thumbnail_bucket_file IS NOT excluded.thumbnail_bucket_file
         THEN NULL
         ELSE COALESCE(${TABLE_NAME}.thumbnail_path, excluded.thumbnail_path)
       END,
-      thumbnail_bucket_id    = excluded.thumbnail_bucket_id,
-      thumbnail_bucket_file  = excluded.thumbnail_bucket_file,
-      thumbnail_type         = excluded.thumbnail_type,
-      discovered_at          = excluded.discovered_at,
-      plain_name             = excluded.plain_name,
-      extension              = excluded.extension,
-      bucket                 = excluded.bucket,
-      folder_uuid            = excluded.folder_uuid,
-      creation_time_api      = excluded.creation_time_api,
-      modification_time      = excluded.modification_time,
-      updated_at             = excluded.updated_at,
-      status                 = excluded.status,
-      encrypt_version        = excluded.encrypt_version,
+      thumbnail_bucket_id    = COALESCE(excluded.thumbnail_bucket_id, ${TABLE_NAME}.thumbnail_bucket_id),
+      thumbnail_bucket_file  = COALESCE(excluded.thumbnail_bucket_file, ${TABLE_NAME}.thumbnail_bucket_file),
+      thumbnail_type         = COALESCE(excluded.thumbnail_type, ${TABLE_NAME}.thumbnail_type),
+      -- 0 = unconfirmed by a real listing; never regress an already-confirmed row back to it.
+      discovered_at          = CASE WHEN excluded.discovered_at = 0 THEN ${TABLE_NAME}.discovered_at ELSE excluded.discovered_at END,
+      plain_name             = COALESCE(excluded.plain_name, ${TABLE_NAME}.plain_name),
+      extension              = COALESCE(excluded.extension, ${TABLE_NAME}.extension),
+      bucket                 = COALESCE(excluded.bucket, ${TABLE_NAME}.bucket),
+      folder_uuid            = COALESCE(excluded.folder_uuid, ${TABLE_NAME}.folder_uuid),
+      creation_time_api      = COALESCE(excluded.creation_time_api, ${TABLE_NAME}.creation_time_api),
+      modification_time      = COALESCE(excluded.modification_time, ${TABLE_NAME}.modification_time),
+      updated_at             = COALESCE(excluded.updated_at, ${TABLE_NAME}.updated_at),
+      status                 = COALESCE(excluded.status, ${TABLE_NAME}.status),
+      encrypt_version        = COALESCE(excluded.encrypt_version, ${TABLE_NAME}.encrypt_version),
       is_live_photo          = excluded.is_live_photo,
       live_photo_role        = excluded.live_photo_role,
       paired_remote_file_id  = excluded.paired_remote_file_id,
@@ -160,9 +161,11 @@ const statements = {
   getDistinctDeviceIds: `SELECT DISTINCT device_id FROM ${TABLE_NAME};`,
   reset: `DELETE FROM ${TABLE_NAME};`,
 
+  // discovered_at != 0 excludes rows written directly (not yet confirmed by a real Drive
+  // listing) from cloud-deletion reconciliation, so a stale snapshot can't mark them deleted.
   getRemoteIdsByDeviceAndMonth: `
     SELECT remote_file_id FROM ${TABLE_NAME}
-    WHERE device_id = ? AND folder_date >= ? AND folder_date < ?;
+    WHERE device_id = ? AND folder_date >= ? AND folder_date < ? AND discovered_at != 0;
   `,
 
   getLatestDiscoveredAt: `
