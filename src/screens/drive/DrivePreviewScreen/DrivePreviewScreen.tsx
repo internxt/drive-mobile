@@ -7,7 +7,6 @@ import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
 import strings from 'assets/lang/strings';
 import * as NavigationBar from 'expo-navigation-bar';
-import { WarningCircleIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -192,10 +191,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         ) : null}
         {error ? (
           <View className="mt-1">
-            <View className="flex flex-row items-center">
-              <WarningCircleIcon weight="fill" size={20} color={tailwind('text-red').color as string} />
-              <AppText className="text-center text-red ml-1">{error}</AppText>
-            </View>
+            <AppText className="text-center text-red">{error}</AppText>
             {downloadingFile && (
               <AppButton
                 className="mt-5"

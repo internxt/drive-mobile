@@ -1,14 +1,16 @@
 import fileSystemService from '@internxt-mobile/services/FileSystemService';
+import { Image as ExpoImage } from 'expo-image';
 import * as NavigationBar from 'expo-navigation-bar';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { PlayIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Platform, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Video, { BufferConfig, BufferingStrategyType, VideoRef } from 'react-native-video';
 
 interface VideoViewerProps {
   source?: string;
   thumbnail?: string;
+  thumbnailCacheKey?: string;
   onPlay?: () => void;
   onPause?: () => void;
   onEnd?: () => void;
@@ -43,6 +45,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
   onPause,
   onEnd,
   thumbnail,
+  thumbnailCacheKey,
   onVideoLoadError,
 }) => {
   const [playing, setPlaying] = useState(false);
@@ -134,10 +137,10 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
           </View>
         )}
         {showThumbnail && thumbnail && (
-          <Image
-            source={{ uri: fileSystemService.pathToUri(thumbnail) }}
-            className="w-full h-full"
-            resizeMode="contain"
+          <ExpoImage
+            source={{ uri: fileSystemService.pathToUri(thumbnail), cacheKey: thumbnailCacheKey }}
+            style={styles.fillImage}
+            contentFit="contain"
           />
         )}
         {source && (
@@ -172,3 +175,10 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  fillImage: {
+    width: '100%',
+    height: '100%',
+  },
+});
