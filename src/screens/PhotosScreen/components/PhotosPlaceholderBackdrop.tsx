@@ -9,6 +9,7 @@ const PLACEHOLDER_BORDER_RADIUS = 2;
 interface PhotosPlaceholderBackdropProps {
   scrollOffset: SharedValue<number>;
   contentTopInset: number;
+  measuredRowHeight: number;
   rowCount: number;
   numColumns: number;
   cellPadding: number;
@@ -23,6 +24,7 @@ interface PhotosPlaceholderBackdropProps {
 const PhotosPlaceholderBackdrop = ({
   scrollOffset,
   contentTopInset,
+  measuredRowHeight,
   rowCount,
   numColumns,
   cellPadding,
@@ -31,12 +33,13 @@ const PhotosPlaceholderBackdrop = ({
 }: PhotosPlaceholderBackdropProps) => {
   const getColor = useGetColor();
   const cellSize = viewportWidth / numColumns;
+  const rowHeight = measuredRowHeight > 0 ? measuredRowHeight : cellSize;
 
   const backdropFrame = useDerivedValue(() =>
     getPlaceholderBackdropFrame({
       scrollOffset: scrollOffset.value,
       contentTopInset,
-      rowHeight: cellSize,
+      rowHeight,
       rowCount,
       viewportHeight,
     }),
@@ -51,7 +54,7 @@ const PhotosPlaceholderBackdrop = ({
     return null;
   }
 
-  const visibleRowCount = Math.ceil(viewportHeight / cellSize) + 1;
+  const visibleRowCount = Math.ceil(viewportHeight / rowHeight) + 1;
   const placeholderSize = cellSize - 2 * cellPadding;
   const placeholderColor = getColor('bg-gray-1');
 
@@ -59,7 +62,7 @@ const PhotosPlaceholderBackdrop = ({
     <Reanimated.View pointerEvents="none" style={[styles.frame, frameStyle]}>
       <Reanimated.View style={rowsStyle}>
         {Array.from({ length: visibleRowCount }, (_, rowIndex) => (
-          <View key={rowIndex} style={{ height: cellSize }}>
+          <View key={rowIndex} style={{ height: rowHeight }}>
             {Array.from({ length: numColumns }, (__, columnIndex) => (
               <View
                 key={columnIndex}
