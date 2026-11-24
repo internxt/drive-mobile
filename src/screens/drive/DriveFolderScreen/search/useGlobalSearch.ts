@@ -17,7 +17,7 @@ export const useGlobalSearch = ({ debounceMs = 300 }: UseGlobalSearchProps = {})
   const [hasMore, setHasMore] = useState(false);
   const [currentOffset, setCurrentOffset] = useState(0);
 
-  const debounceTimerRef = useRef<number | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentRequestRef = useRef<(() => void) | null>(null);
   const currentQueryRef = useRef<string>('');
 

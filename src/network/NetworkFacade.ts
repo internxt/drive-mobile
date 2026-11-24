@@ -125,7 +125,7 @@ export class NetworkFacade {
       mnemonic,
       fileSize,
       async (algorithm, key, iv) => {
-        let interval: number | null = null;
+        let interval: ReturnType<typeof setInterval> | null = null;
         if (shouldEnableEncryptionProgress)
           // TODO: Use real progress passing a callback to the native module
           interval = setInterval(() => {
