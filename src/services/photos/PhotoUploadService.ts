@@ -79,6 +79,10 @@ interface UploadOptions {
   onEvent?: (event: PhotoUploadEvent) => void;
 }
 
+interface ReplaceOptions extends UploadOptions {
+  existingPairedVideoRemoteFileId?: string;
+}
+
 const resolveLocalPath = async (
   asset: MediaLibrary.Asset,
 ): Promise<{ localPath: string; tempPath?: string; thumbnailUri?: string }> => {
@@ -382,7 +386,7 @@ const uploadPairedVideo = async (params: {
  * Uploads a file's bytes and swaps them into an existing Drive entry, falling back to creating
  * a new entry if the existing one was deleted or trashed.
  * @param params.localFilePath - Path of the local file to upload.
- * @param params.thumbnailSource - Path/URI to generate the thumbnail from.
+ * @param params.thumbnailSource - Path/URI to generate the thumbnail from. Without it, no thumbnail is uploaded.
  * @param params.existingRemoteFileId - UUID of the Drive entry to replace.
  * @param params.plainName - File name without extension.
  * @param params.fileExtension - File extension, without the leading dot.
@@ -395,11 +399,11 @@ const uploadPairedVideo = async (params: {
  * @param params.onProgress - Called with the upload progress ratio (0-1).
  * @param params.signal - Aborts the upload when triggered.
  * @returns UUID of the replaced or newly created Drive entry, plus the content/thumbnail refs
- *   this call generated — `thumbnail` is always populated, since a replace always regenerates it.
+ *   this call generated. `thumbnail` is null when there is no `thumbnailSource`.
  */
 const replaceRemoteFile = async (params: {
   localFilePath: string;
-  thumbnailSource: string;
+  thumbnailSource?: string;
   existingRemoteFileId: string;
   plainName: string;
   fileExtension: string;
@@ -456,7 +460,9 @@ const replaceRemoteFile = async (params: {
   let thumbnail: UploadedThumbnailRef | null;
   try {
     await uploadService.replaceFileEntry(existingRemoteFileId, { fileId, size: fileSize });
-    thumbnail = await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials);
+    thumbnail = thumbnailSource
+      ? await uploadThumbnailForAsset(thumbnailSource, fileExtension, existingRemoteFileId, credentials)
+      : null;
   } catch (replaceError) {
     if (!isDeletedOrTrashedError(replaceError)) {
       logger.error(`Failed to replace file entry for ${existingRemoteFileId}:`, replaceError);
@@ -473,11 +479,62 @@ const replaceRemoteFile = async (params: {
       modificationTime: modificationIso,
       creationTime: creationIso,
     });
-    thumbnail = await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials);
+    thumbnail = thumbnailSource
+      ? await uploadThumbnailForAsset(thumbnailSource, fileExtension, driveFile.uuid, credentials)
+      : null;
     photoUuid = driveFile.uuid;
   }
 
   return { photoUuid, contentFileId: fileId, bucketId, thumbnail, folderUuid };
+};
+
+/**
+ * Swaps the content of an existing Live Photo paired video in Drive.
+ * @returns UUID of the replaced (or recreated, if it was trashed) Drive entry, or null if the replace failed.
+ */
+const replacePairedVideo = async (params: {
+  videoLocalPath: string;
+  videoFileName: string;
+  existingPairedVideoRemoteFileId: string;
+  photoPlainName: string;
+  folderUuid: string;
+  creationIso: string;
+  modificationIso: string;
+  credentials: UploadCredentials;
+  signal?: AbortSignal;
+}): Promise<string | null> => {
+  const {
+    videoLocalPath,
+    videoFileName,
+    existingPairedVideoRemoteFileId,
+    photoPlainName,
+    folderUuid,
+    creationIso,
+    modificationIso,
+    credentials,
+    signal,
+  } = params;
+  const { fileExtension } = splitFileNameAndExtension(videoFileName);
+  try {
+    const videoFileStat = await fileSystemService.stat(videoLocalPath);
+    const { photoUuid: pairedVideoUuid } = await replaceRemoteFile({
+      localFilePath: videoLocalPath,
+      existingRemoteFileId: existingPairedVideoRemoteFileId,
+      plainName: getPairedVideoPlainNameFromPhoto(photoPlainName),
+      fileExtension,
+      fileSize: videoFileStat.size,
+      folderUuid,
+      bucketId: credentials.bucketId,
+      modificationIso,
+      creationIso,
+      credentials,
+      signal,
+    });
+    return pairedVideoUuid;
+  } catch (err) {
+    logger.error(`[PhotoUploadService] Failed to replace Live Photo paired video for photo "${photoPlainName}":`, err);
+    return null;
+  }
 };
 
 export const PhotoUploadService = {
@@ -640,9 +697,9 @@ export const PhotoUploadService = {
     existingRemoteFileId: string,
     deviceId: string,
     photosBucket: string,
-    options: UploadOptions = {},
+    options: ReplaceOptions = {},
   ): Promise<PhotoUploadResult> {
-    const { onProgress, signal, onEvent } = options;
+    const { onProgress, signal, onEvent, existingPairedVideoRemoteFileId } = options;
     const livePhoto = Platform.OS === 'ios' && isLivePhotoAsset(asset);
 
     if (livePhoto) {
@@ -693,7 +750,7 @@ export const PhotoUploadService = {
             signal,
           });
 
-          const pairedVideoUuid = await uploadPairedVideo({
+          const pairedVideoParams = {
             videoLocalPath,
             videoFileName: components.video.fileName,
             photoPlainName: plainName,
@@ -702,7 +759,10 @@ export const PhotoUploadService = {
             modificationIso,
             credentials,
             signal,
-          });
+          };
+          const pairedVideoUuid = existingPairedVideoRemoteFileId
+            ? await replacePairedVideo({ ...pairedVideoParams, existingPairedVideoRemoteFileId })
+            : await uploadPairedVideo(pairedVideoParams);
 
           return {
             photoUuid,

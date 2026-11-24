@@ -70,15 +70,15 @@ class PHAssetExportModule: NSObject {
 
     let resources = PHAssetResource.assetResources(for: asset)
 
-    // Prefer the primary resource type; edited Live Photos may only expose fullSize variants.
-    guard let photoResource = resources.first(where: { $0.type == .photo })
-            ?? resources.first(where: { $0.type == .fullSizePhoto }) else {
+    // fullSize* is the current (edited) version; photo/pairedVideo are the original capture.
+    guard let photoResource = resources.first(where: { $0.type == .fullSizePhoto })
+            ?? resources.first(where: { $0.type == .photo }) else {
       rejecter("NO_PHOTO_RESOURCE", "No photo resource found for \(localIdentifier)", nil)
       return
     }
 
-    guard let videoResource = resources.first(where: { $0.type == .pairedVideo })
-            ?? resources.first(where: { $0.type == .fullSizePairedVideo }) else {
+    guard let videoResource = resources.first(where: { $0.type == .fullSizePairedVideo })
+            ?? resources.first(where: { $0.type == .pairedVideo }) else {
       rejecter("NO_VIDEO_RESOURCE", "No paired video resource found for \(localIdentifier)", nil)
       return
     }

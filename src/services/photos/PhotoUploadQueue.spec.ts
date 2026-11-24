@@ -95,6 +95,26 @@ describe('PhotoUploadQueue.start', () => {
     expect(onAssetDone).toHaveBeenCalledWith('a1', 'existing-remote-id', asset.modificationTime);
   });
 
+  test('when a job has the video of a Live Photo already in Drive, then that video is passed along to be overwritten too', async () => {
+    const asset = makeAsset('a1');
+    const job: AssetUploadJob = {
+      asset,
+      existingRemoteFileId: 'existing-remote-id',
+      existingPairedVideoRemoteFileId: 'existing-video-id',
+    };
+    mockReplace.mockResolvedValue('existing-remote-id');
+
+    await PhotoUploadQueue.start([job], DEVICE_ID, PHOTOS_BUCKET, {});
+
+    expect(mockReplace).toHaveBeenCalledWith(
+      asset,
+      'existing-remote-id',
+      DEVICE_ID,
+      PHOTOS_BUCKET,
+      expect.objectContaining({ existingPairedVideoRemoteFileId: 'existing-video-id' }),
+    );
+  });
+
   test('when the job list is empty, then no callbacks are called and the queue completes', async () => {
     const onAssetStart = jest.fn();
     const onAssetDone = jest.fn();

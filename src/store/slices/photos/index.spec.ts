@@ -1387,6 +1387,41 @@ describe('photos slice', () => {
       ]);
     });
 
+    test('when an edited Live Photo with its video already in Drive is pending, then both the photo and the video are queued to be overwritten', async () => {
+      mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([
+        {
+          assetId: 'a1',
+          status: 'pending_edit',
+          remoteFileId: 'photo-remote-uuid',
+          pairedVideoRemoteFileId: 'video-remote-uuid',
+          isBurst: false,
+          burstMemberCount: null,
+        },
+      ] as never);
+      mockScanner.getAssetsByIds.mockResolvedValueOnce([{ id: 'a1', modificationTime: Date.now() }] as never);
+
+      const store = makeStore();
+      store.dispatch(
+        photosSlice.actions.setState({
+          enabled: true,
+          permissionStatus: 'granted',
+          deviceId: 'device-1',
+          photosBucket: 'photos-bucket-1',
+        }),
+      );
+
+      await store.dispatch(runUploadThunk());
+
+      const [jobs] = mockUploadQueue.start.mock.calls[0];
+      expect(jobs).toEqual([
+        {
+          asset: { id: 'a1', modificationTime: expect.any(Number) },
+          existingRemoteFileId: 'photo-remote-uuid',
+          existingPairedVideoRemoteFileId: 'video-remote-uuid',
+        },
+      ]);
+    });
+
     test('when a pending asset that never had a remote file is retried after an error, then it is uploaded as a new file', async () => {
       mockPhotosLocalDB.getPendingAssets.mockResolvedValueOnce([
         { assetId: 'a1', status: 'error', remoteFileId: null, isBurst: false, burstMemberCount: null },

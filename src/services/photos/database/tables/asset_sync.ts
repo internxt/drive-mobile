@@ -187,7 +187,7 @@ const statements = {
   revertCloudDeleted: (placeholders: string) =>
     `UPDATE ${TABLE_NAME} SET status = 'synced', deleted_at = NULL WHERE status = 'cloud_deleted' AND remote_file_id IN (${placeholders});`,
   getPendingAssets: `
-    SELECT asset_id, status, remote_file_id, is_burst, burst_member_count FROM ${TABLE_NAME}
+    SELECT asset_id, status, remote_file_id, paired_video_remote_file_id, is_burst, burst_member_count FROM ${TABLE_NAME}
     WHERE status IN ('pending', 'pending_edit')
        OR (
          status = 'error'

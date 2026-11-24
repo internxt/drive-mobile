@@ -7,6 +7,7 @@ const UPLOAD_CONCURRENCY = 3;
 export interface AssetUploadJob {
   asset: MediaLibrary.Asset;
   existingRemoteFileId?: string;
+  existingPairedVideoRemoteFileId?: string;
 }
 
 interface UploadQueueCallbacks {
@@ -110,7 +111,7 @@ export const PhotoUploadQueue = {
           if (signal.aborted) {
             return;
           }
-          const { asset, existingRemoteFileId } = job;
+          const { asset, existingRemoteFileId, existingPairedVideoRemoteFileId } = job;
           callbacks.onAssetStart?.(asset.id);
 
           try {
@@ -120,7 +121,10 @@ export const PhotoUploadQueue = {
               onEvent: (event: PhotoUploadEvent) => callbacks.onAssetEvent?.(asset.id, event),
             };
             const photoUploadResult = existingRemoteFileId
-              ? await PhotoUploadService.replace(asset, existingRemoteFileId, deviceId, photosBucket, uploadOptions)
+              ? await PhotoUploadService.replace(asset, existingRemoteFileId, deviceId, photosBucket, {
+                  ...uploadOptions,
+                  existingPairedVideoRemoteFileId,
+                })
               : await PhotoUploadService.upload(asset, deviceId, photosBucket, uploadOptions);
             await callbacks.onAssetDone?.(asset.id, photoUploadResult, asset.modificationTime);
           } catch (uploadError) {

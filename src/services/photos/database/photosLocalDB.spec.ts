@@ -993,6 +993,23 @@ describe('photosLocalDB cloud asset methods', () => {
       expect(result.every((a) => a.status === 'pending')).toBe(true);
     });
 
+    test('when a pending asset is a Live Photo with its video in Drive, then the video remote id is returned with it', async () => {
+      mockSqlite.getAllAsync.mockResolvedValueOnce([
+        {
+          asset_id: 'asset-1',
+          status: 'pending_edit',
+          remote_file_id: 'photo-remote-id',
+          paired_video_remote_file_id: 'video-remote-id',
+          is_burst: 0,
+          burst_member_count: null,
+        },
+      ]);
+
+      const [pendingAsset] = await photosLocalDB.getPendingAssets();
+
+      expect(pendingAsset.pairedVideoRemoteFileId).toBe('video-remote-id');
+    });
+
     test('when error assets are reset to pending, then the reset query targets only error status rows', async () => {
       await photosLocalDB.resetErrorsToPending();
 

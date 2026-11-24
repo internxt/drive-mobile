@@ -569,6 +569,7 @@ class PhotosLocalDB {
       assetId: string;
       status: AssetSyncStatus;
       remoteFileId: string | null;
+      pairedVideoRemoteFileId: string | null;
       isBurst: boolean;
       burstMemberCount: number | null;
     }>
@@ -577,6 +578,7 @@ class PhotosLocalDB {
       asset_id: string;
       status: AssetSyncStatus;
       remote_file_id: string | null;
+      paired_video_remote_file_id: string | null;
       is_burst: number;
       burst_member_count: number | null;
     }>(DB_NAME, assetSyncTable.statements.getPendingAssets);
@@ -584,6 +586,7 @@ class PhotosLocalDB {
       assetId: asset.asset_id,
       status: asset.status,
       remoteFileId: asset.remote_file_id,
+      pairedVideoRemoteFileId: asset.paired_video_remote_file_id,
       isBurst: asset.is_burst === 1,
       burstMemberCount: asset.burst_member_count,
     }));
