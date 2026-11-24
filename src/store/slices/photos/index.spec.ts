@@ -1845,7 +1845,9 @@ describe('photos slice', () => {
       });
 
       test('when a Live Photo video is retried, then it counts toward this session but not as a newly backed-up photo', async () => {
-        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockPhotosLocalDB.getIncompleteLivePhotos
+          .mockResolvedValueOnce([{ assetId: 'live-1' }] as never)
+          .mockResolvedValue([] as never);
         mockRetryIncompleteLivePhotos.mockResolvedValue({ completedCount: 1, isQuotaExceeded: false });
         const store = makeUploadReadyStore();
         const totalAssetsUploadedBefore = store.getState().photos.totalAssetsUploaded;
