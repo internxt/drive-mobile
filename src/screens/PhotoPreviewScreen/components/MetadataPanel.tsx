@@ -1,6 +1,7 @@
+import { Image as ExpoImage } from 'expo-image';
 import { CaretLeftIcon } from 'phosphor-react-native';
 import { MutableRefObject, useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -14,6 +15,7 @@ import { photosLocalDB } from '../../../services/photos/database/photosLocalDB';
 import { photoMediaLibraryService } from '../../../services/photos/PhotoMediaLibraryService';
 import { resolveAssetCreationTime } from '../../../services/photos/utils/resolveAssetCreationTime';
 import { CloudPhotoItem, PhotoItem, TimelinePhotoItem } from '../../PhotosScreen/types';
+import { getThumbnailSource } from '../../PhotosScreen/utils/photoUtils';
 import { formatBytes, formatDate, formatDimensions, formatExtension } from '../utils/formatters';
 
 const photoPreviewStrings = strings.screens.photos.photoPreview;
@@ -186,6 +188,7 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
   const [headerSubtitle, setHeaderSubtitle] = useState(item.type === 'cloud-only' ? formatDate(item.folderDate) : '');
   const mountedRef = useRef(true);
   const thumbnailUri = item.type === 'local' ? (item.uri ?? null) : (item.thumbnailPath ?? null);
+  const thumbnailSource = thumbnailUri ? getThumbnailSource(item, thumbnailUri) : null;
 
   useEffect(() => {
     return () => {
@@ -270,8 +273,8 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
         className="flex-row items-center px-4"
         style={{ gap: 12, paddingVertical: 24, borderBottomWidth: 1, borderBottomColor: SEPARATOR_SECTION }}
       >
-        {thumbnailUri ? (
-          <Image source={{ uri: thumbnailUri }} className="w-12 h-12 rounded-lg" resizeMode="cover" />
+        {thumbnailSource ? (
+          <ExpoImage source={thumbnailSource} style={styles.thumbnail} contentFit="cover" />
         ) : (
           <View className="bg-gray-5 w-12 h-12 rounded-lg" />
         )}
@@ -301,3 +304,14 @@ export const MetadataPanel = ({ item, onClose }: MetadataPanelProps): JSX.Elemen
     </Animated.View>
   );
 };
+
+const THUMBNAIL_SIZE = 48;
+const THUMBNAIL_BORDER_RADIUS = 8;
+
+const styles = StyleSheet.create({
+  thumbnail: {
+    width: THUMBNAIL_SIZE,
+    height: THUMBNAIL_SIZE,
+    borderRadius: THUMBNAIL_BORDER_RADIUS,
+  },
+});
