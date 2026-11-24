@@ -107,8 +107,8 @@ describe('usePhotoSelection', () => {
     const { result } = renderHook(() => usePhotoSelection(items));
 
     act(() => result.current.enterSelectMode());
-    act(() => result.current.beginDragSelect(0));
-    act(() => result.current.updateDragSelect(1));
+    act(() => result.current.beginDragSelect(0, items));
+    act(() => result.current.updateDragSelect(1, items));
 
     expect(result.current.selectedIds.size).toBe(0);
   });
@@ -118,11 +118,59 @@ describe('usePhotoSelection', () => {
     const { result } = renderHook(() => usePhotoSelection(items));
 
     act(() => result.current.enterSelectMode());
-    act(() => result.current.beginDragSelect(0));
-    act(() => result.current.updateDragSelect(2));
+    act(() => result.current.beginDragSelect(0, items));
+    act(() => result.current.updateDragSelect(2, items));
 
     expect(result.current.selectedIds.has('a')).toBe(true);
     expect(result.current.selectedIds.has('b')).toBe(false);
     expect(result.current.selectedIds.has('c')).toBe(true);
+  });
+
+  test('when photos are hidden from the grid, then a drag selects the photos under the finger, not the hidden ones', () => {
+    const allItems = [makeLocalItem('new-1'), makeLocalItem('new-2'), makeLocalItem('a'), makeLocalItem('b')];
+    const displayedItems = allItems.slice(2);
+    const { result } = renderHook(() => usePhotoSelection(allItems));
+
+    act(() => result.current.enterSelectMode());
+    act(() => result.current.beginDragSelect(0, displayedItems));
+    act(() => result.current.updateDragSelect(1, displayedItems));
+
+    expect([...result.current.selectedIds]).toEqual(['a', 'b']);
+  });
+
+  test('when a new photo appears above during a drag, then the drag still selects from the photo where it started', () => {
+    const itemsBeforeRelease = [makeLocalItem('a'), makeLocalItem('b'), makeLocalItem('c'), makeLocalItem('d')];
+    const itemsAfterRelease = [makeLocalItem('new-1'), ...itemsBeforeRelease];
+    const { result } = renderHook(() => usePhotoSelection(itemsAfterRelease));
+
+    act(() => result.current.enterSelectMode());
+    act(() => result.current.beginDragSelect(1, itemsBeforeRelease));
+    act(() => result.current.updateDragSelect(4, itemsAfterRelease));
+
+    expect([...result.current.selectedIds].sort()).toEqual(['b', 'c', 'd']);
+  });
+
+  test('when a photo above leaves the grid during a drag, then the drag still selects from the photo where it started', () => {
+    const itemsBeforeRemoval = [makeLocalItem('a'), makeLocalItem('b'), makeLocalItem('c'), makeLocalItem('d')];
+    const itemsAfterRemoval = itemsBeforeRemoval.slice(1);
+    const { result } = renderHook(() => usePhotoSelection(itemsBeforeRemoval));
+
+    act(() => result.current.enterSelectMode());
+    act(() => result.current.beginDragSelect(2, itemsBeforeRemoval));
+    act(() => result.current.updateDragSelect(2, itemsAfterRemoval));
+
+    expect([...result.current.selectedIds].sort()).toEqual(['c', 'd']);
+  });
+
+  test('when the photo where a drag started leaves the grid, then further moves select nothing new', () => {
+    const itemsBeforeRemoval = [makeLocalItem('a'), makeLocalItem('b'), makeLocalItem('c')];
+    const itemsAfterRemoval = [makeLocalItem('a'), makeLocalItem('c')];
+    const { result } = renderHook(() => usePhotoSelection(itemsBeforeRemoval));
+
+    act(() => result.current.enterSelectMode());
+    act(() => result.current.beginDragSelect(1, itemsBeforeRemoval));
+    act(() => result.current.updateDragSelect(1, itemsAfterRemoval));
+
+    expect(result.current.selectedIds.size).toBe(0);
   });
 });

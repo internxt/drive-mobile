@@ -8,12 +8,15 @@ import {
   assetToPhotoItem,
   buildFlatTimeline,
   cloudEntryToPhotoItem,
+  filterCloudItemsAfterDayOf,
   findGroupForIndex,
   formatVideoDuration,
+  getWithheldPhotoPositions,
   getDateLabel,
   getGroupSyncStatus,
   groupAssetsByDate,
   mergeCloudIntoGroups,
+  withholdPhotosInsertedAbove,
 } from './photoTimelineGroups';
 
 jest.mock('expo-media-library/legacy', () => ({
@@ -586,5 +589,155 @@ describe('merging cloud items into local groups', () => {
     const cloudItem = cloudEntryToPhotoItem(makeCloudEntry({ folderDate: newerAt }));
     const result = mergeCloudIntoGroups(localGroups, [cloudItem]);
     expect(new Date(result[0].id).getTime()).toBeGreaterThan(new Date(result[1].id).getTime());
+  });
+});
+
+describe('keeping cloud items from the days after a given day', () => {
+  const dayStart = new Date('2024-06-15T00:00:00').getTime();
+  const nextDayStart = new Date('2024-06-16T00:00:00').getTime();
+
+  test('when a cloud photo is from a later day, then it is kept', () => {
+    const laterItem = cloudEntryToPhotoItem(
+      makeCloudEntry({ remoteFileId: 'later', folderDate: new Date('2024-07-01T12:00:00').getTime() }),
+    );
+
+    const keptItems = filterCloudItemsAfterDayOf([laterItem], dayStart + 20 * 60 * 60 * 1000);
+
+    expect(keptItems.map((item) => item.id)).toEqual(['later']);
+  });
+
+  test('when a cloud photo is from the same day or an earlier one, then it is left out', () => {
+    const sameDayItem = cloudEntryToPhotoItem(
+      makeCloudEntry({ remoteFileId: 'same-day', folderDate: new Date('2024-06-15T01:00:00').getTime() }),
+    );
+    const earlierItem = cloudEntryToPhotoItem(
+      makeCloudEntry({ remoteFileId: 'earlier', folderDate: new Date('2024-06-14T23:00:00').getTime() }),
+    );
+
+    expect(filterCloudItemsAfterDayOf([sameDayItem, earlierItem], dayStart + 20 * 60 * 60 * 1000)).toEqual([]);
+  });
+
+  test('when cloud photos fall right before or at the start of the next day, then only the one in the next day is kept', () => {
+    const lastMomentOfDay = cloudEntryToPhotoItem(
+      makeCloudEntry({ remoteFileId: 'end-of-day', folderDate: nextDayStart - 1 }),
+    );
+    const firstMomentOfNextDay = cloudEntryToPhotoItem(
+      makeCloudEntry({ remoteFileId: 'next-day', folderDate: nextDayStart }),
+    );
+
+    const keptItems = filterCloudItemsAfterDayOf([lastMomentOfDay, firstMomentOfNextDay], dayStart);
+
+    expect(keptItems.map((item) => item.id)).toEqual(['next-day']);
+  });
+});
+
+describe('holding back photos inserted above the visible ones', () => {
+  const photoWithId = (id: string) => makePhotoItem({ id });
+  const groupWithPhotos = (id: string, photoIds: string[]) =>
+    makeTimelineGroup(makeDateGroup({ id, photos: photoIds.map(photoWithId) }));
+  const collectPhotoIds = (groups: TimelineDateGroup[]) =>
+    groups.flatMap((timelineGroup) => timelineGroup.group.photos.map((photo) => photo.id));
+
+  test('when a new photo arrives above the first visible photo, then it is held back', () => {
+    const groups = [groupWithPhotos('day-1', ['a', 'new', 'b']), groupWithPhotos('day-2', ['c'])];
+
+    const keptGroups = withholdPhotosInsertedAbove({
+      groups,
+      displayedPhotoIds: new Set(['a', 'b', 'c']),
+      firstVisiblePhotoId: 'c',
+    });
+
+    expect(collectPhotoIds(keptGroups)).toEqual(['a', 'b', 'c']);
+  });
+
+  test('when a new photo arrives below the first visible photo, then it is shown', () => {
+    const groups = [groupWithPhotos('day-1', ['a', 'b']), groupWithPhotos('day-2', ['c', 'new'])];
+
+    const keptGroups = withholdPhotosInsertedAbove({
+      groups,
+      displayedPhotoIds: new Set(['a', 'b', 'c']),
+      firstVisiblePhotoId: 'b',
+    });
+
+    expect(keptGroups).toBe(groups);
+  });
+
+  test('when every photo of a new day is held back, then that day is not shown', () => {
+    const groups = [groupWithPhotos('new-day', ['new']), groupWithPhotos('day-1', ['a', 'b'])];
+
+    const keptGroups = withholdPhotosInsertedAbove({
+      groups,
+      displayedPhotoIds: new Set(['a', 'b']),
+      firstVisiblePhotoId: 'b',
+    });
+
+    expect(keptGroups.map((timelineGroup) => timelineGroup.group.id)).toEqual(['day-1']);
+  });
+
+  test('when the first visible photo is no longer in the timeline, then every photo is shown', () => {
+    const groups = [groupWithPhotos('day-1', ['new', 'a'])];
+
+    const keptGroups = withholdPhotosInsertedAbove({
+      groups,
+      displayedPhotoIds: new Set(['a', 'gone']),
+      firstVisiblePhotoId: 'gone',
+    });
+
+    expect(keptGroups).toBe(groups);
+  });
+
+  test('when a photo above the visible ones is removed, then it disappears right away', () => {
+    const groups = [groupWithPhotos('day-1', ['a', 'c'])];
+
+    const keptGroups = withholdPhotosInsertedAbove({
+      groups,
+      displayedPhotoIds: new Set(['a', 'b', 'c']),
+      firstVisiblePhotoId: 'c',
+    });
+
+    expect(collectPhotoIds(keptGroups)).toEqual(['a', 'c']);
+  });
+});
+
+describe('locating the photos held back above the visible ones', () => {
+  const photoWithId = (id: string) => makePhotoItem({ id });
+  const groupWithPhotos = (id: string, photoIds: string[]) =>
+    makeTimelineGroup(makeDateGroup({ id, photos: photoIds.map(photoWithId) }));
+
+  test('when new photos are held back, then the position of the lowest one is reported', () => {
+    const groups = [groupWithPhotos('day-1', ['new-1', 'a', 'new-2']), groupWithPhotos('day-2', ['b', 'c'])];
+
+    const { positionById, lastWithheldPosition } = getWithheldPhotoPositions({
+      groups,
+      displayedPhotoIds: new Set(['a', 'b', 'c']),
+      firstVisiblePhotoId: 'c',
+    });
+
+    expect(lastWithheldPosition).toBe(2);
+    expect(positionById.get('b')).toBe(3);
+  });
+
+  test('when the new photos are below the first visible photo, then none is reported as held back', () => {
+    const groups = [groupWithPhotos('day-1', ['a', 'b']), groupWithPhotos('day-2', ['new'])];
+
+    const { lastWithheldPosition } = getWithheldPhotoPositions({
+      groups,
+      displayedPhotoIds: new Set(['a', 'b']),
+      firstVisiblePhotoId: 'b',
+    });
+
+    expect(lastWithheldPosition).toBe(-1);
+  });
+
+  test('when the first visible photo is no longer in the timeline, then none is reported as held back', () => {
+    const groups = [groupWithPhotos('day-1', ['new', 'a'])];
+
+    const { lastWithheldPosition } = getWithheldPhotoPositions({
+      groups,
+      displayedPhotoIds: new Set(['a']),
+      firstVisiblePhotoId: 'deleted',
+    });
+
+    expect(lastWithheldPosition).toBe(-1);
   });
 });

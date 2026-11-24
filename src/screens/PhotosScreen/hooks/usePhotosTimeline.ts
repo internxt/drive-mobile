@@ -1,7 +1,12 @@
 import { useEffect, useMemo } from 'react';
 import { useAppSelector } from 'src/store/hooks';
 import { TimelineDateGroup } from '../components/PhotosTimeline';
-import { getGroupSyncStatus, groupAssetsByDate, mergeCloudIntoGroups } from '../utils/photoTimelineGroups';
+import {
+  filterCloudItemsAfterDayOf,
+  getGroupSyncStatus,
+  groupAssetsByDate,
+  mergeCloudIntoGroups,
+} from '../utils/photoTimelineGroups';
 import { useCloudAssets } from './useCloudAssets';
 import { useLocalAssets } from './useLocalAssets';
 
@@ -18,6 +23,7 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
     assets,
     isLoading,
     hasLoadedLocalAssetsOnce,
+    hasLoadedAllLocalAssets,
     syncedIds,
     cloudDeletedIds,
     uploadingIdSet,
@@ -72,9 +78,24 @@ export const usePhotosTimeline = (deviceFilterId?: string | null): PhotosTimelin
   );
 
   const readyToMergeCloud = !showLocalAssets || hasLoadedLocalAssetsOnce;
+  const oldestLoadedLocalCreationTime =
+    showLocalAssets && !hasLoadedAllLocalAssets ? assets[assets.length - 1]?.creationTime : undefined;
+
+  const mergeableCloudItems = useMemo(() => {
+    if (!readyToMergeCloud) {
+      return [];
+    }
+    // Cloud photos from the oldest loaded local day or before would get local photos inserted above
+    // them when the next page arrives.
+    if (oldestLoadedLocalCreationTime === undefined) {
+      return cloudItems;
+    }
+    return filterCloudItemsAfterDayOf(cloudItems, oldestLoadedLocalCreationTime);
+  }, [cloudItems, readyToMergeCloud, oldestLoadedLocalCreationTime]);
+
   const mergedGroups = useMemo(
-    () => mergeCloudIntoGroups(localGroups, readyToMergeCloud ? cloudItems : []),
-    [localGroups, cloudItems, readyToMergeCloud],
+    () => mergeCloudIntoGroups(localGroups, mergeableCloudItems),
+    [localGroups, mergeableCloudItems],
   );
 
   const timelineDateGroups = useMemo(() => {
