@@ -191,6 +191,22 @@ describe('fetchUri — cloud item', () => {
     expect(mockDownloadFile).not.toHaveBeenCalled();
     expect(result).toBeNull();
   });
+
+  test('when another request finishes downloading the same content meanwhile, then its copy is not deleted', async () => {
+    mockGetCloudAssetById.mockResolvedValue({ fileId: 'file-id-123', fileSize: 500_000, bucket: 'photos-bucket' });
+    mockExists.mockImplementation(async (path: string) => path === '/cache/photo_preview/');
+    mockReadDir.mockResolvedValue([
+      { name: 'cloud-uuid-1.file-id-123.jpg', path: '/cache/photo_preview/cloud-uuid-1.file-id-123.jpg' },
+      { name: 'cloud-uuid-1.jpg', path: '/cache/photo_preview/cloud-uuid-1.jpg' },
+    ]);
+
+    await PhotoAssetFetchService.fetchUri(makeCloudItem(), makeSignal());
+
+    expect(fileSystemService.unlinkIfExists).not.toHaveBeenCalledWith(
+      '/cache/photo_preview/cloud-uuid-1.file-id-123.jpg',
+    );
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith('/cache/photo_preview/cloud-uuid-1.jpg');
+  });
 });
 
 describe('fetchPlaybackUri — iOS local video', () => {
