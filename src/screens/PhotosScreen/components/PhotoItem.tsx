@@ -19,6 +19,7 @@ import useGetColor from 'src/hooks/useColor';
 import { useAppSelector } from 'src/store/hooks';
 import { useCloudThumbnail } from '../hooks/useCloudThumbnail';
 import { CloudPhotoItem, PhotoItem as PhotoItemType, TimelinePhotoItem } from '../types';
+import { getThumbnailSource } from '../utils/photoUtils';
 
 const SkeletonCell = ({ style }: { style?: StyleProp<ViewStyle> }): JSX.Element => {
   const getColor = useGetColor();
@@ -173,10 +174,11 @@ const LocalPhotoCell = memo(
   ({ item, isSelectMode, isSelected, onPress, onLongPress }: CellProps & { item: PhotoItemType }): JSX.Element => {
     const getColor = useGetColor();
     const [isImageLoaded, setIsImageLoaded] = useRecyclingState(false, [item.id]);
+    const thumbnailSource = item.uri ? getThumbnailSource(item, item.uri) : null;
     // A late onLoad for the cell's *previous* asset (fired after fast-scroll recycled it to
     // a new item) must not mark the new, still-loading asset as loaded — hence the uri check below.
-    const currentUriRef = useRef(item.uri);
-    currentUriRef.current = item.uri;
+    const currentUriRef = useRef(thumbnailSource?.uri);
+    currentUriRef.current = thumbnailSource?.uri;
 
     const handlePress = useCallback(() => {
       onPress?.(item.id);
@@ -191,7 +193,7 @@ const LocalPhotoCell = memo(
       [setIsImageLoaded],
     );
 
-    if (item.backupState === 'loading' || !item.uri) {
+    if (item.backupState === 'loading' || !thumbnailSource) {
       return <SkeletonCell />;
     }
 
@@ -202,7 +204,7 @@ const LocalPhotoCell = memo(
       <TouchableOpacity activeOpacity={0.85} style={containerStyle} onPress={handlePress} onLongPress={handleLongPress}>
         {/* recyclingKey clears the previous asset's bitmap immediately when FlashList reuses this cell */}
         <ExpoImage
-          source={{ uri: item.uri, cacheKey: `${item.id}-${item.modificationTime}` }}
+          source={thumbnailSource}
           recyclingKey={item.id}
           style={[StyleSheet.absoluteFill, isCloudDeleted && styles.dimmed]}
           contentFit="cover"
