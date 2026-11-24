@@ -7,7 +7,6 @@ import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
 import strings from 'assets/lang/strings';
 import * as NavigationBar from 'expo-navigation-bar';
-import { WarningCircleIcon } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,7 +27,6 @@ import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePr
 import { DriveVideoPreview } from './DriveVideoPreview';
 import { useThumbnailRegeneration } from './hooks/useThumbnailRegeneration';
 import AnimatedLoadingDots from './LoadingDots';
-import useGetColor from 'src/hooks/useColor';
 
 const IMAGE_PREVIEW_TYPES = new Set([FileExtension.PNG, FileExtension.JPG, FileExtension.JPEG, FileExtension.HEIC]);
 const VIDEO_PREVIEW_TYPES = new Set([FileExtension.MP4, FileExtension.MOV, FileExtension.AVI]);
@@ -36,7 +34,6 @@ const PDF_PREVIEW_TYPES = new Set([FileExtension.PDF]);
 const TOP_BAR_Z_INDEX = 10;
 
 export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> = (props) => {
-  const getColor = useGetColor();
   const [topbarVisible, setTopbarVisible] = useState(true);
   const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail>();
 
@@ -193,10 +190,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         ) : null}
         {error ? (
           <View className="mt-1">
-            <View className="flex flex-row items-center">
-              <WarningCircleIcon weight="fill" size={20} color={getColor('text-red')} />
-              <AppText className="text-center text-red ml-1">{error}</AppText>
-            </View>
+            <AppText className="text-center text-red">{error}</AppText>
             {downloadingFile && (
               <AppButton
                 className="mt-5"
