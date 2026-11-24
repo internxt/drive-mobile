@@ -342,7 +342,7 @@ export const buildFlatTimeline = (groups: TimelineDateGroup[]): FlatTimeline => 
  * Last item at or before the given index, or undefined when the index precedes every item. Runs a
  * binary search.
  *
- * @param items items ordered by `startIndex` ascending.
+ * @param entries entries ordered by `startIndex` ascending.
  * @param index item index in the flat timeline.
  */
 export const findLastAtOrBefore = <T extends { startIndex: number }>(entries: T[], index: number): T | undefined => {
