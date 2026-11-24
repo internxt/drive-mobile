@@ -12,7 +12,16 @@ import {
   SquaresFour,
 } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, StyleProp, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
+import {
+  ActivityIndicator,
+  Animated,
+  StyleProp,
+  StyleSheet,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 import Reanimated, { FadeIn, FadeOut, LayoutAnimationConfig } from 'react-native-reanimated';
 import AppText from 'src/components/AppText';
 import {
@@ -22,7 +31,6 @@ import {
 import { SelectionCheckbox } from 'src/components/drive/lists/items/SelectionCheckbox';
 import { SearchInput } from 'src/components/SearchInput';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
 import Separator from '../../../components/AppSeparator';
 import useGetColor from '../../../hooks/useColor';
 import { GlobalSearchModal } from './search/GlobalSearchModal';
@@ -68,6 +76,10 @@ const TITLE_ROW_HEIGHT = 32;
 const SELECTION_TITLE_FONT_VARIANT: TextStyle = { fontVariant: ['tabular-nums'] };
 const HEADER_ROW_ENTERING = FadeIn.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
 const HEADER_ROW_EXITING = FadeOut.duration(SELECTION_ANIMATION_DURATION_MS).easing(SELECTION_ANIMATION_EASING);
+const NAVIGATION_ROW_HORIZONTAL_PADDING = 8;
+const SELECTION_ROW_HORIZONTAL_PADDING = 16;
+const NAVIGATION_ROW_TOP_MARGIN = 16;
+const NAVIGATION_ROW_BOTTOM_MARGIN = 8;
 
 export const getSelectionTitle = (selectedCount: number): string => {
   if (selectedCount === 0) {
@@ -80,7 +92,6 @@ export const getSelectionTitle = (selectedCount: number): string => {
 };
 
 export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (props) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const { label, canGoBack, onBackButtonPressed } = props.backButtonConfig;
   const { searchValue, searchVisible, onSearchButtonPress, onSearchTextChange } = props.searchConfig;
@@ -157,7 +168,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       key="selection"
       entering={HEADER_ROW_ENTERING}
       exiting={HEADER_ROW_EXITING}
-      style={[tailwind('flex-row items-center'), style]}
+      style={[styles.selectionRow, style]}
     >
       <View className="items-start" style={{ minWidth: selectionCancelWidth }}>
         <TouchableOpacity
@@ -194,15 +205,9 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
 
   return (
     <LayoutAnimationConfig skipEntering>
-      {props.selectionConfig &&
-        canGoBack &&
-        renderSelectionRow(props.selectionConfig, [tailwind('px-4 mb-2 mt-4'), { height: NAVIGATION_ROW_HEIGHT }])}
+      {props.selectionConfig && canGoBack && renderSelectionRow(props.selectionConfig, styles.navigationSelectionRow)}
       {!props.selectionConfig && canGoBack && (
-        <Reanimated.View
-          entering={HEADER_ROW_ENTERING}
-          exiting={HEADER_ROW_EXITING}
-          style={[tailwind('flex-row items-center justify-between px-2 mb-2 mt-4'), { height: NAVIGATION_ROW_HEIGHT }]}
-        >
+        <Reanimated.View entering={HEADER_ROW_ENTERING} exiting={HEADER_ROW_EXITING} style={styles.navigationRow}>
           <BackButton label={label} onPress={onBackButtonPressed} />
 
           <View className="flex-row -m-2">
@@ -222,14 +227,9 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
 
       <View className="flex-row items-center px-4" style={{ marginBottom: 14, height: TITLE_ROW_HEIGHT }}>
         {isRootSelectionMode && props.selectionConfig ? (
-          renderSelectionRow(props.selectionConfig, tailwind('flex-1'))
+          renderSelectionRow(props.selectionConfig, styles.fill)
         ) : (
-          <Reanimated.View
-            key="title"
-            entering={HEADER_ROW_ENTERING}
-            exiting={HEADER_ROW_EXITING}
-            style={tailwind('flex-1')}
-          >
+          <Reanimated.View key="title" entering={HEADER_ROW_ENTERING} exiting={HEADER_ROW_EXITING} style={styles.fill}>
             <AppText
               className="text-2xl"
               style={{ color: getColor('text-gray-100') }}
@@ -252,7 +252,7 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
         )}
       </View>
 
-      <Animated.View style={[tailwind('overflow-hidden'), { height: searchBarHeight, opacity: searchBarOpacity }]}>
+      <Animated.View style={[styles.searchBar, { height: searchBarHeight, opacity: searchBarOpacity }]}>
         <SearchInput
           value={searchValue}
           onChangeText={onSearchTextChange}
@@ -262,12 +262,12 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
       </Animated.View>
       {/* <Animated.View
         style={[
-          tailwind('overflow-hidden px-4'),
+          { overflow: 'hidden', paddingHorizontal: SELECTION_ROW_HORIZONTAL_PADDING },
           { height: globalSearchButtonHeight, opacity: globalSearchButtonOpacity },
         ]}
       >
-        <TouchableOpacity onPress={handleGlobalSearchPress} style={tailwind('py-2')} activeOpacity={0.7}>
-          <AppText style={[tailwind('text-sm text-center'), { color: getColor('text-primary') }]} medium>
+        <TouchableOpacity onPress={handleGlobalSearchPress} className="py-2" activeOpacity={0.7}>
+          <AppText className="text-sm text-center" style={{ color: getColor('text-primary') }} medium>
             {strings.screens.drive.searchInAllFolders}
           </AppText>
         </TouchableOpacity>
@@ -303,3 +303,31 @@ export const DriveFolderScreenHeader: React.FC<DriveFolderScreenHeaderProps> = (
     </LayoutAnimationConfig>
   );
 };
+
+const styles = StyleSheet.create({
+  selectionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  navigationSelectionRow: {
+    paddingHorizontal: SELECTION_ROW_HORIZONTAL_PADDING,
+    marginTop: NAVIGATION_ROW_TOP_MARGIN,
+    marginBottom: NAVIGATION_ROW_BOTTOM_MARGIN,
+    height: NAVIGATION_ROW_HEIGHT,
+  },
+  navigationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: NAVIGATION_ROW_HORIZONTAL_PADDING,
+    marginTop: NAVIGATION_ROW_TOP_MARGIN,
+    marginBottom: NAVIGATION_ROW_BOTTOM_MARGIN,
+    height: NAVIGATION_ROW_HEIGHT,
+  },
+  fill: {
+    flex: 1,
+  },
+  searchBar: {
+    overflow: 'hidden',
+  },
+});

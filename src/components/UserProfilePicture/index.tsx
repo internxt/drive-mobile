@@ -1,7 +1,6 @@
 import { Image } from 'expo-image';
 import React, { useEffect, useState } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 import { useAppSelector } from '../../store/hooks';
 import { authSelectors } from '../../store/slices/auth';
@@ -14,7 +13,6 @@ interface UserProfilePictureProps {
 }
 
 const UserProfilePicture = (props: UserProfilePictureProps) => {
-  const tailwind = useTailwind();
   const nameLetters = useAppSelector(authSelectors.nameLetters);
   const getColor = useGetColor();
   const [imageError, setImageError] = useState(false);
@@ -54,8 +52,8 @@ const UserProfilePicture = (props: UserProfilePictureProps) => {
         />
       ) : (
         <View
+          className="items-center justify-center bg-primary/10"
           style={{
-            ...tailwind('items-center justify-center bg-primary/10'),
             height: props.size,
             width: props.size,
             borderRadius: props.size / 2,
@@ -63,8 +61,8 @@ const UserProfilePicture = (props: UserProfilePictureProps) => {
         >
           <AppText
             medium
+            className="text-center text-primary-dark"
             style={{
-              ...tailwind('text-center text-primary-dark'),
               fontSize: Math.floor(props.size * 0.45),
               lineHeight: props.size,
             }}

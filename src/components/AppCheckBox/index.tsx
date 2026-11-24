@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableWithoutFeedback, StyleProp, ViewStyle } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { useTailwind } from 'tailwind-rn';
 
 interface AppCheckBoxProps {
   style?: StyleProp<ViewStyle>;
@@ -12,7 +11,6 @@ interface AppCheckBoxProps {
 }
 
 const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
-  const tailwind = useTailwind();
   const [checked, setChecked] = useState(props.value || false);
 
   const handleOnPress = () => {
@@ -26,13 +24,7 @@ const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
     <TouchableWithoutFeedback testID={props.testID} onPress={handleOnPress}>
       <View className="flex-row p-0" style={props.style}>
         <View className="my-1 mr-2">
-          <Svg
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            style={checked ? tailwind('flex') : tailwind('hidden')}
-          >
+          <Svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ display: checked ? 'flex' : 'none' }}>
             <Rect x="0.5" y="0.5" width="15" height="15" rx="1.5" fill="#0F62FE" stroke="#0F62FE" />
             <Svg width="13" height="13" viewBox="-2 -1 12 8" fill="none">
               <Path
@@ -43,7 +35,7 @@ const AppCheckBox = (props: AppCheckBoxProps): JSX.Element => {
             </Svg>
           </Svg>
 
-          <Svg width="16" height="16" viewBox="0 0 16 16" style={checked ? tailwind('hidden') : tailwind('flex')}>
+          <Svg width="16" height="16" viewBox="0 0 16 16" style={{ display: checked ? 'none' : 'flex' }}>
             <Rect
               x="0.75"
               y="0.75"

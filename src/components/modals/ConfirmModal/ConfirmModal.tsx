@@ -5,7 +5,6 @@ import { View } from 'react-native';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import CenterModal from '../CenterModal';
 
 export interface ConfirmModalProps {
@@ -20,7 +19,6 @@ export interface ConfirmModalProps {
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = (props) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -30,15 +28,7 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = (props) => {
           <AppText medium className="text-xl" style={{ color: getColor('text-gray-100') }}>
             {props.title}
           </AppText>
-          <AppText
-            style={[
-              tailwind('mb-6 mt-2'),
-              {
-                color: getColor('text-gray-60'),
-                lineHeight: (tailwind('text-base').fontSize as number) * 1.2,
-              },
-            ]}
-          >
+          <AppText className="mb-6 mt-2" lineHeight={1.2} style={{ color: getColor('text-gray-60') }}>
             {props.message}
           </AppText>
           <View className="flex-row justify-center">

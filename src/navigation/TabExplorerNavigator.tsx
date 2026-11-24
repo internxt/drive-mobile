@@ -10,7 +10,6 @@ import { paymentsSelectors, paymentsThunks } from 'src/store/slices/payments';
 import { runBackupCycleThunk } from 'src/store/slices/photos';
 import { storageThunks } from 'src/store/slices/storage';
 import { uiActions } from 'src/store/slices/ui';
-import { useTailwind } from 'tailwind-rn';
 import BottomTabNavigator from '../components/BottomTabNavigator';
 import FloatingActionButton, { FloatingActionButtonMode } from '../components/FloatingActionButton';
 import AddModal from '../components/modals/AddModal';
@@ -97,7 +96,6 @@ const TabFloatingButton = ({ onCompose }: { onCompose: () => void }): JSX.Elemen
 };
 
 export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExplorer'>): JSX.Element {
-  const tailwind = useTailwind();
   const dispatch = useAppDispatch();
   const getColor = useGetColor();
   const safeAreaInsets = useSafeAreaInsets();
@@ -141,9 +139,7 @@ export default function TabExplorerNavigator(props: RootStackScreenProps<'TabExp
   }
 
   return (
-    <View
-      style={{ ...tailwind('h-full'), backgroundColor: getColor('bg-surface'), paddingBottom: safeAreaInsets.bottom }}
-    >
+    <View className="h-full" style={{ backgroundColor: getColor('bg-surface'), paddingBottom: safeAreaInsets.bottom }}>
       <Tab.Navigator
         tabBar={(tabBarProps: BottomTabBarProps) => <BottomTabNavigator {...{ ...tabBarProps }} />}
         initialRouteName={LAUNCH_ON_ROUTE_ON_DEV_MODE || 'Home'}

@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, TouchableHighlight } from 'react-native';
-import { useTailwind } from 'tailwind-rn';
 import useGetColor from '../../hooks/useColor';
 
 interface BottomModalOptionProps {
@@ -12,7 +11,6 @@ interface BottomModalOptionProps {
 }
 
 const BottomModalOption = (props: BottomModalOptionProps): JSX.Element => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -20,7 +18,7 @@ const BottomModalOption = (props: BottomModalOptionProps): JSX.Element => {
       <TouchableHighlight
         disabled={props.disabled}
         onPress={props.onPress}
-        style={tailwind(`${props.disabled ? 'opacity-50' : ''} h-14 px-4`)}
+        className={`${props.disabled ? 'opacity-50' : ''} h-14 px-4`}
         underlayColor={props.onPress && getColor('text-gray-5')}
       >
         <View className="flex flex-row justify-center h-full flex-col w-full">

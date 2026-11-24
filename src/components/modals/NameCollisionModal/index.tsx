@@ -6,7 +6,6 @@ import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import { SelectionCheckbox } from 'src/components/drive/lists/items/SelectionCheckbox';
 import useGetColor from 'src/hooks/useColor';
-import { useTailwind } from 'tailwind-rn';
 import CenterModal from '../CenterModal';
 
 export type NameCollisionAction = 'replace' | 'keep-both';
@@ -35,7 +34,6 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
   onConfirm,
   onSkip,
 }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
   const [selectedAction, setSelectedAction] = useState<NameCollisionOption>('replace');
   const [isApplyToAllChecked, setIsApplyToAllChecked] = useState(false);
@@ -74,15 +72,7 @@ const NameCollisionModal: React.FC<NameCollisionModalProps> = ({
             {title}
           </AppText>
 
-          <AppText
-            style={[
-              tailwind('mb-5'),
-              {
-                color: getColor('text-gray-60'),
-                lineHeight: (tailwind('text-base').fontSize as number) * 1.4,
-              },
-            ]}
-          >
+          <AppText className="mb-5" lineHeight={1.4} style={{ color: getColor('text-gray-60') }}>
             {message}
           </AppText>
 
@@ -140,7 +130,6 @@ interface RadioOptionProps {
 }
 
 const RadioOption: React.FC<RadioOptionProps> = ({ label, selected, onPress }) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (

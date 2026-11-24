@@ -6,7 +6,6 @@ import { ActivityIndicator, TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import useGetColor from 'src/hooks/useColor';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
 
 export type TrashScreenHeaderProps = {
   onBackButtonPress: () => void;
@@ -16,7 +15,6 @@ export type TrashScreenHeaderProps = {
 };
 
 export const TrashScreenHeader: React.FC<TrashScreenHeaderProps> = (props) => {
-  const tailwind = useTailwind();
   const getColor = useGetColor();
 
   return (
@@ -29,7 +27,7 @@ export const TrashScreenHeader: React.FC<TrashScreenHeaderProps> = (props) => {
           {strings.screens.TrashScreen.title}
         </AppText>
       </View>
-      <View style={tailwind(`flex-1 items-end justify-center ${props.emptyTrashIsDisabled ? 'opacity-50' : ''}`)}>
+      <View className={`flex-1 items-end justify-center ${props.emptyTrashIsDisabled ? 'opacity-50' : ''}`}>
         <TouchableOpacity
           className="w-12 items-center"
           disabled={props.emptyTrashIsDisabled}

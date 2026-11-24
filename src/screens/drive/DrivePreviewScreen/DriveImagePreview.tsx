@@ -3,7 +3,7 @@ import React from 'react';
 
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { useTailwind } from 'tailwind-rn';
+import { StyleSheet } from 'react-native';
 
 export interface DriveImagePreviewProps {
   imagePath: string;
@@ -13,8 +13,6 @@ export interface DriveImagePreviewProps {
 }
 
 export const DriveImagePreview: React.FC<DriveImagePreviewProps> = (props) => {
-  const tailwind = useTailwind();
-
   const handleOnTapImage = () => {
     props.onTapImage();
   };
@@ -23,7 +21,7 @@ export const DriveImagePreview: React.FC<DriveImagePreviewProps> = (props) => {
     props.onZoomImage();
   };
   return (
-    <Animated.View style={tailwind('flex-1')} entering={FadeInDown.delay(150).duration(250)}>
+    <Animated.View style={styles.fill} entering={FadeInDown.delay(150).duration(250)}>
       <ImageViewer
         source={props.imagePath}
         onTapImage={handleOnTapImage}
@@ -35,3 +33,9 @@ export const DriveImagePreview: React.FC<DriveImagePreviewProps> = (props) => {
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  fill: {
+    flex: 1,
+  },
+});

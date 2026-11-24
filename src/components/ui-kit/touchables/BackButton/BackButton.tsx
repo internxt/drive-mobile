@@ -3,7 +3,7 @@ import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import AppText from 'src/components/AppText';
 import { INCREASED_TOUCH_AREA } from 'src/styles/global';
-import { useTailwind } from 'tailwind-rn';
+import useGetColor from 'src/hooks/useColor';
 
 export interface BackButtonProps {
   label: string;
@@ -11,8 +11,8 @@ export interface BackButtonProps {
 }
 
 export const BackButton: React.FC<BackButtonProps> = (props) => {
-  const tailwind = useTailwind();
-  const color = tailwind('text-primary').color as string;
+  const getColor = useGetColor();
+  const color = getColor('text-primary');
   const iconSize = 26;
   return (
     <View className="flex-1 mr-2">

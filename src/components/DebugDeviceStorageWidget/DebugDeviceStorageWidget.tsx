@@ -4,14 +4,12 @@ import React, { useEffect, useState } from 'react';
 import { View, ViewStyle } from 'react-native';
 import { titlerize } from 'src/helpers/strings';
 import fileSystemService, { UsageStatsResult } from 'src/services/FileSystemService';
-import { useTailwind } from 'tailwind-rn/dist';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
 import BottomModal from '../modals/BottomModal';
 import { cssInterop } from 'nativewind';
 
 export const DebugDeviceStorageWidget = ({ style }: { style?: ViewStyle; className?: string }) => {
-  const tailwind = useTailwind();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [usageData, setUsageData] = useState<UsageStatsResult | null>(null);
   useEffect(() => {
@@ -32,9 +30,7 @@ export const DebugDeviceStorageWidget = ({ style }: { style?: ViewStyle; classNa
           return (
             <View
               key={key}
-              style={tailwind(
-                `flex flex-row justify-between border-b border-gray-10 py-2 ${isTotal ? 'mt-8 border-0' : ''}`,
-              )}
+              className={`flex flex-row justify-between py-2 ${isTotal ? 'mt-8' : 'border-b border-gray-10'}`}
             >
               <AppText semibold={isTotal} className="w-1/3">
                 {titlerize(key)}

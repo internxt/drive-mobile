@@ -5,16 +5,16 @@ import strings from 'assets/lang/strings';
 import * as Clipboard from 'expo-clipboard';
 import { Check, Copy } from 'phosphor-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Keyboard, TextInput, View } from 'react-native';
+import { Animated, Keyboard, StyleSheet, TextInput, View } from 'react-native';
 import AppButton from 'src/components/AppButton';
 import AppText from 'src/components/AppText';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { driveActions } from 'src/store/slices/drive';
-import { useTailwind } from 'tailwind-rn';
 import { checkIsFolder } from '../../../helpers';
 import BottomModal from '../BottomModal';
 import { GeneratingLinkModal } from '../common/GeneratingLinkModal';
 import { animations } from './animations';
+import useGetColor from 'src/hooks/useColor';
 
 export interface SharedLinkSettingsModalProps {
   isOpen: boolean;
@@ -23,13 +23,14 @@ export interface SharedLinkSettingsModalProps {
 }
 
 const PASSWORD_PLACEHOLDER = 'xxxxxxxxxxxx';
+const ACTIONS_HORIZONTAL_PADDING = 20;
 export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = ({
   isOpen,
   onClose,
   isCreatingShareLink,
 }) => {
   const { keyboardHeight, keyboardShown } = useKeyboard();
-  const tailwind = useTailwind();
+  const getColor = useGetColor();
   const { focusedItem: item, focusedShareItem } = useAppSelector((state) => state.drive);
   const dispatch = useAppDispatch();
 
@@ -188,17 +189,21 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         </>
 
         <Animated.View
-          style={[tailwind('px-5 overflow-hidden'), { height: copyLinkActionsHeight, opacity: copyLinkActionsOpacity }]}
+          style={[styles.copyLinkActions, { height: copyLinkActionsHeight, opacity: copyLinkActionsOpacity }]}
         >
           <AppButton
             className="flex-1 mr-1"
             title={
               <View className="flex flex-row items-center">
                 {!generatedShareLink && (
-                  <Copy color={tailwind('text-white').color as string} style={tailwind('mr-2')} />
+                  <View className="mr-2">
+                    <Copy color={getColor('text-white')} />
+                  </View>
                 )}
                 {!isProcessingLink && generatedShareLink && (
-                  <Check color={tailwind('text-primary').color as string} style={tailwind('mr-2')} />
+                  <View className="mr-2">
+                    <Check color={getColor('text-primary')} />
+                  </View>
                 )}
                 <AppText
                   medium
@@ -215,19 +220,20 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
         </Animated.View>
         {/* <Animated.View
           style={[
-            tailwind('flex flex-row px-5 overflow-hidden'),
+            styles.copyLinkActions,
+            { flexDirection: 'row' },
             { height: saveActionsHeight, opacity: saveActionsOpacity },
           ]}
         >
           <AppButton
-            style={tailwind('flex-1 mr-1')}
+            className="flex-1 mr-1"
             title={strings.buttons.dismiss}
             type={'cancel'}
             onPress={handleDismiss}
           ></AppButton>
           <AppButton
             loading={isSaving}
-            style={tailwind('flex-1 ml-1')}
+            className="flex-1 ml-1"
             type="accept"
             title={strings.buttons.save}
             onPress={handleSaveShareLinkChanges}
@@ -237,3 +243,10 @@ export const SharedLinkSettingsModal: React.FC<SharedLinkSettingsModalProps> = (
     </>
   );
 };
+
+const styles = StyleSheet.create({
+  copyLinkActions: {
+    paddingHorizontal: ACTIONS_HORIZONTAL_PADDING,
+    overflow: 'hidden',
+  },
+});
