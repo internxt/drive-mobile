@@ -110,6 +110,7 @@ export interface PhotosScrubberResult {
   listRef: AnimatedRef<FlashListRef<TimelinePhotoItem>>;
   railTop: number;
   railHeight: number;
+  rowHeight: number;
   drag: ScrubberDragValues;
   yearMarkers: ScrubberYearMarker[];
   onScrubStart: (dragCount: number) => void;
@@ -449,6 +450,7 @@ export const usePhotosScrubber = ({
     listRef,
     railTop: SCRUBBER_RAIL_TOP_INSET,
     railHeight,
+    rowHeight,
     drag,
     yearMarkers: railMetrics.yearMarkers,
     onScrubStart,
