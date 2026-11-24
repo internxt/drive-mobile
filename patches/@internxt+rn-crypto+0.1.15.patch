@@ -18,3 +18,62 @@ index b8a2df0..1e77604 100644
  }
  
  dependencies {
+diff --git a/node_modules/@internxt/rn-crypto/android/src/main/java/com/rncrypto/RnCryptoModule.java b/node_modules/@internxt/rn-crypto/android/src/main/java/com/rncrypto/RnCryptoModule.java
+index 5cfa9b1..574c59d 100644
+--- a/node_modules/@internxt/rn-crypto/android/src/main/java/com/rncrypto/RnCryptoModule.java
++++ b/node_modules/@internxt/rn-crypto/android/src/main/java/com/rncrypto/RnCryptoModule.java
+@@ -34,6 +34,12 @@ public class RnCryptoModule extends ReactContextBaseJavaModule {
+     super(reactContext);
+   }
+ 
++  // A null or empty message would reach the JS callback as success.
++  private static String describeError(Exception error) {
++    String message = error.getMessage();
++    return message != null && !message.isEmpty() ? message : error.toString();
++  }
++
+   @Override
+   @NonNull
+   public String getName() {
+@@ -121,7 +127,7 @@ public class RnCryptoModule extends ReactContextBaseJavaModule {
+           if (ex == null) {
+             cb.invoke((Object) null);
+           } else {
+-            cb.invoke(ex);
++            cb.invoke(describeError(ex));
+           }
+         }
+       );
+@@ -155,7 +161,7 @@ public class RnCryptoModule extends ReactContextBaseJavaModule {
+           if (ex == null) {
+             cb.invoke((Object) null);
+           } else {
+-            cb.invoke(ex);
++            cb.invoke(describeError(ex));
+           }
+         }
+       );
+@@ -192,7 +198,7 @@ public class RnCryptoModule extends ReactContextBaseJavaModule {
+       }
+       cb.invoke((Object) null);
+     } catch (IOException e) {
+-      cb.invoke(e.getMessage());
++      cb.invoke(describeError(e));
+     } finally {
+       try {
+         if (outputStream != null) outputStream.close();
+@@ -280,12 +286,12 @@ public class RnCryptoModule extends ReactContextBaseJavaModule {
+             if (ex == null) {
+               cb.invoke((Object) null);
+             } else {
+-              cb.invoke(ex);
++              cb.invoke(describeError(ex));
+             }
+           }
+         );
+     } catch (Exception e) {
+-      cb.invoke(e.getMessage());
++      cb.invoke(describeError(e));
+     }
+   }
+ }
