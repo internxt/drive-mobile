@@ -242,14 +242,30 @@ export const buildFlatTimeline = (groups: TimelineDateGroup[]): FlatTimeline => 
   return { photos, boundaries };
 };
 
-export const findGroupForIndex = (boundaries: GroupBoundary[], itemIndex: number): GroupBoundary | undefined => {
-  let result: GroupBoundary | undefined;
-  for (const boundary of boundaries) {
-    if (boundary.startIndex <= itemIndex) {
-      result = boundary;
+/**
+ * Last item at or before the given index, or undefined when the index precedes every item. Runs a
+ * binary search.
+ *
+ * @param entries entries ordered by `startIndex` ascending.
+ * @param index item index in the flat timeline.
+ */
+export const findLastAtOrBefore = <T extends { startIndex: number }>(entries: T[], index: number): T | undefined => {
+  let low = 0;
+  let high = entries.length - 1;
+  let lastMatchingEntry: T | undefined;
+
+  while (low <= high) {
+    const middle = (low + high) >> 1;
+    if (entries[middle].startIndex <= index) {
+      lastMatchingEntry = entries[middle];
+      low = middle + 1;
     } else {
-      break;
+      high = middle - 1;
     }
   }
-  return result;
+
+  return lastMatchingEntry;
 };
+
+export const findGroupForIndex = (boundaries: GroupBoundary[], itemIndex: number): GroupBoundary | undefined =>
+  findLastAtOrBefore(boundaries, itemIndex);
