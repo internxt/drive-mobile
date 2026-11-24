@@ -11,7 +11,7 @@ import { generateThumbnail } from 'src/services/common/media/thumbnail.generatio
 import { uploadService } from 'src/services/common/network/upload/upload.service';
 import { photoBackupFolders } from './PhotoBackupFolders';
 import { exportLivePhotoComponents } from './LivePhotoNativeModule';
-import { PhotoUploadService } from './PhotoUploadService';
+import { PhotoUploadService, uploadCurrentPairedVideo } from './PhotoUploadService';
 
 jest.mock('expo-media-library/legacy', () => ({
   getAssetInfoAsync: jest.fn(),
@@ -278,6 +278,18 @@ describe('PhotoUploadService.upload', () => {
     expect(result.photoUuid).toBe('recovered-uuid');
   });
 
+  test('when a photo with its name appears in Drive while the photo is being uploaded, then the uploaded content is not recorded as its content', async () => {
+    mockCheckFileExistence
+      .mockResolvedValueOnce({ existentFiles: [] })
+      .mockResolvedValueOnce({ existentFiles: [{ uuid: 'recovered-uuid' }] });
+    mockCreateFileEntry.mockRejectedValueOnce({ status: 409 });
+    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
+
+    const result = await PhotoUploadService.upload(makeAsset(), DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(result.contentFileId).toBeUndefined();
+  });
+
   test('when createFileEntry returns a 409 conflict and checkFileExistence finds nothing, then the original error is rethrown', async () => {
     mockCheckFileExistence.mockResolvedValueOnce({ existentFiles: [] }).mockResolvedValueOnce({ existentFiles: [] });
     mockCreateFileEntry.mockRejectedValueOnce({ status: 409 });
@@ -357,6 +369,23 @@ describe('PhotoUploadService.replace', () => {
 
     expect(mockCreateFileEntry).toHaveBeenCalledTimes(1);
     expect(result.photoUuid).toBe('new-drive-uuid');
+  });
+
+  test('when the replaced photo is gone from Drive and a photo with its name is already there, then that photo gets the new content', async () => {
+    mockReplaceFileEntry
+      .mockRejectedValueOnce(new AppError('file can not be replaced', 400))
+      .mockResolvedValueOnce(undefined);
+    mockCreateFileEntry.mockRejectedValueOnce({ status: 409 });
+    mockCheckFileExistence.mockResolvedValueOnce({ existentFiles: [{ uuid: 'same-name-uuid' }] });
+    mockUploadFile.mockReset().mockResolvedValueOnce('bucket-file-id');
+
+    const result = await PhotoUploadService.replace(makeAsset(), 'deleted-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(mockReplaceFileEntry).toHaveBeenLastCalledWith(
+      'same-name-uuid',
+      expect.objectContaining({ fileId: 'bucket-file-id' }),
+    );
+    expect(result.photoUuid).toBe('same-name-uuid');
   });
 
   test('when the server rejects the replace with a 400 and a new entry is created, then the thumbnail is registered against the new file uuid', async () => {
@@ -536,5 +565,100 @@ describe('PhotoUploadService.replace of a Live Photo', () => {
       expect.objectContaining({ fileId: 'video-bucket-file-id', type: 'mov' }),
     );
     expect(result.pairedVideoUuid).toBe('new-video-uuid');
+  });
+
+  test('when an edited Live Photo without a video id is replaced and a video with its name is already in Drive, then that video gets the new content instead of being reused', async () => {
+    mockCheckFileExistence.mockResolvedValue({ existentFiles: [{ uuid: 'same-name-video-uuid' }] });
+
+    const result = await PhotoUploadService.replace(makeLivePhotoAsset(), 'photo-remote-id', DEVICE_ID, PHOTOS_BUCKET);
+
+    expect(mockReplaceFileEntry).toHaveBeenCalledWith(
+      'same-name-video-uuid',
+      expect.objectContaining({
+        fileId: 'video-bucket-file-id',
+      }),
+    );
+    expect(result.pairedVideoUuid).toBe('same-name-video-uuid');
+  });
+});
+
+describe('uploading the current video of a Live Photo', () => {
+  const credentials = { bucketId: PHOTOS_BUCKET, encryptionKey: 'key', bridgeUser: 'user', bridgePass: 'pass' };
+  const videoParams = {
+    videoLocalPath: '/tmp/video.mov',
+    videoFileName: 'FullSizeRender.mov',
+    photoPlainName: 'IMG_0001',
+    folderUuid: 'folder-uuid',
+    creationIso: '2026-01-01T00:00:00.000Z',
+    modificationIso: '2026-01-02T00:00:00.000Z',
+    credentials,
+  };
+
+  beforeEach(() => {
+    mockUploadFile.mockReset().mockResolvedValue('video-bucket-file-id');
+  });
+
+  test('when the Live Photo already has a video in Drive, then the content of that video is replaced', async () => {
+    const videoUuid = await uploadCurrentPairedVideo({ ...videoParams, existingPairedVideoRemoteFileId: 'video-uuid' });
+
+    expect(mockReplaceFileEntry).toHaveBeenCalledWith(
+      'video-uuid',
+      expect.objectContaining({
+        fileId: 'video-bucket-file-id',
+      }),
+    );
+    expect(mockCheckFileExistence).not.toHaveBeenCalled();
+    expect(videoUuid).toBe('video-uuid');
+  });
+
+  test('when the Live Photo has no video in Drive and none has its name, then the video is uploaded as a new file', async () => {
+    mockCreateFileEntry.mockResolvedValue({ uuid: 'new-video-uuid' });
+
+    const videoUuid = await uploadCurrentPairedVideo(videoParams);
+
+    expect(mockCreateFileEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ fileId: 'video-bucket-file-id', plainName: 'IMG_0001.livephoto', type: 'mov' }),
+    );
+    expect(mockReplaceFileEntry).not.toHaveBeenCalled();
+    expect(videoUuid).toBe('new-video-uuid');
+  });
+
+  test('when the Live Photo has no video id but a video with its name is in Drive, then that video gets the current content', async () => {
+    mockCheckFileExistence.mockResolvedValue({ existentFiles: [{ uuid: 'same-name-video-uuid' }] });
+
+    const videoUuid = await uploadCurrentPairedVideo(videoParams);
+
+    expect(mockReplaceFileEntry).toHaveBeenCalledWith(
+      'same-name-video-uuid',
+      expect.objectContaining({
+        fileId: 'video-bucket-file-id',
+      }),
+    );
+    expect(videoUuid).toBe('same-name-video-uuid');
+  });
+
+  test('when a video with its name appears in Drive while the video is being uploaded, then that video gets the current content', async () => {
+    mockCheckFileExistence
+      .mockResolvedValueOnce({ existentFiles: [] })
+      .mockResolvedValueOnce({ existentFiles: [{ uuid: 'same-name-video-uuid' }] });
+    mockCreateFileEntry.mockRejectedValueOnce({ status: 409 });
+
+    const videoUuid = await uploadCurrentPairedVideo(videoParams);
+
+    expect(mockReplaceFileEntry).toHaveBeenCalledWith(
+      'same-name-video-uuid',
+      expect.objectContaining({
+        fileId: 'video-bucket-file-id',
+      }),
+    );
+    expect(videoUuid).toBe('same-name-video-uuid');
+  });
+
+  test('when the upload is cancelled, then the cancellation reaches the caller', async () => {
+    mockUploadFile.mockReset().mockRejectedValue(new AbortError());
+
+    await expect(
+      uploadCurrentPairedVideo({ ...videoParams, existingPairedVideoRemoteFileId: 'video-uuid' }),
+    ).rejects.toBeInstanceOf(AbortError);
   });
 });
