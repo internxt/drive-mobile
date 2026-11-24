@@ -153,7 +153,8 @@ const getCopyOfContent = async (
   if (await fileSystemService.exists(cachePath)) {
     return cachePath;
   }
-  const outdatedCopies = await findCachedCopies(remoteFileId);
+  const cachedCopies = await findCachedCopies(remoteFileId);
+  const outdatedCopies = cachedCopies.filter((cachedCopy) => cachedCopy.path !== cachePath);
   for (const outdatedCopy of outdatedCopies) {
     await fileSystemService.unlinkIfExists(outdatedCopy.path);
   }
