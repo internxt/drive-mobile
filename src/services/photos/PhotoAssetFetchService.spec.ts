@@ -126,14 +126,36 @@ describe('fetchUri — local item', () => {
 });
 
 describe('fetchUri — cloud item', () => {
-  test('when asset is already cached, then downloadFile is not called and the cached URI is returned', async () => {
+  test('when the saved content is already cached, then it is returned without downloading', async () => {
+    mockGetCloudAssetById.mockResolvedValue({ fileId: 'file-id-123', fileSize: 500_000, bucket: 'photos-bucket' });
     mockExists.mockResolvedValue(true);
-    (fileSystemService.pathToUri as jest.Mock).mockReturnValue('file:///cache/photo_preview/cloud-uuid-1.jpg');
 
     const result = await PhotoAssetFetchService.fetchUri(makeCloudItem(), makeSignal());
 
     expect(mockDownloadFile).not.toHaveBeenCalled();
-    expect(result).toBe('file:///cache/photo_preview/cloud-uuid-1.jpg');
+    expect(result).toBe('file:///cache/photo_preview/cloud-uuid-1.file-id-123.jpg');
+  });
+
+  test('when only a copy with other content is cached, then that copy is deleted and the saved content is downloaded', async () => {
+    mockGetCloudAssetById.mockResolvedValue({ fileId: 'file-id-123', fileSize: 500_000, bucket: 'photos-bucket' });
+    mockExists.mockImplementation(async (path: string) => path === '/cache/photo_preview/');
+    mockReadDir.mockResolvedValue([
+      { name: 'cloud-uuid-1.jpg', path: '/cache/photo_preview/cloud-uuid-1.jpg' },
+      { name: 'other-uuid.jpg', path: '/cache/photo_preview/other-uuid.jpg' },
+    ]);
+
+    const result = await PhotoAssetFetchService.fetchUri(makeCloudItem(), makeSignal());
+
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledTimes(1);
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith('/cache/photo_preview/cloud-uuid-1.jpg');
+    expect(mockDownloadFile).toHaveBeenCalledWith(
+      expect.anything(),
+      'photos-bucket',
+      'file-id-123',
+      expect.objectContaining({ downloadPath: '/cache/photo_preview/cloud-uuid-1.file-id-123.jpg' }),
+      500_000,
+    );
+    expect(result).toBe('file:///cache/photo_preview/cloud-uuid-1.file-id-123.jpg');
   });
 
   test('when asset is not cached and has no fileId in the database, then null is returned without downloading', async () => {
@@ -148,7 +170,6 @@ describe('fetchUri — cloud item', () => {
   test('when asset is not cached and has a fileId, then downloadFile is called with the asset bucket and the cache path is returned', async () => {
     mockGetCloudAssetById.mockResolvedValue({ fileId: 'file-id-123', fileSize: 500_000, bucket: 'photos-bucket' });
     mockGetUser.mockResolvedValue({ bucket: 'drive-root-bucket', mnemonic: 'mnemonic' });
-    (fileSystemService.pathToUri as jest.Mock).mockReturnValue('file:///cache/photo_preview/cloud-uuid-1.jpg');
 
     const result = await PhotoAssetFetchService.fetchUri(makeCloudItem(), makeSignal());
 
@@ -156,10 +177,10 @@ describe('fetchUri — cloud item', () => {
       expect.anything(),
       'photos-bucket',
       'file-id-123',
-      expect.objectContaining({ downloadPath: '/cache/photo_preview/cloud-uuid-1.jpg' }),
+      expect.objectContaining({ downloadPath: '/cache/photo_preview/cloud-uuid-1.file-id-123.jpg' }),
       500_000,
     );
-    expect(result).toBe('file:///cache/photo_preview/cloud-uuid-1.jpg');
+    expect(result).toBe('file:///cache/photo_preview/cloud-uuid-1.file-id-123.jpg');
   });
 
   test('when asset is not cached but has no bucket, then null is returned without downloading', async () => {
@@ -271,30 +292,52 @@ describe('getting the video of a Live Photo that is only in the cloud', () => {
     fileSize: 100,
     extension: 'mov',
   };
+  const savedPhoto = { remoteFileId: 'cloud-uuid-1', fileId: 'photo-content', bucket: 'photos-bucket', fileSize: 50 };
   const livePhoto = makeCloudItem({ isLivePhoto: true, pairedVideoRemoteFileId: 'video-uuid' });
   const cachedCopy = (name: string) => ({ name, path: `${PREVIEW_DIR}${name}` });
+  const currentPhotoCopy = 'cloud-uuid-1.photo-content.jpg';
+  const givenCachedCopies = (names: string[]) => {
+    mockReadDir.mockResolvedValue(names.map(cachedCopy));
+    mockExists.mockImplementation(
+      async (path: string) => path === PREVIEW_DIR || names.some((name) => `${PREVIEW_DIR}${name}` === path),
+    );
+  };
+  const givenDriveContent = (contentByRemoteFileId: Record<string, { fileId: string; size: string }>) => {
+    mockGetFileMetadata.mockImplementation(async (remoteFileId: string) => ({
+      ...contentByRemoteFileId[remoteFileId],
+      bucket: 'photos-bucket',
+    }));
+  };
 
   beforeEach(() => {
-    mockExists.mockResolvedValue(true);
     mockGetCloudAssetById.mockImplementation(async (remoteFileId: string) =>
-      remoteFileId === 'video-uuid' ? savedVideo : { fileId: 'photo-content', bucket: 'photos-bucket' },
+      remoteFileId === 'video-uuid' ? savedVideo : savedPhoto,
     );
-    mockReadDir.mockResolvedValue([]);
+    givenCachedCopies([currentPhotoCopy]);
   });
 
   test('when the cached copy has the content Drive has now, then it is used without downloading', async () => {
-    mockGetFileMetadata.mockResolvedValue({ fileId: 'old-content', bucket: 'photos-bucket', size: '100' });
-    mockReadDir.mockResolvedValue([cachedCopy('video-uuid.old-content.mov')]);
+    givenDriveContent({
+      'cloud-uuid-1': { fileId: 'photo-content', size: '50' },
+      'video-uuid': { fileId: 'old-content', size: '100' },
+    });
+    givenCachedCopies([currentPhotoCopy, 'video-uuid.old-content.mov']);
 
     const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
 
-    expect(result?.videoPath).toBe(`${PREVIEW_DIR}video-uuid.old-content.mov`);
+    expect(result).toEqual({
+      photoPath: `${PREVIEW_DIR}${currentPhotoCopy}`,
+      videoPath: `${PREVIEW_DIR}video-uuid.old-content.mov`,
+    });
     expect(mockDownloadFile).not.toHaveBeenCalled();
   });
 
   test('when the video was replaced in Drive, then the old copies are deleted, the new content is downloaded and saved as the current one', async () => {
-    mockGetFileMetadata.mockResolvedValue({ fileId: 'new-content', bucket: 'photos-bucket', size: '200' });
-    mockReadDir.mockResolvedValue([cachedCopy('video-uuid.old-content.mov'), cachedCopy('video-uuid.MOV')]);
+    givenDriveContent({
+      'cloud-uuid-1': { fileId: 'photo-content', size: '50' },
+      'video-uuid': { fileId: 'new-content', size: '200' },
+    });
+    givenCachedCopies([currentPhotoCopy, 'video-uuid.old-content.mov', 'video-uuid.MOV']);
 
     const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
 
@@ -315,7 +358,7 @@ describe('getting the video of a Live Photo that is only in the cloud', () => {
 
   test('when Drive cannot be asked and a copy is cached, then that copy is used', async () => {
     mockGetFileMetadata.mockRejectedValue(new Error('Network Error'));
-    mockReadDir.mockResolvedValue([cachedCopy('video-uuid.mov')]);
+    givenCachedCopies([currentPhotoCopy, 'video-uuid.mov']);
 
     const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
 
@@ -323,12 +366,35 @@ describe('getting the video of a Live Photo that is only in the cloud', () => {
     expect(mockDownloadFile).not.toHaveBeenCalled();
   });
 
+  test('when the photo was edited on another device and the old photo is cached, then the new photo is saved with the video', async () => {
+    givenDriveContent({
+      'cloud-uuid-1': { fileId: 'edited-photo', size: '60' },
+      'video-uuid': { fileId: 'old-content', size: '100' },
+    });
+    givenCachedCopies(['cloud-uuid-1.jpg', 'video-uuid.old-content.mov']);
+
+    const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
+
+    expect(fileSystemService.unlinkIfExists).toHaveBeenCalledWith(`${PREVIEW_DIR}cloud-uuid-1.jpg`);
+    expect(mockDownloadFile).toHaveBeenCalledTimes(1);
+    expect(mockDownloadFile).toHaveBeenCalledWith(
+      expect.anything(),
+      'photos-bucket',
+      'edited-photo',
+      expect.objectContaining({ downloadPath: `${PREVIEW_DIR}cloud-uuid-1.edited-photo.jpg` }),
+      60,
+    );
+    expect(mockUpsertCloudAsset).toHaveBeenCalledWith(
+      expect.objectContaining({ remoteFileId: 'cloud-uuid-1', fileId: 'edited-photo', fileSize: 60 }),
+    );
+    expect(result).toEqual({
+      photoPath: `${PREVIEW_DIR}cloud-uuid-1.edited-photo.jpg`,
+      videoPath: `${PREVIEW_DIR}video-uuid.old-content.mov`,
+    });
+  });
+
   test('when the cached copies of a video are removed, then every copy of that video is deleted in either name format and no other file is touched', async () => {
-    mockReadDir.mockResolvedValue([
-      cachedCopy('video-uuid.mov'),
-      cachedCopy('video-uuid.old-content.mov'),
-      cachedCopy('other-video-uuid.mov'),
-    ]);
+    givenCachedCopies(['video-uuid.mov', 'video-uuid.old-content.mov', 'other-video-uuid.mov']);
 
     await PhotoAssetFetchService.evictCachedPairedVideo('video-uuid');
 
@@ -339,6 +405,7 @@ describe('getting the video of a Live Photo that is only in the cloud', () => {
 
   test('when Drive cannot be asked and no copy is cached, then the saved content is downloaded', async () => {
     mockGetFileMetadata.mockRejectedValue(new Error('Network Error'));
+    givenCachedCopies([]);
 
     const result = await PhotoAssetFetchService.fetchLivePhotoComponents(livePhoto, makeSignal());
 
