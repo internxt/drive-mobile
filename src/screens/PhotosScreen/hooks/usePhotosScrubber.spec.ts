@@ -96,6 +96,31 @@ describe('photos scrubber', () => {
     expect(result.current.yearMarkers[0]).toEqual({ label: '2025', y: (year2025EndOffset / maxScroll) * railHeight });
   });
 
+  test('when the list rounds its rows to whole pixels, then the row height is the measured one and not the column width', () => {
+    const itemCount = 450;
+    const pixelRatio = 3;
+    const roundedRowPhysicalPixels = 427;
+    const pixelRoundedRowHeight = roundedRowPhysicalPixels / pixelRatio;
+    const { result } = renderHook(() =>
+      usePhotosScrubber({
+        listRef: Object.assign(jest.fn(), { observe: jest.fn() }) as never,
+        boundaries,
+        itemCount,
+        measuredContent: {
+          height: CONTENT_TOP_INSET + (itemCount / NUM_COLUMNS) * pixelRoundedRowHeight + LIST_PADDING_BOTTOM,
+          itemCount,
+        },
+        contentTopInset: CONTENT_TOP_INSET,
+        containerHeight: CONTAINER_HEIGHT,
+        numColumns: NUM_COLUMNS,
+        listPaddingBottom: LIST_PADDING_BOTTOM,
+        isEnabled: true,
+      }),
+    );
+
+    expect(result.current.rowHeight).toBeCloseTo(pixelRoundedRowHeight);
+  });
+
   test('when the timeline spans several months, then the drag has one label per month in timeline order', () => {
     const { result } = renderScrubber();
 
