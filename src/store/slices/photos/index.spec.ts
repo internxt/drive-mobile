@@ -1881,7 +1881,9 @@ describe('photos slice', () => {
       });
 
       test('when a retried video is uploaded, then the cached copies of the older video are deleted and its month is reloaded from the cloud', async () => {
-        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockPhotosLocalDB.getIncompleteLivePhotos
+          .mockResolvedValueOnce([{ assetId: 'live-1' }] as never)
+          .mockResolvedValue([] as never);
         mockRetryIncompleteLivePhotos.mockImplementationOnce(async ({ onPairedVideoUploaded }) => {
           await onPairedVideoUploaded({ creationTime: 1000, previousPairedVideoUuid: 'old-video-uuid' });
           return { completedCount: 1, isQuotaExceeded: false };
@@ -1895,7 +1897,9 @@ describe('photos slice', () => {
       });
 
       test('when a retried video is uploaded for a Live Photo that had no video, then nothing is deleted from the cache and its month is reloaded', async () => {
-        mockPhotosLocalDB.getIncompleteLivePhotos.mockResolvedValue([{ assetId: 'live-1' }] as never);
+        mockPhotosLocalDB.getIncompleteLivePhotos
+          .mockResolvedValueOnce([{ assetId: 'live-1' }] as never)
+          .mockResolvedValue([] as never);
         mockRetryIncompleteLivePhotos.mockImplementationOnce(async ({ onPairedVideoUploaded }) => {
           await onPairedVideoUploaded({ creationTime: 1000, previousPairedVideoUuid: null });
           return { completedCount: 1, isQuotaExceeded: false };
