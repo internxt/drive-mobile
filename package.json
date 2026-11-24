@@ -24,9 +24,7 @@
     "test:e2e:test:android.debug": "detox test -c android.debug",
     "test:e2e:test:android.release": "detox test -c android.release",
     "test:e2e:test:ios.debug": "detox test -c ios.debug",
-    "test:e2e:test:ios.release": "detox test -c ios.release",
-    "tailwind:dev": "concurrently \"tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer --watch\" \"tailwind-rn --watch  -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json\"",
-    "tailwind:build": "tailwindcss --input ./src/styles/input.css --output ./src/styles/tailwind.css --no-autoprefixer && tailwind-rn -i ./src/styles/tailwind.css -o ./src/styles/tailwind.json"
+    "test:e2e:test:ios.release": "detox test -c ios.release"
   },
   "dependencies": {
     "@burstware/react-native-portal": "^1.0.2",
@@ -139,7 +137,6 @@
     "sanitize-html": "^2.18.1",
     "socket.io-client": "^4.8.3",
     "stream-browserify": "^3.0.0",
-    "tailwind-rn": "^4.2.0",
     "unorm": "^1.6.0",
     "usehooks-ts": "^3.1.1",
     "yup": "^1.7.1"
@@ -164,7 +161,6 @@
     "autoprefixer": "^10.4.23",
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-preset-expo": "~57.0.0",
-    "concurrently": "^9.2.1",
     "detox": "^19.7.0",
     "eslint": "^8.8.0",
     "hash-wasm": "^4.11.0",

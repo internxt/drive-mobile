@@ -36,8 +36,6 @@ jest.mock('../../LoadingSpinner', () => ({
   default: () => null,
 }));
 
-jest.mock('tailwind-rn', () => ({ useTailwind: () => () => ({}) }));
-
 jest.mock('../../../hooks/useColor', () => ({
   __esModule: true,
   default: () => () => '#000000',

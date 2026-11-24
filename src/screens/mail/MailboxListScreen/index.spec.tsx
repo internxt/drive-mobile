@@ -41,8 +41,6 @@ jest.mock('../components/MailListSkeleton', () => {
   return { MailListSkeleton: () => <MockView testID="mail-list-skeleton" /> };
 });
 
-jest.mock('tailwind-rn', () => ({ useTailwind: () => () => ({}) }));
-
 jest.mock('../../../hooks/useColor', () => ({
   __esModule: true,
   default: () => () => '#000000',

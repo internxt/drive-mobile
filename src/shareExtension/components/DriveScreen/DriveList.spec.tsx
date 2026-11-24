@@ -4,10 +4,6 @@ import { FlatList, StyleSheet } from 'react-native';
 import strings from '../../../../assets/lang/strings';
 import { DriveList, DriveListItem } from './DriveList';
 
-jest.mock('tailwind-rn', () => ({
-  useTailwind: () => () => ({}),
-}));
-
 jest.mock('src/components/DriveItemSkinSkeleton', () => {
   const { View } = jest.requireActual('react-native');
   return { __esModule: true, default: () => <View testID="drive-item-skeleton" /> };

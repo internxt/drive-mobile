@@ -31,8 +31,6 @@ jest.mock('@internxt-mobile/services/common/logger/logger.service', () => ({
   logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
 }));
 
-jest.mock('tailwind-rn', () => ({ useTailwind: () => () => ({}) }));
-
 jest.mock('../../../hooks/useColor', () => ({
   __esModule: true,
   default: () => () => '#000000',

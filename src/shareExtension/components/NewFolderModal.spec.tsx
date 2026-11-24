@@ -3,8 +3,6 @@ import { act, fireEvent, render, RenderResult, waitFor } from '@testing-library/
 import strings from '../../../assets/lang/strings';
 import { NewFolderModal } from './NewFolderModal';
 
-jest.mock('tailwind-rn', () => ({ useTailwind: () => () => ({}) }));
-
 jest.mock('../theme', () => ({
   fontStyles: { semibold: {} },
   useShareColors: () => ({}),

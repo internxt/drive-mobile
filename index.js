@@ -14,13 +14,11 @@ import { registerRootComponent } from 'expo';
 import { createElement } from 'react';
 import { enableScreens } from 'react-native-screens';
 import { Provider } from 'react-redux';
-import { TailwindProvider } from 'tailwind-rn';
 
 // App imports
 import App from './src/App';
 import plugins from './src/plugins';
 import store from './src/store';
-import utilities from './src/styles/tailwind.json';
 
 enableScreens(false);
 
@@ -35,6 +33,4 @@ if (globalThis.btoa === undefined) {
 // Installs plugins
 plugins.forEach((plugin) => plugin.install(store));
 
-registerRootComponent(() =>
-  createElement(Provider, { store }, createElement(TailwindProvider, { utilities }, createElement(App))),
-);
+registerRootComponent(() => createElement(Provider, { store }, createElement(App)));
