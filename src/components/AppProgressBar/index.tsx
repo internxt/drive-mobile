@@ -1,11 +1,14 @@
 import { StyleProp, View, ViewStyle } from 'react-native';
 import { Bar as ProgressBar } from 'react-native-progress';
 import { useTailwind } from 'tailwind-rn';
+import { cssInterop } from 'nativewind';
 interface AppProgressBarProps {
   currentValue: number;
   totalValue: number;
   style?: StyleProp<ViewStyle>;
+  className?: string;
   progressStyle?: StyleProp<ViewStyle>;
+  progressClassName?: string;
   animateWidth?: boolean;
   height?: number;
   borderRadius?: number;
@@ -28,3 +31,5 @@ export default function AppProgressBar(props: AppProgressBarProps): JSX.Element 
     </View>
   );
 }
+
+cssInterop(AppProgressBar, { className: 'style', progressClassName: 'progressStyle' });

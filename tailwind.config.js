@@ -1,5 +1,6 @@
 module.exports = {
   content: ['./src/**/*.tsx'],
+  presets: [require('nativewind/preset')],
   theme: {
     colors: {
       transparent: 'rgba(0,0,0,0)',

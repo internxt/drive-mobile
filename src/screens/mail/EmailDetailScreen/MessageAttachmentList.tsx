@@ -56,6 +56,7 @@ export const MessageAttachmentList = ({
             accessibilityLabel={attachment.name}
             disabled={isDisabled}
             onPress={() => onPressAttachment(attachment)}
+            cssInterop={false}
             style={({ pressed }) => [
               tailwind('flex-row items-center rounded-2xl mt-2'),
               {

@@ -8,9 +8,11 @@ import notificationsService from '../../services/NotificationsService';
 import { NotificationType } from '../../types';
 import AppButton from '../AppButton';
 import AppText from '../AppText';
+import { cssInterop } from 'nativewind';
 
 interface DebugNotificationsWidgetProps {
   style?: StyleProp<ViewStyle>;
+  className?: string;
 }
 
 const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Element => {
@@ -75,5 +77,7 @@ const DebugNotificationsWidget = (props: DebugNotificationsWidgetProps): JSX.Ele
     </View>
   );
 };
+
+cssInterop(DebugNotificationsWidget, { className: 'style' });
 
 export default DebugNotificationsWidget;
