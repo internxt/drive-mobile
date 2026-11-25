@@ -1,6 +1,5 @@
 import { useState } from 'react';
 
-import drive from '@internxt-mobile/services/drive';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import strings from '../../assets/lang/strings';
 import notificationsService from '../services/NotificationsService';
@@ -10,6 +9,7 @@ import { uiActions } from '../store/slices/ui';
 import { NotificationType } from '../types';
 import { DriveItemData, DriveItemStatus } from '../types/drive/item';
 import { SharedFiles, SharedFolders } from '../types/drive/shared';
+import { useOpenFilePreview } from './drive/useOpenFilePreview';
 
 type SharedItem = SharedFiles & SharedFolders;
 
@@ -33,6 +33,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
   const dispatch = useAppDispatch();
   const route = useRoute();
   const navigation = useNavigation();
+  const openFilePreview = useOpenFilePreview();
   const [isDisabled, setIsDisabled] = useState(false);
   const isFolder = props.data.isFolder;
   const isIdle = props.status === DriveItemStatus.Idle;
@@ -60,42 +61,11 @@ const useDriveItem = (props: UseDriveItemProps) => {
     }
 
     setIsDisabled(true);
-    dispatch(
-      driveActions.setFocusedItem({
-        ...props.data,
-        uuid: props.data.uuid,
-        folderUuid: props.data.folderUuid ?? undefined,
-        bucket: props.data?.bucket ?? undefined,
-        shareId: props.data.shareId,
-        size: props.data.size,
-        updatedAt: props.data.updatedAt,
-        isFolder: props.data.isFolder,
-      }),
-    );
-    const thunk = dispatch(
-      driveThunks.downloadFileThunk({
-        ...props.data,
-        bucketId: props.data.bucket as string,
-        size: props.data.size as number,
-        folderUuid: props.data.folderUuid ?? undefined,
-        name: props.data.name,
-        type: props.data.type as string,
-        fileId: props.data.fileId as string,
-        openFileViewer: false,
-      }),
-    );
+    const downloadPromise = openFilePreview(props.data);
 
-    const downloadAbort = () => {
-      thunk.abort();
-    };
-
-    drive.events.setDownloadAbort(downloadAbort);
-
-    thunk.then(() => {
+    downloadPromise.then(() => {
       setIsDisabled(false);
     });
-
-    navigation.navigate('DrivePreview');
   };
   const onItemPressed = () => {
     if (isDisabled) {
