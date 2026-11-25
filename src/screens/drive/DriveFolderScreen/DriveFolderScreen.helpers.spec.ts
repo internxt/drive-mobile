@@ -1,6 +1,6 @@
 import type { DriveFoldersTreeNode } from '../../../contexts/Drive/Drive.context';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { canLoadNextPage, hasSelectedFolder } from './DriveFolderScreen.helpers';
+import { canLoadNextPage, getPreviewFiles, hasSelectedFolder } from './DriveFolderScreen.helpers';
 
 const aFolderNode = (overrides: Partial<DriveFoldersTreeNode> = {}): DriveFoldersTreeNode => ({
   name: 'Invoices',
@@ -45,5 +45,31 @@ describe('Checking whether the selection contains a folder', () => {
 
   test('when only files are selected, then the selection does not count as containing a folder', () => {
     expect(hasSelectedFolder(items, new Set(['file-uuid']))).toBe(false);
+  });
+});
+
+describe('Building the list of files to swipe through in the preview', () => {
+  const buildListItem = (uuid: string, isFolder: boolean, status = DriveItemStatus.Idle) =>
+    ({ id: uuid, status, data: { uuid, isFolder } }) as DriveListItem;
+
+  test('when the folder shows folders and files, then the list holds only the files', () => {
+    const shownItems = [buildListItem('folder-uuid', true), buildListItem('file-uuid', false)];
+
+    expect(getPreviewFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-uuid']);
+  });
+
+  test('when the folder shows several files, then the list keeps the order shown on screen', () => {
+    const shownItems = [buildListItem('file-b', false), buildListItem('file-a', false), buildListItem('file-c', false)];
+
+    expect(getPreviewFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-b', 'file-a', 'file-c']);
+  });
+
+  test('when a file is still uploading, then it is left out of the list', () => {
+    const shownItems = [
+      buildListItem('uploading-file', false, DriveItemStatus.Uploading),
+      buildListItem('file-uuid', false),
+    ];
+
+    expect(getPreviewFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-uuid']);
   });
 });

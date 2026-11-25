@@ -49,6 +49,14 @@ export const hasUnloadedPages = (folderNode: DriveFoldersTreeNode | undefined): 
 
 export const canSelectDriveItem = (item: DriveListItem): boolean => item.status === DriveItemStatus.Idle;
 
+/**
+ * Returns the data of the idle files in the list, in the same order, leaving out folders and uploads in progress.
+ */
+export const getPreviewFiles = (driveListItems: DriveListItem[]): DriveItemData[] =>
+  driveListItems
+    .filter((driveListItem) => !driveListItem.data.isFolder && driveListItem.status === DriveItemStatus.Idle)
+    .map((driveListItem) => driveListItem.data);
+
 export const hasSelectedFolder = (items: DriveListItem[], selectedUuids: Set<string>): boolean =>
   items.some((item) => item.data.isFolder && selectedUuids.has(item.data.uuid));
 

@@ -29,6 +29,7 @@ import {
   buildFolderUploadListItem,
   canLoadNextPage,
   canSelectDriveItem,
+  getPreviewFiles,
   hasUnloadedPages,
   isFolderUploadItem,
   hasSelectedFolder,
@@ -164,6 +165,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     }
     return driveSortedItems;
   }, [driveSortedItems, searchValue]);
+  const previewFiles = useMemo(() => getPreviewFiles(driveItems), [driveItems]);
 
   const folderItemUuids = useMemo(() => folderContent.map((item) => item.data.uuid), [folderContent]);
   const visibleItemUuids = useMemo(
@@ -226,7 +228,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       });
       return;
     }
-    openFilePreview(driveFile.data);
+    openFilePreview(driveFile.data, previewFiles);
   };
 
   const handleDriveItemPress = useStableCallback((driveItem: DriveListItem) => {

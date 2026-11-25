@@ -1,5 +1,5 @@
 import lodash from 'lodash';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 
 import strings from '../../../../assets/lang/strings';
@@ -16,7 +16,7 @@ import * as useCases from '@internxt-mobile/useCases/drive';
 import EmptyRecentsImage from 'assets/images/screens/empty-recents.svg';
 import NoResultsImage from 'assets/images/screens/no-results.svg';
 import { checkIsFolder } from '../../../helpers';
-import { DriveItemStatus } from '../../../types/drive/item';
+import { DriveItemData, DriveItemStatus } from '../../../types/drive/item';
 
 interface RecentsScreenProps {
   searchText?: string;
@@ -58,9 +58,20 @@ export function RecentsScreen({
     setRefreshing(false);
   };
 
-  const renderContent = () => {
-    const recentsToRender = searchText ? useCases.filterRecentItems(recentItems, searchText) : recentItems;
+  const recentsToRender = useMemo(
+    () => (searchText ? useCases.filterRecentItems(recentItems, searchText) : recentItems),
+    [recentItems, searchText],
+  );
+  const recentDriveItems = useMemo<DriveItemData[]>(
+    () => (recentsToRender ?? []).map((recentItem) => ({ ...recentItem, isFolder: checkIsFolder(recentItem) })),
+    [recentsToRender],
+  );
+  const previewFiles = useMemo(
+    () => recentDriveItems.filter((recentDriveItem) => !recentDriveItem.isFolder),
+    [recentDriveItems],
+  );
 
+  const renderContent = () => {
     if (!recentsToRender?.length) {
       return renderEmpty();
     }
@@ -69,17 +80,15 @@ export function RecentsScreen({
     }
 
     if (recentsToRender.length > 0) {
-      return recentsToRender.map((item) => {
+      return recentDriveItems.map((recentDriveItem) => {
         return (
           <DriveItem
-            key={item.uuid}
+            key={recentDriveItem.uuid}
             status={DriveItemStatus.Idle}
             type={DriveListType.Drive}
             viewMode={DriveListViewMode.List}
-            data={{
-              ...item,
-              isFolder: checkIsFolder(item),
-            }}
+            data={recentDriveItem}
+            previewFiles={previewFiles}
             progress={-1}
           />
         );

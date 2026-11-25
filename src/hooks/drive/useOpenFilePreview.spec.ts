@@ -146,17 +146,50 @@ describe('opening the preview of a file', () => {
     jest.clearAllMocks();
   });
 
-  test('when a file is opened from a list, then the preview screen opens after its download starts', () => {
-    const { dispatch, downloadPromise } = arrangeDispatch();
-    const navigate = jest.fn();
-    useAppDispatchMock.mockReturnValue(dispatch);
-    useNavigationMock.mockReturnValue({ navigate });
+  const otherDriveFile: DriveItemData = { ...driveFile, uuid: 'other-file-uuid', name: 'Other File' };
 
+  const arrangeHook = () => {
+    const arrangedDispatch = arrangeDispatch();
+    const navigate = jest.fn();
+    useAppDispatchMock.mockReturnValue(arrangedDispatch.dispatch);
+    useNavigationMock.mockReturnValue({ navigate });
     const { result } = renderHook(() => useOpenFilePreview());
-    const returnedDownloadPromise = result.current(driveFile);
+
+    return { openFilePreview: result.current, navigate, downloadPromise: arrangedDispatch.downloadPromise };
+  };
+
+  test('when a file is opened from a list, then the preview screen opens with that list and the position of the file', () => {
+    const { openFilePreview, navigate, downloadPromise } = arrangeHook();
+    const previewFiles = [driveFile, otherDriveFile];
+
+    const returnedDownloadPromise = openFilePreview(otherDriveFile, previewFiles);
+
+    expect(navigate).toHaveBeenCalledWith('DrivePreview', { files: previewFiles, initialIndex: 1 });
+    expect(returnedDownloadPromise).toBe(downloadPromise);
+  });
+
+  test('when a file is opened from a list, then only that file starts downloading', () => {
+    const { openFilePreview } = arrangeHook();
+
+    openFilePreview(otherDriveFile, [driveFile, otherDriveFile]);
 
     expect(downloadFileThunkMock).toHaveBeenCalledTimes(1);
-    expect(navigate).toHaveBeenCalledWith('DrivePreview');
-    expect(returnedDownloadPromise).toBe(downloadPromise);
+    expect(downloadFileThunkMock).toHaveBeenCalledWith(expect.objectContaining({ uuid: 'other-file-uuid' }));
+  });
+
+  test('when the opened file is not in the list, then the preview opens with only that file', () => {
+    const { openFilePreview, navigate } = arrangeHook();
+
+    openFilePreview(otherDriveFile, [driveFile]);
+
+    expect(navigate).toHaveBeenCalledWith('DrivePreview', { files: [otherDriveFile], initialIndex: 0 });
+  });
+
+  test('when a file is opened without a list, then the preview opens with only that file', () => {
+    const { openFilePreview, navigate } = arrangeHook();
+
+    openFilePreview(driveFile);
+
+    expect(navigate).toHaveBeenCalledWith('DrivePreview', { files: [driveFile], initialIndex: 0 });
   });
 });
