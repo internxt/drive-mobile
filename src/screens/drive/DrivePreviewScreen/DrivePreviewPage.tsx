@@ -11,6 +11,7 @@ import AppButton from 'src/components/AppButton';
 import AppProgressBar from 'src/components/AppProgressBar';
 import AppText from 'src/components/AppText';
 import { getFileTypeIcon } from 'src/helpers';
+import { useDelayedVideoActivation } from 'src/hooks/useDelayedVideoActivation';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { getLineHeight } from 'src/styles/global';
 import { DriveImagePreview } from './DriveImagePreview';
@@ -53,6 +54,7 @@ export const DrivePreviewPage = ({
   const dimensions = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+  const isVideoActive = useDelayedVideoActivation(isActive);
   const downloadingFile = useAppSelector((state) => state.drive.downloadingFile);
   const totalHeaderHeight = DRIVE_PREVIEW_HEADER_HEIGHT + insets.top;
   const filename = getPreviewFileName(driveFile);
@@ -191,7 +193,7 @@ export const DrivePreviewPage = ({
     if (renderVideoPreview) {
       return (
         <View className="flex-1" style={{ paddingTop: totalHeaderHeight, paddingBottom: insets.bottom }}>
-          <DriveVideoPreview thumbnail={videoThumbnailPath} source={downloadedFilePath} />
+          <DriveVideoPreview thumbnail={videoThumbnailPath} source={isVideoActive ? downloadedFilePath : undefined} />
         </View>
       );
     }

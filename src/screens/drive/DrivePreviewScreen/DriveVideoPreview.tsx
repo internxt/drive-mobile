@@ -5,7 +5,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { VideoViewer } from 'src/components/photos/VideoViewer';
 
 export interface DriveVideoPreviewProps {
-  source: string;
+  source?: string;
   thumbnail?: string;
 }
 
@@ -18,7 +18,7 @@ export const DriveVideoPreview: React.FC<DriveVideoPreviewProps> = (props) => {
 
   const handleOnVideoPlay = async () => {
     // Fallback to display native file viewer if the native video player load fails
-    if (videoHasLoadError) {
+    if (videoHasLoadError && props.source) {
       await fs.showFileViewer(props.source);
     }
   };
