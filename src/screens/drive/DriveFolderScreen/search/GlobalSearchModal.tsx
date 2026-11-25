@@ -1,5 +1,4 @@
-import { useDrive } from '@internxt-mobile/hooks/drive';
-import drive from '@internxt-mobile/services/drive';
+import { useDrive, useOpenFilePreview } from '@internxt-mobile/hooks/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { SearchResult } from '@internxt-mobile/types/drive/folder';
 import { DriveListType } from '@internxt-mobile/types/drive/ui';
@@ -19,9 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppText from 'src/components/AppText';
 import DriveList from 'src/components/drive/lists/DriveList/DriveList';
 import useGetColor from 'src/hooks/useColor';
-import { useAppDispatch } from 'src/store/hooks';
-import { driveActions, driveThunks } from 'src/store/slices/drive';
-import { DriveItemStatus, DriveListItem } from 'src/types/drive/item';
+import { DriveItemData, DriveItemStatus, DriveListItem } from 'src/types/drive/item';
 import { DriveScreenProps } from 'src/types/navigation';
 import { logger } from '../../../../services/common';
 import storageService from '../../../../services/StorageService';
@@ -42,7 +39,7 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
   const [isNavigating, setIsNavigating] = useState(false);
   const navigation = useNavigation<DriveScreenProps<'DriveFolder'>['navigation']>();
   const driveCtx = useDrive();
-  const dispatch = useAppDispatch();
+  const openFilePreview = useOpenFilePreview();
   const { query, results, isLoading, isLoadingMore, error, hasMore, updateQuery, loadMore, clearSearch, hasResults } =
     useGlobalSearch();
 
@@ -112,59 +109,23 @@ export const GlobalSearchModal: React.FC<GlobalSearchModalProps> = ({ visible, o
     try {
       setIsNavigating(true);
       const fileMeta = await storageService.getFileMetadata(fileUuid);
-      const driveFileData = {
-        status: 'idle' as const,
-        id: fileMeta.uuid,
-        data: {
-          folderUuid: fileMeta.folderUuid,
-          uuid: fileMeta.uuid,
-          name: fileMeta.plainName,
-          size: fileMeta.size,
-          createdAt: fileMeta.createdAt,
-          updatedAt: fileMeta.updatedAt,
-          fileId: fileMeta.fileId,
-          bucket: fileMeta.bucket,
-          type: fileMeta.type,
-          isFolder: false,
-          currentThumbnail: null,
-          // @ts-expect-error thumbnails missing in type in SDK
-          thumbnails: fileMeta.thumbnails ?? [],
-        },
+      const searchedFile: DriveItemData = {
+        folderUuid: fileMeta.folderUuid,
+        uuid: fileMeta.uuid,
+        name: fileMeta.plainName ?? '',
+        size: fileMeta.size,
+        createdAt: fileMeta.createdAt,
+        updatedAt: fileMeta.updatedAt,
+        fileId: fileMeta.fileId,
+        bucket: fileMeta.bucket,
+        type: fileMeta.type,
+        isFolder: false,
+        currentThumbnail: null,
+        // @ts-expect-error thumbnails missing in type in SDK
+        thumbnails: fileMeta.thumbnails ?? [],
       };
-      dispatch(
-        driveActions.setFocusedItem({
-          ...driveFileData.data,
-          name: driveFileData.data.name ?? '',
-          uuid: driveFileData.data.uuid,
-          folderUuid: driveFileData.data.folderUuid,
-          shareId: undefined,
-          size: driveFileData.data.size,
-          updatedAt: driveFileData.data.updatedAt,
-          isFolder: driveFileData.data.isFolder,
-          bucket: driveFileData.data.bucket,
-          fileId: driveFileData.data.fileId ?? undefined,
-        }),
-      );
-      const thunk = dispatch(
-        driveThunks.downloadFileThunk({
-          ...driveFileData,
-          bucketId: driveFileData.data.bucket as string,
-          size: driveFileData.data.size as unknown as number,
-          folderUuid: driveFileData.data.folderUuid ?? undefined,
-          name: driveFileData.data.name ?? '',
-          type: driveFileData.data.type as string,
-          fileId: driveFileData.data.fileId as string,
-          updatedAt: new Date(driveFileData.data.updatedAt).toISOString(),
-          uuid: driveFileData.data.uuid,
-          openFileViewer: false,
-        }),
-      );
-      const downloadAbort = () => {
-        thunk.abort();
-      };
-      drive.events.setDownloadAbort(downloadAbort);
       onClose();
-      navigation.navigate('DrivePreview');
+      openFilePreview(searchedFile);
     } catch (error) {
       errorService.reportError(error);
       logger.error('Error navigating to file:', error);

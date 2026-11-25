@@ -1,7 +1,7 @@
 import Portal from '@burstware/react-native-portal';
 import { FLOATING_BUTTON_CLEARANCE } from 'src/components/FloatingActionButton/floatingButtonLayout';
 import { useHardwareBackPress, useStableCallback } from '@internxt-mobile/hooks/common';
-import { useDrive } from '@internxt-mobile/hooks/drive';
+import { useDrive, useOpenFilePreview } from '@internxt-mobile/hooks/drive';
 import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
@@ -56,6 +56,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const isRootFolder = folderUuid === user?.rootFolderId;
   const dispatch = useAppDispatch();
   const driveCtx = useDrive();
+  const openFilePreview = useOpenFilePreview();
   const { downloadingFile } = useAppSelector((state) => state.drive);
 
   const hasNoNavigationHistory = navigation.getState().index === 0;
@@ -225,27 +226,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       });
       return;
     }
-    const thunk = dispatch(
-      driveThunks.downloadFileThunk({
-        ...driveFile,
-        bucketId: driveFile.data.bucket as string,
-        size: driveFile.data.size as number,
-        folderUuid: driveFile.data.folderUuid ?? undefined,
-        name: driveFile.data.name,
-        type: driveFile.data.type as string,
-        fileId: driveFile.data.fileId as string,
-        updatedAt: new Date(driveFile.data.updatedAt).toISOString(),
-        uuid: driveFile.data.uuid,
-        openFileViewer: false,
-      }),
-    );
-    const downloadAbort = () => {
-      thunk.abort();
-    };
-
-    drive.events.setDownloadAbort(downloadAbort);
-
-    navigation.navigate('DrivePreview');
+    openFilePreview(driveFile.data);
   };
 
   const handleDriveItemPress = useStableCallback((driveItem: DriveListItem) => {
@@ -263,18 +244,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     const isFolder = driveItem?.data?.isFolder;
 
     if (!isFolder) {
-      dispatch(
-        driveActions.setFocusedItem({
-          ...driveItem.data,
-          uuid: driveItem.data.uuid ?? undefined,
-          folderUuid: driveItem.data.folderUuid ?? undefined,
-          shareId: driveItem.data.shareId,
-          size: driveItem.data.size,
-          updatedAt: driveItem.data.updatedAt,
-          isFolder: driveItem.data.isFolder,
-          bucket: driveItem.data.bucket ?? undefined,
-        }),
-      );
       handleOnFilePress(driveItem);
     } else if (driveItem.data.uuid && !isFolderUploadItem(driveItem)) {
       driveCtx.loadFolderContent(driveItem.data.uuid, { focusFolder: true, resetPagination: true }).catch((error) => {
