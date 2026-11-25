@@ -71,10 +71,12 @@ export const useThumbnailRegeneration = (
 
     attemptedFileUuids.current.add(fileUuid);
 
-    regenerateThumbnail(fileUuid, downloadedFilePath, fileExtension).then((thumbnail) => {
-      if (thumbnail) {
-        callbacks.onSuccess(thumbnail, fileUuid);
-      }
-    });
+    regenerateThumbnail(fileUuid, downloadedFilePath, fileExtension)
+      .then((thumbnail) => {
+        if (thumbnail) {
+          callbacks.onSuccess(thumbnail, fileUuid);
+        }
+      })
+      .catch((error) => errorService.reportError(error));
   }, [params.fileUuid, params.downloadedFilePath, params.hasThumbnails]);
 };
