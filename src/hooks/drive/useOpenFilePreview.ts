@@ -7,10 +7,19 @@ import { useAppDispatch } from '../../store/hooks';
 import { driveActions, driveThunks } from '../../store/slices/drive';
 
 /**
- * Focuses the file, starts its download for the preview and registers the download abort.
+ * Cancels the previous download if it is still running, focuses the file, starts its download for the preview and
+ * registers the download abort.
  * Returns the download promise, which can be aborted or awaited.
  */
 export const startFilePreview = (dispatch: AppDispatch, driveFile: DriveItemData) => {
+  const isPreviousDownloadRunning = dispatch((_, getState) => {
+    const previousDownload = getState().drive.downloadingFile;
+    return !!previousDownload && !previousDownload.downloadedFilePath && !previousDownload.error;
+  });
+  if (isPreviousDownloadRunning) {
+    dispatch(driveThunks.cancelDownloadThunk());
+  }
+
   dispatch(
     driveActions.setFocusedItem({
       ...driveFile,

@@ -55,6 +55,7 @@ export interface UploadingFile {
  * File currently being downloaded (tracked in state)
  */
 export interface DownloadingFile {
+  requestId: string;
   data: {
     uuid: string;
     fileId: string;
@@ -67,7 +68,6 @@ export interface DownloadingFile {
   decryptProgress: number;
   downloadedFilePath?: string;
   error?: string;
-  retry?: () => Promise<void>;
   status: 'idle' | 'cancelling' | 'cancelled';
 }
 

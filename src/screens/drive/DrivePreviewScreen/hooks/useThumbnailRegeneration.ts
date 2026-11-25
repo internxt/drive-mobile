@@ -13,7 +13,7 @@ interface ThumbnailRegenerationParams {
 }
 
 interface ThumbnailRegenerationCallbacks {
-  onSuccess: (thumbnail: Thumbnail) => void;
+  onSuccess: (thumbnail: Thumbnail, fileUuid: string) => void;
 }
 
 export const canGenerateThumbnail = isThumbnailSupported;
@@ -76,7 +76,7 @@ export const useThumbnailRegeneration = (
     regenerateThumbnail(fileUuid, downloadedFilePath, fileExtension)
       .then((thumbnail) => {
         if (thumbnail) {
-          callbacks.onSuccess(thumbnail);
+          callbacks.onSuccess(thumbnail, fileUuid);
         }
       })
       .finally(() => {

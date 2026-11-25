@@ -101,50 +101,19 @@ const downloadFileThunk = createAsyncThunk<
 >(
   'drive/downloadFile',
   async (
-    { uuid, size, folderUuid, name, type, fileId, openFileViewer, updatedAt, bucketId },
-    { signal, getState, dispatch, rejectWithValue },
+    { uuid, size, folderUuid, name, type, fileId, openFileViewer, bucketId },
+    { signal, getState, dispatch, rejectWithValue, requestId },
   ) => {
     logger.info('Starting file download...');
+    logger.info(`[DrivePreview] Download started — request ${requestId}, file ${uuid}`);
     const { user } = getState().auth;
-    // BEFORE DOWNLOAD VALIDATIONS
-    const currentDownload = getState().drive.downloadingFile;
-
-    if (currentDownload && currentDownload.data.fileId === fileId) {
-      await dispatch(cancelDownloadThunk());
-    }
-
-    dispatch(
-      driveActions.updateDownloadingFile({
-        retry: async () => {
-          dispatch(driveActions.clearDownloadingFile());
-          dispatch(
-            driveThunks.downloadFileThunk({
-              uuid,
-              size,
-              folderUuid,
-              bucketId,
-              name,
-              type,
-              fileId,
-              openFileViewer,
-              updatedAt,
-            }),
-          );
-        },
-      }),
-    );
-
     // PROGRESS CALLBACKS
     const downloadProgressCallback = (progress: number) => {
       if (signal.aborted) {
         return;
       }
 
-      dispatch(
-        driveActions.updateDownloadingFile({
-          downloadProgress: progress,
-        }),
-      );
+      dispatch(driveActions.updateDownloadingFile({ requestId, downloadProgress: progress }));
     };
 
     const decryptionProgressCallback = (progress: number) => {
@@ -154,6 +123,7 @@ const downloadFileThunk = createAsyncThunk<
       if (currentState && currentState.data.fileId === fileId) {
         dispatch(
           driveActions.updateDownloadingFile({
+            requestId,
             decryptProgress: Math.max(currentState.downloadProgress || 0, progress),
           }),
         );
@@ -197,7 +167,7 @@ const downloadFileThunk = createAsyncThunk<
       const downloadSizeCheck = await checkDownloadSize(Number(size));
       notifyDownloadSizeCheck(downloadSizeCheck, Number(size));
       if (isDownloadBlocked(downloadSizeCheck)) {
-        dispatch(driveActions.updateDownloadingFile({ error: getDownloadSizeMessage(downloadSizeCheck) }));
+        dispatch(driveActions.updateDownloadingFile({ requestId, error: getDownloadSizeMessage(downloadSizeCheck) }));
         return;
       }
     }
@@ -207,6 +177,7 @@ const downloadFileThunk = createAsyncThunk<
         throw new Error('This file name is not valid');
       }
       if (signal.aborted) {
+        logger.info(`[DrivePreview] Download aborted before starting — request ${requestId}, file ${uuid}`);
         return rejectWithValue(null);
       }
 
@@ -226,7 +197,8 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       const uri = fileSystemService.pathToUri(destinationPath);
-      dispatch(driveActions.updateDownloadingFile({ downloadedFilePath: uri }));
+      logger.info(`[DrivePreview] Download finished — request ${requestId}, file ${uuid}`);
+      dispatch(driveActions.updateDownloadingFile({ requestId, downloadedFilePath: uri }));
       if (openFileViewer) {
         await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
       }
@@ -243,7 +215,7 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       if (!signal.aborted) {
-        dispatch(driveActions.updateDownloadingFile({ error: (err as Error).message }));
+        dispatch(driveActions.updateDownloadingFile({ requestId, error: (err as Error).message }));
 
         analytics.trackError(fileInfo);
 
@@ -268,7 +240,8 @@ const downloadFileThunk = createAsyncThunk<
       }
     } finally {
       if (signal.aborted) {
-        dispatch(driveActions.clearDownloadingFile());
+        logger.info(`[DrivePreview] Download cancelled — request ${requestId}, file ${uuid}`);
+        dispatch(driveActions.clearDownloadingFile(requestId));
         drive.events.emit({ event: DriveEventKey.CancelDownloadEnd });
       }
       drive.events.emit({ event: DriveEventKey.DownloadFinally });
@@ -357,10 +330,20 @@ export const driveSlice = createSlice({
     setItemsToMove(state, action: PayloadAction<DriveItemToMove[]>) {
       state.itemsToMove = action.payload;
     },
-    updateDownloadingFile(state, action: PayloadAction<Partial<DownloadingFile>>) {
-      state.downloadingFile && Object.assign(state.downloadingFile, action.payload);
+    /** Merges the changes into the current download; ignored when requestId is not the current download's. */
+    updateDownloadingFile(state, action: PayloadAction<{ requestId: string } & Partial<DownloadingFile>>) {
+      const { requestId, ...downloadChanges } = action.payload;
+      if (state.downloadingFile?.requestId !== requestId) {
+        return;
+      }
+      Object.assign(state.downloadingFile, downloadChanges);
     },
-    clearDownloadingFile(state) {
+    /** Clears the current download. With a requestId, only if it is the current download's. */
+    clearDownloadingFile(state, action: PayloadAction<string | undefined>) {
+      const requestId = action.payload;
+      if (requestId && state.downloadingFile?.requestId !== requestId) {
+        return;
+      }
       state.downloadingFile = undefined;
     },
     hideItemsById(state, action: PayloadAction<string[]>) {
@@ -393,6 +376,7 @@ export const driveSlice = createSlice({
     builder
       .addCase(downloadFileThunk.pending, (state, action) => {
         state.downloadingFile = {
+          requestId: action.meta.requestId,
           data: action.meta.arg,
           status: 'idle',
           downloadProgress: 0,
