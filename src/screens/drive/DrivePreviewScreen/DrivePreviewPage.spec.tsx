@@ -2,7 +2,7 @@ import { useDownloadedThumbnail } from '@internxt-mobile/hooks/drive/useDownload
 import { DownloadedThumbnail } from '@internxt-mobile/types/drive/file';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
 import { render } from '@testing-library/react-native';
-import { Animated } from 'react-native';
+import { Animated, Dimensions, StyleSheet } from 'react-native';
 import { useAppSelector } from 'src/store/hooks';
 import { DrivePreviewPage } from './DrivePreviewPage';
 
@@ -113,6 +113,23 @@ describe('Drive preview page', () => {
     expect(queryByLabelText('Downloading')).not.toBeNull();
     expect(queryByTestId('drive-preview-progress')).not.toBeNull();
     expect(queryByText('holiday.zip')).toBeNull();
+  });
+
+  test('when the visible file is downloading and its thumbnail is much taller than the page, then the thumbnail fits inside the page', () => {
+    useDownloadedThumbnailMock.mockReturnValue({ width: 100, height: 600, uri: 'file:///thumb.png' });
+    useAppSelectorMock.mockReturnValue({
+      data: { uuid: 'file-uuid' },
+      downloadProgress: 0.5,
+      hasDownloadStarted: true,
+    });
+    const windowSize = Dimensions.get('window');
+
+    const { getByTestId } = renderPage(true);
+
+    const frameStyle = StyleSheet.flatten(getByTestId('drive-preview-thumbnail-frame').props.style);
+    expect(frameStyle.height).toBeLessThanOrEqual(windowSize.height);
+    expect(frameStyle.width).toBeLessThanOrEqual(windowSize.width);
+    expect(frameStyle.width / frameStyle.height).toBeCloseTo(100 / 600);
   });
 
   test('when the visible file without a thumbnail is downloading, then its icon, name, a spinner and the progress line are shown', () => {

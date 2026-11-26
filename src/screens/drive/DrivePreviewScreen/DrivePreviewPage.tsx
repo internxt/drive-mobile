@@ -36,7 +36,7 @@ const DOWNLOADING_SPINNER_COLOR = '#FFFFFF';
 const styles = StyleSheet.create({
   thumbnail: { width: '100%', height: '100%' },
   downloadingThumbnailContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  downloadingThumbnailFrame: { width: '100%', justifyContent: 'center', alignItems: 'center' },
+  downloadingThumbnailFrame: { justifyContent: 'center', alignItems: 'center' },
   downloadingThumbnailScrim: { ...StyleSheet.absoluteFill, backgroundColor: DOWNLOADING_SCRIM_COLOR },
   downloadingSpinnerOverlay: { ...StyleSheet.absoluteFill, alignItems: 'center', justifyContent: 'center' },
   downloadProgressLine: { position: 'absolute', left: 0, right: 0 },
@@ -55,14 +55,26 @@ const PreviewThumbnail = ({ thumbnail }: { thumbnail: DownloadedThumbnail }) => 
   />
 );
 
-const DownloadingThumbnail = ({ thumbnail }: { thumbnail: DownloadedThumbnail }) => {
+const DownloadingThumbnail = ({
+  thumbnail,
+  pageWidth,
+  pageHeight,
+}: {
+  thumbnail: DownloadedThumbnail;
+  pageWidth: number;
+  pageHeight: number;
+}) => {
   const hasDimensions = thumbnail.width > 0 && thumbnail.height > 0;
+  const fitScale = hasDimensions ? Math.min(pageWidth / thumbnail.width, pageHeight / thumbnail.height) : 1;
   return (
     <View style={styles.downloadingThumbnailContainer}>
       <View
+        testID="drive-preview-thumbnail-frame"
         style={[
           styles.downloadingThumbnailFrame,
-          hasDimensions ? { aspectRatio: thumbnail.width / thumbnail.height } : { height: '100%' },
+          hasDimensions
+            ? { width: thumbnail.width * fitScale, height: thumbnail.height * fitScale }
+            : { width: '100%', height: '100%' },
         ]}
       >
         <PreviewThumbnail thumbnail={thumbnail} />
@@ -168,7 +180,11 @@ export const DrivePreviewPage = ({
         <View className="flex-1">
           {downloadedThumbnail ? (
             <>
-              <DownloadingThumbnail thumbnail={downloadedThumbnail} />
+              <DownloadingThumbnail
+                thumbnail={downloadedThumbnail}
+                pageWidth={dimensions.width}
+                pageHeight={dimensions.height}
+              />
               <View pointerEvents="none" style={styles.downloadingSpinnerOverlay}>
                 <ActivityIndicator
                   testID="drive-preview-spinner"
