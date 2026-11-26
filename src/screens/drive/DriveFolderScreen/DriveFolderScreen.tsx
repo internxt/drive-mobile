@@ -6,7 +6,7 @@ import drive from '@internxt-mobile/services/drive';
 import errorService from '@internxt-mobile/services/ErrorService';
 import * as driveUseCases from '@internxt-mobile/useCases/drive';
 import { RouteProp, useFocusEffect, useRoute } from '@react-navigation/native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { uiActions } from 'src/store/slices/ui';
 import strings from '../../../../assets/lang/strings';
@@ -26,13 +26,14 @@ import { DriveScreenProps, DriveStackParamList } from '../../../types/navigation
 import { DriveFolderEmpty } from './DriveFolderEmpty';
 import { DriveFolderError } from './DriveFolderError';
 import {
+  buildFileListItem,
   buildFolderUploadListItem,
-  canLoadNextPage,
   canSelectDriveItem,
   getPreviewFiles,
   hasUnloadedPages,
   isFolderUploadItem,
   hasSelectedFolder,
+  matchesSearchValue,
 } from './DriveFolderScreen.helpers';
 import { DriveFolderScreenHeader } from './DriveFolderScreenHeader';
 import { DriveSelectionActionsModal } from './DriveSelectionActionsModal';
@@ -44,15 +45,15 @@ import { useTrashSelectedItems } from './useTrashSelectedItems';
 import { useFetchSelectedFiles } from './useFetchSelectedFiles';
 import { DownloadSelectedItemsModal } from './DownloadSelectedItemsModal';
 import { useReloadFolderInChosenSort } from './useReloadFolderInChosenSort';
+import { useLoadNextFolderPage } from './useLoadNextFolderPage';
 
 const ROOT_HEADER_TOP_MARGIN = 22;
 
 export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'>): JSX.Element {
   const route = useRoute<RouteProp<DriveStackParamList, 'DriveFolder'>>();
   useLanguage();
-  const [loadingMore, setLoadingMore] = useState(false);
-  const isLoadingNextPageRef = useRef(false);
   const { folderUuid, folderName, parentFolderName } = route.params;
+  const { loadNextPage, isLoadingNextPage } = useLoadNextFolderPage(folderUuid);
   const { user } = useAppSelector((state) => state.auth);
   const isRootFolder = folderUuid === user?.rootFolderId;
   const dispatch = useAppDispatch();
@@ -73,26 +74,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   const folderFiles = folder?.files ?? [];
   const folderFolders = folder?.folders ?? [];
   const folderContent = useMemo<DriveListItem[]>(() => {
-    const files = folderFiles.map((file) => {
-      return {
-        status: DriveItemStatus.Idle,
-        id: file.uuid,
-        data: {
-          folderUuid: file.folderUuid,
-          uuid: file.uuid,
-          name: file.plainName,
-          size: file.size,
-          createdAt: file.createdAt,
-          updatedAt: file.updatedAt,
-          fileId: file.fileId,
-          bucket: file.bucket,
-          type: file.type,
-          isFolder: false,
-          currentThumbnail: null,
-          thumbnails: file.thumbnails,
-        },
-      } as DriveListItem;
-    });
+    const files = folderFiles.map(buildFileListItem);
 
     const folders = folderFolders.map((folder) => {
       const driveListItem: DriveListItem = {
@@ -159,9 +141,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
 
   const driveItems = useMemo(() => {
     if (searchValue.length) {
-      return driveSortedItems.filter((item) => {
-        return item.data.name.toLowerCase().includes(searchValue.toLowerCase());
-      });
+      return driveSortedItems.filter((item) => matchesSearchValue(item, searchValue));
     }
     return driveSortedItems;
   }, [driveSortedItems, searchValue]);
@@ -228,7 +208,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
       });
       return;
     }
-    openFilePreview(driveFile.data, previewFiles);
+    openFilePreview(driveFile.data, previewFiles, { folderUuid, searchValue });
   };
 
   const handleDriveItemPress = useStableCallback((driveItem: DriveListItem) => {
@@ -388,17 +368,8 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
   };
 
   const handleEndReached = async () => {
-    if (isLoadingNextPageRef.current || !canLoadNextPage(folder)) {
-      return;
-    }
-
-    isLoadingNextPageRef.current = true;
-    setLoadingMore(true);
     try {
-      await driveCtx.loadFolderContent(folderUuid, {
-        pullFrom: ['network'],
-        resetPagination: false,
-      });
+      await loadNextPage();
     } catch (error) {
       errorService.reportError(error);
       const err = errorService.castError(error, 'content');
@@ -406,9 +377,6 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
         type: NotificationType.Error,
         text1: err.message,
       });
-    } finally {
-      isLoadingNextPageRef.current = false;
-      setLoadingMore(false);
     }
   };
 
@@ -571,7 +539,7 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
             )}
             onEndReached={handleEndReached}
             isLoading={driveCtx.driveFoldersTree[folderUuid]?.loading}
-            isLoadingMore={loadingMore}
+            isLoadingMore={isLoadingNextPage}
             isRootFolder={isRootFolder}
             onRefresh={handleRefresh}
             items={driveItems}

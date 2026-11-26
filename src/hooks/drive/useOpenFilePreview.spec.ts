@@ -213,6 +213,27 @@ describe('opening the preview of a file', () => {
     expect(navigate).toHaveBeenCalledWith('DrivePreview', { files: [otherDriveFile], initialIndex: 0 });
   });
 
+  test('when a file is opened from a folder, then the preview receives the folder it came from', () => {
+    const { openFilePreview, navigate } = arrangeHook();
+    const sourceFolder = { folderUuid: 'folder-uuid', searchValue: 'invoice' };
+
+    openFilePreview(otherDriveFile, [driveFile, otherDriveFile], sourceFolder);
+
+    expect(navigate).toHaveBeenCalledWith('DrivePreview', {
+      files: [driveFile, otherDriveFile],
+      initialIndex: 1,
+      sourceFolder,
+    });
+  });
+
+  test('when the opened file is not in the list, then the preview does not receive the folder it came from', () => {
+    const { openFilePreview, navigate } = arrangeHook();
+
+    openFilePreview(otherDriveFile, [driveFile], { folderUuid: 'folder-uuid', searchValue: '' });
+
+    expect(navigate.mock.calls[0][1].sourceFolder).toBeUndefined();
+  });
+
   test('when a file is opened without a list, then the preview opens with only that file', () => {
     const { openFilePreview, navigate } = arrangeHook();
 

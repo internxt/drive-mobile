@@ -1,7 +1,9 @@
+import drive from '@internxt-mobile/services/drive';
 import type { DriveFoldersTreeNode } from '../../../contexts/Drive/Drive.context';
 import { FolderAncestor } from '../../../types/drive/folder';
 import { DriveItemData, DriveItemStatus, DriveListItem } from '../../../types/drive';
 import { FolderUploadState } from '../../../types/drive/folderUpload';
+import { SortMode } from '../../../types/drive/ui';
 import { DriveStackParamList } from '../../../types/navigation';
 
 export type DriveFolderRoute = {
@@ -56,6 +58,41 @@ export const getPreviewFiles = (driveListItems: DriveListItem[]): DriveItemData[
   driveListItems
     .filter((driveListItem) => !driveListItem.data.isFolder && driveListItem.status === DriveItemStatus.Idle)
     .map((driveListItem) => driveListItem.data);
+
+export const buildFileListItem = (file: DriveFoldersTreeNode['files'][number]): DriveListItem =>
+  ({
+    status: DriveItemStatus.Idle,
+    id: file.uuid,
+    data: {
+      folderUuid: file.folderUuid,
+      uuid: file.uuid,
+      name: file.plainName,
+      size: file.size,
+      createdAt: file.createdAt,
+      updatedAt: file.updatedAt,
+      fileId: file.fileId,
+      bucket: file.bucket,
+      type: file.type,
+      isFolder: false,
+      currentThumbnail: null,
+      thumbnails: file.thumbnails,
+    },
+  }) as DriveListItem;
+
+export const matchesSearchValue = (item: DriveListItem, searchValue: string): boolean =>
+  item.data.name.toLowerCase().includes(searchValue.toLowerCase());
+
+export const getFolderPreviewFiles = (
+  files: DriveFoldersTreeNode['files'],
+  sortMode: SortMode,
+  searchValue: string,
+): DriveItemData[] =>
+  getPreviewFiles(
+    files
+      .map(buildFileListItem)
+      .sort(drive.file.getSortFunction(sortMode))
+      .filter((item) => matchesSearchValue(item, searchValue)),
+  );
 
 export const hasSelectedFolder = (items: DriveListItem[], selectedUuids: Set<string>): boolean =>
   items.some((item) => item.data.isFolder && selectedUuids.has(item.data.uuid));
