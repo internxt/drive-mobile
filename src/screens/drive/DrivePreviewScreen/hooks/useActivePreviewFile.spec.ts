@@ -87,4 +87,79 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.activeIndex).toBe(0);
     expect(startFilePreviewMock).not.toHaveBeenCalled();
   });
+
+  test('when the shown file is removed, then the next file is shown and starts', () => {
+    const { result, dispatch } = arrangeHook(1);
+
+    act(() => {
+      result.current.removeFiles(['second-file']);
+    });
+
+    expect(result.current.previewFiles).toHaveLength(2);
+    expect(result.current.activeFile.uuid).toBe('third-file');
+    expect(result.current.activeIndex).toBe(1);
+    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[2]);
+  });
+
+  test('when a file is removed, then the removal count goes up, and it stays when the file is not in the list', () => {
+    const { result } = arrangeHook(1);
+
+    act(() => {
+      result.current.removeFiles(['unknown-file']);
+    });
+    expect(result.current.removalCount).toBe(0);
+
+    act(() => {
+      result.current.removeFiles(['second-file']);
+    });
+    expect(result.current.removalCount).toBe(1);
+  });
+
+  test('when the shown last file is removed, then the previous file is shown and starts', () => {
+    const { result, dispatch } = arrangeHook(2);
+
+    act(() => {
+      result.current.removeFiles(['third-file']);
+    });
+
+    expect(result.current.activeFile.uuid).toBe('second-file');
+    expect(result.current.activeIndex).toBe(1);
+    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[1]);
+  });
+
+  test('when the only file is removed, then the list is empty', () => {
+    const dispatch = jest.fn();
+    useAppDispatchMock.mockReturnValue(dispatch);
+    const { result } = renderHook(() => useActivePreviewFile([aDriveFile('only-file')], 0));
+
+    act(() => {
+      result.current.removeFiles(['only-file']);
+    });
+
+    expect(result.current.previewFiles).toHaveLength(0);
+    expect(startFilePreviewMock).not.toHaveBeenCalled();
+  });
+
+  test('when a file before the shown one is removed, then the same file stays shown without starting again', () => {
+    const { result } = arrangeHook(2);
+
+    act(() => {
+      result.current.removeFiles(['first-file']);
+    });
+
+    expect(result.current.activeFile.uuid).toBe('third-file');
+    expect(result.current.activeIndex).toBe(1);
+    expect(startFilePreviewMock).not.toHaveBeenCalled();
+  });
+
+  test('when a file is renamed, then the list shows the new name', () => {
+    const { result } = arrangeHook(0);
+
+    act(() => {
+      result.current.updateFileName('second-file', 'renamed');
+    });
+
+    expect(result.current.previewFiles[1].name).toBe('renamed');
+    expect(result.current.previewFiles[0].name).toBe('first-file');
+  });
 });

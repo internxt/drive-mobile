@@ -231,6 +231,8 @@ export const moveItemsToTrash = async (
       }),
     );
 
+    driveEvents.emit({ event: DriveEventKey.DriveItemsTrashed }, { trashedUuids });
+
     setTimeout(() => {
       driveEvents.emit({
         event: DriveEventKey.DriveItemTrashed,

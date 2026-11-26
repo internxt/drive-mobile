@@ -5,12 +5,15 @@ import { useCallback, useRef, useState } from 'react';
 import { useAppDispatch } from 'src/store/hooks';
 
 /**
- * Keeps the index of the file shown in the preview. Changing to another index starts the preview of the file at that
- * index; an index that is the current one or out of range is ignored.
+ * Keeps the files of the preview and the index of the one shown. Changing to another index starts the preview of the
+ * file at that index; an index that is the current one or out of range is ignored.
  */
-export const useActivePreviewFile = (previewFiles: DriveItemData[], initialIndex: number) => {
+export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initialIndex: number) => {
   const dispatch = useAppDispatch();
+  const [previewFiles, setPreviewFiles] = useState(initialPreviewFiles);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [removalCount, setRemovalCount] = useState(0);
+  const previewFilesRef = useRef(initialPreviewFiles);
   const activeIndexRef = useRef(initialIndex);
 
   const changeActiveIndex = useCallback(
@@ -31,5 +34,51 @@ export const useActivePreviewFile = (previewFiles: DriveItemData[], initialIndex
     [dispatch, previewFiles],
   );
 
-  return { activeIndex, activeFile: previewFiles[activeIndex], changeActiveIndex };
+  const removeFiles = useCallback(
+    (removedUuids: string[]) => {
+      const currentFiles = previewFilesRef.current;
+      const remainingFiles = currentFiles.filter((previewFile) => !removedUuids.includes(previewFile.uuid));
+      if (remainingFiles.length === currentFiles.length) {
+        return;
+      }
+
+      const previousIndex = activeIndexRef.current;
+      const isActiveFileRemoved = removedUuids.includes(currentFiles[previousIndex]?.uuid);
+      const remainingFilesBeforeActive = currentFiles
+        .slice(0, previousIndex)
+        .filter((previewFile) => !removedUuids.includes(previewFile.uuid)).length;
+      const newIndex = isActiveFileRemoved
+        ? Math.max(0, Math.min(remainingFilesBeforeActive, remainingFiles.length - 1))
+        : remainingFilesBeforeActive;
+
+      previewFilesRef.current = remainingFiles;
+      activeIndexRef.current = newIndex;
+      setPreviewFiles(remainingFiles);
+      setActiveIndex(newIndex);
+      setRemovalCount((revision) => revision + 1);
+
+      if (isActiveFileRemoved && remainingFiles[newIndex]) {
+        startFilePreview(dispatch, remainingFiles[newIndex]);
+      }
+    },
+    [dispatch],
+  );
+
+  const updateFileName = useCallback((fileUuid: string, name: string) => {
+    const renamedFiles = previewFilesRef.current.map((previewFile) =>
+      previewFile.uuid === fileUuid ? { ...previewFile, name } : previewFile,
+    );
+    previewFilesRef.current = renamedFiles;
+    setPreviewFiles(renamedFiles);
+  }, []);
+
+  return {
+    previewFiles,
+    activeIndex,
+    activeFile: previewFiles[activeIndex],
+    removalCount,
+    changeActiveIndex,
+    removeFiles,
+    updateFileName,
+  };
 };

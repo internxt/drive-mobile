@@ -13,4 +13,5 @@ export enum DriveEventKey {
   DriveItemTrashed = 'drive-item-trashed',
   DriveItemRestored = 'drive-item-restored',
   DriveItemMoved = 'drive-item-moved',
+  DriveItemsTrashed = 'drive-items-trashed',
 }
