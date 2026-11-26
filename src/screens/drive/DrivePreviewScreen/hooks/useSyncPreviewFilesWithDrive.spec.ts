@@ -93,6 +93,43 @@ describe('Keeping the preview files in sync with the drive', () => {
     expect(updateFileName).not.toHaveBeenCalled();
   });
 
+  test('when the shown file is renamed while the preview is open, then its new name is applied', () => {
+    let focusedItem: DriveItemData | undefined = aDriveFile('active-file', 'old name');
+    const removeFiles = jest.fn();
+    const updateFileName = jest.fn();
+    useAppSelectorMock.mockImplementation((selector) => selector({ drive: { focusedItem } }));
+    const { rerender } = renderHook(() =>
+      useSyncPreviewFilesWithDrive({ activeFile: aDriveFile('active-file', 'old name'), removeFiles, updateFileName }),
+    );
+
+    expect(updateFileName).not.toHaveBeenCalled();
+
+    focusedItem = aDriveFile('active-file', 'new name');
+    rerender({});
+
+    expect(updateFileName).toHaveBeenCalledWith('active-file', 'new name');
+  });
+
+  test('when the user moves to another file and that file is renamed, then the new name goes to that file', () => {
+    let focusedItem: DriveItemData | undefined = aDriveFile('active-file', 'old name');
+    let activeFile = aDriveFile('active-file', 'old name');
+    const removeFiles = jest.fn();
+    const updateFileName = jest.fn();
+    useAppSelectorMock.mockImplementation((selector) => selector({ drive: { focusedItem } }));
+    const { rerender } = renderHook(() => useSyncPreviewFilesWithDrive({ activeFile, removeFiles, updateFileName }));
+
+    activeFile = aDriveFile('other-file', 'other name');
+    rerender({});
+
+    expect(updateFileName).not.toHaveBeenCalled();
+
+    focusedItem = aDriveFile('other-file', 'new name');
+    rerender({});
+
+    expect(updateFileName).toHaveBeenCalledTimes(1);
+    expect(updateFileName).toHaveBeenCalledWith('other-file', 'new name');
+  });
+
   test('when the preview unmounts, then it stops listening for moved and trashed files', () => {
     const { unmount, unsubscribeMoved, unsubscribeTrashed } = arrangeHook();
 

@@ -127,6 +127,19 @@ describe('Changing the file shown in the preview', () => {
     expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[1]);
   });
 
+  test('when several files are removed at once, including the shown one, then the closest remaining file before them is shown and starts', () => {
+    const { result, dispatch } = arrangeHook(1);
+
+    act(() => {
+      result.current.removeFiles(['second-file', 'third-file']);
+    });
+
+    expect(result.current.previewFiles).toHaveLength(1);
+    expect(result.current.activeIndex).toBe(0);
+    expect(result.current.activeFile.uuid).toBe('first-file');
+    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[0]);
+  });
+
   test('when the only file is removed, then the list is empty', () => {
     const dispatch = jest.fn();
     useAppDispatchMock.mockReturnValue(dispatch);
