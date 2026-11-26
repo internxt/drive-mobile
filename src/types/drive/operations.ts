@@ -66,6 +66,7 @@ export interface DownloadingFile {
   };
   downloadProgress: number;
   decryptProgress: number;
+  hasDownloadStarted: boolean;
   downloadedFilePath?: string;
   error?: string;
   status: 'idle' | 'cancelling' | 'cancelled';

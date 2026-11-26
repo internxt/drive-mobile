@@ -183,6 +183,7 @@ const downloadFileThunk = createAsyncThunk<
 
       if (!fileAlreadyExists) {
         analytics.trackStart(fileInfo);
+        dispatch(driveActions.updateDownloadingFile({ requestId, hasDownloadStarted: true }));
         downloadProgressCallback(0);
         await drive.file.createDecryptedFileFolder(uuid);
 
@@ -381,6 +382,7 @@ export const driveSlice = createSlice({
           status: 'idle',
           downloadProgress: 0,
           decryptProgress: 0,
+          hasDownloadStarted: false,
         };
       })
       .addCase(downloadFileThunk.fulfilled, () => undefined);

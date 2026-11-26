@@ -4,6 +4,7 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
 import { RootStackScreenProps } from '@internxt-mobile/types/navigation';
+import strings from 'assets/lang/strings';
 import * as NavigationBar from 'expo-navigation-bar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Platform, StyleSheet } from 'react-native';
@@ -14,7 +15,12 @@ import { useDrive } from 'src/hooks/drive';
 import { useAppDispatch, useAppSelector } from 'src/store/hooks';
 import { uiActions } from 'src/store/slices/ui';
 import { driveActions, driveThunks } from '../../../store/slices/drive';
-import { DrivePreviewPage, getPreviewFileName, VIDEO_PREVIEW_TYPES } from './DrivePreviewPage';
+import {
+  DrivePreviewPage,
+  getPreviewDownloadProgress,
+  getPreviewFileName,
+  VIDEO_PREVIEW_TYPES,
+} from './DrivePreviewPage';
 import { DrivePreviewPager } from './DrivePreviewPager';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
 import { useActivePreviewFile } from './hooks/useActivePreviewFile';
@@ -22,6 +28,7 @@ import { useSyncPreviewFilesWithDrive } from './hooks/useSyncPreviewFilesWithDri
 import { useThumbnailRegeneration } from './hooks/useThumbnailRegeneration';
 
 const TOP_BAR_Z_INDEX = 10;
+const PERCENT_FACTOR = 100;
 
 export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> = (props) => {
   const { files, initialIndex } = props.route.params;
@@ -128,29 +135,38 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     },
   );
 
+  const isActiveFileDownloading =
+    !!activeFile &&
+    downloadingFile?.data.uuid === activeFile.uuid &&
+    downloadingFile.hasDownloadStarted &&
+    !downloadedFilePaths[activeFile.uuid] &&
+    !downloadingFile.downloadedFilePath &&
+    !downloadingFile.error;
+  const isTopbarShown = topbarVisible || isActiveFileDownloading;
+
   useEffect(() => {
     Animated.timing(topbarYPosition, {
-      toValue: topbarVisible ? 0 : -totalHeaderHeight,
+      toValue: isTopbarShown ? 0 : -totalHeaderHeight,
       duration: 150,
       useNativeDriver: true,
       easing: DEFAULT_EASING,
     }).start();
 
     Animated.timing(pdfViewerSpacerHeight, {
-      toValue: topbarVisible ? totalHeaderHeight : 0,
+      toValue: isTopbarShown ? totalHeaderHeight : 0,
       duration: 100,
       useNativeDriver: false,
       easing: DEFAULT_EASING,
     }).start();
 
     if (Platform.OS === 'android') {
-      if (topbarVisible) {
+      if (isTopbarShown) {
         NavigationBar.setVisibilityAsync('visible');
       } else {
         NavigationBar.setVisibilityAsync('hidden');
       }
     }
-  }, [topbarVisible]);
+  }, [isTopbarShown]);
 
   const handleActionsButtonPress = () => {
     dispatch(uiActions.setShowItemModal(true));
@@ -162,27 +178,52 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         driveFile={driveFile}
         isActive={index === activeIndex}
         cachedFilePath={downloadedFilePaths[driveFile.uuid]}
-        topbarVisible={topbarVisible}
+        topbarVisible={isTopbarShown}
         videoThumbnailPath={videoThumbnailPaths[driveFile.uuid]}
         pdfViewerSpacerHeight={pdfViewerSpacerHeight}
-        onToggleTopbar={() => setTopbarVisible((isVisible) => !isVisible)}
-        onHideTopbar={() => setTopbarVisible(false)}
+        onToggleTopbar={() => {
+          if (isActiveFileDownloading) {
+            return;
+          }
+          setTopbarVisible((isVisible) => !isVisible);
+        }}
+        onHideTopbar={() => {
+          if (isActiveFileDownloading) {
+            return;
+          }
+          setTopbarVisible(false);
+        }}
         onZoomChange={setIsZoomed}
       />
     ),
-    [activeIndex, downloadedFilePaths, topbarVisible, videoThumbnailPaths, pdfViewerSpacerHeight],
+    [
+      activeIndex,
+      downloadedFilePaths,
+      isTopbarShown,
+      isActiveFileDownloading,
+      videoThumbnailPaths,
+      pdfViewerSpacerHeight,
+    ],
   );
 
   if (isPreviewEmpty) {
     return null;
   }
 
+  const headerSubtitle =
+    isActiveFileDownloading && downloadingFile
+      ? strings.formatString(
+          strings.screens.drive.downloadingPercent,
+          Math.round(getPreviewDownloadProgress(downloadingFile) * PERCENT_FACTOR),
+        )
+      : time.getFormattedDate(activeFile.updatedAt, time.formats.dateAtTimeLong);
+
   return (
     <AppScreen className="flex-1">
       <Animated.View style={[styles.topBar, { paddingTop: insets.top, transform: [{ translateY: topbarYPosition }] }]}>
         <DrivePreviewScreenHeader
           title={getPreviewFileName(activeFile)}
-          subtitle={time.getFormattedDate(activeFile.updatedAt, time.formats.dateAtTimeLong)}
+          subtitle={headerSubtitle}
           onCloseButtonPress={closePreview}
           onActionsButtonPress={handleActionsButtonPress}
         />
