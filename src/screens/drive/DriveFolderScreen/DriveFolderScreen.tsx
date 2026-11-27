@@ -29,7 +29,7 @@ import {
   buildFileListItem,
   buildFolderUploadListItem,
   canSelectDriveItem,
-  getIdleFiles,
+  getFolderPreviewFiles,
   hasUnloadedPages,
   isFolderUploadItem,
   hasSelectedFolder,
@@ -145,7 +145,10 @@ export function DriveFolderScreen({ navigation }: DriveScreenProps<'DriveFolder'
     }
     return driveSortedItems;
   }, [driveSortedItems, searchValue]);
-  const previewFiles = useMemo(() => getIdleFiles(driveItems), [driveItems]);
+  const previewFiles = useMemo(
+    () => getFolderPreviewFiles(folderFiles, sortMode, searchValue),
+    [folderFiles, sortMode, searchValue],
+  );
 
   const folderItemUuids = useMemo(() => folderContent.map((item) => item.data.uuid), [folderContent]);
   const visibleItemUuids = useMemo(
