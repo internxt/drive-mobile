@@ -57,7 +57,7 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
       setRemovalCount((revision) => revision + 1);
 
       if (isActiveFileRemoved && remainingFiles[newIndex]) {
-        startFilePreview(dispatch, remainingFiles[newIndex]);
+        dispatch(startFilePreview(remainingFiles[newIndex]));
       }
     },
     [dispatch],
