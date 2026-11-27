@@ -11,7 +11,13 @@ jest.mock('../../DriveFolderScreen/useLoadNextFolderPage', () => ({
 
 jest.mock('@internxt-mobile/services/ErrorService', () => ({
   __esModule: true,
-  default: { reportError: jest.fn() },
+  default: { reportError: jest.fn(), castError: jest.fn((error: Error) => error) },
+}));
+
+const mockShowNotification = jest.fn();
+jest.mock('../../../../services/NotificationsService', () => ({
+  __esModule: true,
+  default: { show: (...args: unknown[]) => mockShowNotification(...args) },
 }));
 
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
@@ -134,13 +140,22 @@ describe('Loading more files in the preview', () => {
   });
 
   test('when the next page brings only folders, then the following page is requested', () => {
-    const { rerender, appendFiles } = arrangeHook(aNode(['file-a', 'file-b']), {
-      sourceFolder: SOURCE_FOLDER,
-      activeIndex: 1,
-      previewFileUuids: ['file-a', 'file-b'],
-    });
+    const { rerender, appendFiles } = arrangeHook(
+      aNode(['file-a', 'file-b'], { nextFoldersOffset: 50, nextFilesOffset: 0 }),
+      {
+        sourceFolder: SOURCE_FOLDER,
+        activeIndex: 1,
+        previewFileUuids: ['file-a', 'file-b'],
+      },
+    );
 
-    mockTree(aNode(['file-a', 'file-b'], { folders: [{ uuid: 'new-folder' }] }));
+    mockTree(
+      aNode(['file-a', 'file-b'], {
+        folders: [{ uuid: 'new-folder' }],
+        nextFoldersOffset: 100,
+        nextFilesOffset: 0,
+      }),
+    );
     rerender({ sourceFolder: SOURCE_FOLDER, activeIndex: 1, previewFileUuids: ['file-a', 'file-b'] });
 
     expect(appendFiles).not.toHaveBeenCalled();
@@ -188,5 +203,34 @@ describe('Loading more files in the preview', () => {
     rerender({ sourceFolder: SOURCE_FOLDER, activeIndex: 2, previewFileUuids });
 
     expect(mockLoadNextPage).toHaveBeenCalledTimes(2);
+  });
+
+  test('when a failed request leaves the same pages with an error, then it is not requested again on its own', async () => {
+    mockLoadNextPage.mockRejectedValueOnce(new Error('network down'));
+    const previewFileUuids = ['file-a', 'file-b', 'file-c'];
+    const { rerender } = arrangeHook(aNode(previewFileUuids), {
+      sourceFolder: SOURCE_FOLDER,
+      activeIndex: 1,
+      previewFileUuids,
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    mockTree(aNode(previewFileUuids, { loading: false, error: new Error('network down') }));
+    rerender({ sourceFolder: SOURCE_FOLDER, activeIndex: 1, previewFileUuids });
+
+    expect(mockLoadNextPage).toHaveBeenCalledTimes(1);
+  });
+
+  test('when loading the next page fails, then an error notification is shown', async () => {
+    mockLoadNextPage.mockRejectedValueOnce(new Error('network down'));
+    const previewFileUuids = ['file-a', 'file-b', 'file-c'];
+    arrangeHook(aNode(previewFileUuids), { sourceFolder: SOURCE_FOLDER, activeIndex: 1, previewFileUuids });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockShowNotification).toHaveBeenCalledWith(expect.objectContaining({ text1: 'network down' }));
   });
 });

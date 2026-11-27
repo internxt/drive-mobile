@@ -230,6 +230,25 @@ describe('Loading the next page of a Drive folder with many subfolders', () => {
     expect(result.current.driveFoldersTree[ROOT_FOLDER_UUID].files).toHaveLength(1);
   });
 
+  test('when the next page of a folder is requested right after a page loads, then it asks for the following offsets instead of repeating the same page', async () => {
+    mockGetFolderFolders.mockResolvedValueOnce({ folders: buildFolders(0, PAGE_SIZE) });
+    mockGetFolderFolders.mockResolvedValueOnce({ folders: buildFolders(PAGE_SIZE, PAGE_SIZE) });
+    mockGetFolderFolders.mockResolvedValueOnce({ folders: buildFolders(PAGE_SIZE * 2, PAGE_SIZE) });
+    const { result } = await renderDriveContext();
+
+    await act(async () => {
+      await result.current.loadFolderContent(ROOT_FOLDER_UUID, { resetPagination: false });
+      await result.current.loadFolderContent(ROOT_FOLDER_UUID, { resetPagination: false });
+    });
+
+    expect(mockGetFolderFolders).toHaveBeenLastCalledWith(
+      ROOT_FOLDER_UUID,
+      PAGE_SIZE * 2,
+      PAGE_SIZE,
+      DEFAULT_SORT_MODE,
+    );
+  });
+
   test('when a file is added to the folder before its files are loaded, then the files still start from the first page', async () => {
     mockGetFolderFolders.mockResolvedValueOnce({ folders: buildFolders(0, PAGE_SIZE) });
     mockGetFolderFolders.mockResolvedValueOnce({ folders: buildFolders(PAGE_SIZE, 10) });

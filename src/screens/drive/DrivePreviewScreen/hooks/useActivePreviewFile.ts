@@ -37,6 +37,7 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
 
   const removeFiles = useCallback(
     (removedUuids: string[]) => {
+      removedUuids.forEach((removedUuid) => removedFileUuidsRef.current.add(removedUuid));
       const currentFiles = previewFilesRef.current;
       const remainingFiles = currentFiles.filter((previewFile) => !removedUuids.includes(previewFile.uuid));
       if (remainingFiles.length === currentFiles.length) {
@@ -52,7 +53,6 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
         ? Math.max(0, Math.min(remainingFilesBeforeActive, remainingFiles.length - 1))
         : remainingFilesBeforeActive;
 
-      removedUuids.forEach((removedUuid) => removedFileUuidsRef.current.add(removedUuid));
       previewFilesRef.current = remainingFiles;
       activeIndexRef.current = newIndex;
       setPreviewFiles(remainingFiles);

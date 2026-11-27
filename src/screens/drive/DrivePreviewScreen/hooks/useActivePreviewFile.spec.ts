@@ -115,6 +115,16 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.removalCount).toBe(1);
   });
 
+  test('when a file that is not in the preview is removed, then it is still remembered as removed', () => {
+    const { result } = arrangeHook(1);
+
+    act(() => {
+      result.current.removeFiles(['unknown-file']);
+    });
+
+    expect(result.current.removedFileUuids.has('unknown-file')).toBe(true);
+  });
+
   test('when the shown last file is removed, then the previous file is shown and starts', () => {
     const { result, dispatch } = arrangeHook(2);
 

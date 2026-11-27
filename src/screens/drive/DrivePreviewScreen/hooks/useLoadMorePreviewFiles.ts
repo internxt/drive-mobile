@@ -3,6 +3,8 @@ import errorService from '@internxt-mobile/services/ErrorService';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
 import { DrivePreviewSourceFolder } from '@internxt-mobile/types/navigation';
 import { useEffect, useMemo } from 'react';
+import notificationsService from '../../../../services/NotificationsService';
+import { NotificationType } from '../../../../types';
 import { canLoadNextPage, getFolderPreviewFiles } from '../../DriveFolderScreen/DriveFolderScreen.helpers';
 import { useLoadNextFolderPage } from '../../DriveFolderScreen/useLoadNextFolderPage';
 
@@ -59,6 +61,19 @@ export const useLoadMorePreviewFiles = ({
       return;
     }
 
-    loadNextPage().catch((error) => errorService.reportError(error));
-  }, [activeIndex, previewFiles.length, missingFiles.length, folderNode]);
+    loadNextPage().catch((error) => {
+      errorService.reportError(error);
+      const loadError = errorService.castError(error, 'content');
+      notificationsService.show({
+        type: NotificationType.Error,
+        text1: loadError.message,
+      });
+    });
+  }, [
+    activeIndex,
+    previewFiles.length,
+    missingFiles.length,
+    folderNode?.nextFilesOffset,
+    folderNode?.nextFoldersOffset,
+  ]);
 };
