@@ -2,15 +2,23 @@ import drive from '@internxt-mobile/services/drive';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
 import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
-import type { AppDispatch } from '../../store';
+import type { AppDispatch, RootState } from '../../store';
 import { useAppDispatch } from '../../store/hooks';
 import { driveActions, driveThunks } from '../../store/slices/drive';
 
 /**
- * Focuses the file, starts its download for the preview and registers the download abort.
+ * Cancels the previous download if it is still running, focuses the file, starts its download for the preview and
+ * registers the download abort.
  * Returns the download promise, which can be aborted or awaited.
  */
-export const startFilePreview = (dispatch: AppDispatch, driveFile: DriveItemData) => {
+export const startFilePreview = (driveFile: DriveItemData) => (dispatch: AppDispatch, getState: () => RootState) => {
+  const previousDownload = getState().drive.downloadingFile;
+  const isPreviousDownloadRunning =
+    !!previousDownload && !previousDownload.downloadedFilePath && !previousDownload.error;
+  if (isPreviousDownloadRunning) {
+    dispatch(driveThunks.cancelDownloadThunk());
+  }
+
   dispatch(
     driveActions.setFocusedItem({
       ...driveFile,
@@ -55,7 +63,7 @@ export const useOpenFilePreview = () => {
       const swipeableFiles = isOpenedFileInList ? previewFiles : [driveFile];
       const initialIndex = isOpenedFileInList ? openedFileIndex : 0;
 
-      const downloadPromise = startFilePreview(dispatch, driveFile);
+      const downloadPromise = dispatch(startFilePreview(driveFile));
       navigation.navigate('DrivePreview', { files: swipeableFiles, initialIndex });
       return downloadPromise;
     },

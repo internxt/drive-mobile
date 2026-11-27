@@ -1,5 +1,5 @@
 import type { RootState } from '../..';
-import { driveSelectors } from './index';
+import driveReducer, { driveActions, driveSelectors, DriveState } from './index';
 
 jest.mock('@internxt-mobile/services/common', () => ({
   logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn() },
@@ -30,7 +30,13 @@ const aStateWith = ({
 } = {}): RootState =>
   ({
     auth: { user: { bucket: 'the-bucket' } },
-    drive: { folderContent: [aFile, aFolder], uploadingFiles: [anUpload], searchString: '', currentFolderId: 7, ...drive },
+    drive: {
+      folderContent: [aFile, aFolder],
+      uploadingFiles: [anUpload],
+      searchString: '',
+      currentFolderId: 7,
+      ...drive,
+    },
     ui: { showUploadModal: false, ...ui },
   }) as unknown as RootState;
 
@@ -68,5 +74,50 @@ describe('Listing the items of the open Drive folder', () => {
     const { items } = driveSelectors.driveItems(aStateWith({ drive: { searchString: 'invo' } }));
 
     expect(items.map((item) => item.data.name)).toEqual(['Invoice']);
+  });
+});
+
+describe('Updating the download shown in the preview', () => {
+  const aDownload = (requestId: string) => ({
+    requestId,
+    data: { uuid: 'file-uuid', fileId: 'file-id', name: 'Invoice', type: 'pdf', size: 10, updatedAt: '' },
+    status: 'idle' as const,
+    downloadProgress: 0,
+    decryptProgress: 0,
+  });
+  const aDriveStateDownloading = (requestId: string) =>
+    ({ downloadingFile: aDownload(requestId) }) as unknown as DriveState;
+
+  test('when a change comes from the running download, then it is applied', () => {
+    const nextState = driveReducer(
+      aDriveStateDownloading('current-request'),
+      driveActions.updateDownloadingFile({ requestId: 'current-request', downloadProgress: 0.5 }),
+    );
+
+    expect(nextState.downloadingFile?.downloadProgress).toBe(0.5);
+  });
+
+  test('when a change comes from a previous download, then it is ignored', () => {
+    const nextState = driveReducer(
+      aDriveStateDownloading('current-request'),
+      driveActions.updateDownloadingFile({ requestId: 'previous-request', downloadedFilePath: 'file:///old.pdf' }),
+    );
+
+    expect(nextState.downloadingFile?.downloadedFilePath).toBeUndefined();
+  });
+
+  test('when a previous download asks to clear the download, then the running one is kept', () => {
+    const nextState = driveReducer(
+      aDriveStateDownloading('current-request'),
+      driveActions.clearDownloadingFile('previous-request'),
+    );
+
+    expect(nextState.downloadingFile?.requestId).toBe('current-request');
+  });
+
+  test('when the download is cleared without saying which one, then it is removed', () => {
+    const nextState = driveReducer(aDriveStateDownloading('current-request'), driveActions.clearDownloadingFile());
+
+    expect(nextState.downloadingFile).toBeUndefined();
   });
 });

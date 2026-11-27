@@ -18,6 +18,7 @@ jest.mock('../../store/slices/drive', () => ({
   },
   driveThunks: {
     downloadFileThunk: jest.fn((args) => ({ type: 'drive/downloadFile', args })),
+    cancelDownloadThunk: jest.fn(() => ({ type: 'drive/cancelDownload' })),
   },
 }));
 
@@ -32,6 +33,7 @@ jest.mock('@react-navigation/native', () => ({
 const setDownloadAbortMock = drive.events.setDownloadAbort as jest.Mock;
 const setFocusedItemMock = driveActions.setFocusedItem as unknown as jest.Mock;
 const downloadFileThunkMock = driveThunks.downloadFileThunk as unknown as jest.Mock;
+const cancelDownloadThunkMock = driveThunks.cancelDownloadThunk as unknown as jest.Mock;
 const useAppDispatchMock = useAppDispatch as jest.Mock;
 const useNavigationMock = useNavigation as jest.Mock;
 
@@ -52,9 +54,16 @@ const driveFile: DriveItemData = {
   thumbnails: [thumbnail] as unknown as DriveItemData['thumbnails'],
 };
 
-const arrangeDispatch = () => {
+const aRunningDownload = { downloadedFilePath: undefined, error: undefined };
+const aFinishedDownload = { downloadedFilePath: 'file:///finished.png', error: undefined };
+
+const arrangeDispatch = (previousDownload?: object) => {
   const downloadPromise = { abort: jest.fn(), then: jest.fn() };
-  const dispatch = jest.fn((action: { type: string }) => {
+  const getState = () => ({ drive: { downloadingFile: previousDownload } });
+  const dispatch: jest.Mock = jest.fn((action: { type: string } | ((...args: unknown[]) => unknown)) => {
+    if (typeof action === 'function') {
+      return action(dispatch, getState);
+    }
     if (action.type === 'drive/downloadFile') {
       return downloadPromise;
     }
@@ -69,10 +78,26 @@ describe('starting the preview of a file', () => {
     jest.clearAllMocks();
   });
 
+  test('when the previous file is still downloading, then that download is cancelled first', () => {
+    const { dispatch } = arrangeDispatch(aRunningDownload);
+
+    dispatch(startFilePreview(driveFile));
+
+    expect(cancelDownloadThunkMock).toHaveBeenCalledTimes(1);
+  });
+
+  test('when the previous file had already finished downloading, then nothing is cancelled', () => {
+    const { dispatch } = arrangeDispatch(aFinishedDownload);
+
+    dispatch(startFilePreview(driveFile));
+
+    expect(cancelDownloadThunkMock).not.toHaveBeenCalled();
+  });
+
   test('when a file is opened, then it is focused with all its data, including its thumbnails', () => {
     const { dispatch } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
     expect(setFocusedItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -88,7 +113,7 @@ describe('starting the preview of a file', () => {
   test('when a file without folder or bucket is opened, then those fields are left empty instead of null', () => {
     const { dispatch } = arrangeDispatch();
 
-    startFilePreview(dispatch, { ...driveFile, folderUuid: null, bucket: null });
+    dispatch(startFilePreview({ ...driveFile, folderUuid: null, bucket: null }));
 
     const focusedItem = setFocusedItemMock.mock.calls[0][0];
     expect(focusedItem.folderUuid).toBeUndefined();
@@ -98,7 +123,7 @@ describe('starting the preview of a file', () => {
   test('when a file is opened, then its download starts without opening the system file viewer', () => {
     const { dispatch } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
     expect(downloadFileThunkMock).toHaveBeenCalledWith({
       uuid: 'file-uuid',
@@ -116,16 +141,19 @@ describe('starting the preview of a file', () => {
   test('when the file is focused, then this happens before its download starts', () => {
     const { dispatch, dispatchMock } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
-    const dispatchedTypes = dispatchMock.mock.calls.map(([action]) => action.type);
+    const dispatchedTypes = dispatchMock.mock.calls
+      .map(([action]) => action)
+      .filter((action) => typeof action !== 'function')
+      .map((action) => action.type);
     expect(dispatchedTypes).toEqual(['drive/setFocusedItem', 'drive/downloadFile']);
   });
 
   test('when the preview download is cancelled, then the download of that file is aborted', () => {
     const { dispatch, downloadPromise } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
     const registeredAbort = setDownloadAbortMock.mock.calls[0][0];
     registeredAbort();
 
@@ -135,7 +163,7 @@ describe('starting the preview of a file', () => {
   test('when a file is opened, then the running download is returned so it can be awaited', () => {
     const { dispatch, downloadPromise } = arrangeDispatch();
 
-    const returnedDownloadPromise = startFilePreview(dispatch, driveFile);
+    const returnedDownloadPromise = dispatch(startFilePreview(driveFile));
 
     expect(returnedDownloadPromise).toBe(downloadPromise);
   });

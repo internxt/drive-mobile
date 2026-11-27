@@ -18,6 +18,7 @@ interface ImageViewerProps {
 }
 
 const SCALE_LIMIT = 25;
+const MIN_SCALE = 1;
 const DEFAULT_EASING = Easing.bezier(0, 0, 0.58, 1);
 
 export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, onZoomImage, onImageViewReset }) => {
@@ -97,9 +98,7 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
     })
     .onUpdate((event) => {
       const newScale = event.scale * savedScale.value;
-      if (newScale <= SCALE_LIMIT && newScale > 1) {
-        scale.value = newScale;
-      }
+      scale.value = Math.min(Math.max(newScale, MIN_SCALE), SCALE_LIMIT);
     })
     .onEnd(() => {
       const currentScale = parseFloat(scale.value.toFixed(2));
@@ -174,12 +173,14 @@ export const ImageViewer: React.FC<ImageViewerProps> = ({ source, onTapImage, on
     .numberOfTaps(2)
     .onEnd(() => {
       if (scale.value === 1) {
+        scheduleOnRN(onZoomImage);
         scheduleOnRN(setPanEnabled, true);
         scale.value = withTiming(scale.value * 2, {
           duration: 150,
           easing: DEFAULT_EASING,
         });
       } else {
+        scheduleOnRN(onImageViewReset);
         scheduleOnRN(setPanEnabled, false);
         scale.value = withTiming(1, {
           duration: 150,

@@ -10,6 +10,7 @@ export interface DriveImagePreviewProps {
   height: number;
   onTapImage: () => void;
   onZoomImage: () => void;
+  onImageViewReset: () => void;
 }
 
 export const DriveImagePreview: React.FC<DriveImagePreviewProps> = (props) => {
@@ -26,9 +27,7 @@ export const DriveImagePreview: React.FC<DriveImagePreviewProps> = (props) => {
         source={props.imagePath}
         onTapImage={handleOnTapImage}
         onZoomImage={handleOnZoomImage}
-        onImageViewReset={() => {
-          /** NOOP */
-        }}
+        onImageViewReset={props.onImageViewReset}
       />
     </Animated.View>
   );
