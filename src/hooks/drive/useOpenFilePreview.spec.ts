@@ -81,7 +81,7 @@ describe('starting the preview of a file', () => {
   test('when the previous file is still downloading, then that download is cancelled first', () => {
     const { dispatch } = arrangeDispatch(aRunningDownload);
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
     expect(cancelDownloadThunkMock).toHaveBeenCalledTimes(1);
   });
@@ -89,7 +89,7 @@ describe('starting the preview of a file', () => {
   test('when the previous file had already finished downloading, then nothing is cancelled', () => {
     const { dispatch } = arrangeDispatch(aFinishedDownload);
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
     expect(cancelDownloadThunkMock).not.toHaveBeenCalled();
   });
@@ -97,7 +97,7 @@ describe('starting the preview of a file', () => {
   test('when a file is opened, then it is focused with all its data, including its thumbnails', () => {
     const { dispatch } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
     expect(setFocusedItemMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -113,7 +113,7 @@ describe('starting the preview of a file', () => {
   test('when a file without folder or bucket is opened, then those fields are left empty instead of null', () => {
     const { dispatch } = arrangeDispatch();
 
-    startFilePreview(dispatch, { ...driveFile, folderUuid: null, bucket: null });
+    dispatch(startFilePreview({ ...driveFile, folderUuid: null, bucket: null }));
 
     const focusedItem = setFocusedItemMock.mock.calls[0][0];
     expect(focusedItem.folderUuid).toBeUndefined();
@@ -123,7 +123,7 @@ describe('starting the preview of a file', () => {
   test('when a file is opened, then its download starts without opening the system file viewer', () => {
     const { dispatch } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
     expect(downloadFileThunkMock).toHaveBeenCalledWith({
       uuid: 'file-uuid',
@@ -141,7 +141,7 @@ describe('starting the preview of a file', () => {
   test('when the file is focused, then this happens before its download starts', () => {
     const { dispatch, dispatchMock } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
 
     const dispatchedTypes = dispatchMock.mock.calls
       .map(([action]) => action)
@@ -153,7 +153,7 @@ describe('starting the preview of a file', () => {
   test('when the preview download is cancelled, then the download of that file is aborted', () => {
     const { dispatch, downloadPromise } = arrangeDispatch();
 
-    startFilePreview(dispatch, driveFile);
+    dispatch(startFilePreview(driveFile));
     const registeredAbort = setDownloadAbortMock.mock.calls[0][0];
     registeredAbort();
 
@@ -163,7 +163,7 @@ describe('starting the preview of a file', () => {
   test('when a file is opened, then the running download is returned so it can be awaited', () => {
     const { dispatch, downloadPromise } = arrangeDispatch();
 
-    const returnedDownloadPromise = startFilePreview(dispatch, driveFile);
+    const returnedDownloadPromise = dispatch(startFilePreview(driveFile));
 
     expect(returnedDownloadPromise).toBe(downloadPromise);
   });

@@ -21,7 +21,6 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
       const newActiveFile = previewFiles[newIndex];
       const previousIndex = activeIndexRef.current;
       if (newIndex === previousIndex || !newActiveFile) {
-        logger.info(`[DrivePreview] Ignored change to index ${newIndex} — active index ${previousIndex}`);
         return;
       }
       logger.info(
@@ -29,7 +28,7 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
       );
       activeIndexRef.current = newIndex;
       setActiveIndex(newIndex);
-      startFilePreview(dispatch, newActiveFile);
+      dispatch(startFilePreview(newActiveFile));
     },
     [dispatch, previewFiles],
   );
