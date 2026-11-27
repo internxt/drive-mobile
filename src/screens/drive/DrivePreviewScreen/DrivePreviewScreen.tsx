@@ -18,13 +18,15 @@ import { DrivePreviewPage, getPreviewFileName, VIDEO_PREVIEW_TYPES } from './Dri
 import { DrivePreviewPager } from './DrivePreviewPager';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
 import { useActivePreviewFile } from './hooks/useActivePreviewFile';
+import { useSyncPreviewFilesWithDrive } from './hooks/useSyncPreviewFilesWithDrive';
 import { useThumbnailRegeneration } from './hooks/useThumbnailRegeneration';
 
 const TOP_BAR_Z_INDEX = 10;
 
 export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> = (props) => {
   const { files, initialIndex } = props.route.params;
-  const { activeIndex, activeFile, changeActiveIndex } = useActivePreviewFile(files, initialIndex);
+  const { previewFiles, activeIndex, activeFile, removalCount, changeActiveIndex, removeFiles, updateFileName } =
+    useActivePreviewFile(files, initialIndex);
   const [topbarVisible, setTopbarVisible] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
   const [downloadedFilePaths, setDownloadedFilePaths] = useState<Record<string, string>>({});
@@ -73,11 +75,27 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
       .catch((err) => errorService.reportError(err));
   }, [downloadingFile?.data.uuid, downloadingFile?.downloadedFilePath]);
 
+  useSyncPreviewFilesWithDrive({ activeFile, removeFiles, updateFileName });
+
+  const isPreviewEmpty = previewFiles.length === 0;
+  const { navigation } = props;
+  const closePreview = useCallback(async () => {
+    await dispatch(driveThunks.cancelDownloadThunk());
+    dispatch(driveActions.clearDownloadingFile());
+    navigation.goBack();
+  }, [dispatch, navigation]);
+
+  useEffect(() => {
+    if (isPreviewEmpty) {
+      closePreview();
+    }
+  }, [isPreviewEmpty, closePreview]);
+
   const focusedItemRef = useRef(focusedItem);
   focusedItemRef.current = focusedItem;
 
   const updateItemWithNewThumbnail = (thumbnail: Thumbnail, regeneratedFileUuid: string) => {
-    const regeneratedFile = files.find((previewFile) => previewFile.uuid === regeneratedFileUuid);
+    const regeneratedFile = previewFiles.find((previewFile) => previewFile.uuid === regeneratedFileUuid);
     if (!regeneratedFile?.folderUuid) {
       return;
     }
@@ -100,10 +118,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
 
   useThumbnailRegeneration(
     {
-      downloadedFilePath: downloadedFilePaths[activeFile.uuid],
-      fileExtension: activeFile.type,
-      fileUuid: activeFile.uuid,
-      hasThumbnails: !!(activeFile.thumbnails && activeFile.thumbnails.length > 0),
+      downloadedFilePath: downloadedFilePaths[activeFile?.uuid],
+      fileExtension: activeFile?.type,
+      fileUuid: activeFile?.uuid,
+      hasThumbnails: !!(activeFile?.thumbnails && activeFile.thumbnails.length > 0),
     },
     {
       onSuccess: updateItemWithNewThumbnail,
@@ -155,23 +173,24 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
     [activeIndex, downloadedFilePaths, topbarVisible, videoThumbnailPaths, pdfViewerSpacerHeight],
   );
 
+  if (isPreviewEmpty) {
+    return null;
+  }
+
   return (
     <AppScreen className="flex-1">
       <Animated.View style={[styles.topBar, { paddingTop: insets.top, transform: [{ translateY: topbarYPosition }] }]}>
         <DrivePreviewScreenHeader
           title={getPreviewFileName(activeFile)}
           subtitle={time.getFormattedDate(activeFile.updatedAt, time.formats.dateAtTimeLong)}
-          onCloseButtonPress={async () => {
-            await dispatch(driveThunks.cancelDownloadThunk());
-            dispatch(driveActions.clearDownloadingFile());
-            props.navigation.goBack();
-          }}
+          onCloseButtonPress={closePreview}
           onActionsButtonPress={handleActionsButtonPress}
         />
       </Animated.View>
       <DrivePreviewPager
-        previewFiles={files}
-        initialIndex={initialIndex}
+        key={removalCount}
+        previewFiles={previewFiles}
+        initialIndex={activeIndex}
         scrollEnabled={!isZoomed}
         renderPreviewPage={renderPreviewPage}
         onActiveIndexChange={changeActiveIndex}

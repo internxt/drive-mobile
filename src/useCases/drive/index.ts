@@ -10,5 +10,6 @@ export * from './moveCollisions';
 export * from './onDriveItemMoved';
 export * from './onDriveItemRestored';
 export * from './onDriveItemTrashed';
+export * from './onDriveItemsTrashed';
 export * from './onDriveItemUploaded';
 export * from './trash';
