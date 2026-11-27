@@ -18,6 +18,7 @@ interface UseDriveItemProps {
   status: DriveItemStatus;
   isSharedLinkItem?: boolean;
   shareLink?: SharedItem;
+  previewFiles?: DriveItemData[];
 }
 
 /**
@@ -61,7 +62,7 @@ const useDriveItem = (props: UseDriveItemProps) => {
     }
 
     setIsDisabled(true);
-    const downloadPromise = openFilePreview(props.data);
+    const downloadPromise = openFilePreview(props.data, props.previewFiles);
 
     downloadPromise.then(() => {
       setIsDisabled(false);

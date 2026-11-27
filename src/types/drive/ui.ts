@@ -59,6 +59,7 @@ export interface DriveItemProps {
   progress?: number;
   isSelected?: boolean;
   shareLink?: SharedFiles & SharedFolders;
+  previewFiles?: DriveItemData[];
   onActionsPress?: () => void;
   onPress?: () => void;
   onLongPress?: () => void;

@@ -40,14 +40,23 @@ export const startFilePreview = (dispatch: AppDispatch, driveFile: DriveItemData
   return downloadPromise;
 };
 
+/**
+ * Returns a function that starts the preview of the file and opens the preview screen with the files to swipe
+ * through. When the file is not in that list, the preview opens with that file alone.
+ */
 export const useOpenFilePreview = () => {
   const dispatch = useAppDispatch();
   const navigation = useNavigation();
 
   return useCallback(
-    (driveFile: DriveItemData) => {
+    (driveFile: DriveItemData, previewFiles: DriveItemData[] = [driveFile]) => {
+      const openedFileIndex = previewFiles.findIndex((previewFile) => previewFile.uuid === driveFile.uuid);
+      const isOpenedFileInList = openedFileIndex !== -1;
+      const swipeableFiles = isOpenedFileInList ? previewFiles : [driveFile];
+      const initialIndex = isOpenedFileInList ? openedFileIndex : 0;
+
       const downloadPromise = startFilePreview(dispatch, driveFile);
-      navigation.navigate('DrivePreview');
+      navigation.navigate('DrivePreview', { files: swipeableFiles, initialIndex });
       return downloadPromise;
     },
     [dispatch, navigation],

@@ -6,6 +6,7 @@ import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-naviga
 import { TimelinePhotoItem } from '../screens/PhotosScreen/types';
 import { PendingShareMetadata } from '../services/AppGroupPendingShareService';
 import { SharedFile } from '../shareExtension/types';
+import type { DriveItemData } from './drive/item';
 import { DraftComposeParams, ForwardComposeParams, MailboxId, ReplyComposeParams } from './mail';
 
 declare global {
@@ -30,7 +31,10 @@ export type RootStackParamList = {
   DeactivatedAccount: undefined;
   TabExplorer: NavigatorScreenParams<TabExplorerStackParamList>;
   Trash: undefined;
-  DrivePreview: undefined;
+  DrivePreview: {
+    files: DriveItemData[];
+    initialIndex: number;
+  };
   PhotoPreview: {
     initialId: string;
     items: TimelinePhotoItem[];
