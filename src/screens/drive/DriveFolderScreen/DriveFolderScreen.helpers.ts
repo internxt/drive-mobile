@@ -52,7 +52,7 @@ export const canSelectDriveItem = (item: DriveListItem): boolean => item.status 
 /**
  * Returns the data of the idle files in the list, in the same order, leaving out folders and uploads in progress.
  */
-export const getPreviewFiles = (driveListItems: DriveListItem[]): DriveItemData[] =>
+export const getIdleFiles = (driveListItems: DriveListItem[]): DriveItemData[] =>
   driveListItems
     .filter((driveListItem) => !driveListItem.data.isFolder && driveListItem.status === DriveItemStatus.Idle)
     .map((driveListItem) => driveListItem.data);
