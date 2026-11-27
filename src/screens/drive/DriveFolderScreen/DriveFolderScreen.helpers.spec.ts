@@ -4,7 +4,7 @@ import { SortDirection, SortType } from '../../../types/drive/ui';
 import {
   canLoadNextPage,
   getFolderPreviewFiles,
-  getPreviewFiles,
+  getIdleFiles,
   hasSelectedFolder,
   matchesSearchValue,
 } from './DriveFolderScreen.helpers';
@@ -62,13 +62,13 @@ describe('Building the list of files to swipe through in the preview', () => {
   test('when the folder shows folders and files, then the list holds only the files', () => {
     const shownItems = [buildListItem('folder-uuid', true), buildListItem('file-uuid', false)];
 
-    expect(getPreviewFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-uuid']);
+    expect(getIdleFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-uuid']);
   });
 
   test('when the folder shows several files, then the list keeps the order shown on screen', () => {
     const shownItems = [buildListItem('file-b', false), buildListItem('file-a', false), buildListItem('file-c', false)];
 
-    expect(getPreviewFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-b', 'file-a', 'file-c']);
+    expect(getIdleFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-b', 'file-a', 'file-c']);
   });
 
   test('when a file is still uploading, then it is left out of the list', () => {
@@ -77,7 +77,7 @@ describe('Building the list of files to swipe through in the preview', () => {
       buildListItem('file-uuid', false),
     ];
 
-    expect(getPreviewFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-uuid']);
+    expect(getIdleFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-uuid']);
   });
 });
 

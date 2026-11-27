@@ -15,6 +15,8 @@ jest.mock('src/store/hooks', () => ({
 const startFilePreviewMock = startFilePreview as jest.Mock;
 const useAppDispatchMock = useAppDispatch as jest.Mock;
 
+const startedPreviewAction = { type: 'startFilePreview' };
+
 const aDriveFile = (uuid: string): DriveItemData => ({
   uuid,
   name: uuid,
@@ -27,6 +29,7 @@ const previewFiles = [aDriveFile('first-file'), aDriveFile('second-file'), aDriv
 
 const arrangeHook = (initialIndex = 0) => {
   const dispatch = jest.fn();
+  startFilePreviewMock.mockReturnValue(startedPreviewAction);
   useAppDispatchMock.mockReturnValue(dispatch);
   const rendered = renderHook(() => useActivePreviewFile(previewFiles, initialIndex));
 
@@ -53,7 +56,8 @@ describe('Changing the file shown in the preview', () => {
     });
 
     expect(result.current.activeFile.uuid).toBe('third-file');
-    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[2]);
+    expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[2]);
+    expect(dispatch).toHaveBeenCalledWith(startedPreviewAction);
   });
 
   test('when the list reports landing on the same file twice in a row, then that file starts once', () => {
@@ -89,7 +93,7 @@ describe('Changing the file shown in the preview', () => {
   });
 
   test('when the shown file is removed, then the next file is shown and starts', () => {
-    const { result, dispatch } = arrangeHook(1);
+    const { result } = arrangeHook(1);
 
     act(() => {
       result.current.removeFiles(['second-file']);
@@ -98,7 +102,7 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.previewFiles).toHaveLength(2);
     expect(result.current.activeFile.uuid).toBe('third-file');
     expect(result.current.activeIndex).toBe(1);
-    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[2]);
+    expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[2]);
   });
 
   test('when a file is removed, then the removal count goes up, and it stays when the file is not in the list', () => {
@@ -126,7 +130,7 @@ describe('Changing the file shown in the preview', () => {
   });
 
   test('when the shown last file is removed, then the previous file is shown and starts', () => {
-    const { result, dispatch } = arrangeHook(2);
+    const { result } = arrangeHook(2);
 
     act(() => {
       result.current.removeFiles(['third-file']);
@@ -134,11 +138,11 @@ describe('Changing the file shown in the preview', () => {
 
     expect(result.current.activeFile.uuid).toBe('second-file');
     expect(result.current.activeIndex).toBe(1);
-    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[1]);
+    expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[1]);
   });
 
   test('when several files are removed at once, including the shown one, then the closest remaining file before them is shown and starts', () => {
-    const { result, dispatch } = arrangeHook(1);
+    const { result } = arrangeHook(1);
 
     act(() => {
       result.current.removeFiles(['second-file', 'third-file']);
@@ -147,7 +151,7 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.previewFiles).toHaveLength(1);
     expect(result.current.activeIndex).toBe(0);
     expect(result.current.activeFile.uuid).toBe('first-file');
-    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[0]);
+    expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[0]);
   });
 
   test('when the only file is removed, then the list is empty', () => {

@@ -1,178 +1,198 @@
-import { useDownloadedThumbnail } from '@internxt-mobile/hooks/drive/useDownloadedThumbnail';
+import { driveFileService } from '@internxt-mobile/services/drive/file';
 import { DownloadedThumbnail } from '@internxt-mobile/types/drive/file';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
-import { render } from '@testing-library/react-native';
+import { DownloadingFile } from '@internxt-mobile/types/drive/operations';
+import { configureStore } from '@reduxjs/toolkit';
+import { act, render } from '@testing-library/react-native';
+import strings from 'assets/lang/strings';
 import { Animated, Dimensions, StyleSheet } from 'react-native';
-import { useAppSelector } from 'src/store/hooks';
+import { Bar as ProgressBar } from 'react-native-progress';
+import { Provider } from 'react-redux';
+import driveReducer from 'src/store/slices/drive';
 import { DrivePreviewPage } from './DrivePreviewPage';
 
-jest.mock('@internxt-mobile/hooks/drive/useDownloadedThumbnail', () => ({
-  useDownloadedThumbnail: jest.fn(),
-}));
-
-jest.mock('@internxt-mobile/hooks/drive/useOpenFilePreview', () => ({ startFilePreview: jest.fn() }));
+jest.mock('@internxt-mobile/contexts/Theme', () => ({ useTheme: () => ({ theme: 'light' }) }));
+jest.mock('@internxt-mobile/services/drive/file', () => ({ driveFileService: { getThumbnail: jest.fn() } }));
 jest.mock('@internxt-mobile/services/ErrorService', () => ({ __esModule: true, default: { reportError: jest.fn() } }));
 jest.mock('@internxt-mobile/services/FileSystemService', () => ({ fs: { shareFile: jest.fn() } }));
 jest.mock('@internxt-mobile/services/NotificationsService', () => ({ notifications: { error: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({ useSafeAreaInsets: () => ({ top: 0, bottom: 0 }) }));
-jest.mock('src/store/hooks', () => ({ useAppDispatch: jest.fn(), useAppSelector: jest.fn() }));
-jest.mock('src/hooks/useDelayedVideoActivation', () => ({ useDelayedVideoActivation: () => false }));
-jest.mock('src/hooks/useColor', () => ({ __esModule: true, default: () => () => '#0066FF' }));
-jest.mock('src/helpers', () => ({ getFileTypeIcon: () => () => null }));
-jest.mock('src/components/AppButton', () => {
-  const { Text } = jest.requireActual('react-native');
-  return ({ title }: { title: string }) => <Text>{title}</Text>;
-});
-jest.mock('src/components/AppProgressBar', () => {
-  const { View } = jest.requireActual('react-native');
-  return () => <View testID="drive-preview-progress" />;
-});
-jest.mock('src/components/AppText', () => {
-  const { Text } = jest.requireActual('react-native');
-  return ({ children }: { children: string }) => <Text>{children}</Text>;
-});
-jest.mock('assets/lang/strings', () => ({
-  __esModule: true,
-  default: { generic: { downloading: 'Downloading', decrypting: 'Decrypting' }, buttons: { tryAgain: 'Try again' } },
+jest.mock('src/helpers/filetypes', () => ({
+  ...jest.requireActual('src/helpers/filetypes'),
+  getFileTypeIcon: () => () => null,
 }));
-jest.mock('src/styles/global', () => ({ getLineHeight: () => 24 }));
-jest.mock('./DriveImagePreview', () => ({ DriveImagePreview: () => null }));
 jest.mock('./DrivePdfPreview', () => ({ DrivePdfPreview: () => null }));
 jest.mock('./DriveVideoPreview', () => ({ DriveVideoPreview: () => null }));
-jest.mock('./DrivePreviewScreenHeader', () => ({ DRIVE_PREVIEW_HEADER_HEIGHT: 0 }));
 
-const useDownloadedThumbnailMock = useDownloadedThumbnail as jest.Mock;
-const useAppSelectorMock = useAppSelector as jest.Mock;
-const thumbnail: DownloadedThumbnail = { width: 40, height: 40, uri: 'file:///thumb.png' };
-const driveFile = { uuid: 'file-uuid', name: 'holiday', type: 'zip' } as DriveItemData;
+const getThumbnailMock = driveFileService.getThumbnail as jest.Mock;
 
-const renderPage = (isActive: boolean) =>
-  render(
-    <DrivePreviewPage
-      driveFile={driveFile}
-      isActive={isActive}
-      topbarVisible
-      pdfViewerSpacerHeight={new Animated.Value(0)}
-      onToggleTopbar={jest.fn()}
-      onHideTopbar={jest.fn()}
-      onZoomChange={jest.fn()}
-    />,
+const DOWNLOAD_PROGRESS_HALF = 0.5;
+const TALL_THUMBNAIL_WIDTH = 100;
+const TALL_THUMBNAIL_HEIGHT = 600;
+const SQUARE_THUMBNAIL_SIZE = 40;
+
+const thumbnail: DownloadedThumbnail = {
+  width: SQUARE_THUMBNAIL_SIZE,
+  height: SQUARE_THUMBNAIL_SIZE,
+  uri: 'file:///thumb.png',
+};
+const fileWithoutThumbnail = { uuid: 'file-uuid', name: 'holiday', type: 'zip' } as DriveItemData;
+const fileWithThumbnail = {
+  ...fileWithoutThumbnail,
+  thumbnails: [{ bucket_file: 'thumbnail-file', bucket_id: 'thumbnail-bucket', type: 'png' }],
+} as unknown as DriveItemData;
+
+const aDownload = (overrides: Partial<DownloadingFile> = {}): DownloadingFile => ({
+  requestId: 'request-id',
+  data: { uuid: 'file-uuid', fileId: 'file-id', name: 'holiday', type: 'zip', size: 1024, updatedAt: '2026-01-01' },
+  downloadProgress: DOWNLOAD_PROGRESS_HALF,
+  decryptProgress: 0,
+  hasDownloadStarted: true,
+  status: 'idle',
+  ...overrides,
+});
+
+const renderPage = ({
+  driveFile,
+  isActive,
+  downloadingFile,
+}: {
+  driveFile: DriveItemData;
+  isActive: boolean;
+  downloadingFile?: DownloadingFile;
+}) => {
+  const store = configureStore({
+    reducer: {
+      drive: driveReducer,
+      auth: () => ({ user: { userId: 'user-id' } }),
+    },
+    preloadedState: {
+      drive: { ...driveReducer(undefined, { type: 'init' }), downloadingFile },
+      auth: { user: { userId: 'user-id' } },
+    },
+  });
+
+  return render(
+    <Provider store={store}>
+      <DrivePreviewPage
+        driveFile={driveFile}
+        isActive={isActive}
+        topbarVisible
+        pdfViewerSpacerHeight={new Animated.Value(0)}
+        onToggleTopbar={jest.fn()}
+        onHideTopbar={jest.fn()}
+        onZoomChange={jest.fn()}
+      />
+    </Provider>,
   );
+};
 
 describe('Drive preview page', () => {
   beforeEach(() => {
-    useAppSelectorMock.mockReturnValue(undefined);
+    jest.clearAllMocks();
+    getThumbnailMock.mockResolvedValue(thumbnail);
   });
 
-  test('when a page that is not visible has a thumbnail, then the thumbnail is shown instead of the file icon', () => {
-    useDownloadedThumbnailMock.mockReturnValue(thumbnail);
+  test('when a page that is not visible has a thumbnail, then the thumbnail is shown instead of the file icon', async () => {
+    const { findByTestId, queryByText } = renderPage({ driveFile: fileWithThumbnail, isActive: false });
 
-    const { queryByTestId, queryByText } = renderPage(false);
-
-    expect(queryByTestId('drive-preview-thumbnail')).not.toBeNull();
+    expect(await findByTestId('drive-preview-thumbnail')).toBeTruthy();
     expect(queryByText('holiday.zip')).toBeNull();
   });
 
   test('when a page that is not visible has no thumbnail, then the file type icon and name are shown', () => {
-    useDownloadedThumbnailMock.mockReturnValue(null);
-
-    const { queryByTestId, queryByText } = renderPage(false);
+    const { queryByTestId, queryByText } = renderPage({ driveFile: fileWithoutThumbnail, isActive: false });
 
     expect(queryByTestId('drive-preview-thumbnail')).toBeNull();
     expect(queryByText('holiday.zip')).not.toBeNull();
   });
 
-  test('when a page that is not visible belongs to the file being downloaded, then it shows its thumbnail without the spinner or the progress line', () => {
-    useDownloadedThumbnailMock.mockReturnValue(thumbnail);
-    useAppSelectorMock.mockReturnValue({
-      data: { uuid: 'file-uuid' },
-      downloadProgress: 0.5,
-      hasDownloadStarted: true,
+  test('when a page that is not visible belongs to the file being downloaded, then it shows its thumbnail without the spinner or the progress line', async () => {
+    const { findByTestId, queryByTestId, queryByLabelText, UNSAFE_queryByType } = renderPage({
+      driveFile: fileWithThumbnail,
+      isActive: false,
+      downloadingFile: aDownload(),
     });
 
-    const { queryByTestId, queryByLabelText } = renderPage(false);
-
-    expect(queryByTestId('drive-preview-thumbnail')).not.toBeNull();
+    expect(await findByTestId('drive-preview-thumbnail')).toBeTruthy();
     expect(queryByTestId('drive-preview-thumbnail-scrim')).toBeNull();
-    expect(queryByLabelText('Downloading')).toBeNull();
-    expect(queryByTestId('drive-preview-progress')).toBeNull();
+    expect(queryByLabelText(strings.generic.downloading)).toBeNull();
+    expect(UNSAFE_queryByType(ProgressBar)).toBeNull();
   });
 
-  test('when the visible file is still downloading and has a thumbnail, then the thumbnail is shown with a spinner and the progress line', () => {
-    useDownloadedThumbnailMock.mockReturnValue(thumbnail);
-    useAppSelectorMock.mockReturnValue({
-      data: { uuid: 'file-uuid' },
-      downloadProgress: 0.5,
-      hasDownloadStarted: true,
+  test('when the visible file is still downloading and has a thumbnail, then the thumbnail is shown with a spinner and the progress line', async () => {
+    const { findByTestId, queryByTestId, queryByText, queryByLabelText, UNSAFE_queryByType } = renderPage({
+      driveFile: fileWithThumbnail,
+      isActive: true,
+      downloadingFile: aDownload(),
     });
 
-    const { queryByTestId, queryByText, queryByLabelText } = renderPage(true);
-
-    expect(queryByTestId('drive-preview-thumbnail')).not.toBeNull();
+    expect(await findByTestId('drive-preview-thumbnail')).toBeTruthy();
     expect(queryByTestId('drive-preview-thumbnail-scrim')).not.toBeNull();
-    expect(queryByLabelText('Downloading')).not.toBeNull();
-    expect(queryByTestId('drive-preview-progress')).not.toBeNull();
+    expect(queryByLabelText(strings.generic.downloading)).not.toBeNull();
+    expect(UNSAFE_queryByType(ProgressBar)).not.toBeNull();
     expect(queryByText('holiday.zip')).toBeNull();
   });
 
-  test('when the visible file is downloading and its thumbnail is much taller than the page, then the thumbnail fits inside the page', () => {
-    useDownloadedThumbnailMock.mockReturnValue({ width: 100, height: 600, uri: 'file:///thumb.png' });
-    useAppSelectorMock.mockReturnValue({
-      data: { uuid: 'file-uuid' },
-      downloadProgress: 0.5,
-      hasDownloadStarted: true,
+  test('when the visible file is downloading and its thumbnail is much taller than the page, then the thumbnail fits inside the page', async () => {
+    getThumbnailMock.mockResolvedValue({
+      width: TALL_THUMBNAIL_WIDTH,
+      height: TALL_THUMBNAIL_HEIGHT,
+      uri: 'file:///thumb.png',
     });
     const windowSize = Dimensions.get('window');
 
-    const { getByTestId } = renderPage(true);
+    const { findByTestId } = renderPage({
+      driveFile: fileWithThumbnail,
+      isActive: true,
+      downloadingFile: aDownload(),
+    });
 
-    const frameStyle = StyleSheet.flatten(getByTestId('drive-preview-thumbnail-frame').props.style);
+    const frameStyle = StyleSheet.flatten((await findByTestId('drive-preview-thumbnail-frame')).props.style);
     expect(frameStyle.height).toBeLessThanOrEqual(windowSize.height);
     expect(frameStyle.width).toBeLessThanOrEqual(windowSize.width);
-    expect(frameStyle.width / frameStyle.height).toBeCloseTo(100 / 600);
+    expect(frameStyle.width / frameStyle.height).toBeCloseTo(TALL_THUMBNAIL_WIDTH / TALL_THUMBNAIL_HEIGHT);
   });
 
   test('when the visible file without a thumbnail is downloading, then its icon, name, a spinner and the progress line are shown', () => {
-    useDownloadedThumbnailMock.mockReturnValue(null);
-    useAppSelectorMock.mockReturnValue({
-      data: { uuid: 'file-uuid' },
-      downloadProgress: 0.5,
-      hasDownloadStarted: true,
+    const { queryByTestId, queryByText, queryByLabelText, UNSAFE_queryByType } = renderPage({
+      driveFile: fileWithoutThumbnail,
+      isActive: true,
+      downloadingFile: aDownload(),
     });
-
-    const { queryByTestId, queryByText, queryByLabelText } = renderPage(true);
 
     expect(queryByTestId('drive-preview-thumbnail')).toBeNull();
     expect(queryByText('holiday.zip')).not.toBeNull();
-    expect(queryByLabelText('Downloading')).not.toBeNull();
-    expect(queryByTestId('drive-preview-progress')).not.toBeNull();
-    expect(queryByText('Downloading')).toBeNull();
-    expect(queryByText('Decrypting')).toBeNull();
+    expect(queryByLabelText(strings.generic.downloading)).not.toBeNull();
+    expect(UNSAFE_queryByType(ProgressBar)).not.toBeNull();
+    expect(queryByText(strings.generic.downloading)).toBeNull();
+    expect(queryByText(strings.generic.decrypting)).toBeNull();
   });
 
-  test('when the visible file is still being checked before its download starts, then the spinner is shown without the progress line', () => {
-    useDownloadedThumbnailMock.mockReturnValue(thumbnail);
-    useAppSelectorMock.mockReturnValue({ data: { uuid: 'file-uuid' }, downloadProgress: 0, hasDownloadStarted: false });
-
-    const { queryByTestId, queryByLabelText } = renderPage(true);
-
-    expect(queryByLabelText('Downloading')).not.toBeNull();
-    expect(queryByTestId('drive-preview-progress')).toBeNull();
-  });
-
-  test('when the visible file has a thumbnail but the download failed, then the error and retry are shown instead of the thumbnail', () => {
-    useDownloadedThumbnailMock.mockReturnValue(thumbnail);
-    useAppSelectorMock.mockReturnValue({
-      data: { uuid: 'file-uuid' },
-      downloadProgress: 0.5,
-      hasDownloadStarted: true,
-      error: 'Download failed',
+  test('when the visible file is still being checked before its download starts, then the spinner is shown without the progress line', async () => {
+    const { findByTestId, queryByLabelText, UNSAFE_queryByType } = renderPage({
+      driveFile: fileWithThumbnail,
+      isActive: true,
+      downloadingFile: aDownload({ downloadProgress: 0, hasDownloadStarted: false }),
     });
 
-    const { queryByTestId, queryByText } = renderPage(true);
+    await findByTestId('drive-preview-thumbnail');
+    expect(queryByLabelText(strings.generic.downloading)).not.toBeNull();
+    expect(UNSAFE_queryByType(ProgressBar)).toBeNull();
+  });
+
+  test('when the visible file has a thumbnail but the download failed, then the error and retry are shown instead of the thumbnail', async () => {
+    const { queryByTestId, queryByText } = renderPage({
+      driveFile: fileWithThumbnail,
+      isActive: true,
+      downloadingFile: aDownload({ error: 'Download failed' }),
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     expect(queryByTestId('drive-preview-thumbnail')).toBeNull();
     expect(queryByText('Download failed')).not.toBeNull();
-    expect(queryByText('Try again')).not.toBeNull();
+    expect(queryByText(strings.buttons.tryAgain)).not.toBeNull();
   });
 });

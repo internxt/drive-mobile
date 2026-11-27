@@ -15,7 +15,7 @@ export const useSyncPreviewFilesWithDrive = ({
   removeFiles,
   updateFileName,
 }: UseSyncPreviewFilesWithDriveParams) => {
-  const { focusedItem } = useAppSelector((state) => state.drive);
+  const focusedItem = useAppSelector((state) => state.drive.focusedItem);
 
   useEffect(() => {
     const unsubscribeMoved = onDriveItemMoved(({ movedUuids }) => removeFiles(movedUuids));

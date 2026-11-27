@@ -105,7 +105,7 @@ const downloadFileThunk = createAsyncThunk<
     { signal, getState, dispatch, rejectWithValue, requestId },
   ) => {
     logger.info('Starting file download...');
-    logger.info(`[DrivePreview] Download started — request ${requestId}, file ${uuid}`);
+    logger.info(`[Drive] Download started — request ${requestId}, file ${uuid}`);
     const { user } = getState().auth;
     // PROGRESS CALLBACKS
     const downloadProgressCallback = (progress: number) => {
@@ -177,7 +177,7 @@ const downloadFileThunk = createAsyncThunk<
         throw new Error('This file name is not valid');
       }
       if (signal.aborted) {
-        logger.info(`[DrivePreview] Download aborted before starting — request ${requestId}, file ${uuid}`);
+        logger.info(`[Drive] Download aborted before starting — request ${requestId}, file ${uuid}`);
         return rejectWithValue(null);
       }
 
@@ -198,7 +198,7 @@ const downloadFileThunk = createAsyncThunk<
       }
 
       const uri = fileSystemService.pathToUri(destinationPath);
-      logger.info(`[DrivePreview] Download finished — request ${requestId}, file ${uuid}`);
+      logger.info(`[Drive] Download finished — request ${requestId}, file ${uuid}`);
       dispatch(driveActions.updateDownloadingFile({ requestId, downloadedFilePath: uri }));
       if (openFileViewer) {
         await fileSystemService.showFileViewer(uri, { displayName: items.getItemDisplayName({ name, type }) });
@@ -241,7 +241,7 @@ const downloadFileThunk = createAsyncThunk<
       }
     } finally {
       if (signal.aborted) {
-        logger.info(`[DrivePreview] Download cancelled — request ${requestId}, file ${uuid}`);
+        logger.info(`[Drive] Download cancelled — request ${requestId}, file ${uuid}`);
         dispatch(driveActions.clearDownloadingFile(requestId));
         drive.events.emit({ event: DriveEventKey.CancelDownloadEnd });
       }

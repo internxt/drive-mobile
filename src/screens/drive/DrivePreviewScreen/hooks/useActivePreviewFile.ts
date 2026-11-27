@@ -22,7 +22,6 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
       const newActiveFile = previewFiles[newIndex];
       const previousIndex = activeIndexRef.current;
       if (newIndex === previousIndex || !newActiveFile) {
-        logger.info(`[DrivePreview] Ignored change to index ${newIndex} — active index ${previousIndex}`);
         return;
       }
       logger.info(
@@ -30,7 +29,7 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
       );
       activeIndexRef.current = newIndex;
       setActiveIndex(newIndex);
-      startFilePreview(dispatch, newActiveFile);
+      dispatch(startFilePreview(newActiveFile));
     },
     [dispatch, previewFiles],
   );
@@ -60,7 +59,7 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
       setRemovalCount((revision) => revision + 1);
 
       if (isActiveFileRemoved && remainingFiles[newIndex]) {
-        startFilePreview(dispatch, remainingFiles[newIndex]);
+        dispatch(startFilePreview(remainingFiles[newIndex]));
       }
     },
     [dispatch],
