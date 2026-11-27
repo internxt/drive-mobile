@@ -2,7 +2,7 @@ import drive from '@internxt-mobile/services/drive';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
 import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
-import type { AppDispatch } from '../../store';
+import type { AppDispatch, RootState } from '../../store';
 import { useAppDispatch } from '../../store/hooks';
 import { driveActions, driveThunks } from '../../store/slices/drive';
 
@@ -11,11 +11,10 @@ import { driveActions, driveThunks } from '../../store/slices/drive';
  * registers the download abort.
  * Returns the download promise, which can be aborted or awaited.
  */
-export const startFilePreview = (dispatch: AppDispatch, driveFile: DriveItemData) => {
-  const isPreviousDownloadRunning = dispatch((_, getState) => {
-    const previousDownload = getState().drive.downloadingFile;
-    return !!previousDownload && !previousDownload.downloadedFilePath && !previousDownload.error;
-  });
+export const startFilePreview = (driveFile: DriveItemData) => (dispatch: AppDispatch, getState: () => RootState) => {
+  const previousDownload = getState().drive.downloadingFile;
+  const isPreviousDownloadRunning =
+    !!previousDownload && !previousDownload.downloadedFilePath && !previousDownload.error;
   if (isPreviousDownloadRunning) {
     dispatch(driveThunks.cancelDownloadThunk());
   }
@@ -64,7 +63,7 @@ export const useOpenFilePreview = () => {
       const swipeableFiles = isOpenedFileInList ? previewFiles : [driveFile];
       const initialIndex = isOpenedFileInList ? openedFileIndex : 0;
 
-      const downloadPromise = startFilePreview(dispatch, driveFile);
+      const downloadPromise = dispatch(startFilePreview(driveFile));
       navigation.navigate('DrivePreview', { files: swipeableFiles, initialIndex });
       return downloadPromise;
     },
