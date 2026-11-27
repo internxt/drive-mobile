@@ -15,6 +15,7 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
   const [removalCount, setRemovalCount] = useState(0);
   const previewFilesRef = useRef(initialPreviewFiles);
   const activeIndexRef = useRef(initialIndex);
+  const removedFileUuidsRef = useRef(new Set<string>());
 
   const changeActiveIndex = useCallback(
     (newIndex: number) => {
@@ -35,6 +36,7 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
 
   const removeFiles = useCallback(
     (removedUuids: string[]) => {
+      removedUuids.forEach((removedUuid) => removedFileUuidsRef.current.add(removedUuid));
       const currentFiles = previewFilesRef.current;
       const remainingFiles = currentFiles.filter((previewFile) => !removedUuids.includes(previewFile.uuid));
       if (remainingFiles.length === currentFiles.length) {
@@ -71,13 +73,26 @@ export const useActivePreviewFile = (initialPreviewFiles: DriveItemData[], initi
     setPreviewFiles(renamedFiles);
   }, []);
 
+  const appendFiles = useCallback((newFiles: DriveItemData[]) => {
+    const knownUuids = new Set(previewFilesRef.current.map((previewFile) => previewFile.uuid));
+    const addedFiles = newFiles.filter((newFile) => !knownUuids.has(newFile.uuid));
+    if (addedFiles.length === 0) {
+      return;
+    }
+    const extendedFiles = [...previewFilesRef.current, ...addedFiles];
+    previewFilesRef.current = extendedFiles;
+    setPreviewFiles(extendedFiles);
+  }, []);
+
   return {
     previewFiles,
     activeIndex,
     activeFile: previewFiles[activeIndex],
     removalCount,
+    removedFileUuids: removedFileUuidsRef.current as ReadonlySet<string>,
     changeActiveIndex,
     removeFiles,
     updateFileName,
+    appendFiles,
   };
 };

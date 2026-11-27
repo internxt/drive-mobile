@@ -120,6 +120,16 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.removalCount).toBe(1);
   });
 
+  test('when a file that is not in the preview is removed, then it is still remembered as removed', () => {
+    const { result } = arrangeHook(1);
+
+    act(() => {
+      result.current.removeFiles(['unknown-file']);
+    });
+
+    expect(result.current.removedFileUuids.has('unknown-file')).toBe(true);
+  });
+
   test('when the shown last file is removed, then the previous file is shown and starts', () => {
     const { result, dispatch } = arrangeHook(2);
 
@@ -181,5 +191,38 @@ describe('Changing the file shown in the preview', () => {
 
     expect(result.current.previewFiles[1].name).toBe('renamed');
     expect(result.current.previewFiles[0].name).toBe('first-file');
+  });
+
+  test('when new files are appended, then they go at the end and the shown file stays', () => {
+    const { result } = arrangeHook(1);
+
+    act(() => {
+      result.current.appendFiles([aDriveFile('fourth-file'), aDriveFile('fifth-file')]);
+    });
+
+    expect(result.current.previewFiles.map((previewFile) => previewFile.uuid)).toEqual([
+      'first-file',
+      'second-file',
+      'third-file',
+      'fourth-file',
+      'fifth-file',
+    ]);
+    expect(result.current.activeFile.uuid).toBe('second-file');
+    expect(result.current.removalCount).toBe(0);
+  });
+
+  test('when appended files are already in the list, then they are ignored', () => {
+    const { result } = arrangeHook(0);
+
+    act(() => {
+      result.current.appendFiles([aDriveFile('second-file'), aDriveFile('fourth-file')]);
+    });
+
+    expect(result.current.previewFiles.map((previewFile) => previewFile.uuid)).toEqual([
+      'first-file',
+      'second-file',
+      'third-file',
+      'fourth-file',
+    ]);
   });
 });

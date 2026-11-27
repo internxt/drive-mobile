@@ -121,6 +121,12 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   const folderAbortControllers = useRef<Map<string, AbortController>>(new Map());
   const driveFoldersTreeRef = useRef<DriveFoldersTree>({ [rootFolderId]: ROOT_FOLDER_NODE });
 
+  const writeDriveFoldersTree = (update: (previousTree: DriveFoldersTree) => DriveFoldersTree) => {
+    const nextTree = update(driveFoldersTreeRef.current);
+    driveFoldersTreeRef.current = nextTree;
+    setDriveFoldersTree(nextTree);
+  };
+
   const handleAppStateChange = (state: AppStateStatus) => {
     if (state === 'active' && currentFolderId.current) {
       loadFolderContent(currentFolderId.current, { pullFrom: ['network'], resetPagination: true }).catch((error) => {
@@ -146,10 +152,6 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   }, []);
 
   useEffect(() => {
-    driveFoldersTreeRef.current = driveFoldersTree;
-  }, [driveFoldersTree]);
-
-  useEffect(() => {
     asyncStorageService.getItem(AsyncStorageKey.PreferredDriveViewMode).then((preferredDriveViewMode) => {
       if (preferredDriveViewMode && preferredDriveViewMode !== viewMode) {
         setViewMode(preferredDriveViewMode as DriveListViewMode);
@@ -159,7 +161,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
 
   useEffect(() => {
     if (!rootFolderId) return;
-    setDriveFoldersTree({ [rootFolderId]: ROOT_FOLDER_NODE });
+    writeDriveFoldersTree(() => ({ [rootFolderId]: ROOT_FOLDER_NODE }));
     loadFolderContent(rootFolderId, { pullFrom: ['network'], resetPagination: true, focusFolder: true }).catch(
       (err) => {
         // TODO: Refactor to custom hook (useDriveWithNotifications) to separate notification concerns from context
@@ -308,7 +310,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   };
 
   const updateFolderNode = (folderId: string, updates: Partial<DriveFoldersTreeNode>) => {
-    setDriveFoldersTree((prevTree) => {
+    writeDriveFoldersTree((prevTree) => {
       const node = prevTree[folderId];
       if (!node) {
         return prevTree;
@@ -417,7 +419,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     newFolders: DriveFolderForTree[];
     error?: Error;
   }) => {
-    setDriveFoldersTree((prevDriveFoldersTree) => {
+    writeDriveFoldersTree((prevDriveFoldersTree) => {
       const driveFolderTreeNode = prevDriveFoldersTree[folderId];
 
       const allFiles = resetPagination
@@ -471,7 +473,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
     itemUuid: string,
     updates: { name?: string; plainName?: string; thumbnails?: Thumbnail[] },
   ) => {
-    setDriveFoldersTree((prevTree) => {
+    writeDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
       if (!folder) {
         return prevTree;
@@ -491,7 +493,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   };
 
   const removeItemFromTree = (folderId: string, itemUuid: string) => {
-    setDriveFoldersTree((prevTree) => {
+    writeDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
       if (!folder) {
         return prevTree;
@@ -518,7 +520,7 @@ export const DriveContextProvider: React.FC<DriveContextProviderProps> = ({ chil
   };
 
   const addItemToTree = (folderId: string, item: DriveItemData, isFolder: boolean) => {
-    setDriveFoldersTree((prevTree) => {
+    writeDriveFoldersTree((prevTree) => {
       const folder = prevTree[folderId];
       if (!folder) {
         return prevTree;

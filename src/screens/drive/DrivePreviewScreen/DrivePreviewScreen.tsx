@@ -24,6 +24,7 @@ import {
 import { DrivePreviewPager } from './DrivePreviewPager';
 import { DRIVE_PREVIEW_HEADER_HEIGHT, DrivePreviewScreenHeader } from './DrivePreviewScreenHeader';
 import { useActivePreviewFile } from './hooks/useActivePreviewFile';
+import { useLoadMorePreviewFiles } from './hooks/useLoadMorePreviewFiles';
 import { useSyncPreviewFilesWithDrive } from './hooks/useSyncPreviewFilesWithDrive';
 import { useThumbnailRegeneration } from './hooks/useThumbnailRegeneration';
 
@@ -31,9 +32,18 @@ const TOP_BAR_Z_INDEX = 10;
 const PERCENT_FACTOR = 100;
 
 export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> = (props) => {
-  const { files, initialIndex } = props.route.params;
-  const { previewFiles, activeIndex, activeFile, removalCount, changeActiveIndex, removeFiles, updateFileName } =
-    useActivePreviewFile(files, initialIndex);
+  const { files, initialIndex, sourceFolder } = props.route.params;
+  const {
+    previewFiles,
+    activeIndex,
+    activeFile,
+    removalCount,
+    removedFileUuids,
+    changeActiveIndex,
+    removeFiles,
+    updateFileName,
+    appendFiles,
+  } = useActivePreviewFile(files, initialIndex);
   const [topbarVisible, setTopbarVisible] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
   const [downloadedFilePaths, setDownloadedFilePaths] = useState<Record<string, string>>({});
@@ -83,6 +93,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   }, [downloadingFile?.data.uuid, downloadingFile?.downloadedFilePath]);
 
   useSyncPreviewFilesWithDrive({ activeFile, removeFiles, updateFileName });
+  useLoadMorePreviewFiles({ sourceFolder, activeIndex, previewFiles, removedFileUuids, appendFiles });
 
   const isPreviewEmpty = previewFiles.length === 0;
   const { navigation } = props;

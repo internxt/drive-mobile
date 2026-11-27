@@ -1,6 +1,13 @@
 import type { DriveFoldersTreeNode } from '../../../contexts/Drive/Drive.context';
 import { DriveItemStatus, DriveListItem } from '../../../types/drive/item';
-import { canLoadNextPage, getIdleFiles, hasSelectedFolder } from './DriveFolderScreen.helpers';
+import { SortDirection, SortType } from '../../../types/drive/ui';
+import {
+  canLoadNextPage,
+  getFolderPreviewFiles,
+  getIdleFiles,
+  hasSelectedFolder,
+  matchesSearchValue,
+} from './DriveFolderScreen.helpers';
 
 const aFolderNode = (overrides: Partial<DriveFoldersTreeNode> = {}): DriveFoldersTreeNode => ({
   name: 'Invoices',
@@ -71,5 +78,49 @@ describe('Building the list of files to swipe through in the preview', () => {
     ];
 
     expect(getIdleFiles(shownItems).map((previewFile) => previewFile.uuid)).toEqual(['file-uuid']);
+  });
+});
+
+describe('Building the preview files of a folder', () => {
+  const aTreeFile = (uuid: string, plainName: string, size = 1) =>
+    ({
+      uuid,
+      plainName,
+      name: plainName,
+      size,
+      folderUuid: 'folder-uuid',
+      createdAt: '2026-01-01T10:00:00.000Z',
+      updatedAt: '2026-01-01T10:00:00.000Z',
+      isFolder: false,
+      thumbnails: [],
+    }) as unknown as DriveFoldersTreeNode['files'][number];
+  const byNameAscending = { type: SortType.Name, direction: SortDirection.Asc };
+
+  test('when the folder has several files, then they come sorted with the chosen sort mode', () => {
+    const files = [aTreeFile('file-b', 'b.pdf'), aTreeFile('file-c', 'c.pdf'), aTreeFile('file-a', 'a.pdf')];
+
+    const previewFiles = getFolderPreviewFiles(files, byNameAscending, '');
+
+    expect(previewFiles.map((previewFile) => previewFile.uuid)).toEqual(['file-a', 'file-b', 'file-c']);
+  });
+
+  test('when a search is active, then only the files matching it are kept', () => {
+    const files = [aTreeFile('file-a', 'holiday.pdf'), aTreeFile('file-b', 'invoice.pdf')];
+
+    const previewFiles = getFolderPreviewFiles(files, byNameAscending, 'INVOICE');
+
+    expect(previewFiles.map((previewFile) => previewFile.uuid)).toEqual(['file-b']);
+  });
+
+  test('when the search text is in another letter case, then the name still matches', () => {
+    const item = { id: 'file-a', status: DriveItemStatus.Idle, data: { uuid: 'file-a', name: 'Holiday.PDF' } };
+
+    expect(matchesSearchValue(item as DriveListItem, 'holiday')).toBe(true);
+  });
+
+  test('when the search text is empty, then every name matches', () => {
+    const item = { id: 'file-a', status: DriveItemStatus.Idle, data: { uuid: 'file-a', name: 'Holiday.PDF' } };
+
+    expect(matchesSearchValue(item as DriveListItem, '')).toBe(true);
   });
 });

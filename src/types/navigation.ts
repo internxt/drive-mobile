@@ -17,6 +17,11 @@ declare global {
   }
 }
 
+export interface DrivePreviewSourceFolder {
+  folderUuid: string;
+  searchValue: string;
+}
+
 export type RootStackParamList = {
   Debug: undefined;
   SignIn: undefined;
@@ -34,6 +39,7 @@ export type RootStackParamList = {
   DrivePreview: {
     files: DriveItemData[];
     initialIndex: number;
+    sourceFolder?: DrivePreviewSourceFolder;
   };
   PhotoPreview: {
     initialId: string;

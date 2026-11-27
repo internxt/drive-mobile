@@ -3,6 +3,7 @@ import { DriveItemData } from '@internxt-mobile/types/drive/item';
 import { useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import type { AppDispatch, RootState } from '../../store';
+import type { DrivePreviewSourceFolder } from '../../types/navigation';
 import { useAppDispatch } from '../../store/hooks';
 import { driveActions, driveThunks } from '../../store/slices/drive';
 
@@ -57,14 +58,22 @@ export const useOpenFilePreview = () => {
   const navigation = useNavigation();
 
   return useCallback(
-    (driveFile: DriveItemData, previewFiles: DriveItemData[] = [driveFile]) => {
+    (
+      driveFile: DriveItemData,
+      previewFiles: DriveItemData[] = [driveFile],
+      sourceFolder?: DrivePreviewSourceFolder,
+    ) => {
       const openedFileIndex = previewFiles.findIndex((previewFile) => previewFile.uuid === driveFile.uuid);
       const isOpenedFileInList = openedFileIndex !== -1;
       const swipeableFiles = isOpenedFileInList ? previewFiles : [driveFile];
       const initialIndex = isOpenedFileInList ? openedFileIndex : 0;
 
       const downloadPromise = dispatch(startFilePreview(driveFile));
-      navigation.navigate('DrivePreview', { files: swipeableFiles, initialIndex });
+      navigation.navigate('DrivePreview', {
+        files: swipeableFiles,
+        initialIndex,
+        sourceFolder: isOpenedFileInList ? sourceFolder : undefined,
+      });
       return downloadPromise;
     },
     [dispatch, navigation],
