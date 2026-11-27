@@ -14,7 +14,9 @@ jest.mock('@internxt-mobile/services/ErrorService', () => ({
   reportError: jest.fn(),
 }));
 
-import { canGenerateThumbnail, shouldRegenerateThumbnail } from './useThumbnailRegeneration';
+import { driveFileService } from '@internxt-mobile/services/drive/file';
+import { renderHook, waitFor } from '@testing-library/react-native';
+import { canGenerateThumbnail, shouldRegenerateThumbnail, useThumbnailRegeneration } from './useThumbnailRegeneration';
 
 describe('useThumbnailRegeneration', () => {
   describe('canGenerateThumbnail', () => {
@@ -94,6 +96,54 @@ describe('useThumbnailRegeneration', () => {
         hasThumbnails: false,
       });
       expect(result).toBe(false);
+    });
+  });
+
+  describe('regenerating while swiping between files', () => {
+    const regenerateThumbnailMock = driveFileService.regenerateThumbnail as jest.Mock;
+    const regeneratedThumbnail = { id: 1 };
+    const firstFile = {
+      downloadedFilePath: '/cache/first.png',
+      fileExtension: 'png',
+      fileUuid: 'first-file',
+      hasThumbnails: false,
+    };
+    const secondFile = {
+      downloadedFilePath: '/cache/second.jpg',
+      fileExtension: 'jpg',
+      fileUuid: 'second-file',
+      hasThumbnails: false,
+    };
+
+    beforeEach(() => {
+      regenerateThumbnailMock.mockReset();
+      regenerateThumbnailMock.mockResolvedValue(regeneratedThumbnail);
+    });
+
+    test('when the user swipes to another file without a thumbnail, then that file gets its own thumbnail too', async () => {
+      const onSuccess = jest.fn();
+      const { rerender } = renderHook(({ fileParams }) => useThumbnailRegeneration(fileParams, { onSuccess }), {
+        initialProps: { fileParams: firstFile },
+      });
+      await waitFor(() => expect(onSuccess).toHaveBeenCalledWith(regeneratedThumbnail, 'first-file'));
+
+      rerender({ fileParams: secondFile });
+
+      await waitFor(() => expect(onSuccess).toHaveBeenCalledWith(regeneratedThumbnail, 'second-file'));
+      expect(regenerateThumbnailMock).toHaveBeenCalledWith('second-file', '/cache/second.jpg', 'jpg');
+    });
+
+    test('when the user swipes back to a file already tried, then its thumbnail is not generated again', async () => {
+      const onSuccess = jest.fn();
+      const { rerender } = renderHook(({ fileParams }) => useThumbnailRegeneration(fileParams, { onSuccess }), {
+        initialProps: { fileParams: firstFile },
+      });
+      rerender({ fileParams: secondFile });
+      await waitFor(() => expect(onSuccess).toHaveBeenCalledTimes(2));
+
+      rerender({ fileParams: firstFile });
+
+      expect(regenerateThumbnailMock).toHaveBeenCalledTimes(2);
     });
   });
 });

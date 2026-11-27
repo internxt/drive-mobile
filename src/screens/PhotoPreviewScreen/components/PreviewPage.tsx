@@ -1,6 +1,7 @@
 import { Image as ExpoImage } from 'expo-image';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { ActivityIndicator, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { useDelayedVideoActivation } from 'src/hooks/useDelayedVideoActivation';
 import { logger } from 'src/services/common';
 import { VideoViewer } from '../../../components/photos/VideoViewer/VideoViewer';
 import { ImageViewer } from '../../../components/ui-kit/view/ImageViewer/ImageViewer';
@@ -8,8 +9,6 @@ import { TimelinePhotoItem } from '../../PhotosScreen/types';
 import { getThumbnailSource, ThumbnailSource } from '../../PhotosScreen/utils/photoUtils';
 import { useCloudThumbnailBackfill } from '../hooks/useCloudThumbnailBackfill';
 import { usePreviewSource } from '../hooks/usePreviewSource';
-
-const VIDEO_ACTIVATION_DELAY_MS = 200;
 
 interface ThumbnailFallbackProps {
   itemId: string;
@@ -142,16 +141,7 @@ export const PreviewPage = ({
   const { width: screenWidth } = useWindowDimensions();
   const { uri, thumbnailUri, isLoading } = usePreviewSource(item, isScrubbing);
   useCloudThumbnailBackfill(item, uri);
-  const [isVideoActive, setIsVideoActive] = useState(false);
-
-  useEffect(() => {
-    if (!isActive) {
-      setIsVideoActive(false);
-      return;
-    }
-    const activateVideoTimer = setTimeout(() => setIsVideoActive(true), VIDEO_ACTIVATION_DELAY_MS);
-    return () => clearTimeout(activateVideoTimer);
-  }, [isActive]);
+  const isVideoActive = useDelayedVideoActivation(isActive);
 
   const handleZoom = useCallback(() => {
     onZoomChange(true);

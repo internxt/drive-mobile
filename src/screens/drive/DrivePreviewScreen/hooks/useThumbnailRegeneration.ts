@@ -3,7 +3,7 @@ import { isThumbnailSupported } from '@internxt-mobile/services/common/media/thu
 import { driveFileService } from '@internxt-mobile/services/drive/file';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { Thumbnail } from '@internxt-mobile/types/drive/file';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface ThumbnailRegenerationParams {
   downloadedFilePath?: string;
@@ -52,13 +52,12 @@ export const useThumbnailRegeneration = (
   params: ThumbnailRegenerationParams,
   callbacks: ThumbnailRegenerationCallbacks,
 ) => {
-  const [isRegenerating, setIsRegenerating] = useState(false);
-  const regenerationAttempted = useRef(false);
+  const attemptedFileUuids = useRef(new Set<string>());
 
   useEffect(() => {
     const { downloadedFilePath, fileExtension, fileUuid } = params;
 
-    if (regenerationAttempted.current || isRegenerating) {
+    if (!fileUuid || attemptedFileUuids.current.has(fileUuid)) {
       return;
     }
 
@@ -66,12 +65,11 @@ export const useThumbnailRegeneration = (
       return;
     }
 
-    if (!fileUuid || !downloadedFilePath || !fileExtension) {
+    if (!downloadedFilePath || !fileExtension) {
       return;
     }
 
-    regenerationAttempted.current = true;
-    setIsRegenerating(true);
+    attemptedFileUuids.current.add(fileUuid);
 
     regenerateThumbnail(fileUuid, downloadedFilePath, fileExtension)
       .then((thumbnail) => {
@@ -79,10 +77,6 @@ export const useThumbnailRegeneration = (
           callbacks.onSuccess(thumbnail, fileUuid);
         }
       })
-      .finally(() => {
-        setIsRegenerating(false);
-      });
-  }, [params.downloadedFilePath, params.hasThumbnails]);
-
-  return { isRegenerating, regenerationAttempted: regenerationAttempted.current };
+      .catch((error) => errorService.reportError(error));
+  }, [params.fileUuid, params.downloadedFilePath, params.hasThumbnails]);
 };

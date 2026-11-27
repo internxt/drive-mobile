@@ -124,7 +124,7 @@ export const VideoViewer: React.FC<VideoViewerProps> = ({
   return (
     <View className="h-full">
       <View className="flex-1 w-full h-full">
-        {!playing && (
+        {!playing && !!source && (
           <View className="flex h-full w-full absolute justify-center items-center" style={{ zIndex: 1 }}>
             <TouchableOpacity
               activeOpacity={0.7}

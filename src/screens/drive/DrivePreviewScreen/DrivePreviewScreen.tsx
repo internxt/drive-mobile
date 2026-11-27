@@ -1,4 +1,4 @@
-import { GeneratedThumbnail, generateVideoThumbnail } from '@internxt-mobile/services/common';
+import { generateVideoThumbnail } from '@internxt-mobile/services/common';
 import { time } from '@internxt-mobile/services/common/time';
 import errorService from '@internxt-mobile/services/ErrorService';
 import { FileExtension, Thumbnail } from '@internxt-mobile/types/drive/file';
@@ -28,7 +28,7 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   const [topbarVisible, setTopbarVisible] = useState(true);
   const [isZoomed, setIsZoomed] = useState(false);
   const [downloadedFilePaths, setDownloadedFilePaths] = useState<Record<string, string>>({});
-  const [generatedThumbnail, setGeneratedThumbnail] = useState<GeneratedThumbnail>();
+  const [videoThumbnailPaths, setVideoThumbnailPaths] = useState<Record<string, string>>({});
 
   // REDUX USAGE STARTS
   const insets = useSafeAreaInsets();
@@ -56,18 +56,22 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
   }, [downloadingFile?.data.uuid, downloadingFile?.downloadedFilePath]);
 
   useEffect(() => {
+    const videoUuid = downloadingFile?.data.uuid;
+    const videoPath = downloadingFile?.downloadedFilePath;
     if (
-      downloadingFile?.downloadedFilePath &&
-      VIDEO_PREVIEW_TYPES.has(downloadingFile.data.type as FileExtension) &&
-      !generatedThumbnail
+      !videoUuid ||
+      !videoPath ||
+      !VIDEO_PREVIEW_TYPES.has(downloadingFile.data.type as FileExtension) ||
+      videoThumbnailPaths[videoUuid]
     ) {
-      generateVideoThumbnail(downloadingFile.downloadedFilePath)
-        .then((generatedThumbnail) => {
-          setGeneratedThumbnail(generatedThumbnail);
-        })
-        .catch((err) => errorService.reportError(err));
+      return;
     }
-  }, [downloadingFile?.downloadedFilePath]);
+    generateVideoThumbnail(videoPath)
+      .then((generatedThumbnail) => {
+        setVideoThumbnailPaths((currentPaths) => ({ ...currentPaths, [videoUuid]: generatedThumbnail.path }));
+      })
+      .catch((err) => errorService.reportError(err));
+  }, [downloadingFile?.data.uuid, downloadingFile?.downloadedFilePath]);
 
   const focusedItemRef = useRef(focusedItem);
   focusedItemRef.current = focusedItem;
@@ -96,10 +100,10 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
 
   useThumbnailRegeneration(
     {
-      downloadedFilePath: downloadingFile?.downloadedFilePath,
-      fileExtension: focusedItem?.type,
-      fileUuid: focusedItem?.uuid,
-      hasThumbnails: !!(focusedItem?.thumbnails && focusedItem.thumbnails.length > 0),
+      downloadedFilePath: downloadedFilePaths[activeFile.uuid],
+      fileExtension: activeFile.type,
+      fileUuid: activeFile.uuid,
+      hasThumbnails: !!(activeFile.thumbnails && activeFile.thumbnails.length > 0),
     },
     {
       onSuccess: updateItemWithNewThumbnail,
@@ -141,14 +145,14 @@ export const DrivePreviewScreen: React.FC<RootStackScreenProps<'DrivePreview'>> 
         isActive={index === activeIndex}
         cachedFilePath={downloadedFilePaths[driveFile.uuid]}
         topbarVisible={topbarVisible}
-        videoThumbnailPath={generatedThumbnail?.path}
+        videoThumbnailPath={videoThumbnailPaths[driveFile.uuid]}
         pdfViewerSpacerHeight={pdfViewerSpacerHeight}
         onToggleTopbar={() => setTopbarVisible((isVisible) => !isVisible)}
         onHideTopbar={() => setTopbarVisible(false)}
         onZoomChange={setIsZoomed}
       />
     ),
-    [activeIndex, downloadedFilePaths, topbarVisible, generatedThumbnail?.path, pdfViewerSpacerHeight],
+    [activeIndex, downloadedFilePaths, topbarVisible, videoThumbnailPaths, pdfViewerSpacerHeight],
   );
 
   return (
