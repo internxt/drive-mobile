@@ -15,6 +15,8 @@ jest.mock('src/store/hooks', () => ({
 const startFilePreviewMock = startFilePreview as jest.Mock;
 const useAppDispatchMock = useAppDispatch as jest.Mock;
 
+const startedPreviewAction = { type: 'startFilePreview' };
+
 const aDriveFile = (uuid: string): DriveItemData => ({
   uuid,
   name: uuid,
@@ -27,6 +29,7 @@ const previewFiles = [aDriveFile('first-file'), aDriveFile('second-file'), aDriv
 
 const arrangeHook = (initialIndex = 0) => {
   const dispatch = jest.fn();
+  startFilePreviewMock.mockReturnValue(startedPreviewAction);
   useAppDispatchMock.mockReturnValue(dispatch);
   const rendered = renderHook(() => useActivePreviewFile(previewFiles, initialIndex));
 
@@ -53,7 +56,8 @@ describe('Changing the file shown in the preview', () => {
     });
 
     expect(result.current.activeFile.uuid).toBe('third-file');
-    expect(startFilePreviewMock).toHaveBeenCalledWith(dispatch, previewFiles[2]);
+    expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[2]);
+    expect(dispatch).toHaveBeenCalledWith(startedPreviewAction);
   });
 
   test('when the list reports landing on the same file twice in a row, then that file starts once', () => {

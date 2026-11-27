@@ -25,7 +25,7 @@ export const useActivePreviewFile = (previewFiles: DriveItemData[], initialIndex
       );
       activeIndexRef.current = newIndex;
       setActiveIndex(newIndex);
-      startFilePreview(dispatch, newActiveFile);
+      dispatch(startFilePreview(newActiveFile));
     },
     [dispatch, previewFiles],
   );

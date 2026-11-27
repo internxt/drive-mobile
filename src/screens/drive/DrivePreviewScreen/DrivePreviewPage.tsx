@@ -142,7 +142,7 @@ export const DrivePreviewPage = ({
               className="mt-5"
               title={strings.buttons.tryAgain}
               type={'white'}
-              onPress={() => startFilePreview(dispatch, driveFile)}
+              onPress={() => dispatch(startFilePreview(driveFile))}
             ></AppButton>
           </View>
         ) : null}
