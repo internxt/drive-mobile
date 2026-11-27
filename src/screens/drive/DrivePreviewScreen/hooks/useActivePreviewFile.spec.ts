@@ -93,7 +93,7 @@ describe('Changing the file shown in the preview', () => {
   });
 
   test('when the shown file is removed, then the next file is shown and starts', () => {
-    const { result } = arrangeHook(1);
+    const { result, dispatch } = arrangeHook(1);
 
     act(() => {
       result.current.removeFiles(['second-file']);
@@ -103,6 +103,7 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.activeFile.uuid).toBe('third-file');
     expect(result.current.activeIndex).toBe(1);
     expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[2]);
+    expect(dispatch).toHaveBeenCalledWith(startedPreviewAction);
   });
 
   test('when a file is removed, then the removal count goes up, and it stays when the file is not in the list', () => {
@@ -130,7 +131,7 @@ describe('Changing the file shown in the preview', () => {
   });
 
   test('when the shown last file is removed, then the previous file is shown and starts', () => {
-    const { result } = arrangeHook(2);
+    const { result, dispatch } = arrangeHook(2);
 
     act(() => {
       result.current.removeFiles(['third-file']);
@@ -139,10 +140,11 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.activeFile.uuid).toBe('second-file');
     expect(result.current.activeIndex).toBe(1);
     expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[1]);
+    expect(dispatch).toHaveBeenCalledWith(startedPreviewAction);
   });
 
   test('when several files are removed at once, including the shown one, then the closest remaining file before them is shown and starts', () => {
-    const { result } = arrangeHook(1);
+    const { result, dispatch } = arrangeHook(1);
 
     act(() => {
       result.current.removeFiles(['second-file', 'third-file']);
@@ -152,6 +154,7 @@ describe('Changing the file shown in the preview', () => {
     expect(result.current.activeIndex).toBe(0);
     expect(result.current.activeFile.uuid).toBe('first-file');
     expect(startFilePreviewMock).toHaveBeenCalledWith(previewFiles[0]);
+    expect(dispatch).toHaveBeenCalledWith(startedPreviewAction);
   });
 
   test('when the only file is removed, then the list is empty', () => {
