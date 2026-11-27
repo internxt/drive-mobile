@@ -3,7 +3,7 @@ import { DownloadedThumbnail } from '@internxt-mobile/types/drive/file';
 import { DriveItemData } from '@internxt-mobile/types/drive/item';
 import { DownloadingFile } from '@internxt-mobile/types/drive/operations';
 import { configureStore } from '@reduxjs/toolkit';
-import { act, render } from '@testing-library/react-native';
+import { act, render, waitFor } from '@testing-library/react-native';
 import strings from 'assets/lang/strings';
 import { Animated, Dimensions, StyleSheet } from 'react-native';
 import { Bar as ProgressBar } from 'react-native-progress';
@@ -187,8 +187,9 @@ describe('Drive preview page', () => {
       isActive: true,
       downloadingFile: aDownload({ error: 'Download failed' }),
     });
+    await waitFor(() => expect(getThumbnailMock).toHaveBeenCalled());
     await act(async () => {
-      await Promise.resolve();
+      await getThumbnailMock.mock.results[0].value;
     });
 
     expect(queryByTestId('drive-preview-thumbnail')).toBeNull();
